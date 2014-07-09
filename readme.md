@@ -1,4 +1,7 @@
-# Reggie! Level Editor (Release Next Milestone 2 Alpha 0)
+# Reggie! Level Editor
+(Release Next Milestone 2 Alpha 0)
+
+----------------------------------------------------------------
 
 Homepage: http://rvlution.net/reggie/  
 Support:  http://rvlution.net/forums/
@@ -16,10 +19,11 @@ This release contains many improvements, in addition to code imports from the fo
  * "Reggie! Level Editor Mod (Newer Sprites) 3.8.1" by Kamek64 and MalStar1000
  * "NeweReggie! (Extension to Reggie! Level Editor)" by Treeki and angelsl
 
-Source code package for this release can be found at:
-http://rvlution.net/forums/
+Source code package for this release can be found at:  
+http://rvlution.net/forums/  
 Navigate to Releases -> Reggie! Next
 
+----------------------------------------------------------------
 
 ### Requirements
 
@@ -55,12 +59,12 @@ Other Testers and Contributors:
 
 ### Dependencies/Libraries/Resources
 
-Python 3 - Python Software Foundation (https://www.python.org)
-Qt 5 - Nokia (http://qt.nokia.com)
-PyQt 5 - Riverbank Computing (http://www.riverbankcomputing.co.uk/software/pyqt/intro)
-PyQtRibbon - RoadrunnerWMC
-Wii.py - megazig, Xuzz, The Lemon Man, Matt_P, SquidMan, Omega (http://github.com/icefire/Wii.py)
-Interface Icons - FlatIcons (http://flaticons.net)
+Python 3 - Python Software Foundation (https://www.python.org)  
+Qt 5 - Nokia (http://qt.nokia.com)  
+PyQt 5 - Riverbank Computing (http://www.riverbankcomputing.co.uk/software/pyqt/intro)  
+PyQtRibbon - RoadrunnerWMC  
+Wii.py - megazig, Xuzz, The Lemon Man, Matt_P, SquidMan, Omega (http://github.com/icefire/Wii.py)  
+Interface Icons - FlatIcons (http://flaticons.net)  
 cx_Freeze (optional) - Anthony Tuininga (http://cx-freeze.sourceforge.net)
 
 
@@ -69,6 +73,7 @@ cx_Freeze (optional) - Anthony Tuininga (http://cx-freeze.sourceforge.net)
 Reggie! is released under the GNU General Public License v3.
 See the license file in the distribution for information.
 
+----------------------------------------------------------------
 
 ## Changelog
 
@@ -131,7 +136,7 @@ Release Next (Public Beta 1): (November 1st, 2013)
    420: Giant Glow Block (UPDATE)  
    433: Floating Question Block (UPDATE)  
    447: Underwater Lamp (UPDATE)  
-   451: Little Mouser Despawner  
+   451: Little Mouser Despawner
  * Various bug fixes.
 
 
