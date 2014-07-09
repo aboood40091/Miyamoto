@@ -58,7 +58,6 @@ import TPL
 ReggieID = 'Reggie! Level Editor Next by Treeki, Tempus, RoadrunnerWMC'
 ReggieVersion = 'Next Milestone 2'
 UpdateURL = 'http://rvlution.net/reggie/updates.xml'
-#UpdateURL = 'file:///E:/updates.xml'
 
 
 if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
