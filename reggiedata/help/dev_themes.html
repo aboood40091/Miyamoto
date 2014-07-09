@@ -1,0 +1,559 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		
+		<title>Themes</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="style/stylesBlack.css"  />
+		<link rel="stylesheet" type="text/css" media="screen" href="style/black.css" />
+	</head>
+	
+<body>
+<div id="container"><!-- Start container -->
+
+	<div class="top">&nbsp;</div>
+	
+	<div id="pageHeader"><!-- Start page header -->
+		<a href="index.html"><img src="style/images/button_main.png" align="right" hspace="12" onMouseOver="this.src='style/images/button_main_hl.png'" onMouseOut="this.src='style/images/button_main.png'"></a>
+		<h1>Reggie! Developers' Documentation</h1>
+		<h2>The New Super Mario Bros. Wii Editor program</h2>
+	</div><!-- End page header -->
+
+	<div id="navcontainer"><!-- Start Navigation -->
+        <ul>
+            <li><a href="dev_index.html" rel="self">Index</a></li>
+            <li><a href="dev_themes.html" rel="self" id="current">Themes</a></li>
+            <li><a href="dev_translations.html" rel="self">Translations</a></li>
+            <li><a href="dev_gamepatches.html" rel="self">Game Patches</a></li>
+			<li><a href="dev_spriteimgs.html" rel="self">Sprite Images</a></li>
+        </ul>
+	</div><!-- End navigation -->
+	
+	<div id="contentContainer"><!-- Start main content wrapper -->
+		<div id="content"><!-- Start content -->
+
+			<!-- Main info -->
+            <h1><b>Reggie! Themes</b></h1>
+                <p>This page will explain how to create Reggie! Themes plug-ns. Minimally, themes define how in-editor objects are colored. They can also contain a custom icon set and change the UI style.</p>
+				
+			<!-- Index -->
+			<h2><b>Index</b></h2>
+				<p>Use the following links to navigate this page:<br>
+				<a href="#HowHardWillItBe">How Hard will it Be?</a><br>
+				<a href="#CreatingMainXml">Getting Started: Creating main.XML</a><br>
+				<a href="#SettingUpMainXml">Setting Up main.xml</a><br>
+				<a href="#AddingColors">Adding Colors</a><br>
+				<a href="#AddingIcons">Adding Icons</a><br>
+				<a href="#ChangingTheUiStyle">Changing the UI Style</a><br>
+				<a href="#ThemeColorReference">Theme Color Reference</a><br>
+				</p>
+				<p><br></p>
+				
+			<!-- How Hard will it Be? -->
+			<a name="HowHardWillItBe"></a>
+			<h2><b>How Hard will it be?</b></h2>
+				<p>Themes are the easiest type of Reggie! plug-in to create. You only need to work with one XML file unless you plan to add custom icons. Before starting, though, you need to know what XML files are and how to make them. If you're not familiar with that, Google it and then continue.</p>
+				
+			<!-- Getting Started: Creating main.xml -->
+			<a name="CreatingMainXml"></a>
+			<h2><b>Getting Started: Creating main.xml</b></h2>
+                <p>Firstly, every Reggie! theme must be located within reggiedata/themes. To create a new theme, make an empty XML file in that folder. You can name it anything as long as it ends with ".xml". Open it with any plain-text editor or XML editor.</p>
+
+			<!-- Setting up main.xml -->
+			<a name="SettingUpMainXml"></a>
+			<h2><b>Setting Up main.xml</b></h2>
+                <p>After opening the file, add the following code:</p>
+				<div class="code">
+					&lt;?xml version="1.0"?&gt;<br>
+					&lt;theme name="" version="1.0" creator="" description=""&gt;<br>
+					&lt;/theme&gt;<br>
+				</div>
+				<p>Now you need to fill in the empty attributes. Inside <i>name=""</i>, insert the theme name. Add your username as the value of <i>creator</i>, and describe your theme in <i>description</i>.</p>
+
+			<!-- Adding colors -->
+			<a name="AddingColors"></a>
+			<h2><b>Adding Colors</b></h2>
+				<p>Now we need to add colors to the theme. Colors are defined between the <i>&lt;theme&gt;</i> and <i>&lt;/theme&gt;</i> tags as <i>&lt;color /&gt;</i> tags. Here's the format of those:</p>
+				<div class="code">
+					&lt;color id="value" r="value" g="value" b="value" <i>a="value"</i> /&gt;<br>
+				</div>
+				<p>To create a color tag, you need to know specifically which color you want to change. At the end of this page is a Theme Color Reference; use that to find valid IDs. IDs are case-insensitive, but the recommended capitalization is to use completely lower case letters.</p>
+				<p>After you've picked an ID, you need to decide on a new color to change it to. There are many ways of selecting an RGB (red-green-blue) color; Google it and find a website that lets you try different colors. Each value must be a decimal integer between 0 and 255. Once you have R, G, and B color values, you can decide on an A value. The A value determines the opacity of the color: <i>a="255"</i> would produce a fully opaque color whereas <i>a="0"</i> would produce a fully transparent color. Keep in mind that the A value is not required, but if you do not add it, Reggie! will use whatever A value the original color had.</p>
+				<p>You can add as many colors as you want, but please follow two guidelines:</p>
+				<ol>
+					<li>Don't repeat colors. There's no reason at all to do this. If you do, Reggie! will pick whichever color comes last.</li>
+					<li>Don't add entries for colors that you have not changed. Colors that are not defined within your theme XML will automatically switch to the Classic theme. Try to keep the size of your theme XML down to a minimum by removing unnecessary data such as this.</li>
+				</ol>
+				<p>Another thing you should know is that Reggie! can &quot;guess&quot; certain colors. You see, in the editor, certain colors are often identical. If you define one color in your theme but not another, Reggie! will assume that you want both of them to have the same value if they're usually identical. For example, if you define <i>location_fill</i> but not <i>overview_location_fill</i>, Reggie! will automatically set <i>overview_location_fill</i> to the new value of <i>location_fill</i>, rather than use the value defined by the Classic theme. In the <a href="#ThemeColorReference">Theme Color Reference</a> at the bottom of this page, the "Defaults To..." column shows the color Reggie! will use if a color is not defined.</p>
+				<p> </p>
+				
+			<!-- Adding Icons -->
+			<a name="AddingIcons"></a>
+			<h2><b>Adding Icons</b></h2>
+				<p>In addition to colors, Reggie! themes also support custom icons. While you can change the entire icon set, most themes with custom icons only change a few. No matter how many icons you change, the process is the same. Follow the steps below if you would like to do this:</p>
+				<ul>
+					<li>The first step is to add the following attribute to the <i>theme</i> tag of your XML:
+						<div class="code">
+							icons="True"
+						</div>
+						<i>"True"</i> is case-insensitive, but <i>icons</i> is not. It does not matter where you put the attribute, as long as it is in the <i>&lt;theme&gt;</i> tag.</li>
+					<li>Next, you need to do create a folder to store your custom icons in. Here are the two requirements:
+						<ol>
+							<li>The folder must be located in <i>reggiedata/themes/</i></li>
+							<li>The folder must be named <i>XMLFileName_ico</i> where XMLFileName is the filename of your XML file, without the .xml extention.</li>
+						</ol>
+						If you do not follow these, Reggie! will not be able to find the icons, and they will not be used.</li>
+					<li>Finally, you need to have some icons to put in that folder. Go to <i>reggiedata/ico/</i> . All of Reggie's default icons are stored within that folder. If you would like to modify them in your theme, copy-and-paste some into your new <i>XMLFileName_ico</i> folder, and edit them with any image editor. Instead, you could also make icons from scratch or download some free ones from the Internet. In order for Reggie! to recognize them, though, they must have the exact same filename as the icon they are replacing in <i>reggiedata/themes/</i> !</li>
+				</ul>
+				
+			<!-- Changing the UI Style -->
+			<a name="ChangingTheUiStyle"></a>
+			<h2><b>Changing the UI Style</b></h2>
+				<p>Reggie! Themes can also change the UI style. This feature dramatically alters the feel of the editor. To edit the style, add the following attribute to the <i>&lt;theme&gt;</i> tag in your theme XML:</p>
+				<div class="code">
+					ui=""
+				</div>
+				<p>Add the name of a style between the quotes. Different operating systems support different styles, but here's a list of styles available on most computers:</p>
+				<ul>
+					<li>windows</li>
+					<li>motif</li>
+					<li>cde</li>
+					<li>plastique</li>
+					<li>cleanlooks</li>
+				</ul>
+
+			<!-- Theme Color Reference -->
+			<a name="ThemeColorReference"></a>
+			<h2><b>Theme Color Reference</b></h2>
+				<p>The following table lists all valid theme color IDs and some basic information about each one. The R, G, B and A columns give the value of each color as it appears in the Classic theme. The "Defaults To..." column is explained at the end of the <a href="#AddingColors">Adding Colors</a> section above.</p>
+				
+				<table class="DataTable">
+					<!-- Header Row -->
+					<tr>
+						<th>ID</b></th>
+						<th>Description</th>
+						<th>R</th>
+						<th>G</th>
+						<th>B</th>
+						<th>A</th>
+						<th>Defaults to...</th>
+					</tr>
+					
+					<!-- Data Rows -->
+					<tr>
+						<td>bg</td>
+						<td>Background Color</td>
+						<td>119</td>
+						<td>136</td>
+						<td>153</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>comment_fill</td>
+						<td>Comments: Fill Color</td>
+						<td>220</td>
+						<td>212</td>
+						<td>135</td>
+						<td>120</td>
+						<td />
+					</tr>
+					<tr>
+						<td>comment_fill_s</td>
+						<td>Comments: Fill Color when Selected</td>
+						<td>254</td>
+						<td>240</td>
+						<td>240</td>
+						<td>240</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>comment_lines</td>
+						<td>Comments: Line Color</td>
+						<td>192</td>
+						<td>192</td>
+						<td>192</td>
+						<td>120</td>
+						<td />
+					</tr>
+					<tr>
+						<td>comment_lines_s</td>
+						<td>Comments: Line Color when Selected</td>
+						<td>220</td>
+						<td>212</td>
+						<td>135</td>
+						<td>240</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>entrance_fill</td>
+						<td>Entrances: Fill Color</td>
+						<td>190</td>
+						<td>0</td>
+						<td>0</td>
+						<td>120</td>
+						<td />
+					</tr>
+					<tr>
+						<td>entrance_fill_s</td>
+						<td>Entrances: Fill Color when Selected</td>
+						<td>190</td>
+						<td>0</td>
+						<td>0</td>
+						<td>240</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>entrance_lines</td>
+						<td>Entrances: Line Color</td>
+						<td>0</td>
+						<td>0</td>
+						<td>0</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr>
+						<td>entrance_lines_s</td>
+						<td>Entrances: Line Color when Selected</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>grid</td>
+						<td>Grid Color</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>100</td>
+						<td />
+					</tr>
+					<tr>
+						<td>mainmenu_buttons</td>
+						<td>Main Menu Buttons: Background Color</td>
+						<td colspan="5">Default for the current style</td>
+					</tr>
+					<tr class="alt">
+						<td>location_fill</td>
+						<td>Locations: Fill Color</td>
+						<td>114</td>
+						<td>42</td>
+						<td>188</td>
+						<td>70</td>
+						<td />
+					</tr>
+					<tr>
+						<td>location_fill_s</td>
+						<td>Locations: Fill Color when Selected</td>
+						<td>170</td>
+						<td>128</td>
+						<td>215</td>
+						<td>100</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>location_lines</td>
+						<td>Locations: Line Color</td>
+						<td>0</td>
+						<td>0</td>
+						<td>0</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr>
+						<td>location_lines_s</td>
+						<td>Locations: Line Color when Selected</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>location_text</td>
+						<td>Locations: Location ID Text Color</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr>
+						<td>object_fill_s</td>
+						<td>Objects: Fill Color when Selected</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>64</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>object_lines_s</td>
+						<td>Objects: Line Color when Selected</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr>
+						<td>overview_entrance</td>
+						<td>Overview: Entrance Fill Color</td>
+						<td>255</td>
+						<td>0</td>
+						<td>0</td>
+						<td>255</td>
+						<td>entrance_fill</td>
+					</tr>
+					<tr class="alt">
+						<td>overview_location_fill</td>
+						<td>Overview: Location Fill Color</td>
+						<td>114</td>
+						<td>42</td>
+						<td>188</td>
+						<td>50</td>
+						<td>location_fill</td>
+					</tr>
+					<tr>
+						<td>overview_location_lines</td>
+						<td>Overview: Location Lines Color</td>
+						<td>0</td>
+						<td>0</td>
+						<td>0</td>
+						<td>255</td>
+						<td>location_lines</td>
+					</tr>
+					<tr class="alt">
+						<td>overview_object</td>
+						<td>Overview: Object Fill Color</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr>
+						<td>overview_sprite</td>
+						<td>Overview: Sprite Fill Color</td>
+						<td>0</td>
+						<td>92</td>
+						<td>196</td>
+						<td>255</td>
+						<td>sprite_fill</td>
+					</tr>
+					<tr class="alt">
+						<td>overview_viewbox</td>
+						<td>Overview: "Current View" Rectangle Color</td>
+						<td>0</td>
+						<td>0</td>
+						<td>255</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr>
+						<td>overview_zone_fill</td>
+						<td>Overview: Zone Fill Color</td>
+						<td>47</td>
+						<td>79</td>
+						<td>79</td>
+						<td>120</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>overview_zone_lines</td>
+						<td>Overview: Zone Lines Color</td>
+						<td>0</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>zone_lines</td>
+					</tr>
+					<tr>
+						<td>path_connector</td>
+						<td>Paths: Connecting Lines Color</td>
+						<td>6</td>
+						<td>249</td>
+						<td>20</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>path_fill</td>
+						<td>Paths: Fill Color</td>
+						<td>6</td>
+						<td>249</td>
+						<td>20</td>
+						<td>120</td>
+						<td />
+					</tr>
+					<tr>
+						<td>path_fill_s</td>
+						<td>Paths: Fill Color when Selected</td>
+						<td>6</td>
+						<td>249</td>
+						<td>20</td>
+						<td>240</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>path_lines</td>
+						<td>Paths: Line Color</td>
+						<td>0</td>
+						<td>0</td>
+						<td>0</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr>
+						<td>path_lines_s</td>
+						<td>Paths: Line Color when Selected</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>ribbon</td>
+						<td>Ribbon: Accent Color</td>
+						<td>205</td>
+						<td>205</td>
+						<td>255</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr>
+						<td>smi</td>
+						<td>Sprite Movement Indicator*</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>80</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>sprite_fill_s</td>
+						<td>Sprite Images: Fill Color when Selected</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>64</td>
+						<td />
+					</tr>
+					<tr>
+						<td>sprite_lines_s</td>
+						<td>Sprite Images: Line Color when Selected</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>spritebox_fill</td>
+						<td>Sprites: Fill Color</td>
+						<td>0</td>
+						<td>92</td>
+						<td>196</td>
+						<td>120</td>
+						<td />
+					</tr>
+					<tr>
+						<td>spritebox_fill_s</td>
+						<td>Sprites: Fill Color when Selected</td>
+						<td>0</td>
+						<td>92</td>
+						<td>196</td>
+						<td>240</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>spritebox_lines</td>
+						<td>Sprites: Line Color</td>
+						<td>0</td>
+						<td>0</td>
+						<td>0</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr>
+						<td>spritebox_lines_s</td>
+						<td>Sprites: Line Color</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>ui</td>
+						<td>User Interface Color</td>
+						<td colspan="5">Default for the current style</td>
+					</tr>
+					<tr>
+						<td>watermark</td>
+						<td>Main Menu: Watermark Color</td>
+						<td>0</td>
+						<td>0</td>
+						<td>0</td>
+						<td>36</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>zone_lines</td>
+						<td>Zones: Line Color</td>
+						<td>145</td>
+						<td>200</td>
+						<td>255</td>
+						<td>176</td>
+						<td />
+					</tr>
+					<tr>
+						<td>zone_corner</td>
+						<td>Zones: Corner Color</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td>255</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td>zone_dark_fill</td>
+						<td>Zones: Fill Color when Darkness is Enabled</td>
+						<td>0</td>
+						<td>0</td>
+						<td>0</td>
+						<td>48</td>
+						<td />
+					</tr>
+					<tr>
+						<td>zone_text</td>
+						<td>Zones: Zone ID Text Color</td>
+						<td>44</td>
+						<td>64</td>
+						<td>84</td>
+						<td>255</td>
+						<td />
+					</tr>
+				</table>
+				<p><i>*See sprites 96 and 212 for examples of this.</i></p>
+                <p><br></p>
+ 
+			<div class="clearer"></div>
+
+		</div><!-- End content -->
+	</div><!-- End main content wrapper -->
+	
+   <div class="clearer"></div>
+   
+        <div id="footer"><!-- Start Footer -->
+        	<p>&copy; 2009 Treeki, Tempus, etc... &copy; 2013 RoadrunnerWMC</p>
+        </div><!-- End Footer -->
+        
+   <div class="bottom">&nbsp;</div>
+   
+</div><!-- End container -->
+</body>
+</html>

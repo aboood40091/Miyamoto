@@ -1,0 +1,293 @@
+
+body {
+	text-align: center;
+	font-size: 0.75em;
+	line-height: 1.35em;
+	font-family: Tahoma, Verdana, Helvetica, Arial;
+	color: #6F6F6F;
+	margin: 12px 30px;
+	background: #000014;
+	padding: 0;
+}
+
+img {
+	border-style: none;
+}
+
+.image-left {
+	float: left;
+}
+
+.image-right {
+	float: right;
+}
+	
+.clearer {
+	clear: both;
+}
+
+#container {
+	width: 684px;
+	background: repeat-y  url(images/container_bg_black.png);	margin: 0px auto;	text-align: left;
+	text-shadow: 0px 1px 0px #ffffff;
+	line-height: 1.5em;
+}
+
+#container .top {
+	background: url(images/container_top.png) no-repeat;
+	width: 684px;
+	height: 9px;
+}
+
+#container .bottom {
+	background: url(images/container_bottom_black.png) no-repeat;
+	width: 684px;
+	height: 9px;
+	position: absolute;
+}
+
+p {
+    padding: 0px 0px 0px 28px;
+	text-indent: 12px;
+}
+
+#pageHeader {
+	background: url(images/header_bg.png) repeat-x;
+	height: 47px;
+	text-align: left;
+}
+
+#pageHeader img {
+}
+
+#pageHeader h1 {
+	color: #333333;
+	margin: 0px;
+	font-weight: bold;
+	padding: 0px 0px 0px 28px;
+	letter-spacing: 2px;
+	font-size: 1.8em;
+}
+
+#pageHeader h2 {
+	margin: 0px;
+	font-weight: normal;
+	padding: 0px 0px 0px 28px;
+	letter-spacing: 1px;
+	font-size: 1em;
+}
+
+#contentContainer {
+	text-align: left;
+	width: 684px;
+	padding-top: 10px;
+	float: left;
+
+}
+
+#contentContainer #content {
+	padding-right: 10px;
+	padding-left: 28px;
+	line-height: 2em;
+}
+
+#footer {
+	text-align: left;
+	margin-top: 15px;
+	border-top: 1px solid #adadad;
+	margin-right: 4px;
+	margin-left: 4px;
+}
+
+#footer p {
+	margin: 0;
+	padding: 10px 0 5px 24px;
+	font-size: 0.9em;
+}
+
+#footer a:link, #footer a:visited {
+}
+
+#footer a:hover, #footer a:active {
+}
+	
+
+/* Navbar */
+
+#navcontainer {
+	height: 33px;
+	width: 676px;
+	padding: 0;
+	margin: 0px 4px 40px 4px;
+	background: url(images/navcontainer_bg_black.png) repeat-x;
+	position: relative;
+}
+
+#navcontainer #current {
+	font-weight: bold;
+}
+
+#navcontainer .currentAncestor {
+	font-weight: bold;
+}
+
+/* Parent - Level 0 */
+
+#navcontainer ul{
+	list-style: none;
+	padding: 0;
+	margin: 0 0 0 10px;
+}
+
+#navcontainer li {
+	display: inline;
+	float: left;
+}
+
+#navcontainer a{
+	width: 130px;
+	height: 32px;
+	display: block;
+	margin: 0;
+	text-align: center;
+	text-decoration: none;
+	text-shadow: 0px 1px 0px #ffffff;
+	padding: 5px 0px 0px 0px;
+	font-weight: bold;
+}
+
+#navcontainer a:hover {
+	font-weight: bold;
+}
+
+#navcontainer a:active {
+
+}
+
+/* Child - Level 1 */
+
+#navcontainer ul ul {
+	position: absolute;
+	left: 0;
+	top: 30px;
+	margin: 0;
+	width: 666px;
+	margin-left: 10px;
+}
+
+#navcontainer ul ul li {
+	display: inline;
+	float: left;
+}
+
+#navcontainer ul ul a {
+	background: none;
+	text-align: center;
+}
+
+#navcontainer ul ul a:hover {
+	background: none;
+}
+
+#navcontainer ul ul #current {
+	background: none;
+}
+
+/* Child - Level 2 */
+
+#navcontainer ul ul ul {
+	display: none;
+}
+
+/* end */
+
+
+blockquote {
+	color: #000000;
+	font-style: italic;
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+h1 {
+	font-size: 2em;
+	margin: 0 0 3px;
+}
+
+h2 {
+	font-size: 1.4em;
+	margin: 0 0 3px;
+}
+
+h3 {
+	font-size: 1.2em;
+	margin: 0 0 3px;
+}
+
+h4 {
+	font-size: 1em;
+	margin: 0 0 3px;
+}
+
+/* Main content area unordered list styles */
+#contentContainer #content ul {
+}
+
+#contentContainer #content li {
+}
+
+
+/* Table Styles */
+table {
+	font-size: 1em;
+	padding: 0px;
+	margin: 0px;
+}
+
+td {
+	padding: 2px;
+	line-height: 1.4em;
+}
+
+
+/* Tips */
+ul#tips li {
+	margin: 8px 20px 8px 0px;
+	padding-top: 8px;
+	border-top: 1px solid #adadad;
+	line-height: 1.4em;
+}
+
+/* Code */
+.code {
+	background: #F4F4F4;
+	font-family: "Courier New", Courier, monospace;
+	color: #008800;
+	margin-left: 32px; 
+	word-wrap: break-word;
+	}
+	
+/* Some text needs to stand out */
+.standout {
+	font-size: 1.5em;
+}
+	
+/* Data Tables */
+.DataTable {
+    border-collapse: collapse;
+    }
+	
+.DataTable th {
+    background-color: #000044;
+    color: #ffffff;
+    }
+
+.DataTable td{
+    border: 1px solid #888888;
+	color: #444444;
+    background-color: #F0F0F0;
+    }	
+
+.DataTable tr.alt td {
+    background-color: #E8E8E8;
+    }

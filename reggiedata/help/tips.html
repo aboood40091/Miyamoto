@@ -1,0 +1,290 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		
+		<title>Index Page</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="style/styles.css"  />
+		<link rel="stylesheet" type="text/css" media="screen" href="style/red.css" />
+	</head>
+	
+<body>
+<div id="container"><!-- Start container -->
+
+	<div class="top">&nbsp;</div>
+	
+	<div id="pageHeader"><!-- Start page header -->
+		<a href="dev_index.html"><img src="style/images/button_dev.png" align="right" hspace="12" onMouseOver="this.src='style/images/button_dev_hl.png'" onMouseOut="this.src='style/images/button_dev.png'"></a>
+		<h1>Reggie! Tips, Controls and Shortcuts</h1>
+		<h2>The New Super Mario Bros. Wii Editor program</h2>
+	</div><!-- End page header -->
+
+	<div id="navcontainer"  style="height:8px;"><!-- Start Navigation -->
+        <ul></ul>
+	</div><!-- End navigation -->
+	
+	<div id="contentContainer" style="padding-top: 0px;"><!-- Start main content wrapper -->
+		<div id="content"><!-- Start content -->
+
+            <p><h2>Tips</h2>
+            <ul id="tips">
+                <li>
+                    Objects and sprites are copied as text, so you can copy part of a level and paste it into anywhere that accepts it (a text file, forum post, chat window, etc).
+                    <br />
+                    As an example, try copying this and then using the Paste function in Reggie! for a :D face:
+                    <br />
+                    <div style='border: 1px solid #cccccc; padding: 2px 4px; -webkit-border-radius: 4px'>
+                        ReggieClip|0:0:53:1:297:40:5:1|0:0:53:1:297:41:1:1|0:0:53:1:298:42:3:1|
+                        0:0:53:1:301:41:1:1|0:0:53:1:298:38:1:1|0:0:53:1:300:38:1:1|%
+                    </div>
+                </li>
+                <li>
+                    Do you have specific structures you like to use often? You can copy them and then save them into a text document using the above tip - each time you need to use one, you can just copy it from the document, instead of recreating it manually in Reggie!.
+                </li>
+                <li>
+                    Not every sprite is straightforward to use. If you're having trouble setting up something, find an area within the default levels where it's used and compare your setup with Nintendo's setup - that should show you where you've gone wrong.
+                </li>
+                <li>
+                    You can use the options in the Edit menu to freeze/unfreeze specific item types, in order to make editing easier. When an item type is frozen (objects, sprites, entrances or locations) all items of that type will be unselectable - if you click on them, the editor will act as if they're not there.
+                    <br />
+                    This is especially useful when editing levels that use locations - if you freeze locations (this is set by default) you can edit the terrain and sprites below them easily.
+                </li>
+                <li>
+                    Many of the options in Reggie! - especially for zones and sprites - have help tips which are used to explain confusing or unclear options. If you don't understand something (or even if you do), place your mouse over it and leave it there for a few seconds - a helpful tip may appear!
+                </li>
+                <li>
+                    If you're encountering lag/slow rendering (especially when scrolling) then make sure you have the Grid option off. Some systems (especially Linux) have speed issues with the underlying method Reggie! uses to draw the grid.
+                </li>
+            </ul>
+            </p>
+            
+            <p><h2>Editor Shortcuts</h2>
+
+            <table cellspacing="0" cellpadding="0" border="1px" style="width: 98%;" >
+              <tbody>
+                <tr>
+                    <th style="width: 90px;">
+                        Shortcut
+                    </th>
+                    <th>
+                        Description
+                    </th>
+                <tr>
+                    <td valign="middle">
+                        Left-Click
+                    </td>
+                    <td valign="middle">
+                        Select an Item
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Right-Click
+                    </td>
+                    <td valign="middle">
+                        Paint an item from the palette - click and drag to set the size of a terrain object or sprite location
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Shift-Click
+                    </td>
+                    <td valign="middle">
+                        Select an item while preserving previous selection
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl/Cmd-Drag
+                    </td>
+                    <td valign="middle">
+                        Duplicates the clicked item and adds it to the selection
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Alt/Option-Drag
+                    </td>
+                    <td valign="middle">
+                        Allows you to move an item freely without it snapping to a grid - does not work on normal terrain objects
+                    </td>
+                </tr>
+              </tbody>
+            </table></p>
+            
+            
+            <p><h2>Keyboard Shortcuts</h2>
+
+            <table cellspacing="0" cellpadding="0" border="1px" style="width: 98%;" >
+              <tbody>
+                <tr>
+                    <th style="width: 90px;">
+                        Shortcut
+                    </th>
+                    <th>
+                        Description
+                    </th>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-N
+                    </td>
+                    <td valign="middle">
+                        Create a new level
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-O
+                    </td>
+                    <td valign="middle">
+                        Show the "Open Level by Name" dialog, allowing you to pick a level from the game data
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-Shift-O
+                    </td>
+                    <td valign="middle">
+                        Show the "Open Level by File" dialog, allowing you to choose a level file from somewhere on your system
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-N
+                    </td>
+                    <td valign="middle">
+                        Create a new level
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-S
+                    </td>
+                    <td valign="middle">
+                        Save the contents of the current level
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-Alt-G
+                    </td>
+                    <td valign="middle">
+                        Change the current folder Reggie! is using to load the game data
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-Shift-3
+                    </td>
+                    <td valign="middle">
+                        Take a screenshot of the level, or of a specific zone
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-A
+                    </td>
+                    <td valign="middle">
+                        Select everything in the level (except for frozen items)
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-X
+                    </td>
+                    <td valign="middle">
+                        Remove the currently selected items and place them into the clipboard
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-C
+                    </td>
+                    <td valign="middle">
+                        Place a copy of the currently selected items into the clipboard
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-V
+                    </td>
+                    <td valign="middle">
+                        Paste a copy of the clipboard into the center of the screen
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-1, 2, 3
+                    </td>
+                    <td valign="middle">
+                        Show/hide layers 0, 1 and 2 respectively
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-G
+                    </td>
+                    <td valign="middle">
+                        Show/hide the grid
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-+, -, =
+                    </td>
+                    <td valign="middle">
+                        Zoom in, out and to 100% respectively
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-M
+                    </td>
+                    <td valign="middle">
+                        Show/hide the level overview panel
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-Alt-A
+                    </td>
+                    <td valign="middle">
+                        Show the area settings dialog
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-Alt-Z
+                    </td>
+                    <td valign="middle">
+                        Show the zone settings dialog
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="middle">
+                        Ctrl-Alt-B
+                    </td>
+                    <td valign="middle">
+                        Show the background settings dialog
+                    </td>
+                </tr>
+              </tbody>
+            </table></p>
+
+			<div class="clearer"></div>
+
+		</div><!-- End content -->
+	</div><!-- End main content wrapper -->
+	
+   <div class="clearer"></div>
+   
+        <div id="footer"><!-- Start Footer -->
+        	<p>&copy; 2009 Treeki, Tempus, etc...</p>
+        </div><!-- End Footer -->
+        
+   <div class="bottom">&nbsp;</div>
+   
+</div><!-- End container -->
+</body>
+</html>

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<theme name="Sky" version="1.0" creator="RoadrunnerWMC" description="This theme can help you visualize sky levels." icons="True">
+    <color id="bg" r="120" g="155" b="255" />
+    <color id="entrance_fill" r="220" g="0" b="0" a="145" />
+    <color id="entrance_fill_s" r="190" g="0" b="0" />
+    <color id="location_fill" r="255" g="255" b="255" a="110" />
+    <color id="location_fill_s" r="255" g="255" b="255" a="220" />
+    <color id="location_lines" r="50" g="50" b="50" />
+    <color id="location_text" r="0" g="0" b="0" />
+    <color id="path_fill" r="6" g="249" b="20" a="145" />
+    <color id="path_fill_s" r="6" g="249" b="20" a="245" />
+    <color id="spritebox_fill" r="255" g="255" b="255" a="200" />
+    <color id="spritebox_fill_s" r="135" g="135" b="135" />
+    <color id="spritebox_lines" r="45" g="45" b="45" />
+    <color id="spritebox_lines_s" r="255" g="255" b="255" />
+    <color id="zone_lines" r="165" g="215" b="255" a="195" />
+</theme>

@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<theme name="Cavern" version="1.0" creator="RoadrunnerWMC" description="This theme can help you visualize underground levels.">
+    <color id="bg" r="54" g="154" b="144" />
+    <color id="ui" r="220" g="255" b="230" />
+    <color id="zone_text" r="255" g="255" b="255" />
+</theme>

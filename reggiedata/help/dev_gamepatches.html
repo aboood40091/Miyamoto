@@ -1,0 +1,299 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		
+		<title>Game Patches</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="style/stylesBlack.css"  />
+		<link rel="stylesheet" type="text/css" media="screen" href="style/black.css" />
+	</head>
+	
+<body>
+<div id="container"><!-- Start container -->
+
+	<div class="top">&nbsp;</div>
+	
+	<div id="pageHeader"><!-- Start page header -->
+		<a href="index.html"><img src="style/images/button_main.png" align="right" hspace="12" onMouseOver="this.src='style/images/button_main_hl.png'" onMouseOut="this.src='style/images/button_main.png'"></a>
+		<h1>Reggie! Developers' Documentation</h1>
+		<h2>The New Super Mario Bros. Wii Editor program</h2>
+	</div><!-- End page header -->
+
+	<div id="navcontainer"><!-- Start Navigation -->
+        <ul>
+            <li><a href="dev_index.html" rel="self">Index</a></li>
+            <li><a href="dev_themes.html" rel="self">Themes</a></li>
+            <li><a href="dev_translations.html" rel="self">Translations</a></li>
+            <li><a href="dev_gamepatches.html" rel="self" id="current">Game Patches</a></li>
+			<li><a href="dev_spriteimgs.html" rel="self">Sprite Images</a></li>
+        </ul>
+	</div><!-- End navigation -->
+	
+	<div id="contentContainer"><!-- Start main content wrapper -->
+		<div id="content"><!-- Start content -->
+
+			<!-- Main info -->
+            <h1><b>Reggie! Game Patches</b></h1>
+                <p>This page will explain how to create Reggie! Game Patches. Game patches are powerful plug-ins which alter the files Reggie! loads in order to reconfigure the editor for a particular NSMBW hack. In addition to standalone game patches, you can also use a "base" patch and work from there.</p>
+				
+			<!-- Index -->
+			<h2><b>Index</b></h2>
+				<p>Use the following links to navigate this page:<br>
+				<a href="#HowHardWillItBe">How Hard will it Be?</a><br>
+				<a href="#CreatingAFolder">Getting Started: Creating a Folder</a><br>
+				<a href="#SettingUpMainXml">Setting Up a Basic main.xml</a><br>
+				<a href="#CreatingReplacementFiles">Creating Replacement Files</a><br>
+				<a href="#AddingEntriesToMainXml">Adding Entries to main.xml</a><br>
+				<a href="#GamePatchBases">Game Patch Bases</a><br>
+				<a href="#ImportingIndividualFiles">Importing Individual Files</a><br>
+				<a href="#SpritenamesTxt">Spritenames.txt: The File that Doesn't Exist</a><br>
+				<a href="#EditReference">Edit Reference</a><br>
+				<a href="#FileFolderReference">File/Folder Reference</a><br>
+				</p>
+				<p><br></p>
+			
+			<!-- How Hard will it Be? -->
+			<a name="HowHardWillItBe"></a>
+			<h2><b>How Hard will it Be?</b></h2>
+				<p>The level of difficulty varies depending on how complicated your NSMBW hack is. Generally, game patches are easier to create for simple hacks, and harder to create for complex hacks. You do not need to know how to program unless you've used ASM to add custom sprites to your hack, in which case you already know how to program. For more on that, see the page about creating custom <a href="dev_spriteimgs.html">sprite images</a>.</p>
+				<p>The difficulty is relative - "simple" game patches are hard to make if you've never made one before. If you've never made one before, start with the most basic aspects, and gradually learn more advanced skills.</p>
+				<p>Game patches can take a very long time to make. &quot;Simple&quot; ones can take a few days, while complicated ones can take weeks or more. If you have only added a few basic things to your NSMBW hack such as levels, music, backgrounds and sprite textures, plan to spend several days creating a Reggie! game patch.</p>
+				<p>In addition, you need to know what XML files are and how to make them. If you're not familiar with that, Google it and then continue.</p>
+				
+			<!-- Getting Started -->
+			<a name="CreatingAFolder"></a>
+			<h2><b>Getting Started: Creating a Folder</b></h2>
+				<p>Every game patch resides in its own folder within <i>reggiedata/games/</i> . The first thing to do, then, is to make a new folder there. The name doesn't make a difference, but pick something unique and descriptive.</p>
+
+			<!-- Setting Up a Basic main.xml -->
+			<a name="SettingUpMainXml"></a>
+			<h2><b>Setting Up a Basic main.xml</b></h2>
+				<p>The first file to create is called main.xml. It contains basic information about the game patch and links to files and folders. Create a blank file called main.xml and put it in your game patch folder.</p>
+				<p>Open it with a text editor or XML editor, and add the following data:</p>
+				<div class="code">
+					&lt;?xml version="1.0"?&gt;<br>
+					&lt;game name="" version="" description=""&gt;<br>
+					&lt;/game&gt;<br>
+				</div>
+				<p>The name of the hack your game patch represents goes between the quotes in <i>name=""</i>, the latest version of the hack goes in <i>version=""</i>, and you can write a short description in <i>description=""</i>.</p>
+
+			<!-- Creating Replacement Files -->
+			<a name="CreatingReplacementFiles"></a>
+			<h2><b>Creating Replacement Files</b></h2>
+				<p>To replace files that Reggie! uses, you first need to have those replacements. At the bottom of this page is a <a href="#FileFolderReference">File/Folder Reference</a>, a list of files and folders you can modify with game patches. To determine which of those to replace, use the <a href="#EditReference">Edit Reference</a>, which is also near the bottom of this page.</p>
+				<p>Once you've decided which files to modify, decide which of them need to be overwritten and which of them need to be patched. The <a href="#FileFolderReference">File/Folder Reference</a> displays which files can be overwritten and which can be patched.</p>
+				<p>Now that you know which files to overwrite and which ones to patch, tackle them one by one. Each file you want to add to your game patch needs to be placed in the same folder as main.xml . Each folder must go there, too.</p>
+				<p>Modify each file accordingly. Most files Reggie! uses can be edited with a text editor such as Notepad, but image files need to be opened with an image editor. Every file has a different format, so learn how each one works accordingly.</p>
+				<p><u>Here's a tip:</u> If you want to patch reggiedata/spritedata.xml , don't copy-and-paste the default file into your game patch folder. This file in particular is very very large, and it takes a long time to selectively delete everything you don't need. Instead, create a blank file and add the following:</p>
+				<div class="code">
+					&lt;?xml version="1.0"?&gt;<br>
+					&lt;sprites&gt;<br>
+					&lt;/sprites&gt;<br>
+				</div>
+				<p> From there, copy-and-paste individual entries for sprites you want to modify.</p>
+				
+			<!-- Adding Entries to main.xml -->
+			<a name="AddingEntriesToMainXml"></a>
+			<h2><b>Adding Entries to Main.xml</b></h2>
+				<p>After you make a file or folder, you need to add a tag to main.xml so Reggie! recognizes it. There are two kinds of tags you can use:</p>
+				<div class="code">
+					&lt;file name="" <i>game=""</i> path="" <i>patch=""</i> /&gt;<br>
+					&lt;folder name="" <i>game=""</i> path="" /&gt;<br>
+				</div>
+				<p><i>File</i> tags specify individual files, and <i>folder</i> tags specify entire folders.</p>
+				<ul>
+					<li><b>Name</b> is not the filename. It's a unique descriptor ID. The File Table at the end of this document lists replaceable files and their IDs.</li>
+					<li><b>Game</b> is a rarely used option. You use the <i>game</i> attribute when you have copied files from another hack. If you've copied a file from, for example, Newer Super Mario Bros. Wii, you can set the <i>game</i> attribute to <i>"Newer Super Mario Bros. Wii"</i>, and it will load the file from Newer Super Mario Bros. Wii's game patch folder rather than yours. If left unspecified, the default setting is to use files from your game patch's folder.<br><i>Caution:</i> If no game patch with the specified name exists, the entire tag will be ignored.</li>
+					<li><b>Path</b> specifies the path to the new replacement file. The value is relative to your game patch's folder; so a path of <i>"reggiedata/games/ExampleGame/spritedata.xml"</i> should be entered as simply <i>"spritedata.xml"</i> .</li>
+					<li><b>Patch</b> is a case-insensitive boolean (<i>"true"</i> or <i>"false"</i>) value. It specifies whether the replacement file should be used to make changes to the original or if it should completely replace the original. If set to "true", the replacement file will only make changes to the original. If left unspecified, the default value is "true".</li>
+				</ul>
+				
+			<!-- Game Patch Bases -->
+			<a name="GamePatchBases"></a>
+			<h2><b>Game Patch Bases</b></h2>
+				<p>Not all NSMBW hacks are standalone. Some hacks, such as Newer Super Luigi Wii, are based off of another hack, such as Newer Super Mario Bros. Wii. If this applies to your hack, you can configure your game patch to automatically account for this.</p>
+				<p>The wrong way to do this for, say, Newer Super Luigi Wii would be to copy the entire NewerSMBW game patch and make changes. If the NewerSMBW game patch were to be updated, the Newer Super Luigi Wii patch would not reflect those updates. Instead, by using a &quot;game patch base,&quot; the Newer Super Luigi Wii game patch will be both smaller and easier to update.</p>
+				<p>So, how does this work? The Newer Super Luigi Wii game patch would only include files which have been modified after NewerSMBW's. The Newer Super Luigi Wii game patch would then need to add the following attribute to its <i>&lt;game&gt;</i> tag:</p>
+				<div class="code">
+					base="Newer Super Mario Bros. Wii"
+				</div>
+				<p>The value of the <i>base</i> attribute needs to be the same as the <i>name</i> attribute of the game patch you want to reference. Reggie! checks each game patch in <i>reggiedata/games/</i> until it finds one that matches. If no patch is found, the <i>base</i> attribute is ignored.</p>
+		
+			<!-- Importing Individual Files -->
+			<a name="ImportingIndividualFiles"></a>
+			<h2><b>Importing Individual Files</b></h2>
+				<p>If you have only copied a few aspects of a game into your hack, such as a some backgrounds from Another Super Mario Bros. Wii and a song from Newer Super Mario Bros. Wii, you can instruct Reggie! to import certain files from other game patches. This is different from using a game patch base because you only pick-and-choose specific files, whereas a base imports every file from another patch.</p>
+				<p>To import an individual file from a game patch, create a <i>&lt;file&gt;</i> or <i>&lt;folder&gt;</i> tag as if you had copied the file or folder directly into your game patch's folder. Then, add the following attribute:</p>
+				<div class="code">
+					game="Some Other Game Name"
+				</div>
+				<p>where "Some Other Game Name" would be something like "Another Super Mario Bros. Wii" or "Newer Super Mario Bros. Wii". As with game patch bases, Reggie! will search every game patch until it finds one with a matching <i>name</i>. If no matching game patch is found, the entire tag is ignored.</p>
+				
+			<!-- Spritenames.txt: The File that Doesn't Exist -->
+			<a name="SpritenamesTxt"></a>
+			<h2><b>Spritenames.txt: The File that Doesn't Exist</b></h2>
+				<p>One file which Reggie! allows you to patch is spritenames.txt . In the <a href="#FileFolderReference">File/Folder Reference</a>, you'll notice that it has a filename of &quot;<i>None (spritenames.txt)</i>.&quot; None? What does that mean? It means that there is no file named spritenames.txt that Reggie! uses normally. It can only hold the names of sprites, which are usually stored in spritedata.xml . "Why, then, can I patch this nonexistent and redundant file?" you wonder. The simple answer is that if you wanted to change only the sprite name for a complicated sprite without using this file, you would have to copy its entire entry in spritedata.xml into a custom one, which can both cause your spritedata.xml to become very cluttered and cause your game patch to become obsolete. (If new settings are discovered for this sprite, your game patch will not reflect those.) The solution is to create a spritenames.txt, which solves both of these problems at the same time.</p>
+				<p>The format of spritenames.txt is very simple. If you want to change the names of Goombas, Podoboos and Bowser to Fire Goombas, Icy Podoboos and Dry Bowser, respectively, you write:</p>
+				<div class="code">
+					20: Fire Goombas<br>
+					46: Icy Podoboos<br>
+					419: Dry Bowser<br>
+				</div>
+				<p>Some other things to note:<ul>
+					<li>It's good practice to order the entries numerically, though it's not required.</li>
+					<li>If you add a name entry for a sprite in both spritenames.txt and spritedata.xml, the name in spritenames.txt takes precedence and will be used.</li>
+					<li>If you want to change settings for a sprite along with its name, go ahead and patch reggiedata/spritenames.xml.</li>
+				</ul>
+				
+			<!-- Edit Reference -->
+			<a name="EditReference"></a>
+			<h2><b>Edit Reference</b></h2>
+				<p>The following list can help you determine which files you should replace.</p>
+				<p><span class="standout">I have...</span><ul>
+					<li><b>... changed the names, order and/or number of levels.</b><br>
+						Replace <i>reggiedata/levelnames.xml</i>.</li>
+					<li><b>... added and/or edited tilesets.</b><br>
+						Edit or replace <i>reggiedata/tilesets.xml</i>. If you've added or edited any Pa0 tilesets, you may also want to edit <i>reggiedata/ts1_descriptions.txt</i>.</li>
+					<li><b>... added and/or replaced background music.</b><br>
+						Edit or replace <i>reggiedata/music.txt</i>.</li>
+					<li><b>... added and/or edited backgrounds.</b><br>
+						Replace <i>reggiedata/bga.txt</i> and/or <i>reggiedata/bga.txt</i>, and add corresponding screenshots to <i>reggiedata/bga/</i> and/or <i>reggiedata/bgb/</i>. You can patch the entire <i>reggiedata/bga/</i> and/or <i>reggiedata/bgb/</i> folder(s) at once by using a folder tag instead of many file tags.</li>
+					<li><b>... edited the textures or models of one or more sprites.</b><br>
+						Replace <i>reggiedata/spritenames.txt</i> and the corresponding sprite image in <i>reggiedata/sprites/</i>. See the above <a href="#SpritenamesTxt">section on spritenames.txt</a>.</li>
+					<li><b>... added and/or edited one or more sprites using assembly code.</b><br>
+						Edit <i>reggiedata/spritedata.xml</i>, and replace the corresponding sprite image using the procedure described on the <a href="dev_spriteimgs.html">Sprite Images</a> page. You may also want to add your sprite to one or more categories by editing <i>reggiedata/spritecategories.xml</i>.</li>
+				</ul></p>
+				
+			<!-- File/Folder Reference -->
+			<a name="FileFolderReference"></a>
+			<h2><b>File/Folder Reference</b></h2>
+				<p>The following table lists all files and folders you can modify using game patches, and some information about each one.</p>
+				
+				<table class="DataTable">
+					<!-- Header Row -->
+					<tr>
+						<th>Filename</b></th>
+						<th>File ID</th>
+						<th>Supports Overwrite</th>
+						<th>Supports Patches</th>
+					</tr>
+					
+					<!-- Data Rows -->
+					<tr>
+						<td><i>Any file within reggiedata/bga</i></td>
+						<td>bga/<i>filename</i></td>
+						<td>&check;</td>
+						<td />
+					</tr>
+					<tr class="alt">
+						<td><i>Any file within reggiedata/bgb</i></td>
+						<td>bgb/<i>filename</i></td>
+						<td>&check;</td>
+						<td />
+					</tr>
+					<tr>
+						<td>reggiedata/bga.txt</td>
+						<td>bga</td>
+						<td>&check;</td>
+						<td>&check;</td>
+					</tr>
+					<tr class="alt">
+						<td>reggiedata/bgb.txt</td>
+						<td>bgb</td>
+						<td>&check;</td>
+						<td>&check;</td>
+					</tr>
+					<tr>
+						<td>reggiedata/entrancetypes.txt</td>
+						<td>entrancetypes</td>
+						<td>&check;</td>
+						<td>&check;</td>
+					</tr>
+					<tr class="alt">
+						<td>reggiedata/levelnames.xml</td>
+						<td>levelnames</td>
+						<td>&check;</td>
+						<td />
+					</tr>
+					<tr>
+						<td>reggiedata/music.txt</td>
+						<td>music</td>
+						<td>&check;</td>
+						<td>&check;</td>
+					</tr>
+					<tr class="alt">
+						<td>reggiedata/spritecategories.xml</td>
+						<td>spritecategories</td>
+						<td>&check;</td>
+						<td>&check;</td>
+					</tr>
+					<tr>
+						<td>reggiedata/spritedata.xml</td>
+						<td>spritedata</td>
+						<td />
+						<td>&check;</td>
+					</tr>
+					<tr class="alt">
+						<td><i>None (spritenames.txt)</i></td>
+						<td>spritenames</td>
+						<td />
+						<td>&check;</td>
+					</tr>
+					<tr>
+						<td>sprites.py</td>
+						<td>sprites</td>
+						<td />
+						<td>&check;</td>
+					</tr>
+					<tr class="alt">
+						<td>reggiedata/tilesets.xml</td>
+						<td>tilesets</td>
+						<td />
+						<td>&check;</td>
+					</tr>
+					<tr>
+						<td>reggiedata/ts1_descriptions.txt</td>
+						<td>ts1_descriptions</td>
+						<td>&check;</td>
+						<td>&check;</td>
+					</tr>
+				
+					<!-- Header Row (Folders)-->
+					<tr>
+						<th>Folder Name</b></th>
+						<th>Folder ID</th>
+						<th>Supports Overwrite</th>
+						<th>Supports Patches</th>
+					</tr>
+					
+					<!-- Data Rows (Folders) -->
+					<tr>
+						<td>reggiedata/bga/</td>
+						<td>bga</td>
+						<td />
+						<td>&check;</td>
+					</tr>
+					<tr class="alt">
+						<td>reggiedata/bgb/</td>
+						<td>bga</td>
+						<td />
+						<td>&check;</td>
+					</tr>
+				</table>
+				
+			<div class="clearer"></div>
+
+		</div><!-- End content -->
+	</div><!-- End main content wrapper -->
+	
+   <div class="clearer"></div>
+   
+        <div id="footer"><!-- Start Footer -->
+        	<p>&copy; 2009 Treeki, Tempus, etc... &copy; 2013 RoadrunnerWMC</p>
+        </div><!-- End Footer -->
+        
+   <div class="bottom">&nbsp;</div>
+   
+</div><!-- End container -->
+</body>
+</html>

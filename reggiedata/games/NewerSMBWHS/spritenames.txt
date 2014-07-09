@@ -1,0 +1,5 @@
+47:Ice Thwomp
+48:Big Ice Thwomp
+63:Snowball
+98:Giant Snowball
+195:Snow Crab

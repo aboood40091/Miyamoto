@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<theme name="Neon" version="1.0" creator="RoadrunnerWMC" description="A very dark theme with brightly colored accents.">
+
+    <color id="bg"   r="8"   g="8"   b="8" />
+    <color id="grid" r="255" g="255" b="255" a="45" />
+	<color id="ui"   r="24"  g="24"  b="24" />
+	
+	<color id="comment_fill"    r="127" g="127" b="0"   a="63" />
+    <color id="comment_fill_s"  r="127" g="127" b="0"   a="127" />
+	<color id="comment_lines"   r="255" g="255" b="0"   a="223" />
+	<color id="comment_lines_s" r="255" g="255" b="255" a="255" />
+	
+	<color id="entrance_fill"   r="255" g="0"   b="0"   a="15" />
+    <color id="entrance_fill_s" r="255" g="0"   b="0"   a="23" />
+	<color id="entrance_lines"  r="255" g="151" b="109" a="255" />
+	
+    <color id="location_fill"    r="100" g="0"   b="215" a="15" />
+    <color id="location_fill_s"  r="100" g="0"   b="215" a="101" />
+	<color id="location_lines"   r="177" g="143" b="255" a="255" />
+    <color id="location_lines_s" r="177" g="143" b="255" a="255" />
+
+	<color id="path_connector" r="23" g="255" b="0"  a="255" />
+	<color id="path_fill"      r="23" g="255" b="0"  a="15" />
+    <color id="path_fill_s"    r="23" g="255" b="0"  a="23" />
+	<color id="path_lines"     r="63" g="255" b="95" a="255" />
+	
+	<color id="smi" r="255" g="255"  b="255" a="40" />
+	
+	<color id="spritebox_fill"   r="0"   g="0"   b="255" a="15" />
+    <color id="spritebox_fill_s" r="0"   g="0"   b="255" a="23" />
+	<color id="spritebox_lines"  r="143" g="143" b="255" a="255" />
+    
+	<color id="zone_lines" r="110" g="192" b="255" a="255" />
+    <color id="zone_text"  r="245" g="245" b="245" />
+</theme>

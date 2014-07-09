@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<game name="Newer Super Mario Bros. Wii" version="1.0.3" description="All newer levels![br]Released by the Newer Team on June 8, 2013.">
+
+    <!-- Folders -->
+    <folder name="bga" path="bga" />
+    <folder name="bgb" path="bgb" />
+    <folder name="sprites" path="sprites" />
+
+    <!-- Background imports -->
+    <!-- None yet... -->
+
+    <!-- Files -->
+    <file name="levelnames" path="levelnames.xml" patch="False" />
+    <file name="music" path="music.txt" patch="False" />
+    <file name="spritedata" path="spritedata.xml" />
+    <file name="sprites" path="sprites.py" />
+    <file name="tilesets" path="tilesets.xml" />
+
+</game>

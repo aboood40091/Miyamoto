@@ -1,0 +1,50 @@
+0:None
+100:Airship
+101:Tower Boss
+102:Menu
+103:Underwater
+104:Mushrooms/Athletic
+105:Castle
+106:Main
+107:Mountain
+108:Tower
+109:Underground
+110:Desert
+111:Fire
+112:Forest
+113:Freezeflame
+114:Japan
+115:Pumpkin
+116:Sewer
+117:Space
+118:Bowser
+119:Bonus
+120:Ambush
+121:Bridge Drums
+122:Snow
+123:Mini-Mega
+124:Cliffs
+125:Autumn
+126:Crystal Caves
+127:Ghost House
+128:Graveyard
+129:Jungle
+130:Tropical
+131:Sky City
+132:Snow (2)
+133:Star Haven
+134:Singalong
+135:Factory
+136:Tank
+137:Train
+138:Yoshi House
+139:Factory (2)
+140:Cavern
+141:Sand
+142:Shy Guy
+143:Minigame
+144:Bonus Area
+145:Challenge
+146:Bowser's Castle
+147:Castle Boss
+148:Airship Boss

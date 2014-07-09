@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		
+		<title>Index Page</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="style/styles.css"  />
+		<link rel="stylesheet" type="text/css" media="screen" href="style/red.css" />
+	</head>
+	
+<body>
+<div id="container"><!-- Start container -->
+
+	<div class="top">&nbsp;</div>
+	
+	<div id="pageHeader"><!-- Start page header -->
+		<a href="dev_index.html"><img src="style/images/button_dev.png" align="right" hspace="12" onMouseOver="this.src='style/images/button_dev_hl.png'" onMouseOut="this.src='style/images/button_dev.png'"></a>
+		<h1>Reggie! Help Documentation</h1>
+		<h2>The New Super Mario Bros. Wii Editor program</h2>
+	</div><!-- End page header -->
+
+	<div id="navcontainer"><!-- Start Navigation -->
+        <ul>
+            <li><a href="index.html" rel="self">Index</a></li>
+            <li><a href="start.html" rel="self">Getting Started</a></li>
+            <li><a href="editor.html" rel="self">Editor Window</a></li>
+            <li><a href="screenshots.html" rel="self">Screenshots</a></li>
+            <li><a href="saving.html" rel="self">Saving</a></li>
+            <li><a href="zones.html" rel="self">Zones</a></li>
+            <li><a href="objects.html" rel="self">Objects</a></li>
+            <li><a href="sprites.html" rel="self" id="current">Sprites</a></li>
+            <li><a href="entrances.html" rel="self">Entrances</a></li>
+            <li><a href="area.html" rel="self">Areas</a></li>
+        </ul>
+	</div><!-- End navigation -->
+	
+	<div id="contentContainer"><!-- Start main content wrapper -->
+		<div id="content"><!-- Start content -->
+
+            <h1><b>Sprites</b></h1>
+                <p>All enemies, dongles, moving things, and interactible things in the game are known as sprites. Sprites are unique to themselves, and contain several special properties for themselves alone. Sprites can generally not be resized or tiled in particular ways, but you can use them in much more flexible and neat ways than you can with objects.</p>
+                <p><br></p>
+            
+            <h2><b>Sprite Palette</b></h2>
+                <p>The sprite palette allows you to select sprites for painting. Once a sprite is selected, some data fields will appear on the bottom of the palette. This allows you to set the initial data for a sprite. Paint a sprite selected in the palette by right clicking. Sprites can not be resized, so dragging does nothing. Sprites will be painted with the properties selected below. You can have any number of sprites in a level - having too many on screen can cause slowdown in game.</p>
+                <p>You can also change the properties of a sprite at any time by selecting a sprite. This will cause the sprite properties window to pop-up, allowing you to change the data as you see fit. Using sprite properties wisely is the key to making fun and enjoyable levels.</p>
+                <p><br></p>
+
+            <h2><b>Sprite Properties Box</b></h2>
+                <p>This box will pop up whenever you select a sprite. Feel free to resize, move, or dock this window. It will use a variety of combo boxes, check boxes, and spin boxes to get user input from you as to how exactly you want a sprite to be.</p>
+                <p>There is also a raw data modifier, which will allow advanced users to attempt to determine if there are any unknown options available. All sprite data is kept within the spritedata.xml file inside the reggiedata folder. These same mysterious advanced users can edit it to add new features to the sprite property box. Advanced users can also create stars from lead, and pull fireflowers out of their sleeves.</p>
+                <p><br></p>
+                <p></p>
+            
+            <h2><b>Sprite Locations</b></h2>
+                <p>In some levels, you will see purple rectangles with a number at the corner which can be dragged and resized - these are locations for specific sprites. Some sprites (like Porcu-Puffer) allow you to create a location and use it to specify where the sprite will operate in. Others (like lava, water, quicksand and clouds) will appear inside the area occupied by the location.</p>
+                <p>To edit them, you can just select one and move it, or resize it using the grabber at the bottom right. A number will show at the top left of each location; this number can be used in the properties for associated sprites.</p>
+                <p>To create a new location, click on the Sprite Picker and select the "Paint New Sprite Area/Location" option. You can then right click and drag on the canvas in order to paint one - an ID will automatically be assigned to it.</p>
+                <p><br></p>
+
+            <p><a href="index.html">Back</a></p>
+ 
+			<div class="clearer"></div>
+
+		</div><!-- End content -->
+	</div><!-- End main content wrapper -->
+	
+   <div class="clearer"></div>
+   
+        <div id="footer"><!-- Start Footer -->
+        	<p>&copy; 2009 Treeki, Tempus, etc...</p>
+        </div><!-- End Footer -->
+        
+   <div class="bottom">&nbsp;</div>
+   
+</div><!-- End container -->
+</body>
+</html>

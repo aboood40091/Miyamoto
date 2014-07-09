@@ -1,0 +1,282 @@
+<?xml version="1.0"?>
+<levels>
+
+	<category name="World 1: Yoshi's Island">
+		<level file="01-01" name="World 1-1: Palm Beach" />
+		<level file="01-02" name="World 1-2: Yoshi Woods" />
+		<level file="01-03" name="World 1-3: Springwater Swamp" />
+		<level file="01-04" name="World 1-4: Growing Greenwood" />
+		<level file="01-15" name="World 1-Tower: Timber Tower" />
+		<level file="01-05" name="World 1-5: Fuzzy Canyon" />
+		<level file="01-06" name="World 1-6: Rainshed Pond" />
+		<level file="01-07" name="World 1-7: Tangle Temple" />
+		<level file="01-08" name="World 1-8: Switch Shift Groove" />
+		<level file="01-25" name="World 1-Castle: Creepcrack Castle" />
+		<level file="01-38" name="World 1-Ship: Derelict Airship" />
+		<level file="01-41" name="Yoshi House" />
+		<level file="01-99" name="Island Store" />
+		<level file="01-31" name="The Yellow Switch Palace" />
+		<level file="01-33" name="Challenge House A" />
+		<level file="01-34" name="Yoshi Music House" />
+	</category>
+
+	<category name="World 2: Rubble Ruins/Soggy Sewers">
+		<category name="Rubble Ruins">
+			<level file="02-01" name="World 2-1: Cactus Cove" />
+			<level file="02-05" name="World 2-5: Barrelband Wilds" />
+			<level file="02-06" name="World 2-6: Urchin Seasands" />
+			<level file="02-07" name="World 2-7: Windworn Dunes" />
+			<level file="02-08" name="World 2-8: Searing Sands" />
+			<level file="02-09" name="World 2-9: Pillar Pass" />
+			<level file="02-10" name="World 2-A: Fossil Tunnel" />
+			<level file="02-25" name="World 2-Castle: Pyramid Castle" />
+			<level file="02-38" name="World 2-Ship: Sandship" />
+		</category>
+		<category name="Soggy Sewers">
+			<level file="02-02" name="World 2-2: Gushing Gutter" />
+			<level file="02-03" name="World 2-3: Dripdrop Drains" />
+			<level file="02-04" name="World 2-4: Cascade Chasm" />
+			<level file="02-15" name="World 2-Tower: Pipeline Tower" />
+		</category>
+		<level file="02-33" name="Challenge House B" />
+		<level file="02-34" name="Desert Music House" />
+		<level file="02-99" name="Dusty Drugstore" />
+	</category>
+
+	<category name="World 3: Mushroom Peaks">
+		<level file="03-01" name="World 3-1: Chomproller Heights" />
+		<level file="03-03" name="World 3-2: Grimymole Mine" />
+		<level file="03-02" name="World 3-3: Butterwood Crossing" />
+		<level file="03-15" name="World 3-Tower: Burnblaze Tower" />
+		<level file="03-04" name="World 3-4: Wobbleshroom Cliffs" />
+		<level file="03-05" name="World 3-5: Fungi Pit" />
+		<level file="03-06" name="World 3-6: Bubble Basin" />
+		<level file="03-07" name="World 3-7: Slanty Shroomroad" />
+		<level file="03-25" name="World 3-Castle: Moltenwire Castle" />
+		<level file="03-38" name="World 3-Ship: Capshroom Airship" />
+		<level file="03-33" name="Challenge House C" />
+		<level file="03-34" name="Mushroom Music House" />
+		<level file="03-99" name="Mountain Mall" />
+	</category>
+
+	<category name="World 4: Sakura Village">
+		<level file="04-01" name="World 4-1: Bamboo Steppes" />
+		<level file="04-02" name="World 4-2: Flipblock Orchard" />
+		<level file="04-03" name="World 4-3: Cherry Falls" />
+		<level file="04-04" name="World 4-4: Petal Lake" />
+		<level file="04-15" name="World 4-Tower: Blossom Tower" />
+		<level file="04-05" name="World 4-5: Vine Chasm" />
+		<level file="04-06" name="World 4-A: Hilltop Town" />
+		<level file="04-07" name="World 4-6: Rooftop Hop" />
+		<level file="04-08" name="World 4-7: Thunder Bridge" />
+		<level file="04-25" name="World 4-Castle: Samurai Castle" />
+		<level file="04-38" name="World 4-Ship: Nutscrew Airship" />
+		<level file="04-31" name="The Green Switch Palace" />
+		<level file="04-33" name="Challenge House D" />
+		<level file="04-34" name="Village Music House" />
+		<level file="04-99" name="Sakura Souvenirs" />
+	</category>
+
+	<category name="World 5: Freezeflame Glacier/Freezeflame Volcano">
+		<category name="Freezeflame Glacier">
+			<level file="05-01" name="World 5-1: Snowfield Tundra" />
+			<level file="05-02" name="World 5-2: Snowball Field" />
+			<level file="05-03" name="World 5-3: Frosty Highlands" />
+			<level file="05-04" name="World 5-4: Frostbite Ridge" />
+			<level file="05-05" name="World 5-5: Snowfall Peak" />
+			<level file="05-15" name="World 5-Tower: Crystalfrost Tower" />
+			<level file="05-06" name="World 5-6: Molten Icelifts" />
+			<level file="05-25" name="World 5-Castle: Chillsear Castle" />
+			<level file="05-38" name="World 5-Ship: Snowdrift Airship" />
+		</category>
+		<category name="Freezeflame Volcano">
+			<level file="05-07" name="World 5-7: Penguin Heatbath" />
+			<level file="05-09" name="World 5-8: Magma Iceburrow" />
+			<level file="05-10" name="World 5-9: Glacier Lavalake" />
+			<level file="05-08" name="World 5-A: Lavafrost Cavern" />
+		</category>
+		<level file="05-34" name="Frosty Music House" />
+		<level file="05-99" name="Glacial Market" />
+	</category>
+
+	<category name="World 6: Pumpkin Boneyard">
+		<level file="06-01" name="World 6-1: Bonechill Shaft" />
+		<level file="06-02" name="World 6-2: Pumpkin Road" />
+		<level file="06-03" name="World 6-3: Fog Cemetary" />
+		<level file="06-07" name="World 6-A: Colossus House" />
+		<level file="06-15" name="World 6-Tower: Spookloft Tower" />
+		<level file="06-04" name="World 6-4: Glowlit Manor" />
+		<level file="06-05" name="World 6-5: Moonlit Woods" />
+		<level file="06-06" name="World 6-6: Cawcaw Treeway" />
+		<level file="06-08" name="World 6-7: Gloomsilt Lake" />
+		<level file="06-09" name="World 6-8: Sunken Boneyard" />
+		<level file="06-25" name="World 6-Castle: Delusion Castle" />
+		<level file="06-38" name="World 6-Ship: Shipwreck Galleon" />
+		<level file="05-33" name="Challenge House E" />
+		<level file="06-34" name="Haunted Music House" />
+		<level file="06-99" name="Haunted Emporium" />
+	</category>
+
+	<category name="World 7: Sky Mountain/Starry Sky">
+		<category name="Sky Mountain">
+			<level file="07-01" name="World 7-1: Shy Guy Peaks" />
+			<level file="07-02" name="World 7-2: Paratroopa Peaks" />
+			<level file="07-03" name="World 7-3: Beanstalk Ascent" />
+		</category>
+		<category name="Starry Sky">
+			<level file="07-04" name="World 7-4: Spacedust Heap" />
+			<level file="07-15" name="World 7-Tower: Electron Tower" />
+			<level file="07-05" name="World 7-5: Asteroid Belt" />
+			<level file="07-06" name="World 7-6: Spintop Nebula" />
+			<level file="07-07" name="World 7-7: Star Haven" />
+			<level file="07-08" name="World 7-8: Starfruit Garden" />
+			<level file="07-25" name="World 7-Castle: Novastar Castle" />
+			<level file="07-38" name="World 7-Ship: Spaceship Koopa" />
+		</category>
+		<level file="07-31" name="The Blue Switch Palace" />
+		<level file="06-33" name="Challenge House F" />
+		<level file="07-34" name="Space Music House" />
+		<level file="07-99" name="Star Bucks" />
+	</category>
+
+	<category name="World 8: Koopa Planet/Koopa Core">
+		<category name="Koopa Planet">
+			<level file="08-01" name="World 8-1: Batallion Frontier" />
+			<level file="08-02" name="World 8-2: Jet Airship" />
+			<level file="08-04" name="World 8-3: Burnstone Flowfalls" />
+			<level file="08-15" name="World 8-Tower: Factory Tower" />
+			<level file="08-03" name="World 8-4: Molten Airship" />
+			<level file="08-25" name="World 8-Castle: Bowser's Castle" />
+		</category>
+		<category name="Koopa Core">
+			<level file="08-05" name="World 8-Train: Underground Railroad" />
+			<level file="08-06" name="World 8-6: Volcano Rapids" />
+			<level file="08-07" name="World 8-7: Magmaworks Factory" />
+			<level file="08-16" name="World 8-Tower 2: Pendulum Tower" />
+			<level file="08-09" name="World 8-8: Eruption Crater" />
+			<level file="08-10" name="World 8-9: Ironworks Forge" />
+			<level file="08-08" name="World 8-A: Dragonride Firesea" />
+			<level file="08-24" name="World 8-Castle 2: Bowser's Keep" />
+		</category>
+		<level file="07-33" name="Challenge House G" />
+	</category>
+
+	<category name="World A: Goldwood Forest">
+		<level file="10-01" name="World A-1: Autumn Plateau" />
+		<level file="10-02" name="World A-2: Appletree Woods" />
+		<level file="10-03" name="World A-3: Fall Harvest" />
+		<level file="10-04" name="World A-A: Goldbuzz Forest" />
+		<level file="10-05" name="World A-Tower: Leafpile Fortress" />
+		<level file="10-37" name="Goldwood Music House" />
+		<level file="10-99" name="Fallmart" />
+	</category>
+
+	<category name="World B: Minimega Island">
+		<level file="10-06" name="World B-1: Mighty Meadow" />
+		<level file="10-07" name="World B-2: Pintsized Plains" />
+		<level file="10-08" name="World B-3: Troopashell Track" />
+		<level file="10-09" name="World B-4: Cheepcheep Creek" />
+		<level file="10-10" name="World B-Tower: Formidable Fortress" />
+		<level file="10-35" name="Minimega Music House" />
+	</category>
+
+	<category name="World C: Sky City">
+		<level file="10-19" name="World C-1: Manta Raid" />
+		<level file="10-22" name="World C-2: Nimbus Highway" />
+		<level file="10-23" name="World C-3: Parabeetle Peril" />
+		<level file="10-24" name="World C-4: Sprocket Skies" />
+		<level file="10-25" name="World C-Tower: Clockwork Tower" />
+	</category>
+
+	<category name="World D: Crystal Caves">
+		<level file="10-11" name="World D-1: Swooper Cellar" />
+		<level file="10-12" name="World D-2: Toxic Wigglershaft" />
+		<level file="10-13" name="World D-3: Spine Springs" />
+		<level file="10-14" name="World D-A: Carapace Catacomb" />
+		<level file="10-15" name="World D-Tower: Toxic Fortress" />
+		<level file="10-31" name="The Red Switch Palace" />
+		<level file="08-33" name="Challenge House H" />
+		<level file="10-36" name="Crystal Music House" />
+	</category>
+
+	<category name="World E: Bombard Cliffs">
+		<level file="10-16" name="World E-1: Bombshell Bridge" />
+		<level file="10-17" name="World E-2: Fallout Footbridge" />
+		<level file="10-18" name="World E-3: Bombassault Gorge" />
+	</category>
+
+	<category name="World 9: Special World">
+		<level file="09-01" name="World 9-1: Red Lava" />
+		<level file="09-02" name="World 9-2: Brown Forest" />
+		<level file="09-03" name="World 9-3: Orange Prairie" />
+		<level file="09-04" name="World 9-4: Yellow Beach" />
+		<level file="09-05" name="World 9-5: Mossdeep Greens" />
+		<level file="09-06" name="World 9-6: Blue Chilldesert" />
+		<level file="09-07" name="World 9-7: Navyblue Molemine" />
+		<level file="09-08" name="World 9-8: Purple Sewer" />
+		<level file="09-09" name="World 9-9: Grey Mountains" />
+		<level file="09-10" name="World 9-10: Black Clappers" />
+	</category>
+
+	<category name="Other">
+		<category name="Unused">
+			<level file="01-42" name="Yoshi House (Beta)" />
+			<level file="06-24" name="World 6-Tower (Beta)" />
+			<level file="08-26" name="World 8-Castle (Beta)" />
+			<level file="08-27" name="World 8-Castle Key Room 1" />
+			<level file="08-28" name="World 8-Castle Key Room 2" />
+			<level file="08-29" name="World 8-Castle Key Room 3" />
+			<level file="08-30" name="World 8-Castle Key Room 4" />
+			<level file="08-31" name="World 8-Castle Key Room 5" />
+			<level file="10-20" name="World C-?" />
+			<level file="09-11" name="World 9-11" />
+			<level file="09-12" name="World 9-12" />
+			<level file="09-13" name="World 9-13" />
+			<level file="09-14" name="World 9-14" />
+			<level file="09-16" name="World 9-16" />
+			<level file="09-17" name="World 9-17" />
+			<level file="09-18" name="World 9-18" />
+			<level file="09-19" name="World 9-19" />
+			<level file="09-22" name="World 9-22" />
+			<level file="09-25" name="World 9-22 (Unfinished)" />
+			<level file="08-42" name="Ending Cutscene (Copy)" />
+			<level file="10-33" name="Challenge House I (Unknown World)" />
+			<level file="10-34" name="Challenge House J (Unknown World)" />
+			<level file="09-33" name="Challenge House ?1 (World 9)" />
+			<level file="09-34" name="Challenge House ?2 (World 9)" />
+			<level file="09-35" name="Challenge House ?3 (World 9)" />
+			<level file="09-36" name="Challenge House ?4 (World 9)" />
+			<level file="08-34" name="Bowser Music House (World 8)" />
+			<level file="08-99" name="Block Market (World 8)" />
+			<level file="09-99" name="Special Shop (World 9)" />
+		</category>
+		<category name="Titlescreens">
+			<level file="01-40" name="Titlescreen: Corrupted Game" />
+			<level file="01-10" name="Titlescreen: New File" />
+			<level file="01-11" name="Titlescreen: Yoshi's Island" />
+			<level file="01-12" name="Titlescreen: Rubble Ruins" />
+			<level file="01-13" name="Titlescreen: Soggy Sewers" />
+			<level file="01-14" name="Titlescreen: Mushroom Peaks" />
+			<level file="02-11" name="Titlescreen: Sakura Village" />
+			<level file="02-12" name="Titlescreen: Freezeflame Glacier" />
+			<level file="02-13" name="Titlescreen: Freezeflame Volcano" />
+			<level file="02-14" name="Titlescreen: Pumpkin Boneyard" />
+			<level file="03-08" name="Titlescreen: Sky Mountain" />
+			<level file="03-09" name="Titlescreen: Starry Sky" />
+			<level file="03-10" name="Titlescreen: Koopa Planet" />
+			<level file="03-11" name="Titlescreen: Koopa Core" />
+			<level file="03-12" name="Titlescreen: Goldwood Forest" />
+			<level file="03-13" name="Titlescreen: Minimega Island" />
+			<level file="04-12" name="Titlescreen: Sky City" />
+			<level file="03-14" name="Titlescreen: Crystal Caves" />
+			<level file="04-09" name="Titlescreen: Bombard Cliffs" />
+			<level file="04-10" name="Titlescreen: Bowser Clear" />
+			<level file="04-11" name="Titlescreen: 100% Complete" />
+			<level file="05-11" name="Titlescreen: Warp Zone" />
+		</category>
+		<level file="02-41" name="Opening Cutscene" />
+		<level file="08-41" name="Ending Cutscene" />
+		<level file="07-41" name="Credits" />
+	</category>
+
+</levels>

@@ -1,0 +1,28 @@
+0:None
+1:Overworld
+2:Underground
+3:Underwater
+4:Mushrooms/Athletic
+5:Ghost House
+6:Pyramids
+7:Snow
+8:Lava
+9:Tower
+10:Castle
+11:Airship
+12:Bonus Area
+13:Drum Rolls
+14:Tower Boss
+15:Castle Boss
+16:Toad House
+17:Airship Boss
+18:Forest
+19:Enemy Ambush
+20:Beach
+21:Lava Cave
+22:Peach's Castle
+23:Credits Jazz
+24:Airship Drums
+25:Bowser
+26:Mega Bowser
+27:Epilogue

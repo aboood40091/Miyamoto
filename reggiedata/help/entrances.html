@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		
+		<title>Index Page</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="style/styles.css"  />
+		<link rel="stylesheet" type="text/css" media="screen" href="style/red.css" />
+	</head>
+	
+<body>
+<div id="container"><!-- Start container -->
+
+	<div class="top">&nbsp;</div>
+	
+	<div id="pageHeader"><!-- Start page header -->
+		<a href="dev_index.html"><img src="style/images/button_dev.png" align="right" hspace="12" onMouseOver="this.src='style/images/button_dev_hl.png'" onMouseOut="this.src='style/images/button_dev.png'"></a>
+		<h1>Reggie! Help Documentation</h1>
+		<h2>The New Super Mario Bros. Wii Editor program</h2>
+	</div><!-- End page header -->
+
+	<div id="navcontainer"><!-- Start Navigation -->
+        <ul>
+            <li><a href="index.html" rel="self">Index</a></li>
+            <li><a href="start.html" rel="self">Getting Started</a></li>
+            <li><a href="editor.html" rel="self">Editor Window</a></li>
+            <li><a href="screenshots.html" rel="self">Screenshots</a></li>
+            <li><a href="saving.html" rel="self">Saving</a></li>
+            <li><a href="zones.html" rel="self">Zones</a></li>
+            <li><a href="objects.html" rel="self">Objects</a></li>
+            <li><a href="sprites.html" rel="self">Sprites</a></li>
+            <li><a href="entrances.html" rel="self" id="current">Entrances</a></li>
+            <li><a href="area.html" rel="self">Areas</a></li>
+        </ul>
+	</div><!-- End navigation -->
+	
+	<div id="contentContainer"><!-- Start main content wrapper -->
+		<div id="content"><!-- Start content -->
+
+            <h1><b>Entrances</b></h1>
+                <p>Entrances allow you to set entry/exit points for your level, allowing Mario to move in and out of different areas and zones. At least one entry point is required per level, for Mario to appear when the level starts. This should be entrance ID 0, unless specified otherwise in the <a href="area.html" rel="self">Areas</a> dialog. Midpoints also require an entrance - the entrance need not be next to the midpoint, but it should be in the same Area, and we recommend the same zone. Good design would put them in the same location, but we both know you're evil, don't we? Remember that one entrance must be created per level, minimum, and its ID must correspond to the ID set in the Area Settings dialog.</p>
+                <p><br></p>
+            
+            <h2><b>Entrance Palette</b></h2>
+                <p>The entrance palette contains a list of entry/exit points available within a level, as well as some important data. You can paint a new entrance any time the palette is active by simply right-clicking on the canvas - no need to select anything. Entrances on the canvas act just like sprites - they can be selected, moved, and deleted. They cannot, however, be pasted from the clipboard.</p>
+                <p>Selecting an entry/exit point will pop up the properties dialogue box. This will allow you to set the destination for that entrance, as well as the type of entrance it is, and some other settings. The entrance MUST overlap a pipe or door in order to use those methods, otherwise they will not work.</p>
+                <p><br></p>
+                <p></p>
+            
+            <p><a href="index.html">Back</a></p>
+ 
+			<div class="clearer"></div>
+
+		</div><!-- End content -->
+	</div><!-- End main content wrapper -->
+	
+   <div class="clearer"></div>
+   
+        <div id="footer"><!-- Start Footer -->
+        	<p>&copy; 2009 Treeki, Tempus, etc...</p>
+        </div><!-- End Footer -->
+        
+   <div class="bottom">&nbsp;</div>
+   
+</div><!-- End container -->
+</body>
+</html>
