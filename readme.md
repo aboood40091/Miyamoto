@@ -24,9 +24,9 @@ Navigate to Releases -> Reggie! Next
 ### Requirements
 
 If you are using the source release:
- * Python 3.0 (or newer)  * http://www.python.org
- * PyQt 5.0 (or newer)  * http://www.riverbankcomputing.co.uk/software/pyqt/intro
- * NSMBLib 0.5a  * included with the source package (optional)
+ * Python 3.0 (or newer) - http://www.python.org
+ * PyQt 5.0 (or newer) - http://www.riverbankcomputing.co.uk/software/pyqt/intro
+ * NSMBLib 0.5a - included with the source package (optional)
 
 If you have a prebuilt/frozen release (for Windows or Mac OS), you don't need to install anything - all the required libraries are included.
 
@@ -78,7 +78,7 @@ Release Next (Milestone 2): (??)
 Release Next (Public Beta 1): (November 1st, 2013)
  * First beta version of Reggie! Next is finally released after a full year of work!
  * First release, may have bugs. Report any errors at the forums (link above).
- * The following sprites now render using new or updated images:
+ * The following sprites now render using new or updated images:  
    24:  Buzzy Beetle (UPDATE)  
    25:  Spiny (UPDATE)  
    49:  Unused Seesaw Platform  
