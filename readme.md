@@ -1,6 +1,6 @@
 # Reggie! Level Editor (Release Next Milestone 2 Alpha 0)
 
-Homepage: http://rvlution.net/reggie/
+Homepage: http://rvlution.net/reggie/  
 Support:  http://rvlution.net/forums/
 
 ----------------------------------------------------------------
@@ -79,59 +79,59 @@ Release Next (Public Beta 1): (November 1st, 2013)
  * First beta version of Reggie! Next is finally released after a full year of work!
  * First release, may have bugs. Report any errors at the forums (link above).
  * The following sprites now render using new or updated images:
-   24:  Buzzy Beetle (UPDATE)
-   25:  Spiny (UPDATE)
-   49:  Unused Seesaw Platform
-   52:  Unused 4x Self Rotating Platforms
-   55:  Unused Rising Seesaw Platform
-   87:  Unused Trampoline Wall
-   123: Unused Swinging Castle Platform
-   125: Chain-link Koopa Horizontal (UPDATE)
-   126: Chain-link Koopa Vertical (UPDATE)
-   132: Beta Path-controlled Platform
-   137: 3D Spiked Stake Down
-   138: Water (Non-location-based only)
-   139: Lava (Non-location-based only)
-   140: 3D Spiked Stake Up
-   141: 3D Spiked Stake Right
-   142: 3D Spiked Stake Left
-   145: Floating Barrel
-   147: Coin (UPDATE)
-   156: Red Coin Ring (UPDATE)
-   157: Unused Big Breakable Brick Block
-   160: Beta Path-controlled Platform
-   170: Powerup in a Bubble
-   174: DS One-way Gates
-   175: Flying Question Block (UPDATE)
-   179: Special Exit Controller
-   190: Unused Tilt-controlled Girder
-   191: Tile Event
-   195: Huckit Crab (UPDATE)
-   196: Fishbones (UPDATE)
-   197: Clam (UPDATE)
-   205: Giant Bubbles (UPDATE)
-   206: Zoom Controller
-   212: Rolling Hill (UPDATE)
-   216: Poison Water (Non-location-based only)
-   219: Line Block
-   222: Conveyor-belt Spike
-   233: Bulber (UPDATE)
-   262: Poltergeist Items (UPDATE)
-   268: Lava Geyser (UPDATE)
-   271: Little Mouser (UPDATE)
-   287: Beta Path-controlled Ice Block
-   305: Lighting - Circle
-   323: Boo Circle
-   326: King Bill (UPDATE)
-   359: Lamp (UPDATE)
-   368: Path-controlled Flashlight Raft
-   376: Moving Chain-link Fence (UPDATE)
-   416: Invisible Mini-Mario 1-UP (UPDATE)
-   417: Invisible Spin-jump coin (UPDATE)
-   420: Giant Glow Block (UPDATE)
-   433: Floating Question Block (UPDATE)
-   447: Underwater Lamp (UPDATE)
-   451: Little Mouser Despawner
+   24:  Buzzy Beetle (UPDATE)  
+   25:  Spiny (UPDATE)  
+   49:  Unused Seesaw Platform  
+   52:  Unused 4x Self Rotating Platforms  
+   55:  Unused Rising Seesaw Platform  
+   87:  Unused Trampoline Wall  
+   123: Unused Swinging Castle Platform  
+   125: Chain-link Koopa Horizontal (UPDATE)  
+   126: Chain-link Koopa Vertical (UPDATE)  
+   132: Beta Path-controlled Platform  
+   137: 3D Spiked Stake Down  
+   138: Water (Non-location-based only)  
+   139: Lava (Non-location-based only)  
+   140: 3D Spiked Stake Up  
+   141: 3D Spiked Stake Right  
+   142: 3D Spiked Stake Left  
+   145: Floating Barrel  
+   147: Coin (UPDATE)  
+   156: Red Coin Ring (UPDATE)  
+   157: Unused Big Breakable Brick Block  
+   160: Beta Path-controlled Platform  
+   170: Powerup in a Bubble  
+   174: DS One-way Gates  
+   175: Flying Question Block (UPDATE)  
+   179: Special Exit Controller  
+   190: Unused Tilt-controlled Girder  
+   191: Tile Event  
+   195: Huckit Crab (UPDATE)  
+   196: Fishbones (UPDATE)  
+   197: Clam (UPDATE)  
+   205: Giant Bubbles (UPDATE)  
+   206: Zoom Controller  
+   212: Rolling Hill (UPDATE)  
+   216: Poison Water (Non-location-based only)  
+   219: Line Block  
+   222: Conveyor-belt Spike  
+   233: Bulber (UPDATE)  
+   262: Poltergeist Items (UPDATE)  
+   268: Lava Geyser (UPDATE)  
+   271: Little Mouser (UPDATE)  
+   287: Beta Path-controlled Ice Block  
+   305: Lighting - Circle  
+   323: Boo Circle  
+   326: King Bill (UPDATE)  
+   359: Lamp (UPDATE)  
+   368: Path-controlled Flashlight Raft  
+   376: Moving Chain-link Fence (UPDATE)  
+   416: Invisible Mini-Mario 1-UP (UPDATE)  
+   417: Invisible Spin-jump coin (UPDATE)  
+   420: Giant Glow Block (UPDATE)  
+   433: Floating Question Block (UPDATE)  
+   447: Underwater Lamp (UPDATE)  
+   451: Little Mouser Despawner  
  * Various bug fixes.
 
 
