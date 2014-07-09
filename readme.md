@@ -1,4 +1,4 @@
-### Reggie! Level Editor (Release Next Milestone 2 Alpha 0)
+# Reggie! Level Editor (Release Next Milestone 2 Alpha 0)
 
 Homepage: http://rvlution.net/reggie/
 Support:  http://rvlution.net/forums/
@@ -21,7 +21,7 @@ http://rvlution.net/forums/
 Navigate to Releases -> Reggie! Next
 
 
-# Requirements
+### Requirements
 
 If you are using the source release:
  * Python 3.0 (or newer)  * http://www.python.org
@@ -33,7 +33,7 @@ If you have a prebuilt/frozen release (for Windows or Mac OS), you don't need to
 For more information on running Reggie from source and getting the required libraries, check the Getting Started page inside the help file (located at reggiedata/help/start.html within the archive)
 
 
-# Reggie! Team
+### Reggie! Team
 
 Developers:
  * Treeki - Creator, Programmer, Data, RE
@@ -53,7 +53,7 @@ Other Testers and Contributors:
  * Tobias Amaranth and Valeth - Text Tileset Addon
 
 
-# Dependencies/Libraries/Resources
+### Dependencies/Libraries/Resources
 
 Python 3 - Python Software Foundation (https://www.python.org)
 Qt 5 - Nokia (http://qt.nokia.com)
@@ -64,7 +64,7 @@ Interface Icons - FlatIcons (http://flaticons.net)
 cx_Freeze (optional) - Anthony Tuininga (http://cx-freeze.sourceforge.net)
 
 
-# Licensing
+### Licensing
 
 Reggie! is released under the GNU General Public License v3.
 See the license file in the distribution for information.
