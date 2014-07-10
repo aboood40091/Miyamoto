@@ -64,12 +64,11 @@ if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
     # enables itemChange being called on QGraphicsItem
     QtWidgets.QGraphicsItem.ItemSendsGeometryChanges = QtWidgets.QGraphicsItem.GraphicsItemFlag(0x800)
 
-# use nsmblib if possible
+# use NSMBLib if possible
 try:
-    import nsmblib
-    HaveNSMBLib = True
+    import nsmblib as NSMBLib
 except ImportError:
-    HaveNSMBLib = False
+    NSMBLib = False
 
 
 app = None
@@ -80,7 +79,7 @@ settings = None
 def checkSplashEnabled():
     """Checks to see if the splash screen is enabled"""
     global prefs
-    if setting('SplashEnabled') is None and not HaveNSMBLib:
+    if setting('SplashEnabled') is None and not NSMBLib:
         return True
     elif setting('SplashEnabled'):
         return True
@@ -929,7 +928,7 @@ class TilesetTile():
         ##padded = str(data)
         ##padded += ' ' * (0x80000 - len(data))
         ### It'll crash on this next line
-        ##rgbdata = nsmblib.decodeTileAnims(padded)
+        ##rgbdata = NSMBLib.decodeTileAnims(padded)
         ##tilesImg = QtGui.QImage(rgbdata, 32, (len(rgbdata)/4)/32, 32*4, QtGui.QImage.Format_ARGB32_Premultiplied)
         ##tilesPix = QtGui.QPixmap.fromImage(tilesImg)
 
@@ -1675,12 +1674,12 @@ def _LoadTileset(idx, name, reload=False):
         QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
         return False
 
-    # load in the textures - uses a different method if nsmblib exists
+    # load in the textures - uses a different method if NSMBLib exists
     print('\n\n++++++++++++++++++++++++++++++++++++++++++')
-    print('HaveNSMBLib = ' + str(HaveNSMBLib))
-    if HaveNSMBLib:
+    print('NSMBLib = ' + str(NSMBLib))
+    if NSMBLib:
         print('Decompressing tile data...')
-        #tiledata = nsmblib.decompress11LZS(comptiledata)*2
+        #tiledata = NSMBLib.decompress11LZS(comptiledata)*2
         tiledata = bytes(lz77.LZS11().Decompress11LZS(comptiledata)*2)
         print('Tile data decompressed! Here\'s the type and first 256 bytes...')
         print(type(tiledata))
@@ -1690,7 +1689,7 @@ def _LoadTileset(idx, name, reload=False):
         print(len(tiledata))
         print('Attempting to use NSMBLib to decode the tile data...')
         try:
-            rgbdata = nsmblib.decodeRGB4A3(tiledata, 1024, 512)
+            rgbdata = NSMBLib.decodeRGB4A3(tiledata, 1024, 512)
         except Exception as e:
             print(e)
         print('Done! Here\'s the type and first 256 bytes (if not None)...')
@@ -15276,8 +15275,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
         # track progress.. but we'll only do this if we don't have
-        # the NSMBLib because otherwise it's far too fast
-        if HaveNSMBLib:
+        # NSMBLib because otherwise it's far too fast
+        if NSMBLib:
             progress = None
         elif app.splashscrn is not None:
             progress = None
@@ -16688,21 +16687,21 @@ EnableAlpha = True
 if '-alpha' in sys.argv:
     EnableAlpha = False
 
-    # nsmblib doesn't support -alpha so if it's enabled
+    # NSMBLib doesn't support -alpha so if it's enabled
     # then don't use it
-    HaveNSMBLib = False
+    NSMBLib = None
 
 # check version
-if HaveNSMBLib:
-    version = nsmblib.getVersion()
+if NSMBLib:
+    version = NSMBLib.getVersion()
     if version < 4:
-        HaveNSMBLib = False
+        NSMBLib = None
 
 if '-nolib' in sys.argv:
-    HaveNSMBLib = False
+    NSMBLib = None
 
 generateStringsXML = False
 if '-generatestringsxml' in sys.argv:
     generateStringsXML = True
 
-if __name__ == '__main__': int(main())
+if __name__ == '__main__': main()
