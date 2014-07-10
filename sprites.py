@@ -652,6 +652,7 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
         self.width = self.width
         self.height = self.height
         self.image = None
+        self.realimage = None
         # Doing it this way may provide a slight speed boost?
         self.flagPresent = lambda flags, flag: flags | flag == flags
 
@@ -1375,7 +1376,7 @@ def InitSunlight(sprite): # 110
 
     i = ImageCache['Sunlight']
     sprite.aux.append(AuxiliaryImage_FollowsRect(sprite, i.width(), i.height()))
-    sprite.aux[0].image = i
+    sprite.aux[0].realimage = i
     sprite.aux[0].alignment = Qt.AlignTop | Qt.AlignRight
     sprite.scene().views()[0].repaint.connect(lambda: MoveSunlight(sprite))
     sprite.aux[0].hover = False
@@ -1387,7 +1388,7 @@ def MoveSunlight(sprite): # 110
         sprite.aux[0].image = ImageCache['Sunlight']
     else:
         sprite.aux[0].image = None
-    zone = self.parent.getZone(True)
+    zone = sprite.getZone(True)
     if zone is None:
         self.aux[0].image = None
         return
