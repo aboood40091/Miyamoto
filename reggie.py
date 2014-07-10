@@ -10802,7 +10802,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
         pointsize = 14 # change this if you don't like it
         if testresult is None: # good
             L = QtWidgets.QLabel()
-            L.setPixmap(GetIcon('check', True, True))
+            L.setPixmap(GetIcon('check', True).pixmap(64, 64))
             self.header.addWidget(L, 1, 0)
 
             px = QtGui.QPixmap(64, pointsize)
@@ -10821,7 +10821,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
             self.header.addWidget(QtWidgets.QLabel(trans.string('Diag', 20)), 1, 2)
         elif not testresult: # warnings
             L = QtWidgets.QLabel()
-            L.setPixmap(GetIcon('warning', True, True))
+            L.setPixmap(GetIcon('warning', True).pixmap(64, 64))
             self.header.addWidget(L, 1, 0)
 
             px = QtGui.QPixmap(128, pointsize*3/2)
@@ -10840,7 +10840,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
             self.header.addWidget(QtWidgets.QLabel(trans.string('Diag', 22)), 1, 2)
         else: # bad
             L = QtWidgets.QLabel()
-            L.setPixmap(GetIcon('delete', True, True))
+            L.setPixmap(GetIcon('delete', True).pixmap(64, 64))
             self.header.addWidget(L, 1, 0)
 
             px = QtGui.QPixmap(72, pointsize)
@@ -10882,8 +10882,8 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
                 item = QtWidgets.QListWidgetItem()
                 item.setText(desc)
-                if isCritical: item.setTextColor(QtGui.QColor(255, 0, 0))
-                else:          item.setTextColor(QtGui.QColor(172, 172, 0))
+                if isCritical: item.setForeground(QtGui.QColor(255, 0, 0))
+                else:          item.setForeground(QtGui.QColor(172, 172, 0))
                 item.setIcon(GetIcon(ico))
                 item.fix = fxn
 
