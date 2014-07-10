@@ -1742,7 +1742,7 @@ def _LoadTileset(idx, name, reload=False):
                 except KeyError:
                     pass
                 if found:
-                    Tiles[i].addAnimationData(arc[fn])
+                    Tiles[i].addAnimationData(arc[fn].encode('latin-1'))
             col += 1
             if col == 16:
                 col = 0
@@ -14684,7 +14684,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # no error checking. if it saved last time, it will probably work now
         f = open(Level.arcname, 'wb')
-        f.write(Level.arc._dump())
+        f.write(Level.arc._dump().encode('latin-1'))
         f.close()
         self.LoadLevel(Level.arcname, True, 1)
 
