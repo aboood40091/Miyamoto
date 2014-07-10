@@ -52,6 +52,7 @@ Developers:
  * Kamek64 - Reggie! Newer Sprites Developer: Programmer, Sprite Images
  * ZementBlock - Sprite Data
  * MalStar1000 - Sprite Images, Other
+ * Grop - Sprite Data
 
 Other Testers and Contributors:
  * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl, MalStar1000
