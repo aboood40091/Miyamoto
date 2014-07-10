@@ -1387,7 +1387,10 @@ def MoveSunlight(sprite): # 110
         sprite.aux[0].image = ImageCache['Sunlight']
     else:
         sprite.aux[0].image = None
-    zone = sprite.getZone(True)
+    zone = self.parent.getZone(True)
+    if zone is None:
+        self.aux[0].image = None
+        return
     zoneRect = QtCore.QRectF(zone.objx * 1.5, zone.objy * 1.5, zone.width * 1.5, zone.height * 1.5)
     view = sprite.scene().views()[0]
     viewRect = view.mapToScene(view.viewport().rect()).boundingRect()

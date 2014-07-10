@@ -912,7 +912,7 @@ class TilesetTile():
     def addAnimationData(self, data):
         """Applies Newer-style animation data to the tile"""
         animTiles = []
-        numberOfFrames = len(data)/2048
+        numberOfFrames = int(len(data)/2048)
         for frame in range(numberOfFrames):
             framedata = data[frame*2048:(frame*2048)+2048]
             decoder = TPL.algorithm(TPL.RGB4A3)
@@ -12705,7 +12705,9 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.NonWinStyle = QtWidgets.QComboBox()
                 self.NonWinStyle.setToolTip(trans.string('PrefsDlg', 24))
                 self.NonWinStyle.addItems(keys)
-                self.NonWinStyle.setCurrentIndex(keys.index(setting('uiStyle')))
+                uistyle = setting('uiStyle')
+                if uistyle is not None:
+                    self.NonWinStyle.setCurrentIndex(keys.index(setting('uiStyle')))
 
                 # Create the options groupbox
                 L = QtWidgets.QVBoxLayout()

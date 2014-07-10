@@ -214,7 +214,7 @@ class Struct(object):
 					self.__values__[attrs].unpack(data, pos)
 					pos += len(self.__values__[attrs])
 			else:
-				values = struct.unpack(self.__endian__+sdef, bytes(data[pos:pos+size], 'latin-1'))
+				values = struct.unpack(self.__endian__+sdef, data[pos:pos+size].encode('latin-1'))
 				pos += size
 				j = 0
 				for name in attrs:

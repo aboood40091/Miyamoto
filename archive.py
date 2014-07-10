@@ -34,6 +34,8 @@ class U8(WiiArchive):
 		data = ''
 		
 		for item, value in self.files:
+			if isinstance(value, bytes):
+				value = value.decode('latin-1')
 			node = self.U8Node()
 			
 			recursion = item.count('/')
