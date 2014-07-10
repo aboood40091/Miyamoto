@@ -63,8 +63,8 @@ Other Testers and Contributors:
 Python 3 - Python Software Foundation (https://www.python.org)  
 Qt 5 - Nokia (http://qt.nokia.com)  
 PyQt 5 - Riverbank Computing (http://www.riverbankcomputing.co.uk/software/pyqt/intro)  
-PyQtRibbon - RoadrunnerWMC  
-Wii.py - megazig, Xuzz, The Lemon Man, Matt_P, SquidMan, Omega (http://github.com/icefire/Wii.py)  
+PyQtRibbon - RoadrunnerWMC (https://github.com/RoadrunnerWMC/PyQtRibbon)  
+Wii.py - megazig, Xuzz, The Lemon Man, Matt_P, SquidMan, Omega (https://github.com/grp/Wii.py) (included)  
 Interface Icons - FlatIcons (http://flaticons.net)  
 cx_Freeze (optional) - Anthony Tuininga (http://cx-freeze.sourceforge.net)
 
