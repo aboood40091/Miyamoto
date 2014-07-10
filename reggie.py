@@ -6527,7 +6527,7 @@ def LoadTheme():
     global theme
 
     id = setting('Theme')
-    print('THEME ID: ' + id)
+    print('THEME ID: ' + str(id))
     if id is None: id = 'Classic'
     if id != 'Classic':
 
