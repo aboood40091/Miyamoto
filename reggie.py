@@ -13469,7 +13469,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         dock = QtWidgets.QDockWidget(trans.string('MenuItems', 94), self)
         dock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable | QtWidgets.QDockWidget.DockWidgetClosable)
         #dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-        dock.setObjectName('leveloverview') #needed for the state to save/restore correctly
+        dock.setObjectName('leveloverview') # needed for the state to save/restore correctly
 
         self.levelOverview = LevelOverviewWidget()
         self.levelOverview.moveIt.connect(self.HandleOverviewClick)
