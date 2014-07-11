@@ -149,6 +149,13 @@ if os.path.isfile(dir_ + '/libEGL.dll'):
     shutil.copy('libEGL.dll', dir_)
 print('>> Files copied!')
 
+print('>> Attempting to write a new release.txt ...')
+release = open(dir_ + '/release.txt', 'w', encoding='utf-8')
+release.write('windows')
+release.close()
+del release
+print('>> release.txt written!')
+
 print('>> Attempting to copy VC++2008 libraries...')
 if os.path.isdir('Microsoft.VC90.CRT'):
     shutil.copytree('Microsoft.VC90.CRT', dir_ + '/Microsoft.VC90.CRT')
