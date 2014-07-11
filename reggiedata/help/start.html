@@ -55,14 +55,14 @@
                 <p>If you have a precompiled executable, simply double click. Precompiled executables should be available as a Windows exe, a Mac app, or a Linux application via cx_Freeze (built on Ubuntu 9.04).</p>
                 <p>For those who cannot run one of the available executable files, or who simply desire not to do so, there is a source distribution available. The source distribution requires the following packages:</p>
                 <ul>
-                    <li><span class="s2"><a href="http://www.python.org/download/"><span class="s3">Python 3.0</span></a></span> or higher</li>
+                    <li><span class="s2"><a href="http://www.python.org/download/"><span class="s3">Python 3.3</span></a></span> or higher</li>
                     <li><a href="http://qt.nokia.com/downloads"><span class="s3">Qt 5.0</span></a><span class="s4"> or higher</span></li>
                     <li><span class="s2"><a href="http://www.riverbankcomputing.co.uk/software/sip/download"><span class="s3">SIP 4.9</span></a></span> or higher</li>
-                    <li><a href="http://www.riverbankcomputing.co.uk/software/pyqt/download"><span class="s3">PyQt 5.0</span></a><span class="s4"> or higher</span></li>
+                    <li><a href="http://www.riverbankcomputing.co.uk/software/pyqt/download"><span class="s3">PyQt 5.3</span></a><span class="s4"> or higher</span></li>
                 </ul>
                 <p><b>Windows users</b> can get away with downloading the Windows binary installer for Python and the binary Installer for PyQt (first and last links), which will hold your hand and install Qt and SIP for you.</p>
                 <p><b>Mac OS X Snow Leopard users</b> will need to build SIP and PyQt for both architectures (i386 and x86_64). PyQt will also require a change to the configure.py file - the i386 line should specify x86_64 as well. If you have an older version of Qt, you will need to upgrade to the newest one, and it is strongly recommended you build with the development versions of SIP and PyQt.</p>
-                <p><b>Linux users</b> should note that at this time, some distributions may not have up-to-date packages for PyQt - Reggie! requires version 5.0. We have tested the editor on Ubuntu - but note that the packages for Ubuntu 9.04 (Jaunty) and lower will not be up to date. Try using 9.10 (Karmic) instead.</p>
+                <p><b>Linux users</b> should note that at this time, some distributions may not have up-to-date packages for PyQt - Reggie! requires version 5.3. We have tested the editor on Ubuntu - but note that the packages for Ubuntu 9.04 (Jaunty) and lower will not be up to date. Try using 9.10 (Karmic) instead.</p>
                 <p>If you're on an older version of Ubuntu (or a distribution which doesn't provide the required PyQt) and you have the patience, you can build Qt, SIP and PyQt yourself. It's fairly straightforward - the normal configure/make/make install process will work for all three.</p>
                 <p>On all three systems, you can install the optional included NSMBLib package to speed up level loading. Extract the package, go into the directory and run <i>python setup.py install</i> - you will need an appropriate build setup (Visual Studio 2008 on Windows) in order for it to work.</p>
                 

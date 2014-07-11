@@ -28,8 +28,8 @@ Navigate to Releases -> Reggie! Next
 ### Requirements
 
 If you are using the source release:
- * Python 3.0 (or newer) - http://www.python.org
- * PyQt 5.0 (or newer) - http://www.riverbankcomputing.co.uk/software/pyqt/intro
+ * Python 3.3 (or newer) - http://www.python.org
+ * PyQt 5.3 (or newer) - http://www.riverbankcomputing.co.uk/software/pyqt/intro
  * NSMBLib 0.5a - included with the source package (optional)
 
 If you have a prebuilt/frozen release (for Windows or Mac OS), you don't need to install anything - all the required libraries are included.

@@ -30,13 +30,18 @@
 ################################################################
 ################################################################
 
+# Sanity check because so many people make this mistake
+import sys
+if int(sys.version[0]) < 3 or int(sys.version[2]) < 3:
+    errormsg = 'Please update your copy of Python to 3.3 or greater. Current installation: ' + sys.version[:5]
+    raise Exception(errormsg)
+
 # Imports
 from ctypes import create_string_buffer
 from math import floor as math_floor
 import os.path
 import pickle
 import struct
-import sys
 import threading
 import time
 import urllib.request
