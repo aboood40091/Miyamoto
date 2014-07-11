@@ -27,8 +27,8 @@
 # Builds Reggie! to a Windows binary (*.exe)
 # Use the values below to configure the release:
 
-PackageName = 'ReggieNext_PB2_win32'
-Version = '0.2' # This must be a valid float in string format
+PackageName = 'ReggieNext_M2_A0_win32'
+Version = '0.1999' # This must be a valid float in string format
 
 
 ################################################################
@@ -82,7 +82,7 @@ printv('>> Directory ready!')
 # exclude QtWebKit to save space, plus Python stuff we don't use
 excludes = ['doctest', 'pdb', 'unittest', 'difflib', 'inspect',
     'os2emxpath', 'posixpath', 'optpath', 'locale', 'calendar',
-    'select', 'socket', 'multiprocessing', 'ssl',
+    'select', 'multiprocessing', 'ssl',
     'PyQt5.QtWebKit', 'PyQt5.QtNetwork']
 
 # Set it up
@@ -144,8 +144,8 @@ if os.path.isdir(dir_ + '/reggieextras'): shutil.rmtree(dir_ + '/reggieextras')
 shutil.copytree('reggiedata', dir_ + '/reggiedata') 
 shutil.copytree('reggieextras', dir_ + '/reggieextras') 
 shutil.copy('license.txt', dir_)
-shutil.copy('readme.txt', dir_)
-if not os.path.isfile(dir_ + '/libEGL.dll'):
+shutil.copy('readme.md', dir_)
+if os.path.isfile(dir_ + '/libEGL.dll'):
     shutil.copy('libEGL.dll', dir_)
 print('>> Files copied!')
 
