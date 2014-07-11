@@ -33,7 +33,7 @@
 # Python version: sanity check
 minimum = 3.3
 import sys
-currentRunningVersion = float(sys.version[:5])
+currentRunningVersion = float(sys.version[:3] + sys.version[5])
 if currentRunningVersion < minimum:
     errormsg = 'Please update your copy of Python to ' + str(minimum) + \
         ' or greater. Currently running on: ' + sys.version[:5]
@@ -54,7 +54,7 @@ import zipfile
 # PyQt5: import, and error msg if not installed
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets
-except ImportError, NameError:
+except (ImportError, NameError):
     errormsg = 'PyQt5 is not installed for this Python installation. Go online and download it.'
     raise Exception(errormsg)
 Qt = QtCore.Qt
@@ -64,7 +64,7 @@ try:
     from PyQtRibbon.FileMenu import QFileMenu, QFileMenuPanel
     from PyQtRibbon.RecentFilesManager import QRecentFilesManager
     from PyQtRibbon.Ribbon import QRibbon, QRibbonTab, QRibbonSection
-except ImportError, NameError:
+except (ImportError, NameError):
     errormsg = 'You haven\'t installed PyQtRibbon, or your installation of it is broken. Please download or fix it.'
     raise Exception(errormsg)
 
