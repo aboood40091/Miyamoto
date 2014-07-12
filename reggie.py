@@ -9162,7 +9162,7 @@ class AboutDialog(QtWidgets.QDialog):
         self.setPalette(QtGui.QPalette(defaultPalette))
 
         # Open the readme file
-        f = open('readme.txt', 'r')
+        f = open('readme.md', 'r')
         readme = f.read()
         f.close()
         del f
@@ -9189,7 +9189,7 @@ class AboutDialog(QtWidgets.QDialog):
         descLabel.setMinimumWidth(512)
         descLabel.setWordWrap(True)
 
-        # Readme.txt viewer
+        # Readme.md viewer
         readmeView = QtWidgets.QPlainTextEdit()
         readmeView.setPlainText(readme)
         readmeView.setReadOnly(True)
