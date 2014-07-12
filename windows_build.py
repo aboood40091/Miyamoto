@@ -145,7 +145,7 @@ shutil.copytree('reggiedata', dir_ + '/reggiedata')
 shutil.copytree('reggieextras', dir_ + '/reggieextras') 
 shutil.copy('license.txt', dir_)
 shutil.copy('readme.md', dir_)
-if os.path.isfile(dir_ + '/libEGL.dll'):
+if not os.path.isfile(dir_ + '/libEGL.dll'):
     shutil.copy('libEGL.dll', dir_)
 print('>> Files copied!')
 
