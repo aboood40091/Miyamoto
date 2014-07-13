@@ -385,8 +385,8 @@ def SortTilesetNames_Category(cat):
     cat.sort(key=lambda entry: entry[1])
 
     # Sort the data within each category
-    for i, cat in enumerate(cats):
-        cats[i] = list(cat)
+    for i, cat_ in enumerate(cats):
+        cats[i] = list(cat_)
         if not cats[i][2]: cats[i][1] = SortTilesetNames_Category(cats[i][1])
 
     # Put them back together
@@ -6901,7 +6901,7 @@ def LoadGameDef(name=None, dlg=None):
         LoadEntranceNames(True)
         if dlg: dlg.setValue(7)
 
-    except TypeError: pass
+    except UnicodeEncodeError: pass
     #except Exception as e:
     #    # Something went wrong.
     #    if dlg: dlg.setValue(7) # autocloses it
