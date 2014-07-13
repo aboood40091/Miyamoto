@@ -3189,6 +3189,7 @@ class ObjectItem(LevelEditorItem):
         self.dragging = False
         self.dragstartx = -1
         self.dragstarty = -1
+        self.objsDragging = {}
 
         global DirtyOverride
         DirtyOverride += 1
@@ -3320,10 +3321,15 @@ class ObjectItem(LevelEditorItem):
             self.dragging = True
             self.dragstartx = int((event.pos().x() - 10) / 24)
             self.dragstarty = int((event.pos().y() - 10) / 24)
+            self.objsDragging = {}
+            for selitem in mainWindow.scene.selectedItems():
+                if not isinstance(selitem, ObjectItem): continue
+                self.objsDragging[selitem] = [selitem.width, selitem.height]
             event.accept()
         else:
             LevelEditorItem.mousePressEvent(self, event)
             self.dragging = False
+            self.objsDragging = {}
         self.UpdateTooltip()
 
 
@@ -3333,6 +3339,7 @@ class ObjectItem(LevelEditorItem):
             # resize it
             dsx = self.dragstartx
             dsy = self.dragstarty
+
             clickedx = int((event.pos().x() - 10) / 24)
             clickedy = int((event.pos().y() - 10) / 24)
 
@@ -3342,24 +3349,30 @@ class ObjectItem(LevelEditorItem):
             if clickedx < 0: clickedx = 0
             if clickedy < 0: clickedy = 0
 
-            #print '%d %d' % (clickedx - dsx, clickedy - dsy)
-
             if clickedx != dsx or clickedy != dsy:
                 self.dragstartx = clickedx
                 self.dragstarty = clickedy
 
-                self.width += clickedx - dsx
-                self.height += clickedy - dsy
+                for obj in self.objsDragging:
 
-                self.updateObjCache()
+                    self.objsDragging[obj][0] += clickedx - dsx
+                    self.objsDragging[obj][1] += clickedy - dsy
+                    newWidth = self.objsDragging[obj][0]
+                    newHeight = self.objsDragging[obj][1]
+                    if newWidth < 1: newWidth = 1
+                    if newHeight < 1: newHeight = 1
+                    obj.width = newWidth
+                    obj.height = newHeight
 
-                oldrect = self.BoundingRect
-                oldrect.translate(cx * 24, cy * 24)
-                newrect = QtCore.QRectF(self.x(), self.y(), self.width * 24, self.height * 24)
-                updaterect = oldrect.united(newrect)
+                    obj.updateObjCache()
 
-                self.UpdateRects()
-                self.scene().update(updaterect)
+                    oldrect = obj.BoundingRect
+                    oldrect.translate(cx * 24, cy * 24)
+                    newrect = QtCore.QRectF(obj.x(), obj.y(), obj.width * 24, obj.height * 24)
+                    updaterect = oldrect.united(newrect)
+
+                    obj.UpdateRects()
+                    obj.scene().update(updaterect)
                 SetDirty()
 
             event.accept()
