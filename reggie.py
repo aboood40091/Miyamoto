@@ -7718,7 +7718,7 @@ class ReggieTranslation():
                 116: 'Show Comments',
                 117: 'Toggle viewing of comments',
                 118: 'Real View',
-                119: 'View the level with realistic rendering',
+                119: 'Show special effects present in the level',
                 120: 'Check for Updates...',
                 121: 'Check if any updates for Reggie! Next are available to download',
                 },
