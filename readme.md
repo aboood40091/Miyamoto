@@ -34,7 +34,7 @@ If you are using the source release:
 
 If you have a prebuilt/frozen release (for Windows or Mac OS), you don't need to install anything - all the required libraries are included.
 
-For more information on running Reggie from source and getting the required libraries, check the Getting Started page inside the help file (located at reggiedata/help/start.html within the archive)
+For more information on running Reggie! from source and getting the required libraries, check the Getting Started page inside the help file (located at reggiedata/help/start.html within the archive)
 
 
 ### Reggie! Team
