@@ -15212,6 +15212,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.ZoomWidget.setZoomLevel(z)
         self.ZoomStatusWidget.setZoomLevel(z)
 
+        # Update the zone grabber rects, to resize for the new zoom level
+        for z in Level.zones:
+            z.UpdateRects()
+
         self.scene.update()
 
 
