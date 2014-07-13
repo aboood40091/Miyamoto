@@ -4,7 +4,7 @@
 ----------------------------------------------------------------
 
 Homepage:  http://rvlution.net/reggie/  
-Support:   http://rvlution.net/forums/
+Support:   http://rvlution.net/forums/  
 On GitHub: https://github.com/RoadrunnerWMC/Reggie-Next
 
 ----------------------------------------------------------------
@@ -20,7 +20,7 @@ This release contains many improvements, in addition to code imports from the fo
  * "Reggie! Level Editor Mod (Newer Sprites) 3.8.1" by Kamek64 and MalStar1000
  * "NeweReggie! (Extension to Reggie! Level Editor)" by Treeki and angelsl
 
-Source code repository for Reggie! Next can be found at: 
+Source code repository for Reggie! Next can be found at:  
 https://github.com/RoadrunnerWMC/Reggie-Next 
 
 ----------------------------------------------------------------
@@ -41,8 +41,8 @@ Download and install the following:
  * PyQtRibbon (latest version) - https://github.com/RoadrunnerWMC/PyQtRibbon
  * NSMBLib 0.5a (or newer) (optional) - included with the source release
 
-Run the following in a command prompt:
-`python3 reggie.py`
+Run the following in a command prompt:  
+`python3 reggie.py`  
 You can replace `python3` with the path to python.exe (including "python.exe" at the end) and `reggie.py` with the path to reggie.py (including "reggie.py" at the end)
 
 
