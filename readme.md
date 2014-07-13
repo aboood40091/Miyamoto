@@ -1,40 +1,49 @@
-# Reggie! Level Editor
-(Release Next Milestone 2 Alpha 0)
+# Reggie! Level Editor Next
+(Milestone 2 Prerelease)
 
 ----------------------------------------------------------------
 
-Homepage: http://rvlution.net/reggie/  
-Support:  http://rvlution.net/forums/
+Homepage:  http://rvlution.net/reggie/  
+Support:   http://rvlution.net/forums/
+On GitHub: https://github.com/RoadrunnerWMC/Reggie-Next
 
 ----------------------------------------------------------------
 
 **NOTE: THIS IS A VERY UNSTABLE PRERELEASE VERSION! EXPECT CRASHES AND UNFINISHED THINGS!**
 
-Advanced level editor for New Super Mario Bros. Wii, created by Treeki and Tempus using Python, PyQt and Wii.py .
+Advanced level editor for New Super Mario Bros. Wii, created by Treeki, Tempus and RoadrunnerWMC using Python, PyQt and Wii.py .
 
-Reggie! Next created by RoadrunnerWMC, based on Reggie! release 3.
+"Next" version created by RoadrunnerWMC, based on official release 3.
 
 This release contains many improvements, in addition to code imports from the following Reggie! forks:
  * "ReggieMod 3.7.2" by JasonP27
  * "Reggie! Level Editor Mod (Newer Sprites) 3.8.1" by Kamek64 and MalStar1000
  * "NeweReggie! (Extension to Reggie! Level Editor)" by Treeki and angelsl
 
-Source code package for this release can be found at:  
-http://rvlution.net/forums/  
-Navigate to Releases -> Reggie! Next
+Source code repository for Reggie! Next can be found at: 
+https://github.com/RoadrunnerWMC/Reggie-Next 
 
 ----------------------------------------------------------------
 
-### Requirements
+### Getting Started
 
-If you are using the source release:
+If you're on Windows and don't care about having the bleeding-edge latest features, you can use the official installer. This is by far the easiest setup method. The installer will take care of everything for you.
+
+If you are not on Windows or you want the very latest features, you'll need to run Reggie! from source.
+
+
+### How to Run Reggie! from Source
+
+Download and install the following:
  * Python 3.3 (or newer) - http://www.python.org
  * PyQt 5.3 (or newer) - http://www.riverbankcomputing.co.uk/software/pyqt/intro
- * NSMBLib 0.5a - included with the source package (optional)
+ * cx_Freeze 4.3 (or newer) (optional) - http://cx-freeze.sourceforge.net
+ * PyQtRibbon (latest version) - https://github.com/RoadrunnerWMC/PyQtRibbon
+ * NSMBLib 0.5a (or newer) (optional) - included with the source release
 
-If you have a prebuilt/frozen release (for Windows or Mac OS), you don't need to install anything - all the required libraries are included.
-
-For more information on running Reggie! from source and getting the required libraries, check the Getting Started page inside the help file (located at reggiedata/help/start.html within the archive)
+Run the following in a command prompt:
+`python3 reggie.py`
+You can replace `python3` with the path to python.exe (including "python.exe" at the end) and `reggie.py` with the path to reggie.py (including "reggie.py" at the end)
 
 
 ### Reggie! Team
@@ -53,9 +62,10 @@ Developers:
  * ZementBlock - Sprite Data
  * MalStar1000 - Sprite Images, Other
  * Grop - Sprite Data
+ * joietyfull64 - Sprite Data
 
 Other Testers and Contributors:
- * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl, MalStar1000
+ * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl
  * Tobias Amaranth and Valeth - Text Tileset Addon
 
 
@@ -63,14 +73,14 @@ Other Testers and Contributors:
 
 Python 3 - Python Software Foundation (https://www.python.org)  
 Qt 5 - Nokia (http://qt.nokia.com)  
-PyQt 5 - Riverbank Computing (http://www.riverbankcomputing.co.uk/software/pyqt/intro)  
+PyQt5 - Riverbank Computing (http://www.riverbankcomputing.co.uk/software/pyqt/intro)  
 PyQtRibbon - RoadrunnerWMC (https://github.com/RoadrunnerWMC/PyQtRibbon)  
 Wii.py - megazig, Xuzz, The Lemon Man, Matt_P, SquidMan, Omega (https://github.com/grp/Wii.py) (included)  
 Interface Icons - FlatIcons (http://flaticons.net)  
-cx_Freeze (optional) - Anthony Tuininga (http://cx-freeze.sourceforge.net)
+cx_Freeze - Anthony Tuininga (http://cx-freeze.sourceforge.net)
 
 
-### Licensing
+### License
 
 Reggie! is released under the GNU General Public License v3.
 See the license file in the distribution for information.
@@ -79,8 +89,9 @@ See the license file in the distribution for information.
 
 ## Changelog
 
-Release Next (Milestone 2): (??)
- * Dependencies have changed; make sure to download the new ones!
+Release Next (Milestone 2): (not yet released)
+ * Prerequisites have changed; make sure to download the new ones!
+ * Many new features have been added.
 
 Release Next (Public Beta 1): (November 1st, 2013)
  * First beta version of Reggie! Next is finally released after a full year of work!
