@@ -83,13 +83,13 @@ class U8(WiiArchive):
 		
 		return fd
 	def _dumpDir(self, dir):
-		if(not os.path.isdir(dir)):
+		if not os.path.isdir(dir):
 			os.mkdir(dir)
 		old = os.getcwd()
 		os.chdir(dir)
 		for item, data in self.files:
-			if(data == None):
-				if(not os.path.isdir(item)):
+			if data is None:
+				if not os.path.isdir(item):
 					os.mkdir(item)
 			else:
 				open(item, "wb").write(data)
@@ -103,11 +103,11 @@ class U8(WiiArchive):
 		os.chdir(dir)
 		entries = os.listdir(".")
 		for entry in entries:
-			if(os.path.isdir(entry)):
+			if os.path.isdir(entry):
 				self.files.append((self._tmpPath + entry, None))
 				self._tmpPath += entry + '/'
 				self._loadDir(entry)
-			elif(os.path.isfile(entry)):
+			elif os.path.isfile(entry):
 				data = open(entry, "rb").read()
 				self.files.append((self._tmpPath + entry, data))
 		os.chdir(old)
@@ -118,15 +118,11 @@ class U8(WiiArchive):
 		for i in range(len(data)):
 			header = self.U8Header()
 			header.unpack(data[offset:offset + len(header)])
-			if(header.tag == "U\xAA8-"):
+			if header.tag == "U\xAA8-":
 				break
 			data = data[1:]
 		offset += len(header)
 		offset = header.rootnode_offset
-		
-		#print header.rootnode_offset
-		#print header.header_size
-		#print header.data_offset
 		
 		rootnode = self.U8Node()
 		rootnode.unpack(data[offset:offset + len(rootnode)])
@@ -149,26 +145,19 @@ class U8(WiiArchive):
 			counter += 1
 			name = strings[node.name_offset:].split('\0', 1)[0]
 			
-			if(node.type == 0x0100): # folder
+			if node.type == 0x0100: # folder
 				recursion.append(node.size)
 				recursiondir.append(name)
-				#assert len(recursion) == node.data_offset + 2 # haxx
 				self.files.append(('/'.join(recursiondir), None))
-				
-				#print "Dir: " + name
-			elif(node.type == 0): # file
+
+			elif node.type == 0: # file
 				self.files.append(('/'.join(recursiondir) + '/' + name, data[node.data_offset:node.data_offset + node.size]))
 				offset += node.size
-				
-				#print "File: " + name
+
 			else: # unknown type -- wtf?
 				pass
-			
-			#print "Data Offset: " + str(node.data_offset)
-			#print "Size: " + str(node.size)	
-			#print "Name Offset: " + str(node.name_offset)
-			#print ""
-			
+
+
 			sz = recursion.pop()
 			if(sz != counter + 1):
 				recursion.append(sz)
@@ -180,7 +169,7 @@ class U8(WiiArchive):
 			name = key[key.rfind('/') + 1:]
 			recursion = key.count('/')
 			ret += '  ' * recursion
-			if(value == None):
+			if value is None:
 				ret += '[' + name + ']'
 			else:
 				ret += name
@@ -188,8 +177,8 @@ class U8(WiiArchive):
 		return ret
 	def __getitem__(self, key):
 		for item, val in self.files:
-			if(item == key):
-				if(val != None):
+			if item == key:
+				if val is not None:
 					return val
 				else:
 					ret = []
@@ -200,7 +189,7 @@ class U8(WiiArchive):
 		raise KeyError
 	def __setitem__(self, key, val):
 		for i in range(len(self.files)):
-			if(self.files[i][0] == key):
+			if self.files[i][0] == key:
 				self.files[i] = (self.files[i][0], val)
 				return
 		self.files.append((key, val))
