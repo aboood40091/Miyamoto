@@ -2413,26 +2413,201 @@ class Metadata():
         return data
 
 
-class AreaUnit():
-    """Class for a NSMBWii level area"""
-    def newArea(self):
-        """Creates a completely new area"""
+class LevelUnit():
+    """
+    Class for a full NSMBWii level archive
+    """
+    def newLevel(self):
         self.arcname = None
         self.filename = 'untitled'
         self.hasName = False
         arc = archive.U8()
         arc['course'] = None
         arc['course/course1.bin'] = ''
-        self.arc = arc
+        
+        self.areas = []
+        self.areas.append(AreaUnit())
+        self.areas[0].newArea()
+
+    def loadLevel(self, name, fullpath, areaToLoad, progress=None):
+        """
+        Loads a specific level and area
+        """
+        startTime = time.clock()
+
+        # read the archive
+        if fullpath:
+            self.arcname = name
+        else:
+            self.arcname = os.path.join(gamedef.GetGamePath(), name+'.arc')
+
+        if name == 'AUTO_FLAG':
+            if AutoSavePath == 'None':
+                self.arcname = None
+                self.filename = trans.string('WindowTitle', 0)
+                self.hasName = False
+            else:
+                self.arcname = AutoSavePath
+                self.filename = os.path.basename(self.arcname)
+                self.hasName = True
+
+            arcdata = AutoSaveData
+            SetDirty(noautosave=True)
+        else:
+            if not os.path.isfile(self.arcname):
+                QtWidgets.QMessageBox.warning(None, trans.string('Error_MissingLevel', 0), trans.string('Error_MissingLevel', 1, '[file]', name))
+                return False
+
+            self.filename = os.path.basename(self.arcname)
+            self.hasName = True
+
+            if self.arcname[-3:].lower() == '.lh':
+                arcdata = LHdec.getLH(self.arcname)
+            else:
+                arcf = open(self.arcname,'rb')
+                arcdata = arcf.read()
+                arcf.close()
+
+        newarcdata = arcdata.decode('latin-1')
+        arc = archive.U8.load(newarcdata)
+
+        # Sort the area data
+        areaData = {}
+        for name, val in arc.files:
+            if val is None: continue
+            name = name.replace('\\', '/').split('/')[-1]
+
+            if not name.startswith('course'): continue
+            if not name.endswith('.bin'): continue
+            if '_bgdatL' in name:
+                # It's a layer file
+                if len(name) != 19: continue
+                try:
+                    thisArea = int(name[6])
+                    laynum = int(name[14])
+                except ValueError: continue
+                if not (0 < thisArea < 5): continue
+
+                if thisArea not in areaData: areaData[thisArea] = [None] * 4
+                areaData[thisArea][laynum + 1] = val.encode('latin-1')
+            else:
+                # It's the course file
+                if len(name) != 11: continue
+                try:
+                    thisArea = int(name[6])
+                except ValueError: continue
+                if not (0 < thisArea < 5): continue
+
+                if thisArea not in areaData: areaData[thisArea] = [None] * 4
+                areaData[thisArea][0] = val.encode('latin-1')
+
+        # Create area objects
+        self.areas = []
+        thisArea = 1
+        while thisArea in areaData:
+            course = areaData[thisArea][0]
+            L0 = areaData[thisArea][1]
+            L1 = areaData[thisArea][2]
+            L2 = areaData[thisArea][3]
+
+            if thisArea == areaToLoad:
+                newarea = AreaUnit()
+            else:
+                newarea = FakeAreaUnit()
+            newarea.areanum = thisArea
+            newarea.loadArea(course, L0, L1, L2, progress)
+            self.areas.append(newarea)
+
+            thisArea += 1
+
+        endTime = time.clock()
+        total = endTime - startTime
+
+        return True
+
+    def save(self):
+        """
+        Save the level back to a file
+        """
+
+        # Make a new archive
+        newArchive = archive.U8()
+
+        # Create a folder within the archive
+        newArchive['course'] = None
+
+        # Go through the areas, save them and add them back to the archive
+        for areanum, area in enumerate(self.areas):
+            course, L0, L1, L2 = area.saveArea()
+
+            if course is not None:
+                newArchive['course/course%d.bin' % (areanum+1)] = course.decode('latin-1')
+            if L0 is not None:
+                newArchive['course/course%d_bgdatL0.bin' % (areanum+1)] = L0.decode('latin-1')
+            if L1 is not None:
+                newArchive['course/course%d_bgdatL1.bin' % (areanum+1)] = L1.decode('latin-1')
+            if L2 is not None:
+                newArchive['course/course%d_bgdatL2.bin' % (areanum+1)] = L2.decode('latin-1')
+
+        # return the U8 archive data
+        return newArchive._dump().encode('latin-1')
+
+
+    def addArea(self, course=None, L0=None, L1=None, L2=None):
+        """
+        Adds an area
+        """
+        if course is None:
+            getit = open('reggiedata/blankcourse.bin', 'rb')
+            course = getit.read()
+            getit.close()
+        newArea = FakeAreaUnit()
+        newArea.loadArea(course, L0, L1, L2)
+        self.areas.append(newArea)
+        return True
+
+    def deleteArea(self, number):
+        """
+        Removes the area specified by number
+        """
+        del self.areas[number-1]
+        return True
+
+
+class FakeAreaUnit():
+    """
+    Class that simulates AreaUnit but doesn't actually load anything
+    """
+    def newArea(self):
+        self.course = None
+        self.L0 = None
+        self.L1 = None
+        self.L2 = None
+    def loadArea(self, course, L0, L1, L2, progress=None):
+        self.course = course
+        self.L0 = L0
+        self.L1 = L1
+        self.L2 = L2
+    def saveArea(self):
+        return (self.course, self.L0, self.L1, self.L2)
+
+
+class AreaUnit():
+    """
+    Class for a NSMBWii level area
+    """
+    def newArea(self):
+        """
+        Creates a completely new area
+        """
         self.areanum = 1
-        self.areacount = 1
 
         mainWindow.levelOverview.maxX = 100
         mainWindow.levelOverview.maxY = 40
 
         # we don't parse blocks 4, 11, 12, 13, 14
         # we can create the rest manually
-        self.blocks = [None]*14
+        self.blocks = [None] * 14
         self.blocks[3] = '\0\0\0\0\0\0\0\0'
         # other known values for block 4: 0000 0002 0042 0000,
         #            0000 0002 0002 0000, 0000 0003 0003 0000
@@ -2471,76 +2646,10 @@ class AreaUnit():
         self.layers = [[], [], []]
 
 
-    def loadLevel(self, name, fullpath, area, progress=None):
-        """Loads a specific level and area"""
-        startTime = time.clock()
-
-        # read the archive
-        if fullpath:
-            self.arcname = name
-        else:
-            self.arcname = os.path.join(gamedef.GetGamePath(), name+'.arc')
-
-        if name == 'AUTO_FLAG':
-            if AutoSavePath == 'None':
-                self.arcname = None
-                self.filename = trans.string('WindowTitle', 0)
-                self.hasName = False
-            else:
-                self.arcname = AutoSavePath
-                self.filename = os.path.basename(self.arcname)
-                self.hasName = True
-
-            arcdata = AutoSaveData
-            SetDirty(noautosave=True)
-        else:
-            if not os.path.isfile(self.arcname):
-                QtWidgets.QMessageBox.warning(None, trans.string('Error_MissingLevel', 0), trans.string('Error_MissingLevel', 1, '[file]', name))
-                return False
-
-            self.filename = os.path.basename(self.arcname)
-            self.hasName = True
-
-            if self.arcname[-3:].lower() == '.lh':
-                arcdata = LHdec.getLH(self.arcname)
-            else:
-                arcf = open(self.arcname,'rb')
-                arcdata = arcf.read()
-                arcf.close()
-
-        newarcdata = ''
-        for d in arcdata: newarcdata += chr(d)
-        self.arc = archive.U8.load(newarcdata)
-
-        # this is a hackish method but let's go through the U8 files
-        reqcourse = 'course%d.bin' % area
-        reql0 = 'course%d_bgdatL0.bin' % area
-        reql1 = 'course%d_bgdatL1.bin' % area
-        reql2 = 'course%d_bgdatL2.bin' % area
-
-        course = None
-        l0 = None
-        l1 = None
-        l2 = None
-        self.areanum = area
-        self.areacount = 0
-
-        for item,val in self.arc.files:
-            if val is not None:
-                # it's a file
-                fname = item[item.rfind('/')+1:]
-                if fname == reqcourse:
-                    course = bytes(val, 'latin-1')
-                elif fname == reql0:
-                    l0 = bytes(val, 'latin-1')
-                elif fname == reql1:
-                    l1 = bytes(val, 'latin-1')
-                elif fname == reql2:
-                    l2 = bytes(val, 'latin-1')
-
-                if fname.startswith('course'):
-                    maxarea = int(fname[6])
-                    if maxarea > self.areacount: self.areacount = maxarea
+    def loadArea(self, course, L0, L1, L2, progress=None):
+        """
+        Loads an area from the archive files
+        """
 
         # load in the course file and blocks
         self.blocks = [None]*14
@@ -2598,26 +2707,24 @@ class AreaUnit():
         if app.splashscrn is not None:
             updateSplash(trans.string('Splash', 1), 5)
 
-        self.layers = [[],[],[]]
+        self.layers = [[], [], []]
 
-        if l0 is not None:
-            self.LoadLayer(0,l0)
+        if L0 is not None:
+            self.LoadLayer(0, L0)
 
-        if l1 is not None:
-            self.LoadLayer(1,l1)
+        if L1 is not None:
+            self.LoadLayer(1, L1)
 
-        if l2 is not None:
-            self.LoadLayer(2,l2)
-
-        endTime = time.clock()
-        total = endTime - startTime
-        #print 'Level loaded in %f seconds' % total
+        if L2 is not None:
+            self.LoadLayer(2, L2)
 
         return True
 
-    def save(self):
-        """Save the level back to a file"""
-        # prepare this because else the game shits itself and refuses to load some sprites
+    def saveArea(self):
+        """
+        Save the area back to a file
+        """
+        # prepare this because otherwise the game refuses to load some sprites
         self.SortSpritesByZone()
 
         # save each block first
@@ -2662,20 +2769,18 @@ class AreaUnit():
             HeaderOffset += 8
             FileOffset += blocksize
 
-
-        # place it into the U8 archive
-        arc = self.arc
-        areanum = self.areanum
-        arc['course/course%d.bin' % areanum] = bytes(course).decode('latin-1')
-        arc['course/course%d_bgdatL0.bin' % areanum] = self.SaveLayer(0).decode('latin-1')
-        arc['course/course%d_bgdatL1.bin' % areanum] = self.SaveLayer(1).decode('latin-1')
-        arc['course/course%d_bgdatL2.bin' % areanum] = self.SaveLayer(2).decode('latin-1')
-
-        # return the U8 archive data
-        return arc._dump().encode('latin-1')
+        # return stuff
+        return (
+            bytes(course),
+            self.SaveLayer(0),
+            self.SaveLayer(1),
+            self.SaveLayer(2),
+            )
 
     def LoadMetadata(self):
-        """Loads block 1, the tileset names"""
+        """
+        Loads block 1, the tileset names
+        """
         data = struct.unpack_from('32s32s32s32s', self.blocks[0])
         self.tileset0 = data[0].strip(bytes('\0', 'latin-1')).decode('latin-1')
         self.tileset1 = data[1].strip(bytes('\0', 'latin-1')).decode('latin-1')
@@ -2683,7 +2788,9 @@ class AreaUnit():
         self.tileset3 = data[3].strip(bytes('\0', 'latin-1')).decode('latin-1')
 
     def LoadOptions(self):
-        """Loads block 2, the general options"""
+        """
+        Loads block 2, the general options
+        """
         optdata = self.blocks[1]
         optstruct = struct.Struct('>IxxxxHhLBBBx')
         offset = 0
@@ -2691,7 +2798,9 @@ class AreaUnit():
         self.defEvents, self.wrapFlag, self.timeLimit, self.unk1, self.startEntrance, self.unk2, self.unk3 = data
 
     def LoadEntrances(self):
-        """Loads block 7, the entrances"""
+        """
+        Loads block 7, the entrances
+        """
         entdata = self.blocks[6]
         entcount = len(entdata) // 20
         entstruct = struct.Struct('>HHxxxxBBBBxBBBHxB')
@@ -2704,7 +2813,9 @@ class AreaUnit():
         self.entrances = entrances
 
     def LoadSprites(self):
-        """Loads block 8, the sprites"""
+        """
+        Loads block 8, the sprites
+        """
         spritedata = self.blocks[7]
         sprcount = len(spritedata) // 16
         sprstruct = struct.Struct('>HHH8sxx')
@@ -2721,7 +2832,9 @@ class AreaUnit():
         self.sprites = sprites
 
     def LoadZones(self):
-        """Loads block 3, the bounding preferences"""
+        """
+        Loads block 3, the bounding preferences
+        """
         bdngdata = self.blocks[2]
         count = len(bdngdata) // 24
         bdngstruct = struct.Struct('>llllxBxBxxxx')
@@ -2733,7 +2846,9 @@ class AreaUnit():
             offset += 24
         self.bounding = bounding
 
-        """Loads block 5, the top level background values"""
+        """
+        Loads block 5, the top level background values
+        """
         bgAdata = self.blocks[4]
         bgAcount = len(bgAdata) // 24
         bgAstruct = struct.Struct('>xBhhhhHHHxxxBxxxx')
@@ -2745,7 +2860,9 @@ class AreaUnit():
             offset += 24
         self.bgA = bgA
 
-        """Loads block 6, the bottom level background values"""
+        """
+        Loads block 6, the bottom level background values
+        """
         bgBdata = self.blocks[5]
         bgBcount = len(bgBdata) // 24
         bgBstruct = struct.Struct('>xBhhhhHHHxxxBxxxx')
@@ -2757,7 +2874,9 @@ class AreaUnit():
             offset += 24
         self.bgB = bgB
 
-        """Loads block 10, the zone data"""
+        """
+        Loads block 10, the zone data
+        """
         zonedata = self.blocks[9]
         zonestruct = struct.Struct('>HHHHHHBBBBxBBBBxBB')
         count = len(zonedata) // 24
@@ -2770,7 +2889,9 @@ class AreaUnit():
         self.zones = zones
 
     def LoadLocations(self):
-        """Loads block 11, the sprite locations"""
+        """
+        Loads block 11, the locations
+        """
         locdata = self.blocks[10]
         locstruct = struct.Struct('>HHHHBxxx')
         count = len(locdata) // 12
@@ -2784,7 +2905,9 @@ class AreaUnit():
 
 
     def LoadLayer(self, idx, layerdata):
-        """Loads a specific object layer from a string"""
+        """
+        Loads a specific object layer from a string
+        """
         objcount = len(layerdata) // 10
         objstruct = struct.Struct('>HHHHH')
         offset = 0
@@ -2801,14 +2924,10 @@ class AreaUnit():
             offset += 10
 
     def LoadPaths(self):
+        """
+        Loads block 12, the paths
+        """
         # Path struct: >BxHHH
-        # PathNode struct: >HHffhxx
-        #[20:28:38]  [@Treeki] struct Path { unsigned char id; char padding; unsigned short startNodeIndex; unsigned short nodeCount; unsigned short unknown; };
-        #[20:29:04]  [@Treeki] struct PathNode { unsigned short x; unsigned short y; float speed; float unknownMaybeAccel; short unknown; char padding[2]; }
-        # path block 12, node block 13
-
-        # TODO: Render path, and everything above that
-        """Loads paths"""
         pathdata = self.blocks[12]
         pathcount = len(pathdata) // 8
         pathstruct = struct.Struct('>BxHHH')
@@ -2843,6 +2962,10 @@ class AreaUnit():
 
 
     def LoadPathNodes(self, startindex, count):
+        """
+        Loads block 13, the path nodes
+        """
+        # PathNode struct: >HHffhxx
         ret = []
         nodedata = self.blocks[13]
         nodestruct = struct.Struct('>HHffhxx')
@@ -2861,7 +2984,9 @@ class AreaUnit():
         return ret
 
     def LoadComments(self):
-        """Loads the comments from self.Metadata"""
+        """
+        Loads the comments from self.Metadata
+        """
         self.comments = []
         b = self.Metadata.binData('InLevelComments_A%d' % self.areanum)
         if b is None: return
@@ -2894,18 +3019,24 @@ class AreaUnit():
 
 
     def SaveMetadata(self):
-        """Saves the tileset names back to block 1"""
+        """
+        Saves the tileset names back to block 1
+        """
         self.blocks[0] = ''.join([self.tileset0.ljust(32,'\0'), self.tileset1.ljust(32,'\0'), self.tileset2.ljust(32,'\0'), self.tileset3.ljust(32,'\0')]).encode('latin-1')
 
     def SaveOptions(self):
-        """Saves block 2, the general options"""
+        """
+        Saves block 2, the general options
+        """
         optstruct = struct.Struct('>IxxxxHhLBBBx')
         buffer = create_string_buffer(20)
         optstruct.pack_into(buffer, 0, self.defEvents, self.wrapFlag, self.timeLimit, self.unk1, self.startEntrance, self.unk2, self.unk3)
         self.blocks[1] = buffer.raw
 
     def SaveLayer(self, idx):
-        """Saves an object layer to a string"""
+        """
+        Saves an object layer to a string
+        """
         layer = self.layers[idx]
         offset = 0
         objstruct = struct.Struct('>HHHHH')
@@ -2919,7 +3050,9 @@ class AreaUnit():
         return buffer.raw
 
     def SaveEntrances(self):
-        """Saves the entrances back to block 7"""
+        """
+        Saves the entrances back to block 7
+        """
         offset = 0
         entstruct = struct.Struct('>HHxxxxBBBBxBBBHxB')
         buffer = create_string_buffer(len(self.entrances) * 20)
@@ -2931,7 +3064,9 @@ class AreaUnit():
         self.blocks[6] = buffer.raw
 
     def SavePaths(self):
-        """Saves the paths back to block 13"""
+        """
+        Saves the paths back to block 13
+        """
         pathstruct = struct.Struct('>BxHHH')
         nodecount = 0
         for path in self.pathdata:
@@ -2954,7 +3089,9 @@ class AreaUnit():
         self.blocks[13] = nodebuffer.raw
 
     def SavePathNodes(self, buffer, offst, nodes):
-        """Saves the pathnodes back to block 14"""
+        """
+        Saves the pathnodes back to block 14
+        """
         offset = int(offst)
         #[20:29:04]  [@Treeki] struct PathNode { unsigned short x; unsigned short y; float speed; float unknownMaybeAccel; short unknown; char padding[2]; }
         nodestruct = struct.Struct('>HHffhxx')
@@ -2964,7 +3101,9 @@ class AreaUnit():
         return buffer
 
     def SaveSprites(self):
-        """Saves the sprites back to block 8"""
+        """
+        Saves the sprites back to block 8
+        """
         offset = 0
         sprstruct = struct.Struct('>HHH6sB1sxx')
         buffer = create_string_buffer((len(self.sprites) * 16) + 4)
@@ -2979,7 +3118,9 @@ class AreaUnit():
         self.blocks[7] = buffer.raw
 
     def SaveLoadedSprites(self):
-        """Saves the list of loaded sprites back to block 9"""
+        """
+        Saves the list of loaded sprites back to block 9
+        """
         ls = []
         for sprite in self.sprites:
             if sprite.type not in ls: ls.append(sprite.type)
@@ -2995,7 +3136,9 @@ class AreaUnit():
 
 
     def SaveZones(self):
-        """Saves blocks 10, 3, 5 and 6, the zone data, boundings, bgA and bgB data respectively"""
+        """
+        Saves blocks 10, 3, 5 and 6, the zone data, boundings, bgA and bgB data respectively
+        """
         bdngstruct = struct.Struct('>llllxBxBxxxx')
         bgAstruct = struct.Struct('>xBhhhhHHHxxxBxxxx')
         bgBstruct = struct.Struct('>xBhhhhHHHxxxBxxxx')
@@ -3022,7 +3165,9 @@ class AreaUnit():
 
 
     def SaveLocations(self):
-        """Saves block 11, the location data"""
+        """
+        Saves block 11, the location data
+        """
         locstruct = struct.Struct('>HHHHBxxx')
         offset = 0
         zcount = len(Area.locations)
@@ -3036,7 +3181,9 @@ class AreaUnit():
 
 
     def RemoveFromLayer(self, obj):
-        """Removes a specific object from the level and updates Z indexes accordingly"""
+        """
+        Removes a specific object from the level and updates Z indexes accordingly
+        """
         layer = self.layers[obj.layer]
         idx = layer.index(obj)
         del layer[idx]
@@ -3045,7 +3192,9 @@ class AreaUnit():
             upd.setZValue(upd.zValue() - 1)
 
     def SortSpritesByZone(self):
-        """Sorts the sprite list by zone ID so it will work in-game"""
+        """
+        Sorts the sprite list by zone ID so it will work in-game
+        """
 
         split = {}
         zones = []
@@ -8383,6 +8532,7 @@ class LevelScene(QtWidgets.QGraphicsScene):
                     destx = 0
                     for tile in row:
                         if tile > 0:
+                            if tiles[tile] is None: continue # fixes a weird bug
                             r = tiles[tile].getCurrentTile()
                             drawPixmap(destx, desty, r)
                         destx += 24
@@ -11772,7 +11922,7 @@ class ReggieRibbon(QRibbon):
         """Updates the Area Combo Box"""
         return
         self.homeTab.areaComboBox.clear()
-        for i in range(1,Area.areacount+1):
+        for i in range(1, len(Level.areas) + 1):
             self.homeTab.areaComboBox.addItem(trans.string('AreaCombobox', 0, '[num]', i))
         self.homeTab.areaComboBox.setCurrentIndex(area-1)
 
@@ -11911,7 +12061,7 @@ class InfoPreviewWidget(QtWidgets.QWidget):
             return
 
         a = [ # MUST be a list, not a tuple
-            Area.filename,
+            Level.filename,
             Area.Title,
             trans.string('InfoDlg', 8, '[name]', Area.Creator),
             trans.string('InfoDlg', 5) + ' ' + Area.Author,
@@ -13905,8 +14055,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         global AutoSaveDirty
         if not AutoSaveDirty: return
 
-        data = Area.save()
-        setSetting('AutoSaveFilePath', Area.arcname)
+        data = Level.save()
+        setSetting('AutoSaveFilePath', Level.arcname)
         setSetting('AutoSaveFileData', QtCore.QByteArray(data))
         AutoSaveDirty = False
         #print 'Level autosaved'
@@ -13951,7 +14101,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     def UpdateTitle(self):
         """Sets the window title accordingly"""
-        self.setWindowTitle('Reggie! Level Editor Next - %s%s' % (Area.filename, (' ' + trans.string('MainWindow', 0)) if Dirty else ''))
+        self.setWindowTitle('Reggie! Level Editor Next - %s%s' % (Level.filename, (' ' + trans.string('MainWindow', 0)) if Dirty else ''))
 
     def CheckDirty(self):
         """Checks if the level is unsaved and asks for a confirmation if so - if it returns True, Cancel was picked"""
@@ -14588,28 +14738,24 @@ class ReggieWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def HandleAddNewArea(self):
         """Adds a new area to the level"""
-        if Area.areacount >= 4:
+        if len(Level.areas) >= 4:
             QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('AreaChoiceDlg', 2))
             return
 
         if self.CheckDirty():
             return
 
-        getit = open('reggiedata/blankcourse.bin', 'rb')
-        blank = getit.read()
-        getit.close()
-
-        newID = Area.areacount + 1
-        Area.arc['course/course%d.bin' % newID] = blank
+        if not Level.addArea(): return
+        newID = len(Level.areas)
 
         if not self.HandleSave(): return
-        self.LoadLevel(Area.arcname, True, newID)
+        self.LoadLevel(Level.arcname, True, newID)
 
 
     @QtCore.pyqtSlot()
     def HandleImportArea(self):
         """Imports an area from another level"""
-        if Area.areacount >= 4:
+        if len(Level.areas) >= 4:
             QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('AreaChoiceDlg', 2))
             return
 
@@ -14630,12 +14776,12 @@ class ReggieWindow(QtWidgets.QMainWindow):
             arcdata = getit.read()
             getit.close()
 
-        arc = archive.U8.load(arcdata)
+        arc = archive.U8.load(arcdata.decode('latin-1'))
 
         # get the area count
         areacount = 0
 
-        for item,val in arc.files:
+        for item, val in arc.files:
             if val is not None:
                 # it's a file
                 fname = item[item.rfind('/')+1:]
@@ -14648,40 +14794,37 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if dlg.exec_() == QtWidgets.QDialog.Rejected:
             return
 
-        area = dlg.areaCombo.currentIndex()+1
+        area = dlg.areaCombo.currentIndex() + 1
 
         # get the required files
         reqcourse = 'course%d.bin' % area
-        reql0 = 'course%d_bgdatL0.bin' % area
-        reql1 = 'course%d_bgdatL1.bin' % area
-        reql2 = 'course%d_bgdatL2.bin' % area
+        reqL0 = 'course%d_bgdatL0.bin' % area
+        reqL1 = 'course%d_bgdatL1.bin' % area
+        reqL2 = 'course%d_bgdatL2.bin' % area
 
         course = None
-        l0 = None
-        l1 = None
-        l2 = None
+        L0 = None
+        L1 = None
+        L2 = None
 
-        for item,val in arc.files:
+        for item, val in arc.files:
             if val is not None:
-                fname = item[item.rfind('/')+1:]
+                fname = item.split('/')[-1]
                 if fname == reqcourse:
-                    course = val
-                elif fname == reql0:
-                    l0 = val
-                elif fname == reql1:
-                    l1 = val
-                elif fname == reql2:
-                    l2 = val
+                    course = val.encode('latin-1')
+                elif fname == reqL0:
+                    L0 = val.encode('latin-1')
+                elif fname == reqL1:
+                    L1 = val.encode('latin-1')
+                elif fname == reqL2:
+                    L2 = val.encode('latin-1')
 
-        # add them to our U8
-        newID = Area.areacount + 1
-        Area.arc['course/course%d.bin' % newID] = course
-        if l0 is not None: Area.arc['course/course%d_bgdatL0.bin' % newID] = l0
-        if l1 is not None: Area.arc['course/course%d_bgdatL1.bin' % newID] = l1
-        if l2 is not None: Area.arc['course/course%d_bgdatL2.bin' % newID] = l2
+        # add them to our level
+        newID = len(Level.areas) + 1
+        Level.addArea(course, L0, L1, L2)
 
         if not self.HandleSave(): return
-        self.LoadLevel(Area.arcname, True, newID)
+        self.LoadLevel(Level.arcname, True, newID)
 
 
     @QtCore.pyqtSlot()
@@ -14692,34 +14835,14 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         if not self.HandleSave(): return
 
-        # this is really going to be annoying >_<
-        deleting = Area.areanum
-
-        newfiles = []
-        for item,val in Area.arc.files:
-            if val is not None:
-                if item.startswith('course/course'):
-                    id = int(item[13])
-                    if id < deleting:
-                        # pass it through anyway
-                        newfiles.append((item,val))
-                    elif id == deleting:
-                        # remove it
-                        continue
-                    else:
-                        # push the number down by one
-                        fname = 'course/course%d%s' % (id - 1, item[14:])
-                        newfiles.append((fname,val))
-            else:
-                newfiles.append((item,val))
-
-        Area.arc.files = newfiles
+        Level.deleteArea(Area.areanum)
 
         # no error checking. if it saved last time, it will probably work now
-        f = open(Area.arcname, 'wb')
-        f.write(Area.arc._dump().encode('latin-1'))
+
+        f = open(Level.arcname, 'wb')
+        f.write(Level.save())
         f.close()
-        self.LoadLevel(Area.arcname, True, 1)
+        self.LoadLevel(Level.arcname, True, 1)
 
 
     @QtCore.pyqtSlot()
@@ -14836,14 +14959,14 @@ class ReggieWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def HandleSave(self):
         """Save a level back to the archive"""
-        if not Area.hasName:
+        if not Level.hasName:
             self.HandleSaveAs()
             return
 
         global Dirty, AutoSaveDirty
-        data = Area.save()
+        data = Level.save()
         try:
-            f = open(Area.arcname, 'wb')
+            f = open(Level.arcname, 'wb')
             f.write(data)
             f.close()
         except IOError as e:
@@ -14854,7 +14977,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         AutoSaveDirty = False
         self.UpdateTitle()
 
-        setSetting('AutoSaveFilePath', Area.arcname)
+        setSetting('AutoSaveFilePath', Level.arcname)
         setSetting('AutoSaveFileData', 'x')
         return True
 
@@ -14871,11 +14994,11 @@ class ReggieWindow(QtWidgets.QMainWindow):
         AutoSaveDirty = False
         Dirty = False
 
-        Area.arcname = fn
-        Area.filename = os.path.basename(fn)
-        Area.hasName = True
+        Level.arcname = fn
+        Level.filename = os.path.basename(fn)
+        Level.hasName = True
 
-        data = Area.save()
+        data = Level.save()
         f = open(fn, 'wb')
         f.write(data)
         f.close()
@@ -14884,7 +15007,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         self.UpdateTitle()
 
-        self.RecentFilesMgr.addPath(Area.arcname)
+        self.RecentFilesMgr.addPath(Level.arcname)
 
     @QtCore.pyqtSlot()
     def HandleExit(self):
@@ -14900,7 +15023,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             return
 
         if Area.areanum != idx+1:
-            self.LoadLevel(Area.arcname, True, idx+1)
+            self.LoadLevel(Level.arcname, True, idx+1)
 
 
     @QtCore.pyqtSlot(bool)
@@ -15271,7 +15394,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             if hasattr(self, 'TipsBoxInstance'):
                 self.TipsBoxInstance.close()
 
-            gamedef.SetLastLevel(str(Area.arcname))
+            gamedef.SetLastLevel(str(Level.arcname))
 
             setSetting('AutoSaveFilePath', 'none')
             setSetting('AutoSaveFileData', 'x')
@@ -15349,18 +15472,19 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if app.splashscrn is not None:
             updateSplash(trans.string('Splash', 2), 0)
 
-        global Area
-        Area = AreaUnit()
+        global Level, Area
+        Level = LevelUnit()
 
         if name is None:
-            Area.newArea()
+            Level.newLevel()
         else:
             global RestoredFromAutoSave
             if RestoredFromAutoSave:
                 RestoredFromAutoSave = False
-                Area.loadLevel('AUTO_FLAG', True, 1, progress)
+                Level.loadLevel('AUTO_FLAG', True, 1, progress)
             else:
-                Area.loadLevel(name, fullpath, area, progress)
+                Level.loadLevel(name, fullpath, area, progress)
+        Area = Level.areas[area - 1]
 
         OverrideSnapping = False
 
@@ -15469,10 +15593,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # fill up the area list
         if UseRibbon:
-            self.ribbon.updateAreaComboBox(Area.areacount, area)
+            self.ribbon.updateAreaComboBox(len(Level.areas), area)
         else:
             self.areaComboBox.clear()
-            for i in range(1,Area.areacount+1):
+            for i in range(1, len(Level.areas) + 1):
                 self.areaComboBox.addItem(trans.string('AreaCombobox', 0, '[num]', i))
             self.areaComboBox.setCurrentIndex(area-1)
 
@@ -15490,16 +15614,16 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # reset some editor things
         if UseRibbon:
-            self.ribbon.setBtnEnabled('addarea', Area.areacount < 4)
-            self.ribbon.setBtnEnabled('imarea', Area.areacount < 4)
-            self.ribbon.setBtnEnabled('delarea', Area.areacount > 1)
+            self.ribbon.setBtnEnabled('addarea', len(Level.areas) < 4)
+            self.ribbon.setBtnEnabled('imarea', len(Level.areas) < 4)
+            self.ribbon.setBtnEnabled('delarea', len(Level.areas) > 1)
         else:
             self.actions['showlay0'].setChecked(True)
             self.actions['showlay1'].setChecked(True)
             self.actions['showlay2'].setChecked(True)
-            self.actions['addarea'].setEnabled(Area.areacount < 4)
-            self.actions['importarea'].setEnabled(Area.areacount < 4)
-            self.actions['deletearea'].setEnabled(Area.areacount > 1)
+            self.actions['addarea'].setEnabled(len(Level.areas) < 4)
+            self.actions['importarea'].setEnabled(len(Level.areas) < 4)
+            self.actions['deletearea'].setEnabled(len(Level.areas) > 1)
         DirtyOverride -= 1
         self.UpdateTitle()
 
@@ -15512,7 +15636,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         # remove the splashscreen
         removeSplash()
 
-        self.RecentFilesMgr.addPath(Area.arcname)
+        self.RecentFilesMgr.addPath(Level.arcname)
 
         return True
 
@@ -16703,7 +16827,7 @@ def main():
     # check to see if we have anything saved
     autofile = setting('AutoSaveFilePath')
     if autofile is not None:
-        autofiledata = bytes(setting('AutoSaveFileData', 'x'))
+        autofiledata = bytes(setting('AutoSaveFileData', 'x'), 'latin-1')
         result = AutoSavedInfoDialog(autofile).exec_()
         if result == QtWidgets.QDialog.Accepted:
             global RestoredFromAutoSave, AutoSavePath, AutoSaveData
