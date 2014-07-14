@@ -172,12 +172,12 @@ def module_path():
 
 compressed = False
 def checkContent(data):
-    if not data.startswith(bytes('U\xAA8-', 'latin-1')):
+    if not data.startswith(b'U\xAA8-'):
         return False
 
-    required = ('course\0', 'course1.bin\0', '\0\0\0\x80')
+    required = (b'course\0', b'course1.bin\0', b'\0\0\0\x80')
     for r in required:
-        if bytes(r, 'latin-1') not in data:
+        if r not in data:
             return False
 
     return True
@@ -1682,14 +1682,12 @@ def _LoadTileset(idx, name, reload=False):
         arcf = open(arcname,'rb')
         arcdata = arcf.read()
         arcf.close()
-    arcstr = ''
-    for d in arcdata: arcstr += chr(d)
-    arc = archive.U8.load(arcstr)
+    arc = archive.U8.load(arcdata)
 
     # decompress the textures
     try:
-        comptiledata = bytes(arc['BG_tex/%s_tex.bin.LZ' % name], 'latin-1')
-        colldata = bytes(arc['BG_chk/d_bgchk_%s.bin' % name], 'latin-1')
+        comptiledata = arc['BG_tex/%s_tex.bin.LZ' % name]
+        colldata = arc['BG_chk/d_bgchk_%s.bin' % name]
     except KeyError:
         QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
         return False
@@ -1762,7 +1760,7 @@ def _LoadTileset(idx, name, reload=False):
                 except KeyError:
                     pass
                 if found:
-                    Tiles[i].addAnimationData(arc[fn].encode('latin-1'))
+                    Tiles[i].addAnimationData(arc[fn])
             col += 1
             if col == 16:
                 col = 0
@@ -1772,8 +1770,8 @@ def _LoadTileset(idx, name, reload=False):
     # load the object definitions
     defs = [None]*256
 
-    indexfile = bytes(arc['BG_unt/%s_hd.bin' % name], 'latin-1')
-    deffile = bytes(arc['BG_unt/%s.bin' % name], 'latin-1')
+    indexfile = arc['BG_unt/%s_hd.bin' % name]
+    deffile = arc['BG_unt/%s.bin' % name]
     objcount = len(indexfile) // 4
     indexstruct = struct.Struct('>HBB')
 
@@ -2464,12 +2462,11 @@ class LevelUnit():
             if self.arcname[-3:].lower() == '.lh':
                 arcdata = LHdec.getLH(self.arcname)
             else:
-                arcf = open(self.arcname,'rb')
+                arcf = open(self.arcname, 'rb')
                 arcdata = arcf.read()
                 arcf.close()
 
-        newarcdata = arcdata.decode('latin-1')
-        arc = archive.U8.load(newarcdata)
+        arc = archive.U8.load(arcdata)
 
         # Sort the area data
         areaData = {}
@@ -2489,7 +2486,7 @@ class LevelUnit():
                 if not (0 < thisArea < 5): continue
 
                 if thisArea not in areaData: areaData[thisArea] = [None] * 4
-                areaData[thisArea][laynum + 1] = val.encode('latin-1')
+                areaData[thisArea][laynum + 1] = val
             else:
                 # It's the course file
                 if len(name) != 11: continue
@@ -2499,7 +2496,7 @@ class LevelUnit():
                 if not (0 < thisArea < 5): continue
 
                 if thisArea not in areaData: areaData[thisArea] = [None] * 4
-                areaData[thisArea][0] = val.encode('latin-1')
+                areaData[thisArea][0] = val
 
         # Create area objects
         self.areas = []
@@ -2541,16 +2538,16 @@ class LevelUnit():
             course, L0, L1, L2 = area.saveArea()
 
             if course is not None:
-                newArchive['course/course%d.bin' % (areanum+1)] = course.decode('latin-1')
+                newArchive['course/course%d.bin' % (areanum+1)] = course
             if L0 is not None:
-                newArchive['course/course%d_bgdatL0.bin' % (areanum+1)] = L0.decode('latin-1')
+                newArchive['course/course%d_bgdatL0.bin' % (areanum+1)] = L0
             if L1 is not None:
-                newArchive['course/course%d_bgdatL1.bin' % (areanum+1)] = L1.decode('latin-1')
+                newArchive['course/course%d_bgdatL1.bin' % (areanum+1)] = L1
             if L2 is not None:
-                newArchive['course/course%d_bgdatL2.bin' % (areanum+1)] = L2.decode('latin-1')
+                newArchive['course/course%d_bgdatL2.bin' % (areanum+1)] = L2
 
         # return the U8 archive data
-        return newArchive._dump().encode('latin-1')
+        return newArchive._dump()
 
 
     def addArea(self, course=None, L0=None, L1=None, L2=None):
@@ -2657,7 +2654,7 @@ class AreaUnit():
         for i in range(14):
             data = getblock.unpack_from(course, i*8)
             if data[1] == 0:
-                self.blocks[i] = bytes('', 'latin-1')
+                self.blocks[i] = b''
             else:
                 self.blocks[i] = course[data[0]:data[0]+data[1]]
 
@@ -2760,8 +2757,6 @@ class AreaUnit():
         FileOffset = (14 * 8) + len(rdata)
         struct.pack_into('{0}s'.format(len(rdata)), course, 0x70, rdata)
         for block in self.blocks:
-            if isinstance(block, str):
-                block = block.encode('latin-1')
             blocksize = len(block)
             saveblock.pack_into(course, HeaderOffset, FileOffset, blocksize)
             if blocksize > 0:
@@ -2782,10 +2777,10 @@ class AreaUnit():
         Loads block 1, the tileset names
         """
         data = struct.unpack_from('32s32s32s32s', self.blocks[0])
-        self.tileset0 = data[0].strip(bytes('\0', 'latin-1')).decode('latin-1')
-        self.tileset1 = data[1].strip(bytes('\0', 'latin-1')).decode('latin-1')
-        self.tileset2 = data[2].strip(bytes('\0', 'latin-1')).decode('latin-1')
-        self.tileset3 = data[3].strip(bytes('\0', 'latin-1')).decode('latin-1')
+        self.tileset0 = data[0].strip(b'\0').decode('latin-1')
+        self.tileset1 = data[1].strip(b'\0').decode('latin-1')
+        self.tileset2 = data[2].strip(b'\0').decode('latin-1')
+        self.tileset3 = data[3].strip(b'\0').decode('latin-1')
 
     def LoadOptions(self):
         """
@@ -5512,7 +5507,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.setLayout(mainLayout)
 
         self.spritetype = -1
-        self.data = bytes('\0\0\0\0\0\0\0\0', 'latin-1')
+        self.data = b'\0\0\0\0\0\0\0\0'
         self.fields = []
         self.UpdateFlag = False
         self.DefaultMode = defaultmode
@@ -5754,7 +5749,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         data = self.data
         self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x' % (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]))
-        #self.raweditor.setText(data.encode('hex'))
         self.raweditor.setStyleSheet('')
 
         # Go through all the data
@@ -5778,7 +5772,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.data = data
 
         self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x' % (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]))
-        #self.raweditor.setText(data.encode('hex'))
         self.raweditor.setStyleSheet('')
 
         for f in self.fields:
@@ -14776,7 +14769,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             arcdata = getit.read()
             getit.close()
 
-        arc = archive.U8.load(arcdata.decode('latin-1'))
+        arc = archive.U8.load(arcdata)
 
         # get the area count
         areacount = 0
@@ -14811,13 +14804,13 @@ class ReggieWindow(QtWidgets.QMainWindow):
             if val is not None:
                 fname = item.split('/')[-1]
                 if fname == reqcourse:
-                    course = val.encode('latin-1')
+                    course = val
                 elif fname == reqL0:
-                    L0 = val.encode('latin-1')
+                    L0 = val
                 elif fname == reqL1:
-                    L1 = val.encode('latin-1')
+                    L1 = val
                 elif fname == reqL2:
-                    L2 = val.encode('latin-1')
+                    L2 = val
 
         # add them to our level
         newID = len(Level.areas) + 1
@@ -16002,7 +15995,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         CurrentSprite = type
         if type != 1000 and type >= 0:
             self.defaultDataEditor.setSprite(type)
-            self.defaultDataEditor.data = bytes('\0\0\0\0\0\0\0\0\0\0', 'latin-1')
+            self.defaultDataEditor.data = b'\0\0\0\0\0\0\0\0\0\0'
             self.defaultDataEditor.update()
             self.defaultPropButton.setEnabled(True)
         else:
