@@ -7679,7 +7679,7 @@ class ReggieTranslation():
                 77: 'Apply backgrounds to individual zones in the current area',
                 78: 'Add New Area',
                 79: 'Add a new area (sublevel) to this level',
-                80: 'Import Area from Area...',
+                80: 'Import Area from Level...',
                 81: 'Import an area (sublevel) from another level file',
                 82: 'Delete Current Area...',
                 83: 'Delete the area (sublevel) currently open from the level',
@@ -7711,7 +7711,7 @@ class ReggieTranslation():
                 109: 'Play tileset animations if they exist (may cause a slowdown)',
                 110: 'Tileset Collisions',
                 111: 'View tileset collisions for existing objects',
-                112: 'Open Area...',
+                112: 'Open Level...',
                 113: None, # This keeps the even-odd pattern going, since 112 uses description 3
                 114: 'Freeze Comments',
                 115: 'Make comments non-selectable',
