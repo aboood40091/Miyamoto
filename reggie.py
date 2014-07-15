@@ -5334,7 +5334,7 @@ class Stamp():
     def render(self):
         """Renders the stamp"""
         px = QtGui.QPixmap(72, 72)
-        px.fill(QtGui.QColor.fromRgb(0,0,0,0))
+        px.fill(Qt.transparent)
         pn = QtGui.QPainter(px)
         pn.drawLine(0,0,72,72)
         pn.drawLine(0,72,72,0)
