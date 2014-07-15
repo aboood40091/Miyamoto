@@ -932,13 +932,13 @@ class TilesetTile():
     def addAnimationData(self, data):
         """Applies Newer-style animation data to the tile"""
         animTiles = []
-        numberOfFrames = int(len(data)/2048)
+        numberOfFrames = len(data) // 2048
         for frame in range(numberOfFrames):
-            framedata = data[frame*2048:(frame*2048)+2048]
+            framedata = data[frame*2048: (frame*2048)+2048]
             decoder = TPL.algorithm(TPL.RGB4A3)
             decoder = decoder(framedata, 32, 32)
-            data = decoder.run()
-            img = QtGui.QImage(data, 32, 32, 128, QtGui.QImage.Format_ARGB32)
+            newdata = decoder.run()
+            img = QtGui.QImage(newdata, 32, 32, 128, QtGui.QImage.Format_ARGB32)
             pix = QtGui.QPixmap.fromImage(img.copy(0, 0, 31, 31).scaledToHeight(24, Qt.SmoothTransformation))
             animTiles.append(pix)
         self.animTiles = animTiles
@@ -2449,7 +2449,7 @@ class LevelUnit():
                 self.filename = os.path.basename(self.arcname)
                 self.hasName = True
 
-            arcdata = AutoSaveData
+            arcdata = bytes(AutoSaveData)
             SetDirty(noautosave=True)
         else:
             if not os.path.isfile(self.arcname):
@@ -3910,8 +3910,6 @@ class LocationItem(LevelEditorItem):
 
             if clickedx < 0: clickedx = 0
             if clickedy < 0: clickedy = 0
-
-            #print '%d %d' % (clickedx - dsx, clickedy - dsy)
 
             if clickedx != dsx or clickedy != dsy:
                 self.dragstartx = clickedx
@@ -6356,10 +6354,10 @@ class IslandGeneratorWidget(QtWidgets.QWidget):
     def GetClipboardString(self):
         midixwas0 = False
         midiywas0 = False
-        if(self.midix.value() == 0):
+        if self.midix.value() == 0:
             self.midix.setValue(self.wpos.value())
             midixwas0 = True
-        if(self.midiy.value() == 0):
+        if self.midiy.value() == 0:
             self.midiy.setValue(self.hpos.value())
             midiywas0 = True
         ret = ''
@@ -6373,7 +6371,7 @@ class IslandGeneratorWidget(QtWidgets.QWidget):
         remnx = self.wpos.value() - 2
         remx = 1
         while True:
-            if(remnx >= self.midix.value()):
+            if remnx >= self.midix.value():
                 convclip.append('0:%d:%d:%d:%d:0:%d:%d' % (self.tileset.value()-1, self.tstg.value(), self.layer.value(), remx, self.midix.value(), 1))
                 remnx -= self.midix.value()
                 remx += self.midix.value()
@@ -6391,7 +6389,7 @@ class IslandGeneratorWidget(QtWidgets.QWidget):
 
         # Middle-left edge
         while True:
-            if(remny >= self.midiy.value()):
+            if remny >= self.midiy.value():
                 convclip.append('0:%d:%d:%d:0:%d:%d:%d' % (self.tileset.value()-1, self.tsml.value(), self.layer.value(), remy ,1, self.midiy.value()))
                 remny -= self.midiy.value()
                 remy += self.midiy.value()
@@ -6417,39 +6415,33 @@ class IslandGeneratorWidget(QtWidgets.QWidget):
 
 
         # Now paint the remainders
-        if(vertremainder > 0):
+        if vertremainder:
             remnx = self.wpos.value() - 2 - widtremainder
             remx = 1
             while True:
-                if(remnx >= self.midix.value()):
-                    #print 'if'
+                if remnx >= self.midix.value():
                     convclip.append('0:%d:%d:%d:%d:%d:%d:%d' % (self.tileset.value()-1, self.tsmf.value(), self.layer.value(), remx, self.hpos.value() - 1 - vertremainder , self.midix.value(), vertremainder))
                     remnx -= self.midix.value()
                     remx += self.midix.value()
 
                 else:
-                    #print remnx
-                    #print 'else'
                     convclip.append('0:%d:%d:%d:%d:%d:%d:%d' % (self.tileset.value()-1, self.tsmf.value(), self.layer.value(), remx, self.hpos.value() - 1 - vertremainder, remnx, vertremainder))
                     break
 
-        if(widtremainder > 0):
+        if widtremainder > 0:
             remny = self.hpos.value() - 2 - vertremainder
             remy = 1
             while True:
-                if(remny >= self.midiy.value()):
-                    #print 'if'
+                if remny >= self.midiy.value():
                     convclip.append('0:%d:%d:%d:%d:%d:%d:%d' % (self.tileset.value()-1, self.tsmf.value(), self.layer.value(), self.wpos.value() - 1 - widtremainder, remy , widtremainder, self.midiy.value()))
                     remny -= self.midiy.value()
                     remy += self.midiy.value()
 
                 else:
-                    #print remnx
-                    #print 'else'
                     convclip.append('0:%d:%d:%d:%d:%d:%d:%d' % (self.tileset.value()-1, self.tsmf.value(), self.layer.value(), self.wpos.value() - 1 - widtremainder, remy , widtremainder, remny))
                     break
 
-        if(vertremainder > 0 and widtremainder > 0):
+        if vertremainder and widtremainder:
             convclip.append('0:%d:%d:%d:%d:%d:%d:%d' % (self.tileset.value()-1, self.tsmf.value(), self.layer.value(), self.wpos.value() - 1 - widtremainder, self.hpos.value() - 1 - vertremainder , widtremainder, vertremainder))
 
 
@@ -6458,7 +6450,7 @@ class IslandGeneratorWidget(QtWidgets.QWidget):
         remny = self.hpos.value() -2
         remy = 1
         while True:
-            if(remny >= self.midiy.value()):
+            if remny >= self.midiy.value():
                 convclip.append('0:%d:%d:%d:%d:%d:%d:%d' % (self.tileset.value()-1, self.tsmr.value(), self.layer.value(), self.wpos.value() -1, remy ,1, self.midiy.value()))
                 remny -= self.midiy.value()
                 remy += self.midiy.value()
@@ -6475,7 +6467,7 @@ class IslandGeneratorWidget(QtWidgets.QWidget):
         remnx = self.wpos.value() - 2
         remx = 1
         while True:
-            if(remnx >= self.midix.value()):
+            if remnx >= self.midix.value():
                 convclip.append('0:%d:%d:%d:%d:%d:%d:%d' % (self.tileset.value()-1, self.tsbm.value(), self.layer.value(), remx, self.hpos.value() -1, self.midix.value(), 1))
                 remnx -= self.midix.value()
                 remx += self.midix.value()
@@ -6486,9 +6478,9 @@ class IslandGeneratorWidget(QtWidgets.QWidget):
         # Bottom-right tip
         convclip.append('0:%d:%d:%d:%d:%d:1:1' % (self.tileset.value()-1, self.tsbr.value(), self.layer.value(), self.wpos.value() - 1, self.hpos.value() -1))
         convclip.append('%')
-        if(midixwas0):
+        if midixwas0:
             self.midix.setValue(0)
-        if(midiywas0):
+        if midiywas0:
             self.midiy.setValue(0)
         return '|'.join(convclip)
 
@@ -8459,7 +8451,6 @@ class LevelScene(QtWidgets.QGraphicsScene):
         if not hasattr(Area, 'layers'): return
 
         drawrect = QtCore.QRectF(rect.x() / 24, rect.y() / 24, rect.width() / 24 + 1, rect.height() / 24 + 1)
-        #print 'painting ' + repr(drawrect)
         isect = drawrect.intersects
 
         layer0 = []; l0add = layer0.append
@@ -8600,25 +8591,11 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     #[18:15:47]  Angel-SL: results in a sprite -2
 
                     # paint a sprite
-                    #clickedx = int((clicked.x()) / 1.5)
-                    #clickedy = int((clicked.y()) / 1.5)
-                    #print 'clicked on %d,%d divided to %d,%d' % (clicked.x(),clicked.y(),clickedx,clickedy)
-
                     clickedx = int((clicked.x() - 12) / 12) * 8
                     clickedy = int((clicked.y() - 12) / 12) * 8
 
                     data = mainWindow.defaultDataEditor.data
                     spr = SpriteItem(CurrentSprite, clickedx, clickedy, data)
-
-                    #clickedx -= int(spr.xsize / 2)
-                    #clickedy -= int(spr.ysize / 2)
-                    #print 'subtracted %d,%d for %d,%d' % (int(spr.xsize/2),int(spr.ysize/2),clickedx,clickedy)
-                    #newX = int((int(clickedx / 8) * 12) + (spr.xoffset * 1.5))
-                    #newY = int((int(clickedy / 8) * 12) + (spr.yoffset * 1.5))
-                    #print 'offset is %d,%d' % (spr.xoffset,spr.yoffset)
-                    #print 'moving to %d,%d' % (newX,newY)
-                    #spr.setPos(newX, newY)
-                    #print 'ended up at %d,%d' % (spr.x(),spr.y())
 
                     mw = mainWindow
                     spr.positionChanged = mw.HandleSprPosChange
@@ -8644,7 +8621,6 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 if clicked.y() < 0: clicked.setY(0)
                 clickedx = int((clicked.x() - 12) / 1.5)
                 clickedy = int((clicked.y() - 12) / 1.5)
-                #print '%d,%d %d,%d' % (clicked.x(), clicked.y(), clickedx, clickedy)
 
                 getids = [False for x in range(256)]
                 for ent in Area.entrances: getids[ent.entid] = True
@@ -8679,11 +8655,10 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 if clicked.y() < 0: clicked.setY(0)
                 clickedx = int((clicked.x() - 12) / 1.5)
                 clickedy = int((clicked.y() - 12) / 1.5)
-                #print '%d,%d %d,%d' % (clicked.x(), clicked.y(), clickedx, clickedy)
                 mw = mainWindow
                 plist = mw.pathList
                 selectedpn = None if len(plist.selectedItems()) < 1 else plist.selectedItems()[0]
-                #if(selectedpn is None):
+                #if selectedpn is None:
                 #    QtWidgets.QMessageBox.warning(None, 'Error', 'No pathnode selected. Select a pathnode of the path you want to create a new node in.')
                 if selectedpn is None:
                     """"""
@@ -14044,7 +14019,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def Autosave(self):
         """Auto saves the level"""
-        #print 'Saving!'
         global AutoSaveDirty
         if not AutoSaveDirty: return
 
@@ -14052,7 +14026,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
         setSetting('AutoSaveFilePath', Level.arcname)
         setSetting('AutoSaveFileData', QtCore.QByteArray(data))
         AutoSaveDirty = False
-        #print 'Level autosaved'
 
 
     @QtCore.pyqtSlot()
@@ -14929,10 +14902,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         LoadLevelNames()
         dlg = ChooseLevelNameDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
-            #start = time.clock()
             self.LoadLevel(dlg.currentlevel, False, 1)
-            #end = time.clock()
-            #print 'Loaded in ' + str(end - start)
 
 
     @QtCore.pyqtSlot()
@@ -16820,7 +16790,7 @@ def main():
     # check to see if we have anything saved
     autofile = setting('AutoSaveFilePath')
     if autofile is not None:
-        autofiledata = bytes(setting('AutoSaveFileData', 'x'), 'latin-1')
+        autofiledata = setting('AutoSaveFileData', 'x')
         result = AutoSavedInfoDialog(autofile).exec_()
         if result == QtWidgets.QDialog.Accepted:
             global RestoredFromAutoSave, AutoSavePath, AutoSaveData

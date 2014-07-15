@@ -341,6 +341,7 @@ class RGB4A3Decoder(Decoder):
                             green = ((newpixel >> 5) & 0x1F) * 255 / 0x1F
                             blue = (newpixel & 0x1F) * 255 / 0x1F
                             alpha = 0xFF
+                            red, blue = blue, red
 
                         else: # RGB4A3
                             alpha = ((newpixel & 0x7000) >> 12) * 255 / 0x7
@@ -350,9 +351,9 @@ class RGB4A3Decoder(Decoder):
 
                         red, green, blue, alpha = int(red), int(green), int(blue), int(alpha)
 
-                        argbBuf[((ypixel * w) + xpixel) * 4] = blue
+                        argbBuf[((ypixel * w) + xpixel) * 4] = red
                         argbBuf[(((ypixel * w) + xpixel) * 4) + 1] = green
-                        argbBuf[(((ypixel * w) + xpixel) * 4) + 2] = red
+                        argbBuf[(((ypixel * w) + xpixel) * 4) + 2] = blue
                         argbBuf[(((ypixel * w) + xpixel) * 4) + 3] = alpha
 
                         i += 2
