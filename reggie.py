@@ -4227,12 +4227,12 @@ class SpriteItem(LevelEditorItem):
 
                 self.LevelRect.moveTo((x+xOffset) / 16, (y+yOffset) / 16)
 
-                for thing in self.ImageObj.aux:
+                for auxObj in self.ImageObj.aux:
                     auxUpdRect = QtCore.QRectF(
                         self.x() + thing.x(),
                         self.y() + thing.y(),
-                        thing.BoundingRect.width(),
-                        thing.BoundingRect.height(),
+                        auxObj.BoundingRect.width(),
+                        auxObj.BoundingRect.height(),
                         )
                     self.scene().update(auxUpdRect)
 
