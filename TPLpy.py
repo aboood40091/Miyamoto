@@ -39,6 +39,7 @@ class I4Decoder(Decoder):
     """Decodes an I4 texture"""
     # Format:
     # IIII
+    bytesPerPixel = .5
     def __init__(self, tex, width, height, updater=None, updateInterval=0.1):
         """Initializes the decoder"""
         super().__init__(tex, width, height, updater, updateInterval)
@@ -88,6 +89,7 @@ class I4Encoder(Encoder):
     """Encodes an I4 texture"""
     # Format:
     # IIII
+    bytesPerPixel = .5
     def __init__(self, argb, width, height, updater=None, updateInterval=0.1):
         """Initializes the encoder"""
         super().__init__(argb, width, height, updater, updateInterval)
@@ -139,6 +141,7 @@ class I8Decoder(Decoder):
     """Decodes an I8 texture"""
     # Format:
     # IIIIIIII
+    bytesPerPixel = 1
     def __init__(self, tex, width, height, updater=None, updateInterval=0.1):
         """Initializes the decoder"""
         super().__init__(tex, width, height, updater, updateInterval)
@@ -179,6 +182,7 @@ class IA4Decoder(Decoder):
     """Decodes an IA4 texture"""
     # Format:
     # IIIIAAAA
+    bytesPerPixel = 1
     def __init__(self, tex, width, height, updater=None, updateInterval=0.1):
         """Initializes the decoder"""
         super().__init__(tex, width, height, updater, updateInterval)
@@ -221,6 +225,7 @@ class IA8Decoder(Decoder):
     """Decodes an IA8 texture"""
     # Format:
     # IIIIIIII AAAAAAAA
+    bytesPerPixel = 2
     def __init__(self, tex, width, height, updater=None, updateInterval=0.1):
         """Initializes the decoder"""
         super().__init__(tex, width, height, updater, updateInterval)
@@ -263,6 +268,7 @@ class RGB565Decoder(Decoder):
     """Decodes an RGB565 texture"""
     # Format:
     # RRRRRGGG GGGBBBBB
+    bytesPerPixel = 2
     def __init__(self, tex, width, height, updater=None, updateInterval=0.1):
         """Initializes the decoder"""
         super().__init__(tex, width, height, updater, updateInterval)
@@ -314,6 +320,7 @@ class RGB4A3Decoder(Decoder):
     # Formats:
     # 1RRRRRGG GGGBBBBB
     # 0RRRRGGG GBBBBAAA
+    bytesPerPixel = 2
     def __init__(self, tex, width, height, updater=None, updateInterval=0.1):
         """Initializes the decoder"""
         super().__init__(tex, width, height, updater, updateInterval)
@@ -370,6 +377,7 @@ class RGBA8Decoder(Decoder):
     """Decodes an RGBA8 texture"""
     # Format:
     # RRRRRRRR GGGGGGGG BBBBBBBB AAAAAAAA
+    bytesPerPixel = 4
     def __init__(self, tex, width, height, updater=None, updateInterval=0.1):
         """Initializes the decoder"""
         super().__init__(tex, width, height, updater, updateInterval)
