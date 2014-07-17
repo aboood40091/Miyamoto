@@ -4229,8 +4229,8 @@ class SpriteItem(LevelEditorItem):
 
                 for auxObj in self.ImageObj.aux:
                     auxUpdRect = QtCore.QRectF(
-                        self.x() + thing.x(),
-                        self.y() + thing.y(),
+                        self.x() + auxObj.x(),
+                        self.y() + auxObj.y(),
                         auxObj.BoundingRect.width(),
                         auxObj.BoundingRect.height(),
                         )
