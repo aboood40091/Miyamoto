@@ -4132,16 +4132,14 @@ class SpriteItem(LevelEditorItem):
         """Updates the sizes for dynamically sized sprites"""
         self.ImageObj.updateSize()
         s = super(type(self.ImageObj), self.ImageObj)
-        if hasattr(s, 'updateSize'):
-            super(type(self.ImageObj), self.ImageObj).updateSize()
 
         self.UpdateRects()
 
         self.ChangingPos = True
         self.setPos(
-        int((self.objx + self.ImageObj.xOffset) * 1.5),
-        int((self.objy + self.ImageObj.yOffset) * 1.5),
-        )
+            int((self.objx + self.ImageObj.xOffset) * 1.5),
+            int((self.objy + self.ImageObj.yOffset) * 1.5),
+            )
         self.ChangingPos = False
 
     def UpdateRects(self):
@@ -4245,7 +4243,7 @@ class SpriteItem(LevelEditorItem):
                 if self.positionChanged is not None:
                     self.positionChanged(self, oldx, oldy, x, y)
 
-                #if self.zoneRealView: mainWindow.scene.update()
+                if self.ImageObj.updateSceneAfterPaint: mainWindow.scene.update()
 
                 SetDirty()
 
