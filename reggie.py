@@ -3950,9 +3950,9 @@ class LocationItem(LevelEditorItem):
 
 class SpriteItem(LevelEditorItem):
     """Level editor item that represents a sprite"""
-    BoundingRect = QtCore.QRectF(0,0,24,24)
-    SelectionRect = QtCore.QRectF(0,0,23,23)
-    RoundedRect = QtCore.QRectF(1,1,22,22)
+    BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+    SelectionRect = QtCore.QRectF(0, 0, 23, 23)
+    RoundedRect = QtCore.QRectF(1, 1, 22, 22)
 
     def __init__(self, type, x, y, data):
         """Creates a sprite with specific data"""
@@ -4111,13 +4111,12 @@ class SpriteItem(LevelEditorItem):
         self.setZValue(25000)
         self.resetTransform()
 
-        self.name = Sprites[self.type].name
+        self.name = Sprites[type].name
         self.setToolTip(trans.string('Sprites', 0, '[type]', self.type, '[name]', self.name))
 
         global SpriteImagesShown
         if SpriteImagesShown and type in sprites.Initializers:
-            print(sprites.Initializers[type])
-            self.ImageObject = sprites.Initializers[type](self)
+            self.ImageObj = sprites.Initializers[type](self)
 
         self.UpdateDynamicSizing()
         self.UpdateRects()
@@ -4132,6 +4131,9 @@ class SpriteItem(LevelEditorItem):
     def UpdateDynamicSizing(self):
         """Updates the sizes for dynamically sized sprites"""
         self.ImageObj.updateSize()
+        s = super(type(self.ImageObj), self.ImageObj)
+        if hasattr(s, 'updateSize'):
+            super(type(self.ImageObj), self.ImageObj).updateSize()
 
         self.UpdateRects()
 
@@ -4156,7 +4158,7 @@ class SpriteItem(LevelEditorItem):
         self.RoundedRect = QtCore.QRectF(1, 1, xs * 1.5 - 2, ys * 1.5 - 2)
         self.LevelRect = (QtCore.QRectF(
             (self.objx + self.ImageObj.xOffset) / 16, (self.objy + self.ImageObj.yOffset) / 16,
-            self.ImageObj.width / 16, self.ImageObj.height / 16,
+            xs / 16, ys / 16,
             ))
 
     def itemChange(self, change, value):
@@ -4227,10 +4229,10 @@ class SpriteItem(LevelEditorItem):
 
                 self.LevelRect.moveTo((x+xOffset) / 16, (y+yOffset) / 16)
 
-                for thing in self.aux:
+                for thing in self.ImageObj.aux:
                     auxUpdRect = QtCore.QRectF(
-                        self.x()+thing.x(),
-                        self.y()+thing.y(),
+                        self.x() + thing.x(),
+                        self.y() + thing.y(),
                         thing.BoundingRect.width(),
                         thing.BoundingRect.height(),
                         )
@@ -4243,7 +4245,7 @@ class SpriteItem(LevelEditorItem):
                 if self.positionChanged is not None:
                     self.positionChanged(self, oldx, oldy, x, y)
 
-                if self.zoneRealView: mainWindow.scene.update()
+                #if self.zoneRealView: mainWindow.scene.update()
 
                 SetDirty()
 
@@ -4292,10 +4294,6 @@ class SpriteItem(LevelEditorItem):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
         self.ImageObj.paint(painter)
-        if self.isSelected():
-            painter.setPen(QtGui.QPen(theme.color('sprite_lines_s'), 1, Qt.DotLine))
-            painter.drawRect(self.SelectionRect)
-            painter.fillRect(self.SelectionRect, theme.color('sprite_fill_s'))
         if self.ImageObj.showSpritebox:
             if self.isSelected():
                 painter.setBrush(QtGui.QBrush(theme.color('spritebox_fill_s')))
@@ -4307,6 +4305,10 @@ class SpriteItem(LevelEditorItem):
 
             painter.setFont(self.font)
             painter.drawText(self.BoundingRect,Qt.AlignCenter,str(self.type))
+        elif self.isSelected():
+            painter.setPen(QtGui.QPen(theme.color('sprite_lines_s'), 1, Qt.DotLine))
+            painter.drawRect(self.SelectionRect)
+            painter.fillRect(self.SelectionRect, theme.color('sprite_fill_s'))
 
 
     def scene(self):
@@ -16013,8 +16015,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             obj.UpdateListString()
             SetDirty()
 
-            if obj.dynamicSize:
-                obj.UpdateDynamicSizing()
+            obj.UpdateDynamicSizing()
 
 
     def HandleEntPosChange(self, obj, oldx, oldy, x, y):

@@ -515,7 +515,7 @@ class AuxiliaryTrackObject(AuxiliaryItem):
 
     def setSize(self, width, height):
         self.prepareGeometryChange()
-        self.BoundingRect = QtCore.QRectF(0,0,width*1.5,height*1.5)
+        self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, height * 1.5)
         self.width = width
         self.height = height
 
@@ -526,14 +526,14 @@ class AuxiliaryTrackObject(AuxiliaryItem):
 
         if self.direction == 1:
             lineY = self.height * 0.75
-            painter.drawLine(20, lineY, (self.width*1.5) - 20, lineY)
+            painter.drawLine(20, lineY, (self.width * 1.5) - 20, lineY)
             painter.drawEllipse(8, lineY - 4, 8, 8)
-            painter.drawEllipse((self.width*1.5) - 16, lineY - 4, 8, 8)
+            painter.drawEllipse((self.width * 1.5) - 16, lineY - 4, 8, 8)
         elif self.direction == 2:
             lineX = self.width * 0.75
-            painter.drawLine(lineX, 20, lineX, (self.height*1.5) - 20)
+            painter.drawLine(lineX, 20, lineX, (self.height * 1.5) - 20)
             painter.drawEllipse(lineX - 4, 8, 8, 8)
-            painter.drawEllipse(lineX - 4, (self.height*1.5) - 16, 8, 8)
+            painter.drawEllipse(lineX - 4, (self.height * 1.5) - 16, 8, 8)
 
 
 class AuxiliaryCircleOutline(AuxiliaryItem):
@@ -541,7 +541,7 @@ class AuxiliaryCircleOutline(AuxiliaryItem):
         """Constructor"""
         AuxiliaryItem.__init__(self, parent)
 
-        self.BoundingRect = QtCore.QRectF(0,0,width*1.5,width*1.5)
+        self.BoundingRect = QtCore.QRectF(0,0,width * 1.5,width * 1.5)
         self.setPos((8 - (width / 2)) * 1.5, 0)
         self.width = width
         self.hover = False
@@ -779,15 +779,20 @@ class SpriteImage_Static(SpriteImage):
         self.image = image
         self.showSpritebox = False
         if self.image is not None:
-            self.width = self.image.width() / 1.5
-            self.height = self.image.height() / 1.5
+            self.width = (self.image.width() / 1.5) + 1
+            self.height = (self.image.height() / 1.5) + 1
         if offset is not None:
             self.xOffset = offset[0]
             self.yOffset = offset[1]
+    def updateSize(self):
+        # super().updateSize()
+        self.size = (self.image.width() / 1.5, self.image.height() / 1.5)
+        print(self.size)
+
     def paint(self, painter):
         # super().paint(painter)
 
-        if self.image == None: return
+        if self.image is None: return
         painter.save()
         painter.setOpacity(self.alpha)
         painter.drawPixmap(self.xOffset, self.yOffset, self.image)
@@ -896,14 +901,7 @@ class SpriteImage_Switch(SpriteImage_SimpleDynamic):
 
         upsideDown = self.parent.spritedata[5] & 1
 
-        if self.parent.type == 479 and upsideDown == 1:
-            self.dimensions = (-16, 0, 48, 42)
-        elif self.parent.type == 479 and upsideDown == 0:
-            self.dimensions = (-16, -26, 48, 42)
-        else:
-            del self.dimensions
-
-        if upsideDown == 0:
+        if not upsideDown:
             self.image = ImageCache[self.switchType + 'Switch']
         else:
             self.image = ImageCache[self.switchType + 'SwitchU']
@@ -913,7 +911,6 @@ class SpriteImage_OldStoneBlock(SpriteImage):
     def __init__(self, parent):
         super().__init__(parent)
         self.showSpritebox = False
-
 
         if 'OldStoneTL' not in ImageCache:
             ImageCache['OldStoneTL'] = GetImg('oldstone_tl.png')
@@ -938,6 +935,7 @@ class SpriteImage_OldStoneBlock(SpriteImage):
 
     def updateSize(self):
         # super().updateSize()
+
         size = self.parent.spritedata[5]
         height = (size & 0xF0) >> 4
         width = size & 0xF
@@ -4280,8 +4278,8 @@ class SpriteImage_FallingIcicle(SpriteImage_SimpleDynamic): # 265
 
     def updateSize(self):
         # super().updateSize()
-        size = self.parent.spritedata[5] & 1
 
+        size = self.parent.spritedata[5] & 1
         if size == 0:
             self.image = ImageCache['IcicleSmall']
             self.height = 19
@@ -4290,21 +4288,17 @@ class SpriteImage_FallingIcicle(SpriteImage_SimpleDynamic): # 265
             self.height = 36
 
 
-class SpriteImage_RotatingChainLink(SpriteImage): # 266
+class SpriteImage_RotatingChainLink(SpriteImage_Static): # 266
     def __init__(self, parent):
-        super().__init__(parent)
-
-
-        if 'RotatingChainLink' not in ImageCache:
-            ImageCache['RotatingChainLink'] = GetImg('rotating_chainlink.png')
-
-        self.customPaint = True
-        self.customPainter = PaintGenericObject
-        self.image = ImageCache['RotatingChainLink']
-        im = self.image
-        self.offset = (
-            -(2/3) * ((im.width() / 2) - 12),
-            -(2/3) * ((im.height() / 2) - 12),
+        loadIfNotInImageCache('RotatingChainLink', 'rotating_chainlink.png')
+        w, h = ImageCache['RotatingChainLink'].width(), ImageCache['RotatingChainLink'].height()
+        super().__init__(
+            parent,
+            ImageCache['RotatingChainLink'],
+            (
+                -((im.width() / 2) - 12) / 1.5,
+                -((im.height() / 2) - 12) / 1.5,
+                )
             )
 
 
