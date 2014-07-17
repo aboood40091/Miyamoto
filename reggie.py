@@ -3649,8 +3649,8 @@ class ZoneItem(LevelEditorItem):
             zoneRect = QtCore.QRectF(self.objx * 1.5, self.objy * 1.5, self.width * 1.5, self.height * 1.5)
             viewRect = mainWindow.view.mapToScene(mainWindow.view.viewport().rect()).boundingRect()
             for sprite in Area.sprites:
-                if not(sprite.zoneRealView and self.zoneID == sprite.getZone()): continue
-                sprite.zoneRealViewer(sprite, painter, zoneRect, viewRect)
+                if self.zoneID == sprite.getZone():
+                    sprite.ImageObj.realViewZone(painter, zoneRect, viewRect)
 
         # Now paint the borders
         painter.setPen(QtGui.QPen(theme.color('zone_lines'), 3))
@@ -3963,15 +3963,10 @@ class SpriteItem(LevelEditorItem):
         self.objx = x
         self.objy = y
         self.spritedata = data
-        self.aux = []
         self.listitem = None
-        self.LevelRect = (QtCore.QRectF(self.objx/16, self.objy/16, 24/16, 24/16))
+        self.LevelRect = QtCore.QRectF(self.objx / 16, self.objy / 16, 1.5, 1.5)
         self.ChangingPos = False
-
-        self.zoneRealView = False
-        self.zoneRealViewer = None
-        self.locationRealView = False
-        self.locationRealViewer = None
+        self.ImageObj = sprites.SpriteImage(self)
 
         sname = Sprites[type].name
         self.name = sname
@@ -3983,7 +3978,10 @@ class SpriteItem(LevelEditorItem):
 
         global DirtyOverride
         DirtyOverride += 1
-        self.setPos(int((x+self.xoffset)*1.5),int((y+self.yoffset)*1.5))
+        self.setPos(
+            int((self.objx + self.ImageObj.xOffset) * 1.5),
+            int((self.objy + self.ImageObj.yOffset) * 1.5),
+            )
         DirtyOverride -= 1
 
     def UpdateListString(self):
@@ -3995,14 +3993,9 @@ class SpriteItem(LevelEditorItem):
         self.setToolTip(trans.string('Sprites', 0, '[type]', type, '[name]', self.name))
         self.type = type
 
-        #CurrentRect = QtCore.QRectF(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
-
         self.InitializeSprite()
 
         self.listitem.setText(self.ListString())
-
-        #self.scene().update(CurrentRect)
-        #self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
 
     def ListString(self):
         """Returns a string that can be used to describe the sprite in a list"""
@@ -4110,61 +4103,44 @@ class SpriteItem(LevelEditorItem):
     def InitializeSprite(self):
         """Initializes sprite and creates any auxiliary objects needed"""
         global prefs
-        for thing in self.aux:
+        for thing in self.ImageObj.aux:
             thing.scene().removeItem(thing)
-        self.aux = []
 
         type = self.type
 
         self.setZValue(25000)
         self.resetTransform()
 
-        xo = 0
-        yo = 0
-        xs = 16
-        ys = 16
-        self.dynamicSize = False
-        self.customPaint = False
-        self.zoneRealView = False
-        self.zoneRealViewer = None
         self.name = Sprites[self.type].name
         self.setToolTip(trans.string('Sprites', 0, '[type]', self.type, '[name]', self.name))
 
         global SpriteImagesShown
-        if SpriteImagesShown:
-            try:
-                init = sprites.Initializers[type]
-                xo, yo, xs, ys = init(self)
-            except KeyError:
-                pass
-
-        self.xoffset = xo
-        self.yoffset = yo
-        self.xsize = xs
-        self.ysize = ys
+        if SpriteImagesShown and type in sprites.Initializers:
+            print(sprites.Initializers[type])
+            self.ImageObject = sprites.Initializers[type](self)
 
         self.UpdateDynamicSizing()
         self.UpdateRects()
         self.ChangingPos = True
-        self.setPos(int((self.objx+self.xoffset)*1.5),int((self.objy+self.yoffset)*1.5))
+        self.setPos(
+            int((self.objx + self.ImageObj.xOffset) * 1.5),
+            int((self.objy + self.ImageObj.yOffset) * 1.5),
+            )
         self.ChangingPos = False
         if self.scene() is not None: self.scene().update()
 
     def UpdateDynamicSizing(self):
         """Updates the sizes for dynamically sized sprites"""
-        if self.dynamicSize:
-            #CurrentRect = QtCore.QRectF(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
+        self.ImageObj.updateSize()
 
-            self.dynSizer(self)
-            self.UpdateRects()
+        self.UpdateRects()
 
-            self.ChangingPos = True
-            self.setPos(int((self.objx+self.xoffset)*1.5),int((self.objy+self.yoffset)*1.5))
-            self.ChangingPos = False
-
-            #if self.scene() is not None:
-            #    self.scene().update(CurrentRect)
-            #    self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
+        self.ChangingPos = True
+        self.setPos(
+        int((self.objx + self.ImageObj.xOffset) * 1.5),
+        int((self.objy + self.ImageObj.yOffset) * 1.5),
+        )
+        self.ChangingPos = False
 
     def UpdateRects(self):
         """Creates all the rectangles for the sprite"""
@@ -4172,13 +4148,16 @@ class SpriteItem(LevelEditorItem):
 
         self.prepareGeometryChange()
 
-        xs = self.xsize
-        ys = self.ysize
+        xs = self.ImageObj.width
+        ys = self.ImageObj.height
 
-        self.BoundingRect = QtCore.QRectF(0,0,xs*1.5,ys*1.5)
-        self.SelectionRect = QtCore.QRectF(0,0,int(xs*1.5-1),int(ys*1.5-1))
-        self.RoundedRect = QtCore.QRectF(1,1,xs*1.5-2,ys*1.5-2)
-        self.LevelRect = (QtCore.QRectF((self.objx + self.xoffset) / 16, (self.objy + self.yoffset) / 16, self.xsize/16, self.ysize/16))
+        self.BoundingRect = QtCore.QRectF(0, 0, xs * 1.5, ys * 1.5)
+        self.SelectionRect = QtCore.QRectF(0, 0, int(xs * 1.5 - 1), int(ys * 1.5 - 1))
+        self.RoundedRect = QtCore.QRectF(1, 1, xs * 1.5 - 2, ys * 1.5 - 2)
+        self.LevelRect = (QtCore.QRectF(
+            (self.objx + self.ImageObj.xOffset) / 16, (self.objy + self.ImageObj.yOffset) / 16,
+            self.ImageObj.width / 16, self.ImageObj.height / 16,
+            ))
 
     def itemChange(self, change, value):
         """Makes sure positions don't go out of bounds and updates them as necessary"""
@@ -4187,8 +4166,8 @@ class SpriteItem(LevelEditorItem):
             if self.scene() is None: return value
             if self.ChangingPos: return value
 
-            xOffset, xOffsetAdjusted = self.xoffset, self.xoffset * 1.5
-            yOffset, yOffsetAdjusted = self.yoffset, self.yoffset * 1.5
+            xOffset, xOffsetAdjusted = self.ImageObj.xOffset, self.ImageObj.xOffset * 1.5
+            yOffset, yOffsetAdjusted = self.ImageObj.yOffset, self.ImageObj.yOffset * 1.5
 
             # snap to 24x24
             newpos = value
@@ -4312,13 +4291,12 @@ class SpriteItem(LevelEditorItem):
         painter.setClipRect(option.exposedRect)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
-        if self.customPaint:
-            self.customPainter(self, painter)
-            if self.isSelected():
-                painter.setPen(QtGui.QPen(theme.color('sprite_lines_s'), 1, Qt.DotLine))
-                painter.drawRect(self.SelectionRect)
-                painter.fillRect(self.SelectionRect, theme.color('sprite_fill_s'))
-        else:
+        self.ImageObj.paint(painter)
+        if self.isSelected():
+            painter.setPen(QtGui.QPen(theme.color('sprite_lines_s'), 1, Qt.DotLine))
+            painter.drawRect(self.SelectionRect)
+            painter.fillRect(self.SelectionRect, theme.color('sprite_fill_s'))
+        if self.ImageObj.showSpritebox:
             if self.isSelected():
                 painter.setBrush(QtGui.QBrush(theme.color('spritebox_fill_s')))
                 painter.setPen(QtGui.QPen(theme.color('spritebox_lines_s'), 1))
