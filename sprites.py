@@ -485,7 +485,8 @@ class AuxiliaryItem(QtWidgets.QGraphicsItem):
     """Base class for auxiliary objects that accompany specific sprite types"""
     def __init__(self, parent):
         """Generic constructor for auxiliary items"""
-        QtWidgets.QGraphicsItem.__init__(self)
+        super().__init__(parent)
+        self.parent = parent
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, False)
         self.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, True)
@@ -504,7 +505,7 @@ class AuxiliaryTrackObject(AuxiliaryItem):
 
     def __init__(self, parent, width, height, direction):
         """Constructor"""
-        AuxiliaryItem.__init__(self, parent)
+        super().__init__(parent)
 
         self.BoundingRect = QtCore.QRectF(0,0,width*1.5,height*1.5)
         self.setPos(0,0)
@@ -539,7 +540,7 @@ class AuxiliaryTrackObject(AuxiliaryItem):
 class AuxiliaryCircleOutline(AuxiliaryItem):
     def __init__(self, parent, width):
         """Constructor"""
-        AuxiliaryItem.__init__(self, parent)
+        super().__init__(parent)
 
         self.BoundingRect = QtCore.QRectF(0,0,width * 1.5,width * 1.5)
         self.setPos((8 - (width / 2)) * 1.5, 0)
@@ -562,7 +563,7 @@ class AuxiliaryCircleOutline(AuxiliaryItem):
 class AuxiliaryRotationAreaOutline(AuxiliaryItem):
     def __init__(self, parent, width):
         """Constructor"""
-        AuxiliaryItem.__init__(self, parent)
+        super().__init__(parent)
 
         self.BoundingRect = QtCore.QRectF(0,0,width*1.5,width*1.5)
         self.setPos((8 - (width / 2)) * 1.5, (8 - (width / 2)) * 1.5)
@@ -586,7 +587,7 @@ class AuxiliaryRotationAreaOutline(AuxiliaryItem):
 class AuxiliaryRectOutline(AuxiliaryItem):
     def __init__(self, parent, width, height, xoff=0, yoff=0):
         """Constructor"""
-        AuxiliaryItem.__init__(self, parent)
+        super().__init__(parent)
 
         self.BoundingRect = QtCore.QRectF(0,0,width,height)
         self.setPos(xoff, yoff)
@@ -607,7 +608,7 @@ class AuxiliaryRectOutline(AuxiliaryItem):
 class AuxiliaryPainterPath(AuxiliaryItem):
     def __init__(self, parent, path, width, height, xoff=0, yoff=0):
         """Constructor"""
-        AuxiliaryItem.__init__(self, parent)
+        super().__init__(parent)
 
         self.PainterPath = path
         self.setPos(xoff, yoff)
@@ -634,7 +635,7 @@ class AuxiliaryPainterPath(AuxiliaryItem):
 class AuxiliaryImage(AuxiliaryItem):
     def __init__(self, parent, width, height):
         """Constructor"""
-        AuxiliaryItem.__init__(self, parent)
+        super().__init__(parent)
         self.BoundingRect = QtCore.QRectF(0,0,width,height)
         self.width = width
         self.height = height
@@ -657,13 +658,24 @@ class AuxiliaryImage(AuxiliaryItem):
 class AuxiliaryImage_FollowsRect(AuxiliaryImage):
     def __init__(self, parent, width, height):
         """Constructor"""
-        AuxiliaryImage.__init__(self, parent, width, height)
+        super().__init__(parent, width, height)
         self.alignment = Qt.AlignTop | Qt.AlignLeft
-        self.width = self.width
-        self.height = self.height
-        self.image = None
+        self.realwidth = self.width
+        self.realheight = self.height
+        self.realimage = None
         # Doing it this way may provide a slight speed boost?
         self.flagPresent = lambda flags, flag: flags | flag == flags
+
+    def setSize(self, width, height):
+        super().setSize(width, height)
+        self.realwidth = width
+        self.realheight = height
+
+    def paint(self, painter, option, widget):
+        super().paint(painter, option, widget)
+        if self.realimage == None:
+            try: self.realimage = self.image
+            except: pass
 
     def move(self, x, y, w, h):
         """Repositions the auxiliary image"""
@@ -674,6 +686,8 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
         # Decide on the height to use
         # This solves the problem of "what if
         # agument w is smaller than self.width?"
+        self.width = self.realwidth
+        self.height = self.realheight
         changedSize = False
         if w < self.width:
             self.width = w
@@ -681,12 +695,12 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
         if h < self.height:
             self.height = h
             changedSize = True
-        if self.image != None:
+        if self.realimage != None:
             if changedSize:
                 self.image = self.realimage.copy(0, 0, w, h)
             else:
                 self.image = self.realimage
-
+        
 
         # Find the absolute X-coord
         if self.flagPresent(self.alignment, Qt.AlignLeft):
@@ -705,7 +719,7 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
             newy = y + (h/2) - (self.height/2)
 
         # Translate that to relative coords
-        parent = self.parentItem()
+        parent = self.parent
         newx = newx - parent.x()
         newy = newy - parent.y()
 
@@ -715,8 +729,6 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
         # Update the affected area of the scene
         if self.scene() != None:
             self.scene().update(oldx + parent.x(), oldy + parent.y(), self.width, self.height)
-
-
 
 
 # ---- SpriteImage Low-level Classes ----
@@ -778,7 +790,7 @@ class SpriteImage_Static(SpriteImage):
         self.image = image
         self.showSpritebox = False
         if self.image is not None:
-            self.width = (self.image.width() / 1.5) + 2
+            self.width = (self.image.width() / 1.5) + 1
             self.height = (self.image.height() / 1.5) + 2
         if offset is not None:
             self.xOffset = offset[0]
@@ -788,7 +800,7 @@ class SpriteImage_Static(SpriteImage):
 
         if self.image is not None:
             self.size = (
-                (self.image.width() / 1.5) + 2,
+                (self.image.width() / 1.5) + 1,
                 (self.image.height() / 1.5) + 2,
                 )
         else:
@@ -800,7 +812,7 @@ class SpriteImage_Static(SpriteImage):
         if self.image is None: return
         painter.save()
         painter.setOpacity(self.alpha)
-        painter.drawPixmap(self.xOffset, self.yOffset, self.image)
+        painter.drawPixmap(0, 0, self.image)
         painter.restore()
 
 class SpriteImage_SimpleDynamic(SpriteImage_Static):
@@ -808,8 +820,8 @@ class SpriteImage_SimpleDynamic(SpriteImage_Static):
     A class that acts like a SpriteImage_Static but lets you change
     the image with the size() method
     """
-    def __init__(self, parent, image=None):
-        super().__init__(parent, image)
+    def __init__(self, parent, image=None, offset=None):
+        super().__init__(parent, image, offset)
     # no other changes needed yet
 
 
@@ -2460,31 +2472,28 @@ class SpriteImage_Sunlight(SpriteImage): # 110
 
         i = ImageCache['Sunlight']
         self.aux.append(AuxiliaryImage_FollowsRect(parent, i.width(), i.height()))
-        self.aux[0].image = i
+        self.aux[0].realimage = i
         self.aux[0].alignment = Qt.AlignTop | Qt.AlignRight
-        self.scene().views()[0].repaint.connect(lambda: self.moveSunlight())
+        self.parent.scene().views()[0].repaint.connect(lambda: self.moveSunlight())
         self.aux[0].hover = False
 
-        self.dimensions = (0,0,16,16)
 
     def moveSunlight(self):
         if RealViewEnabled:
-            self.aux[0].image = ImageCache['Sunlight']
+            self.aux[0].realimage = ImageCache['Sunlight']
         else:
-            self.aux[0].image = None
+            self.aux[0].realimage = None
             return
         zone = self.parent.getZone(True)
         if zone is None:
-            self.aux[0].image = None
+            self.aux[0].realimage = None
             return
         zoneRect = QtCore.QRectF(zone.objx * 1.5, zone.objy * 1.5, zone.width * 1.5, zone.height * 1.5)
         view = self.parent.scene().views()[0]
         viewRect = view.mapToScene(view.viewport().rect()).boundingRect()
         bothRect = zoneRect & viewRect
 
-        try:
-            self.aux[0].move(bothRect.x(), bothRect.y(), bothRect.width(), bothRect.height())
-        except RuntimeError: pass
+        self.aux[0].move(bothRect.x(), bothRect.y(), bothRect.width(), bothRect.height())
 
 
 class SpriteImage_Blooper(SpriteImage_Static): # 111
@@ -6193,6 +6202,7 @@ class SpriteImage_ToadBrickBlock(SpriteImage_Block): # 423
 class SpriteImage_PalmTree(SpriteImage_SimpleDynamic): # 424
     def __init__(self, parent):
         super().__init__(parent)
+        self.parent.setZValue(24999)
 
         if 'PalmTree0' not in ImageCache:
             for i in range(8):
@@ -7110,11 +7120,23 @@ def LoadFireSnake():
 
 def LoadPolterItems():
 
-    if 'GhostHouseStand' not in ImageCache:
-        ImageCache['GhostHouseStand'] = GetImg('ghost_house_stand.png')
+    loadIfNotInImageCache('GhostHouseStand', 'ghost_house_stand.png')
 
-    ImageCache['PolterStand'] = OverlayPixmaps(ImageCache['GhostHouseStand'], GetImg('polter_stand.png'), 18, 18, 1, 1, 18, 18, 18, 18)
-    ImageCache['PolterQBlock'] = OverlayPixmaps(ImageCache['Overrides'][9], GetImg('polter_qblock.png'), 18, 18, 1, 1, 18, 18, 18, 18)
+    polterstand = GetImg('polter_stand.png')
+    polterblock = GetImg('polter_qblock.png')
+
+    standpainter = QtGui.QPainter(polterstand)
+    blockpainter = QtGui.QPainter(polterblock)
+
+    standpainter.drawPixmap(ImageCache['GhostHouseStand'], 18, 18)
+    blockpainter.drawPixmap(ImageCache['Overrides'][9], 18, 18)
+
+    del standpainter
+    del blockpainter
+
+    ImageCache['PolterStand'] = polterstand
+    ImageCache['PolterQBlock'] = polterblock
+
 
 def LoadFlyingBlocks():
 
@@ -7323,43 +7345,3 @@ def paintLiquid(painter, crest, mid, rise, riseCrestless, zx, zy, zw, zh, top, d
         painter.drawTiledPixmap(4, offsetFromTop, zw-8, zh-offsetFromTop-4, mid)
     if drawRise:
         painter.drawTiledPixmap(4, offsetRise, zw-8, riseToDraw.height(), riseToDraw)
-
-
-def OverlayPixmaps(bottom, top, xOffset = 0, yOffset = 0, opacityB = 1, opacityT = 1, extTop = 0, extBottom = 0, extLeft = 0, extRight = 0):
-    """Overlays one QPixmap on top of another. Returns a QPixmap, or None if errors occur."""
-    # There are a lot of arguments, so here's an explanation:
-    # bottom, top: The QPixmaps to be used
-    # xOffset, yOffset: The amount the top pixmap should be offset BEFORE bottom pixmap extention.
-    # opacityB, opacityT: The opacity (float 0-1) of each layer
-    # extTop, extBottom, extLeft, extRight: The amount (in pixels) for each side of the bottom pixmap to be
-    #    extended prior to adding the top pixmap.
-
-    # Check for obvious argument problems
-    if opacityB > 1 or opacityT > 1 or opacityB < 0 or opacityT < 0:
-        return None
-
-    # Put the entire thing into a try... except clause in order to catch any errors
-    try:
-        # Create a pixmap with the correct dimensions as specified by the ext args and the original image
-        w = QtGui.QPixmap(bottom.width()+extLeft+extRight, bottom.height()+extTop+extBottom)
-        w.fill(Qt.transparent)
-
-        # Create the painter
-        p = QtGui.QPainter(w)
-
-        # Paint the bottom pixmap onto w using opacityB and the extention arguments
-        p.setOpacity(opacityB)
-        p.drawPixmap(extLeft, extTop, bottom)
-
-        # Paint the top pixmap onto w using opacityT and the offset arguments
-        p.setOpacity(opacityT)
-        p.drawPixmap(xOffset-extLeft, yOffset-extTop, top)
-
-        # Destroy the painter (leaving this line out causes errors later)
-        del p
-    except:
-        # An error occured somewhere
-        return None
-
-    # Return the result
-    return w
