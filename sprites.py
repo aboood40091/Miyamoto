@@ -224,6 +224,7 @@ def ResetInitializers():
         113: SpriteImage_Flagpole,
         114: SpriteImage_FlameCannon,
         115: SpriteImage_Cheep,
+        116: SpriteImage_CoinCheep,
         117: SpriteImage_PulseFlameCannon,
         118: SpriteImage_DryBones,
         119: SpriteImage_GiantDryBones,
@@ -2429,7 +2430,7 @@ class SpriteImage_PlatformGenerator(SpriteImage_WoodenPlatform): # 103
         self.color = 0
 
 
-class SpriteImage_AmpNormal(SpriteImage_Static): # 104
+class SpriteImage_AmpNormal(SpriteImage_Amp): # 104
     pass
 
 
@@ -2497,7 +2498,7 @@ class SpriteImage_RotationControlledPassBetaPlatform(SpriteImage_UnusedBlockPlat
         super().updateSize()
 
 
-class SpriteImage_AmpLine(SpriteImage_Static): # 108
+class SpriteImage_AmpLine(SpriteImage_Amp): # 108
     pass
 
 
@@ -2599,7 +2600,8 @@ class SpriteImage_Flagpole(SpriteImage): # 113
         self.image = ImageCache['Flagpole']
 
         self.aux.append(AuxiliaryImage(parent, 144, 149))
-        self.dimensions = (-30, -144, 46, 160)
+        self.offset = (-30, -144)
+        self.size = (self.image.width() / 1.5, self.image.height() / 1.5)
 
     def updateSize(self):
 
@@ -2626,6 +2628,10 @@ class SpriteImage_Flagpole(SpriteImage): # 113
                 self.aux[0].image = ImageCache['SnowCastleSecret']
 
         super().updateSize()
+
+    def paint(self, painter):
+        super().paint(painter)
+        painter.drawPixmap(0, 0, self.image)
 
 
 class SpriteImage_FlameCannon(SpriteImage_SimpleDynamic): # 114
@@ -2656,28 +2662,85 @@ class SpriteImage_FlameCannon(SpriteImage_SimpleDynamic): # 114
         super().updateSize()
 
 
-class SpriteImage_Cheep(SpriteImage_SimpleDynamic): # 115
+class SpriteImage_Cheep(SpriteImage): # 115
     def __init__(self, parent):
         super().__init__(parent)
+        self.showSpritebox = False
 
-        if 'CheepRed' not in ImageCache:
-            ImageCache['CheepRed'] = GetImg('cheep_red.png')
+        if 'CheepRedLeft' not in ImageCache:
+            ImageCache['CheepRedLeft'] = GetImg('cheep_red.png')
+            ImageCache['CheepRedRight'] = QtGui.QPixmap.fromImage(GetImg('cheep_red.png', True).mirrored(True, False))
+            ImageCache['CheepRedAtYou'] = GetImg('cheep_red_atyou.png')
             ImageCache['CheepGreen'] = GetImg('cheep_green.png')
             ImageCache['CheepYellow'] = GetImg('cheep_yellow.png')
 
-        self.dimensions = (-1,-1,19,18)
+        self.aux.append(AuxiliaryTrackObject(self.parent, 24, 24, AuxiliaryTrackObject.Horizontal))
 
     def updateSize(self):
 
         type = self.parent.spritedata[5] & 0xF
-        if type == 1:
+        if type in (1, 7):
             self.image = ImageCache['CheepGreen']
         elif type == 8:
             self.image = ImageCache['CheepYellow']
+        elif type == 5:
+            self.image = ImageCache['CheepRedAtYou']
         else:
-            self.image = ImageCache['CheepRed']
+            self.image = ImageCache['CheepRedLeft']
+        self.size = (self.image.width() / 1.5, self.image.height() / 1.5)
+
+        if type == 3:
+            distance = ((self.parent.spritedata[3] & 0xF) + 1) * 16
+            self.aux[0].setSize((distance * 2) + 16, 16)
+            self.aux[0].setPos(-distance * 1.5, 0)
+        else:
+            self.aux[0].setSize(0, 24)
 
         super().updateSize()
+
+    def paint(self, painter):
+        super().paint(painter)
+        painter.drawPixmap(0, 0, self.image)
+
+
+class SpriteImage_CoinCheep(SpriteImage): # 116
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.showSpritebox = False
+
+        if 'CheepRedLeft' not in ImageCache:
+            ImageCache['CheepRedLeft'] = GetImg('cheep_red.png')
+            ImageCache['CheepRedRight'] = QtGui.QPixmap.fromImage(GetImg('cheep_red.png', True).mirrored(True, False))
+            ImageCache['CheepRedAtYou'] = GetImg('cheep_red_atyou.png')
+            ImageCache['CheepGreen'] = GetImg('cheep_green.png')
+            ImageCache['CheepYellow'] = GetImg('cheep_yellow.png')
+
+    def updateSize(self):
+
+        waitFlag = self.parent.spritedata[5] & 1
+        if waitFlag:
+            self.showSpritebox = False
+            self.image = ImageCache['CheepRedAtYou']
+        else:
+            type = self.parent.spritedata[2] >> 4
+            if type % 4 == 3:
+                self.showSpritebox = True
+                self.image = None
+            elif type < 7:
+                self.showSpritebox = False
+                self.image = self.image = ImageCache['CheepRedRight']
+            else:
+                self.showSpritebox = False
+                self.image = self.image = ImageCache['CheepRedLeft']
+
+        if self.image is not None:
+            self.size = (self.image.width() / 1.5, self.image.height() / 1.5)
+        super().updateSize()
+
+    def paint(self, painter):
+        super().paint(painter)
+        if self.image is None: return
+        painter.drawPixmap(0, 0, self.image)
 
 
 class SpriteImage_PulseFlameCannon(SpriteImage_SimpleDynamic): # 117
@@ -2714,7 +2777,7 @@ class SpriteImage_DryBones(SpriteImage_Static): # 118
         loadIfNotInImageCache('DryBones', 'drybones.png')
         super().__init__(
             parent,
-            ImageCache['DryBones']
+            ImageCache['DryBones'],
             (-7, -16),
             )
 
@@ -2764,7 +2827,6 @@ class SpriteImage_UnusedCastlePlatform(SpriteImage_SimpleDynamic): # 123
         self.size = (255, 255)
 
     def updateSize(self):
-        super().updateSize()
         rawSize = self.parent.spritedata[4] >> 4
 
         if rawSize != 0:
@@ -2777,20 +2839,20 @@ class SpriteImage_UnusedCastlePlatform(SpriteImage_SimpleDynamic): # 123
 
         self.image = ImageCache['UnusedCastlePlatform'].scaled(widthInBlocks * 24, heightInBlocks * 24)
 
-        self.dimensions = (
-            self.width / 2,
-            topRadiusInBlocks * 16,
-            widthInBlocks * 16,
-            heightInBlocks * 16,
+        self.offset = (
+            -(self.image.width() / 1.5) / 2,
+            -topRadiusInBlocks * 16,
             )
+
+        super().updateSize()
 
 
 class SpriteImage_FenceKoopaHorz(SpriteImage_SimpleDynamic): # 125
     def __init__(self, parent):
         super().__init__(parent)
 
-        loadIfNotInImageCache('FenceKoopaHG', 'fencekoopa_horz')
-        loadIfNotInImageCache('FenceKoopaHR', 'fencekoopa_horz_red')
+        loadIfNotInImageCache('FenceKoopaHG', 'fencekoopa_horz.png')
+        loadIfNotInImageCache('FenceKoopaHR', 'fencekoopa_horz_red.png')
 
         self.offset = (-3, -12)
 
@@ -2805,12 +2867,12 @@ class SpriteImage_FenceKoopaHorz(SpriteImage_SimpleDynamic): # 125
         super().updateSize()
 
 
-class SpriteImage_FenceKoopaVert(SpriteImage): # 126
+class SpriteImage_FenceKoopaVert(SpriteImage_SimpleDynamic): # 126
     def __init__(self, parent):
         super().__init__(parent)
 
-        loadIfNotInImageCache('FenceKoopaVG', 'fencekoopa_vert')
-        loadIfNotInImageCache('FenceKoopaVR', 'fencekoopa_vert_red')
+        loadIfNotInImageCache('FenceKoopaVG', 'fencekoopa_vert.png')
+        loadIfNotInImageCache('FenceKoopaVR', 'fencekoopa_vert_red.png')
 
         self.offset = (-2, -12)
 
