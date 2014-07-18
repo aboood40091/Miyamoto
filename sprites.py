@@ -1912,35 +1912,45 @@ class SpriteImage_LineTiltGirder(SpriteImage_Static): # 59
 class SpriteImage_SpikeTop(SpriteImage_SimpleDynamic): # 60
     def __init__(self, parent):
         if 'SpikeTopUL' not in ImageCache:
-            SpikeTopUp = GetImg('spiketop.png', True)
-            SpikeTopDown = GetImg('spiketop_u.png', True)
-            ImageCache['SpikeTopUL'] = QtGui.QPixmap.fromImage(SpikeTopUp)
-            ImageCache['SpikeTopUR'] = QtGui.QPixmap.fromImage(SpikeTopUp.mirrored(True, False))
-            ImageCache['SpikeTopDL'] = QtGui.QPixmap.fromImage(SpikeTopDown)
-            ImageCache['SpikeTopDR'] = QtGui.QPixmap.fromImage(SpikeTopDown.mirrored(True, False))
+            SpikeTop = GetImg('spiketop.png', True)
+
+            Transform = QtGui.QTransform()
+            ImageCache['SpikeTop00'] = QtGui.QPixmap.fromImage(SpikeTop.mirrored(True, False))
+            Transform.rotate(90)
+            ImageCache['SpikeTop10'] = ImageCache['SpikeTop00'].transformed(Transform)
+            Transform.rotate(90)
+            ImageCache['SpikeTop20'] = ImageCache['SpikeTop00'].transformed(Transform)
+            Transform.rotate(90)
+            ImageCache['SpikeTop30'] = ImageCache['SpikeTop00'].transformed(Transform)
+
+            Transform = QtGui.QTransform()
+            ImageCache['SpikeTop01'] = QtGui.QPixmap.fromImage(SpikeTop)
+            Transform.rotate(90)
+            ImageCache['SpikeTop11'] = ImageCache['SpikeTop01'].transformed(Transform)
+            Transform.rotate(90)
+            ImageCache['SpikeTop21'] = ImageCache['SpikeTop01'].transformed(Transform)
+            Transform.rotate(90)
+            ImageCache['SpikeTop31'] = ImageCache['SpikeTop01'].transformed(Transform)
+
         super().__init__(
             parent,
-            ImageCache['SpikeTopUR'],
+            ImageCache['SpikeTop00'],
             (0, -4),
             )
 
     def updateSize(self):
 
-        value = self.parent.spritedata[5]
-        vertical = (value & 0x20) >> 5
-        horizontal = value & 1
+        orientation = (self.parent.spritedata[5] >> 4) % 4
+        direction = self.parent.spritedata[5] & 1
 
-        if vertical == 0: # up
-            self.yOffset = -4
-            v = 'U'
-        else:
-            self.yOffset = 0
-            v = 'D'
+        self.image = ImageCache['SpikeTop%d%d' % (orientation, direction)]
 
-        if horizontal == 0: # right
-            self.image = ImageCache['SpikeTop%sR' % v]
-        else:
-            self.image = ImageCache['SpikeTop%sL' % v]
+        self.offset = (
+            (0, -4),
+            (0, 0),
+            (0, 0),
+            (-4, 0),
+            )[orientation]
 
         super().updateSize()
 
@@ -1957,7 +1967,7 @@ class SpriteImage_BigBoo(SpriteImage): # 61
         self.aux[0].setPos(-48, -48)
         self.aux[0].hover = False
 
-        self.dimensions = (-38, -80, 96, 96)
+        self.dimensions = (-38, -80, 98, 102)
 
 
 class SpriteImage_SpikeBall(SpriteImage_Static): # 63
