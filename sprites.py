@@ -1709,7 +1709,7 @@ class SpriteImage_GiantThwomp(SpriteImage_Static): # 48
             LoadCastleStuff()
         super().__init__(
             parent,
-            ImageCache['Thwomp'],
+            ImageCache['GiantThwomp'],
             (-8, -8),
             )
 
@@ -1734,8 +1734,9 @@ class SpriteImage_UnusedSeesaw(SpriteImage): # 49
             self.width = 16 * 16 # 16 blocks wide
         else:
             self.width = w * 32
-        self.image = ImageCache['UnusedPlatform'].scaled(self.width * 3/2, self.height * 3/2)
+        self.image = ImageCache['UnusedPlatform'].scaled(self.width * 1.5, self.height * 1.5)
         self.xOffset = (8 * 16) - (self.width / 2)
+        print(self.image)
 
         swingArc = self.parent.spritedata[5] >> 4
         swingArcs = (
@@ -1761,6 +1762,11 @@ class SpriteImage_UnusedSeesaw(SpriteImage): # 49
         self.aux[0].update()
 
         super().updateSize()
+
+    def paint(self, painter):
+        super().paint(painter)
+
+        painter.drawPixmap(0, 0, self.image)
 
 
 class SpriteImage_FallingPlatform(SpriteImage_WoodenPlatform): # 50
