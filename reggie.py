@@ -4103,8 +4103,8 @@ class SpriteItem(LevelEditorItem):
     def InitializeSprite(self):
         """Initializes sprite and creates any auxiliary objects needed"""
         global prefs
-        for thing in self.ImageObj.aux:
-            thing.scene().removeItem(thing)
+        for auxObj in self.ImageObj.aux:
+            auxObj.scene().removeItem(auxObj)
 
         type = self.type
 
@@ -4130,9 +4130,17 @@ class SpriteItem(LevelEditorItem):
 
     def UpdateDynamicSizing(self):
         """Updates the sizes for dynamically sized sprites"""
-        self.ImageObj.updateSize()
-        s = super(type(self.ImageObj), self.ImageObj)
+        CurrentRect = QtCore.QRectF(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
+        CurrentAuxRects = []
+        for auxObj in self.ImageObj.aux:
+            CurrentAuxRects.append(QtCore.QRectF(
+                auxObj.x() + self.x(),
+                auxObj.y() + self.y(),
+                auxObj.BoundingRect.width(),
+                auxObj.BoundingRect.height(),
+                ))
 
+        self.ImageObj.updateSize()
         self.UpdateRects()
 
         self.ChangingPos = True
@@ -4141,6 +4149,13 @@ class SpriteItem(LevelEditorItem):
             int((self.objy + self.ImageObj.yOffset) * 1.5),
             )
         self.ChangingPos = False
+
+        if self.scene() is not None:
+            self.scene().update(CurrentRect)
+            self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
+            for auxUpdateRect in CurrentAuxRects:
+                self.scene().update(auxUpdateRect)
+
 
     def UpdateRects(self):
         """Creates all the rectangles for the sprite"""

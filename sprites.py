@@ -507,7 +507,7 @@ class AuxiliaryTrackObject(AuxiliaryItem):
         """Constructor"""
         super().__init__(parent)
 
-        self.BoundingRect = QtCore.QRectF(0,0,width*1.5,height*1.5)
+        self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, height * 1.5)
         self.setPos(0,0)
         self.width = width
         self.height = height
@@ -525,12 +525,12 @@ class AuxiliaryTrackObject(AuxiliaryItem):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         painter.setPen(OutlinePen)
 
-        if self.direction == 1:
+        if self.direction == self.Horizontal:
             lineY = self.height * 0.75
             painter.drawLine(20, lineY, (self.width * 1.5) - 20, lineY)
             painter.drawEllipse(8, lineY - 4, 8, 8)
             painter.drawEllipse((self.width * 1.5) - 16, lineY - 4, 8, 8)
-        elif self.direction == 2:
+        else:
             lineX = self.width * 0.75
             painter.drawLine(lineX, 20, lineX, (self.height * 1.5) - 20)
             painter.drawEllipse(lineX - 4, 8, 8, 8)
@@ -1602,7 +1602,7 @@ class SpriteImage_VertMovingPlatform(SpriteImage_WoodenPlatform): # 31
         super().__init__(parent)
 
         self.width = ((self.parent.spritedata[5] & 0xF) + 1) << 4
-        self.aux.append(AuxiliaryTrackObject(parent, self.width, 16, AuxiliaryTrackObject.Horizontal))
+        self.aux.append(AuxiliaryTrackObject(parent, self.width, 16, AuxiliaryTrackObject.Vertical))
 
 
     def updateSize(self):
