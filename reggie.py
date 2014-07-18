@@ -8990,7 +8990,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     if obj.objx != clickedx or obj.objy != clickedy:
                         obj.objx = clickedx
                         obj.objy = clickedy
-                        obj.setPos(int((clickedx+obj.xoffset) * 1.5), int((clickedy+obj.yoffset) * 1.5))
+                        obj.setPos(int((clickedx+obj.ImageObj.xOffset) * 1.5), int((clickedy+obj.ImageObj.yOffset) * 1.5))
 
                 elif isinstance(obj, type_ent) or isinstance(obj, type_path) or isinstance(obj, type_com):
                     # move the created entrance/path/comment
