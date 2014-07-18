@@ -206,6 +206,7 @@ def ResetInitializers():
         94: SpriteImage_BoomerangBro,
         95: SpriteImage_HammerBroNormal,
         96: SpriteImage_RotationControllerSwaying,
+        97: SpriteImage_RotationControlledSolidBetaPlatform,
         98: SpriteImage_GiantSpikeBall,
         100: SpriteImage_Swooper,
         101: SpriteImage_Bobomb,
@@ -214,6 +215,7 @@ def ResetInitializers():
         104: SpriteImage_AmpNormal,
         105: SpriteImage_Pokey,
         106: SpriteImage_LinePlatform,
+        107: SpriteImage_RotationControlledPassBetaPlatform,
         108: SpriteImage_AmpLine,
         109: SpriteImage_ChainBall,
         110: SpriteImage_Sunlight,
@@ -766,7 +768,7 @@ class SpriteImage():
     def setSize(self, new):
         self.width, self.height = new[0], new[1]
     def delSize(self):
-        self.width, self.height = [0, 0]
+        self.width, self.height = [16, 16]
     def getDimensions(self):
         return [self.xOffset, self.yOffset, self.width, self.height]
     def setDimensions(self, new):
@@ -804,7 +806,7 @@ class SpriteImage_Static(SpriteImage):
                 (self.image.height() / 1.5) + 2,
                 )
         else:
-            self.size = (16, 16)
+            del self.size
 
     def paint(self, painter):
         super().paint(painter)
@@ -1039,6 +1041,7 @@ class SpriteImage_OldStoneBlock(SpriteImage):
 
 class SpriteImage_HammerBro(SpriteImage_Static): # 95, 308
     def __init__(self, parent):
+        loadIfNotInImageCache('HammerBro', 'hammerbro.png')
         super().__init__(
             parent,
             ImageCache['HammerBro'],
@@ -1056,20 +1059,27 @@ class SpriteImage_Amp(SpriteImage_Static): # 104, 108
             )
 
 
-class SpriteImage_UnusedBlockPlatform(SpriteImage): # 132, 160
+class SpriteImage_UnusedBlockPlatform(SpriteImage): # 97, 107, 132, 160
     def __init__(self, parent):
         super().__init__(parent)
         self.showSpritebox = False
 
-        if 'UnusedBlockPlatform' not in ImageCache:
+        if 'UnusedPlatform' not in ImageCache:
             LoadUnusedStuff()
 
         self.size = (48, 48)
+        self.isDark = False
+        self.drawPlatformImage = True
 
     def paint(self, painter):
         super().paint(painter)
+        if not self.drawPlatformImage: return
 
-        pixmap = ImageCache['UnusedBlockPlatform'].scaled(self.width * 1.5, self.height * 1.5)
+        pixmap = ImageCache['UnusedPlatformDark'] if self.isDark else ImageCache['UnusedPlatform']
+        pixmap = pixmap.scaled(
+            self.width * 1.5, self.height * 1.5,
+            Qt.IgnoreAspectRatio, Qt.SmoothTransformation,
+            )
         painter.drawPixmap(0, 0, pixmap)
 
 
@@ -1719,13 +1729,13 @@ class SpriteImage_UnusedSeesaw(SpriteImage): # 49
         super().__init__(parent)
         self.showSpritebox = False
 
-        if 'UnusedPlatform' not in ImageCache:
+        if 'UnusedPlatformDark' not in ImageCache:
             LoadUnusedStuff()
 
         self.aux.append(AuxiliaryRotationAreaOutline(parent, 48))
         self.aux[0].setPos(128, -36)
 
-        self.image = ImageCache['UnusedPlatform']
+        self.image = ImageCache['UnusedPlatformDark']
         self.dimensions = (0, -8, 256, 16)
 
     def updateSize(self):
@@ -1734,7 +1744,10 @@ class SpriteImage_UnusedSeesaw(SpriteImage): # 49
             self.width = 16 * 16 # 16 blocks wide
         else:
             self.width = w * 32
-        self.image = ImageCache['UnusedPlatform'].scaled(self.width * 1.5, self.height * 1.5)
+        self.image = ImageCache['UnusedPlatformDark'].scaled(
+            self.width * 1.5, self.height * 1.5,
+            Qt.IgnoreAspectRatio, Qt.SmoothTransformation,
+            )
         self.xOffset = (8 * 16) - (self.width / 2)
         print(self.image)
 
@@ -1828,11 +1841,14 @@ class SpriteImage_Lakitu(SpriteImage_Static): # 54
 
 class SpriteImage_UnusedRisingSeesaw(SpriteImage_Static): # 55
     def __init__(self, parent):
-        if 'UnusedPlatform' not in ImageCache:
+        if 'UnusedPlatformDark' not in ImageCache:
             LoadUnusedStuff()
         super().__init__(
             parent,
-            ImageCache['UnusedPlatform'],
+            ImageCache['UnusedPlatformDark'].scaled(
+                377, 24,
+                Qt.IgnoreAspectRatio, Qt.SmoothTransformation,
+                ),
             )
 
 
@@ -2251,17 +2267,17 @@ class SpriteImage_OldStoneBlock_SpikesTopBottom(SpriteImage_OldStoneBlock): # 86
 
 class SpriteImage_TrampolineWall(SpriteImage_SimpleDynamic): # 87
     def __init__(self, parent):
-        if 'UnusedPlatform' not in ImageCache:
+        if 'UnusedPlatformDark' not in ImageCache:
             LoadUnusedStuff()
-        super().__init__(
-            parent,
-            ImageCache['UnusedPlatform'],
-            )
+        super().__init__(parent)
 
     def updateSize(self):
         height = (self.parent.spritedata[5] & 15) + 1
 
-        self.image = ImageCache['UnusedPlatform'].scaled(24, height * 24)
+        self.image = ImageCache['UnusedPlatformDark'].scaled(
+            24, height * 24,
+            Qt.IgnoreAspectRatio, Qt.SmoothTransformation,
+            )
         self.height = height * 16
 
         super().updateSize()
@@ -2334,8 +2350,32 @@ class SpriteImage_RotationControllerSwaying(SpriteImage): # 96
         self.aux[0].update()
 
 
+class SpriteImage_RotationControlledSolidBetaPlatform(SpriteImage_UnusedBlockPlatform): # 97
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.isDark = True
+
+    def updateSize(self):
+        size = self.parent.spritedata[4]
+        width = size >> 4
+        height = size & 0xF
+
+        if width == 0 or height == 0:
+            self.showSpritebox = True
+            self.drawPlatformImage = False
+            del self.size
+        else:
+            self.showSpritebox = False
+            self.drawPlatformImage = True
+            self.size = (width * 16, height * 16)
+
+        super().updateSize()
+
+
 class SpriteImage_GiantSpikeBall(SpriteImage_Static): # 98
     def __init__(self, parent):
+        if 'GiantSpikeBall' not in ImageCache:
+            LoadCastleStuff()
         super().__init__(
             parent,
             ImageCache['GiantSpikeBall'],
@@ -2439,6 +2479,22 @@ class SpriteImage_LinePlatform(SpriteImage_WoodenPlatform): # 106
         color = (self.parent.spritedata[4] & 0xF0) >> 4
         if color > 1: color = 0
         self.color = color
+
+
+class SpriteImage_RotationControlledPassBetaPlatform(SpriteImage_UnusedBlockPlatform): # 107
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.isDark = True
+        self.width = 16
+
+    def updateSize(self):
+        size = self.parent.spritedata[4]
+        height = (size & 0xF) + 1
+
+        self.yOffset = -(height - 1) * 8
+        self.height = height * 16
+
+        super().updateSize()
 
 
 class SpriteImage_AmpLine(SpriteImage_Static): # 108
@@ -2552,9 +2608,9 @@ class SpriteImage_Flagpole(SpriteImage): # 113
         snow = self.parent.spritedata[5] & 1
 
         if snow == 0:
-            self.aux[0].setPos(356,97)
+            self.aux[0].setPos(356, 97)
         else:
-            self.aux[0].setPos(356,91)
+            self.aux[0].setPos(356, 91)
 
         if exit == 0:
             self.image = ImageCache['Flagpole']
@@ -2586,13 +2642,13 @@ class SpriteImage_FlameCannon(SpriteImage_SimpleDynamic): # 114
         if direction > 3: direction = 0
 
         if direction == 0: # right
-            self.offset = (0, 0)
+            del self.offset
         elif direction == 1: # left
             self.offset = (-48, 0)
         elif direction == 2: # up
             self.offset = (0, -48)
         elif direction == 3: # down
-            self.offset = (0, 0)
+            del self.offset
 
         directionstr = 'RLUD'[direction]
         self.image = ImageCache['FlameCannon%s' % directionstr]
@@ -2639,13 +2695,13 @@ class SpriteImage_PulseFlameCannon(SpriteImage_SimpleDynamic): # 117
         if direction > 3: direction = 0
 
         if direction == 0:
-            self.offset = (0, 0)
+            del self.offset
         elif direction == 1:
             self.offset = (-96, 0)
         elif direction == 2:
             self.offset = (0, -96)
         elif direction == 3:
-            self.offset = (0, 0)
+            del self.offset
 
         directionstr = 'RLUD'[direction]
         self.image = ImageCache['PulseFlameCannon%s' % directionstr]
@@ -3228,7 +3284,7 @@ class SpriteImage_FireSnake(SpriteImage_SimpleDynamic): # 158
 
         move = self.parent.spritedata[5] & 15
         if move == 1:
-            self.size = (16, 16)
+            del self.size
             self.yOffset = 0
             self.image = ImageCache['FireSnakeWait']
         else:
@@ -7230,7 +7286,7 @@ def LoadDoomshipStuff():
 def LoadUnusedStuff():
 
     ImageCache['UnusedPlatform'] = GetImg('unused_platform.png')
-    ImageCache['UnusedBlockPlatform'] = GetImg('unused_block_platform.png')
+    ImageCache['UnusedPlatformDark'] = GetImg('unused_platform_dark.png')
     ImageCache['UnusedCastlePlatform'] = GetImg('unused_castle_platform.png')
 
     # This loop generates all 1-way gate images from a single image
@@ -7272,7 +7328,10 @@ def LoadUnusedStuff():
 
             ImageCache['1WayGate%d%d' % (flip, direction)] = dest
 
-    platform = ImageCache['UnusedPlatform'].scaled(144, 24)
+    platform = ImageCache['UnusedPlatformDark'].scaled(
+        144, 24,
+        Qt.IgnoreAspectRatio, Qt.SmoothTransformation,
+        )
     img = QtGui.QPixmap(432, 312)
     img.fill(Qt.transparent)
     paint = QtGui.QPainter(img)

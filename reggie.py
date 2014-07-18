@@ -4168,7 +4168,6 @@ class SpriteItem(LevelEditorItem):
 
         self.BoundingRect = QtCore.QRectF(0, 0, xs * 1.5, ys * 1.5)
         self.SelectionRect = QtCore.QRectF(0, 0, int(xs * 1.5 - 1), int(ys * 1.5 - 1))
-        self.RoundedRect = QtCore.QRectF(1, 1, xs * 1.5 - 2, ys * 1.5 - 2)
         self.LevelRect = (QtCore.QRectF(
             (self.objx + self.ImageObj.xOffset) / 16, (self.objy + self.ImageObj.yOffset) / 16,
             xs / 16, ys / 16,
