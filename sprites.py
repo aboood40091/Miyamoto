@@ -256,6 +256,7 @@ def ResetInitializers():
         148: SpriteImage_Spring,
         149: SpriteImage_RotationControllerSpinning,
         151: SpriteImage_Puffer,
+        153: SpriteImage_QuestionSwitchUnused,
         155: SpriteImage_StarCoinLineControlled,
         156: SpriteImage_RedCoinRing,
         157: SpriteImage_BigBrick,
@@ -1180,6 +1181,8 @@ class SpriteImage_ScrewMushroom(SpriteImage): # 172, 382
 
         self.hasBolt = False
 
+        self.size = (122, 190)
+
     def updateSize(self):
         super().updateSize()
 
@@ -1187,12 +1190,9 @@ class SpriteImage_ScrewMushroom(SpriteImage): # 172, 382
         SomeOffset = self.parent.spritedata[3]
         if SomeOffset == 0 or SomeOffset > 8: SomeOffset = 8
 
-        self.width = 122
-        self.height = 198
-        self.xOffset = 3
+        self.height = 206 if self.hasBolt else 190
         self.yOffset = SomeOffset * -16
         if self.hasBolt:
-            self.height += 16
             self.yOffset -= 16
 
     def paint(self, painter):
@@ -3268,6 +3268,12 @@ class SpriteImage_Puffer(SpriteImage_Static): # 151
             )
 
 
+class SpriteImage_QuestionSwitchUnused(SpriteImage_Switch): # 153
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.switchType = 'Q'
+
+
 class SpriteImage_StarCoinLineControlled(SpriteImage_StarCoin): # 155
     pass
 
@@ -3298,8 +3304,8 @@ class SpriteImage_BigBrick(SpriteImage_SimpleDynamic): # 157
             pix = QtGui.QPixmap(48, 24)
             pix.fill(Qt.transparent)
             paint = QtGui.QPainter(pix)
-            paint.drawPixmap(ImageCache['Blocks'][9], 0, 0)
-            paint.drawPixmap(ImageCache['Blocks'][3], 24, 0)
+            paint.drawPixmap(0, 0, ImageCache['Blocks'][9])
+            paint.drawPixmap(24, 0, ImageCache['Blocks'][3])
             del paint
             ImageCache['YoshiFire'] = pix
 
@@ -3435,7 +3441,7 @@ class SpriteImage_ChestnutGoomba(SpriteImage_Static): # 170
             )
 
 
-class SpriteImage_PowerupBubble(SpriteImage): # 171
+class SpriteImage_PowerupBubble(SpriteImage_Static): # 171
     def __init__(self, parent):
         loadIfNotInImageCache('PowerupBubble', 'powerup_bubble.png')
         super().__init__(
@@ -3461,14 +3467,12 @@ class SpriteImage_GiantFloatingLog(SpriteImage_Static): # 173
             )
 
 
-class SpriteImage_OneWayGate(SpriteImage): # 174
+class SpriteImage_OneWayGate(SpriteImage_SimpleDynamic): # 174
     def __init__(self, parent):
         super().__init__(parent)
 
         if '1WayGate00' not in ImageCache:
             LoadUnusedStuff()
-
-        self.image = ImageCache['1WayGate03']
 
     def updateSize(self):
 
@@ -3490,6 +3494,7 @@ class SpriteImage_OneWayGate(SpriteImage): # 174
 class SpriteImage_FlyingQBlock(SpriteImage): # 175
     def __init__(self, parent):
         super().__init__(parent)
+        self.showSpritebox = False
 
         loadIfNotInImageCache('FlyingQBlock', 'flying_qblock.png')
 
@@ -3508,8 +3513,8 @@ class SpriteImage_FlyingQBlock(SpriteImage): # 175
         elif color == 3:
             block = 159
 
-        painter.drawPixmap(ImageCache['FlyingQBlock'], 0, 0)
-        painter.drawPixmap(ImageCache['Overrides'][block], 18, 23)
+        painter.drawPixmap(0, 0, ImageCache['FlyingQBlock'])
+        painter.drawPixmap(18, 23, ImageCache['Overrides'][block])
 
 
 class SpriteImage_RouletteBlock(SpriteImage_Static): # 176

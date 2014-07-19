@@ -4317,16 +4317,17 @@ class SpriteItem(LevelEditorItem):
             painter.drawRect(self.SelectionRect)
             painter.fillRect(self.SelectionRect, theme.color('sprite_fill_s'))
         if self.ImageObj.showSpritebox:
+            newRoundedRect = self.RoundedRect.translated(-self.ImageObj.xOffset * 1.5, -self.ImageObj.yOffset * 1.5)
             if self.isSelected():
                 painter.setBrush(QtGui.QBrush(theme.color('spritebox_fill_s')))
                 painter.setPen(QtGui.QPen(theme.color('spritebox_lines_s'), 1))
             else:
                 painter.setBrush(QtGui.QBrush(theme.color('spritebox_fill')))
                 painter.setPen(QtGui.QPen(theme.color('spritebox_lines'), 1))
-            painter.drawRoundedRect(self.RoundedRect, 4, 4)
+            painter.drawRoundedRect(newRoundedRect, 4, 4)
 
             painter.setFont(self.font)
-            painter.drawText(self.RoundedRect, Qt.AlignCenter, str(self.type))
+            painter.drawText(newRoundedRect, Qt.AlignCenter, str(self.type))
 
 
     def scene(self):
