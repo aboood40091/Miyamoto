@@ -238,7 +238,7 @@ def ResetInitializers():
         129: SpriteImage_4Spinner,
         130: SpriteImage_Wiggler,
         131: SpriteImage_Boo,
-        132: SpriteImage_UnusedBlockPlatform,
+        132: SpriteImage_UnusedBlockPlatform1,
         133: SpriteImage_StalagmitePlatform,
         134: SpriteImage_Crow,
         135: SpriteImage_HangingPlatform,
@@ -260,7 +260,7 @@ def ResetInitializers():
         156: SpriteImage_RedCoinRing,
         157: SpriteImage_BigBrick,
         158: SpriteImage_FireSnake,
-        160: SpriteImage_UnusedBlockPlatform,
+        160: SpriteImage_UnusedBlockPlatform2,
         161: SpriteImage_PipeBubbles,
         166: SpriteImage_BlockTrain,
         170: SpriteImage_ChestnutGoomba,
@@ -759,30 +759,30 @@ class SpriteImage():
         pass
 
     def getOffset(self):
-        return [self.xOffset, self.yOffset]
+        return (self.xOffset, self.yOffset)
     def setOffset(self, new):
         self.xOffset, self.yOffset = new[0], new[1]
     def delOffset(self):
         self.xOffset, self.yOffset = [0, 0]
     def getSize(self):
-        return [self.width, self.height]
+        return (self.width, self.height)
     def setSize(self, new):
         self.width, self.height = new[0], new[1]
     def delSize(self):
         self.width, self.height = [16, 16]
     def getDimensions(self):
-        return [self.xOffset, self.yOffset, self.width, self.height]
+        return (self.xOffset, self.yOffset, self.width, self.height)
     def setDimensions(self, new):
         self.xOffset, self.yOffset, self.width, self.height = new[0], new[1], new[2], new[3]
     def delDimensions(self):
         self.xOffset, self.yOffset, self.width, self.height = [0, 0, 16, 16]
 
     offset = property(getOffset, setOffset, delOffset,
-        'Convenience property that provides access to self.xOffset and self.yOffset in one list')
+        'Convenience property that provides access to self.xOffset and self.yOffset in one tuple')
     size = property(getSize, setSize, delSize,
-        'Convenience property that provides access to self.width and self.height in one list')
+        'Convenience property that provides access to self.width and self.height in one tuple')
     dimensions = property(getDimensions, setDimensions, delDimensions,
-        'Convenience property that provides access to self.xOffset, self.yOffset, self.width and self.height in one list')
+        'Convenience property that provides access to self.xOffset, self.yOffset, self.width and self.height in one tuple')
 
 class SpriteImage_Static(SpriteImage):
     """
@@ -1087,13 +1087,14 @@ class SpriteImage_UnusedBlockPlatform(SpriteImage): # 97, 107, 132, 160
 class SpriteImage_SpikedStake(SpriteImage): # 137, 140, 141, 142
     def __init__(self, parent):
         super().__init__(parent)
+        self.showSpritebox = False
 
         if 'StakeM0up' not in ImageCache:
             for dir in ['up', 'down', 'left', 'right']:
-                ImageCache['StakeM0%s' % dir] = GetImg('stake_%s_m_0.png' % dir)
-                ImageCache['StakeM1%s' % dir] = GetImg('stake_%s_m_1.png' % dir)
-                ImageCache['StakeE0%s' % dir] = GetImg('stake_%s_e_0.png' % dir)
-                ImageCache['StakeE1%s' % dir] = GetImg('stake_%s_e_1.png' % dir)
+                ImageCache['StakeM0' + dir] = GetImg('stake_%s_m_0.png' % dir)
+                ImageCache['StakeM1' + dir] = GetImg('stake_%s_m_1.png' % dir)
+                ImageCache['StakeE0' + dir] = GetImg('stake_%s_e_0.png' % dir)
+                ImageCache['StakeE1' + dir] = GetImg('stake_%s_e_1.png' % dir)
 
         self.SpikeLength = ((37 * 16) + 41) / 1.5
         # (16 mid sections + an end section), accounting for image/sprite size difference
@@ -1111,8 +1112,10 @@ class SpriteImage_SpikedStake(SpriteImage): # 137, 140, 141, 142
             x = 14
         elif distance == 3:
             x = 10
+        elif distance >= 8:
+            x = 20
         else:
-            x = 16
+            x = 0
         distance = x + 1 # In order to hide one side of the track behind the image.
 
         w = 66
@@ -1141,22 +1144,24 @@ class SpriteImage_SpikedStake(SpriteImage): # 137, 140, 141, 142
         else:
             mid = ImageCache['StakeM0' + self.dir]
             end = ImageCache['StakeE0' + self.dir]
+        print(mid)
+        print(end)
 
         tiles = 16
         tilesize = 37
         endsize = 41
         width = 100
 
-        if dir == 'up':
+        if self.dir == 'up':
             painter.drawPixmap(0, 0, end)
             painter.drawTiledPixmap(0, endsize, width, tilesize * tiles, mid)
-        elif dir == 'down':
+        elif self.dir == 'down':
             painter.drawTiledPixmap(0, 0, width, tilesize * tiles, mid)
             painter.drawPixmap(0, (self.height * 1.5) - endsize, end)
-        elif dir == 'left':
+        elif self.dir == 'left':
             painter.drawPixmap(0, 0, end)
             painter.drawTiledPixmap(endsize, 0, tilesize * tiles, width, mid)
-        elif dir == 'right':
+        elif self.dir == 'right':
             painter.drawTiledPixmap(0, 0, tilesize * tiles, width, mid)
             painter.drawPixmap((self.width * 1.5) - endsize, 0, end)
 
@@ -2895,6 +2900,7 @@ class SpriteImage_FlipFence(SpriteImage_Static): # 127
             ImageCache['FlipFence'],
             (-4, -8),
             )
+        parent.setZValue(24999)
 
 
 class SpriteImage_FlipFenceLong(SpriteImage_Static): # 128
@@ -2905,6 +2911,7 @@ class SpriteImage_FlipFenceLong(SpriteImage_Static): # 128
             ImageCache['FlipFenceLong'],
             (6, 0),
             )
+        parent.setZValue(24999)
 
 
 class SpriteImage_4Spinner(SpriteImage_Static): # 129
@@ -2915,6 +2922,10 @@ class SpriteImage_4Spinner(SpriteImage_Static): # 129
             ImageCache['4Spinner'],
             (-62, -48),
             )
+
+    def updateSize(self):
+        super().updateSize()
+        self.alpha = 0.6 if (self.parent.spritedata[2] >> 4) & 1 else 1
 
 
 class SpriteImage_Wiggler(SpriteImage_Static): # 130
@@ -2942,9 +2953,9 @@ class SpriteImage_Boo(SpriteImage): # 131
 
 class SpriteImage_UnusedBlockPlatform1(SpriteImage_UnusedBlockPlatform): # 132
     def updateSize(self):
-        super().updateSize()
         self.width = ((self.parent.spritedata[5] & 0xF) + 1) * 16
         self.height = ((self.parent.spritedata[5] >> 4)  + 1) * 16
+        super().updateSize()
 
 
 class SpriteImage_StalagmitePlatform(SpriteImage_Static): # 133
@@ -3213,7 +3224,7 @@ class SpriteImage_Coin(SpriteImage_SimpleDynamic): # 147
         super().__init__(parent)
 
         if 'CoinF' not in ImageCache:
-            pix = QtGui.QPixmap(16, 16)
+            pix = QtGui.QPixmap(24, 24)
             pix.fill(Qt.transparent)
             paint = QtGui.QPainter(pix)
             paint.setOpacity(0.9)
@@ -3359,9 +3370,9 @@ class SpriteImage_FireSnake(SpriteImage_SimpleDynamic): # 158
 
 class SpriteImage_UnusedBlockPlatform2(SpriteImage_UnusedBlockPlatform): # 160
     def updateSize(self):
+        self.width = ((self.parent.spritedata[4] & 0xF) + 1) * 16
+        self.height = ((self.parent.spritedata[4] >> 4)  + 1) * 16
         super().updateSize()
-        self.width = ((self.parent.spritedata[5] & 0xF) + 1) * 16
-        self.height = ((self.parent.spritedata[5] >> 4)  + 1) * 16
 
 
 class SpriteImage_PipeBubbles(SpriteImage_SimpleDynamic): # 161

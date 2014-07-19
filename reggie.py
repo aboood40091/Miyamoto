@@ -551,7 +551,7 @@ class SpriteDefinition():
         fields = self.fields
 
         for field in elem:
-            if field.tag not in ['checkbox', 'list', 'value']: continue
+            if field.tag not in ['checkbox', 'list', 'value', 'bitfield']: continue
 
             attribs = field.attrib
 
@@ -608,6 +608,12 @@ class SpriteDefinition():
                     max = (16 << ((nybble[1] - nybble[0] - 1) * 4))
 
                 fields.append((2, attribs['title'], nybble, max, comment))
+            elif field.tag == 'bitfield':
+                # parameters: title, startbit, bitnum, comment
+                startbit = int(attribs['startbit'])
+                bitnum = int(attribs['bitnum'])
+
+                fields.append((3, attribs['title'], startbit, bitnum, comment))
 
 
 def LoadSpriteData():
@@ -4306,6 +4312,10 @@ class SpriteItem(LevelEditorItem):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
         self.ImageObj.paint(painter)
+        if self.isSelected() and self.ImageObj.size != (16, 16):
+            painter.setPen(QtGui.QPen(theme.color('sprite_lines_s'), 1, Qt.DotLine))
+            painter.drawRect(self.SelectionRect)
+            painter.fillRect(self.SelectionRect, theme.color('sprite_fill_s'))
         if self.ImageObj.showSpritebox:
             if self.isSelected():
                 painter.setBrush(QtGui.QBrush(theme.color('spritebox_fill_s')))
@@ -4316,11 +4326,7 @@ class SpriteItem(LevelEditorItem):
             painter.drawRoundedRect(self.RoundedRect, 4, 4)
 
             painter.setFont(self.font)
-            painter.drawText(self.BoundingRect,Qt.AlignCenter,str(self.type))
-        elif self.isSelected():
-            painter.setPen(QtGui.QPen(theme.color('sprite_lines_s'), 1, Qt.DotLine))
-            painter.drawRect(self.SelectionRect)
-            painter.fillRect(self.SelectionRect, theme.color('sprite_fill_s'))
+            painter.drawText(self.RoundedRect, Qt.AlignCenter, str(self.type))
 
 
     def scene(self):
@@ -5509,7 +5515,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         def __init__(self):
             """Generic constructor"""
-            QtCore.QObject.__init__(self)
+            super().__init__()
 
         def retrieve(self, data):
             """Extracts the value from the specified nybble(s)"""
@@ -5569,7 +5575,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         def __init__(self, title, nybble, mask, comment, layout, row):
             """Creates the widget"""
-            SpriteEditorWidget.PropertyDecoder.__init__(self)
+            super().__init__()
 
             self.widget = QtWidgets.QCheckBox(title)
             if comment is not None: self.widget.setToolTip(comment)
@@ -5612,7 +5618,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         def __init__(self, title, nybble, model, comment, layout, row):
             """Creates the widget"""
-            SpriteEditorWidget.PropertyDecoder.__init__(self)
+            super().__init__()
 
             self.model = model
             self.widget = QtWidgets.QComboBox()
@@ -5653,7 +5659,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         def __init__(self, title, nybble, max, comment, layout, row):
             """Creates the widget"""
-            SpriteEditorWidget.PropertyDecoder.__init__(self)
+            super().__init__()
 
             self.widget = QtWidgets.QSpinBox()
             self.widget.setRange(0, max - 1)
@@ -5676,6 +5682,84 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         @QtCore.pyqtSlot(int)
         def HandleValueChanged(self, value):
             """Handle the value changing in the spinbox"""
+            self.updateData.emit(self)
+
+
+    class BitfieldPropertyDecoder(PropertyDecoder):
+        """Class that decodes/encodes sprite data to/from a bitfield"""
+
+        def __init__(self, title, startbit, bitnum, comment, layout, row):
+            """Creates the widget"""
+            super().__init__()
+
+            self.startbit = startbit
+            self.bitnum = bitnum
+
+            self.widgets = []
+            CheckboxLayout = QtWidgets.QGridLayout()
+            CheckboxLayout.setContentsMargins(0, 0, 0, 0)
+            for i in range(bitnum):
+                c = QtWidgets.QCheckBox()
+                self.widgets.append(c)
+                CheckboxLayout.addWidget(c, 0, i)
+                if comment is not None: c.setToolTip(comment)
+                c.toggled.connect(self.HandleValueChanged)
+
+                L = QtWidgets.QLabel(str(i + 1))
+                CheckboxLayout.addWidget(L, 1, i)
+                CheckboxLayout.setAlignment(L, Qt.AlignHCenter)
+
+            w = QtWidgets.QWidget()
+            w.setLayout(CheckboxLayout)
+
+            layout.addWidget(QtWidgets.QLabel(title + ':'), row, 0, Qt.AlignRight)
+            layout.addWidget(w, row, 1)
+
+        def update(self, data):
+            """Updates the value shown by the widget"""
+            for bitIdx in range(self.bitnum):
+                checkbox = self.widgets[bitIdx]
+
+                adjustedIdx = bitIdx + self.startbit
+                byteNum = adjustedIdx // 8
+                bitNum = adjustedIdx % 8
+                checkbox.setChecked((data[byteNum] >> (7 - bitNum) & 1))
+
+        def assign(self, data):
+            """Assigns the checkbox states to the data"""
+            data = bytearray(data)
+
+            for idx in range(self.bitnum):
+                checkbox = self.widgets[idx]
+
+                adjustedIdx = idx + self.startbit
+                byteIdx = adjustedIdx // 8
+                bitIdx = adjustedIdx % 8
+
+                origByte = data[byteIdx]
+                origBit = (origByte >> (7 - bitIdx)) & 1
+                newBit = 1 if checkbox.isChecked() else 0
+
+                if origBit == newBit: continue
+                if origBit == 0 and newBit == 1:
+                    # Turn the byte on by OR-ing it in
+                    newByte = (origByte | (1 << (7 - bitIdx))) & 0xFF
+                else:
+                    # Turn it off by:
+                    # inverting it
+                    # OR-ing in the new byte
+                    # inverting it back
+                    newByte = ~origByte & 0xFF
+                    newByte = newByte | (1 << (7 - bitIdx))
+                    newByte = ~newByte & 0xFF
+
+                data[byteIdx] = newByte
+
+            return bytes(data)
+
+        @QtCore.pyqtSlot(int)
+        def HandleValueChanged(self, value):
+            """Handle any checkbox being changed"""
             self.updateData.emit(self)
 
 
@@ -5723,6 +5807,8 @@ class SpriteEditorWidget(QtWidgets.QWidget):
                     nf = SpriteEditorWidget.ListPropertyDecoder(f[1], f[2], f[3], f[4], layout, row)
                 elif f[0] == 2:
                     nf = SpriteEditorWidget.ValuePropertyDecoder(f[1], f[2], f[3], f[4], layout, row)
+                elif f[0] == 3:
+                    nf = SpriteEditorWidget.BitfieldPropertyDecoder(f[1], f[2], f[3], f[4], layout, row)
 
                 nf.updateData.connect(self.HandleFieldUpdate)
                 fields.append(nf)
