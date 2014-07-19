@@ -1275,7 +1275,7 @@ class SpriteImage_SpecialCoin(SpriteImage_Static): # 253, 371, 390
             )
 
 
-class SpriteImage_Door(SpriteImage): # 182, 259, 276, 277, 278, 421, 452
+class SpriteImage_Door(SpriteImage_SimpleDynamic): # 182, 259, 276, 277, 278, 421, 452
     def __init__(self, parent):
         super().__init__(parent)
         self.doorName = 'Door'
@@ -1291,28 +1291,25 @@ class SpriteImage_Door(SpriteImage): # 182, 259, 276, 277, 278, 421, 452
             direction = (rotstatus & 0x30) >> 4
 
         if direction > 3: direction = 0
-        doorType = self.parent.doorType
-        doorSize = self.parent.doorSize
+        doorName = self.doorName
+        doorSize = self.doorDimensions
         if direction == 0:
-            self.image = ImageCache[self.doorName + 'U']
-            self.xOffset = doorSize[0]
-            self.yOffset = doorSize[1]
-            self.width = doorSize[2]
-            self.height = doorSize[3]
+            self.image = ImageCache[doorName + 'U']
+            self.dimensions = doorSize
         elif direction == 1:
-            self.image = ImageCache[self.doorName + 'L']
+            self.image = ImageCache[doorName + 'L']
             self.xOffset = (doorSize[2] / 2) + doorSize[0] - doorSize[3]
             self.yOffset = doorSize[1] + (doorSize[3] - (doorSize[2] / 2))
             self.width = doorSize[3]
             self.height = doorSize[2]
         elif direction == 2:
-            self.image = ImageCache[self.doorName + 'D']
+            self.image = ImageCache[doorName + 'D']
             self.xOffset = doorSize[0]
-            self.yOffset = doorSize[1]+doorSize[3]
+            self.yOffset = doorSize[1] + doorSize[3]
             self.width = doorSize[2]
             self.height = doorSize[3]
         elif direction == 3:
-            self.image = ImageCache[self.doorName + 'R']
+            self.image = ImageCache[doorName + 'R']
             self.xOffset = doorSize[0] + (doorSize[2] / 2)
             self.yOffset = doorSize[1] + (doorSize[3] - (doorSize[2] / 2))
             self.width = doorSize[3]
@@ -3526,7 +3523,7 @@ class SpriteImage_RouletteBlock(SpriteImage_Static): # 176
             )
 
 
-class SpriteImage_FireChomp(SpriteImage): # 177
+class SpriteImage_FireChomp(SpriteImage_Static): # 177
     def __init__(self, parent):
         loadIfNotInImageCache('FireChomp', 'fire_chomp.png')
         super().__init__(
@@ -6332,7 +6329,6 @@ class SpriteImage_UnusedGhostDoor(SpriteImage_Door): # 421
     def __init__(self, parent):
         super().__init__(parent)
         self.doorName = 'GhostDoor'
-        self.doorDimensions = (0, 0, 32, 48)
 
 
 class SpriteImage_ToadQBlock(SpriteImage_Block): # 422
@@ -7115,7 +7111,7 @@ def LoadClam():
         newPix = QtGui.QPixmap(ImageCache['ClamEmpty'])
         painter = QtGui.QPainter(newPix)
         painter.setOpacity(0.6)
-        painter.drawPixmap(overlayImage, x, y)
+        painter.drawPixmap(x, y, overlayImage)
         del painter
         ImageCache['Clam' + clamName] = newPix
 
@@ -7123,8 +7119,8 @@ def LoadClam():
     newPix = QtGui.QPixmap(ImageCache['ClamEmpty'])
     painter = QtGui.QPainter(newPix)
     painter.setOpacity(0.6)
-    painter.drawPixmap(ImageCache['Coin'], 28, 42)
-    painter.drawPixmap(ImageCache['Coin'], 52, 42)
+    painter.drawPixmap(28, 42, ImageCache['Coin'])
+    painter.drawPixmap(52, 42, ImageCache['Coin'])
     del painter
     ImageCache['Clam2Coin'] = newPix
 
