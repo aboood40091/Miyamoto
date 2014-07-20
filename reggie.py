@@ -5489,7 +5489,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         toplayout.setStretch(0, 1)
 
         subLayout = QtWidgets.QVBoxLayout()
-        subLayout.setContentsMargins(0,0,0,0)
+        subLayout.setContentsMargins(0, 0, 0, 0)
 
         # create a layout
         mainLayout = QtWidgets.QVBoxLayout()
@@ -5816,8 +5816,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
                 row += 1
 
             self.fields = fields
-
-        # done
 
 
     def update(self):
@@ -8267,7 +8265,7 @@ class ReggieTranslation():
                 48: 'Upper Bounds:',
                 49: '[b]Upper Bounds:[/b][br] - Positive Values: Easier to scroll upwards (110 is centered)[br] - Negative Values: Harder to scroll upwards (30 is the top edge of the screen)[br][br]Values higher than 240 can cause instant death upon screen scrolling',
                 50: 'Lower Bounds:',
-                51: '[b]Lower Bounds:[/b][br] - Positive Values: Harder to scroll downwards (65 is the bottom edge of the screen)[br] - Negative Values: Easier to scroll downwards (95 is centered)[br][br]Values higher than 100 will prevent the sceen from scrolling while Mario until Mario is offscreen',
+                51: '[b]Lower Bounds:[/b][br] - Positive Values: Harder to scroll downwards (65 is the bottom edge of the screen)[br] - Negative Values: Easier to scroll downwards (95 is centered)[br][br]Values higher than 100 will prevent the scene from scrolling while Mario until Mario is offscreen',
                 52: 'Audio',
                 53: 'Background Music:',
                 54: '[b]Background Music:[/b][br]Changes the background music',
@@ -8377,7 +8375,7 @@ class ReggieTranslation():
 
             # Get the strings/stringlists in this section
             for string in section:
-                if not hasattr(string, 'attributes'): continue
+                if not hasattr(string, 'attrib'): continue
                 strValue = None
                 if string.tag.lower() == 'string':
                     # String node; this is easy
