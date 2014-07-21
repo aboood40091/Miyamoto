@@ -64,10 +64,12 @@ Developers:
  * Grop - Sprite Data
  * joietyfull64 - Sprite Data
 
-Translators:
- * Wolfy76700 - Translation Leader, French
- * nlgzrgn - Turkish
- * Grop - Dutch
+Translators: (in alphabetical order, by language)
+ * Translation Leader: Wolfy76700
+ * Dutch: Grop
+ * French: Wolfy76700
+ * Spanish: MalStar1000
+ * Turkish: nlgzrgn
 
 Other Testers and Contributors:
  * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl
