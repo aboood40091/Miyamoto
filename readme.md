@@ -64,6 +64,10 @@ Developers:
  * Grop - Sprite Data
  * joietyfull64 - Sprite Data
 
+Translators:
+ * Wolfy76700 - Translation Leader, French
+ * nlgzrgn - Turkish
+
 Other Testers and Contributors:
  * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl
  * Tobias Amaranth and Valeth - Text Tileset Addon
