@@ -4172,12 +4172,19 @@ class SpriteItem(LevelEditorItem):
         xs = self.ImageObj.width
         ys = self.ImageObj.height
 
-        self.BoundingRect = QtCore.QRectF(0, 0, xs * 1.5, ys * 1.5)
         self.SelectionRect = QtCore.QRectF(0, 0, int(xs * 1.5 - 1), int(ys * 1.5 - 1))
         self.LevelRect = (QtCore.QRectF(
             (self.objx + self.ImageObj.xOffset) / 16, (self.objy + self.ImageObj.yOffset) / 16,
             xs / 16, ys / 16,
             ))
+        self.RoundedRect = self.ImageObj.spritebox.RoundedRect
+
+        bound1 = QtCore.QRectF(0, 0, xs * 1.5, ys * 1.5)
+        if self.ImageObj.spritebox.shown:
+            self.BoundingRect = bound1.united(self.RoundedRect)
+        else:
+            self.BoundingRect = bound1
+        
 
     def itemChange(self, change, value):
         """Makes sure positions don't go out of bounds and updates them as necessary"""
@@ -4312,11 +4319,11 @@ class SpriteItem(LevelEditorItem):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
         self.ImageObj.paint(painter)
-        if self.isSelected() and self.ImageObj.size != (16, 16):
+        if self.isSelected() and (self.ImageObj.size != (16, 16) or not self.ImageObj.spritebox.shown):
             painter.setPen(QtGui.QPen(theme.color('sprite_lines_s'), 1, Qt.DotLine))
             painter.drawRect(self.SelectionRect)
             painter.fillRect(self.SelectionRect, theme.color('sprite_fill_s'))
-        if self.ImageObj.showSpritebox:
+        if self.ImageObj.spritebox.shown:
             newRoundedRect = self.RoundedRect.translated(-self.ImageObj.xOffset * 1.5, -self.ImageObj.yOffset * 1.5)
             if self.isSelected():
                 painter.setBrush(QtGui.QBrush(theme.color('spritebox_fill_s')))

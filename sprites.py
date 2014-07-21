@@ -208,6 +208,7 @@ def ResetInitializers():
         96: SpriteImage_RotationControllerSwaying,
         97: SpriteImage_RotationControlledSolidBetaPlatform,
         98: SpriteImage_GiantSpikeBall,
+        99: SpriteImage_PipeEnemyGenerator,
         100: SpriteImage_Swooper,
         101: SpriteImage_Bobomb,
         102: SpriteImage_Broozer,
@@ -319,8 +320,9 @@ def ResetInitializers():
         238: SpriteImage_Foo,
         240: SpriteImage_GiantWiggler,
         242: SpriteImage_FallingLedgeBar,
-        #252: SpriteImage_RotControlledBlock,
+        252: SpriteImage_EventDeactivBlock,
         253: SpriteImage_RotControlledCoin,
+        254: SpriteImage_RotControlledPipe,
         255: SpriteImage_RotatingQBlock,
         256: SpriteImage_RotatingBrickBlock,
         259: SpriteImage_RegularDoor,
@@ -482,6 +484,66 @@ def loadIfNotInImageCache(name, filename):
     if name not in ImageCache:
         ImageCache[name] = GetImg(filename)
 
+
+
+# Spritebox class
+class Spritebox():
+    """
+    Contains size and other information for a spritebox
+    """
+    def __init__(self):
+        super().__init__()
+        self.shown = True
+        self.xOffset = 0
+        self.yOffset = 0
+        self.width = 24
+        self.height = 24
+
+    def getOffset(self):
+        return (self.xOffset, self.yOffset)
+    def setOffset(self, new):
+        self.xOffset, self.yOffset = new[0], new[1]
+    def delOffset(self):
+        self.xOffset, self.yOffset = [0, 0]
+    def getSize(self):
+        return (self.width, self.height)
+    def setSize(self, new):
+        self.width, self.height = new[0], new[1]
+    def delSize(self):
+        self.width, self.height = [16, 16]
+    def getDimensions(self):
+        return (self.xOffset, self.yOffset, self.width, self.height)
+    def setDimensions(self, new):
+        self.xOffset, self.yOffset, self.width, self.height = new[0], new[1], new[2], new[3]
+    def delDimensions(self):
+        self.xOffset, self.yOffset, self.width, self.height = [0, 0, 16, 16]
+
+    offset = property(getOffset, setOffset, delOffset,
+        'Convenience property that provides access to self.xOffset and self.yOffset in one tuple')
+    size = property(getSize, setSize, delSize,
+        'Convenience property that provides access to self.width and self.height in one tuple')
+    dimensions = property(getDimensions, setDimensions, delDimensions,
+        'Convenience property that provides access to self.xOffset, self.yOffset, self.width and self.height in one tuple')
+
+    def getRR(self):
+        return QtCore.QRectF(
+            self.xOffset + 1,
+            self.yOffset + 1,
+            self.width - 2,
+            self.height - 2,
+            )
+    def setRR(self, new):
+        self.dimensions = (
+            new.x() - 1,
+            new.y() - 1,
+            new.width() + 2,
+            new.height() + 2,
+            )
+    def delRR(self):
+        self.dimensions = (0, 0, 24, 24)
+
+    RoundedRect = property(getRR, setRR, delRR,
+        'Property that contains the rounded rect for the spritebox')
 
 
 
@@ -747,7 +809,7 @@ class SpriteImage():
         self.parent = parent
         self.alpha = 1.0
         self.image = None
-        self.showSpritebox = True
+        self.spritebox = Spritebox()
         self.xOffset = 0
         self.yOffset = 0
         self.width = 16
@@ -794,7 +856,7 @@ class SpriteImage_Static(SpriteImage):
     def __init__(self, parent, image=None, offset=None):
         super().__init__(parent)
         self.image = image
-        self.showSpritebox = False
+        self.spritebox.shown = False
         if self.image is not None:
             self.width = (self.image.width() / 1.5) + 1
             self.height = (self.image.height() / 1.5) + 2
@@ -836,7 +898,7 @@ class SpriteImage_SimpleDynamic(SpriteImage_Static):
 class SpriteImage_WoodenPlatform(SpriteImage):
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'WoodenPlatformL' not in ImageCache:
             LoadPlatformImages()
@@ -866,7 +928,7 @@ class SpriteImage_WoodenPlatform(SpriteImage):
 class SpriteImage_DSStoneBlock(SpriteImage):
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'DSBlockTop' not in ImageCache:
             LoadDSStoneBlocks()
@@ -934,7 +996,7 @@ class SpriteImage_Switch(SpriteImage_SimpleDynamic):
 class SpriteImage_OldStoneBlock(SpriteImage):
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'OldStoneTL' not in ImageCache:
             ImageCache['OldStoneTL'] = GetImg('oldstone_tl.png')
@@ -1066,7 +1128,7 @@ class SpriteImage_Amp(SpriteImage_Static): # 104, 108
 class SpriteImage_UnusedBlockPlatform(SpriteImage): # 97, 107, 132, 160
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'UnusedPlatform' not in ImageCache:
             LoadUnusedStuff()
@@ -1090,7 +1152,7 @@ class SpriteImage_UnusedBlockPlatform(SpriteImage): # 97, 107, 132, 160
 class SpriteImage_SpikedStake(SpriteImage): # 137, 140, 141, 142
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'StakeM0up' not in ImageCache:
             for dir in ['up', 'down', 'left', 'right']:
@@ -1172,7 +1234,7 @@ class SpriteImage_SpikedStake(SpriteImage): # 137, 140, 141, 142
 class SpriteImage_ScrewMushroom(SpriteImage): # 172, 382
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'Bolt' not in ImageCache:
             ImageCache['Bolt'] = GetImg('bolt.png')
@@ -1253,7 +1315,7 @@ class SpriteImage_Door(SpriteImage_SimpleDynamic): # 182, 259, 276, 277, 278, 42
 class SpriteImage_GiantBubble(SpriteImage): # 205, 226
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'GiantBubble0' not in ImageCache:
             LoadGiantBubble()
@@ -1285,7 +1347,7 @@ class SpriteImage_GiantBubble(SpriteImage): # 205, 226
 class SpriteImage_Block(SpriteImage): # 207, 208, 209, 221, 255, 256, 402, 403, 422, 423
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         self.tilenum = 1315
         self.contentsNybble = 5
@@ -1353,23 +1415,28 @@ class SpriteImage_SpecialCoin(SpriteImage_Static): # 253, 371, 390
             )
 
 
-class SpriteImage_Pipe(SpriteImage): # 339, 353, 377, 378, 379, 380, 450
+class SpriteImage_Pipe(SpriteImage): # 254, 339, 353, 377, 378, 379, 380, 450
+    Top = 0
+    Bottom = 1
     def __init__(self, parent):
         super().__init__(parent)
+        self.spritebox.shown = False
 
-        if 'PipeTop0' not in ImageCache:
-            for i, color in enumerate(['green', 'red', 'yellow', 'blue']):
-                ImageCache['PipeTop%d' % i] = GetImg('pipe_%s_top.png' % color)
-                ImageCache['PipeMiddle%d' % i] = GetImg('pipe_%s_middle.png' % color)
-                ImageCache['PipeBottom%d' % i] = GetImg('pipe_%s_bottom.png' % color)
-                ImageCache['PipeLeft%d' % i] = GetImg('pipe_%s_left.png' % color)
-                ImageCache['PipeCenter%d' % i] = GetImg('pipe_%s_center.png' % color)
-                ImageCache['PipeRight%d' % i] = GetImg('pipe_%s_right.png' % color)
+        if 'PipeTopGreen' not in ImageCache:
+            for color in ('Green', 'Red', 'Yellow', 'Blue'):
+                ImageCache['PipeTop%s' % color] = GetImg('pipe_%s_top.png' % color)
+                ImageCache['PipeMiddleV%s' % color] = GetImg('pipe_%s_middle.png' % color)
+                ImageCache['PipeBottom%s' % color] = GetImg('pipe_%s_bottom.png' % color)
+                ImageCache['PipeLeft%s' % color] = GetImg('pipe_%s_left.png' % color)
+                ImageCache['PipeMiddleH%s' % color] = GetImg('pipe_%s_center.png' % color)
+                ImageCache['PipeRight%s' % color] = GetImg('pipe_%s_right.png' % color)
 
         self.parent.setZValue(24999)
 
-        self.moving = False
         self.direction = 'U'
+        self.color = 'Green'
+        self.length1 = 4
+        self.length2 = 4
 
     def updateSize(self):
         super().updateSize()
@@ -1381,48 +1448,31 @@ class SpriteImage_Pipe(SpriteImage): # 339, 353, 377, 378, 379, 380, 450
         # 379 = Pipe Right
         # 380 = Pipe Left
         # 450 = Enterable Pipe Up
+        
+        size = max(self.length1, self.length2) * 16
 
-        props = self.parent.spritedata[5]
-
-        if not self.moving: # normal pipes
-            self.color = (props & 0x30) >> 4
-            length = props & 0xF
-
-            size = length * 16 + 32
-            if self.direction in 'LR': # horizontal
-                self.width = size
-                self.height = 32
-                if self.direction == 'R': # faces right
-                    self.xOffset = 0
-                else: # faces left
-                    self.xOffset = 16 - size
-                self.yOffset = 0
-
-            else: # vertical
-                self.width = 32
-                self.height = size
-                if self.direction == 'D': # faces down
-                    self.yOffset = 0
-                else: # faces up
-                    self.yOffset = 16 - size
+        if self.direction in 'LR': # horizontal
+            self.width = size
+            self.height = 32
+            if self.direction == 'R': # faces right
                 self.xOffset = 0
+            else: # faces left
+                self.xOffset = 16 - size
+            self.yOffset = 0
 
-        else: # moving pipes
-            self.color = self.parent.spritedata[3]
-            length1 = (props & 0xF0) >> 4
-            length2 = (props & 0xF)
-            size = max(length1, length2) * 16 + 32
-
+        else: # vertical
             self.width = 32
             self.height = size
-
-            if self.direction == 'U': # facing up
-                self.yOffset = 16 - size
-            else: # facing down
+            if self.direction == 'D': # faces down
                 self.yOffset = 0
+            else: # faces up
+                self.yOffset = 16 - size
+            self.xOffset = 0
 
-            self.length1 = length1 * 16 + 32
-            self.length2 = length2 * 16 + 32
+        if self.direction == 'U': # facing up
+            self.yOffset = 16 - size
+        else: # facing down
+            self.yOffset = 0
 
     def paint(self, painter):
         super().paint(painter)
@@ -1431,55 +1481,85 @@ class SpriteImage_Pipe(SpriteImage): # 339, 353, 377, 378, 379, 380, 450
         xsize = self.width * 1.5
         ysize = self.height * 1.5
 
-        if not self.parent.moving:
-            # Static pipes
-            if self.direction in 'UD': # vertical
-                if self.direction == 'U':
-                    painter.drawPixmap(0, 0, ImageCache['PipeTop%d' % color])
-                    painter.drawTiledPixmap(0, 24, 48, ysize-24, ImageCache['PipeMiddle%d' % color])
-                else:
-                    painter.drawTiledPixmap(0, 0, 48, ysize-24, ImageCache['PipeMiddle%d' % color])
-                    painter.drawPixmap(0, ysize-24, ImageCache['PipeBottom%d' % color])
-            else: # horizontal
-                if self.direction == 'L':
-                    painter.drawPixmap(0, 0, ImageCache['PipeLeft%d' % color])
-                    painter.drawTiledPixmap(24, 0, xsize-24, 48, ImageCache['PipeCenter%d' % color])
-                else:
-                    painter.drawTiledPixmap(0, 0, xsize-24, 48, ImageCache['PipeCenter%d' % color])
-                    painter.drawPixmap(xsize-24, 0, ImageCache['PipeRight%d' % color])
-        else:
-            # Moving pipes
-            length1 = self.length1*1.5
-            length2 = self.length2*1.5
-            low = min(length1, length2)
-            high = max(length1, length2)
+        # Assume moving pipes
+        length1 = self.length1 * 24
+        length2 = self.length2 * 24
+        low = min(length1, length2)
+        high = max(length1, length2)
 
-            if self.parent.direction == 'U':
-                y1 = ysize - low
-                y2 = ysize - high
+        if self.direction == 'U':
+            y1 = ysize - low
+            y2 = ysize - high
 
+            if length1 != length2:
                 # draw semi-transparent pipe
                 painter.save()
                 painter.setOpacity(0.5)
-                painter.drawPixmap(0, y2, ImageCache['PipeTop%d' % color])
-                painter.drawTiledPixmap(0, y2 + 24, 48, high - 24, ImageCache['PipeMiddle%d' % color])
+                painter.drawPixmap(0, y2, ImageCache['PipeTop%s' % color])
+                painter.drawTiledPixmap(0, y2 + 24, 48, high - 24, ImageCache['PipeMiddleV%s' % color])
                 painter.restore()
 
-                # draw opaque pipe
-                painter.drawPixmap(0, y1, ImageCache['PipeTop%d' % color])
-                painter.drawTiledPixmap(0, y1 + 24, 48, low - 24, ImageCache['PipeMiddle%d' % color])
+            # draw opaque pipe
+            painter.drawPixmap(0, y1, ImageCache['PipeTop%s' % color])
+            painter.drawTiledPixmap(0, y1 + 24, 48, low - 24, ImageCache['PipeMiddleV%s' % color])
 
-            else:
+        elif self.direction == 'D':
+
+            if length1 != length2:
                 # draw semi-transparent pipe
                 painter.save()
                 painter.setOpacity(0.5)
-                painter.drawTiledPixmap(0, 0, 48, high - 24, ImageCache['PipeMiddle%d' % color])
-                painter.drawPixmap(0, high-24, ImageCache['PipeBottom%d' % color])
+                painter.drawTiledPixmap(0, 0, 48, high - 24, ImageCache['PipeMiddleV%s' % color])
+                painter.drawPixmap(0, high - 24, ImageCache['PipeBottom%s' % color])
                 painter.restore()
 
-                # draw opaque pipe
-                painter.drawTiledPixmap(0, 0, 48, low - 24, ImageCache['PipeMiddle%d' % color])
-                painter.drawPixmap(0, low-24, ImageCache['PipeBottom%d' % color])
+            # draw opaque pipe
+            painter.drawTiledPixmap(0, 0, 48, low - 24, ImageCache['PipeMiddleV%s' % color])
+            painter.drawPixmap(0, low - 24, ImageCache['PipeBottom%s' % color])
+
+        elif self.direction == 'R':
+
+            if length1 != length2:
+                # draw semi-transparent pipe
+                painter.save()
+                painter.setOpacity(0.5)
+                painter.drawPixmap(high, 0, ImageCache['PipeRight%s' % color])
+                painter.drawTiledPixmap(0, 0, high - 24, 48, ImageCache['PipeMiddleH%s' % color])
+                painter.restore()
+
+            # draw opaque pipe
+            painter.drawPixmap(low - 24, 0, ImageCache['PipeRight%s' % color])
+            painter.drawTiledPixmap(0, 0, low - 24, 48, ImageCache['PipeMiddleH%s' % color])
+
+        else: # left
+
+            if length1 != length2:
+                # draw semi-transparent pipe
+                painter.save()
+                painter.setOpacity(0.5)
+                painter.drawTiledPixmap(0, 0, high - 24, 48, ImageCache['PipeMiddleH%s' % color])
+                painter.drawPixmap(high - 24, 0, ImageCache['PipeLeft%s' % color])
+                painter.restore()
+
+            # draw opaque pipe
+            painter.drawTiledPixmap(24, 0, low - 24, 48, ImageCache['PipeMiddleH%s' % color])
+            painter.drawPixmap(0, 0, ImageCache['PipeLeft%s' % color])
+
+
+class SpriteImage_PipeStationary(SpriteImage_Pipe): # 254, 377, 378, 379, 380, 450
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.length = 4
+
+    def updateSize(self):
+        self.color = (
+            'Green', 'Red', 'Yellow', 'Blue',
+            )[(self.parent.spritedata[5] >> 4) % 4]
+
+        self.length1 = self.length
+        self.length2 = self.length
+        
+        super().updateSize()
 
 
 class SpriteImage_RollingHillWithPipe(SpriteImage): # 355, 360
@@ -1767,7 +1847,7 @@ class SpriteImage_GiantThwomp(SpriteImage_Static): # 48
 class SpriteImage_UnusedSeesaw(SpriteImage): # 49
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'UnusedPlatformDark' not in ImageCache:
             LoadUnusedStuff()
@@ -2014,7 +2094,7 @@ class SpriteImage_SpikeTop(SpriteImage_SimpleDynamic): # 60
 class SpriteImage_BigBoo(SpriteImage): # 61
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('BigBoo', 'bigboo.png')
 
@@ -2326,7 +2406,7 @@ class SpriteImage_TrampolineWall(SpriteImage_SimpleDynamic): # 87
 class SpriteImage_BulletBillLauncher(SpriteImage): # 92
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('BBLauncherT', 'bullet_launcher_top.png')
         loadIfNotInImageCache('BBLauncherM', 'bullet_launcher_middle.png')
@@ -2401,11 +2481,11 @@ class SpriteImage_RotationControlledSolidBetaPlatform(SpriteImage_UnusedBlockPla
         height = size & 0xF
 
         if width == 0 or height == 0:
-            self.showSpritebox = True
+            self.spritebox.shown = True
             self.drawPlatformImage = False
             del self.size
         else:
-            self.showSpritebox = False
+            self.spritebox.shown = False
             self.drawPlatformImage = True
             self.size = (width * 16, height * 16)
 
@@ -2421,6 +2501,19 @@ class SpriteImage_GiantSpikeBall(SpriteImage_Static): # 98
             ImageCache['GiantSpikeBall'],
             (-32, -16),
             )
+
+
+class SpriteImage_PipeEnemyGenerator(SpriteImage): # 99
+    def __init__(self, parent):
+        super().__init__(parent)
+    def updateSize(self):
+        super().updateSize()
+
+        direction = (self.parent.spritedata[5] & 0xF) % 4
+        if direction in (0, 1): # vertical pipe
+            self.spritebox.size = (48, 24)
+        else: # horizontal pipe
+            self.spritebox.size = (24, 48)
 
 
 class SpriteImage_Swooper(SpriteImage_Static): # 100
@@ -2476,7 +2569,7 @@ class SpriteImage_AmpNormal(SpriteImage_Amp): # 104
 class SpriteImage_Pokey(SpriteImage): # 105
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'PokeyTop' not in ImageCache:
             LoadDesertStuff()
@@ -2631,7 +2724,7 @@ class SpriteImage_BlooperBabies(SpriteImage_Static): # 112
 class SpriteImage_Flagpole(SpriteImage): # 113
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'Flagpole' not in ImageCache:
             LoadFlagpole()
@@ -2704,7 +2797,7 @@ class SpriteImage_FlameCannon(SpriteImage_SimpleDynamic): # 114
 class SpriteImage_Cheep(SpriteImage): # 115
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'CheepRedLeft' not in ImageCache:
             ImageCache['CheepRedLeft'] = GetImg('cheep_red.png')
@@ -2745,7 +2838,7 @@ class SpriteImage_Cheep(SpriteImage): # 115
 class SpriteImage_CoinCheep(SpriteImage): # 116
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'CheepRedLeft' not in ImageCache:
             ImageCache['CheepRedLeft'] = GetImg('cheep_red.png')
@@ -2758,18 +2851,18 @@ class SpriteImage_CoinCheep(SpriteImage): # 116
 
         waitFlag = self.parent.spritedata[5] & 1
         if waitFlag:
-            self.showSpritebox = False
+            self.spritebox.shown = False
             self.image = ImageCache['CheepRedAtYou']
         else:
             type = self.parent.spritedata[2] >> 4
             if type % 4 == 3:
-                self.showSpritebox = True
+                self.spritebox.shown = True
                 self.image = None
             elif type < 7:
-                self.showSpritebox = False
+                self.spritebox.shown = False
                 self.image = self.image = ImageCache['CheepRedRight']
             else:
-                self.showSpritebox = False
+                self.spritebox.shown = False
                 self.image = self.image = ImageCache['CheepRedLeft']
 
         if self.image is not None:
@@ -2974,7 +3067,7 @@ class SpriteImage_Wiggler(SpriteImage_Static): # 130
 class SpriteImage_Boo(SpriteImage): # 131
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('Boo1', 'boo1.png')
 
@@ -3035,7 +3128,7 @@ class SpriteImage_HangingPlatform(SpriteImage_Static): # 135
 class SpriteImage_RotBulletLauncher(SpriteImage): # 136
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('RotLauncherCannon', 'bullet_cannon_rot_0.png')
         loadIfNotInImageCache('RotLauncherPivot', 'bullet_cannon_rot_1.png')
@@ -3315,7 +3408,7 @@ class SpriteImage_StarCoinLineControlled(SpriteImage_StarCoin): # 155
 class SpriteImage_RedCoinRing(SpriteImage): # 156
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('RedCoinRing', 'redcoinring.png')
 
@@ -3448,7 +3541,7 @@ class SpriteImage_PipeBubbles(SpriteImage_SimpleDynamic): # 161
 class SpriteImage_BlockTrain(SpriteImage): # 166
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('BlockTrain', 'block_train.png')
 
@@ -3528,7 +3621,7 @@ class SpriteImage_OneWayGate(SpriteImage_SimpleDynamic): # 174
 class SpriteImage_FlyingQBlock(SpriteImage): # 175
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('FlyingQBlock', 'flying_qblock.png')
 
@@ -3573,7 +3666,7 @@ class SpriteImage_FireChomp(SpriteImage_Static): # 177
 class SpriteImage_ScalePlatform(SpriteImage): # 178
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'WoodenPlatformL' not in ImageCache:
             LoadPlatformImages()
@@ -4016,7 +4109,7 @@ class SpriteImage_Poison(SpriteImage): # 216
 class SpriteImage_LineBlock(SpriteImage): # 219
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('LineBlock', 'lineblock.png')
         self.aux.append(AuxiliaryImage(parent, 24, 24))
@@ -4183,7 +4276,7 @@ class SpriteImage_GiantBubbleUnused(SpriteImage_GiantBubble): # 226
 class SpriteImage_PipeCannon(SpriteImage): # 227
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'PipeCannon' not in ImageCache:
             LoadPipeCannon()
@@ -4263,7 +4356,7 @@ class SpriteImage_PipeCannon(SpriteImage): # 227
 class SpriteImage_ExtendShroom(SpriteImage): # 228
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
         self.parent.setZValue(24999)
 
         if 'ExtendShroomL' not in ImageCache:
@@ -4332,7 +4425,7 @@ class SpriteImage_Bramball(SpriteImage_Static): # 230
 class SpriteImage_WiggleShroom(SpriteImage): # 231
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'WiggleShroomL' not in ImageCache:
             ImageCache['WiggleShroomL'] = GetImg('wiggle_shroom_left.png')
@@ -4375,7 +4468,7 @@ class SpriteImage_MechaKoopa(SpriteImage_Static): # 232
 class SpriteImage_Bulber(SpriteImage): # 233
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('Bulber', 'bulber.png')
 
@@ -4422,8 +4515,20 @@ class SpriteImage_FallingLedgeBar(SpriteImage_Static): # 242
             )
 
 
+class SpriteImage_EventDeactivBlock(SpriteImage_Static): # 252
+    def __init__(self, parent):
+        super().__init__(self)
+        self.image = Tiles[49].main # ? block
+
+
 class SpriteImage_RotControlledCoin(SpriteImage_SpecialCoin): # 253
     pass
+
+
+class SpriteImage_RotControlledPipe(SpriteImage_PipeStationary): # 254
+    def updateSize(self):
+        self.length = (self.parent.spritedata[4] >> 4) + 2
+        super().updateSize()
 
 
 class SpriteImage_RotatingQBlock(SpriteImage_Block): # 255
@@ -4451,7 +4556,7 @@ class SpriteImage_RegularDoor(SpriteImage_Door): # 259
 class SpriteImage_PoltergeistItem(SpriteImage): # 262
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'PoltergeistItem' not in ImageCache:
             LoadPolterItems()
@@ -4466,12 +4571,16 @@ class SpriteImage_PoltergeistItem(SpriteImage): # 262
         style = self.parent.spritedata[5] & 15
         if style == 0:
             self.yOffset = 0
+            self.height = 16
             self.aux[0].setSize(60, 60)
             self.aux[0].image = ImageCache['PolterQBlock']
         else:
             self.yOffset = -16
+            self.height = 32
             self.aux[0].setSize(60, 84)
             self.aux[0].image = ImageCache['PolterStand']
+
+        self.aux[0].setPos(-18, -18)
 
         super().updateSize()
 
@@ -4520,13 +4629,13 @@ class SpriteImage_RotatingChainLink(SpriteImage_Static): # 266
             parent,
             ImageCache['RotatingChainLink'],
             (
-                -((im.width() / 2) - 12) / 1.5,
-                -((im.height() / 2) - 12) / 1.5,
+                -((w / 2) - 12) / 1.5,
+                -((h / 2) - 12) / 1.5,
                 )
             )
 
 
-class SpriteImage_TiltGrate(SpriteImage): # 267
+class SpriteImage_TiltGrate(SpriteImage_SimpleDynamic): # 267
     def __init__(self, parent):
         super().__init__(parent)
         if 'TiltGrateU' not in ImageCache:
@@ -4560,7 +4669,7 @@ class SpriteImage_TiltGrate(SpriteImage): # 267
         super().updateSize()
 
 
-class SpriteImage_LavaGeyser(SpriteImage): # 268
+class SpriteImage_LavaGeyser(SpriteImage_SimpleDynamic): # 268
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -4607,7 +4716,7 @@ class SpriteImage_Parabomb(SpriteImage_Static): # 269
 class SpriteImage_Mouser(SpriteImage): # 271
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('Mouser', 'mouser.png')
 
@@ -4702,7 +4811,7 @@ class SpriteImage_CastleDoor(SpriteImage): # 278
 class SpriteImage_GiantIceBlock(SpriteImage): # 280
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'IcicleSmall' not in ImageCache:
             LoadIceStuff()
@@ -4750,7 +4859,7 @@ class SpriteImage_WoodCircle(SpriteImage_SimpleDynamic): # 286
 class SpriteImage_PathIceBlock(SpriteImage): # 287
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'PathIceBlock' not in ImageCache:
             LoadIceStuff()
@@ -4918,7 +5027,7 @@ class SpriteImage_MegaBuzzy(SpriteImage): # 296
 class SpriteImage_DragonCoaster(SpriteImage): # 297
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'DragonHead' not in ImageCache:
             ImageCache['DragonHead'] = GetImg('dragon_coaster_head.png')
@@ -5075,7 +5184,7 @@ class SpriteImage_RotFlameCannon(SpriteImage_SimpleDynamic): # 304
 class SpriteImage_LightCircle(SpriteImage): # 305
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('LightCircle', 'light_circle.png')
 
@@ -5219,7 +5328,7 @@ class SpriteImage_Bolt(SpriteImage_Static): # 315
 class SpriteImage_BoltBox(SpriteImage): # 316
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'BoltBox' not in ImageCache:
             ImageCache['BoltBoxTL'] = GetImg('boltbox_tl.png')
@@ -5541,11 +5650,15 @@ class SpriteImage_IggyKoopa(SpriteImage_Static): # 337
             )
 
 
-class SpriteImage_Pipe_MovingUp(SpriteImage): # 339
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.moving = True
-        self.direction = 'U'
+class SpriteImage_Pipe_MovingUp(SpriteImage_Pipe): # 339
+    def updateSize(self):
+        self.length1 = (self.parent.spritedata[5] >> 4) + 2
+        self.length2 = (self.parent.spritedata[5] & 0xF) + 2
+        self.color = (
+            'Green', 'Red', 'Yellow', 'Blue',
+            )[(self.parent.spritedata[3] & 0xF) % 4]
+
+        super().updateSize()
 
 
 class SpriteImage_LemmyKoopa(SpriteImage_Static): # 340
@@ -5678,11 +5791,19 @@ class SpriteImage_RockyWrench(SpriteImage_Static): # 352
             )
 
 
-class SpriteImage_Pipe_MovingDown(SpriteImage): # 353
+class SpriteImage_Pipe_MovingDown(SpriteImage_Pipe): # 353
     def __init__(self, parent):
         super().__init__(parent)
-        self.moving = True
         self.direction = 'D'
+
+    def updateSize(self):
+        self.length1 = (self.parent.spritedata[5] >> 4) + 2
+        self.length2 = (self.parent.spritedata[5] & 0xF) + 2
+        self.color = (
+            'Green', 'Red', 'Yellow', 'Blue',
+            )[(self.parent.spritedata[3] & 0xF) % 4]
+
+        super().updateSize()
 
 
 class SpriteImage_RollingHillWith1Pipe(SpriteImage_RollingHillWithPipe): # 355
@@ -5692,7 +5813,7 @@ class SpriteImage_RollingHillWith1Pipe(SpriteImage_RollingHillWithPipe): # 355
 class SpriteImage_BrownBlock(SpriteImage): # 356
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'BrownBlockTL' not in ImageCache:
             for vert in 'TMB':
@@ -5812,7 +5933,7 @@ class SpriteImage_LavaParticles(SpriteImage): # 358
 class SpriteImage_WallLantern(SpriteImage): # 359
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('WallLantern', 'wall_lantern.png')
         loadIfNotInImageCache('WallLanternAux', 'wall_lantern_aux.png')
@@ -5849,7 +5970,7 @@ class SpriteImage_CrystalBlock(SpriteImage_SimpleDynamic): # 361
 class SpriteImage_ColoredBox(SpriteImage): # 362
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'CBox0TL' not in ImageCache:
             for color in range(4):
@@ -6014,26 +6135,37 @@ class SpriteImage_MovingChainLink(SpriteImage_SimpleDynamic): # 376
         super().updateSize()
 
 
-class SpriteImage_Pipe_Up(SpriteImage): # 377
-    pass
+class SpriteImage_Pipe_Up(SpriteImage_PipeStationary): # 377
+    def updateSize(self):
+        self.length = (self.parent.spritedata[5] & 0xF) + 2
+        super().updateSize()
 
 
-class SpriteImage_Pipe_Down(SpriteImage): # 378
+class SpriteImage_Pipe_Down(SpriteImage_PipeStationary): # 378
     def __init__(self, parent):
         super().__init__(parent)
         self.direction = 'D'
+    def updateSize(self):
+        self.length = (self.parent.spritedata[5] & 0xF) + 2
+        super().updateSize()
 
 
-class SpriteImage_Pipe_Right(SpriteImage): # 379
+class SpriteImage_Pipe_Right(SpriteImage_PipeStationary): # 379
     def __init__(self, parent):
         super().__init__(parent)
         self.direction = 'R'
+    def updateSize(self):
+        self.length = (self.parent.spritedata[5] & 0xF) + 2
+        super().updateSize()
 
 
-class SpriteImage_Pipe_Left(SpriteImage): # 380
+class SpriteImage_Pipe_Left(SpriteImage_PipeStationary): # 380
     def __init__(self, parent):
         super().__init__(parent)
         self.direction = 'L'
+    def updateSize(self):
+        self.length = (self.parent.spritedata[5] & 0xF) + 2
+        super().updateSize()
 
 
 class SpriteImage_ScrewMushroomNoBolt(SpriteImage_ScrewMushroom): # 382
@@ -6116,7 +6248,7 @@ class SpriteImage_BoltControlledCoin(SpriteImage_SpecialCoin): # 390
 class SpriteImage_GlowBlock(SpriteImage): # 391
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         self.aux.append(AuxiliaryImage(parent, 48, 48))
         self.aux[0].image = ImageCache['GlowBlock']
@@ -6207,7 +6339,7 @@ class SpriteImage_MoveWhenOn(SpriteImage): # 396
 class SpriteImage_GhostHouseBox(SpriteImage): # 397
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'GHBoxTL' not in ImageCache:
             for direction in ['TL','T','TR','L','M','R','BL','B','BR']:
@@ -6346,7 +6478,7 @@ class SpriteImage_Bowser(SpriteImage_Static): # 419
 class SpriteImage_GiantGlowBlock(SpriteImage): # 420
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         loadIfNotInImageCache('GiantGlowBlock', 'giant_glow_block.png')
         loadIfNotInImageCache('GiantGlowBlockOff', 'giant_glow_block_off.png')
@@ -6479,7 +6611,7 @@ class SpriteImage_WarpCannon(SpriteImage_SimpleDynamic): # 434
 class SpriteImage_GhostFog(SpriteImage): # 435
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
         self.updateSceneAfterPaint = True
 
         loadIfNotInImageCache('GhostFog', 'fog_ghost.png')
@@ -6513,7 +6645,7 @@ class SpriteImage_GhostFog(SpriteImage): # 435
 class SpriteImage_PurplePole(SpriteImage): # 437
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'VertPole' not in ImageCache:
             ImageCache['VertPoleTop'] = GetImg('purple_pole_top.png')
@@ -6593,7 +6725,7 @@ class SpriteImage_HorizontalRope(SpriteImage): # 440
 class SpriteImage_MushroomPlatform(SpriteImage): # 441
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'RedShroomL' not in ImageCache:
             LoadMushrooms()
@@ -6673,7 +6805,7 @@ class SpriteImage_CagePeachReal(SpriteImage_Static): # 445
 class SpriteImage_UnderwaterLamp(SpriteImage): # 447
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         self.aux.append(AuxiliaryImage(parent, 105, 105))
         self.aux[0].image = ImageCache['UnderwaterLamp']
@@ -6692,8 +6824,10 @@ class SpriteImage_MetalBar(SpriteImage_Static): # 448
             )
 
 
-class SpriteImage_Pipe_EnterableUp(SpriteImage_Pipe): # 450
-    pass
+class SpriteImage_Pipe_EnterableUp(SpriteImage_PipeStationary): # 450
+    def updateSize(self):
+        self.length = (self.parent.spritedata[5] & 0xF) + 2
+        super().updateSize()
 
 
 class SpriteImage_MouserDespawner(SpriteImage_Static): # 451
@@ -6816,7 +6950,7 @@ class SpriteImage_MovingGemBlock(SpriteImage_Static): # 467
 class SpriteImage_BoltPlatform(SpriteImage): # 469
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'BoltPlatformL' not in ImageCache:
             ImageCache['BoltPlatformL'] = GetImg('bolt_platform_left.png')
@@ -6850,7 +6984,7 @@ class SpriteImage_BoltPlatformWire(SpriteImage): # 470
 class SpriteImage_PotPlatform(SpriteImage): # 471
     def __init__(self, parent):
         super().__init__(parent)
-        self.showSpritebox = False
+        self.spritebox.shown = False
 
         if 'PotPlatformT' not in ImageCache:
             ImageCache['PotPlatformT'] = GetImg('pot_platform_top.png')
@@ -7319,8 +7453,8 @@ def LoadPolterItems():
     standpainter = QtGui.QPainter(polterstand)
     blockpainter = QtGui.QPainter(polterblock)
 
-    standpainter.drawPixmap(ImageCache['GhostHouseStand'], 18, 18)
-    blockpainter.drawPixmap(ImageCache['Overrides'][9], 18, 18)
+    standpainter.drawPixmap(18, 18, ImageCache['GhostHouseStand'])
+    blockpainter.drawPixmap(18, 18, ImageCache['Overrides'][9])
 
     del standpainter
     del blockpainter
