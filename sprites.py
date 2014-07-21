@@ -306,6 +306,7 @@ def ResetInitializers():
         222: SpriteImage_ConveyorSpike,
         223: SpriteImage_SpringBlock,
         224: SpriteImage_JumboRay,
+        225: SpriteImage_FloatingCoin,
         227: SpriteImage_PipeCannon,
         228: SpriteImage_ExtendShroom,
         229: SpriteImage_SandPillar,
@@ -1215,6 +1216,7 @@ class SpriteImage_Block(SpriteImage): # 207, 208, 209, 221, 255, 256, 402, 403, 
         self.tilenum = 1315
         self.contentsNybble = 5
         self.contentsOverride = None
+        self.eightIsMushroom = False
         self.twelveIsMushroom = False
         self.rotates = False
 
@@ -1237,6 +1239,8 @@ class SpriteImage_Block(SpriteImage): # 207, 208, 209, 221, 255, 256, 402, 403, 
 
         if contents == 12 and self.twelveIsMushroom:
             contents = 2 # 12 is a mushroom on some types
+        if contents == 8 and self.eightIsMushroom:
+            contents = 2 # same as above, but for type 8
 
         self.image = ImageCache['Blocks'][contents]
 
@@ -3866,8 +3870,6 @@ class SpriteImage_GiantBubble(SpriteImage): # 205
         if 'GiantBubble0' not in ImageCache:
             LoadGiantBubble()
 
-        self.dimensions = (-61,- 68, 122, 137)
-
     def updateSize(self):
         super().updateSize()
 
@@ -3882,13 +3884,13 @@ class SpriteImage_GiantBubble(SpriteImage): # 205
         elif self.shape == 2:
             self.size = (160, 81)
 
-        self.xoffset = -(self.xsize / 2) + 8
-        self.yoffset = -(self.ysize / 2) + 8
+        self.xOffset = -(self.width / 2) + 8
+        self.yOffset = -(self.height / 2) + 8
 
     def paint(self, painter):
         super().paint(painter)
 
-        painter.drawPixmap(0, 0, ImageCache['GiantBubble%d' % self.parent.shape])
+        painter.drawPixmap(0, 0, ImageCache['GiantBubble%d' % self.shape])
 
 
 class SpriteImage_Zoom(SpriteImage): # 206
@@ -3917,6 +3919,7 @@ class SpriteImage_QBlockUnused(SpriteImage_Block): # 208
     def __init__(self, parent):
         super().__init__(parent)
         self.tilenum = 49
+        self.eightIsMushroom = True
         self.twelveIsMushroom = True
 
 
@@ -4018,31 +4021,31 @@ class SpriteImage_LineBlock(SpriteImage): # 219
         direction = self.parent.spritedata[4] >> 4
         widthA = self.parent.spritedata[5] & 15
         widthB = self.parent.spritedata[5] >> 4
+        distance = self.parent.spritedata[4] & 0xF
+
         if direction & 1:
             # reverse them if going down
             widthA, widthB = widthB, widthA
 
+        noWidthA = False
+        aA = 1
         if widthA == 0:
             widthA = 1
             noWidthA = True
             aA = 0.25
-        else:
-            noWidthA = False
-            aA = 1
+        noWidthB = False
+        aB = 0.5
         if widthB == 0:
             widthB = 1
             noWidthB = True
             aB = 0.25
-        else:
-            noWidthB = False
-            aB = 0.5
 
         blockimg = ImageCache['LineBlock']
 
         if widthA > widthB:
-            totalBlocks = widthA
+            totalWidth = widthA
         else:
-            totalBlocks = widthB
+            totalWidth = widthB
 
         imgA = QtGui.QPixmap(widthA * 24, 24)
         imgB = QtGui.QPixmap(widthB * 24, 24)
@@ -4051,33 +4054,53 @@ class SpriteImage_LineBlock(SpriteImage): # 219
         painterA = QtGui.QPainter(imgA)
         painterB = QtGui.QPainter(imgB)
         painterA.setOpacity(aA)
-        painterB.setOpacity(aB)
+        painterB.setOpacity(1)
 
-        # We could use range(totalBlocks) in the overlay loop, but that gives
-        # us a linear-ly sorted list. The game doesn't do it that way so we
-        # need to rearrange the list.
-        iterList = range(totalBlocks)
-        halfList = range(totalBlocks)[(len(iterList)/2):len(iterList)]
-        for i in range(len(halfList)):
-            iterList[len(iterList)-(i+1)] = halfList[i]
+        if totalWidth > 1:
+            for i in range(totalWidth):
+                # 'j' is just 'i' out of order.
+                # This causes the lineblock to be painted from the
+                # sides in, rather than linearly.
+                if i & 1:
+                    j = totalWidth - (i // 2) - 1
+                else:
+                    j = i // 2
+                xA = j * 24 * ((widthA - 1) / (totalWidth - 1))
+                xB = j * 24 * ((widthB - 1) / (totalWidth - 1))
 
-        for i in iterList:
-            painterA.drawPixmap(blockimg, 24 * i, 0)
-            painterB.drawPixmap(blockimg, 24 * i, 0)
+                # now actually paint it
+                painterA.drawPixmap(xA, 0, blockimg)
+                painterB.drawPixmap(xB, 0, blockimg)
+        else:
+            # special-case to avoid ZeroDivisionError
+            painterA.drawPixmap(0, 0, blockimg)
+            painterB.drawPixmap(0, 0, blockimg)
 
+        del painterA, painterB
 
         if widthA >= 1:
-            self.width = widthA*16
+            self.width = widthA * 16
         else:
             self.width = 16
-        xposA = (widthA*-8)+8
+
+        xposA = (widthA * -8) + 8
         if widthA == 0: xposA = 0
-        xposB = (widthA-widthB)*12
+        xposB = (widthA - widthB) * 12
         if widthA == 0: xposB = 0
-        if direction == 1:
-            yposB = 96
+        if direction & 1:
+            # going down
+            yposB = distance * 24
         else:
-            yposB = -96
+            # going up
+            yposB = -distance * 24
+
+        newImgB = QtGui.QPixmap(imgB.width(), imgB.height())
+        newImgB.fill(Qt.transparent)
+        painterB2 = QtGui.QPainter(newImgB)
+        painterB2.setOpacity(aB)
+        painterB2.drawPixmap(0, 0, imgB)
+        del painterB2
+        imgB = newImgB
 
         self.image = imgA
         self.xOffset = xposA
@@ -4087,9 +4110,15 @@ class SpriteImage_LineBlock(SpriteImage): # 219
 
         super().updateSize()
 
+    def paint(self, painter):
+        super().paint(painter)
+        painter.drawPixmap(0, 0, self.image)
+
 
 class SpriteImage_InvisibleBlock(SpriteImage_Block): # 221
-    pass
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.eightIsMushroom = True
 
 
 class SpriteImage_ConveyorSpike(SpriteImage_Static): # 222
@@ -4113,7 +4142,7 @@ class SpriteImage_SpringBlock(SpriteImage_SimpleDynamic): # 223
         super().updateSize()
 
 
-class SpriteImage_JumboRay(SpriteImage): # 224
+class SpriteImage_JumboRay(SpriteImage_SimpleDynamic): # 224
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -4135,6 +4164,10 @@ class SpriteImage_JumboRay(SpriteImage): # 224
             self.image = ImageCache['JumboRayR']
 
         super().updateSize()
+
+
+class SpriteImage_FloatingCoin(SpriteImage_SpecialCoin): # 225
+    pass
 
 
 class SpriteImage_PipeCannon(SpriteImage): # 227
