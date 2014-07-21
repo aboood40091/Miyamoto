@@ -67,6 +67,7 @@ Developers:
 Translators:
  * Wolfy76700 - Translation Leader, French
  * nlgzrgn - Turkish
+ * Grop - Dutch
 
 Other Testers and Contributors:
  * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl
