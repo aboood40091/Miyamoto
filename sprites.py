@@ -4801,22 +4801,20 @@ class SpriteImage_TowerDoor(SpriteImage_Door): # 277
         self.doorDimensions = (-2, -10.5, 53, 59)
 
 
-class SpriteImage_CastleDoor(SpriteImage): # 278
+class SpriteImage_CastleDoor(SpriteImage_Door): # 278
     def __init__(self, parent):
         super().__init__(parent)
         self.doorName = 'CastleDoor'
         self.doorDimensions = (-2, -13, 53, 62)
 
 
-class SpriteImage_GiantIceBlock(SpriteImage): # 280
+class SpriteImage_GiantIceBlock(SpriteImage_SimpleDynamic): # 280
     def __init__(self, parent):
         super().__init__(parent)
-        self.spritebox.shown = False
 
         if 'IcicleSmall' not in ImageCache:
             LoadIceStuff()
 
-        self.size = (64, 64)
 
     def updateSize(self):
 
@@ -4856,7 +4854,7 @@ class SpriteImage_WoodCircle(SpriteImage_SimpleDynamic): # 286
             )[size]
 
 
-class SpriteImage_PathIceBlock(SpriteImage): # 287
+class SpriteImage_PathIceBlock(SpriteImage_SimpleDynamic): # 287
     def __init__(self, parent):
         super().__init__(parent)
         self.spritebox.shown = False
@@ -4868,8 +4866,8 @@ class SpriteImage_PathIceBlock(SpriteImage): # 287
 
     def updateSize(self):
 
-        width  = (self.parent.spritedata[5] &  15)+1
-        height = (self.parent.spritedata[5] >> 4) +1
+        width = (self.parent.spritedata[5] & 0xF) + 1
+        height = (self.parent.spritedata[5] >> 4) + 1
 
         self.image = ImageCache['PathIceBlock'].scaled(width * 24, height * 24)
 
@@ -4885,25 +4883,20 @@ class SpriteImage_OldBarrel(SpriteImage_Static): # 288
             )
 
 
-class SpriteImage_Box(SpriteImage): # 289
+class SpriteImage_Box(SpriteImage_SimpleDynamic): # 289
     def __init__(self, parent):
         super().__init__(parent)
         if 'BoxWoodSmall' not in ImageCache:
-            for style, stylestr in ((0, 'Wood'), (1, 'Metal')):
+            for style, stylestr in ((0, 'wood'), (1, 'metal')):
                 for size, sizestr in zip(range(4), ('small', 'wide', 'tall', 'big')):
-                    ImageCache['Box%d%d' % (style, size)] = GetImg('box_%s_%s' % (stylestr, sizestr))
+                    ImageCache['Box%d%d' % (style, size)] = GetImg('box_%s_%s.png' % (stylestr, sizestr))
 
     def updateSize(self):
-        BoxSizes = [(32, 32), (64, 32), (32, 64), (64, 64)]
 
         style = self.parent.spritedata[4] & 1
-        size = (self.parent.spritedata[5] >> 4) & 3
-
-        if style > 1: style = 1
-        if size > 3: size = 0
+        size = (self.parent.spritedata[5] >> 4) % 4
 
         self.image = ImageCache['Box%d%d' % (style, size)]
-        self.size = BoxSizes[size]
 
         super().updateSize()
 
@@ -4969,7 +4962,7 @@ class SpriteImage_IceCube(SpriteImage_Static): # 294
             )
 
 
-class SpriteImage_NutPlatform(SpriteImage): # 295
+class SpriteImage_NutPlatform(SpriteImage_SimpleDynamic): # 295
     def __init__(self, parent):
         super().__init__(parent)
         loadIfNotInImageCache('NutPlatform', 'nut_platform.png')
@@ -5000,7 +4993,7 @@ class SpriteImage_NutPlatform(SpriteImage): # 295
         super().updateSize()
 
 
-class SpriteImage_MegaBuzzy(SpriteImage): # 296
+class SpriteImage_MegaBuzzy(SpriteImage_SimpleDynamic): # 296
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -5067,7 +5060,7 @@ class SpriteImage_DragonCoaster(SpriteImage): # 297
             painter.drawPixmap(0, 0, ImageCache['DragonTail'])
 
 
-class SpriteImage_CannonMulti(SpriteImage): # 299
+class SpriteImage_CannonMulti(SpriteImage_SimpleDynamic): # 299
     def __init__(self, parent):
         super().__init__(parent)
 
