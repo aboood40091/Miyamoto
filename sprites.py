@@ -293,7 +293,7 @@ def ResetInitializers():
         201: SpriteImage_Icicle,
         202: SpriteImage_MGCannon,
         203: SpriteImage_MGChest,
-        205: SpriteImage_GiantBubble,
+        205: SpriteImage_GiantBubbleNormal,
         206: SpriteImage_Zoom,
         207: SpriteImage_QBlock,
         208: SpriteImage_QBlockUnused,
@@ -307,6 +307,7 @@ def ResetInitializers():
         223: SpriteImage_SpringBlock,
         224: SpriteImage_JumboRay,
         225: SpriteImage_FloatingCoin,
+        226: SpriteImage_GiantBubbleUnused,
         227: SpriteImage_PipeCannon,
         228: SpriteImage_ExtendShroom,
         229: SpriteImage_SandPillar,
@@ -1208,6 +1209,79 @@ class SpriteImage_ScrewMushroom(SpriteImage): # 172, 382
         painter.drawPixmap(76, y + 253, ImageCache['ScrewShroomB'])
 
 
+class SpriteImage_Door(SpriteImage_SimpleDynamic): # 182, 259, 276, 277, 278, 421, 452
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.doorName = 'Door'
+        self.doorDimensions = (0, 0, 32, 48)
+
+    def updateSize(self):
+        super().updateSize()
+
+        rotstatus = self.parent.spritedata[4]
+        if rotstatus & 1 == 0:
+            direction = 0
+        else:
+            direction = (rotstatus & 0x30) >> 4
+
+        if direction > 3: direction = 0
+        doorName = self.doorName
+        doorSize = self.doorDimensions
+        if direction == 0:
+            self.image = ImageCache[doorName + 'U']
+            self.dimensions = doorSize
+        elif direction == 1:
+            self.image = ImageCache[doorName + 'L']
+            self.xOffset = (doorSize[2] / 2) + doorSize[0] - doorSize[3]
+            self.yOffset = doorSize[1] + (doorSize[3] - (doorSize[2] / 2))
+            self.width = doorSize[3]
+            self.height = doorSize[2]
+        elif direction == 2:
+            self.image = ImageCache[doorName + 'D']
+            self.xOffset = doorSize[0]
+            self.yOffset = doorSize[1] + doorSize[3]
+            self.width = doorSize[2]
+            self.height = doorSize[3]
+        elif direction == 3:
+            self.image = ImageCache[doorName + 'R']
+            self.xOffset = doorSize[0] + (doorSize[2] / 2)
+            self.yOffset = doorSize[1] + (doorSize[3] - (doorSize[2] / 2))
+            self.width = doorSize[3]
+            self.height = doorSize[2]
+
+
+class SpriteImage_GiantBubble(SpriteImage): # 205, 226
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.showSpritebox = False
+
+        if 'GiantBubble0' not in ImageCache:
+            LoadGiantBubble()
+
+    def updateSize(self):
+        super().updateSize()
+
+        self.shape = self.parent.spritedata[4] >> 4
+        self.direction = self.parent.spritedata[5] & 15
+        arrow = None
+
+        if self.shape == 0 or self.shape > 3:
+            self.size = (122, 137)
+        elif self.shape == 1:
+            self.size = (76, 170)
+        elif self.shape == 2:
+            self.size = (160, 81)
+
+        self.xOffset = -(self.width / 2) + 8
+        self.yOffset = -(self.height / 2) + 8
+
+    def paint(self, painter):
+        super().paint(painter)
+
+        painter.drawPixmap(0, 0, ImageCache['GiantBubble%d' % self.shape])
+
+
+
 class SpriteImage_Block(SpriteImage): # 207, 208, 209, 221, 255, 256, 402, 403, 422, 423
     def __init__(self, parent):
         super().__init__(parent)
@@ -1277,47 +1351,6 @@ class SpriteImage_SpecialCoin(SpriteImage_Static): # 253, 371, 390
             parent,
             ImageCache['SpecialCoin'],
             )
-
-
-class SpriteImage_Door(SpriteImage_SimpleDynamic): # 182, 259, 276, 277, 278, 421, 452
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.doorName = 'Door'
-        self.doorDimensions = (0, 0, 32, 48)
-
-    def updateSize(self):
-        super().updateSize()
-
-        rotstatus = self.parent.spritedata[4]
-        if rotstatus & 1 == 0:
-            direction = 0
-        else:
-            direction = (rotstatus & 0x30) >> 4
-
-        if direction > 3: direction = 0
-        doorName = self.doorName
-        doorSize = self.doorDimensions
-        if direction == 0:
-            self.image = ImageCache[doorName + 'U']
-            self.dimensions = doorSize
-        elif direction == 1:
-            self.image = ImageCache[doorName + 'L']
-            self.xOffset = (doorSize[2] / 2) + doorSize[0] - doorSize[3]
-            self.yOffset = doorSize[1] + (doorSize[3] - (doorSize[2] / 2))
-            self.width = doorSize[3]
-            self.height = doorSize[2]
-        elif direction == 2:
-            self.image = ImageCache[doorName + 'D']
-            self.xOffset = doorSize[0]
-            self.yOffset = doorSize[1] + doorSize[3]
-            self.width = doorSize[2]
-            self.height = doorSize[3]
-        elif direction == 3:
-            self.image = ImageCache[doorName + 'R']
-            self.xOffset = doorSize[0] + (doorSize[2] / 2)
-            self.yOffset = doorSize[1] + (doorSize[3] - (doorSize[2] / 2))
-            self.width = doorSize[3]
-            self.height = doorSize[2]
 
 
 class SpriteImage_Pipe(SpriteImage): # 339, 353, 377, 378, 379, 380, 450
@@ -3862,35 +3895,8 @@ class SpriteImage_MGChest(SpriteImage_Static): # 203
             )
 
 
-class SpriteImage_GiantBubble(SpriteImage): # 205
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.showSpritebox = False
-
-        if 'GiantBubble0' not in ImageCache:
-            LoadGiantBubble()
-
-    def updateSize(self):
-        super().updateSize()
-
-        self.shape = self.parent.spritedata[4] >> 4
-        self.direction = self.parent.spritedata[5] & 15
-        arrow = None
-
-        if self.shape == 0 or self.shape > 3:
-            self.size = (122, 137)
-        elif self.shape == 1:
-            self.size = (76, 170)
-        elif self.shape == 2:
-            self.size = (160, 81)
-
-        self.xOffset = -(self.width / 2) + 8
-        self.yOffset = -(self.height / 2) + 8
-
-    def paint(self, painter):
-        super().paint(painter)
-
-        painter.drawPixmap(0, 0, ImageCache['GiantBubble%d' % self.shape])
+class SpriteImage_GiantBubbleNormal(SpriteImage_GiantBubble): # 205
+    pass
 
 
 class SpriteImage_Zoom(SpriteImage): # 206
@@ -4170,9 +4176,14 @@ class SpriteImage_FloatingCoin(SpriteImage_SpecialCoin): # 225
     pass
 
 
+class SpriteImage_GiantBubbleUnused(SpriteImage_GiantBubble): # 226
+    pass
+
+
 class SpriteImage_PipeCannon(SpriteImage): # 227
     def __init__(self, parent):
         super().__init__(parent)
+        self.showSpritebox = False
 
         if 'PipeCannon' not in ImageCache:
             LoadPipeCannon()
@@ -4226,7 +4237,7 @@ class SpriteImage_PipeCannon(SpriteImage): # 227
             self.aux[1].setSize(144, 252, -144 + 18, -156)
         elif fireDirection == 4:
             # Straight up
-            self.aux[0].setSize(135, 132, -32 - 6 - 4, -16 - 6 - 8 - 4 - 1)
+            self.aux[0].setSize(135, 132, -43, -35)
             path = QtGui.QPainterPath(QtCore.QPoint(26, 0))
             path.lineTo(QtCore.QPoint(26, 656))
             self.aux[1].setSize(48, 656, 0, -632)
@@ -4361,9 +4372,10 @@ class SpriteImage_MechaKoopa(SpriteImage_Static): # 232
             )
 
 
-class SpriteImage_Bulber(SpriteImage_Static): # 233
+class SpriteImage_Bulber(SpriteImage): # 233
     def __init__(self, parent):
         super().__init__(parent)
+        self.showSpritebox = False
 
         loadIfNotInImageCache('Bulber', 'bulber.png')
 
