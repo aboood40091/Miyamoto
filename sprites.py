@@ -611,14 +611,14 @@ class AuxiliaryCircleOutline(AuxiliaryItem):
         """Constructor"""
         super().__init__(parent)
 
-        self.BoundingRect = QtCore.QRectF(0,0,width * 1.5,width * 1.5)
+        self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, width * 1.5)
         self.setPos((8 - (width / 2)) * 1.5, 0)
         self.width = width
         self.hover = False
 
     def setSize(self, width):
         self.prepareGeometryChange()
-        self.BoundingRect = QtCore.QRectF(0,0,width*1.5,width*1.5)
+        self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, width * 1.5)
         self.setPos((8 - (width / 2)) * 1.5, 0)
         self.width = width
 
@@ -6425,7 +6425,7 @@ class SpriteImage_LineQBlock(SpriteImage_Block): # 402
     def __init__(self, parent):
         super().__init__(parent)
         self.tilenum = 49
-        self.twelveIsMushroom = False
+        self.twelveIsMushroom = True
 
 
 class SpriteImage_LineBrickBlock(SpriteImage_Block): # 403
@@ -6524,12 +6524,10 @@ class SpriteImage_GiantGlowBlock(SpriteImage): # 420
         super().__init__(parent)
         self.spritebox.shown = False
 
-        loadIfNotInImageCache('GiantGlowBlock', 'giant_glow_block.png')
+        loadIfNotInImageCache('GiantGlowBlockOn', 'giant_glow_block.png')
         loadIfNotInImageCache('GiantGlowBlockOff', 'giant_glow_block_off.png')
 
         self.aux.append(AuxiliaryImage(parent, 100, 100))
-        self.aux[0].image = ImageCache['GiantGlowBlock']
-        self.aux[0].setPos(-25, -30)
         self.size = (32, 32)
 
     def updateSize(self):
@@ -6537,12 +6535,10 @@ class SpriteImage_GiantGlowBlock(SpriteImage): # 420
 
         type = self.parent.spritedata[4] >> 4
         if type == 0:
-            self.aux[0].image = ImageCache['GiantGlowBlock']
-            self.aux[0].setPos(-25, -30)
-            self.aux[0].setSize(100, 100)
+            self.aux[0].image = ImageCache['GiantGlowBlockOn']
+            self.aux[0].setSize(100, 100, -25, -30)
         else:
             self.aux[0].image = ImageCache['GiantGlowBlockOff']
-            self.aux[0].setPos(0, 0)
             self.aux[0].setSize(48, 48)
 
 
