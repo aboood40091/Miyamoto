@@ -7109,7 +7109,7 @@ def LoadGameDef(name=None, dlg=None):
 
         # Load sprites.py
         if dlg: dlg.setLabelText(trans.string('Gamedefs', 11)) # Loading sprite image data...
-        try:
+        if 'theme' in globals() or 'theme' in locals():
             sprites.Reset(theme)
             sprites.SpritesFolders = gamedef.recursiveFiles('sprites', False, True)
             sprites.gamedef = gamedef
@@ -7119,7 +7119,6 @@ def LoadGameDef(name=None, dlg=None):
             sprites.LoadBasicSuite()
             sprites.LoadEnvItems()
             sprites.LoadMovableItems()
-        except NameError: pass
         if dlg: dlg.setValue(5)
 
         # Re-initialize every sprite

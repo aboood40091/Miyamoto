@@ -1210,8 +1210,6 @@ class SpriteImage_SpikedStake(SpriteImage): # 137, 140, 141, 142
         else:
             mid = ImageCache['StakeM0' + self.dir]
             end = ImageCache['StakeE0' + self.dir]
-        print(mid)
-        print(end)
 
         tiles = 16
         tilesize = 37
@@ -1870,7 +1868,6 @@ class SpriteImage_UnusedSeesaw(SpriteImage): # 49
             Qt.IgnoreAspectRatio, Qt.SmoothTransformation,
             )
         self.xOffset = (8 * 16) - (self.width / 2)
-        print(self.image)
 
         swingArc = self.parent.spritedata[5] >> 4
         swingArcs = (
