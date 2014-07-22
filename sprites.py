@@ -61,7 +61,7 @@ def Reset(theme):
     Outlinecolor = theme.color('smi')
     OutlinePen = QtGui.QPen(Outlinecolor, 4)
     OutlineBrush = QtGui.QBrush(Outlinecolor)
-    ResetInitializers()
+    ResetImageClasses()
     ImageCache = {}
     LoadBasicSuite()
     LoadEnvItems()
@@ -77,7 +77,7 @@ def ConfigFrom(path):
     del file
     exec(data)
 
-    OldInitializers = dict(Initializers) # save a copy for later
+    OldImageClasses = dict(ImageClasses) # save a copy for later
 
     excludes = (
         'data', # Locals used in this function
@@ -95,7 +95,7 @@ def ConfigFrom(path):
         'ConfigFrom',
         'globalize',
         'GetImg',
-        'ResetInitializers',
+        'ResetImageClasses',
         )
 
     loc = dict(locals())
@@ -105,10 +105,10 @@ def ConfigFrom(path):
 
 
     # Other stuff
-    global Initializers, ImageCache
+    global ImageClasses, ImageCache
 
-    for newKey in Initializers: OldInitializers[newKey] = Initializers[newKey]
-    Initializers = OldInitializers
+    for newKey in ImageClasses: OldImageClasses[newKey] = ImageClasses[newKey]
+    ImageClasses = OldImageClasses
 
     ImageCache = {}
 
@@ -141,10 +141,10 @@ def GetImg(imgname, image=False):
         else: return QtGui.QPixmap(path)
 
 
-def ResetInitializers():
-    """Resets Initializers to the default"""
-    global Initializers
-    Initializers = {
+def ResetImageClasses():
+    """Resets ImageClasses to the default"""
+    global ImageClasses
+    ImageClasses = {
         20: SpriteImage_Goomba,
         21: SpriteImage_Paragoomba,
         23: SpriteImage_HorzMovingPlatform,

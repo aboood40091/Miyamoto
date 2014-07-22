@@ -4124,8 +4124,8 @@ class SpriteItem(LevelEditorItem):
         self.setToolTip(trans.string('Sprites', 0, '[type]', self.type, '[name]', self.name))
 
         global SpriteImagesShown
-        if SpriteImagesShown and type in sprites.Initializers:
-            self.ImageObj = sprites.Initializers[type](self)
+        if SpriteImagesShown and type in sprites.ImageClasses:
+            self.ImageObj = sprites.ImageClasses[type](self)
 
         self.UpdateDynamicSizing()
         self.UpdateRects()
