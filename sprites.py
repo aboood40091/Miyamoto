@@ -5965,6 +5965,10 @@ class SpriteImage_WallLantern(SpriteImage): # 359
         self.image = ImageCache['WallLantern']
         self.yOffset = 8
 
+    def paint(self, painter):
+        super().paint(painter)
+        painter.drawPixmap(0, 0, self.image)
+
 
 class SpriteImage_RollingHillWith8Pipes(SpriteImage_RollingHillWithPipe): # 360
     pass
@@ -6062,6 +6066,11 @@ class SpriteImage_FlashRaft(SpriteImage_Static): # 368
             ImageCache['FlashlightRaft'],
             (-16, -96),
             )
+
+    def updateSize(self):
+        midway = (self.parent.spritedata[5] >> 4) & 1
+        self.alpha = 0.5 if midway else 1
+        super().updateSize()
 
 
 class SpriteImage_SlidingPenguin(SpriteImage_SimpleDynamic): # 369

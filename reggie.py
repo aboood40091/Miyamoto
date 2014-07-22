@@ -6766,7 +6766,7 @@ class LocationEditorWidget(QtWidgets.QWidget):
         loc.width = right - left
         loc.height = bottom - top
 
-        loc.setPos(int(left*1.5), int(top*1.5))
+        loc.setPos(int(left * 1.5), int(top * 1.5))
         loc.UpdateRects()
         loc.update()
         self.setLocation(loc) # updates the fields
