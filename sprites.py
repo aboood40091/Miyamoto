@@ -7103,10 +7103,8 @@ class SpriteImage_BowserSwitchSm(SpriteImage_SimpleDynamic): # 478
         upsideDown = self.parent.spritedata[5] & 1
         if not upsideDown:
             self.image = ImageCache['ESwitch']
-            self.offset = (-16, -26)
         else:
             self.image = ImageCache['ESwitchU']
-            self.offset = (-16, 0)
 
         super().updateSize()
 
@@ -7122,8 +7120,10 @@ class SpriteImage_BowserSwitchLg(SpriteImage_SimpleDynamic): # 479
         upsideDown = self.parent.spritedata[5] & 1
         if not upsideDown:
             self.image = ImageCache['ELSwitch']
+            self.offset = (-16, -26)
         else:
             self.image = ImageCache['ELSwitchU']
+            self.offset = (-16, 0)
 
         super().updateSize()
 
