@@ -6606,7 +6606,7 @@ class SpriteImage_MGPanel(SpriteImage_Static): # 428
         super().__init__(
             parent,
             ImageCache['MGPanel'],
-            (-8, -8),
+            (0, -4),
             )
 
 
@@ -6620,13 +6620,13 @@ class SpriteImage_Toad(SpriteImage_Static): # 432
             )
 
 
-class SpriteImage_FloatingQBlock(SpriteImage): # 433
+class SpriteImage_FloatingQBlock(SpriteImage_Static): # 433
     def __init__(self, parent):
         loadIfNotInImageCache('FloatingQBlock', 'floating_qblock.png')
         super().__init__(
             parent,
             ImageCache['FloatingQBlock'],
-            (-6, -6)
+            (-6, -6),
             )
 
 
@@ -6651,7 +6651,6 @@ class SpriteImage_WarpCannon(SpriteImage_SimpleDynamic): # 434
 class SpriteImage_GhostFog(SpriteImage): # 435
     def __init__(self, parent):
         super().__init__(parent)
-        self.spritebox.shown = False
         self.updateSceneAfterPaint = True
 
         loadIfNotInImageCache('GhostFog', 'fog_ghost.png')
@@ -6744,8 +6743,9 @@ class SpriteImage_CagePeachFake(SpriteImage_Static): # 439
 class SpriteImage_HorizontalRope(SpriteImage): # 440
     def __init__(self, parent):
         super().__init__(parent)
-        loadIfNotInImageCache('HorzRope', 'horizontal_rope_middle')
-        loadIfNotInImageCache('HorzRopeEnd', 'horizontal_rope_end')
+        self.spritebox.shown = False
+        loadIfNotInImageCache('HorzRope', 'horizontal_rope_middle.png')
+        loadIfNotInImageCache('HorzRopeEnd', 'horizontal_rope_end.png')
 
     def updateSize(self):
         super().updateSize()
