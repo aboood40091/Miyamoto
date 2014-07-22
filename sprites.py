@@ -6899,13 +6899,13 @@ class SpriteImage_Seaweed(SpriteImage_SimpleDynamic): # 453
         SeaweedSizes = [0, 1, 2, 2, 3]
         SeaweedXOffsets = [-26, -22, -31, -42]
 
-        style = (self.parent.spritedata[5] & 0xF) % 4
+        style = (self.parent.spritedata[5] & 0xF) % 6
         size = SeaweedSizes[style]
 
         self.image = ImageCache['Seaweed%d' % size]
         self.offset = (
             SeaweedXOffsets[size],
-            17 - self.height,
+            17 - (self.image.height() / 1.5),
             )
 
         super().updateSize()
@@ -7011,7 +7011,7 @@ class SpriteImage_BoltPlatform(SpriteImage): # 469
         painter.drawPixmap(self.width * 1.5 - 24, 0, ImageCache['BoltPlatformR'])
 
 
-class SpriteImage_BoltPlatformWire(SpriteImage): # 470
+class SpriteImage_BoltPlatformWire(SpriteImage_Static): # 470
     def __init__(self, parent):
         loadIfNotInImageCache('BoltPlatformWire', 'bolt_platform_wire.png')
         super().__init__(
@@ -7030,7 +7030,7 @@ class SpriteImage_PotPlatform(SpriteImage): # 471
             ImageCache['PotPlatformT'] = GetImg('pot_platform_top.png')
             ImageCache['PotPlatformM'] = GetImg('pot_platform_middle.png')
 
-        self.offset = (-12, -2)
+        self.dimensions = (-12, -2, 51, 481)
 
     def paint(self, painter):
         super().paint(painter)
