@@ -412,6 +412,7 @@ def ResetInitializers():
         379: SpriteImage_Pipe_Right,
         380: SpriteImage_Pipe_Left,
         382: SpriteImage_ScrewMushroomNoBolt,
+        384: SpriteImage_PipeCooliganGenerator,
         385: SpriteImage_IceBlock,
         386: SpriteImage_PowBlock,
         387: SpriteImage_Bush,
@@ -5619,6 +5620,7 @@ class SpriteImage_CheepGiant(SpriteImage): # 334
 
         if 'CheepGiantRedLeft' not in ImageCache:
             ImageCache['CheepGiantRedLeft'] = GetImg('cheep_giant_red.png')
+            ImageCache['CheepGiantRedAtYou'] = GetImg('cheep_giant_red_atyou.png')
             ImageCache['CheepGiantGreen'] = GetImg('cheep_giant_green.png')
             ImageCache['CheepGiantYellow'] = GetImg('cheep_giant_yellow.png')
 
@@ -5631,9 +5633,12 @@ class SpriteImage_CheepGiant(SpriteImage): # 334
             self.image = ImageCache['CheepGiantGreen']
         elif type == 8:
             self.image = ImageCache['CheepGiantYellow']
+        elif type == 5:
+            self.image = ImageCache['CheepGiantRedAtYou']
         else:
             self.image = ImageCache['CheepGiantRedLeft']
         self.size = (self.image.width() / 1.5, self.image.height() / 1.5)
+        self.xOffset = 0 if type != 5 else -8
 
         if type == 3:
             distance = ((self.parent.spritedata[3] & 0xF) + 1) * 16
@@ -6202,6 +6207,13 @@ class SpriteImage_ScrewMushroomNoBolt(SpriteImage_ScrewMushroom): # 382
         self.hasBolt = False
 
 
+class SpriteImage_PipeCooliganGenerator(SpriteImage): # 384
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.spritebox.size = (24, 48)
+        self.spritebox.yOffset = -24
+
+
 class SpriteImage_IceBlock(SpriteImage_SimpleDynamic): # 385
     def __init__(self, parent):
         super().__init__(parent)
@@ -6314,6 +6326,7 @@ class SpriteImage_SpinyCheep(SpriteImage_Static): # 395
 class SpriteImage_MoveWhenOn(SpriteImage): # 396
     def __init__(self, parent):
         super().__init__(parent)
+        self.spritebox.shown = False
 
         if 'MoveWhenOnL' not in ImageCache:
             LoadMoveWhenOn()
@@ -6328,10 +6341,10 @@ class SpriteImage_MoveWhenOn(SpriteImage): # 396
             self.width = 32
         else:
             self.xOffset = 0
-            self.width = raw_size*16
+            self.width = raw_size * 16
 
         # set direction
-        self.direction =(self.parent.spritedata[3] >> 4)
+        self.direction = (self.parent.spritedata[3] >> 4) % 5
 
     def paint(self, painter):
         super().paint(painter)
@@ -6344,6 +6357,8 @@ class SpriteImage_MoveWhenOn(SpriteImage): # 396
             direction = 'U'
         elif self.direction == 3:
             direction = 'D'
+        else:
+            direction = None
 
         raw_size = self.parent.spritedata[5] & 0xF
 
@@ -6361,7 +6376,8 @@ class SpriteImage_MoveWhenOn(SpriteImage): # 396
 
         center = (self.width / 2) * 1.5
         painter.drawPixmap(center - 14, 0, ImageCache['MoveWhenOnC'])
-        painter.drawPixmap(center - 12, 1, ImageCache['SmArrow%s' % self.direction])
+        if direction is not None:
+            painter.drawPixmap(center - 12, 1, ImageCache['SmArrow%s' % direction])
 
 
 class SpriteImage_GhostHouseBox(SpriteImage): # 397
