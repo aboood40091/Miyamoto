@@ -682,14 +682,14 @@ class AuxiliaryPainterPath(AuxiliaryItem):
         self.setPos(xoff, yoff)
         self.fillFlag = True
 
-        self.BoundingRect = QtCore.QRectF(0,0,width,height)
+        self.BoundingRect = QtCore.QRectF(0, 0, width, height)
         self.hover = False
 
     def SetPath(self, path):
         self.PainterPath = path
 
     def setSize(self, width, height, xoff=0, yoff=0):
-        self.BoundingRect = QtCore.QRectF(0,0,width,height)
+        self.BoundingRect = QtCore.QRectF(0, 0, width, height)
         self.setPos(xoff, yoff)
 
     def paint(self, painter, option, widget):
@@ -4288,7 +4288,7 @@ class SpriteImage_PipeCannon(SpriteImage): # 227
         # self.aux[1] is the trajectory indicator
         self.aux.append(AuxiliaryPainterPath(parent, QtGui.QPainterPath(), 24, 24))
         self.aux[1].fillFlag = False
-        self.aux[1].hover = False
+
         self.aux[0].setZValue(self.aux[1].zValue() + 1)
 
         self.size = (32, 64)
@@ -5474,71 +5474,87 @@ class SpriteImage_KingBill(SpriteImage): # 326
     def __init__(self, parent):
         super().__init__(parent)
 
-        PainterPath = QtGui.QPainterPath()
-        self.aux.append(AuxiliaryPainterPath(parent, PainterPath, 256, 256))
-        self.aux[0].setSize(2048, 2048, -1024, -1024)
+        self.aux.append(AuxiliaryPainterPath(parent, QtGui.QPainterPath(), 24, 24))
+        self.aux[0].setSize(24 * 17, 24 * 17)
+
+        self.paths = []
+        for direction in range(4):
+
+            # This has to be within the loop because the
+            # following commands transpose them
+            PointsRects = [ # These form a LEFT-FACING bullet
+                QtCore.QPointF(192,         -180+180),
+                QtCore.QRectF( 0,           -180+180, 384, 384),
+                QtCore.QPointF(192+72,       204+180),
+                QtCore.QPointF(192+72+6,     204-24+180),
+                QtCore.QPointF(192+72+42,    204-24+180),
+                QtCore.QPointF(192+72+48,    204+180),
+                QtCore.QPointF(192+72+96,    204+180),
+                QtCore.QPointF(192+72+96+6,  204-6+180),
+                QtCore.QPointF(192+72+96+6, -180+6+180),
+                QtCore.QPointF(192+72+96,   -180+180),
+                QtCore.QPointF(192+72+48,   -180+180),
+                QtCore.QPointF(192+72+42,   -180+24+180),
+                QtCore.QPointF(192+72+6,    -180+24+180),
+                QtCore.QPointF(192+72,      -180+180),
+                ]
+
+            for thing in PointsRects: # translate each point to flip the image
+                if direction == 0:   # faces left
+                    arc = 'LR'
+                elif direction == 1: # faces right
+                    arc = 'LR'
+                    if isinstance(thing, QtCore.QPointF):
+                        thing.setX((24 * 17) - thing.x())
+                    else:
+                        thing.setRect((24 * 17) - thing.x(), thing.y(), -thing.width(), thing.height())
+                elif direction == 2: # faces down
+                    arc = 'UD'
+                    if isinstance(thing, QtCore.QPointF):
+                        x = thing.y()
+                        y = (24 * 17) - thing.x()
+                        thing.setX(x)
+                        thing.setY(y)
+                    else:
+                        x = thing.y()
+                        y = (24 * 17) - thing.x()
+                        thing.setRect(x, y, thing.height(), -thing.width())
+                else: # faces up
+                    arc = 'UD'
+                    if isinstance(thing, QtCore.QPointF):
+                        x = thing.y()
+                        y = thing.x()
+                        thing.setX(x)
+                        thing.setY(y)
+                    else:
+                        x = thing.y()
+                        y = thing.x()
+                        thing.setRect(x, y, thing.height(), thing.width())
+
+            PainterPath = QtGui.QPainterPath()
+            PainterPath.moveTo(PointsRects[0])
+            if arc == 'LR': PainterPath.arcTo(PointsRects[1],  90,  180)
+            else: PainterPath.arcTo(PointsRects[1], 180, -180)
+            for point in PointsRects[2:]:
+                PainterPath.lineTo(point)
+            PainterPath.closeSubpath()
+            self.paths.append(PainterPath)
 
     def updateSize(self):
+
+        direction = (self.parent.spritedata[5] & 15) % 4
+
+        self.aux[0].SetPath(self.paths[direction])
+
+        newx, newy = (
+            (0, (-8*24) + 12),
+            ((-24*16), (-8*24) + 12),
+            ((-24*10), (-24*16)),
+            ((-24*5), 0),
+            )[direction]
+        self.aux[0].setPos(newx, newy)
+
         super().updateSize()
-        direction = self.parent.spritedata[5] & 15
-
-        PointsRects = [ # These form a LEFT-FACING bullet
-            QtCore.QPointF(192,         -180),
-            QtCore.QRectF( 0,           -180, 384, 384),
-            QtCore.QPointF(192+72,       204),
-            QtCore.QPointF(192+72+6,     204-24),
-            QtCore.QPointF(192+72+42,    204-24),
-            QtCore.QPointF(192+72+48,    204),
-            QtCore.QPointF(192+72+96,    204),
-            QtCore.QPointF(192+72+96+6,  204-6),
-            QtCore.QPointF(192+72+96+6, -180+6),
-            QtCore.QPointF(192+72+96,   -180),
-            QtCore.QPointF(192+72+48,   -180),
-            QtCore.QPointF(192+72+42,   -180+24),
-            QtCore.QPointF(192+72+6,    -180+24),
-            QtCore.QPointF(192+72,      -180)]
-
-        for thing in PointsRects: # translate each point to flip the image
-            if direction == 0:   # faces left
-                arc = 'LR'
-            elif direction == 1: # faces right
-                arc = 'LR'
-                if isinstance(thing, QtCore.QPointF):
-                    thing.setX(24 - thing.x())
-                else:
-                    thing.setRect(24 - thing.x(), thing.y(), -thing.width(), thing.height())
-            elif direction == 2: # faces down
-                arc = 'UD'
-                if isinstance(thing, QtCore.QPointF):
-                    x = thing.y() - 60
-                    y = 24 - thing.x()
-                    thing.setX(x)
-                    thing.setY(y)
-                else:
-                    x = thing.y() - 60
-                    y = 24 - thing.x()
-                    thing.setRect(x, y, thing.height(), -thing.width())
-            else: # faces up
-                arc = 'UD'
-                if isinstance(thing, QtCore.QPointF):
-                    x = thing.y() + 60
-                    y = thing.x()
-                    thing.setX(x)
-                    thing.setY(y)
-                else:
-                    x = thing.y() + 60
-                    y = thing.x()
-                    thing.setRect(x, y, thing.height(), thing.width())
-
-        PainterPath = QtGui.QPainterPath()
-        PainterPath.moveTo(PointsRects[0])
-        if arc == 'LR': PainterPath.arcTo(PointsRects[1],  90,  180)
-        else:           PainterPath.arcTo(PointsRects[1], 180, -180)
-        for point in PointsRects[2:len(PointsRects)]:
-            PainterPath.lineTo(point)
-        PainterPath.closeSubpath()
-
-        self.aux[0].SetPath(PainterPath)
 
 
 class SpriteImage_LinePlatformBolt(SpriteImage_Static): # 327
@@ -5596,30 +5612,41 @@ class SpriteImage_PlayerBlockPlatform(SpriteImage_Static): # 333
             )
 
 
-class SpriteImage_CheepGiant(SpriteImage_SimpleDynamic): # 334
+class SpriteImage_CheepGiant(SpriteImage): # 334
     def __init__(self, parent):
         super().__init__(parent)
+        self.spritebox.shown = False
 
-        if 'CheepGiantRedL' not in ImageCache:
-            cheep = GetImg('cheep_giant_red.png', True)
-            ImageCache['CheepGiantRedL'] = QtGui.QPixmap.fromImage(cheep)
-            ImageCache['CheepGiantRedR'] = QtGui.QPixmap.fromImage(cheep.mirrored(True, False))
+        if 'CheepGiantRedLeft' not in ImageCache:
+            ImageCache['CheepGiantRedLeft'] = GetImg('cheep_giant_red.png')
             ImageCache['CheepGiantGreen'] = GetImg('cheep_giant_green.png')
             ImageCache['CheepGiantYellow'] = GetImg('cheep_giant_yellow.png')
+
+        self.aux.append(AuxiliaryTrackObject(self.parent, 24, 24, AuxiliaryTrackObject.Horizontal))
 
     def updateSize(self):
 
         type = self.parent.spritedata[5] & 0xF
-        if type == 3:
-            self.image = ImageCache['CheepGiantRedR']
-        elif type == 7:
+        if type in (1, 7):
             self.image = ImageCache['CheepGiantGreen']
         elif type == 8:
             self.image = ImageCache['CheepGiantYellow']
         else:
-            self.image = ImageCache['CheepGiantRedL']
+            self.image = ImageCache['CheepGiantRedLeft']
+        self.size = (self.image.width() / 1.5, self.image.height() / 1.5)
+
+        if type == 3:
+            distance = ((self.parent.spritedata[3] & 0xF) + 1) * 16
+            self.aux[0].setSize((distance * 2) + 16, 16)
+            self.aux[0].setPos(-distance * 1.5, 8)
+        else:
+            self.aux[0].setSize(0, 24)
 
         super().updateSize()
+
+    def paint(self, painter):
+        super().paint(painter)
+        painter.drawPixmap(0, 0, self.image)
 
 
 class SpriteImage_WendyKoopa(SpriteImage_Static): # 336
@@ -5628,7 +5655,7 @@ class SpriteImage_WendyKoopa(SpriteImage_Static): # 336
             LoadBosses()
         super().__init__(
             parent,
-            ImageCache['WendyKoopa']
+            ImageCache['WendyKoopa'],
             (-23, -23),
             )
 
@@ -5694,7 +5721,7 @@ class SpriteImage_Muncher(SpriteImage_SimpleDynamic): # 342
         super().updateSize()
 
 
-class SpriteImage_Fuzzy(SpriteImage): # 343
+class SpriteImage_Fuzzy(SpriteImage_SimpleDynamic): # 343
     def __init__(self, parent):
         super().__init__(parent)
         loadIfNotInImageCache('Fuzzy', 'fuzzy.png')
@@ -5730,7 +5757,7 @@ class SpriteImage_ChainHolder(SpriteImage_Static): # 345
             )
 
 
-class SpriteImage_HangingChainPlatform(SpriteImage): # 346
+class SpriteImage_HangingChainPlatform(SpriteImage_SimpleDynamic): # 346
     def __init__(self, parent):
         super().__init__(parent)
 
