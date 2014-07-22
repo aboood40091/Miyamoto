@@ -1660,8 +1660,11 @@ def _LoadTileset(idx, name, reload=False):
     # find the tileset path
     global arcname
     TilesetPaths = reversed(gamedef.GetGamePaths())
+
     found = False
     for path in TilesetPaths:
+        if path is None: break
+
         arcname = path + '/Texture/' + name + '.arc'
         compressed = False
         if os.path.isfile(arcname):
@@ -7292,7 +7295,7 @@ class ReggieGameDefinition():
     def GetGamePaths(self):
         """Returns game paths of this gamedef and its bases"""
         mainpath = str(setting('GamePath'))
-        if not self.custom: return [mainpath]
+        if not self.custom: return [mainpath,]
 
         name = 'GamePath_' + self.name
         stg = setting(name)
@@ -15695,8 +15698,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
     def ReloadTilesets(self, soft=False):
         """Reloads all the tilesets. If soft is True, they will not be reloaded if the filepaths have not changed."""
         tilesets = [Area.tileset0, Area.tileset1, Area.tileset2, Area.tileset3]
-        for idx, name in zip(range(4), tilesets):
-            if name is not None and name != '':
+        for idx, name in enumerate(tilesets):
+            if (name is not None) and (name != ''):
                 LoadTileset(idx, name, not soft)
 
         self.objPicker.LoadFromTilesets()
