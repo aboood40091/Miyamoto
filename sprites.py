@@ -5132,7 +5132,7 @@ class SpriteImage_RotCannonPipe(SpriteImage_SimpleDynamic): # 301
         super().updateSize()
 
 
-class SpriteImage_MontyMole(SpriteImage): # 303
+class SpriteImage_MontyMole(SpriteImage_SimpleDynamic): # 303
     def __init__(self, parent):
         super().__init__(parent)
         loadIfNotInImageCache('Mole', 'monty_mole.png')
@@ -5177,7 +5177,6 @@ class SpriteImage_RotFlameCannon(SpriteImage_SimpleDynamic): # 304
 class SpriteImage_LightCircle(SpriteImage): # 305
     def __init__(self, parent):
         super().__init__(parent)
-        self.spritebox.shown = False
 
         loadIfNotInImageCache('LightCircle', 'light_circle.png')
 
@@ -5219,8 +5218,8 @@ class SpriteImage_SynchroFlameJet(SpriteImage_SimpleDynamic): # 309
 
     def updateSize(self):
 
-        mode = (self.parent.spritedata[4] & 15) % 1
-        direction = (self.parent.spritedata[5] & 15) % 3
+        mode = (self.parent.spritedata[4] & 15) % 2
+        direction = (self.parent.spritedata[5] & 15) % 4
 
         mode = 'Off' if mode else 'On'
         self.offset = (
@@ -5268,7 +5267,7 @@ class SpriteImage_BubbleGen(SpriteImage): # 314
     def __init__(self, parent):
         super().__init__(parent)
         self.updateSceneAfterPaint = True
-        loadIfNotInImageCache('BubbleGen', 'bubble_gen.png')
+        loadIfNotInImageCache('BubbleGenEffect', 'bubble_gen.png')
 
     def updateSize(self):
         super().updateSize()

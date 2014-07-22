@@ -14638,7 +14638,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         for item in added:
             if func_ii(item, type_spr):
-                item.setPos((item.objx + xpixeloffset + item.xoffset) * 1.5, (item.objy + ypixeloffset + item.yoffset) * 1.5)
+                item.setPos(
+                    (item.objx + xpixeloffset + item.ImageObj.xOffset) * 1.5,
+                    (item.objy + ypixeloffset + item.ImageObj.yOffset) * 1.5,
+                    )
             elif func_ii(item, type_obj):
                 item.setPos((item.objx + xoffset) * 24, (item.objy + yoffset) * 24)
             if select: item.setSelected(True)
