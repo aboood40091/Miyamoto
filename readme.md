@@ -74,6 +74,7 @@ Translators: (in alphabetical order, by language)
 Other Testers and Contributors:
  * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl
  * Tobias Amaranth and Valeth - Text Tileset Addon
+ * Mario64/LifeMushroom - run-python34.bat
 
 
 ### Dependencies/Libraries/Resources
