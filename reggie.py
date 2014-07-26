@@ -72,6 +72,7 @@ except (ImportError, NameError):
 import archive
 import LHdec
 import lz77
+import spritelib as SLib
 import sprites
 import TPL
 
@@ -3975,7 +3976,9 @@ class SpriteItem(LevelEditorItem):
         self.listitem = None
         self.LevelRect = QtCore.QRectF(self.objx / 16, self.objy / 16, 1.5, 1.5)
         self.ChangingPos = False
-        self.ImageObj = sprites.SpriteImage(self)
+
+        SLib.SpriteImage.loadImages()
+        self.ImageObj = SLib.SpriteImage(self)
 
         sname = Sprites[type].name
         self.name = sname
@@ -4123,8 +4126,10 @@ class SpriteItem(LevelEditorItem):
         self.name = Sprites[type].name
         self.setToolTip(trans.string('Sprites', 0, '[type]', self.type, '[name]', self.name))
 
-        global SpriteImagesShown
-        if SpriteImagesShown and type in sprites.ImageClasses:
+        if type in sprites.ImageClasses:
+            if type not in SLib.SpriteImagesLoaded:
+                sprites.ImageClasses[type].loadImages()
+                SLib.SpriteImagesLoaded.add(type)
             self.ImageObj = sprites.ImageClasses[type](self)
 
         self.UpdateDynamicSizing()
@@ -7110,15 +7115,17 @@ def LoadGameDef(name=None, dlg=None):
         # Load sprites.py
         if dlg: dlg.setLabelText(trans.string('Gamedefs', 11)) # Loading sprite image data...
         if 'theme' in globals() or 'theme' in locals():
-            sprites.Reset(theme)
-            sprites.SpritesFolders = gamedef.recursiveFiles('sprites', False, True)
-            sprites.gamedef = gamedef
-            if gamedef.custom and (gamedef.recursiveFiles('sprites') != []):
-                files = gamedef.recursiveFiles('sprites')
-                for path in files: sprites.ConfigFrom(path)
-            sprites.LoadBasicSuite()
-            sprites.LoadEnvItems()
-            sprites.LoadMovableItems()
+            SLib.SpritesFolders = gamedef.recursiveFiles('sprites', False, True)
+
+            SLib.ImageCache.clear()
+            SLib.SpriteImagesLoaded.clear()
+            SLib.LoadBasicSuite()
+
+            # SLib.gamedef = gamedef
+            # if gamedef.custom and (gamedef.recursiveFiles('sprites') != []):
+            #     files = gamedef.recursiveFiles('sprites')
+            #     for path in files: sprites.ConfigFrom(path)
+
         if dlg: dlg.setValue(5)
 
         # Re-initialize every sprite
@@ -16832,7 +16839,8 @@ def main():
     LoadEntranceNames()
     LoadNumberFont()
     LoadOverrides()
-    sprites.Reset(theme)
+    SLib.OutlineColor = theme.color('smi')
+    SLib.main()
 
     # load the splashscreen
     app.splashscrn = None
