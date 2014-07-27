@@ -63,6 +63,7 @@ Developers:
  * MalStar1000 - Sprite Images, Other
  * Grop - Sprite Data
  * joietyfull64 - Sprite Data
+ * MidiGuyDP - NewerSMBW Background Images & Names
 
 Translators: (in alphabetical order, by language)
  * Translation Leader: Wolfy76700
