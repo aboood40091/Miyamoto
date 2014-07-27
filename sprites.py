@@ -6367,16 +6367,13 @@ class SpriteImage_BetaLarryKoopa(SLib.SpriteImage_Static): # 415
     def __init__(self, parent):
         super().__init__(
             parent,
-            ImageCache['LarryKoopa'],
-            (-17, -33),
+            ImageCache['LarryKoopaBeta'],
+            (-13, -22.5),
             )
 
     @staticmethod
     def loadImages():
-        # For now it will use the normal Larry image
-        # but eventually it will need its own
-        # because this one looks different.
-        SLib.loadIfNotInImageCache('LarryKoopa', 'Larry_Koopa.png')
+        SLib.loadIfNotInImageCache('LarryKoopaBeta', 'Larry_Koopa_Unused.png')
 
 
 class SpriteImage_InvisibleOneUp(SLib.SpriteImage_Static): # 416
