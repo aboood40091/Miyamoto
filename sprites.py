@@ -186,7 +186,7 @@ class SpriteImage_OldStoneBlock(SLib.SpriteImage): # 30, 81, 82, 83, 84, 85, 86
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryTrackObject(parent, 16, 16, AuxiliaryTrackObject.Horizontal))
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, 16, 16, SLib.AuxiliaryTrackObject.Horizontal))
         self.spikesL = False
         self.spikesR = False
         self.spikesT = False
@@ -537,11 +537,17 @@ class SpriteImage_ScrewMushroom(SLib.SpriteImage): # 172, 382
         painter.drawPixmap(76, y + 253, ImageCache['ScrewShroomB'])
 
 
-class SpriteImage_Door(SLib.SpriteImage_StaticMultiple): # 182, 259, 276, 277, 278, 421, 452
+class SpriteImage_Door(SLib.SpriteImage): # 182, 259, 276, 277, 278, 421, 452
     def __init__(self, parent):
         super().__init__(parent)
+        self.spritebox.shown = False
+
         self.doorName = 'Door'
         self.doorDimensions = (0, 0, 32, 48)
+        self.entranceOffset = (0, 48)
+
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 24, 24))
+        self.aux[0].setIsBehindSprite(False)
 
     @staticmethod
     def loadImages():
@@ -576,24 +582,47 @@ class SpriteImage_Door(SLib.SpriteImage_StaticMultiple): # 182, 259, 276, 277, 2
         if direction == 0:
             self.image = ImageCache[doorName + 'U']
             self.dimensions = doorSize
+            paintEntrancePos = True
         elif direction == 1:
             self.image = ImageCache[doorName + 'L']
-            self.xOffset = (doorSize[2] / 2) + doorSize[0] - doorSize[3]
-            self.yOffset = doorSize[1] + (doorSize[3] - (doorSize[2] / 2))
-            self.width = doorSize[3]
-            self.height = doorSize[2]
+            self.dimensions = (
+                (doorSize[2] / 2) + doorSize[0] - doorSize[3],
+                doorSize[1] + (doorSize[3] - (doorSize[2] / 2)),
+                doorSize[3],
+                doorSize[2],
+                )
+            paintEntrancePos = False
         elif direction == 2:
             self.image = ImageCache[doorName + 'D']
-            self.xOffset = doorSize[0]
-            self.yOffset = doorSize[1] + doorSize[3]
-            self.width = doorSize[2]
-            self.height = doorSize[3]
+            self.dimensions = (
+                doorSize[0],
+                doorSize[1] + doorSize[3],
+                doorSize[2],
+                doorSize[3],
+                )
+            paintEntrancePos = False
         elif direction == 3:
             self.image = ImageCache[doorName + 'R']
-            self.xOffset = doorSize[0] + (doorSize[2] / 2)
-            self.yOffset = doorSize[1] + (doorSize[3] - (doorSize[2] / 2))
-            self.width = doorSize[3]
-            self.height = doorSize[2]
+            self.dimensions = (
+                doorSize[0] + (doorSize[2] / 2),
+                doorSize[1] + (doorSize[3] - (doorSize[2] / 2)),
+                doorSize[3],
+                doorSize[2],
+                )
+            paintEntrancePos = False
+
+        self.aux[0].setSize(
+            *(
+                (0, 0, 0, 0),
+                (24, 24) + self.entranceOffset,
+                )[1 if paintEntrancePos else 0]
+            )
+
+    def paint(self, painter):
+        super().paint(painter)
+        painter.setOpacity(self.alpha)
+        painter.drawPixmap(0, 0, self.image)
+        painter.setOpacity(1)
 
 
 class SpriteImage_GiantBubble(SLib.SpriteImage): # 205, 226
@@ -851,10 +880,22 @@ class SpriteImage_PipeStationary(SpriteImage_Pipe): # 254, 377, 378, 379, 380, 4
         super().updateSize()
 
 
+class SpriteImage_UnusedGiantDoor(SLib.SpriteImage_Static): # 319, 320
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['UnusedGiantDoor'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('UnusedGiantDoor', 'unused_giant_door.png')
+
+
 class SpriteImage_RollingHillWithPipe(SLib.SpriteImage): # 355, 360
     def __init__(self, parent):
         super().__init__(parent)
-        self.aux.append(AuxiliaryCircleOutline(parent, 800))
+        self.aux.append(SLib.AuxiliaryCircleOutline(parent, 800))
 
 
 
@@ -894,7 +935,7 @@ class SpriteImage_HorzMovingPlatform(SpriteImage_WoodenPlatform): # 23
         super().__init__(parent)
 
         self.width = ((self.parent.spritedata[5] & 0xF) + 1) << 4
-        self.aux.append(AuxiliaryTrackObject(parent, self.width, 16, AuxiliaryTrackObject.Horizontal))
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, self.width, 16, SLib.AuxiliaryTrackObject.Horizontal))
 
     def updateSize(self):
         super().updateSize()
@@ -991,7 +1032,7 @@ class SpriteImage_DSStoneBlock_Vert(SpriteImage_DSStoneBlock): # 27
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.aux.append(AuxiliaryTrackObject(parent, 32, 16, AuxiliaryTrackObject.Vertical))
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, 32, 16, SLib.AuxiliaryTrackObject.Vertical))
         self.size = (32, 16)
 
     def updateSize(self):
@@ -1018,7 +1059,7 @@ class SpriteImage_DSStoneBlock_Horz(SpriteImage_DSStoneBlock): # 28
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.aux.append(AuxiliaryTrackObject(parent, 32, 16, AuxiliaryTrackObject.Horizontal))
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, 32, 16, SLib.AuxiliaryTrackObject.Horizontal))
         self.size = (32, 16)
 
     def updateSize(self):
@@ -1050,7 +1091,7 @@ class SpriteImage_VertMovingPlatform(SpriteImage_WoodenPlatform): # 31
         super().__init__(parent)
 
         self.width = ((self.parent.spritedata[5] & 0xF) + 1) << 4
-        self.aux.append(AuxiliaryTrackObject(parent, self.width, 16, AuxiliaryTrackObject.Vertical))
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, self.width, 16, SLib.AuxiliaryTrackObject.Vertical))
 
 
     def updateSize(self):
@@ -1179,7 +1220,7 @@ class SpriteImage_UnusedSeesaw(SLib.SpriteImage): # 49
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryRotationAreaOutline(parent, 48))
+        self.aux.append(SLib.AuxiliaryRotationAreaOutline(parent, 48))
         self.aux[0].setPos(128, -36)
 
         self.image = ImageCache['UnusedPlatformDark']
@@ -1272,7 +1313,7 @@ class SpriteImage_UnusedRotPlatforms(SLib.SpriteImage): # 52
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.aux.append(AuxiliaryImage(parent, 432, 312))
+        self.aux.append(SLib.AuxiliaryImage(parent, 432, 312))
         self.aux[0].image = ImageCache['UnusedRotPlatforms']
         self.aux[0].setPos(-144 - 72, -104 - 52) # It actually isn't centered correctly in-game
 
@@ -1462,7 +1503,7 @@ class SpriteImage_BigBoo(SLib.SpriteImage): # 61
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryImage(parent, 243, 248))
+        self.aux.append(SLib.AuxiliaryImage(parent, 243, 248))
         self.aux[0].image = ImageCache['BigBoo']
         self.aux[0].setPos(-48, -48)
         self.aux[0].hover = False
@@ -1883,7 +1924,7 @@ class SpriteImage_RotationControllerSwaying(SLib.SpriteImage): # 96
     def __init__(self, parent):
         super().__init__(parent)
         self.parent.setZValue(100000)
-        self.aux.append(AuxiliaryRotationAreaOutline(parent, 48))
+        self.aux.append(SLib.AuxiliaryRotationAreaOutline(parent, 48))
 
     def updateSize(self):
         super().updateSize()
@@ -2121,7 +2162,7 @@ class SpriteImage_Sunlight(SLib.SpriteImage): # 110
         super().__init__(parent)
 
         i = ImageCache['Sunlight']
-        self.aux.append(AuxiliaryImage_FollowsRect(parent, i.width(), i.height()))
+        self.aux.append(SLib.AuxiliaryImage_FollowsRect(parent, i.width(), i.height()))
         self.aux[0].realimage = i
         self.aux[0].alignment = Qt.AlignTop | Qt.AlignRight
         self.parent.scene().views()[0].repaint.connect(lambda: self.moveSunlight())
@@ -2182,7 +2223,7 @@ class SpriteImage_Flagpole(SLib.SpriteImage): # 113
 
         self.image = ImageCache['Flagpole']
 
-        self.aux.append(AuxiliaryImage(parent, 144, 149))
+        self.aux.append(SLib.AuxiliaryImage(parent, 144, 149))
         self.offset = (-30, -144)
         self.size = (self.image.width() / 1.5, self.image.height() / 1.5)
 
@@ -2271,7 +2312,7 @@ class SpriteImage_Cheep(SLib.SpriteImage): # 115
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryTrackObject(self.parent, 24, 24, AuxiliaryTrackObject.Horizontal))
+        self.aux.append(SLib.AuxiliaryTrackObject(self.parent, 24, 24, SLib.AuxiliaryTrackObject.Horizontal))
 
     @staticmethod
     def loadImages():
@@ -2581,7 +2622,7 @@ class SpriteImage_Boo(SLib.SpriteImage): # 131
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryImage(parent, 50, 51))
+        self.aux.append(SLib.AuxiliaryImage(parent, 50, 51))
         self.aux[0].image = ImageCache['Boo1']
         self.aux[0].setPos(-6, -6)
 
@@ -2603,7 +2644,7 @@ class SpriteImage_StalagmitePlatform(SLib.SpriteImage): # 133
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.aux.append(AuxiliaryImage(parent, 48, 156))
+        self.aux.append(SLib.AuxiliaryImage(parent, 48, 156))
         self.aux[0].image = ImageCache['StalagmitePlatformBottom']
         self.aux[0].setPos(24, 60)
 
@@ -2637,7 +2678,7 @@ class SpriteImage_HangingPlatform(SLib.SpriteImage_Static): # 135
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.aux.append(AuxiliaryImage(parent, 11, 378))
+        self.aux.append(SLib.AuxiliaryImage(parent, 11, 378))
         self.aux[0].image = ImageCache['HangingPlatformTop']
         self.aux[0].setPos(138, -378)
 
@@ -2701,7 +2742,7 @@ class SpriteImage_SpikedStakeDown(SpriteImage_SpikedStake): # 137
     def __init__(self, parent):
         super().__init__(parent)
         self.dir = 'down'
-        self.aux.append(AuxiliaryTrackObject(parent, 16, 64, AuxiliaryTrackObject.Vertical))
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, 16, 64, SLib.AuxiliaryTrackObject.Vertical))
 
         self.dimensions = (0, 16 - self.SpikeLength, 66, self.SpikeLength)
 
@@ -2772,7 +2813,7 @@ class SpriteImage_SpikedStakeUp(SpriteImage_SpikedStake): # 140
     def __init__(self, parent):
         super().__init__(parent)
         self.dir = 'up'
-        self.aux.append(AuxiliaryTrackObject(parent, 16, 64, AuxiliaryTrackObject.Vertical))
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, 16, 64, SLib.AuxiliaryTrackObject.Vertical))
 
         self.dimensions = (0, 0, 66, self.SpikeLength)
 
@@ -2781,7 +2822,7 @@ class SpriteImage_SpikedStakeRight(SpriteImage_SpikedStake): # 141
     def __init__(self, parent):
         super().__init__(parent)
         self.dir = 'right'
-        self.aux.append(AuxiliaryTrackObject(parent, 64, 16, AuxiliaryTrackObject.Horizontal))
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, 64, 16, SLib.AuxiliaryTrackObject.Horizontal))
 
         self.dimensions = (16 - self.SpikeLength, 0, self.SpikeLength, 66)
 
@@ -2790,7 +2831,7 @@ class SpriteImage_SpikedStakeLeft(SpriteImage_SpikedStake): # 142
     def __init__(self, parent):
         super().__init__(parent)
         self.dir = 'left'
-        self.aux.append(AuxiliaryTrackObject(parent, 64, 16, AuxiliaryTrackObject.Horizontal))
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, 64, 16, SLib.AuxiliaryTrackObject.Horizontal))
 
         self.dimensions = (0, 0, self.SpikeLength, 66)
 
@@ -2923,7 +2964,7 @@ class SpriteImage_RedCoinRing(SLib.SpriteImage): # 156
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryImage(parent, 243, 248))
+        self.aux.append(SLib.AuxiliaryImage(parent, 243, 248))
         self.aux[0].image = ImageCache['RedCoinRing']
         self.aux[0].setPos(-10, -15)
         self.aux[0].hover = False
@@ -3319,7 +3360,7 @@ class SpriteImage_ScalePlatform(SLib.SpriteImage): # 178
 class SpriteImage_SpecialExit(SLib.SpriteImage): # 179
     def __init__(self, parent):
         super().__init__(parent)
-        self.aux.append(AuxiliaryRectOutline(parent, 0, 0))
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
 
     def updateSize(self):
         super().updateSize()
@@ -3418,7 +3459,7 @@ class SpriteImage_TiltingGirderUnused(SLib.SpriteImage_Static): # 190
 class SpriteImage_TileEvent(SLib.SpriteImage): # 191
     def __init__(self, parent):
         super().__init__(parent)
-        self.aux.append(AuxiliaryRectOutline(parent, 0, 0))
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
 
     def updateSize(self):
         super().updateSize()
@@ -3658,7 +3699,7 @@ class SpriteImage_GiantBubbleNormal(SpriteImage_GiantBubble): # 205
 class SpriteImage_Zoom(SLib.SpriteImage): # 206
     def __init__(self, parent):
         super().__init__(parent)
-        self.aux.append(AuxiliaryRectOutline(parent, 0, 0))
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
 
     def updateSize(self):
         super().updateSize()
@@ -3699,7 +3740,7 @@ class SpriteImage_RollingHill(SLib.SpriteImage): # 212
         size = (self.parent.spritedata[3] >> 4) & 0xF
         realSize = self.RollingHillSizes[size]
 
-        self.aux.append(AuxiliaryCircleOutline(parent, realSize))
+        self.aux.append(SLib.AuxiliaryCircleOutline(parent, realSize))
 
     def updateSize(self):
         super().updateSize()
@@ -3762,7 +3803,7 @@ class SpriteImage_LineBlock(SLib.SpriteImage): # 219
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryImage(parent, 24, 24))
+        self.aux.append(SLib.AuxiliaryImage(parent, 24, 24))
         self.aux[0].setPos(0, 32)
 
     @staticmethod
@@ -3935,11 +3976,11 @@ class SpriteImage_PipeCannon(SLib.SpriteImage): # 227
         self.spritebox.shown = False
 
         # self.aux[0] is the pipe image
-        self.aux.append(AuxiliaryImage(parent, 24, 24))
+        self.aux.append(SLib.AuxiliaryImage(parent, 24, 24))
         self.aux[0].hover = False
 
         # self.aux[1] is the trajectory indicator
-        self.aux.append(AuxiliaryPainterPath(parent, QtGui.QPainterPath(), 24, 24))
+        self.aux.append(SLib.AuxiliaryPainterPath(parent, QtGui.QPainterPath(), 24, 24))
         self.aux[1].fillFlag = False
 
         self.aux[0].setZValue(self.aux[1].zValue() + 1)
@@ -4142,7 +4183,7 @@ class SpriteImage_Bulber(SLib.SpriteImage): # 233
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryImage(parent, 243, 248))
+        self.aux.append(SLib.AuxiliaryImage(parent, 243, 248))
         self.aux[0].image = ImageCache['Bulber']
         self.aux[0].setPos(-8, 0)
 
@@ -4242,7 +4283,7 @@ class SpriteImage_PoltergeistItem(SLib.SpriteImage): # 262
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryImage(parent, 60, 60))
+        self.aux.append(SLib.AuxiliaryImage(parent, 60, 60))
         self.aux[0].image = ImageCache['PolterQBlock']
         self.aux[0].setPos(-18, -18)
         self.aux[0].hover = False
@@ -4522,6 +4563,7 @@ class SpriteImage_TowerDoor(SpriteImage_Door): # 277
         super().__init__(parent)
         self.doorName = 'TowerDoor'
         self.doorDimensions = (-2, -10.5, 53, 59)
+        self.entranceOffset = (0, 64)
 
 
 class SpriteImage_CastleDoor(SpriteImage_Door): # 278
@@ -4529,6 +4571,7 @@ class SpriteImage_CastleDoor(SpriteImage_Door): # 278
         super().__init__(parent)
         self.doorName = 'CastleDoor'
         self.doorDimensions = (-2, -13, 53, 62)
+        self.entranceOffset = (0, 68)
 
 
 class SpriteImage_GiantIceBlock(SLib.SpriteImage_StaticMultiple): # 280
@@ -4907,7 +4950,7 @@ class SpriteImage_LightCircle(SLib.SpriteImage): # 305
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.aux.append(AuxiliaryImage(parent, 128, 128))
+        self.aux.append(SLib.AuxiliaryImage(parent, 128, 128))
         self.aux[0].image = ImageCache['LightCircle']
         self.aux[0].setPos(-48, -48)
         self.aux[0].hover = False
@@ -5128,6 +5171,14 @@ class SpriteImage_BoxGenerator(SLib.SpriteImage_Static): # 318
         SLib.loadIfNotInImageCache('BoxGenerator', 'box_generator.png')
 
 
+class SpriteImage_UnusedWiimoteDoor(SpriteImage_UnusedGiantDoor): # 319
+    pass
+
+
+class SpriteImage_UnusedSlidingWiimoteDoor(SpriteImage_UnusedGiantDoor): # 320
+    pass
+
+
 class SpriteImage_ArrowBlock(SLib.SpriteImage_StaticMultiple): # 321
     @staticmethod
     def loadImages():
@@ -5151,7 +5202,7 @@ class SpriteImage_BooCircle(SLib.SpriteImage): # 323
 
         self.BooAuxImage = QtGui.QPixmap(1024, 1024)
         self.BooAuxImage.fill(Qt.transparent)
-        self.aux.append(AuxiliaryImage(parent, 1024, 1024))
+        self.aux.append(SLib.AuxiliaryImage(parent, 1024, 1024))
         self.aux[0].image = self.BooAuxImage
         offsetX = ImageCache['Boo1'].width() / 4
         offsetY = ImageCache['Boo1'].height() / 4
@@ -5237,7 +5288,7 @@ class SpriteImage_KingBill(SLib.SpriteImage): # 326
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.aux.append(AuxiliaryPainterPath(parent, QtGui.QPainterPath(), 24, 24))
+        self.aux.append(SLib.AuxiliaryPainterPath(parent, QtGui.QPainterPath(), 24, 24))
         self.aux[0].setSize(24 * 17, 24 * 17)
 
         self.paths = []
@@ -5389,7 +5440,7 @@ class SpriteImage_CheepGiant(SLib.SpriteImage): # 334
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryTrackObject(self.parent, 24, 24, AuxiliaryTrackObject.Horizontal))
+        self.aux.append(SLib.AuxiliaryTrackObject(self.parent, 24, 24, SLib.AuxiliaryTrackObject.Horizontal))
 
     @staticmethod
     def loadImages():
@@ -5637,7 +5688,7 @@ class SpriteImage_BrownBlock(SLib.SpriteImage): # 356
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryTrackObject(parent, 16, 16, AuxiliaryTrackObject.Horizontal))
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, 16, 16, SLib.AuxiliaryTrackObject.Horizontal))
 
     @staticmethod
     def loadImages():
@@ -5749,7 +5800,7 @@ class SpriteImage_WallLantern(SLib.SpriteImage): # 359
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryImage(parent, 128, 128))
+        self.aux.append(SLib.AuxiliaryImage(parent, 128, 128))
         self.aux[0].image = ImageCache['WallLanternAux']
         self.aux[0].setPos(-48, -48)
         self.aux[0].hover = False
@@ -6093,7 +6144,7 @@ class SpriteImage_GlowBlock(SLib.SpriteImage): # 391
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryImage(parent, 48, 48))
+        self.aux.append(SLib.AuxiliaryImage(parent, 48, 48))
         self.aux[0].image = ImageCache['GlowBlock']
         self.aux[0].setPos(-12, -12)
 
@@ -6370,7 +6421,7 @@ class SpriteImage_GiantGlowBlock(SLib.SpriteImage): # 420
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryImage(parent, 100, 100))
+        self.aux.append(SLib.AuxiliaryImage(parent, 100, 100))
         self.size = (32, 32)
 
     @staticmethod
@@ -6390,10 +6441,16 @@ class SpriteImage_GiantGlowBlock(SLib.SpriteImage): # 420
             self.aux[0].setSize(48, 48)
 
 
-class SpriteImage_UnusedGhostDoor(SpriteImage_Door): # 421
+class SpriteImage_UnusedGhostDoor(SLib.SpriteImage_Static): # 421
     def __init__(self, parent):
-        super().__init__(parent)
-        self.doorName = 'GhostDoor'
+        super().__init__(
+            parent,
+            ImageCache['GhostDoorU'],
+            )
+    
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('GhostDoorU', 'ghost_door.png')
 
 
 class SpriteImage_ToadQBlock(SpriteImage_Block): # 422
@@ -6725,7 +6782,7 @@ class SpriteImage_UnderwaterLamp(SLib.SpriteImage): # 447
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(AuxiliaryImage(parent, 105, 105))
+        self.aux.append(SLib.AuxiliaryImage(parent, 105, 105))
         self.aux[0].image = ImageCache['UnderwaterLamp']
         self.aux[0].setPos(-34, -34)
 
@@ -6772,6 +6829,7 @@ class SpriteImage_BowserDoor(SpriteImage_Door): # 452
         super().__init__(parent)
         self.doorName = 'BowserDoor'
         self.doorDimensions = (-53, -134, 156, 183)
+        self.entranceOffset = (104, 250)
 
 
 class SpriteImage_Seaweed(SLib.SpriteImage_StaticMultiple): # 453
@@ -7280,6 +7338,8 @@ ImageClasses = {
         315: SpriteImage_Bolt,
         316: SpriteImage_BoltBox,
         318: SpriteImage_BoxGenerator,
+        319: SpriteImage_UnusedWiimoteDoor,
+        320: SpriteImage_UnusedSlidingWiimoteDoor,
         321: SpriteImage_ArrowBlock,
         323: SpriteImage_BooCircle,
         325: SpriteImage_GhostHouseStand,

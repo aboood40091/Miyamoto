@@ -296,9 +296,13 @@ class Spritebox():
 #################### AuxiliaryItem Classes #####################
 
 class AuxiliaryItem(QtWidgets.QGraphicsItem):
-    """Base class for auxiliary objects that accompany specific sprite types"""
+    """
+    Base class for auxiliary objects that accompany specific sprite types
+    """
     def __init__(self, parent):
-        """Generic constructor for auxiliary items"""
+        """
+        Generic constructor for auxiliary items
+        """
         super().__init__(parent)
         self.parent = parent
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
@@ -307,8 +311,18 @@ class AuxiliaryItem(QtWidgets.QGraphicsItem):
         self.setParentItem(parent)
         self.hover = False
 
+    def setIsBehindSprite(self, behind):
+        """
+        This allows you to choose whether the auiliary item will display
+        behind the sprite or in front of it. Default is for the item to
+        be behind the sprite.
+        """
+        self.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, behind)
+
     def boundingRect(self):
-        """Required for Qt"""
+        """
+        Required for Qt
+        """
         return self.BoundingRect
 
 
