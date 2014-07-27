@@ -2897,6 +2897,7 @@ class SpriteImage_Coin(SLib.SpriteImage_StaticMultiple): # 147
     @staticmethod
     def loadImages():
         if 'CoinF' in ImageCache: return
+
         pix = QtGui.QPixmap(24, 24)
         pix.fill(Qt.transparent)
         paint = QtGui.QPainter(pix)
@@ -2907,13 +2908,23 @@ class SpriteImage_Coin(SLib.SpriteImage_StaticMultiple): # 147
         del paint
         ImageCache['CoinF'] = pix
 
-    def updateSize(self):
-        flag = self.parent.spritedata[5] & 0xF
+        ImageCache['CoinBubble'] = SLib.GetImg('coin_bubble.png')
 
-        if flag == 0xF:
-            self.image = ImageCache['CoinF']
-        else:
+    def updateSize(self):
+        type = self.parent.spritedata[5] & 0xF
+
+        if type == 0:
             self.image = ImageCache['Coin']
+            self.offset = (0, 0)
+        elif type == 0xF:
+            self.image = ImageCache['CoinF']
+            self.offset = (0, 0)
+        elif type in (1, 2, 4):
+            self.image = ImageCache['CoinBubble']
+            self.offset = (-4, -4)
+        else:
+            self.image = ImageCache['SpecialCoin']
+            self.offset = (0, 0)
 
         super().updateSize()
 
