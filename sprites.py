@@ -247,11 +247,11 @@ class SpriteImage_OldStoneBlock(SLib.SpriteImage): # 30, 81, 82, 83, 84, 85, 86
             self.aux[0].setSize(self.width, self.height + (distance * 16))
 
         if direction == 0 or direction == 3: # right, down
-            self.aux[0].setPos(0,0)
+            self.aux[0].setPos(0, 0)
         elif direction == 1: # left
-            self.aux[0].setPos(-distance * 24,0)
+            self.aux[0].setPos(-distance * 24, 0)
         elif direction == 2: # up
-            self.aux[0].setPos(0,-distance * 24)
+            self.aux[0].setPos(0, -distance * 24)
 
     def paint(self, painter):
         super().paint(painter)
@@ -259,8 +259,8 @@ class SpriteImage_OldStoneBlock(SLib.SpriteImage): # 30, 81, 82, 83, 84, 85, 86
         blockX = 0
         blockY = 0
         type = self.parent.type
-        width = self.width*1.5
-        height = self.height*1.5
+        width = self.width * 1.5
+        height = self.height * 1.5
 
         if self.spikesL: # left spikes
             painter.drawTiledPixmap(0, 0, 24, height, ImageCache['SpikeL'])
@@ -271,10 +271,10 @@ class SpriteImage_OldStoneBlock(SLib.SpriteImage): # 30, 81, 82, 83, 84, 85, 86
             blockY = 24
             height -= 24
         if self.spikesR: # right spikes
-            painter.drawTiledPixmap(blockX+width-24, 0, 24, height, ImageCache['SpikeR'])
+            painter.drawTiledPixmap(blockX + width-24, 0, 24, height, ImageCache['SpikeR'])
             width -= 24
         if self.spikesB: # bottom spikes
-            painter.drawTiledPixmap(0, blockY+height-24, width, 24, ImageCache['SpikeD'])
+            painter.drawTiledPixmap(0, blockY + height-24, width, 24, ImageCache['SpikeD'])
             height -= 24
 
         column2x = blockX + 24
@@ -283,15 +283,15 @@ class SpriteImage_OldStoneBlock(SLib.SpriteImage): # 30, 81, 82, 83, 84, 85, 86
         row3y = blockY + height - 24
 
         painter.drawPixmap(blockX, blockY, ImageCache['OldStoneTL'])
-        painter.drawTiledPixmap(column2x, blockY, width-48, 24, ImageCache['OldStoneT'])
+        painter.drawTiledPixmap(column2x, blockY, width - 48, 24, ImageCache['OldStoneT'])
         painter.drawPixmap(column3x, blockY, ImageCache['OldStoneTR'])
 
-        painter.drawTiledPixmap(blockX, row2y, 24, height-48, ImageCache['OldStoneL'])
-        painter.drawTiledPixmap(column2x, row2y, width-48, height-48, ImageCache['OldStoneM'])
-        painter.drawTiledPixmap(column3x, row2y, 24, height-48, ImageCache['OldStoneR'])
+        painter.drawTiledPixmap(blockX, row2y, 24, height - 48, ImageCache['OldStoneL'])
+        painter.drawTiledPixmap(column2x, row2y, width - 48, height-48, ImageCache['OldStoneM'])
+        painter.drawTiledPixmap(column3x, row2y, 24, height - 48, ImageCache['OldStoneR'])
 
         painter.drawPixmap(blockX, row3y, ImageCache['OldStoneBL'])
-        painter.drawTiledPixmap(column2x, row3y, width-48, 24, ImageCache['OldStoneB'])
+        painter.drawTiledPixmap(column2x, row3y, width - 48, 24, ImageCache['OldStoneB'])
         painter.drawPixmap(column3x, row3y, ImageCache['OldStoneBR'])
 
 
@@ -376,19 +376,6 @@ class SpriteImage_HammerBro(SLib.SpriteImage_Static): # 95, 308
         SLib.loadIfNotInImageCache('HammerBro', 'hammerbro.png')
 
 
-class SpriteImage_Amp(SLib.SpriteImage_Static): # 104, 108
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            ImageCache['Amp'],
-            (-8, -8),
-            )
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('Amp', 'amp.png')
-
-
 class SpriteImage_UnusedBlockPlatform(SLib.SpriteImage): # 97, 107, 132, 160
     def __init__(self, parent):
         super().__init__(parent)
@@ -413,6 +400,19 @@ class SpriteImage_UnusedBlockPlatform(SLib.SpriteImage): # 97, 107, 132, 160
             Qt.IgnoreAspectRatio, Qt.SmoothTransformation,
             )
         painter.drawPixmap(0, 0, pixmap)
+
+
+class SpriteImage_Amp(SLib.SpriteImage_Static): # 104, 108
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['Amp'],
+            (-8, -8),
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Amp', 'amp.png')
 
 
 class SpriteImage_SpikedStake(SLib.SpriteImage): # 137, 140, 141, 142
