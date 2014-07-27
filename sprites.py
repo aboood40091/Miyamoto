@@ -4274,6 +4274,22 @@ class SpriteImage_RotatingBrickBlock(SpriteImage_Block): # 256
         self.rotates = True
 
 
+class SpriteImage_MoveWhenOnMetalLavaBlock(SLib.SpriteImage_StaticMultiple): # 257
+    @staticmethod
+    def loadImages():
+        if 'MetalLavaBlock0' in ImageCache: return
+        ImageCache['MetalLavaBlock0'] = SLib.GetImg('lava_iron_block_0.png')
+        ImageCache['MetalLavaBlock1'] = SLib.GetImg('lava_iron_block_1.png')
+        ImageCache['MetalLavaBlock2'] = SLib.GetImg('lava_iron_block_2.png')
+
+    def updateSize(self):
+
+        size = (self.parent.spritedata[5] & 0xF) % 3
+        self.image = ImageCache['MetalLavaBlock%d' % size]
+
+        super().updateSize()
+
+
 class SpriteImage_RegularDoor(SpriteImage_Door): # 259
     pass
 
@@ -7292,6 +7308,7 @@ ImageClasses = {
         253: SpriteImage_RotControlledCoin,
         254: SpriteImage_RotControlledPipe,
         255: SpriteImage_RotatingQBlock,
+        257: SpriteImage_MoveWhenOnMetalLavaBlock,
         256: SpriteImage_RotatingBrickBlock,
         259: SpriteImage_RegularDoor,
         262: SpriteImage_PoltergeistItem,
