@@ -46,74 +46,6 @@ ImageCache = SLib.ImageCache
 # ---- Low-Level Classes ----
 
 
-class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 64, 138, 139, 216, 358, 374, 435
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.updateSceneAfterPaint = True
-
-        self.crest = None
-        self.mid = None
-        self.rise = None
-        self.riseCrestless = None
-
-        self.top = 0
-
-        self.drawCrest = False
-        self.risingHeight = 0
-
-        self.paintZone = False
-        self.paintLoc = False
-
-    def updateSize(self):
-        super().updateSize()
-        self.parent.updateScene()
-
-    def realViewZone(self, painter, zoneRect, viewRect):
-        """
-        Real view zone painter for liquids/fog
-        """
-        if not self.paintZone: return
-
-        # (0, 0) is the top-left corner of the zone
-
-        zx, zy, zw, zh = zoneRect.topLeft().x(), zoneRect.topLeft().y(), zoneRect.width(), zoneRect.height()
-
-        drawRise = self.risingHeight != 0
-        drawCrest = self.drawCrest
-
-        # Get positions
-        offsetFromTop = (self.top * 1.5) - zy
-        if offsetFromTop <= 4:
-            offsetFromTop = 4
-            drawCrest = False # off the top of the zone; no crest
-        if self.top > (zy + zh) / 1.5:
-            # the sprite is below the zone; don't draw anything
-            return
-
-        # If all that fits in the zone is some of the crest, determine how much
-        if drawCrest:
-            crestSizeRemoval = (zy + offsetFromTop + self.crest.height()) - (zy + zh) + 4
-            if crestSizeRemoval < 0: crestSizeRemoval = 0
-            crestHeight = self.crest.height() - crestSizeRemoval
-
-        # Determine where to put the rise image
-        offsetRise = offsetFromTop - (self.risingHeight * 24)
-        riseToDraw = self.rise
-        if offsetRise < 4: # close enough to the top zone border
-            offsetRise = 4
-            riseToDraw = self.riseCrestless
-        if not drawCrest:
-            riseToDraw = self.riseCrestless
-
-        if drawCrest:
-            painter.drawTiledPixmap(4, offsetFromTop, zw - 8, crestHeight, self.crest)
-            painter.drawTiledPixmap(4, offsetFromTop + crestHeight, zw - 8, zh - crestHeight - offsetFromTop - 4, self.mid)
-        else:
-            painter.drawTiledPixmap(4, offsetFromTop, zw - 8, zh - offsetFromTop - 4, self.mid)
-        if drawRise:
-            painter.drawTiledPixmap(4, offsetRise, zw - 8, riseToDraw.height(), riseToDraw)
-
-
 class SpriteImage_WoodenPlatform(SLib.SpriteImage): # 23, 31, 50, 103, 106, 122
     def __init__(self, parent):
         super().__init__(parent)
@@ -361,6 +293,74 @@ class SpriteImage_OldStoneBlock(SLib.SpriteImage): # 30, 81, 82, 83, 84, 85, 86
         painter.drawPixmap(blockX, row3y, ImageCache['OldStoneBL'])
         painter.drawTiledPixmap(column2x, row3y, width-48, 24, ImageCache['OldStoneB'])
         painter.drawPixmap(column3x, row3y, ImageCache['OldStoneBR'])
+
+
+class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 64, 138, 139, 216, 358, 374, 435
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.updateSceneAfterPaint = True
+
+        self.crest = None
+        self.mid = None
+        self.rise = None
+        self.riseCrestless = None
+
+        self.top = 0
+
+        self.drawCrest = False
+        self.risingHeight = 0
+
+        self.paintZone = False
+        self.paintLoc = False
+
+    def updateSize(self):
+        super().updateSize()
+        self.parent.updateScene()
+
+    def realViewZone(self, painter, zoneRect, viewRect):
+        """
+        Real view zone painter for liquids/fog
+        """
+        if not self.paintZone: return
+
+        # (0, 0) is the top-left corner of the zone
+
+        zx, zy, zw, zh = zoneRect.topLeft().x(), zoneRect.topLeft().y(), zoneRect.width(), zoneRect.height()
+
+        drawRise = self.risingHeight != 0
+        drawCrest = self.drawCrest
+
+        # Get positions
+        offsetFromTop = (self.top * 1.5) - zy
+        if offsetFromTop <= 4:
+            offsetFromTop = 4
+            drawCrest = False # off the top of the zone; no crest
+        if self.top > (zy + zh) / 1.5:
+            # the sprite is below the zone; don't draw anything
+            return
+
+        # If all that fits in the zone is some of the crest, determine how much
+        if drawCrest:
+            crestSizeRemoval = (zy + offsetFromTop + self.crest.height()) - (zy + zh) + 4
+            if crestSizeRemoval < 0: crestSizeRemoval = 0
+            crestHeight = self.crest.height() - crestSizeRemoval
+
+        # Determine where to put the rise image
+        offsetRise = offsetFromTop - (self.risingHeight * 24)
+        riseToDraw = self.rise
+        if offsetRise < 4: # close enough to the top zone border
+            offsetRise = 4
+            riseToDraw = self.riseCrestless
+        if not drawCrest:
+            riseToDraw = self.riseCrestless
+
+        if drawCrest:
+            painter.drawTiledPixmap(4, offsetFromTop, zw - 8, crestHeight, self.crest)
+            painter.drawTiledPixmap(4, offsetFromTop + crestHeight, zw - 8, zh - crestHeight - offsetFromTop - 4, self.mid)
+        else:
+            painter.drawTiledPixmap(4, offsetFromTop, zw - 8, zh - offsetFromTop - 4, self.mid)
+        if drawRise:
+            painter.drawTiledPixmap(4, offsetRise, zw - 8, riseToDraw.height(), riseToDraw)
 
 
 class SpriteImage_HammerBro(SLib.SpriteImage_Static): # 95, 308
