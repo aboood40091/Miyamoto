@@ -7483,7 +7483,6 @@ class ReggieGameDefinition():
             images = {}
 
         if hasattr(self.sprites, 'ImageClasses'):
-            print('self.sprites has ImageClasses')
             images.update(self.sprites.ImageClasses)
         return images
 
