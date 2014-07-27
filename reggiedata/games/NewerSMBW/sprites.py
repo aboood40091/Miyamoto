@@ -111,7 +111,7 @@ class SpriteImage_Meteor(SLib.SpriteImage_SimpleDynamic): # 183
 class SpriteImage_MidwayFlag(SLib.SpriteImage_SimpleDynamic): # 188
     def __init__(self, parent):
         super().__init__(parent)
-        self.offset = (0, 0)
+        self.yOffset = -37
 
     @staticmethod
     def loadImages():
