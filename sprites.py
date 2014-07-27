@@ -24,7 +24,7 @@
 
 
 # sprites.py
-# Contains code to render specific sprite images
+# Contains code to render NSMBW sprite images
 
 
 ################################################################
@@ -36,6 +36,7 @@ import random
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
+
 
 import spritelib as SLib
 ImageCache = SLib.ImageCache

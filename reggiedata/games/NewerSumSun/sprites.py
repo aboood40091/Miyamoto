@@ -1,17 +1,22 @@
 # Newer Summer Sun
-# Custom Reggie Sprites.py Overwrite
+# Custom Reggie Sprites.py Module
+# By RoadrunnerWMC
 
 
-class SpriteImage_CustomModelSprite(SpriteImage_SimpleDynamic): # 11
-    def __init__(self, parent):
-        super().__init__(parent)
+import spritelib as SLib
+ImageCache = SLib.ImageCache
 
-        if 'ModeAnim01' not in ImageCache:
-            for anim in (True, False):
-                for model in range(0x15):
-                    name = 'model_%s%02X.png' % ('anim_' if anim else '', model)
-                    img = GetImg(name)
-                    if img != None: ImageCache['Model%s%02X' % (('Anim' if anim else ''), model)] = img
+
+
+class SpriteImage_CustomModelSprite(SLib.SpriteImage_SimpleDynamic): # 11
+    @staticmethod
+    def loadImages():
+        if 'ModeAnim01' in ImageCache: return
+        for anim in (True, False):
+            for model in range(0x15):
+                name = 'model_%s%02X.png' % ('anim_' if anim else '', model)
+                img = SLib.GetImg(name)
+                if img != None: ImageCache['Model%s%02X' % (('Anim' if anim else ''), model)] = img
 
     def updateSize(self):
 
@@ -83,53 +88,69 @@ class SpriteImage_CustomModelSprite(SpriteImage_SimpleDynamic): # 11
         super().updateSize()
 
 
-
-class SpriteImage_CharginChuck(SpriteImage_Static): # 102
+class SpriteImage_CharginChuck(SLib.SpriteImage_Static): # 102
     def __init__(self, parent):
-        loadIfNotInImageCache('CharginChuck', 'charginchuck.png')
         super().__init__(
             parent,
             ImageCache['CharginChuck'],
             (-9, -24),
             )
 
-class SpriteImage_ChompStatueOpen(SpriteImage_Static): # 143
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('CharginChuck', 'charginchuck.png')
+
+
+class SpriteImage_ChompStatueOpen(SLib.SpriteImage_Static): # 143
     def __init__(self, parent):
-        loadIfNotInImageCache('ChompStatueOpen', 'chompstatueopen.png')
         super().__init__(
             parent,
             ImageCache['ChompStatueOpen'],
             (-70, -101),
             )
 
-class SpriteImage_Unagi(SpriteImage_Static): # 193
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('ChompStatueOpen', 'chompstatueopen.png')
+
+
+class SpriteImage_Unagi(SLib.SpriteImage_Static): # 193
     def __init__(self, parent):
-        loadIfNotInImageCache('Unagi', 'unagi.png')
         super().__init__(
             parent,
             ImageCache['Unagi'],
             (-11, -17),
             )
 
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Unagi', 'unagi.png')
 
-class SpriteImage_ChompStatueClosed(SpriteImage_Static): # 143
+
+class SpriteImage_ChompStatueClosed(SLib.SpriteImage_Static): # 143
     def __init__(self, parent):
-        loadIfNotInImageCache('ChompStatueClosed', 'chompstatueclosed.png')
         super().__init__(
             parent,
             ImageCache['ChompStatueClosed'],
             (-70, -69),
             )
 
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('ChompStatueClosed', 'chompstatueclosed.png')
 
-class SpriteImage_SumSunRaft(SpriteImage_Static): # 143
+
+class SpriteImage_SumSunRaft(SLib.SpriteImage_Static): # 143
     def __init__(self, parent):
-        loadIfNotInImageCache('SumSunRaft', 'raft.png')
         super().__init__(
             parent,
             ImageCache['SumSunRaft'],
             (-16, -20),
             )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('SumSunRaft', 'raft.png')
 
 
 ImageClasses = {
@@ -140,4 +161,3 @@ ImageClasses = {
     321: SpriteImage_ChompStatueClosed,
     368: SpriteImage_SumSunRaft,
     }
-

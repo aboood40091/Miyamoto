@@ -40,7 +40,7 @@ if currentRunningVersion < minimum:
     raise Exception(errormsg)
 
 # Stdlib imports
-from ctypes import create_string_buffer
+import importlib
 from math import floor as math_floor
 import os.path
 import pickle
@@ -73,7 +73,6 @@ import archive
 import LHdec
 import lz77
 import spritelib as SLib
-import sprites
 import TPL
 
 ReggieID = 'Reggie! Level Editor Next by Treeki, Tempus, RoadrunnerWMC'
@@ -1644,7 +1643,7 @@ def CreateTilesets():
     TilesetAnimTimer.timeout.connect(IncrementTilesetFrame)
     TilesetAnimTimer.start(180)
     ObjectDefinitions = [None]*4
-    sprites.Tiles = Tiles
+    SLib.Tiles = Tiles
 
 
 def LoadTileset(idx, name, reload=False):
@@ -2751,10 +2750,11 @@ class AreaUnit():
                rdata.append(0)
         rdata = bytes(rdata)
 
-        # save the main course file
-        # we'll be passing over the blocks array two times
-        # using ctypes.create_string_buffer here because it offers mutable strings
-        # and works directly with struct.pack_into(), so it's a win-win situation for me
+        # Save the main course file
+        # We'll be passing over the blocks array two times.
+        # Using bytearray here because it offers mutable bytes
+        # and works directly with struct.pack_into(), so it's a
+        # win-win situation
         FileLength = (14 * 8) + len(rdata)
         for block in self.blocks:
             FileLength += len(block)
@@ -3034,9 +3034,9 @@ class AreaUnit():
         Saves block 2, the general options
         """
         optstruct = struct.Struct('>IxxxxHhLBBBx')
-        buffer = create_string_buffer(20)
+        buffer = bytearray(20)
         optstruct.pack_into(buffer, 0, self.defEvents, self.wrapFlag, self.timeLimit, self.unk1, self.startEntrance, self.unk2, self.unk3)
-        self.blocks[1] = buffer.raw
+        self.blocks[1] = buffer
 
     def SaveLayer(self, idx):
         """
@@ -3045,14 +3045,14 @@ class AreaUnit():
         layer = self.layers[idx]
         offset = 0
         objstruct = struct.Struct('>HHHHH')
-        buffer = create_string_buffer((len(layer) * 10) + 2)
+        buffer = bytearray((len(layer) * 10) + 2)
         f_int = int
         for obj in layer:
             objstruct.pack_into(buffer, offset, f_int((obj.tileset << 12) | obj.type), f_int(obj.objx), f_int(obj.objy), f_int(obj.width), f_int(obj.height))
             offset += 10
         buffer[offset] = 0xFF
         buffer[offset+1] = 0xFF
-        return buffer.raw
+        return buffer
 
     def SaveEntrances(self):
         """
@@ -3060,13 +3060,13 @@ class AreaUnit():
         """
         offset = 0
         entstruct = struct.Struct('>HHxxxxBBBBxBBBHxB')
-        buffer = create_string_buffer(len(self.entrances) * 20)
+        buffer = bytearray(len(self.entrances) * 20)
         zonelist = self.zones
         for entrance in self.entrances:
             zoneID = MapPositionToZoneID(zonelist, entrance.objx, entrance.objy)
             entstruct.pack_into(buffer, offset, int(entrance.objx), int(entrance.objy), int(entrance.entid), int(entrance.destarea), int(entrance.destentrance), int(entrance.enttype), zoneID, int(entrance.entlayer), int(entrance.entpath), int(entrance.entsettings), int(entrance.cpdirection))
             offset += 20
-        self.blocks[6] = buffer.raw
+        self.blocks[6] = buffer
 
     def SavePaths(self):
         """
@@ -3076,11 +3076,11 @@ class AreaUnit():
         nodecount = 0
         for path in self.pathdata:
             nodecount += len(path['nodes'])
-        nodebuffer = create_string_buffer(nodecount * 16)
+        nodebuffer = bytearray(nodecount * 16)
         nodeoffset = 0
         nodeindex = 0
         offset = 0
-        buffer = create_string_buffer(len(self.pathdata) * 8)
+        buffer = bytearray(len(self.pathdata) * 8)
         #[20:28:38]  [@Treeki] struct Path { unsigned char id; char padding; unsigned short startNodeIndex; unsigned short nodeCount; unsigned short unknown; };
         for path in self.pathdata:
             if(len(path['nodes']) < 1): continue
@@ -3090,8 +3090,8 @@ class AreaUnit():
             offset += 8
             nodeoffset += len(path['nodes']) * 16
             nodeindex += len(path['nodes'])
-        self.blocks[12] = buffer.raw
-        self.blocks[13] = nodebuffer.raw
+        self.blocks[12] = buffer
+        self.blocks[13] = nodebuffer
 
     def SavePathNodes(self, buffer, offst, nodes):
         """
@@ -3111,16 +3111,16 @@ class AreaUnit():
         """
         offset = 0
         sprstruct = struct.Struct('>HHH6sB1sxx')
-        buffer = create_string_buffer((len(self.sprites) * 16) + 4)
+        buffer = bytearray((len(self.sprites) * 16) + 4)
         f_int = int
         for sprite in self.sprites:
             sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy), sprite.spritedata[:6], sprite.zoneID, bytes([sprite.spritedata[7],]))
             offset += 16
         buffer[offset] = 0xFF
-        buffer[offset+1] = 0xFF
-        buffer[offset+2] = 0xFF
-        buffer[offset+3] = 0xFF
-        self.blocks[7] = buffer.raw
+        buffer[offset + 1] = 0xFF
+        buffer[offset + 2] = 0xFF
+        buffer[offset + 3] = 0xFF
+        self.blocks[7] = buffer
 
     def SaveLoadedSprites(self):
         """
@@ -3133,11 +3133,11 @@ class AreaUnit():
 
         offset = 0
         sprstruct = struct.Struct('>Hxx')
-        buffer = create_string_buffer(len(ls) * 4)
+        buffer = bytearray(len(ls) * 4)
         for s in ls:
             sprstruct.pack_into(buffer, offset, int(s))
             offset += 4
-        self.blocks[8] = buffer.raw
+        self.blocks[8] = buffer
 
 
     def SaveZones(self):
@@ -3151,10 +3151,10 @@ class AreaUnit():
         offset = 0
         i = 0
         zcount = len(Area.zones)
-        buffer2 = create_string_buffer(24*zcount)
-        buffer4 = create_string_buffer(24*zcount)
-        buffer5 = create_string_buffer(24*zcount)
-        buffer9 = create_string_buffer(24*zcount)
+        buffer2 = bytearray(24 * zcount)
+        buffer4 = bytearray(24 * zcount)
+        buffer5 = bytearray(24 * zcount)
+        buffer9 = bytearray(24 * zcount)
         for z in Area.zones:
             bdngstruct.pack_into(buffer2, offset, z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, i, 0xF)
             bgAstruct.pack_into(buffer4, offset, i, z.XscrollA, z.YscrollA, z.YpositionA, z.XpositionA, z.bg1A, z.bg2A, z.bg3A, z.ZoomA)
@@ -3163,10 +3163,10 @@ class AreaUnit():
             offset += 24
             i += 1
 
-        self.blocks[2] = buffer2.raw
-        self.blocks[4] = buffer4.raw
-        self.blocks[5] = buffer5.raw
-        self.blocks[9] = buffer9.raw
+        self.blocks[2] = buffer2
+        self.blocks[4] = buffer4
+        self.blocks[5] = buffer5
+        self.blocks[9] = buffer9
 
 
     def SaveLocations(self):
@@ -3176,13 +3176,13 @@ class AreaUnit():
         locstruct = struct.Struct('>HHHHBxxx')
         offset = 0
         zcount = len(Area.locations)
-        buffer = create_string_buffer(12*zcount)
+        buffer = bytearray(12 * zcount)
 
         for z in Area.locations:
             locstruct.pack_into(buffer, offset, int(z.objx), int(z.objy), int(z.width), int(z.height), int(z.id))
             offset += 12
 
-        self.blocks[10] = buffer.raw
+        self.blocks[10] = buffer
 
 
     def RemoveFromLayer(self, obj):
@@ -4126,11 +4126,11 @@ class SpriteItem(LevelEditorItem):
         self.name = Sprites[type].name
         self.setToolTip(trans.string('Sprites', 0, '[type]', self.type, '[name]', self.name))
 
-        if type in sprites.ImageClasses:
+        if type in gamedef.getImageClasses():
             if type not in SLib.SpriteImagesLoaded:
-                sprites.ImageClasses[type].loadImages()
+                gamedef.sprites.ImageClasses[type].loadImages()
                 SLib.SpriteImagesLoaded.add(type)
-            self.ImageObj = sprites.ImageClasses[type](self)
+            self.ImageObj = gamedef.sprites.ImageClasses[type](self)
 
         self.UpdateDynamicSizing()
         self.UpdateRects()
@@ -4326,12 +4326,14 @@ class SpriteItem(LevelEditorItem):
         painter.setClipRect(option.exposedRect)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
-        self.ImageObj.paint(painter)
-        if self.isSelected() and (self.ImageObj.size != (16, 16) or not self.ImageObj.spritebox.shown):
+        if SpriteImagesShown:
+            self.ImageObj.paint(painter)
+
+        if self.isSelected() and (not self.ImageObj.spritebox.shown or self.ImageObj.size != (16, 16)):
             painter.setPen(QtGui.QPen(theme.color('sprite_lines_s'), 1, Qt.DotLine))
             painter.drawRect(self.SelectionRect)
             painter.fillRect(self.SelectionRect, theme.color('sprite_fill_s'))
-        if self.ImageObj.spritebox.shown:
+        if self.ImageObj.spritebox.shown or not SpriteImagesShown:
             newRoundedRect = self.RoundedRect.translated(-self.ImageObj.xOffset * 1.5, -self.ImageObj.yOffset * 1.5)
             if self.isSelected():
                 painter.setBrush(QtGui.QBrush(theme.color('spritebox_fill_s')))
@@ -7141,7 +7143,7 @@ def LoadGameDef(name=None, dlg=None):
         LoadEntranceNames(True)
         if dlg: dlg.setValue(7)
 
-    except UnicodeEncodeError: pass
+    except UnicodeEncodeError: raise
     #except Exception as e:
     #    # Something went wrong.
     #    if dlg: dlg.setValue(7) # autocloses it
@@ -7156,18 +7158,26 @@ def LoadGameDef(name=None, dlg=None):
 
 
 class ReggieGameDefinition():
-    """A class that defines a NSMBW hack: songs, tilesets, sprites, songs, etc."""
+    """
+    A class that defines a NSMBW hack: songs, tilesets, sprites, songs, etc.
+    """
 
-    # Gamedef File - has 2 values: name and patch
+    # Gamedef File - has 2 values: name (str) and patch (bool)
     class GameDefinitionFile():
-        """A class that defines a filepath, and some options"""
+        """
+        A class that defines a filepath, and some options
+        """
         def __init__(self, path, patch):
-            """Initializes the GameDefinitionFile"""
+            """
+            Initializes the GameDefinitionFile
+            """
             self.path = path
             self.patch = patch
 
     def __init__(self, name=None):
-        """Initializes the ReggieGameDefinition"""
+        """
+        Initializes the ReggieGameDefinition
+        """
         self.InitAsEmpty()
 
         # Try to init it from name if possible
@@ -7179,7 +7189,9 @@ class ReggieGameDefinition():
 
 
     def InitAsEmpty(self):
-        """Sets all properties to their default values"""
+        """
+        Sets all properties to their default values
+        """
         gdf = self.GameDefinitionFile
 
         self.custom = False
@@ -7188,6 +7200,9 @@ class ReggieGameDefinition():
         self.name = trans.string('Gamedefs', 13) # 'New Super Mario Bros. Wii'
         self.description = trans.string('Gamedefs', 14) # 'A new Mario adventure!<br>' and the date
         self.version = '2'
+
+        self.sprites = importlib.import_module('sprites')
+
         self.files = {
             'bga': gdf(None, False),
             'bgb': gdf(None, False),
@@ -7198,7 +7213,6 @@ class ReggieGameDefinition():
             'spritedata': gdf(None, False),
             'spritelistdata': gdf(None, False),
             'spritenames': gdf(None, False),
-            'sprites': gdf(None, False),
             'tilesets': gdf(None, False),
             'ts1_descriptions': gdf(None, False),
             }
@@ -7209,7 +7223,9 @@ class ReggieGameDefinition():
             }
 
     def InitFromName(self, name):
-        """Attempts to open/load a Game Definition from a name string"""
+        """
+        Attempts to open/load a Game Definition from a name string
+        """
         self.custom = True
         name = str(name)
         self.gamepath = name
@@ -7256,9 +7272,19 @@ class ReggieGameDefinition():
         # Get rid of the XML stuff
         del tree, root
 
+        # Load sprites.py if provided
+        if 'sprites' in self.files:
+            print('This gamedef has sprite stuff...!')
+            spritespath = self.files['sprites'].path
+            del self.files['sprites']
+            print(spritespath)
+            self.sprites = __import__(spritespath)
+
 
     def bgFile(self, name, layer):
-        """Returns the folder to a bg image. Layer must be 'a' or 'b'"""
+        """
+        Returns the folder to a bg image. Layer must be 'a' or 'b'
+        """
         # Name will be of the format '0000.png'
         fallback = 'reggiedata/bg' + layer
         filename = 'bg%s/%s' % (layer, name)
@@ -7282,7 +7308,9 @@ class ReggieGameDefinition():
 
 
     def GetGamePath(self):
-        """Returns the game path"""
+        """
+        Returns the game path
+        """
         if not self.custom: return str(setting('GamePath'))
         name = 'GamePath_' + self.name
         setname = setting(name)
@@ -7292,14 +7320,18 @@ class ReggieGameDefinition():
         else: return str(setname)
 
     def SetGamePath(self, path):
-        """Sets the game path"""
+        """
+        Sets the game path
+        """
         if not self.custom: setSetting('GamePath', path)
         else:
             name = 'GamePath_' + self.name
             setSetting(name, path)
 
     def GetGamePaths(self):
-        """Returns game paths of this gamedef and its bases"""
+        """
+        Returns game paths of this gamedef and its bases
+        """
         mainpath = str(setting('GamePath'))
         if not self.custom: return [mainpath,]
 
@@ -7314,7 +7346,9 @@ class ReggieGameDefinition():
 
 
     def GetLastLevel(self):
-        """Returns the last loaded level"""
+        """
+        Returns the last loaded level
+        """
         if not self.custom: return setting('LastLevel')
         name = 'LastLevel_' + self.name
         stg = setting(name)
@@ -7324,7 +7358,9 @@ class ReggieGameDefinition():
         else: return stg
 
     def SetLastLevel(self, path):
-        """Sets the last loaded level"""
+        """
+        Sets the last loaded level
+        """
         if path in (None, 'None', 'none', True, 'True', 'true', False, 'False', 'false', 0, 1, ''): return
         print('Last loaded level set to ' + str(path))
         if not self.custom: setSetting('LastLevel', path)
@@ -7334,7 +7370,9 @@ class ReggieGameDefinition():
 
 
     def recursiveFiles(self, name, isPatch=False, folder=False):
-        """Checks each base of this gamedef and returns a list of successive file paths"""
+        """
+        Checks each base of this gamedef and returns a list of successive file paths
+        """
         ListToCheckIn = self.files if not folder else self.folders
 
         # This can be handled 4 ways: if we do or don't have a base, and if we do or don't have a copy of the file.
@@ -7378,7 +7416,9 @@ class ReggieGameDefinition():
                 else: return listUpToNow
 
     def multipleRecursiveFiles(*args):
-        """Returns multiple recursive files in order of least recent to most recent as a list of tuples, one list per gamedef base"""
+        """
+        Returns multiple recursive files in order of least recent to most recent as a list of tuples, one list per gamedef base
+        """
         self = args[0]
         args = args[1:]
 
@@ -7399,13 +7439,24 @@ class ReggieGameDefinition():
         return main
 
     def file(self, name):
-        """Returns a file by recursively checking successive gamedef bases"""
+        """
+        Returns a file by recursively checking successive gamedef bases
+        """
         if name not in self.files: return
 
         if self.files[name].path is not None: return self.files[name].path
         else:
             if self.base is None: return
             return self.base.file(name) # it can recursively check its base, too
+
+    def getImageClasses(self):
+        """
+        Gets all image classes
+        """
+        if self.sprites is not None:
+            if hasattr(self.sprites, 'ImageClasses'):
+                return self.sprites.ImageClasses
+        return {}
 
 
 
@@ -15153,7 +15204,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         global RealViewEnabled
 
         RealViewEnabled = checked
-        sprites.RealViewEnabled = RealViewEnabled
+        SLib.RealViewEnabled = RealViewEnabled
 
         setSetting('RealViewEnabled', RealViewEnabled)
         self.scene.update()
@@ -15179,9 +15230,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
         global SpriteImagesShown
 
         SpriteImagesShown = checked
-
-        for spr in Area.sprites:
-            spr.InitializeSprite() # reloads all images & settings from sprites.py
 
         setSetting('ShowSpriteImages', SpriteImagesShown)
         self.scene.update()
@@ -16300,13 +16348,12 @@ class ReggieWindow(QtWidgets.QMainWindow):
     def PositionHovered(self, x, y):
         """Handle a position being hovered in the view"""
         info = ''
-        hovereditems = self.scene.items(QtCore.QPointF(x,y))
+        hovereditems = self.scene.items(QtCore.QPointF(x, y))
         hovered = None
         type_zone = ZoneItem
         type_peline = PathEditorLineItem
         for item in hovereditems:
-            if hasattr(item, 'hover'): hover = item.hover # for sprites.auxiliaryImage hover disabling
-            else: hover = True
+            hover = item.hover if hasattr(item, 'hover') else True
             if (not isinstance(item, type_zone)) and (not isinstance(item, type_peline)) and hover:
                 hovered = item
                 break
@@ -16316,7 +16363,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 info = trans.string('Statusbar', 23, '[width]', hovered.width, '[height]', hovered.height, '[xpos]', hovered.objx, '[ypos]', hovered.objy, '[layer]', hovered.layer, '[type]', hovered.type, '[tileset]', hovered.tileset+1)
             elif isinstance(hovered, SpriteItem): # Sprite
                 info = trans.string('Statusbar', 24, '[name]', hovered.name, '[xpos]', hovered.objx, '[ypos]', hovered.objy)
-            elif isinstance(hovered, sprites.AuxiliaryImage): # Sprite (auxiliary image) (treat it like the actual sprite)
+            elif isinstance(hovered, SLib.AuxiliaryItem): # Sprite (auxiliary thing) (treat it like the actual sprite)
                 info = trans.string('Statusbar', 24, '[name]', hovered.parentItem().name, '[xpos]', hovered.parentItem().objx, '[ypos]', hovered.parentItem().objy)
             elif isinstance(hovered, EntranceItem): # Entrance
                 info = trans.string('Statusbar', 25, '[name]', hovered.name, '[xpos]', hovered.objx, '[ypos]', hovered.objy, '[dest]', hovered.destination)
@@ -16867,7 +16914,7 @@ def main():
     SpriteImagesShown = setting('ShowSpriteImages', True)
     LocationsShown = setting('ShowLocations', True)
     CommentsShown = setting('ShowComments', True)
-    sprites.RealViewEnabled = RealViewEnabled
+    SLib.RealViewEnabled = RealViewEnabled
 
     # choose a folder for the game
     # let the user pick a folder without restarting the editor if they fail

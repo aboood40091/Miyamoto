@@ -48,11 +48,10 @@ gamedef = None
 RealViewEnabled = False
 
 
-
 ################################################################
 ################################################################
 ################################################################
-####################### Setup Functions ########################
+########################## Functions ###########################
 
 def main():
     """Resets Sprites.py to its original settings"""
@@ -92,8 +91,6 @@ def GetImg(imgname, image=False):
         else: return QtGui.QPixmap(path)
 
 
-
-
 def loadIfNotInImageCache(name, filename):
     """
     If name is not in ImageCache, loads the image
@@ -101,7 +98,6 @@ def loadIfNotInImageCache(name, filename):
     """
     if name not in ImageCache:
         ImageCache[name] = GetImg(filename)
-
 
 
 def LoadBasicSuite():
@@ -132,9 +128,10 @@ def LoadBasicSuite():
             Blocks.append(Overrides.copy(j * 24, i * 24, 24, 24))
     ImageCache['Overrides'] = Blocks
 
-
-
-# ---- SpriteImage Low-level Classes ----
+################################################################
+################################################################
+################################################################
+##################### SpriteImage Classes ######################
 
 class SpriteImage():
     """
@@ -188,6 +185,7 @@ class SpriteImage():
     dimensions = property(getDimensions, setDimensions, delDimensions,
         'Convenience property that provides access to self.xOffset, self.yOffset, self.width and self.height in one tuple')
 
+
 class SpriteImage_Static(SpriteImage):
     """
     A simple class for drawing a static sprite image
@@ -222,6 +220,7 @@ class SpriteImage_Static(SpriteImage):
         painter.drawPixmap(0, 0, self.image)
         painter.restore()
 
+
 class SpriteImage_SimpleDynamic(SpriteImage_Static):
     """
     A class that acts like a SpriteImage_Static but lets you change
@@ -232,7 +231,11 @@ class SpriteImage_SimpleDynamic(SpriteImage_Static):
     # no other changes needed yet
 
 
-# Spritebox class
+################################################################
+################################################################
+################################################################
+####################### Spritebox Class ########################
+
 class Spritebox():
     """
     Contains size and other information for a spritebox
@@ -292,8 +295,10 @@ class Spritebox():
         'Property that contains the rounded rect for the spritebox')
 
 
-
-# Auxiliary Item Classes
+################################################################
+################################################################
+################################################################
+#################### AuxiliaryItem Classes #####################
 
 class AuxiliaryItem(QtWidgets.QGraphicsItem):
     """Base class for auxiliary objects that accompany specific sprite types"""
@@ -373,6 +378,7 @@ class AuxiliaryCircleOutline(AuxiliaryItem):
         painter.setPen(OutlinePen)
         painter.setBrush(OutlineBrush)
         painter.drawEllipse(self.BoundingRect)
+
 
 class AuxiliaryRotationAreaOutline(AuxiliaryItem):
     def __init__(self, parent, width):

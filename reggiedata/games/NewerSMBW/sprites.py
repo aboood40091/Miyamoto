@@ -1,326 +1,295 @@
 # Newer Super Mario Bros. Wii
-# Custom Reggie Sprites.py Overwrite
-# Most of these images are by Kamek64 and MalStar1000
-# A few are by RoadrunnerWMC
+# Custom Reggie! Next sprites.py Module
+# By Kamek64, MalStar1000, RoadrunnerWMC
 
 
-def InitHeroCar(sprite): # 13
-    if 'HeroCar' not in ImageCache:
-        ImageCache['HeroCar'] = GetImg('hero_car.png')
-
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    sprite.image = ImageCache['HeroCar']
-    return (16,-32,40,48)
+import spritelib as SLib
+ImageCache = SLib.ImageCache
 
 
-def InitSamuraiGuy(sprite): # 19
-    if 'SamuraiGuy' not in ImageCache:
-        ImageCache['SamuraiGuy'] = GetImg('samurai_guy.png')
 
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    sprite.image = ImageCache['SamuraiGuy']
-    return (-1,-4,28,29)
+class SpriteImage_ClownCar(SLib.SpriteImage_Static): # 13
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['ClownCar'],
+            (16, -28),
+            )
 
-
-def InitPumpkinGoomba(sprite): # 22
-    global ImageCache
-    if 'PumpkinGoomba' not in ImageCache:
-        ImageCache['PumpkinGoomba'] = GetImg('pumpkingoomba.png')
-        ImageCache['PumpkinParagoomba'] = GetImg('pumpkinparagoomba.png')
-
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    sprite.dynamicSize = True
-    sprite.dynSizer = SizePumpkinGoomba
-    return (-4,-48,22,26)
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('ClownCar', 'clown_car.png')
 
 
-def InitFakeStarcoin(sprite): # 49
-    global ImageCache
-    if 'FakeCoin' not in ImageCache:
-        ImageCache['FakeCoin'] = GetImg('starcoinfake.png')
+class SpriteImage_SamuraiGuy(SLib.SpriteImage_Static): # 19
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['SamuraiGuy'],
+            (-1, -4),
+            )
 
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    sprite.image = ImageCache['FakeCoin']
-    return (-8,-16,32,32)
-
-
-def InitMeteor(sprite): # 183
-    global ImageCache
-    if 'Meteor' not in ImageCache:
-        ImageCache['Meteor'] = GetImg('Meteor.png')
-        ImageCache['MeteorElectric'] = GetImg('MeteorElectric.png')
-
-    sprite.dynamicSize = True
-    sprite.dynSizer = SizeMeteor
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    return (0,0,16,16)
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('SamuraiGuy', 'samurai_guy.png')
 
 
-def InitTopman(sprite): # 210
-    global ImageCache
-    if 'Topman' not in ImageCache:
-        ImageCache['Topman'] = GetImg('topman.png')
+class SpriteImage_PumpkinGoomba(SLib.SpriteImage_SimpleDynamic): # 22
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.offset = (-4, -48)
 
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    sprite.image = ImageCache['Topman']
-    return (-22,-32,54,44)
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('PumpkinGoomba', 'pumpkin_goomba.png')
+        SLib.loadIfNotInImageCache('PumpkinParagoomba', 'pumpkin_paragoomba.png')
 
+    def updateSize(self):
 
-def InitCaptainBowser(sprite): # 213
-    global ImageCache
-    if 'CaptainBowser' not in ImageCache:
-        ImageCache['CaptainBowser'] = GetImg('captainbowser.png')
+        para = self.parent.spritedata[5] & 1
+        self.image = ImageCache['PumpkinGoomba' if not para else 'PumpkinParagoomba']
 
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    sprite.image = ImageCache['CaptainBowser']
-    return (0,0,256,197)
+        super().updateSize()
 
 
-def InitRockyBoss(sprite): # 279
-    global ImageCache
-    if 'RockyBoss' not in ImageCache:
-        ImageCache['RockyBoss'] = GetImg('rocky_boss.png')
+class SpriteImage_FakeStarCoin(SLib.SpriteImage_Static): # 49
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['FakeStarCoin'],
+            (-8, -16),
+            )
 
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    sprite.image = ImageCache['RockyBoss']
-    return (0,0,56,48)
-
-
-def InitMrSun(sprite): # 282
-    global ImageCache
-    if 'AngrySun' not in ImageCache:
-        ImageCache['AngrySun'] = GetImg('angrysun.png')
-        ImageCache['AngryMoon'] = GetImg('angrymoon.png')
-
-    sprite.dynamicSize = True
-    sprite.dynSizer = SizeMrSun
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    return (-2,-2,50,50)
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('FakeStarCoin', 'starcoin_fake.png')
 
 
-def InitFuzzyBear(sprite): # 283
-    global ImageCache
-    if 'FuzzyBear' not in ImageCache:
-        ImageCache['FuzzyBear'] = GetImg('fuzzy_bear.png')
-        ImageCache['FuzzyBearBig'] = GetImg('fuzzy_bear_big.png')
+class SpriteImage_Meteor(SLib.SpriteImage_SimpleDynamic): # 183
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Meteor', 'meteor.png')
+        SLib.loadIfNotInImageCache('MeteorElectric', 'meteor_electric.png')
 
-    sprite.dynamicSize = True
-    sprite.dynSizer = SizeFuzzyBear
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    return (0,0,83,88)
+    def updateSize(self):
 
+        multiplier = self.parent.spritedata[4] / 20.0
+        if multiplier == 0: multiplier = 0.01
+        isElectric = (self.parent.spritedata[5] >> 4) & 1
 
-def InitBoolossus(sprite): # 290
-    global ImageCache
-    if 'Boolossus' not in ImageCache:
-        ImageCache['Boolossus'] = GetImg('boolossus.png')
+        # Get the size data, taking into account the size
+        # differences between the non-electric and
+        # electric varieties.
+        sizes = (
+            # Relative X offset (size 0x14),
+            # relative Y offset (size 0x14),
+            # absolute X offset,
+            # absolute Y offset
+            (-54, -53, 6, -1),
+            (-61, -68, 6, 0),
+            )
+        size = sizes[1] if isElectric else sizes[0]
+        relXoff = size[0]
+        relYoff = size[1]
+        absXoff = size[2]
+        absYoff = size[3]
 
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    sprite.image = ImageCache['Boolossus']
-    return (0,0,192,176)
+        base = ImageCache['MeteorElectric' if isElectric else 'Meteor']
 
+        self.image = base.scaled(
+            (base.width() * multiplier) + 8,
+            (base.height() * multiplier) + 8,
+            )
+        self.offset = (
+            (relXoff * multiplier) + absXoff,
+            (relYoff * multiplier) + absYoff,
+            )
 
-def InitFlipblock(sprite): # 319
-    global ImageCache
-    if 'Flipblock' not in ImageCache:
-        ImageCache['Flipblock'] = GetImg('flipblock.png')
-
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    sprite.image = ImageCache['Flipblock']
-    return (0,0,16,16)
-
-
-def InitPodoboule(sprite): # 324
-    global ImageCache
-    if 'PodobouleIce' not in ImageCache:
-        ImageCache['PodobouleIce'] = GetImg('podoboo_boss_ice.png')
-        ImageCache['PodobouleFire'] = GetImg('podoboo_boss_fire.png')
-
-    sprite.dynamicSize = True
-    sprite.dynSizer = SizePodoboule
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    return (0,0,80,80)
+        super().updateSize()
 
 
-def InitShyGuy(sprite): # 351
-    if 'ShyGuy0' not in ImageCache:
+class SpriteImage_MidwayFlag(SLib.SpriteImage_SimpleDynamic): # 188
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.offset = (0, 0)
+
+    @staticmethod
+    def loadImages():
+        if 'MidwayFlag0' in ImageCache: return
+        for i in range(18):
+            ImageCache['MidwayFlag%d' % i] = SLib.GetImg('midway_flag_%d.png' % i)
+
+    def updateSize(self):
+
+        style = self.parent.spritedata[2]
+        if style > 17: style = 0
+
+        self.image = ImageCache['MidwayFlag%d' % style]
+
+        super().updateSize()
+
+
+class SpriteImage_Topman(SLib.SpriteImage_Static): # 210
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['Topman'],
+            (-22, -32),
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Topman', 'topman.png')
+
+
+class SpriteImage_CaptainBowser(SLib.SpriteImage_Static): # 213
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['CaptainBowser'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('CaptainBowser', 'captain_bowser.png')
+
+
+class SpriteImage_RockyBoss(SLib.SpriteImage_Static): # 279
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['RockyBoss'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('RockyBoss', 'rocky_boss.png')
+
+
+class SpriteImage_AngrySun(SLib.SpriteImage_SimpleDynamic): # 282
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('AngrySun', 'angry_sun.png')
+        SLib.loadIfNotInImageCache('AngryMoon', 'angry_moon.png')
+
+    def updateSize(self):
+
+        isMoon = self.parent.spritedata[5] & 1
+        self.image = ImageCache['AngrySun' if not isMoon else 'AngryMoon']
+        self.offset = (-18, -18) if not isMoon else (-13, -13)
+
+        super().updateSize()
+
+
+class SpriteImage_FuzzyBear(SLib.SpriteImage_SimpleDynamic): # 283
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('FuzzyBear', 'fuzzy_bear.png')
+        SLib.loadIfNotInImageCache('FuzzyBearBig', 'fuzzy_bear_big.png')
+
+    def updateSize(self):
+
+        big = (self.parent.spritedata[2] >> 4) & 1
+        self.image = ImageCache['FuzzyBear' if not big else 'FuzzyBearBig']
+
+        super().updateSize()
+
+
+class SpriteImage_Boolossus(SLib.SpriteImage_Static): # 290
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['Boolossus'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Boolossus', 'boolossus.png')
+
+
+class SpriteImage_Flipblock(SLib.SpriteImage_Static): # 319
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['Flipblock'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Flipblock', 'flipblock.png')
+
+
+class SpriteImage_Podoboule(SLib.SpriteImage_SimpleDynamic): # 324
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('PodobouleFire', 'podoboule_fire.png')
+        SLib.loadIfNotInImageCache('PodobouleIce', 'podoboule_ice.png')
+
+    def updateSize(self):
+
+        fire = (self.parent.spritedata[2] >> 4) & 1
+        self.image = ImageCache['PodobouleFire' if fire else 'PodobouleIce']
+
+        super().updateSize()
+
+
+class SpriteImage_ShyGuy(SLib.SpriteImage_SimpleDynamic): # 351
+    @staticmethod
+    def loadImages():
+        if 'ShyGuy0' in ImageCache: return
         for i in range(9): # 0-8
             if i == 7: continue # there's no ShyGuy7.png
-            ImageCache['ShyGuy%d' % i] = GetImg('ShyGuy%d.png' % i)
+            ImageCache['ShyGuy%d' % i] = SLib.GetImg('shyguy_%d.png' % i)
 
-    sprite.dynamicSize = True
-    sprite.dynSizer = SizeShyGuy
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    return (0,0,16,16)
+    def updateSize(self):
+        type = (self.parent.spritedata[2] >> 4) % 9
+
+        imgtype = type if type != 7 else 6 # both linear ballooneers have image 6
+        self.image = ImageCache['ShyGuy%d' % imgtype]
+
+        self.offset = (
+            (6, -7), # 0: red
+            (6, -7), # 1: blue
+            (6, -4), # 2: red (sleeper)
+            (7, -6), # 3: yellow (jumper)
+            (6, -8), # 4: purple (judo)
+            (6, -8), # 5: green (spike thrower)
+            (2, -9), # 6: red (ballooneer - vertical)
+            (2, -9), # 7: red (ballooneer - horizontal)
+            (2, -9), # 8: blue (ballooneer - circular)
+            )[type]
+
+        super().updateSize()
 
 
-def InitGigaGoomba(sprite): # 410
-    global ImageCache
-    if 'GoombaGiga' not in ImageCache:
-        ImageCache['GoombaGiga'] = GetImg('goomba_giga.png')
-    
-    sprite.customPaint = True
-    sprite.customPainter = PaintGenericObject
-    sprite.image = ImageCache['GoombaGiga']
-    return (-108,-160,150,180)
+class SpriteImage_GigaGoomba(SLib.SpriteImage_Static): # 410
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['GigaGoomba'],
+            (-108, -160),
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('GigaGoomba', 'goomba_giga.png')
 
 
-Initialisers = {
-    13: InitHeroCar,
-    19: InitSamuraiGuy,
-    22: InitPumpkinGoomba,
-    49: InitFakeStarcoin,
-    183: InitMeteor,
-    210: InitTopman,
-    213: InitCaptainBowser,
-    279: InitRockyBoss,
-    282: InitMrSun,
-    283: InitFuzzyBear,
-    290: InitBoolossus,
-    319: InitFlipblock,
-    324: InitPodoboule,
-    351: InitShyGuy,
-    410: InitGigaGoomba,
+ImageClasses = {
+    13: SpriteImage_ClownCar,
+    19: SpriteImage_SamuraiGuy,
+    22: SpriteImage_PumpkinGoomba,
+    49: SpriteImage_FakeStarCoin,
+    183: SpriteImage_Meteor,
+    188: SpriteImage_MidwayFlag,
+    210: SpriteImage_Topman,
+    213: SpriteImage_CaptainBowser,
+    279: SpriteImage_RockyBoss,
+    282: SpriteImage_AngrySun,
+    283: SpriteImage_FuzzyBear,
+    290: SpriteImage_Boolossus,
+    319: SpriteImage_Flipblock,
+    324: SpriteImage_Podoboule,
+    351: SpriteImage_ShyGuy,
+    410: SpriteImage_GigaGoomba,
     }
-
-################################################################
-
-def SizePumpkinGoomba(sprite): # 22
-    paragoomba = ord(sprite.spritedata[5]) & 15
-    if not paragoomba:
-        sprite.image = ImageCache['PumpkinGoomba']
-    else:
-        sprite.image = ImageCache['PumpkinParagoomba']
-
-
-def SizeMeteor(sprite): # 183
-    multiplier = ord(sprite.spritedata[4]) / 20.0
-    if multiplier == 0: multiplier = 0.01
-    isElectric = (ord(sprite.spritedata[5]) >> 4) & 1
-
-    # Get the size data, taking into account the size
-    # differences between the non-electric and
-    # electric varieties.
-    sizes = (
-        # Relative X offset (size 0x14),
-        # relative Y offset (size 0x14),
-        # absolute X offset,
-        # absolute Y offset
-        (-54, -53, 6, -1),
-        (-61, -68, 6, 0),
-        )
-    size = sizes[1] if isElectric else sizes[0]
-    relXoff = size[0]
-    relYoff = size[1]
-    absXoff = size[2]
-    absYoff = size[3]
-
-    base = ImageCache['MeteorElectric' if isElectric else 'Meteor']
-    x = (relXoff * multiplier) + absXoff
-    y = (relYoff * multiplier) + absYoff
-    w = (base.width() * multiplier) + 8
-    h = (base.height() * multiplier) + 8
-    sprite.image = base.scaled(w, h)
-    sprite.xoffset = x
-    sprite.yoffset = y
-    sprite.xsize = (w * 2/3) + 1
-    sprite.ysize = (h * 2/3) + 1
-
-
-def SizeMrSun(sprite): # 282
-    type = ord(sprite.spritedata[5]) & 15
-    if type:
-        sprite.image = ImageCache['AngryMoon']
-        sprite.xsize = 40
-        sprite.ysize = 40
-        sprite.xoffset = -13
-        sprite.yoffset = -13
-    else:
-        sprite.image = ImageCache['AngrySun']
-        sprite.xsize = 50
-        sprite.ysize = 50
-        sprite.xoffset = -18
-        sprite.yoffset = -18
-
-
-def SizeFuzzyBear(sprite): # 283
-    style = ord(sprite.spritedata[2]) >> 4
-    if style == 0:
-        sprite.xsize = 83 # original 83
-        sprite.ysize = 88 # original 88
-        sprite.xoffset = 00
-        sprite.yoffset = 00
-        sprite.image = ImageCache['FuzzyBear']
-    else:
-        sprite.xsize = 105 # original 83
-        sprite.ysize = 100 # original 88
-        sprite.xoffset = 00
-        sprite.yoffset = 00
-        sprite.image = ImageCache['FuzzyBearBig']
-
-
-def SizePodoboule(sprite): # 324
-    style = ord(sprite.spritedata[2]) >> 4
-    if style == 0:
-        sprite.image = ImageCache['PodobouleIce']
-    else:
-        sprite.image = ImageCache['PodobouleFire']
-
-
-def SizeShyGuy(sprite): # 351
-    type = ord(sprite.spritedata[2]) >> 4
-    if type > 8: type = 0 # prevent crashes
-
-    imgtype = type
-    if imgtype == 7: imgtype = 6 # both linear ballooneers have image 6
-    sprite.image = ImageCache['ShyGuy%d' % imgtype]
-
-    if type in (0, 1): # red, blue
-        xs = 18
-        ys = 24
-        xo = 6
-        yo = -7
-    elif type == 2: # red (sleeper)
-        xs = 22
-        ys = 21
-        xo = 6
-        yo = -4
-    elif type == 3: # yellow (jumper)
-        xs = 18
-        ys = 23
-        xo = 7
-        yo = -6
-    elif type == 4: # purple (judo)
-        xs = 19
-        ys = 24
-        xo = 6
-        yo = -8
-    elif type == 5: # green (spike thrower)
-        xs = 20
-        ys = 25
-        xo = 6
-        yo = -8
-    elif type in (6, 7, 8): # ballooneer
-        xs = 29
-        ys = 57
-        xo = 2
-        yo = -9
-
-    sprite.xsize = xs
-    sprite.ysize = ys
-    sprite.xoffset = xo
-    sprite.yoffset = yo
