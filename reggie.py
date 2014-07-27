@@ -4123,9 +4123,6 @@ class SpriteItem(LevelEditorItem):
 
         imgs = gamedef.getImageClasses()
         if type in imgs:
-            if type not in SLib.SpriteImagesLoaded:
-                imgs[type].loadImages()
-                SLib.SpriteImagesLoaded.add(type)
             self.setImageObj(imgs[type])
 
     def setImageObj(self, obj):
@@ -4138,6 +4135,9 @@ class SpriteItem(LevelEditorItem):
         self.setZValue(25000)
         self.resetTransform()
 
+        if (self.type in gamedef.getImageClasses()) and (self.type not in SLib.SpriteImagesLoaded):
+            gamedef.getImageClasses()[self.type].loadImages()
+            SLib.SpriteImagesLoaded.add(self.type)
         self.ImageObj = obj(self)
 
         self.UpdateDynamicSizing()

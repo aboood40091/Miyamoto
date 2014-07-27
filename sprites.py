@@ -6941,9 +6941,9 @@ class SpriteImage_LavaIronBlock(SLib.SpriteImage_Static): # 466
             (-2, -1),
             )
 
-        @staticmethod
-        def loadImages():
-            SLib.loadIfNotInImageCache('LavaIronBlock', 'lava_iron_block.png')
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('LavaIronBlock', 'lava_iron_block.png')
 
 
 class SpriteImage_MovingGemBlock(SLib.SpriteImage_Static): # 467
@@ -6953,9 +6953,9 @@ class SpriteImage_MovingGemBlock(SLib.SpriteImage_Static): # 467
             ImageCache['MovingGemBlock'],
             )
 
-        @staticmethod
-        def loadImages():
-            SLib.loadIfNotInImageCache('MovingGemBlock', 'moving_gem_block.png')
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('MovingGemBlock', 'moving_gem_block.png')
 
 
 class SpriteImage_BoltPlatform(SLib.SpriteImage): # 469
