@@ -44,7 +44,6 @@ Tiles = {}
 SpriteImagesLoaded = set()
 
 SpritesFolders = []
-gamedef = None
 RealViewEnabled = False
 
 
@@ -66,7 +65,6 @@ def main():
     LoadBasicSuite()
 
     SpritesFolders = []
-    gamedef = None
 
 
 def GetImg(imgname, image=False):
@@ -76,14 +74,11 @@ def GetImg(imgname, image=False):
     # Try to find the best path
     path = 'reggiedata/sprites/' + imgname
 
-    if gamedef != None and imgname in gamedef.files:
-        path = gamedef.files[imgname].path
-    else:
-        for folder in reversed(SpritesFolders): # find the most recent copy
-            tryPath = folder + '/' + imgname
-            if os.path.isfile(tryPath):
-                path = tryPath
-                break
+    for folder in reversed(SpritesFolders): # find the most recent copy
+        tryPath = folder + '/' + imgname
+        if os.path.isfile(tryPath):
+            path = tryPath
+            break
 
     # Return the appropriate object
     if os.path.isfile(path):

@@ -4115,22 +4115,30 @@ class SpriteItem(LevelEditorItem):
     def InitializeSprite(self):
         """Initializes sprite and creates any auxiliary objects needed"""
         global prefs
-        for auxObj in self.ImageObj.aux:
-            auxObj.scene().removeItem(auxObj)
 
         type = self.type
-
-        self.setZValue(25000)
-        self.resetTransform()
 
         self.name = Sprites[type].name
         self.setToolTip(trans.string('Sprites', 0, '[type]', self.type, '[name]', self.name))
 
-        if type in gamedef.getImageClasses():
+        imgs = gamedef.getImageClasses()
+        if type in imgs:
             if type not in SLib.SpriteImagesLoaded:
-                gamedef.sprites.ImageClasses[type].loadImages()
+                imgs[type].loadImages()
                 SLib.SpriteImagesLoaded.add(type)
-            self.ImageObj = gamedef.sprites.ImageClasses[type](self)
+            self.setImageObj(imgs[type])
+
+    def setImageObj(self, obj):
+        """
+        Sets a new sprite image object for this SpriteItem
+        """
+        for auxObj in self.ImageObj.aux:
+            auxObj.scene().removeItem(auxObj)
+
+        self.setZValue(25000)
+        self.resetTransform()
+
+        self.ImageObj = obj(self)
 
         self.UpdateDynamicSizing()
         self.UpdateRects()
@@ -7116,25 +7124,35 @@ def LoadGameDef(name=None, dlg=None):
 
         # Load sprites.py
         if dlg: dlg.setLabelText(trans.string('Gamedefs', 11)) # Loading sprite image data...
-        if 'theme' in globals() or 'theme' in locals():
+        if Area is not None:
             SLib.SpritesFolders = gamedef.recursiveFiles('sprites', False, True)
 
             SLib.ImageCache.clear()
             SLib.SpriteImagesLoaded.clear()
             SLib.LoadBasicSuite()
 
-            # SLib.gamedef = gamedef
-            # if gamedef.custom and (gamedef.recursiveFiles('sprites') != []):
-            #     files = gamedef.recursiveFiles('sprites')
-            #     for path in files: sprites.ConfigFrom(path)
+            spriteClasses = gamedef.getImageClasses()
+
+            for s in Area.sprites:
+                if s.type in SLib.SpriteImagesLoaded: continue
+                if s.type not in spriteClasses: continue
+
+                spriteClasses[s.type].loadImages()
+
+                SLib.SpriteImagesLoaded.add(s.type)
+
+            for s in Area.sprites:
+                if s.type in spriteClasses:
+                    s.setImageObj(spriteClasses[s.type])
+                else:
+                    s.setImageObj(SLib.SpriteImage)
 
         if dlg: dlg.setValue(5)
 
-        # Re-initialize every sprite
+        # Reload the sprite-picker text
         if dlg: dlg.setLabelText(trans.string('Gamedefs', 12)) # Applying sprite image data...
-        if hasattr(Area, 'sprites'):
+        if Area is not None:
             for spr in Area.sprites:
-                spr.InitializeSprite() # Reloads images and other settings
                 spr.UpdateListString() # Reloads the sprite-picker text
         if dlg: dlg.setValue(6)
 
@@ -7143,8 +7161,7 @@ def LoadGameDef(name=None, dlg=None):
         LoadEntranceNames(True)
         if dlg: dlg.setValue(7)
 
-    except UnicodeEncodeError: raise
-    #except Exception as e:
+    except Exception as e: raise
     #    # Something went wrong.
     #    if dlg: dlg.setValue(7) # autocloses it
     #    QtWidgets.QMessageBox.information(None, trans.string('Gamedefs', 17), trans.string('Gamedefs', 18, '[error]', str(e)))
@@ -7247,6 +7264,7 @@ class ReggieGameDefinition():
 
         self.base = None
         if 'base' in root.attrib: self.base = FindGameDef(root.attrib['base'], name)
+        else: self.base = ReggieGameDefinition()
 
         # Parse the nodes
         addpath = 'reggiedata/games/' + name + '/'
@@ -7274,12 +7292,13 @@ class ReggieGameDefinition():
 
         # Load sprites.py if provided
         if 'sprites' in self.files:
-            print('This gamedef has sprite stuff...!')
             file = open(self.files['sprites'].path, 'r')
             filedata = file.read()
             file.close(); del file
 
-            new_module = importlib.types.ModuleType(self.name + '/sprites')
+            # https://stackoverflow.com/questions/5362771/load-module-from-string-in-python
+            # with modifications
+            new_module = importlib.types.ModuleType(self.name + '->sprites')
             exec(filedata, new_module.__dict__)
             sys.modules[new_module.__name__] = new_module
             self.sprites = new_module
@@ -7419,17 +7438,15 @@ class ReggieGameDefinition():
                 if isPatch: return listUpToNow, False if not wasPatch else True
                 else: return listUpToNow
 
-    def multipleRecursiveFiles(*args):
+    def multipleRecursiveFiles(self, *args):
         """
         Returns multiple recursive files in order of least recent to most recent as a list of tuples, one list per gamedef base
         """
-        self = args[0]
-        args = args[1:]
 
         # This should be very simple
         # Each arg should be a file name
         if self.base is None: main = [] # start a new level
-        else: main = self.base.multipleRecursiveFiles(arg for arg in args)
+        else: main = self.base.multipleRecursiveFiles(*args)
 
         # Add the values from this level, and then return it
         result = []
@@ -7457,10 +7474,18 @@ class ReggieGameDefinition():
         """
         Gets all image classes
         """
-        if self.sprites is not None:
-            if hasattr(self.sprites, 'ImageClasses'):
-                return self.sprites.ImageClasses
-        return {}
+        if not self.custom:
+            return self.sprites.ImageClasses
+
+        if self.base is not None:
+            images = dict(self.base.getImageClasses())
+        else:
+            images = {}
+
+        if hasattr(self.sprites, 'ImageClasses'):
+            print('self.sprites has ImageClasses')
+            images.update(self.sprites.ImageClasses)
+        return images
 
 
 
