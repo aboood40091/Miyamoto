@@ -98,12 +98,12 @@ def loadIfNotInImageCache(name, filename):
 def LoadBasicSuite():
 
     # Load some coins, because coins are in almost every Mario level ever
-    loadIfNotInImageCache('Coin', 'coin.png')
-    loadIfNotInImageCache('SpecialCoin', 'special_coin.png')
-    loadIfNotInImageCache('PCoin', 'p_coin.png')
-    loadIfNotInImageCache('RedCoin', 'redcoin.png')
-    loadIfNotInImageCache('RedCoinRing', 'redcoinring.png')
-    loadIfNotInImageCache('StarCoin', 'starcoin.png')
+    ImageCache['Coin'] = GetImg('coin.png')
+    ImageCache['SpecialCoin'] = GetImg('special_coin.png')
+    ImageCache['PCoin'] = GetImg('p_coin.png')
+    ImageCache['RedCoin'] = GetImg('redcoin.png')
+    ImageCache['RedCoinRing'] = GetImg('redcoinring.png')
+    ImageCache['StarCoin'] = GetImg('starcoin.png')
 
     # Load blocks
     BlockImage = GetImg('blocks.png')
