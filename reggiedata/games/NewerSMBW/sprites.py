@@ -34,7 +34,7 @@ class SpriteImage_SamuraiGuy(SLib.SpriteImage_Static): # 19
         SLib.loadIfNotInImageCache('SamuraiGuy', 'samurai_guy.png')
 
 
-class SpriteImage_PumpkinGoomba(SLib.SpriteImage_SimpleDynamic): # 22
+class SpriteImage_PumpkinGoomba(SLib.SpriteImage_StaticMultiple): # 22
     def __init__(self, parent):
         super().__init__(parent)
         self.offset = (-4, -48)
@@ -65,7 +65,7 @@ class SpriteImage_FakeStarCoin(SLib.SpriteImage_Static): # 49
         SLib.loadIfNotInImageCache('FakeStarCoin', 'starcoin_fake.png')
 
 
-class SpriteImage_Meteor(SLib.SpriteImage_SimpleDynamic): # 183
+class SpriteImage_Meteor(SLib.SpriteImage_StaticMultiple): # 183
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Meteor', 'meteor.png')
@@ -108,7 +108,7 @@ class SpriteImage_Meteor(SLib.SpriteImage_SimpleDynamic): # 183
         super().updateSize()
 
 
-class SpriteImage_MidwayFlag(SLib.SpriteImage_SimpleDynamic): # 188
+class SpriteImage_MidwayFlag(SLib.SpriteImage_StaticMultiple): # 188
     def __init__(self, parent):
         super().__init__(parent)
         self.yOffset = -37
@@ -166,7 +166,7 @@ class SpriteImage_RockyBoss(SLib.SpriteImage_Static): # 279
         SLib.loadIfNotInImageCache('RockyBoss', 'rocky_boss.png')
 
 
-class SpriteImage_AngrySun(SLib.SpriteImage_SimpleDynamic): # 282
+class SpriteImage_AngrySun(SLib.SpriteImage_StaticMultiple): # 282
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('AngrySun', 'angry_sun.png')
@@ -181,7 +181,7 @@ class SpriteImage_AngrySun(SLib.SpriteImage_SimpleDynamic): # 282
         super().updateSize()
 
 
-class SpriteImage_FuzzyBear(SLib.SpriteImage_SimpleDynamic): # 283
+class SpriteImage_FuzzyBear(SLib.SpriteImage_StaticMultiple): # 283
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('FuzzyBear', 'fuzzy_bear.png')
@@ -219,7 +219,7 @@ class SpriteImage_Flipblock(SLib.SpriteImage_Static): # 319
         SLib.loadIfNotInImageCache('Flipblock', 'flipblock.png')
 
 
-class SpriteImage_Podoboule(SLib.SpriteImage_SimpleDynamic): # 324
+class SpriteImage_Podoboule(SLib.SpriteImage_StaticMultiple): # 324
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('PodobouleFire', 'podoboule_fire.png')
@@ -233,7 +233,7 @@ class SpriteImage_Podoboule(SLib.SpriteImage_SimpleDynamic): # 324
         super().updateSize()
 
 
-class SpriteImage_ShyGuy(SLib.SpriteImage_SimpleDynamic): # 351
+class SpriteImage_ShyGuy(SLib.SpriteImage_StaticMultiple): # 351
     @staticmethod
     def loadImages():
         if 'ShyGuy0' in ImageCache: return

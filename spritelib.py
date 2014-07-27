@@ -221,10 +221,10 @@ class SpriteImage_Static(SpriteImage):
         painter.restore()
 
 
-class SpriteImage_SimpleDynamic(SpriteImage_Static):
+class SpriteImage_StaticMultiple(SpriteImage_Static):
     """
     A class that acts like a SpriteImage_Static but lets you change
-    the image with the size() method
+    the image with the updateSize() function
     """
     def __init__(self, parent, image=None, offset=None):
         super().__init__(parent, image, offset)

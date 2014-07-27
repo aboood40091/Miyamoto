@@ -8,7 +8,7 @@ ImageCache = SLib.ImageCache
 
 
 
-class SpriteImage_CustomModelSprite(SLib.SpriteImage_SimpleDynamic): # 11
+class SpriteImage_CustomModelSprite(SLib.SpriteImage_StaticMultiple): # 11
     @staticmethod
     def loadImages():
         if 'ModeAnim01' in ImageCache: return
