@@ -34,7 +34,7 @@
 import math
 import random
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui
 Qt = QtCore.Qt
 
 
