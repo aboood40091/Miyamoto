@@ -46,7 +46,7 @@ ImageCache = SLib.ImageCache
 # ---- Low-Level Classes ----
 
 
-class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 64, 138
+class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 64, 138, 139, 216, 358, 374, 435
     def __init__(self, parent):
         super().__init__(parent)
         self.updateSceneAfterPaint = True
@@ -5912,7 +5912,7 @@ class SpriteImage_RollingHillCoin(SpriteImage_SpecialCoin): # 371
     pass
 
 
-class SpriteImage_SnowWind(SpriteImage_LiquidOrFog): # 138
+class SpriteImage_SnowWind(SpriteImage_LiquidOrFog): # 374
     def __init__(self, parent):
         super().__init__(parent)
         self.mid = ImageCache['SnowEffect']

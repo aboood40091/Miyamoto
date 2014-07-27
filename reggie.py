@@ -7185,7 +7185,7 @@ class ReggieGameDefinition():
         if name in NoneTypes: return
         else:
             try: self.InitFromName(name)
-            except Exception: self.InitAsEmpty() # revert
+            except Exception: raise#self.InitAsEmpty() # revert
 
 
     def InitAsEmpty(self):
@@ -7275,10 +7275,14 @@ class ReggieGameDefinition():
         # Load sprites.py if provided
         if 'sprites' in self.files:
             print('This gamedef has sprite stuff...!')
-            spritespath = self.files['sprites'].path
-            del self.files['sprites']
-            print(spritespath)
-            self.sprites = __import__(spritespath)
+            file = open(self.files['sprites'].path, 'r')
+            filedata = file.read()
+            file.close(); del file
+
+            new_module = importlib.types.ModuleType(self.name + '/sprites')
+            exec(filedata, new_module.__dict__)
+            sys.modules[new_module.__name__] = new_module
+            self.sprites = new_module
 
 
     def bgFile(self, name, layer):
