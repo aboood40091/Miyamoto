@@ -192,6 +192,8 @@ class SpriteImage_OldStoneBlock(SLib.SpriteImage): # 30, 81, 82, 83, 84, 85, 86
         self.spikesT = False
         self.spikesB = False
 
+        self.hasMovementAux = True
+
     @staticmethod
     def loadImages():
         if 'OldStoneTL' in ImageCache: return
@@ -221,8 +223,6 @@ class SpriteImage_OldStoneBlock(SLib.SpriteImage): # 30, 81, 82, 83, 84, 85, 86
         self.width = width * 16 + 16
         self.height = height * 16 + 16
 
-        type = self.parent.type
-
         if self.spikesL: # left spikes
             self.xOffset = -16
             self.width += 16
@@ -235,23 +235,26 @@ class SpriteImage_OldStoneBlock(SLib.SpriteImage): # 30, 81, 82, 83, 84, 85, 86
             self.height += 16
 
         # now set up the track
-        direction = self.parent.spritedata[2] & 3
-        distance = (self.parent.spritedata[4] & 0xF0) >> 4
-        if direction > 3: direction = 0
+        if self.hasMovementAux:
+            direction = self.parent.spritedata[2] & 3
+            distance = (self.parent.spritedata[4] & 0xF0) >> 4
+            if direction > 3: direction = 0
 
-        if direction <= 1: # horizontal
-            self.aux[0].direction = 1
-            self.aux[0].setSize(self.width + (distance * 16), self.height)
-        else: # vertical
-            self.aux[0].direction = 2
-            self.aux[0].setSize(self.width, self.height + (distance * 16))
+            if direction <= 1: # horizontal
+                self.aux[0].direction = 1
+                self.aux[0].setSize(self.width + (distance * 16), self.height)
+            else: # vertical
+                self.aux[0].direction = 2
+                self.aux[0].setSize(self.width, self.height + (distance * 16))
 
-        if direction == 0 or direction == 3: # right, down
-            self.aux[0].setPos(0, 0)
-        elif direction == 1: # left
-            self.aux[0].setPos(-distance * 24, 0)
-        elif direction == 2: # up
-            self.aux[0].setPos(0, -distance * 24)
+            if direction == 0 or direction == 3: # right, down
+                self.aux[0].setPos(0, 0)
+            elif direction == 1: # left
+                self.aux[0].setPos(-distance * 24, 0)
+            elif direction == 2: # up
+                self.aux[0].setPos(0, -distance * 24)
+        else:
+            self.aux[0].setSize(0, 0)
 
     def paint(self, painter):
         super().paint(painter)
@@ -4325,6 +4328,38 @@ class SpriteImage_RegularDoor(SpriteImage_Door): # 259
     pass
 
 
+class SpriteImage_MovementController_TwoWayLine(SLib.SpriteImage): # 260
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, 16, 16, SLib.AuxiliaryTrackObject.Horizontal))
+
+    def updateSize(self):
+        super().updateSize()
+
+        direction = (self.parent.spritedata[3] & 0xF) % 4
+        distance = (self.parent.spritedata[5] >> 4) + 1
+
+        if direction <= 1: # horizontal
+            self.aux[0].direction = 1
+            self.aux[0].setSize(distance * 16, 16)
+        else: # vertical
+            self.aux[0].direction = 2
+            self.aux[0].setSize(16, distance * 16)
+
+        if direction == 0 or direction == 3: # right, down
+            self.aux[0].setPos(0, 0)
+        elif direction == 1: # left
+            self.aux[0].setPos((-distance * 24) + 24, 0)
+        elif direction == 2: # up
+            self.aux[0].setPos(0, (-distance * 24) + 24)
+
+
+class SpriteImage_OldStoneBlock_MovementControlled(SpriteImage_OldStoneBlock): # 261
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.hasMovementAux = False
+
+
 class SpriteImage_PoltergeistItem(SLib.SpriteImage): # 262
     def __init__(self, parent):
         super().__init__(parent)
@@ -7366,6 +7401,8 @@ ImageClasses = {
         257: SpriteImage_MoveWhenOnMetalLavaBlock,
         256: SpriteImage_RotatingBrickBlock,
         259: SpriteImage_RegularDoor,
+        260: SpriteImage_MovementController_TwoWayLine,
+        261: SpriteImage_OldStoneBlock_MovementControlled,
         262: SpriteImage_PoltergeistItem,
         263: SpriteImage_WaterPiranha,
         264: SpriteImage_WalkingPiranha,
