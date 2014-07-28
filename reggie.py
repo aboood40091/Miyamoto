@@ -3931,7 +3931,7 @@ class LocationItem(LevelEditorItem):
                 oldrect = self.BoundingRect
                 oldrect.translate(cx*1.5, cy*1.5)
                 newrect = QtCore.QRectF(self.x(), self.y(), self.width*1.5, self.height*1.5)
-                updaterect = oldrect.unite(newrect)
+                updaterect = oldrect.united(newrect)
 
                 self.UpdateRects()
                 self.scene().update(updaterect)
