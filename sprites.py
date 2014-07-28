@@ -898,8 +898,28 @@ class SpriteImage_RollingHillWithPipe(SLib.SpriteImage): # 355, 360
         self.aux.append(SLib.AuxiliaryCircleOutline(parent, 800))
 
 
+class SpriteImage_ToadHouseBalloon(SLib.SpriteImage_StaticMultiple): # 411, 412
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.hasHandle = False
+        self.livesNum = 0
+        # self.livesnum: 0 = 1 life, 1 = 2 lives, etc (1 + value)
 
+    @staticmethod
+    def loadImages():
+        if 'ToadHouseBalloon0' in ImageCache: return
+        for handleCacheStr, handleFileStr in (('', ''), ('Handle', 'handle_')):
+            for num in range(4):
+                ImageCache['ToadHouseBalloon' + handleCacheStr + str(num)] = \
+                    SLib.GetImg('mg_house_balloon_' + handleFileStr + str(num) + '.png')
 
+    def updateSize(self):
+
+        self.image = ImageCache['ToadHouseBalloon' + ('Handle' if self.hasHandle else '') + str(self.livesNum)]
+
+        self.xOffset = 8 - (self.image.width() / 3)
+
+        super().updateSize()
 
 
 # ---- High-Level Classes ----
@@ -6351,6 +6371,30 @@ class SpriteImage_LineBrickBlock(SpriteImage_Block): # 403
         self.tilenum = 48
 
 
+class SpriteImage_ToadHouseBalloonUnused(SpriteImage_ToadHouseBalloon): # 411
+    def updateSize(self):
+
+        self.livesNum = (self.parent.spritedata[4] >> 4) % 4
+
+        super().updateSize()
+
+        self.yOffset = 8 - (self.image.height() / 3)
+
+
+class SpriteImage_ToadHouseBalloonUsed(SpriteImage_ToadHouseBalloon): # 412
+    def updateSize(self):
+
+        self.livesNum = (self.parent.spritedata[4] >> 4) % 4
+        self.hasHandle = not ((self.parent.spritedata[5] >> 4) & 1)
+
+        super().updateSize()
+
+        if self.hasHandle:
+            self.yOffset = 12
+        else:
+            self.yOffset = 16 - (self.image.height() / 3)
+
+
 class SpriteImage_WendyRing(SLib.SpriteImage_Static): # 413
     def __init__(self, parent):
         super().__init__(
@@ -7425,6 +7469,8 @@ ImageClasses = {
         397: SpriteImage_GhostHouseBox,
         402: SpriteImage_LineQBlock,
         403: SpriteImage_LineBrickBlock,
+        411: SpriteImage_ToadHouseBalloonUnused,
+        412: SpriteImage_ToadHouseBalloonUsed,
         413: SpriteImage_WendyRing,
         414: SpriteImage_Gabon,
         415: SpriteImage_BetaLarryKoopa,
