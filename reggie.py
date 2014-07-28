@@ -1647,11 +1647,11 @@ def CreateTilesets():
 
 
 def LoadTileset(idx, name, reload=False):
-    #try:
-    return _LoadTileset(idx, name, reload)
-    #except Exception:
-    #    QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTileset', 0), trans.string('Err_CorruptedTileset', 1, '[file]', name))
-    #    return False
+    try:
+        return _LoadTileset(idx, name, reload)
+    except Exception:
+        QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTileset', 0), trans.string('Err_CorruptedTileset', 1, '[file]', name))
+        return False
 
 
 def _LoadTileset(idx, name, reload=False):
@@ -7570,8 +7570,10 @@ class ReggieTranslation():
         self.InitAsEnglish()
 
         # Try to load it from an XML
-        self.InitFromXML(name)
-        #except Exception: self.InitAsEnglish()
+        try:
+            self.InitFromXML(name)
+        except Exception:
+            self.InitAsEnglish()
 
 
     def InitAsEnglish(self):
