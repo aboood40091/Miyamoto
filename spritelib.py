@@ -123,6 +123,14 @@ def LoadBasicSuite():
             Blocks.append(Overrides.copy(j * 24, i * 24, 24, 24))
     ImageCache['Overrides'] = Blocks
 
+    # Load the characters
+    for num in range(4):
+        for direction in 'lr':
+            ImageCache['Character%d%s' % (num + 1, direction.upper())] = \
+                GetImg('character_%d_%s.png' % (num + 1, direction))
+
+
+
 ################################################################
 ################################################################
 ################################################################

@@ -927,6 +927,25 @@ class SpriteImage_ToadHouseBalloon(SLib.SpriteImage_StaticMultiple): # 411, 412
 
 # ---- High-Level Classes ----
 
+
+class SpriteImage_CharacterSpawner(SLib.SpriteImage_StaticMultiple): # 9
+    def updateSize(self):
+
+        direction = self.parent.spritedata[2] & 1
+        character = (self.parent.spritedata[5] & 0xF) % 4
+
+        directionstr = 'L' if direction else 'R'
+
+        self.image = ImageCache['Character' + str(character + 1) + directionstr]
+
+        self.offset = (
+            -(self.image.width() / 3),
+            -(self.image.height() / 1.5),
+            )
+
+        super().updateSize()
+
+
 class SpriteImage_Goomba(SLib.SpriteImage_Static): # 20
     def __init__(self, parent):
         super().__init__(
@@ -7218,6 +7237,7 @@ class SpriteImage_BowserSwitchLg(SLib.SpriteImage_StaticMultiple): # 479
 
 
 ImageClasses = {
+        9: SpriteImage_CharacterSpawner,
         20: SpriteImage_Goomba,
         21: SpriteImage_Paragoomba,
         23: SpriteImage_HorzMovingPlatform,
