@@ -1,5 +1,5 @@
 # Reggie! Level Editor Next
-(Milestone 2 Prerelease)
+(Milestone 2 Alpha 1)
 
 ----------------------------------------------------------------
 
@@ -35,7 +35,7 @@ If you are not on Windows or you want the very latest features, you'll need to r
 ### How to Run Reggie! from Source
 
 Download and install the following:
- * Python 3.3 (or newer) - http://www.python.org
+ * Python 3.4 (or newer) - http://www.python.org
  * PyQt 5.3 (or newer) - http://www.riverbankcomputing.co.uk/software/pyqt/intro
  * cx_Freeze 4.3 (or newer) (optional) - http://cx-freeze.sourceforge.net
  * PyQtRibbon (latest version) - https://github.com/RoadrunnerWMC/PyQtRibbon
