@@ -3962,7 +3962,6 @@ class SpriteItem(LevelEditorItem):
     """Level editor item that represents a sprite"""
     BoundingRect = QtCore.QRectF(0, 0, 24, 24)
     SelectionRect = QtCore.QRectF(0, 0, 23, 23)
-    RoundedRect = QtCore.QRectF(1, 1, 22, 22)
 
     def __init__(self, type, x, y, data):
         """Creates a sprite with specific data"""
@@ -4185,22 +4184,54 @@ class SpriteItem(LevelEditorItem):
 
         self.prepareGeometryChange()
 
-        xs = self.ImageObj.width
-        ys = self.ImageObj.height
+        # Get rects
+        imgRect = QtCore.QRectF(
+            0, 0,
+            self.ImageObj.width * 1.5,
+            self.ImageObj.height * 1.5,
+            )
+        spriteboxRect = QtCore.QRectF(
+            0, 0,
+            self.ImageObj.spritebox.BoundingRect.width(),
+            self.ImageObj.spritebox.BoundingRect.height(),
+            )
+        imgOffsetRect = imgRect.translated(
+            (self.objx + self.ImageObj.xOffset) * 1.5,
+            (self.objy + self.ImageObj.yOffset) * 1.5,
+            )
+        spriteboxOffsetRect = spriteboxRect.translated(
+            (self.objx * 1.5) + self.ImageObj.spritebox.BoundingRect.topLeft().x(),
+            (self.objy * 1.5) + self.ImageObj.spritebox.BoundingRect.topLeft().y(),
+            )
 
-        self.SelectionRect = QtCore.QRectF(0, 0, int(xs * 1.5 - 1), int(ys * 1.5 - 1))
-        self.LevelRect = (QtCore.QRectF(
-            (self.objx + self.ImageObj.xOffset) / 16, (self.objy + self.ImageObj.yOffset) / 16,
-            xs / 16, ys / 16,
-            ))
-        self.RoundedRect = self.ImageObj.spritebox.RoundedRect
+        unitedRect = imgRect.united(spriteboxRect)
+        unitedOffsetRect = imgOffsetRect.united(spriteboxOffsetRect)
 
-        bound1 = QtCore.QRectF(0, 0, xs * 1.5, ys * 1.5)
-        if self.ImageObj.spritebox.shown:
-            self.BoundingRect = bound1.united(self.RoundedRect)
-        else:
-            self.BoundingRect = bound1
-        
+        # SelectionRect: Used to determine the size of the
+        # "this sprite is selected" translucent white box that
+        # appears when a sprite with an image is selected.
+        self.SelectionRect = QtCore.QRectF(
+            0, 0,
+            imgRect.width() - 1,
+            imgRect.height() - 1,
+            )
+
+        # LevelRect: Used by the Level Overview to determine
+        # the size and position of the sprite in the level.
+        # Measured in blocks.
+        self.LevelRect = QtCore.QRectF(
+            unitedOffsetRect.topLeft().x() / 24,
+            unitedOffsetRect.topLeft().y() / 24,
+            unitedOffsetRect.width() / 24,
+            unitedOffsetRect.height() / 24,
+            )
+
+        # BoundingRect: The sprite can only paint within
+        # this area.
+        self.BoundingRect = unitedRect.translated(
+            self.ImageObj.spritebox.BoundingRect.topLeft().x(),
+            self.ImageObj.spritebox.BoundingRect.topLeft().y(),
+            )
 
     def itemChange(self, change, value):
         """Makes sure positions don't go out of bounds and updates them as necessary"""
@@ -4265,7 +4296,7 @@ class SpriteItem(LevelEditorItem):
                 #oldrect = self.BoundingRect
                 #oldrect.translate(self.objx*1.5, self.objy*1.5)
                 updRect = QtCore.QRectF(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
-                #self.scene().update(updRect.unite(oldrect))
+                #self.scene().update(updRect.united(oldrect))
                 self.scene().update(updRect)
 
                 self.LevelRect.moveTo((x+xOffset) / 16, (y+yOffset) / 16)
@@ -4278,6 +4309,13 @@ class SpriteItem(LevelEditorItem):
                         auxObj.BoundingRect.height(),
                         )
                     self.scene().update(auxUpdRect)
+
+                self.scene().update(
+                    self.x() + self.ImageObj.spritebox.BoundingRect.topLeft().x(),
+                    self.y() + self.ImageObj.spritebox.BoundingRect.topLeft().y(),
+                    self.ImageObj.spritebox.BoundingRect.width(),
+                    self.ImageObj.spritebox.BoundingRect.height(),
+                    )
 
                 oldx = self.objx
                 oldy = self.objy
@@ -4323,7 +4361,7 @@ class SpriteItem(LevelEditorItem):
         """Calls self.scene().update()"""
         # Some of the more advanced painters need to update the whole scene
         # and this is a convenient way to do it:
-        # sprite.updateScene()
+        # self.parent.updateScene()
         if self.scene() is not None: self.scene().update()
 
 
@@ -4342,7 +4380,9 @@ class SpriteItem(LevelEditorItem):
             painter.drawRect(self.SelectionRect)
             painter.fillRect(self.SelectionRect, theme.color('sprite_fill_s'))
         if self.ImageObj.spritebox.shown or not SpriteImagesShown:
-            newRoundedRect = self.RoundedRect.translated(-self.ImageObj.xOffset * 1.5, -self.ImageObj.yOffset * 1.5)
+            RR = self.ImageObj.spritebox.RoundedRect
+            if not SpriteImagesShown: RR = QtCore.QRect(1, 1, 22, 22)
+            newRoundedRect = RR.translated(-self.ImageObj.xOffset * 1.5, -self.ImageObj.yOffset * 1.5)
             if self.isSelected():
                 painter.setBrush(QtGui.QBrush(theme.color('spritebox_fill_s')))
                 painter.setPen(QtGui.QPen(theme.color('spritebox_lines_s'), 1))

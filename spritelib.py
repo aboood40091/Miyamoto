@@ -297,6 +297,26 @@ class Spritebox():
     RoundedRect = property(getRR, setRR, delRR,
         'Property that contains the rounded rect for the spritebox')
 
+    def getBR(self):
+        return QtCore.QRectF(
+            self.xOffset,
+            self.yOffset,
+            self.width,
+            self.height,
+            )
+    def setBR(self, new):
+        self.dimensions = (
+            new.x(),
+            new.y(),
+            new.width(),
+            new.height(),
+            )
+    def delBR(self):
+        self.dimensions = (0, 0, 24, 24)
+
+    BoundingRect = property(getBR, setBR, delBR,
+        'Property that contains the bounding rect for the spritebox')
+
 
 ################################################################
 ################################################################
