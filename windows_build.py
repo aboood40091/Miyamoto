@@ -2,7 +2,7 @@
 # -*- coding: latin-1 -*-
 
 # Reggie! - New Super Mario Bros. Wii Level Editor
-# Version Next Milestone 2 Alpha 0
+# Version Next Milestone 2 Alpha 1
 # Copyright (C) 2009-2014 Treeki, Tempus, angelsl, JasonP27, Kamek64,
 # MalStar1000, RoadrunnerWMC
 
@@ -27,8 +27,8 @@
 # Builds Reggie! to a Windows binary (*.exe)
 # Use the values below to configure the release:
 
-PackageName = 'ReggieNext_M2_A0_win32'
-Version = '0.1999' # This must be a valid float in string format
+PackageName = 'ReggieNext_M2A1_win32'
+Version = '0.11' # This must be a valid float in string format
 
 
 ################################################################
