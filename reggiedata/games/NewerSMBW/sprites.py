@@ -3,6 +3,10 @@
 # By Kamek64, MalStar1000, RoadrunnerWMC
 
 
+from PyQt5 import QtCore, QtGui
+Qt = QtCore.Qt
+
+
 import spritelib as SLib
 ImageCache = SLib.ImageCache
 
@@ -63,6 +67,55 @@ class SpriteImage_FakeStarCoin(SLib.SpriteImage_Static): # 49
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('FakeStarCoin', 'starcoin_fake.png')
+
+
+class SpriteImage_BigPumpkin(SLib.SpriteImage_StaticMultiple): # 157
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.offset = (-8, -16)
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BigPumpkin', 'giant_pumpkin.png')
+        SLib.loadIfNotInImageCache('ShipKey', 'ship_key.png')
+        SLib.loadIfNotInImageCache('5Coin', '5_coin.png')
+
+        if 'YoshiFire' not in ImageCache:
+            pix = QtGui.QPixmap(48, 24)
+            pix.fill(Qt.transparent)
+            paint = QtGui.QPainter(pix)
+            paint.drawPixmap(0, 0, ImageCache['Blocks'][9])
+            paint.drawPixmap(24, 0, ImageCache['Blocks'][3])
+            del paint
+            ImageCache['YoshiFire'] = pix
+
+        for power in range(0x10):
+            if power in (0, 8, 12, 13):
+                ImageCache['BigPumpkin%d' % power] = ImageCache['BigPumpkin']
+                continue
+
+            x, y = 36, 48
+            overlay = ImageCache['Blocks'][power]
+            if power == 9:
+                overlay = ImageCache['YoshiFire']
+                x = 24
+            elif power == 10:
+                overlay = ImageCache['5Coin']
+            elif power == 14:
+                overlay = ImageCache['ShipKey']
+                x, y = 34, 42
+
+            new = QtGui.QPixmap(ImageCache['BigPumpkin'])
+            paint = QtGui.QPainter(new)
+            paint.drawPixmap(x, y, overlay)
+            del paint
+            ImageCache['BigPumpkin%d' % power] = new
+
+    def updateSize(self):
+
+        power = self.parent.spritedata[5] & 0xF
+        self.image = ImageCache['BigPumpkin%d' % power]
+        super().updateSize()
 
 
 class SpriteImage_Meteor(SLib.SpriteImage_StaticMultiple): # 183
@@ -280,6 +333,7 @@ ImageClasses = {
     19: SpriteImage_SamuraiGuy,
     22: SpriteImage_PumpkinGoomba,
     49: SpriteImage_FakeStarCoin,
+    157: SpriteImage_BigPumpkin,
     183: SpriteImage_Meteor,
     188: SpriteImage_MidwayFlag,
     210: SpriteImage_Topman,
