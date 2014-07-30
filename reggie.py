@@ -73,6 +73,7 @@ import archive
 import LHdec
 import lz77
 import spritelib as SLib
+import sprites
 import TPL
 
 ReggieID = 'Reggie! Level Editor Next by Treeki, Tempus, RoadrunnerWMC'
@@ -7258,7 +7259,7 @@ class ReggieGameDefinition():
         self.description = trans.string('Gamedefs', 14) # 'A new Mario adventure!<br>' and the date
         self.version = '2'
 
-        self.sprites = importlib.import_module('sprites')
+        self.sprites = sprites
 
         self.files = {
             'bga': gdf(None, False),
