@@ -7450,7 +7450,6 @@ class ReggieGameDefinition():
         """
         Checks each base of this gamedef and returns a list of successive file paths
         """
-        print('isPatch: ' + str(isPatch))
         ListToCheckIn = self.files if not folder else self.folders
 
         # This can be handled 4 ways: if we do or don't have a base, and if we do or don't have a copy of the file.
