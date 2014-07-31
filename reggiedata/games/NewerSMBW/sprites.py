@@ -51,6 +51,28 @@ class SpriteImage_SamuraiGuy(SLib.SpriteImage_Static): # 19
         SLib.loadIfNotInImageCache('SamuraiGuy', 'samurai_guy.png')
 
 
+class SpriteImage_NewerGoomba(SLib.SpriteImage_StaticMultiple): # 20
+	@staticmethod
+	def loadImages():
+		SLib.loadIfNotInImageCache('Goomba', 'goomba.png')
+		if 'Goomba1' in ImageCache: return
+		for i in range(8):
+			ImageCache['Goomba%d' % (i+1)] = SLib.GetImg('goomba_%d.png' % (i+1))
+
+	def updateSize(self):
+
+		color = (self.parent.spritedata[2] & 0xF) % 9
+
+		if color == 0:
+			self.image = ImageCache['Goomba']
+			self.offset = (-1, -4)
+		else:
+			self.image = ImageCache['Goomba%d' % color]
+			self.offset = (0, -4) if color not in (7, 8) else (0, -5)
+
+		super().updateSize()
+
+
 class SpriteImage_PumpkinGoomba(SLib.SpriteImage_StaticMultiple): # 22
     def __init__(self, parent):
         super().__init__(parent)
@@ -345,6 +367,7 @@ ImageClasses = {
 	12: SpriteImage_StarCollectable,
     13: SpriteImage_ClownCar,
     19: SpriteImage_SamuraiGuy,
+    20: SpriteImage_NewerGoomba,
     22: SpriteImage_PumpkinGoomba,
     49: SpriteImage_FakeStarCoin,
     157: SpriteImage_BigPumpkin,
