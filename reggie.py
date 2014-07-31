@@ -3115,7 +3115,20 @@ class AreaUnit():
         buffer = bytearray((len(self.sprites) * 16) + 4)
         f_int = int
         for sprite in self.sprites:
-            sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy), sprite.spritedata[:6], sprite.zoneID, bytes([sprite.spritedata[7],]))
+            try:
+                sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy), sprite.spritedata[:6], sprite.zoneID, bytes([sprite.spritedata[7],]))
+            except struct.error:
+                # Hopefully this will solve the mysterious bug, and will
+                # soon no longer be necessary.
+                raise ValueError('SaveSprites struct.error. Current sprite data dump:\n' + \
+                    str(offset) + '\n' + \
+                    str(sprite.type) + '\n' + \
+                    str(sprite.objx) + '\n' + \
+                    str(sprite.objy) + '\n' + \
+                    str(sprite.spritedata[:6]) + '\n' + \
+                    str(sprite.zoneID) + '\n' + \
+                    str(bytes([sprite.spritedata[7],])) + '\n',
+                    )
             offset += 16
         buffer[offset] = 0xFF
         buffer[offset + 1] = 0xFF
@@ -7437,6 +7450,7 @@ class ReggieGameDefinition():
         """
         Checks each base of this gamedef and returns a list of successive file paths
         """
+        print('isPatch: ' + str(isPatch))
         ListToCheckIn = self.files if not folder else self.folders
 
         # This can be handled 4 ways: if we do or don't have a base, and if we do or don't have a copy of the file.
@@ -7460,7 +7474,7 @@ class ReggieGameDefinition():
 
             if ListToCheckIn[name].path is None: # Base, no file
 
-                if isPatch: return listUpToNow, False if not wasPatch else True
+                if isPatch: return listUpToNow, wasPatch
                 else: return listUpToNow
 
             else: # Base, file
@@ -7472,11 +7486,11 @@ class ReggieGameDefinition():
                 else:
                     newlist = []
                     newlist.append(ListToCheckIn[name].path)
-                    if isPatch: return newlist
-                    else: return newlist, False
+                    if isPatch: return newlist, False
+                    else: return newlist
 
                 # Return
-                if isPatch: return listUpToNow, False if not wasPatch else True
+                if isPatch: return listUpToNow, wasPatch
                 else: return listUpToNow
 
     def multipleRecursiveFiles(self, *args):
@@ -7544,6 +7558,7 @@ def getMusic():
     """Uses the current gamedef + translation to get the music data, and returns it as a list of tuples"""
 
     transsong = trans.files['music']
+    print(gamedef.recursiveFiles('music', True))
     gamedefsongs, isPatch = gamedef.recursiveFiles('music', True)
     if isPatch:
         paths = [transsong]
