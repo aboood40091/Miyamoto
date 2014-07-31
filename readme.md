@@ -1,5 +1,5 @@
 # Reggie! Level Editor Next
-(Milestone 2 Alpha 1)
+(Milestone 2 Alpha 2)
 
 ----------------------------------------------------------------
 
@@ -99,9 +99,17 @@ See the license file in the distribution for information.
 
 ## Changelog
 
-Release Next (Milestone 2): (not yet released)
+Release Next (Milestone 2 Alpha 2): (July 31, 2014)
+ * Fixed a bug that prevented the Zones dialog from working properly
+ * Added some debug code to help track an elusive bug
+
+Release Next (Milestone 2 Alpha 1): (July 30, 2014)
  * Prerequisites have changed; make sure to download the new ones!
- * Many new features have been added.
+ * New Sprite Image API fully implemented
+ * Several new sprite images, and more that have been improved
+ * New Bitfield editor for Rotating Bullet Bill Launcher
+ * Many other new features
+ * New icon set from flaticons.net
 
 Release Next (Public Beta 1): (November 1st, 2013)
  * First beta version of Reggie! Next is finally released after a full year of work!
