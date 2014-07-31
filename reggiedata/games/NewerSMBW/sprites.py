@@ -12,6 +12,19 @@ ImageCache = SLib.ImageCache
 
 
 
+class SpriteImage_StarCollectable(SLib.SpriteImage_Static): # 12
+	def __init__(self, parent):
+		super().__init__(
+			parent,
+			ImageCache['StarCollectable'],
+			(3, 3),
+			)
+
+	@staticmethod
+	def loadImages():
+		SLib.loadIfNotInImageCache('StarCollectable', 'star_collectable.png')
+
+
 class SpriteImage_ClownCar(SLib.SpriteImage_Static): # 13
     def __init__(self, parent):
         super().__init__(
@@ -329,6 +342,7 @@ class SpriteImage_GigaGoomba(SLib.SpriteImage_Static): # 410
 
 
 ImageClasses = {
+	12: SpriteImage_StarCollectable,
     13: SpriteImage_ClownCar,
     19: SpriteImage_SamuraiGuy,
     22: SpriteImage_PumpkinGoomba,
