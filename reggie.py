@@ -1800,6 +1800,9 @@ def _LoadTileset(idx, name, reload=False):
     # Keep track of this filepath
     TilesetFilesLoaded[idx] = arcname
 
+    # Add Tiles to spritelib
+    SLib.Tiles = Tiles
+
 
 def LoadTextureUsingOldMethod(tiledata):
     decoder = TPL.algorithm(TPL.RGB4A3)

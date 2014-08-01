@@ -58,6 +58,9 @@ def main():
     OutlinePen = QtGui.QPen(OutlineColor, 4)
     OutlineBrush = QtGui.QBrush(OutlineColor)
 
+    for i in range(256):
+        Tiles[i] = None
+
     # Don't make a new dict instance for ImageCache because sprites.py
     # won't receive it, which causes bugs.
     ImageCache.clear()
