@@ -1424,37 +1424,26 @@ class SpriteImage_RisingTiltGirder(SLib.SpriteImage_Static): # 56
 
 
 class SpriteImage_KoopaTroopa(SLib.SpriteImage_StaticMultiple): # 57
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.offset = (-7, -15)
-
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('KoopaG', 'koopa_green.png')
-        SLib.loadIfNotInImageCache('KoopaR', 'koopa_red.png')
-        SLib.loadIfNotInImageCache('KoopaShellG', 'koopa_green_shell.png')
-        SLib.loadIfNotInImageCache('KoopaShellR', 'koopa_red_shell.png')
+        if 'KoopaG' in ImageCache: return
+        ImageCache['KoopaG'] = SLib.GetImg('koopa_green.png')
+        ImageCache['KoopaR'] = SLib.GetImg('koopa_red.png')
+        ImageCache['KoopaShellG'] = SLib.GetImg('koopa_green_shell.png')
+        ImageCache['KoopaShellR'] = SLib.GetImg('koopa_red_shell.png')
 
     def updateSize(self):
         # get properties
         props = self.parent.spritedata[5]
         shell = (props >> 4) & 1
-        color = props & 1
+        red = props & 1
 
-        if shell == 0:
+        if not shell:
             self.offset = (-7, -15)
-
-            if color == 0:
-                self.image = ImageCache['KoopaG']
-            else:
-                self.image = ImageCache['KoopaR']
+            self.image = ImageCache['KoopaG'] if not red else ImageCache['KoopaR']
         else:
             del self.offset
-
-            if color == 0:
-                self.image = ImageCache['KoopaShellG']
-            else:
-                self.image = ImageCache['KoopaShellR']
+            self.image = ImageCache['KoopaShellG'] if not red else ImageCache['KoopaR']
 
         super().updateSize()
 

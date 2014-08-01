@@ -104,6 +104,48 @@ class SpriteImage_FakeStarCoin(SLib.SpriteImage_Static): # 49
         SLib.loadIfNotInImageCache('FakeStarCoin', 'starcoin_fake.png')
 
 
+class SpriteImage_NewerKoopa(SLib.SpriteImage_StaticMultiple): # 57
+    @staticmethod
+    def loadImages():
+        if 'KoopaG' in ImageCache: return
+        ImageCache['KoopaG'] = SLib.GetImg('koopa_green.png')
+        ImageCache['KoopaR'] = SLib.GetImg('koopa_red.png')
+        ImageCache['KoopaShellG'] = SLib.GetImg('koopa_green_shell.png')
+        ImageCache['KoopaShellR'] = SLib.GetImg('koopa_red_shell.png')
+        for flag in (0, 1):
+        	for style in range(4):
+        		ImageCache['Koopa%d%d' % (flag, style + 1)] = \
+        			SLib.GetImg('koopa_%d%d.png'% (flag, style + 1))
+        		if style < 3:
+	        		ImageCache['KoopaShell%d%d' % (flag, style + 1)] = \
+	        			SLib.GetImg('koopa_shell_%d%d.png'% (flag, style + 1))
+
+    def updateSize(self):
+        # get properties
+        props = self.parent.spritedata[5]
+        shell = (props >> 4) & 1
+        red = props & 1
+        texhack = (self.parent.spritedata[2] & 0xF) % 5
+
+        if not shell:
+
+            if texhack == 0:
+                self.offset = (-7, -15)
+                self.image = ImageCache['KoopaG'] if not red else ImageCache['KoopaR']
+            else:
+                self.offset = (-5, -13)
+                self.image = ImageCache['Koopa%d%d' % (red, texhack)]
+        else:
+            del self.offset
+
+            if texhack in (0, 4):
+                self.image = ImageCache['KoopaShellG'] if not red else ImageCache['KoopaShellR']
+            else:
+                self.image = ImageCache['KoopaShell%d%d' % (red, texhack)]
+
+        super().updateSize()
+
+
 class SpriteImage_BigPumpkin(SLib.SpriteImage_StaticMultiple): # 157
     def __init__(self, parent):
         super().__init__(parent)
@@ -370,6 +412,7 @@ ImageClasses = {
     20: SpriteImage_NewerGoomba,
     22: SpriteImage_PumpkinGoomba,
     49: SpriteImage_FakeStarCoin,
+    57: SpriteImage_NewerKoopa,
     157: SpriteImage_BigPumpkin,
     183: SpriteImage_Meteor,
     188: SpriteImage_MidwayFlag,
