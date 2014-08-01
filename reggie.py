@@ -14089,7 +14089,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # sprite tab: current
         self.sprEditorTab = QtWidgets.QWidget()
-        self.sprAllTab.addTab(self.sprEditorTab, GetIcon('sprites'), trans.string('Palette', 26))
+        self.sprAllTab.addTab(self.sprEditorTab, GetIcon('spritelist'), trans.string('Palette', 26))
 
         spel = QtWidgets.QVBoxLayout(self.sprEditorTab)
         self.sprEditorLayout = spel
