@@ -102,6 +102,10 @@ See the license file in the distribution for information.
 Release Next (Milestone 2 Alpha 2): (July 31, 2014)
  * Fixed a bug that prevented the Zones dialog from working properly
  * Added some debug code to help track an elusive bug
+ * Added new sprite images:
+   12: Star Collectible (Newer)
+   20: Goomba (Newer)
+   57: Koopa (Newer)
 
 Release Next (Milestone 2 Alpha 1): (July 30, 2014)
  * Prerequisites have changed; make sure to download the new ones!
