@@ -3284,7 +3284,12 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
             x = int(newpos.x() / 1.5)
             y = int(newpos.y() / 1.5)
             if x != self.objx or y != self.objy:
-                updRect = QtCore.QRectF(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
+                updRect = QtCore.QRectF(
+                    self.x() + self.BoundingRect.x(),
+                    self.y() + self.BoundingRect.y(),
+                    self.BoundingRect.width(),
+                    self.BoundingRect.height(),
+                    )
                 if self.scene() is not None:
                     self.scene().update(updRect)
 
@@ -3372,10 +3377,10 @@ class ObjectItem(LevelEditorItem):
     def UpdateRects(self):
         """Recreates the bounding and selection rects"""
         self.prepareGeometryChange()
-        self.BoundingRect = QtCore.QRectF(0,0,24*self.width,24*self.height)
-        self.SelectionRect = QtCore.QRectF(0,0,24*self.width-1,24*self.height-1)
-        self.GrabberRect = QtCore.QRectF(24*self.width-5,24*self.height-5,5,5)
-        self.LevelRect = QtCore.QRectF(self.objx,self.objy,self.width,self.height)
+        self.BoundingRect = QtCore.QRectF(0, 0, 24 * self.width, 24 * self.height)
+        self.SelectionRect = QtCore.QRectF(0, 0, (24 * self.width) - 1, (24 * self.height) - 1)
+        self.GrabberRect = QtCore.QRectF((24 * self.width) - 5, (24 * self.height) - 5, 5, 5)
+        self.LevelRect = QtCore.QRectF(self.objx, self.objy, self.width, self.height)
 
 
     def itemChange(self, change, value):
@@ -3623,13 +3628,13 @@ class ZoneItem(LevelEditorItem):
         else: grabberWidth = 5
 
         self.prepareGeometryChange()
-        self.BoundingRect = QtCore.QRectF(0,0,self.width*1.5,self.height*1.5)
-        self.ZoneRect = QtCore.QRectF(self.objx,self.objy,self.width,self.height)
-        self.DrawRect = QtCore.QRectF(3,3,int(self.width*1.5)-6,int(self.height*1.5)-6)
-        self.GrabberRectTL = QtCore.QRectF(0,0,grabberWidth,grabberWidth)
-        self.GrabberRectTR = QtCore.QRectF(int(self.width*1.5)-grabberWidth, 0, grabberWidth, grabberWidth)
-        self.GrabberRectBL = QtCore.QRectF(0,int(self.height*1.5)-grabberWidth, grabberWidth, grabberWidth)
-        self.GrabberRectBR = QtCore.QRectF(int(self.width*1.5)-grabberWidth,int(self.height*1.5)-grabberWidth, grabberWidth, grabberWidth)
+        self.BoundingRect = QtCore.QRectF(0, 0, self.width * 1.5, self.height * 1.5)
+        self.ZoneRect = QtCore.QRectF(self.objx, self.objy, self.width, self.height)
+        self.DrawRect = QtCore.QRectF(3, 3, int(self.width * 1.5) - 6, int(self.height * 1.5) - 6)
+        self.GrabberRectTL = QtCore.QRectF(0, 0, grabberWidth, grabberWidth)
+        self.GrabberRectTR = QtCore.QRectF(int(self.width * 1.5) - grabberWidth, 0, grabberWidth, grabberWidth)
+        self.GrabberRectBL = QtCore.QRectF(0, int(self.height * 1.5) - grabberWidth, grabberWidth, grabberWidth)
+        self.GrabberRectBR = QtCore.QRectF(int(self.width * 1.5) - grabberWidth, int(self.height * 1.5)-grabberWidth, grabberWidth, grabberWidth)
 
 
     def paint(self, painter, option, widget):
@@ -3849,11 +3854,11 @@ class LocationItem(LevelEditorItem):
         self.prepareGeometryChange()
         if self.width == 0: self.width == 1
         if self.height == 0: self.height == 1
-        self.BoundingRect = QtCore.QRectF(0,0,self.width*1.5,self.height*1.5)
-        self.SelectionRect = QtCore.QRectF(self.objx*1.5,self.objy*1.5,self.width*1.5,self.height*1.5)
-        self.ZoneRect = QtCore.QRectF(self.objx,self.objy,self.width,self.height)
-        self.DrawRect = QtCore.QRectF(1,1,self.width*1.5-2,self.height*1.5-2)
-        self.GrabberRect = QtCore.QRectF(1.5*self.width-6,1.5*self.height-6,5,5)
+        self.BoundingRect = QtCore.QRectF(0, 0, self.width * 1.5, self.height * 1.5)
+        self.SelectionRect = QtCore.QRectF(self.objx * 1.5, self.objy * 1.5, self.width * 1.5, self.height * 1.5)
+        self.ZoneRect = QtCore.QRectF(self.objx, self.objy, self.width, self.height)
+        self.DrawRect = QtCore.QRectF(1, 1, (self.width * 1.5) - 2, (self.height * 1.5) - 2)
+        self.GrabberRect = QtCore.QRectF((1.5 * self.width) - 6, (1.5 * self.height) - 6, 5, 5)
         self.UpdateListString()
 
 
@@ -3915,8 +3920,8 @@ class LocationItem(LevelEditorItem):
                 self.height += clickedy - dsy
 
                 oldrect = self.BoundingRect
-                oldrect.translate(cx*1.5, cy*1.5)
-                newrect = QtCore.QRectF(self.x(), self.y(), self.width*1.5, self.height*1.5)
+                oldrect.translate(cx * 1.5, cy * 1.5)
+                newrect = QtCore.QRectF(self.x(), self.y(), self.width * 1.5, self.height * 1.5)
                 updaterect = oldrect.united(newrect)
 
                 self.UpdateRects()
@@ -4414,8 +4419,8 @@ class SpriteItem(LevelEditorItem):
 
 class EntranceItem(LevelEditorItem):
     """Level editor item that represents an entrance"""
-    BoundingRect = QtCore.QRectF(0,0,24,24)
-    RoundedRect = QtCore.QRectF(1,1,22,22)
+    BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+    RoundedRect = QtCore.QRectF(1, 1, 22, 22)
     EntranceImages = None
 
     def __init__(self, x, y, id, destarea, destentrance, type, zone, layer, path, settings, cpd):
@@ -4424,7 +4429,7 @@ class EntranceItem(LevelEditorItem):
             ei = []
             src = QtGui.QPixmap('reggiedata/entrances.png')
             for i in range(18):
-                ei.append(src.copy(i*24,0,24,24))
+                ei.append(src.copy(i * 24, 0, 24, 24))
             EntranceItem.EntranceImages = ei
 
         LevelEditorItem.__init__(self)
@@ -4441,7 +4446,7 @@ class EntranceItem(LevelEditorItem):
         self.entlayer = layer
         self.entpath = path
         self.listitem = None
-        self.LevelRect = (QtCore.QRectF(self.objx/16, self.objy/16, 24/16, 24/16))
+        self.LevelRect = QtCore.QRectF(self.objx / 16, self.objy / 16, 1.5, 1.5)
         self.cpdirection = cpd
 
         self.setFlag(self.ItemIsMovable, not EntrancesFrozen)
@@ -4449,7 +4454,7 @@ class EntranceItem(LevelEditorItem):
 
         global DirtyOverride
         DirtyOverride += 1
-        self.setPos(int(x*1.5),int(y*1.5))
+        self.setPos(int(x * 1.5), int(y * 1.5))
         DirtyOverride -= 1
 
         self.setZValue(25001)
@@ -4489,11 +4494,22 @@ class EntranceItem(LevelEditorItem):
 
     def TypeChange(self):
         """Handles the entrance's type changing"""
-        # expand the entrance if it's a pipe entrance
-        xblocks = 2 if ((self.enttype == 3) or (self.enttype == 4)) else 1
-        yblocks = 2 if ((self.enttype == 5) or (self.enttype == 6)) else 1
-        self.RoundedRect = QtCore.QRectF(1, 1, (xblocks*24)-2, (yblocks*24)-2)
-        self.BoundingRect = QtCore.QRectF(0,0, 24*xblocks, 24*yblocks)
+
+        # Determine the size and position of the entrance
+        x, y, w, h = 0, 0, 1, 1
+        if self.enttype in (0, 1):
+            # Standing entrance
+            x, w = -2.25, 5.5
+        elif self.enttype in (3, 4):
+            # Vertical pipe
+            w = 2
+        elif self.enttype in (5, 6):
+            # Horizontal pipe
+            h = 2
+
+        # Now make the rects
+        self.RoundedRect = QtCore.QRectF((x * 24) + 1, (y * 24) + 1, (w * 24) - 2, (h * 24) - 2)
+        self.BoundingRect = QtCore.QRectF(x * 24, y * 24, w * 24, h * 24)
 
 
     def paint(self, painter, option, widget):
@@ -4534,17 +4550,10 @@ class EntranceItem(LevelEditorItem):
         if enttype == 24: icontype = 16 # jump out facing left
         if enttype == 27: icontype = 3 # door entrance
 
-        painter.drawPixmap(0,0,EntranceItem.EntranceImages[icontype])
+        painter.drawPixmap(0, 0, EntranceItem.EntranceImages[icontype])
 
-        #painter.drawText(self.BoundingRect,Qt.AlignLeft,str(self.entid))
         painter.setFont(self.font)
-        painter.drawText(3,12,str(self.entid))
-
-        if self.isSelected():
-            #painter.setRenderHint(QtGui.QPainter.Antialiasing, False)
-            #painter.setPen(QtGui.QPen(Qt.black, 1, Qt.DotLine))
-            #painter.drawRect(self.SelectionRect)
-            pass
+        painter.drawText(3, 12, str(self.entid))
 
     def delete(self):
         """Delete the entrance from the level"""
@@ -4558,9 +4567,9 @@ class EntranceItem(LevelEditorItem):
 
 class PathItem(LevelEditorItem):
     """Level editor item that represents a pathnode"""
-    BoundingRect = QtCore.QRectF(0,0,24,24)
-    SelectionRect = QtCore.QRectF(0,0,23,23)
-    RoundedRect = QtCore.QRectF(1,1,22,22)
+    BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+    SelectionRect = QtCore.QRectF(0, 0, 23, 23)
+    RoundedRect = QtCore.QRectF(1, 1, 22, 22)
 
 
     def __init__(self, objx, objy, nobjx, nobjy, pathinfo, nodeinfo):
@@ -4671,7 +4680,7 @@ class PathItem(LevelEditorItem):
 
 class PathEditorLineItem(LevelEditorItem):
     """Level editor item to draw a line between two pathnodes"""
-    BoundingRect = QtCore.QRectF(0,0,1,1) # compute later
+    BoundingRect = QtCore.QRectF(0, 0, 1, 1) # compute later
 
     def __init__(self, nodelist):
         """Creates a path with specific data"""
@@ -4708,17 +4717,17 @@ class PathEditorLineItem(LevelEditorItem):
         for node in self.nodelist:
             xcoords.append(int(node['x']))
             ycoords.append(int(node['y']))
-        self.objx = (min(xcoords)-4)#*1.5
-        self.objy = (min(ycoords)-4)#*1.5
+        self.objx = (min(xcoords) - 4)
+        self.objy = (min(ycoords) - 4)
 
-        mywidth = (8 + (max(xcoords) - self.objx))*1.5
-        myheight = (8 + (max(ycoords) - self.objy))*1.5
+        mywidth = (8 + (max(xcoords) - self.objx)) * 1.5
+        myheight = (8 + (max(ycoords) - self.objy)) * 1.5
         global DirtyOverride
         DirtyOverride += 1
         self.setPos(self.objx * 1.5, self.objy * 1.5)
         DirtyOverride -= 1
         self.prepareGeometryChange()
-        self.BoundingRect = QtCore.QRectF(-4,-4,mywidth,myheight)
+        self.BoundingRect = QtCore.QRectF(-4, -4, mywidth, myheight)
 
 
 
@@ -4760,9 +4769,9 @@ class PathEditorLineItem(LevelEditorItem):
 
 class CommentItem(LevelEditorItem):
     """Level editor item that represents a in-level comment"""
-    BoundingRect = QtCore.QRectF(-8,-8,48,48)#(-8,-8,230,230)
-    SelectionRect = QtCore.QRectF(-4,-4,4,4)
-    Circle = QtCore.QRectF(0,0,32,32)
+    BoundingRect = QtCore.QRectF(-8, -8, 48, 48)
+    SelectionRect = QtCore.QRectF(-4, -4, 4, 4)
+    Circle = QtCore.QRectF(0, 0, 32, 32)
 
     def __init__(self, x, y, text=''):
         """Creates a in-level comment"""
@@ -4775,24 +4784,24 @@ class CommentItem(LevelEditorItem):
         self.objx = x
         self.objy = y
         self.listitem = None
-        self.LevelRect = (QtCore.QRectF(self.objx/16, self.objy/16, 36/16, 36/16))
+        self.LevelRect = (QtCore.QRectF(self.objx / 16, self.objy / 16, 2.25, 2.25))
 
         self.setFlag(self.ItemIsMovable, not CommentsFrozen)
         self.setFlag(self.ItemIsSelectable, not CommentsFrozen)
 
         global DirtyOverride
         DirtyOverride += 1
-        self.setPos(int(x*1.5),int(y*1.5))
+        self.setPos(int(x * 1.5), int(y * 1.5))
         DirtyOverride -= 1
 
-        self.setZValue(zval+1)
+        self.setZValue(zval + 1)
         self.UpdateTooltip()
 
         self.TextEdit = QtWidgets.QPlainTextEdit()
         self.TextEditProxy = mainWindow.scene.addWidget(self.TextEdit)
         self.TextEditProxy.setZValue(self.zval)
         self.TextEditProxy.setCursor(Qt.IBeamCursor)
-        self.TextEditProxy.boundingRect = lambda self: QtCore.QRectF(0,0,4000,4000)
+        self.TextEditProxy.boundingRect = lambda self: QtCore.QRectF(0, 0, 4000, 4000)
         self.TextEdit.setVisible(False)
         self.TextEdit.setMaximumWidth(192)
         self.TextEdit.setMaximumHeight(128)
