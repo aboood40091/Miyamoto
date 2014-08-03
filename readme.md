@@ -1,5 +1,5 @@
 # Reggie! Level Editor Next
-(Milestone 2 Alpha 2)
+(Milestone 2 Alpha 3)
 
 ----------------------------------------------------------------
 
@@ -39,6 +39,7 @@ Download and install the following:
  * PyQt 5.3 (or newer) - http://www.riverbankcomputing.co.uk/software/pyqt/intro
  * cx_Freeze 4.3 (or newer) (optional) - http://cx-freeze.sourceforge.net
  * PyQtRibbon (latest version) - https://github.com/RoadrunnerWMC/PyQtRibbon
+ * TPLLib (latest version) - https://github.com/RoadrunnerWMC/TPLLib
  * NSMBLib 0.5a (or newer) (optional) - included with the source release
 
 Run the following in a command prompt:  
@@ -85,6 +86,7 @@ Python 3 - Python Software Foundation (https://www.python.org)
 Qt 5 - Nokia (http://qt.nokia.com)  
 PyQt5 - Riverbank Computing (http://www.riverbankcomputing.co.uk/software/pyqt/intro)  
 PyQtRibbon - RoadrunnerWMC (https://github.com/RoadrunnerWMC/PyQtRibbon)  
+TPLLib - Tempus/RoadrunnerWMC (https://github.com/RoadrunnerWMC/TPLLib)  
 Wii.py - megazig, Xuzz, The Lemon Man, Matt_P, SquidMan, Omega (https://github.com/grp/Wii.py) (included)  
 Interface Icons - FlatIcons (http://flaticons.net)  
 cx_Freeze - Anthony Tuininga (http://cx-freeze.sourceforge.net)
@@ -98,6 +100,9 @@ See the license file in the distribution for information.
 ----------------------------------------------------------------
 
 ## Changelog
+
+Release Next (Milestone 2 Alpha 3): (unreleased)
+ * Now requires TPLLib, which is not included
 
 Release Next (Milestone 2 Alpha 2): (July 31, 2014)
  * Fixed a bug that prevented the Zones dialog from working properly

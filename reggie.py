@@ -2,7 +2,7 @@
 # -*- coding: latin-1 -*-
 
 # Reggie! - New Super Mario Bros. Wii Level Editor
-# Version Next Milestone 2 Alpha 2
+# Version Next Milestone 2 Alpha 3
 # Copyright (C) 2009-2014 Treeki, Tempus, angelsl, JasonP27, Kamek64,
 # MalStar1000, RoadrunnerWMC
 
@@ -74,10 +74,10 @@ import LHdec
 import lz77
 import spritelib as SLib
 import sprites
-import TPL
+import TPLLib
 
 ReggieID = 'Reggie! Level Editor Next by Treeki, Tempus, RoadrunnerWMC'
-ReggieVersion = 'Next Milestone 2 Alpha 0'
+ReggieVersion = 'Next Milestone 2 Alpha 3'
 UpdateURL = 'http://rvlution.net/reggie/updates.xml'
 
 
@@ -942,7 +942,7 @@ class TilesetTile():
         numberOfFrames = len(data) // 2048
         for frame in range(numberOfFrames):
             framedata = data[frame*2048: (frame*2048)+2048]
-            decoder = TPL.algorithm(TPL.RGB4A3)
+            decoder = TPLLib.decoder(TPLLib.RGB4A3)
             decoder = decoder(framedata, 32, 32)
             newdata = decoder.run()
             img = QtGui.QImage(newdata, 32, 32, 128, QtGui.QImage.Format_ARGB32)
@@ -1805,7 +1805,7 @@ def _LoadTileset(idx, name, reload=False):
 
 
 def LoadTextureUsingOldMethod(tiledata):
-    decoder = TPL.algorithm(TPL.RGB4A3)
+    decoder = TPLLib.decoder(TPLLib.RGB4A3)
     decoder = decoder(tiledata, 1024, 256)
     data = decoder.run()
     img = QtGui.QImage(data, 1024, 256, 4096, QtGui.QImage.Format_ARGB32)

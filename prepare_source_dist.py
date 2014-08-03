@@ -2,7 +2,7 @@
 # -*- coding: latin-1 -*-
 
 # Reggie! - New Super Mario Bros. Wii Level Editor
-# Version Next Milestone 2 Alpha 2
+# Version Next Milestone 2 Alpha 3
 # Copyright (C) 2009-2014 Treeki, Tempus, angelsl, JasonP27, Kamek64,
 # MalStar1000, RoadrunnerWMC
 
@@ -27,7 +27,7 @@
 # Prepares the source distribution of Reggie!
 
 # Use the values below to configure the release:
-PackageName = 'reggie_next_m2a2_src'
+PackageName = 'reggie_next_m2a3_src'
 
 
 ################################################################
