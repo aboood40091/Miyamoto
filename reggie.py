@@ -14025,7 +14025,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # sprite tab: add
         self.sprPickerTab = QtWidgets.QWidget()
-        self.sprAllTab.addTab(self.sprPickerTab, GetIcon('sprites'), trans.string('Palette', 25))
+        self.sprAllTab.addTab(self.sprPickerTab, GetIcon('spritesadd'), trans.string('Palette', 25))
 
         spl = QtWidgets.QVBoxLayout(self.sprPickerTab)
         self.sprPickerLayout = spl
