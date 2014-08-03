@@ -4384,32 +4384,47 @@ class SpriteItem(LevelEditorItem):
 
     def paint(self, painter, option, widget):
         """Paints the sprite"""
-        global theme
 
+        # Setup stuff
         painter.setClipRect(option.exposedRect)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
+        # Turn aux things on or off
+        for aux in self.ImageObj.aux:
+            aux.setVisible(SpriteImagesShown)
+
+        # Default spritebox
+        drawSpritebox = True
+        spriteboxRect = QtCore.QRectF(1, 1, 22, 22)
 
         if SpriteImagesShown:
             self.ImageObj.paint(painter)
 
-        if self.isSelected() and (not self.ImageObj.spritebox.shown or self.ImageObj.size != (16, 16)):
-            painter.setPen(QtGui.QPen(theme.color('sprite_lines_s'), 1, Qt.DotLine))
-            painter.drawRect(self.SelectionRect)
-            painter.fillRect(self.SelectionRect, theme.color('sprite_fill_s'))
-        if self.ImageObj.spritebox.shown or not SpriteImagesShown:
-            RR = self.ImageObj.spritebox.RoundedRect
-            if not SpriteImagesShown: RR = QtCore.QRect(1, 1, 22, 22)
-            newRoundedRect = RR.translated(-self.ImageObj.xOffset * 1.5, -self.ImageObj.yOffset * 1.5)
+            drawSpritebox = self.ImageObj.spritebox.shown
+
+            # Draw the selected-sprite-image overlay box
+            if self.isSelected() and (not drawSpritebox or self.ImageObj.size != (16, 16)):
+                painter.setPen(QtGui.QPen(theme.color('sprite_lines_s'), 1, Qt.DotLine))
+                painter.drawRect(self.SelectionRect)
+                painter.fillRect(self.SelectionRect, theme.color('sprite_fill_s'))
+
+            # Determine the spritebox position
+            if drawSpritebox:
+                RR = self.ImageObj.spritebox.RoundedRect
+                spriteboxRect = RR.translated(-self.ImageObj.xOffset * 1.5, -self.ImageObj.yOffset * 1.5)
+
+        # Draw the spritebox if applicable
+        if drawSpritebox:
             if self.isSelected():
                 painter.setBrush(QtGui.QBrush(theme.color('spritebox_fill_s')))
                 painter.setPen(QtGui.QPen(theme.color('spritebox_lines_s'), 1))
             else:
                 painter.setBrush(QtGui.QBrush(theme.color('spritebox_fill')))
                 painter.setPen(QtGui.QPen(theme.color('spritebox_lines'), 1))
-            painter.drawRoundedRect(newRoundedRect, 4, 4)
+            painter.drawRoundedRect(spriteboxRect, 4, 4)
 
             painter.setFont(self.font)
-            painter.drawText(newRoundedRect, Qt.AlignCenter, str(self.type))
+            painter.drawText(spriteboxRect, Qt.AlignCenter, str(self.type))
 
 
     def scene(self):
