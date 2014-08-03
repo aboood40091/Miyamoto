@@ -2618,7 +2618,7 @@ class AreaUnit():
         # we don't parse blocks 4, 11, 12, 13, 14
         # we can create the rest manually
         self.blocks = [None] * 14
-        self.blocks[3] = '\0\0\0\0\0\0\0\0'
+        self.blocks[3] = b'\0\0\0\0\0\0\0\0'
         # other known values for block 4: 0000 0002 0042 0000,
         #            0000 0002 0002 0000, 0000 0003 0003 0000
         self.blocks[11] = '' # never used
@@ -2774,7 +2774,7 @@ class AreaUnit():
             blocksize = len(block)
             saveblock.pack_into(course, HeaderOffset, FileOffset, blocksize)
             if blocksize > 0:
-                course[FileOffset:FileOffset+blocksize] = block
+                course[FileOffset:FileOffset + blocksize] = block
             HeaderOffset += 8
             FileOffset += blocksize
 
@@ -3040,7 +3040,7 @@ class AreaUnit():
         optstruct = struct.Struct('>IxxxxHhLBBBx')
         buffer = bytearray(20)
         optstruct.pack_into(buffer, 0, self.defEvents, self.wrapFlag, self.timeLimit, self.unk1, self.startEntrance, self.unk2, self.unk3)
-        self.blocks[1] = buffer
+        self.blocks[1] = bytes(buffer)
 
     def SaveLayer(self, idx):
         """
@@ -3056,7 +3056,7 @@ class AreaUnit():
             offset += 10
         buffer[offset] = 0xFF
         buffer[offset+1] = 0xFF
-        return buffer
+        return bytes(buffer)
 
     def SaveEntrances(self):
         """
@@ -3070,7 +3070,7 @@ class AreaUnit():
             zoneID = MapPositionToZoneID(zonelist, entrance.objx, entrance.objy)
             entstruct.pack_into(buffer, offset, int(entrance.objx), int(entrance.objy), int(entrance.entid), int(entrance.destarea), int(entrance.destentrance), int(entrance.enttype), zoneID, int(entrance.entlayer), int(entrance.entpath), int(entrance.entsettings), int(entrance.cpdirection))
             offset += 20
-        self.blocks[6] = buffer
+        self.blocks[6] = bytes(buffer)
 
     def SavePaths(self):
         """
@@ -3094,8 +3094,8 @@ class AreaUnit():
             offset += 8
             nodeoffset += len(path['nodes']) * 16
             nodeindex += len(path['nodes'])
-        self.blocks[12] = buffer
-        self.blocks[13] = nodebuffer
+        self.blocks[12] = bytes(buffer)
+        self.blocks[13] = bytes(nodebuffer)
 
     def SavePathNodes(self, buffer, offst, nodes):
         """
@@ -3107,7 +3107,7 @@ class AreaUnit():
         for node in nodes:
             nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), float(node['speed']), float(node['accel']), int(node['delay']))
             offset += 16
-        return buffer
+        return bytes(buffer)
 
     def SaveSprites(self):
         """
@@ -3137,7 +3137,7 @@ class AreaUnit():
         buffer[offset + 1] = 0xFF
         buffer[offset + 2] = 0xFF
         buffer[offset + 3] = 0xFF
-        self.blocks[7] = buffer
+        self.blocks[7] = bytes(buffer)
 
     def SaveLoadedSprites(self):
         """
@@ -3154,7 +3154,7 @@ class AreaUnit():
         for s in ls:
             sprstruct.pack_into(buffer, offset, int(s))
             offset += 4
-        self.blocks[8] = buffer
+        self.blocks[8] = bytes(buffer)
 
 
     def SaveZones(self):
@@ -3180,10 +3180,10 @@ class AreaUnit():
             offset += 24
             i += 1
 
-        self.blocks[2] = buffer2
-        self.blocks[4] = buffer4
-        self.blocks[5] = buffer5
-        self.blocks[9] = buffer9
+        self.blocks[2] = bytes(buffer2)
+        self.blocks[4] = bytes(buffer4)
+        self.blocks[5] = bytes(buffer5)
+        self.blocks[9] = bytes(buffer9)
 
 
     def SaveLocations(self):
@@ -3199,7 +3199,7 @@ class AreaUnit():
             locstruct.pack_into(buffer, offset, int(z.objx), int(z.objy), int(z.width), int(z.height), int(z.id))
             offset += 12
 
-        self.blocks[10] = buffer
+        self.blocks[10] = bytes(buffer)
 
 
     def RemoveFromLayer(self, obj):
