@@ -85,12 +85,6 @@ if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
     # enables itemChange being called on QGraphicsItem
     QtWidgets.QGraphicsItem.ItemSendsGeometryChanges = QtWidgets.QGraphicsItem.GraphicsItemFlag(0x800)
 
-# use NSMBLib if possible
-try:
-    import nsmblib as NSMBLib
-except ImportError:
-    NSMBLib = False
-
 
 app = None
 mainWindow = None
@@ -100,7 +94,7 @@ settings = None
 def checkSplashEnabled():
     """Checks to see if the splash screen is enabled"""
     global prefs
-    if setting('SplashEnabled') is None and not NSMBLib:
+    if setting('SplashEnabled') is None and not TPLLib.using_cython:
         return True
     elif setting('SplashEnabled'):
         return True
@@ -1702,34 +1696,9 @@ def _LoadTileset(idx, name, reload=False):
         QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
         return False
 
-    # load in the textures - uses a different method if NSMBLib exists
-    print('\n\n++++++++++++++++++++++++++++++++++++++++++')
-    print('NSMBLib = ' + str(NSMBLib))
-    if NSMBLib:
-        print('Decompressing tile data...')
-        #tiledata = NSMBLib.decompress11LZS(comptiledata)*2
-        tiledata = bytes(lz77.LZS11().Decompress11LZS(comptiledata)*2)
-        print('Tile data decompressed! Here\'s the type and first 256 bytes...')
-        print(type(tiledata))
-        print(tiledata[:256])
-        print('And here\'s 1024*512*2 and the length of the data...')
-        print(1024*512*2)
-        print(len(tiledata))
-        print('Attempting to use NSMBLib to decode the tile data...')
-        try:
-            rgbdata = NSMBLib.decodeRGB4A3(tiledata, 1024, 512)
-        except Exception as e:
-            print(e)
-        print('Done! Here\'s the type and first 256 bytes (if not None)...')
-        print(type(rgbdata))
-        try: print(rgbdata[:256])
-        except: pass
-        print('Attempting to create a QImage from it...')
-        img = QtGui.QImage(rgbdata, 1024, 256, 4096, QtGui.QImage.Format_ARGB32_Premultiplied)
-        print('Done!')
-    else:
-        lz = lz77.LZS11()
-        img = LoadTextureUsingOldMethod(lz.Decompress11LZS(comptiledata))
+    # load in the textures
+    lz = lz77.LZS11()
+    img = LoadTexture(lz.Decompress11LZS(comptiledata))
 
     # Divide it into individual tiles and
     # add collisions at the same time
@@ -1804,7 +1773,7 @@ def _LoadTileset(idx, name, reload=False):
     SLib.Tiles = Tiles
 
 
-def LoadTextureUsingOldMethod(tiledata):
+def LoadTexture(tiledata):
     decoder = TPLLib.decoder(TPLLib.RGB4A3)
     decoder = decoder(tiledata, 1024, 256)
     data = decoder.run()
@@ -8177,7 +8146,7 @@ class ReggieTranslation():
                 5: '[b]Toolbar Preferences[/b][br]Choose menu items you would like to appear on the toolbar.[br]Reggie! must be restarted before the toolbar can be updated.[br]',
                 6: '[b]Reggie! Themes[/b][br]Pick a theme below to change application colors and icons.[br]You can download more themes at [a href="rvlution.net"]rvlution.net[/a].[br]Reggie! must be restarted before the theme can be changed.',
                 7: 'Show the splash screen:',
-                8: 'If NSMBLib is not found (recommended)',
+                8: 'If TPLLib cannot use a fast backend (recommended)',
                 9: 'Always',
                 10: 'Never',
                 11: 'Menu format:',
@@ -15100,7 +15069,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         elif dlg.generalTab.SplashN.isChecked():
             setSetting('ShowSplash', False)
         else:
-            setSetting('ShowSplash', 'NSMBLib')
+            setSetting('ShowSplash', 'TPLLib')
 
         # Get the Menubar/Ribbon setting
         if dlg.generalTab.MenuR.isChecked():
@@ -15647,8 +15616,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
         # track progress.. but we'll only do this if we don't have
-        # NSMBLib because otherwise it's far too fast
-        if NSMBLib:
+        # TPLLib Cython version because otherwise it's far too fast
+        if TPLLib.using_cython:
             progress = None
         elif app.splashscrn is not None:
             progress = None
@@ -17054,23 +17023,6 @@ def main():
     exitcodesys = app.exec_()
     app.deleteLater()
     sys.exit(exitcodesys)
-
-EnableAlpha = True
-if '-alpha' in sys.argv:
-    EnableAlpha = False
-
-    # NSMBLib doesn't support -alpha so if it's enabled
-    # then don't use it
-    NSMBLib = None
-
-# check version
-if NSMBLib:
-    version = NSMBLib.getVersion()
-    if version < 4:
-        NSMBLib = None
-
-if '-nolib' in sys.argv:
-    NSMBLib = None
 
 generateStringsXML = False
 if '-generatestringsxml' in sys.argv:
