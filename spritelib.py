@@ -132,6 +132,11 @@ def LoadBasicSuite():
             ImageCache['Character%d%s' % (num + 1, direction.upper())] = \
                 GetImg('character_%d_%s.png' % (num + 1, direction))
 
+    # Load vines, because these are used by entrances
+    loadIfNotInImageCache('VineTop', 'vine_top.png')
+    loadIfNotInImageCache('VineMid', 'vine_mid.png')
+    loadIfNotInImageCache('VineBtm', 'vine_btm.png')
+
 
 
 ################################################################
@@ -367,7 +372,7 @@ class AuxiliaryTrackObject(AuxiliaryItem):
         super().__init__(parent)
 
         self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, height * 1.5)
-        self.setPos(0,0)
+        self.setPos(0, 0)
         self.width = width
         self.height = height
         self.direction = direction

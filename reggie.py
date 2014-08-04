@@ -4423,6 +4423,55 @@ class EntranceItem(LevelEditorItem):
     RoundedRect = QtCore.QRectF(1, 1, 22, 22)
     EntranceImages = None
 
+    class AuxEntranceItem(QtWidgets.QGraphicsItem):
+        """
+        Auxiliary item for drawing entrance things
+        """
+        BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+        def __init__(self, parent):
+            """
+            Initializes the auxiliary entrance thing
+            """
+            super().__init__(parent)
+            self.parent = parent
+            self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
+            self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, False)
+            self.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, True)
+            self.setParentItem(parent)
+            self.hover = False
+
+        def TypeChange(self):
+            """
+            Handles type changes to the entrance
+            """
+            if self.parent.enttype == 21:
+                self.setPos(-12, -240)
+                self.BoundingRect = QtCore.QRectF(0, 0, 48, 696) # FIX THIS
+            else:
+                self.setPos(0, 0)
+                self.BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+
+        def paint(self, painter, option, widget):
+            """
+            Paints the entrance aux
+            """
+            if self.parent.enttype == 21:
+                # Draw the top half
+                painter.setOpacity(1)
+                painter.drawPixmap(0, 0, SLib.ImageCache['VineTop'])
+                painter.drawTiledPixmap(12, 48, 24, 168, SLib.ImageCache['VineMid'])
+                # Draw the bottom half
+                # This is semi-transparent because you can't interact with it.
+                painter.setOpacity(0.5)
+                painter.drawTiledPixmap(12, 216, 24, 456, SLib.ImageCache['VineMid'])
+                painter.drawPixmap(12, 672, SLib.ImageCache['VineBtm'])
+
+        def boundingRect(self):
+            """
+            Required by Qt
+            """
+            return self.BoundingRect
+
     def __init__(self, x, y, id, destarea, destentrance, type, zone, layer, path, settings, cpd):
         """Creates an entrance with specific data"""
         if EntranceItem.EntranceImages is None:
@@ -4456,6 +4505,8 @@ class EntranceItem(LevelEditorItem):
         DirtyOverride += 1
         self.setPos(int(x * 1.5), int(y * 1.5))
         DirtyOverride -= 1
+
+        self.aux = self.AuxEntranceItem(self)
 
         self.setZValue(25001)
         self.UpdateTooltip()
@@ -4511,6 +4562,8 @@ class EntranceItem(LevelEditorItem):
         self.RoundedRect = QtCore.QRectF((x * 24) + 1, (y * 24) + 1, (w * 24) - 2, (h * 24) - 2)
         self.BoundingRect = QtCore.QRectF(x * 24, y * 24, w * 24, h * 24)
 
+        # Update the aux thing
+        self.aux.TypeChange()
 
     def paint(self, painter, option, widget):
         """Paints the entrance"""
@@ -4564,6 +4617,23 @@ class EntranceItem(LevelEditorItem):
         elist.selectionModel().clearSelection()
         Area.entrances.remove(self)
         self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
+
+    def itemChange(self, change, value):
+        """
+        Handle movement
+        """
+        if change == QtWidgets.QGraphicsItem.ItemPositionChange:
+            if self.scene() is None: return value
+
+            updRect = QtCore.QRectF(
+                self.x() + self.aux.x(),
+                self.y() + self.aux.y(),
+                self.aux.BoundingRect.width(),
+                self.aux.BoundingRect.height(),
+                )
+            self.scene().update(updRect)
+
+        return super().itemChange(change, value)
 
 class PathItem(LevelEditorItem):
     """Level editor item that represents a pathnode"""
