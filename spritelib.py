@@ -537,6 +537,7 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
         self.realheight = height
 
     def paint(self, painter, option, widget):
+        if not RealViewEnabled: return
         super().paint(painter, option, widget)
         if self.realimage == None:
             try: self.realimage = self.image
