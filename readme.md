@@ -104,6 +104,8 @@ Release Next (Milestone 2 Alpha 3): (unreleased)
  * Now requires TPLLib, which is not included
  * Removed all references to NSMBLib
  * A couple of small icon changes
+ * Entrance visualizations have been improved
+ * The default setting for new entrances is now Non-Enterable
  * A few bugfixes
 
 Release Next (Milestone 2 Alpha 2): (July 31, 2014)
