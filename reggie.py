@@ -8921,7 +8921,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 for ent in Area.entrances: getids[ent.entid] = True
                 minimumID = getids.index(False)
 
-                ent = EntranceItem(clickedx, clickedy, minimumID, 0, 0, 0, 0, 0, 0, 0, 0)
+                ent = EntranceItem(clickedx, clickedy, minimumID, 0, 0, 0, 0, 0, 0, 0x80, 0)
                 mw = mainWindow
                 ent.positionChanged = mw.HandleEntPosChange
                 mw.scene.addItem(ent)
@@ -11603,7 +11603,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
         if mode == 'c': return problem
         elif problem:
             # make an entrance at 1024, 512 with an ID of Area.startEntrance
-            ent = EntranceItem(1024, 512, Area.startEntrance, 0, 0, 0, 0, 0, 0, 0, 0)
+            ent = EntranceItem(1024, 512, Area.startEntrance, 0, 0, 0, 0, 0, 0, 0x80, 0)
             ent.positionChanged = mainWindow.HandleEntPosChange
             mainWindow.scene.addItem(ent)
 
