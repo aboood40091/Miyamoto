@@ -53,7 +53,9 @@ RealViewEnabled = False
 ########################## Functions ###########################
 
 def main():
-    """Resets Sprites.py to its original settings"""
+    """
+    Resets Sprites.py to its original settings
+    """
     global OutlineColor, OutlinePen, OutlineBrush, ImageCache, SpritesFolders
     OutlinePen = QtGui.QPen(OutlineColor, 4)
     OutlineBrush = QtGui.QBrush(OutlineColor)
@@ -71,7 +73,9 @@ def main():
 
 
 def GetImg(imgname, image=False):
-    """Returns the image path from the PNG filename imgname"""
+    """
+    Returns the image path from the PNG filename imgname
+    """
     imgname = str(imgname)
 
     # Try to find the best path
@@ -363,12 +367,16 @@ class AuxiliaryItem(QtWidgets.QGraphicsItem):
 
 
 class AuxiliaryTrackObject(AuxiliaryItem):
-    """Track shown behind moving platforms to show where they can move"""
+    """
+    Track shown behind moving platforms to show where they can move
+    """
     Horizontal = 1
     Vertical = 2
 
     def __init__(self, parent, width, height, direction):
-        """Constructor"""
+        """
+        Constructor
+        """
         super().__init__(parent)
 
         self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, height * 1.5)
@@ -403,7 +411,9 @@ class AuxiliaryTrackObject(AuxiliaryItem):
 
 class AuxiliaryCircleOutline(AuxiliaryItem):
     def __init__(self, parent, width):
-        """Constructor"""
+        """
+        Constructor
+        """
         super().__init__(parent)
 
         self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, width * 1.5)
@@ -427,7 +437,9 @@ class AuxiliaryCircleOutline(AuxiliaryItem):
 
 class AuxiliaryRotationAreaOutline(AuxiliaryItem):
     def __init__(self, parent, width):
-        """Constructor"""
+        """
+        Constructor
+        """
         super().__init__(parent)
 
         self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, width * 1.5)
@@ -451,7 +463,9 @@ class AuxiliaryRotationAreaOutline(AuxiliaryItem):
 
 class AuxiliaryRectOutline(AuxiliaryItem):
     def __init__(self, parent, width, height, xoff=0, yoff=0):
-        """Constructor"""
+        """
+        Constructor
+        """
         super().__init__(parent)
 
         self.BoundingRect = QtCore.QRectF(0, 0, width, height)
@@ -472,7 +486,9 @@ class AuxiliaryRectOutline(AuxiliaryItem):
 
 class AuxiliaryPainterPath(AuxiliaryItem):
     def __init__(self, parent, path, width, height, xoff=0, yoff=0):
-        """Constructor"""
+        """
+        Constructor
+        """
         super().__init__(parent)
 
         self.PainterPath = path
@@ -499,7 +515,9 @@ class AuxiliaryPainterPath(AuxiliaryItem):
 
 class AuxiliaryImage(AuxiliaryItem):
     def __init__(self, parent, width, height):
-        """Constructor"""
+        """
+        Constructor
+        """
         super().__init__(parent)
         self.BoundingRect = QtCore.QRectF(0, 0, width, height)
         self.width = width
@@ -522,7 +540,9 @@ class AuxiliaryImage(AuxiliaryItem):
 
 class AuxiliaryImage_FollowsRect(AuxiliaryImage):
     def __init__(self, parent, width, height):
-        """Constructor"""
+        """
+        Constructor
+        """
         super().__init__(parent, width, height)
         self.alignment = Qt.AlignTop | Qt.AlignLeft
         self.realwidth = self.width
@@ -544,7 +564,9 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
             except: pass
 
     def move(self, x, y, w, h):
-        """Repositions the auxiliary image"""
+        """
+        Repositions the auxiliary image
+        """
 
         # This will be used later
         oldx, oldy = self.x(), self.y()
@@ -595,3 +617,4 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
         # Update the affected area of the scene
         if self.scene() != None:
             self.scene().update(oldx + parent.x(), oldy + parent.y(), self.width, self.height)
+

@@ -92,7 +92,9 @@ settings = None
 
 
 def checkSplashEnabled():
-    """Checks to see if the splash screen is enabled"""
+    """
+    Checks to see if the splash screen is enabled
+    """
     global prefs
     if setting('SplashEnabled') is None and not TPLLib.using_cython:
         return True
@@ -102,14 +104,18 @@ def checkSplashEnabled():
         return False
 
 def loadSplash():
-    """If called, this will show the splash screen until removeSplash is called"""
+    """
+    If called, this will show the splash screen until removeSplash is called
+    """
     splashpixmap = QtGui.QPixmap('reggiedata/splash.png')
     app.splashscrn = QtWidgets.QSplashScreen(splashpixmap)
     app.splashscrn.show()
     app.processEvents()
 
 def updateSplash(message, progress):
-    """This will update the splashscreen with the given message and progressval"""
+    """
+    This will update the splashscreen with the given message and progressval
+    """
     font = QtGui.QFont()
     font.setPointSize(10)
 
@@ -123,7 +129,9 @@ def updateSplash(message, progress):
     app.processEvents()
 
 def removeSplash():
-    """This will delete the splash screen, if it exists"""
+    """
+    This will delete the splash screen, if it exists
+    """
     if app.splashscrn is not None:
         app.splashscrn.close()
         app.splashscrn = None
@@ -131,7 +139,9 @@ def removeSplash():
         splashtextpixmap = None
 
 def GetUseRibbon():
-    """This tells us if we're using the Ribbon"""
+    """
+    This tells us if we're using the Ribbon
+    """
     global UseRibbon
     if str(setting('Menu')) == 'Ribbon': UseRibbon = True
     else: UseRibbon = False
@@ -139,14 +149,18 @@ def GetUseRibbon():
 defaultStyle = None
 defaultPalette = None
 def GetDefaultStyle():
-    """Stores a copy of the default app style upon launch, which can then be accessed later"""
+    """
+    Stores a copy of the default app style upon launch, which can then be accessed later
+    """
     global defaultStyle, defaultPalette, app
     if (defaultStyle, defaultPalette) != (None, None): return
     defaultStyle = app.style()
     defaultPalette = QtGui.QPalette(app.palette())
 
 def setting(name, default=None):
-    """Thin wrapper around QSettings, fixes the type=bool bug"""
+    """
+    Thin wrapper around QSettings, fixes the type=bool bug
+    """
     result = settings.value(name, default)
     if result == 'false': return False
     elif result == 'true': return True
@@ -154,11 +168,15 @@ def setting(name, default=None):
     else: return result
 
 def setSetting(name, value):
-    """Thin wrapper around QSettings"""
+    """
+    Thin wrapper around QSettings
+    """
     return settings.setValue(name, value)
 
 def module_path():
-    """This will get us the program's directory, even if we are frozen using cx_Freeze"""
+    """
+    This will get us the program's directory, even if we are frozen using cx_Freeze
+    """
     if hasattr(sys, 'frozen'):
         return os.path.dirname(sys.executable)
     if __name__ == '__main__':
@@ -179,7 +197,9 @@ def checkContent(data):
 
 def IsNSMBLevel(filename):
     global compressed
-    """Does some basic checks to confirm a file is a NSMB level"""
+    """
+    Does some basic checks to confirm a file is a NSMB level
+    """
     if not os.path.isfile(filename): return False
 
     f = open(filename, 'rb')
@@ -199,7 +219,9 @@ def IsNSMBLevel(filename):
         return False
 
 def FilesAreMissing():
-    """Checks to see if any of the required files for Reggie are missing"""
+    """
+    Checks to see if any of the required files for Reggie are missing
+    """
 
     if not os.path.isdir('reggiedata'):
         QtWidgets.QMessageBox.warning(None, trans.string('Err_MissingFiles', 0), trans.string('Err_MissingFiles', 1))
@@ -223,12 +245,16 @@ def FilesAreMissing():
 
 
 def GetIcon(name, big=False):
-    """Helper function to grab a specific icon"""
+    """
+    Helper function to grab a specific icon
+    """
     return theme.GetIcon(name, big)
 
 
 def SetGamePath(newpath):
-    """Sets the NSMBWii game path"""
+    """
+    Sets the NSMBWii game path
+    """
     global gamedef
 
     # you know what's fun?
@@ -239,7 +265,9 @@ def SetGamePath(newpath):
 
 
 def isValidGamePath(check='ug'):
-    """Checks to see if the path for NSMBWii contains a valid game"""
+    """
+    Checks to see if the path for NSMBWii contains a valid game
+    """
     if check == 'ug': check = gamedef.GetGamePath()
 
     if check is None or check == '': return False
@@ -253,7 +281,9 @@ def isValidGamePath(check='ug'):
 
 LevelNames = None
 def LoadLevelNames():
-    """Ensures that the level name info is loaded"""
+    """
+    Ensures that the level name info is loaded
+    """
     global LevelNames
 
     # Parse the file
@@ -264,7 +294,9 @@ def LoadLevelNames():
     LevelNames = LoadLevelNames_Category(root)
 
 def LoadLevelNames_Category(node):
-    """Loads a LevelNames XML category"""
+    """
+    Loads a LevelNames XML category
+    """
     cat = []
     for child in node:
         if child.tag.lower() == 'category':
@@ -276,7 +308,9 @@ def LoadLevelNames_Category(node):
 
 TilesetNames = None
 def LoadTilesetNames(reload_=False):
-    """Ensures that the tileset name info is loaded"""
+    """
+    Ensures that the tileset name info is loaded
+    """
     global TilesetNames
     if (TilesetNames is not None) and (not reload_): return
 
@@ -315,7 +349,9 @@ def LoadTilesetNames(reload_=False):
             TilesetNames[slot] = newlist
 
 def LoadTilesetNames_Category(node):
-    """Loads a TilesetNames XML category"""
+    """
+    Loads a TilesetNames XML category
+    """
     cat = []
     for child in node:
         if child.tag.lower() == 'category':
@@ -331,7 +367,9 @@ def LoadTilesetNames_Category(node):
     return list(cat)
 
 def CascadeTilesetNames_Category(lower, upper):
-    """Applies upper as a patch of lower"""
+    """
+    Applies upper as a patch of lower
+    """
     lower = list(lower)
     for item in upper:
 
@@ -366,7 +404,9 @@ def CascadeTilesetNames_Category(lower, upper):
     return lower
 
 def SortTilesetNames_Category(cat):
-    """Sorts a tileset names category"""
+    """
+    Sorts a tileset names category
+    """
     cat = list(cat)
 
     # First, remove all category nodes
@@ -392,7 +432,9 @@ def SortTilesetNames_Category(cat):
 
 ObjDesc = None
 def LoadObjDescriptions(reload_=False):
-    """Ensures that the object description is loaded"""
+    """
+    Ensures that the object description is loaded
+    """
     global ObjDesc
     if (ObjDesc is not None) and not reload_: return
 
@@ -416,7 +458,9 @@ def LoadObjDescriptions(reload_=False):
 
 BgANames = None
 def LoadBgANames(reload_=False):
-    """Ensures that the background name info is loaded"""
+    """
+    Ensures that the background name info is loaded
+    """
     global BgANames
     if (BgANames is not None) and not reload_: return
 
@@ -449,7 +493,9 @@ def LoadBgANames(reload_=False):
 
 BgBNames = None
 def LoadBgBNames(reload_=False):
-    """Ensures that the background name info is loaded"""
+    """
+    Ensures that the background name info is loaded
+    """
     global BgBNames
     if (BgBNames is not None) and not reload_: return
 
@@ -481,7 +527,9 @@ def LoadBgBNames(reload_=False):
 
 
 def LoadConstantLists():
-    """Loads some lists of constants"""
+    """
+    Loads some lists of constants
+    """
     global BgScrollRates
     global BgScrollRateStrings
     global ZoneThemeValues
@@ -504,25 +552,35 @@ def LoadConstantLists():
 
 
 class SpriteDefinition():
-    """Stores and manages the data info for a specific sprite"""
+    """
+    Stores and manages the data info for a specific sprite
+    """
 
     class ListPropertyModel(QtCore.QAbstractListModel):
-        """Contains all the possible values for a list property on a sprite"""
+        """
+        Contains all the possible values for a list property on a sprite
+        """
 
         def __init__(self, entries, existingLookup, max):
-            """Constructor"""
+            """
+            Constructor
+            """
             QtCore.QAbstractListModel.__init__(self)
             self.entries = entries
             self.existingLookup = existingLookup
             self.max = max
 
         def rowCount(self, parent=None):
-            """Required by Qt"""
+            """
+            Required by Qt
+            """
             #return self.max
             return len(self.entries)
 
         def data(self, index, role=Qt.DisplayRole):
-            """Get what we have for a specific row"""
+            """
+            Get what we have for a specific row
+            """
             if not index.isValid(): return None
             n = index.row()
             if n < 0: return None
@@ -541,7 +599,9 @@ class SpriteDefinition():
 
 
     def loadFrom(self, elem):
-        """Loads in all the field data from an XML node"""
+        """
+        Loads in all the field data from an XML node
+        """
         self.fields = []
         fields = self.fields
 
@@ -612,7 +672,9 @@ class SpriteDefinition():
 
 
 def LoadSpriteData():
-    """Ensures that the sprite data info is loaded"""
+    """
+    Ensures that the sprite data info is loaded
+    """
     global Sprites
 
     Sprites = [None] * 483
@@ -681,7 +743,9 @@ def LoadSpriteData():
 
 SpriteCategories = None
 def LoadSpriteCategories(reload_=False):
-    """Ensures that the sprite category info is loaded"""
+    """
+    Ensures that the sprite category info is loaded
+    """
     global Sprites, SpriteCategories
     if (SpriteCategories is not None) and not reload_: return
 
@@ -741,7 +805,9 @@ def LoadSpriteCategories(reload_=False):
 
 SpriteListData = None
 def LoadSpriteListData(reload_=False):
-    """Ensures that the sprite list modifier data is loaded"""
+    """
+    Ensures that the sprite list modifier data is loaded
+    """
     global SpriteListData
     if (SpriteListData is not None) and not reload_: return
 
@@ -775,7 +841,9 @@ def LoadSpriteListData(reload_=False):
 
 EntranceTypeNames = None
 def LoadEntranceNames(reload_=False):
-    """Ensures that the entrance names are loaded"""
+    """
+    Ensures that the entrance names are loaded
+    """
     global EntranceTypeNames
     if (EntranceTypeNames is not None) and not reload_: return
 
@@ -797,9 +865,13 @@ def LoadEntranceNames(reload_=False):
 
 
 class ChooseLevelNameDialog(QtWidgets.QDialog):
-    """Dialog which lets you choose a level from a list"""
+    """
+    Dialog which lets you choose a level from a list
+    """
     def __init__(self):
-        """Creates and initializes the dialog"""
+        """
+        Creates and initializes the dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('OpenFromNameDlg', 0))
         self.setWindowIcon(GetIcon('open'))
@@ -839,7 +911,9 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
         self.setMinimumHeight(384)
 
     def ParseCategory(self, items):
-        """Parses a XML category"""
+        """
+        Parses a XML category
+        """
         nodes = []
         for item in items:
             node = QtWidgets.QTreeWidgetItem()
@@ -860,7 +934,9 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
 
     @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, QtWidgets.QTreeWidgetItem)
     def HandleItemChange(self, current, previous):
-        """Catch the selected level and enable/disable OK button as needed"""
+        """
+        Catch the selected level and enable/disable OK button as needed
+        """
         self.currentlevel = current.data(0, Qt.UserRole)
         if self.currentlevel is None:
             self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(False)
@@ -871,7 +947,9 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
 
     @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
     def HandleItemActivated(self, item, column):
-        """Handle a doubleclick on a level"""
+        """
+        Handle a doubleclick on a level
+        """
         self.currentlevel = item.data(0, Qt.UserRole)
         if self.currentlevel is not None:
             self.currentlevel = str(self.currentlevel)
@@ -887,16 +965,22 @@ ObjectDefinitions = None # 4 tilesets
 TilesetsAnimating = False
 
 class ObjectDef():
-    """Class for the object definitions"""
+    """
+    Class for the object definitions
+    """
 
     def __init__(self):
-        """Constructor"""
+        """
+        Constructor
+        """
         self.width = 0
         self.height = 0
         self.rows = []
 
     def load(self, source, offset, tileoffset):
-        """Load an object definition"""
+        """
+        Load an object definition
+        """
         i = offset
         row = []
 
@@ -920,9 +1004,13 @@ class ObjectDef():
 
 
 class TilesetTile():
-    """Class that represents a single tile in a tileset"""
+    """
+    Class that represents a single tile in a tileset
+    """
     def __init__(self, main):
-        """Initializes the TilesetTile"""
+        """
+        Initializes the TilesetTile
+        """
         self.main = main
         self.isAnimated = False
         self.animFrame = 0
@@ -931,7 +1019,9 @@ class TilesetTile():
         self.collOverlay = None
 
     def addAnimationData(self, data):
-        """Applies Newer-style animation data to the tile"""
+        """
+        Applies Newer-style animation data to the tile
+        """
         animTiles = []
         numberOfFrames = len(data) // 2048
         for frame in range(numberOfFrames):
@@ -958,18 +1048,24 @@ class TilesetTile():
         ##self.animTiles.append(tilesPix.copy(0, 0, 31, 31).scaled(24, 24))
 
     def nextFrame(self):
-        """Increments to the next frame"""
+        """
+        Increments to the next frame
+        """
         if not self.isAnimated: return
         self.animFrame += 1
         if self.animFrame == len(self.animTiles):
             self.animFrame = 0
 
     def resetAnimation(self):
-        """Resets the animation frame"""
+        """
+        Resets the animation frame
+        """
         self.animFrame = 0
 
     def getCurrentTile(self):
-        """Returns the current tile based on the current animation frame"""
+        """
+        Returns the current tile based on the current animation frame
+        """
         result = None
         if (not TilesetsAnimating) or (not self.isAnimated): result = self.main
         else: result = self.animTiles[self.animFrame]
@@ -981,20 +1077,28 @@ class TilesetTile():
         return result
 
     def setCollisions(self, colldata):
-        """Sets the collision data for this tile"""
+        """
+        Sets the collision data for this tile
+        """
         self.collData = tuple(colldata)
         self.updateCollisionOverlay()
 
     def setQuestionCollisions(self):
-        """Sets the collision data to that of a question block"""
+        """
+        Sets the collision data to that of a question block
+        """
         self.setCollisions((0,0,0,5,0,0,0,0))
 
     def setBrickCollisions(self):
-        """Sets the collision data to that of a brick block"""
+        """
+        Sets the collision data to that of a brick block
+        """
         self.setCollisions((0,0,0,0x10,0,0,0,0))
 
     def updateCollisionOverlay(self):
-        """Updates the collisions overlay for this pixmap"""
+        """
+        Updates the collisions overlay for this pixmap
+        """
         # This is completely stolen from Puzzle. Only minor
         # changes have been made. Thanks, Treeki!
         CD = self.collData
@@ -1405,7 +1509,9 @@ class TilesetTile():
 
 
 def RenderObject(tileset, objnum, width, height, fullslope=False):
-    """Render a tileset object into an array"""
+    """
+    Render a tileset object into an array
+    """
     # allocate an array
     dest = []
     for i in range(height): dest.append([0]*width)
@@ -1456,7 +1562,9 @@ def RenderObject(tileset, objnum, width, height, fullslope=False):
 
 
 def RenderStandardRow(dest, row, y, width):
-    """Render a row from an object"""
+    """
+    Render a row from an object
+    """
     repeatFound = False
     beforeRepeat = []
     inRepeat = []
@@ -1488,7 +1596,9 @@ def RenderStandardRow(dest, row, y, width):
 
 
 def RenderDiagonalObject(dest, obj, width, height, fullslope):
-    """Render a diagonal object"""
+    """
+    Render a diagonal object
+    """
     # set all to empty tiles
     for row in dest:
         for x in range(width):
@@ -1560,7 +1670,9 @@ def RenderDiagonalObject(dest, obj, width, height, fullslope):
 
 
 def PutObjectArray(dest, xo, yo, block, width, height):
-    """Places a tile array into an object"""
+    """
+    Places a tile array into an object
+    """
     #for y in range(yo,min(yo+len(block),height)):
     for y in range(yo,yo+len(block)):
         if y < 0: continue
@@ -1575,7 +1687,9 @@ def PutObjectArray(dest, xo, yo, block, width, height):
 
 
 def GetSlopeSections(obj):
-    """Sorts the slope data into sections"""
+    """
+    Sorts the slope data into sections
+    """
     sections = []
     currentSection = None
 
@@ -1596,7 +1710,9 @@ def GetSlopeSections(obj):
 
 
 def CreateSection(rows):
-    """Create a slope section"""
+    """
+    Create a slope section
+    """
     # calculate width
     width = 0
     for row in rows:
@@ -1618,7 +1734,9 @@ def CreateSection(rows):
 
 
 def CountTiles(row):
-    """Counts the amount of real tiles in an object row"""
+    """
+    Counts the amount of real tiles in an object row
+    """
     res = 0
     for tile in row:
         if (tile[0] & 0x80) == 0:
@@ -1627,7 +1745,9 @@ def CountTiles(row):
 
 
 def CreateTilesets():
-    """Blank out the tileset arrays"""
+    """
+    Blank out the tileset arrays
+    """
     global Tiles, TilesetFilesLoaded, TilesetAnimTimer, TileBehaviours, ObjectDefinitions
 
     Tiles = [None]*1024
@@ -1650,7 +1770,9 @@ def LoadTileset(idx, name, reload=False):
 
 
 def _LoadTileset(idx, name, reload=False):
-    """Load in a tileset into a specific slot"""
+    """
+    Load in a tileset into a specific slot
+    """
 
     # find the tileset path
     global arcname
@@ -1782,7 +1904,9 @@ def LoadTexture(tiledata):
 
 
 def IncrementTilesetFrame():
-    """Moves each tileset to the next frame"""
+    """
+    Moves each tileset to the next frame
+    """
     if not TilesetsAnimating: return
     for tile in Tiles:
         if tile is not None: tile.nextFrame()
@@ -1830,7 +1954,9 @@ def CheckTilesetAnimated(tileset):
 
 
 def UnloadTileset(idx):
-    """Unload the tileset from a specific slot"""
+    """
+    Unload the tileset from a specific slot
+    """
     for i in range(idx*256, idx*256+256):
         Tiles[i] = None
 
@@ -1839,7 +1965,9 @@ def UnloadTileset(idx):
 
 
 def ProcessOverrides(idx, name):
-    """Load overridden tiles if there are any"""
+    """
+    Load overridden tiles if there are any
+    """
 
     try:
         tsindexes = ['Pa0_jyotyu', 'Pa0_jyotyu_chika', 'Pa0_jyotyu_setsugen', 'Pa0_jyotyu_yougan', 'Pa0_jyotyu_staffRoll']
@@ -2072,7 +2200,9 @@ def ProcessOverrides(idx, name):
 
 
 def LoadOverrides():
-    """Load overrides"""
+    """
+    Load overrides
+    """
     global Overrides
     Overrides = [None]*320
 
@@ -2103,7 +2233,9 @@ def LoadOverrides():
 
 
 def SetAppStyle():
-    """Set the application window color"""
+    """
+    Set the application window color
+    """
     global app
     global theme
 
@@ -2158,7 +2290,9 @@ def createVertLine():
     return f
 
 def LoadNumberFont():
-    """Creates a valid font we can use to display the item numbers"""
+    """
+    Creates a valid font we can use to display the item numbers
+    """
     global NumberFont
     if NumberFont is not None: return
 
@@ -2187,7 +2321,9 @@ def SetDirty(noautosave=False):
 
 
 def MapPositionToZoneID(zones, x, y, useid=False):
-    """Returns the zone ID containing or nearest the specified position"""
+    """
+    Returns the zone ID containing or nearest the specified position
+    """
     id = 0
     minimumdist = -1
     rval = -1
@@ -2216,7 +2352,9 @@ def MapPositionToZoneID(zones, x, y, useid=False):
 
 
 class Metadata():
-    """Class for the new level metadata system"""
+    """
+    Class for the new level metadata system
+    """
     # This new system is much more useful and flexible than the old
     # system, but is incompatible with older versions of Reggie.
     # They will fail to understand the data, and skip it like it
@@ -2233,7 +2371,9 @@ class Metadata():
     # Theoretical limit to type values is 4,294,967,296
 
     def __init__(self, data=None):
-        """Creates a metadata object with the data given"""
+        """
+        Creates a metadata object with the data given
+        """
         self.DataDict = {}
         if data is None: return
 
@@ -2298,11 +2438,15 @@ class Metadata():
 
 
     def binData(self, key):
-        """Returns the binary data associated with key"""
+        """
+        Returns the binary data associated with key
+        """
         return self.otherData(key, 0)
 
     def strData(self, key):
-        """Returns the string data associated with key"""
+        """
+        Returns the string data associated with key
+        """
         data = self.otherData(key, 1)
         if data is None: return
         s = ''
@@ -2310,28 +2454,38 @@ class Metadata():
         return s
 
     def otherData(self, key, type):
-        """Returns unknown data, with the given type value, associated with key (as binary data)"""
+        """
+        Returns unknown data, with the given type value, associated with key (as binary data)
+        """
         if key not in self.DataDict: return
         if type not in self.DataDict[key]: return
         return self.DataDict[key][type]
 
     def setBinData(self, key, value):
-        """Sets binary data, overwriting any existing binary data with that key"""
+        """
+        Sets binary data, overwriting any existing binary data with that key
+        """
         self.setOtherData(key, 0, value)
 
     def setStrData(self, key, value):
-        """Sets string data, overwriting any existing string data with that key"""
+        """
+        Sets string data, overwriting any existing string data with that key
+        """
         data = []
         for char in value: data.append(ord(char))
         self.setOtherData(key, 1, data)
 
     def setOtherData(self, key, type, value):
-        """Sets other (binary) data, overwriting any existing data with that key and type"""
+        """
+        Sets other (binary) data, overwriting any existing data with that key and type
+        """
         if key not in self.DataDict: self.DataDict[key] = {}
         self.DataDict[key][type] = value
 
     def save(self):
-        """Returns a bytes object that can later be loaded from"""
+        """
+        Returns a bytes object that can later be loaded from
+        """
 
         # Sort self.DataDict
         dataDictSorted = []
@@ -3219,19 +3373,25 @@ class AreaUnit():
 
 
 class LevelEditorItem(QtWidgets.QGraphicsItem):
-    """Class for any type of item that can show up in the level editor control"""
+    """
+    Class for any type of item that can show up in the level editor control
+    """
     positionChanged = None # Callback: positionChanged(LevelEditorItem obj, int oldx, int oldy, int x, int y)
     autoPosChange = False
     dragoffsetx = 0
     dragoffsety = 0
 
     def __init__(self):
-        """Generic constructor for level editor items"""
+        """
+        Generic constructor for level editor items
+        """
         QtWidgets.QGraphicsItem.__init__(self)
         self.setFlag(self.ItemSendsGeometryChanges, True)
 
     def itemChange(self, change, value):
-        """Makes sure positions don't go out of bounds and updates them as necessary"""
+        """
+        Makes sure positions don't go out of bounds and updates them as necessary
+        """
 
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             # snap to 24x24
@@ -3307,15 +3467,21 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
         return QtWidgets.QGraphicsItem.itemChange(self, change, value)
 
     def boundingRect(self):
-        """Required for Qt"""
+        """
+        Required for Qt
+        """
         return self.BoundingRect
 
 
 class ObjectItem(LevelEditorItem):
-    """Level editor item that represents an ingame object"""
+    """
+    Level editor item that represents an ingame object
+    """
 
     def __init__(self, tileset, type, layer, x, y, width, height, z):
-        """Creates an object with specific data"""
+        """
+        Creates an object with specific data
+        """
         LevelEditorItem.__init__(self)
 
         self.tileset = tileset
@@ -3356,7 +3522,9 @@ class ObjectItem(LevelEditorItem):
 
 
     def SetType(self, tileset, type):
-        """Sets the type of the object"""
+        """
+        Sets the type of the object
+        """
         self.tileset = tileset
         self.type = type
         self.updateObjCache()
@@ -3365,17 +3533,23 @@ class ObjectItem(LevelEditorItem):
         self.UpdateTooltip()
 
     def UpdateTooltip(self):
-        """Updates the tooltip"""
+        """
+        Updates the tooltip
+        """
         self.setToolTip(trans.string('Objects', 0, '[tileset]', self.tileset+1, '[obj]', self.type, '[width]', self.width, '[height]', self.height, '[layer]', self.layer))
 
 
     def updateObjCache(self):
-        """Updates the rendered object data"""
+        """
+        Updates the rendered object data
+        """
         self.objdata = RenderObject(self.tileset, self.type, self.width, self.height)
 
 
     def UpdateRects(self):
-        """Recreates the bounding and selection rects"""
+        """
+        Recreates the bounding and selection rects
+        """
         self.prepareGeometryChange()
         self.BoundingRect = QtCore.QRectF(0, 0, 24 * self.width, 24 * self.height)
         self.SelectionRect = QtCore.QRectF(0, 0, (24 * self.width) - 1, (24 * self.height) - 1)
@@ -3384,7 +3558,9 @@ class ObjectItem(LevelEditorItem):
 
 
     def itemChange(self, change, value):
-        """Makes sure positions don't go out of bounds and updates them as necessary"""
+        """
+        Makes sure positions don't go out of bounds and updates them as necessary
+        """
 
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             scene = self.scene()
@@ -3430,7 +3606,9 @@ class ObjectItem(LevelEditorItem):
 
 
     def paint(self, painter, option, widget):
-        """Paints the object"""
+        """
+        Paints the object
+        """
         global theme
 
         if self.isSelected():
@@ -3442,7 +3620,9 @@ class ObjectItem(LevelEditorItem):
 
 
     def mousePressEvent(self, event):
-        """Overrides mouse pressing events if needed for resizing"""
+        """
+        Overrides mouse pressing events if needed for resizing
+        """
         if event.button() == Qt.LeftButton:
             if QtWidgets.QApplication.keyboardModifiers() == Qt.ControlModifier:
                 layer = Area.layers[self.layer]
@@ -3479,7 +3659,9 @@ class ObjectItem(LevelEditorItem):
 
 
     def mouseMoveEvent(self, event):
-        """Overrides mouse movement events if needed for resizing"""
+        """
+        Overrides mouse movement events if needed for resizing
+        """
         if event.buttons() != Qt.NoButton and self.dragging:
             # resize it
             dsx = self.dragstartx
@@ -3527,16 +3709,22 @@ class ObjectItem(LevelEditorItem):
 
 
     def delete(self):
-        """Delete the object from the level"""
+        """
+        Delete the object from the level
+        """
         Area.RemoveFromLayer(self)
         self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
 
 
 class ZoneItem(LevelEditorItem):
-    """Level editor item that represents a zone"""
+    """
+    Level editor item that represents a zone
+    """
 
     def __init__(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, boundings, bgA, bgB, id):
-        """Creates a zone with specific data"""
+        """
+        Creates a zone with specific data
+        """
         LevelEditorItem.__init__(self)
 
         self.font = NumberFont
@@ -3616,12 +3804,16 @@ class ZoneItem(LevelEditorItem):
 
 
     def UpdateTitle(self):
-        """Updates the zone's title"""
+        """
+        Updates the zone's title
+        """
         self.title = trans.string('Zones', 0, '[num]', self.id+1)
 
 
     def UpdateRects(self):
-        """Updates the zone's bounding rectangle"""
+        """
+        Updates the zone's bounding rectangle
+        """
         if hasattr(mainWindow, 'ZoomLevel'):
             grabberWidth = 500 / mainWindow.ZoomLevel
             if grabberWidth < 5: grabberWidth = 5
@@ -3638,7 +3830,9 @@ class ZoneItem(LevelEditorItem):
 
 
     def paint(self, painter, option, widget):
-        """Paints the zone on screen"""
+        """
+        Paints the zone on screen
+        """
         global theme
 
         #painter.setClipRect(option.exposedRect)
@@ -3673,7 +3867,9 @@ class ZoneItem(LevelEditorItem):
 
 
     def mousePressEvent(self, event):
-        """Overrides mouse pressing events if needed for resizing"""
+        """
+        Overrides mouse pressing events if needed for resizing
+        """
 
         if self.GrabberRectTL.contains(event.pos()):
             # start dragging
@@ -3706,7 +3902,9 @@ class ZoneItem(LevelEditorItem):
 
 
     def mouseMoveEvent(self, event):
-        """Overrides mouse movement events if needed for resizing"""
+        """
+        Overrides mouse movement events if needed for resizing
+        """
 
         if event.buttons() != Qt.NoButton and self.dragging:
             # resize it
@@ -3800,15 +3998,21 @@ class ZoneItem(LevelEditorItem):
             LevelEditorItem.mouseMoveEvent(self, event)
 
     def itemChange(self, change, value):
-        """Avoids snapping for zones"""
+        """
+        Avoids snapping for zones
+        """
         return QtWidgets.QGraphicsItem.itemChange(self, change, value)
 
 class LocationItem(LevelEditorItem):
-    """Level editor item that represents a sprite location"""
+    """
+    Level editor item that represents a sprite location
+    """
     sizeChanged = None # Callback: sizeChanged(SpriteItem obj, int width, int height)
 
     def __init__(self, x, y, width, height, id):
-        """Creates a location with specific data"""
+        """
+        Creates a location with specific data
+        """
         LevelEditorItem.__init__(self)
 
         self.font = NumberFont
@@ -3839,18 +4043,24 @@ class LocationItem(LevelEditorItem):
 
 
     def ListString(self):
-        """Returns a string that can be used to describe the location in a list"""
+        """
+        Returns a string that can be used to describe the location in a list
+        """
         return trans.string('Locations', 2, '[id]', self.id, '[width]', int(self.width), '[height]', int(self.height), '[x]', int(self.objx), '[y]', int(self.objy))
 
 
     def UpdateTitle(self):
-        """Updates the location's title"""
+        """
+        Updates the location's title
+        """
         self.title = trans.string('Locations', 0, '[id]', self.id)
         self.UpdateListString()
 
 
     def UpdateRects(self):
-        """Updates the location's bounding rectangle"""
+        """
+        Updates the location's bounding rectangle
+        """
         self.prepareGeometryChange()
         if self.width == 0: self.width == 1
         if self.height == 0: self.height == 1
@@ -3863,7 +4073,9 @@ class LocationItem(LevelEditorItem):
 
 
     def paint(self, painter, option, widget):
-        """Paints the location on screen"""
+        """
+        Paints the location on screen
+        """
         global theme
 
         painter.setClipRect(option.exposedRect)
@@ -3885,7 +4097,9 @@ class LocationItem(LevelEditorItem):
 
 
     def mousePressEvent(self, event):
-        """Overrides mouse pressing events if needed for resizing"""
+        """
+        Overrides mouse pressing events if needed for resizing
+        """
         if self.isSelected() and self.GrabberRect.contains(event.pos()):
             # start dragging
             self.dragging = True
@@ -3898,7 +4112,9 @@ class LocationItem(LevelEditorItem):
 
 
     def mouseMoveEvent(self, event):
-        """Overrides mouse movement events if needed for resizing"""
+        """
+        Overrides mouse movement events if needed for resizing
+        """
         if event.buttons() != Qt.NoButton and self.dragging:
             # resize it
             dsx = self.dragstartx
@@ -3937,7 +4153,9 @@ class LocationItem(LevelEditorItem):
 
 
     def delete(self):
-        """Delete the location from the level"""
+        """
+        Delete the location from the level
+        """
         loclist = mainWindow.locationList
         mainWindow.UpdateFlag = True
         loclist.takeItem(loclist.row(self.listitem))
@@ -3950,12 +4168,16 @@ class LocationItem(LevelEditorItem):
 
 
 class SpriteItem(LevelEditorItem):
-    """Level editor item that represents a sprite"""
+    """
+    Level editor item that represents a sprite
+    """
     BoundingRect = QtCore.QRectF(0, 0, 24, 24)
     SelectionRect = QtCore.QRectF(0, 0, 23, 23)
 
     def __init__(self, type, x, y, data):
-        """Creates a sprite with specific data"""
+        """
+        Creates a sprite with specific data
+        """
         LevelEditorItem.__init__(self)
 
         self.font = NumberFont
@@ -3990,7 +4212,9 @@ class SpriteItem(LevelEditorItem):
         if self.listitem is not None: self.listitem.setText(self.ListString())
 
     def SetType(self, type):
-        """Sets the type of the sprite"""
+        """
+        Sets the type of the sprite
+        """
         self.name = Sprites[type].name
         self.setToolTip(trans.string('Sprites', 0, '[type]', type, '[name]', self.name))
         self.type = type
@@ -4000,7 +4224,9 @@ class SpriteItem(LevelEditorItem):
         self.listitem.setText(self.ListString())
 
     def ListString(self):
-        """Returns a string that can be used to describe the sprite in a list"""
+        """
+        Returns a string that can be used to describe the sprite in a list
+        """
         baseString = trans.string('Sprites', 1, '[name]', self.name, '[x]', self.objx, '[y]', self.objy)
 
         global SpriteListData
@@ -4103,7 +4329,9 @@ class SpriteItem(LevelEditorItem):
         return baseString
 
     def InitializeSprite(self):
-        """Initializes sprite and creates any auxiliary objects needed"""
+        """
+        Initializes sprite and creates any auxiliary objects needed
+        """
         global prefs
 
         type = self.type
@@ -4141,7 +4369,9 @@ class SpriteItem(LevelEditorItem):
         if self.scene() is not None: self.scene().update()
 
     def UpdateDynamicSizing(self):
-        """Updates the sizes for dynamically sized sprites"""
+        """
+        Updates the sizes for dynamically sized sprites
+        """
         CurrentRect = QtCore.QRectF(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
         CurrentAuxRects = []
         for auxObj in self.ImageObj.aux:
@@ -4170,7 +4400,9 @@ class SpriteItem(LevelEditorItem):
 
 
     def UpdateRects(self):
-        """Creates all the rectangles for the sprite"""
+        """
+        Creates all the rectangles for the sprite
+        """
         type = self.type
 
         self.prepareGeometryChange()
@@ -4225,7 +4457,9 @@ class SpriteItem(LevelEditorItem):
             )
 
     def itemChange(self, change, value):
-        """Makes sure positions don't go out of bounds and updates them as necessary"""
+        """
+        Makes sure positions don't go out of bounds and updates them as necessary
+        """
 
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             if self.scene() is None: return value
@@ -4324,7 +4558,9 @@ class SpriteItem(LevelEditorItem):
         return QtWidgets.QGraphicsItem.itemChange(self, change, value)
 
     def mousePressEvent(self, event):
-        """Overrides mouse pressing events if needed for cloning"""
+        """
+        Overrides mouse pressing events if needed for cloning
+        """
         if event.button() == Qt.LeftButton:
             if QtWidgets.QApplication.keyboardModifiers() == Qt.ControlModifier:
                 newitem = SpriteItem(self.type, self.objx, self.objy, self.spritedata)
@@ -4340,7 +4576,9 @@ class SpriteItem(LevelEditorItem):
         LevelEditorItem.mousePressEvent(self, event)
 
     def getZone(self, obj = False):
-        """Calls a modified MapPositionToZoneID (if obj = True, it returns the actual ZoneItem object)"""
+        """
+        Calls a modified MapPositionToZoneID (if obj = True, it returns the actual ZoneItem object)
+        """
         if not hasattr(Area, 'zones'): return None
         id = MapPositionToZoneID(Area.zones, self.objx, self.objy, True)
         if obj:
@@ -4349,7 +4587,9 @@ class SpriteItem(LevelEditorItem):
         else: return id
 
     def updateScene(self):
-        """Calls self.scene().update()"""
+        """
+        Calls self.scene().update()
+        """
         # Some of the more advanced painters need to update the whole scene
         # and this is a convenient way to do it:
         # self.parent.updateScene()
@@ -4357,7 +4597,9 @@ class SpriteItem(LevelEditorItem):
 
 
     def paint(self, painter, option, widget):
-        """Paints the sprite"""
+        """
+        Paints the sprite
+        """
 
         # Setup stuff
         painter.setClipRect(option.exposedRect)
@@ -4402,11 +4644,15 @@ class SpriteItem(LevelEditorItem):
 
 
     def scene(self):
-        """Solves a small bug"""
+        """
+        Solves a small bug
+        """
         return mainWindow.scene
 
     def delete(self):
-        """Delete the sprite from the level"""
+        """
+        Delete the sprite from the level
+        """
         sprlist = mainWindow.spriteList
         mainWindow.UpdateFlag = True
         sprlist.takeItem(sprlist.row(self.listitem))
@@ -4418,7 +4664,9 @@ class SpriteItem(LevelEditorItem):
 
 
 class EntranceItem(LevelEditorItem):
-    """Level editor item that represents an entrance"""
+    """
+    Level editor item that represents an entrance
+    """
     BoundingRect = QtCore.QRectF(0, 0, 24, 24)
     RoundedRect = QtCore.QRectF(1, 1, 22, 22)
     EntranceImages = None
@@ -4508,7 +4756,9 @@ class EntranceItem(LevelEditorItem):
             return self.BoundingRect
 
     def __init__(self, x, y, id, destarea, destentrance, type, zone, layer, path, settings, cpd):
-        """Creates an entrance with specific data"""
+        """
+        Creates an entrance with specific data
+        """
         if EntranceItem.EntranceImages is None:
             ei = []
             src = QtGui.QPixmap('reggiedata/entrances.png')
@@ -4548,7 +4798,9 @@ class EntranceItem(LevelEditorItem):
         self.TypeChange()
 
     def UpdateTooltip(self):
-        """Updates the entrance object's tooltip"""
+        """
+        Updates the entrance object's tooltip
+        """
         if self.enttype >= len(EntranceTypeNames):
             name = trans.string('Entrances', 1)
         else:
@@ -4567,7 +4819,9 @@ class EntranceItem(LevelEditorItem):
         self.setToolTip(trans.string('Entrances', 0, '[ent]', self.entid, '[type]', name, '[dest]', destination))
 
     def ListString(self):
-        """Returns a string that can be used to describe the entrance in a list"""
+        """
+        Returns a string that can be used to describe the entrance in a list
+        """
         if self.enttype >= len(EntranceTypeNames):
             name = trans.string('Entrances', 1)
         else:
@@ -4579,7 +4833,9 @@ class EntranceItem(LevelEditorItem):
             return trans.string('Entrances', 6, '[id]', self.entid, '[name]', name, '[x]', self.objx, '[y]', self.objy)
 
     def TypeChange(self):
-        """Handles the entrance's type changing"""
+        """
+        Handles the entrance's type changing
+        """
 
         # Determine the size and position of the entrance
         x, y, w, h = 0, 0, 1, 1
@@ -4601,7 +4857,9 @@ class EntranceItem(LevelEditorItem):
         self.aux.TypeChange()
 
     def paint(self, painter, option, widget):
-        """Paints the entrance"""
+        """
+        Paints the entrance
+        """
         global theme
 
         painter.setClipRect(option.exposedRect)
@@ -4644,7 +4902,9 @@ class EntranceItem(LevelEditorItem):
         painter.drawText(3, 12, str(self.entid))
 
     def delete(self):
-        """Delete the entrance from the level"""
+        """
+        Delete the entrance from the level
+        """
         elist = mainWindow.entranceList
         mainWindow.UpdateFlag = True
         elist.takeItem(elist.row(self.listitem))
@@ -4671,14 +4931,18 @@ class EntranceItem(LevelEditorItem):
         return super().itemChange(change, value)
 
 class PathItem(LevelEditorItem):
-    """Level editor item that represents a pathnode"""
+    """
+    Level editor item that represents a pathnode
+    """
     BoundingRect = QtCore.QRectF(0, 0, 24, 24)
     SelectionRect = QtCore.QRectF(0, 0, 23, 23)
     RoundedRect = QtCore.QRectF(1, 1, 22, 22)
 
 
     def __init__(self, objx, objy, nobjx, nobjy, pathinfo, nodeinfo):
-        """Creates a path with specific data"""
+        """
+        Creates a path with specific data
+        """
 
         global mainWindow
         LevelEditorItem.__init__(self)
@@ -4709,20 +4973,28 @@ class PathItem(LevelEditorItem):
         self.nodeinfo['graphicsitem'] = self
 
     def UpdateTooltip(self):
-        """Updates the path object's tooltip"""
+        """
+        Updates the path object's tooltip
+        """
         self.setToolTip(trans.string('Paths', 0, '[path]', self.pathid, '[node]', self.nodeid))
 
     def ListString(self):
-        """Returns a string that can be used to describe the entrance in a list"""
+        """
+        Returns a string that can be used to describe the entrance in a list
+        """
         return trans.string('Paths', 1, '[path]', self.pathid, '[node]', self.nodeid)
 
     def updatePos(self):
-        """Our x/y was changed, update pathinfo"""
+        """
+        Our x/y was changed, update pathinfo
+        """
         self.pathinfo['nodes'][self.nodeid]['x'] = self.objx
         self.pathinfo['nodes'][self.nodeid]['y'] = self.objy
 
     def updateId(self):
-        """Path was changed, find our new nodeid"""
+        """
+        Path was changed, find our new nodeid
+        """
         # called when 1. add node 2. delete node 3. change node order
         # hacky code but it works. considering how pathnodes are stored.
         self.nodeid = self.pathinfo['nodes'].index(self.nodeinfo)
@@ -4733,7 +5005,9 @@ class PathItem(LevelEditorItem):
         # if node doesn't exist, let Reggie implode!
 
     def paint(self, painter, option, widget):
-        """Paints the object"""
+        """
+        Paints the object
+        """
         global theme
 
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -4761,7 +5035,9 @@ class PathItem(LevelEditorItem):
             pass
 
     def delete(self):
-        """Delete the path from the level"""
+        """
+        Delete the path from the level
+        """
         global mainWindow
         plist = mainWindow.pathList
         mainWindow.UpdateFlag = True
@@ -4784,11 +5060,15 @@ class PathItem(LevelEditorItem):
 
 
 class PathEditorLineItem(LevelEditorItem):
-    """Level editor item to draw a line between two pathnodes"""
+    """
+    Level editor item to draw a line between two pathnodes
+    """
     BoundingRect = QtCore.QRectF(0, 0, 1, 1) # compute later
 
     def __init__(self, nodelist):
-        """Creates a path with specific data"""
+        """
+        Creates a path with specific data
+        """
 
         global mainWindow
         LevelEditorItem.__init__(self)
@@ -4805,11 +5085,15 @@ class PathEditorLineItem(LevelEditorItem):
         self.UpdateTooltip()
 
     def UpdateTooltip(self):
-        """For compatibility, just in case"""
+        """
+        For compatibility, just in case
+        """
         self.setToolTip('')
 
     def ListString(self):
-        """Returns an empty string"""
+        """
+        Returns an empty string
+        """
         return ''
 
     def nodePosChanged(self):
@@ -4837,7 +5121,9 @@ class PathEditorLineItem(LevelEditorItem):
 
 
     def paint(self, painter, option, widget):
-        """Paints the path lines"""
+        """
+        Paints the path lines
+        """
         global theme
 
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -4867,19 +5153,25 @@ class PathEditorLineItem(LevelEditorItem):
 
 
     def delete(self):
-        """Delete the line from the level"""
+        """
+        Delete the line from the level
+        """
         self.scene().update()
 
 
 
 class CommentItem(LevelEditorItem):
-    """Level editor item that represents a in-level comment"""
+    """
+    Level editor item that represents a in-level comment
+    """
     BoundingRect = QtCore.QRectF(-8, -8, 48, 48)
     SelectionRect = QtCore.QRectF(-4, -4, 4, 4)
     Circle = QtCore.QRectF(0, 0, 32, 32)
 
     def __init__(self, x, y, text=''):
-        """Creates a in-level comment"""
+        """
+        Creates a in-level comment
+        """
         LevelEditorItem.__init__(self)
         zval = 50000
         self.zval = zval
@@ -4916,18 +5208,24 @@ class CommentItem(LevelEditorItem):
 
 
     def UpdateTooltip(self):
-        """For compatibility, just in case"""
+        """
+        For compatibility, just in case
+        """
         self.setToolTip(trans.string('Comments', 1, '[x]', self.objx, '[y]', self.objy))
 
 
     def ListString(self):
-        """Returns a string that can be used to describe the comment in a list"""
+        """
+        Returns a string that can be used to describe the comment in a list
+        """
         t = self.OneLineText()
         return trans.string('Comments', 0, '[x]', self.objx, '[y]', self.objy, '[text]', t)
 
 
     def OneLineText(self):
-        """Returns the text of this comment in a format that can be written on one line"""
+        """
+        Returns the text of this comment in a format that can be written on one line
+        """
         t = str(self.text)
         if t.replace(' ', '').replace('\n', '') == '': t = trans.string('Comments', 3)
         while '\n\n' in t: t = t.replace('\n\n', '\n')
@@ -4942,7 +5240,9 @@ class CommentItem(LevelEditorItem):
 
 
     def paint(self, painter, option, widget):
-        """Paints the comment"""
+        """
+        Paints the comment
+        """
         global theme
 
         painter.setClipRect(option.exposedRect)
@@ -4986,16 +5286,22 @@ class CommentItem(LevelEditorItem):
             self.TextEdit.setVisible(shouldBeVisible)
 
     def handleTextChanged(self):
-        """Handles the text being changed"""
+        """
+        Handles the text being changed
+        """
         self.text = str(self.TextEdit.toPlainText())
         if hasattr(self, 'textChanged'): self.textChanged(self)
 
     def reposTextEdit(self):
-        """Repositions the text edit"""
+        """
+        Repositions the text edit
+        """
         self.TextEditProxy.setPos((self.objx * 3/2) + 24, (self.objy * 3/2) + 16)
 
     def handlePosChange(self, oldx, oldy):
-        """Handles the position changing"""
+        """
+        Handles the position changing
+        """
         self.reposTextEdit()
 
         # Manual scene update :(
@@ -5008,7 +5314,9 @@ class CommentItem(LevelEditorItem):
 
 
     def delete(self):
-        """Delete the comment from the level"""
+        """
+        Delete the comment from the level
+        """
         clist = mainWindow.commentList
         mainWindow.UpdateFlag = True
         clist.takeItem(clist.row(self.listitem))
@@ -5025,11 +5333,15 @@ class CommentItem(LevelEditorItem):
 
 
 class LevelOverviewWidget(QtWidgets.QWidget):
-    """Widget that shows an overview of the level and can be clicked to move the view"""
+    """
+    Widget that shows an overview of the level and can be clicked to move the view
+    """
     moveIt = QtCore.pyqtSignal(int, int)
 
     def __init__(self):
-        """Constructor for the level overview widget"""
+        """
+        Constructor for the level overview widget
+        """
         global theme
 
         QtWidgets.QWidget.__init__(self)
@@ -5056,7 +5368,9 @@ class LevelOverviewWidget(QtWidgets.QWidget):
         self.mainWindowScale = 1
 
     def Reset(self):
-        """Resets the max and scale variables"""
+        """
+        Resets the max and scale variables
+        """
         self.scale = 0.375
         self.maxX = 1
         self.maxY = 1
@@ -5064,25 +5378,33 @@ class LevelOverviewWidget(QtWidgets.QWidget):
         self.Rescale()
 
     def CalcSize(self):
-        """Calculates all the required sizes for this scale"""
+        """
+        Calculates all the required sizes for this scale
+        """
         self.posmult = 24.0 / self.scale
 
     def mouseMoveEvent(self, event):
-        """Handles mouse movement over the widget"""
+        """
+        Handles mouse movement over the widget
+        """
         QtWidgets.QWidget.mouseMoveEvent(self, event)
 
         if event.buttons() == Qt.LeftButton:
             self.moveIt.emit(event.pos().x() * self.posmult, event.pos().y() * self.posmult)
 
     def mousePressEvent(self, event):
-        """Handles mouse pressing events over the widget"""
+        """
+        Handles mouse pressing events over the widget
+        """
         QtWidgets.QWidget.mousePressEvent(self, event)
 
         if event.button() == Qt.LeftButton:
             self.moveIt.emit(event.pos().x() * self.posmult, event.pos().y() * self.posmult)
 
     def paintEvent(self, event):
-        """Paints the level overview widget"""
+        """
+        Paints the level overview widget
+        """
         global theme
 
         if not hasattr(Area, 'layers'):
@@ -5191,10 +5513,14 @@ class LevelOverviewWidget(QtWidgets.QWidget):
 
 
 class ObjectPickerWidget(QtWidgets.QListView):
-    """Widget that shows a list of available objects"""
+    """
+    Widget that shows a list of available objects
+    """
 
     def __init__(self):
-        """Initializes the widget"""
+        """
+        Initializes the widget
+        """
 
         QtWidgets.QListView.__init__(self)
         self.setFlow(QtWidgets.QListView.LeftToRight)
@@ -5214,14 +5540,18 @@ class ObjectPickerWidget(QtWidgets.QListView):
         self.clicked.connect(self.HandleObjReplace)
 
     def LoadFromTilesets(self):
-        """Renders all the object previews"""
+        """
+        Renders all the object previews
+        """
         self.m0.LoadFromTileset(0)
         self.m1.LoadFromTileset(1)
         self.m2.LoadFromTileset(2)
         self.m3.LoadFromTileset(3)
 
     def ShowTileset(self, id):
-        """Shows a specific tileset in the picker"""
+        """
+        Shows a specific tileset in the picker
+        """
         sel = self.currentIndex().row()
         if id == 0: self.setModel(self.m0)
         if id == 1: self.setModel(self.m1)
@@ -5231,12 +5561,16 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
     @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QModelIndex)
     def currentChanged(self, current, previous):
-        """Throws a signal when the selected object changed"""
+        """
+        Throws a signal when the selected object changed
+        """
         self.ObjChanged.emit(current.row())
 
     @QtCore.pyqtSlot(QtCore.QModelIndex)
     def HandleObjReplace(self, index):
-        """Throws a signal when the selected object is used as a replacement"""
+        """
+        Throws a signal when the selected object is used as a replacement
+        """
         if QtWidgets.QApplication.keyboardModifiers() == Qt.AltModifier:
             self.ObjReplace.emit(index.row())
 
@@ -5245,14 +5579,20 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
 
     class ObjectItemDelegate(QtWidgets.QAbstractItemDelegate):
-        """Handles tileset objects and their rendering"""
+        """
+        Handles tileset objects and their rendering
+        """
 
         def __init__(self):
-            """Initializes the delegate"""
+            """
+            Initializes the delegate
+            """
             QtWidgets.QAbstractItemDelegate.__init__(self)
 
         def paint(self, painter, option, index):
-            """Paints an object"""
+            """
+            Paints an object
+            """
             if option.state & QtWidgets.QStyle.State_Selected:
                 painter.fillRect(option.rect, option.palette.highlight())
 
@@ -5261,17 +5601,23 @@ class ObjectPickerWidget(QtWidgets.QListView):
             #painter.drawText(option.rect, str(index.row()))
 
         def sizeHint(self, option, index):
-            """Returns the size for the object"""
+            """
+            Returns the size for the object
+            """
             p = index.model().data(index, Qt.UserRole)
             return p
             #return QtCore.QSize(76,76)
 
 
     class ObjectListModel(QtCore.QAbstractListModel):
-        """Model containing all the objects in a tileset"""
+        """
+        Model containing all the objects in a tileset
+        """
 
         def __init__(self):
-            """Initializes the model"""
+            """
+            Initializes the model
+            """
             self.items = []
             self.ritems = []
             self.itemsize = []
@@ -5282,11 +5628,15 @@ class ObjectPickerWidget(QtWidgets.QListView):
             #    self.ritems.append(None)
 
         def rowCount(self, parent=None):
-            """Required by Qt"""
+            """
+            Required by Qt
+            """
             return len(self.items)
 
         def data(self, index, role=Qt.DisplayRole):
-            """Get what we have for a specific row"""
+            """
+            Get what we have for a specific row
+            """
             if not index.isValid(): return None
             n = index.row()
             if n < 0: return None
@@ -5307,7 +5657,9 @@ class ObjectPickerWidget(QtWidgets.QListView):
             return None
 
         def LoadFromTileset(self, idx):
-            """Renders all the object previews for the model"""
+            """
+            Renders all the object previews for the model
+            """
             if ObjectDefinitions[idx] is None: return
 
             self.beginResetModel()
@@ -5358,10 +5710,14 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
 
 class StampChooserWidget(QtWidgets.QListView):
-    """Widget that shows a list of available stamps"""
+    """
+    Widget that shows a list of available stamps
+    """
     stampChanged = QtCore.pyqtSignal()
     def __init__(self):
-        """Initializes the widget"""
+        """
+        Initializes the widget
+        """
         QtWidgets.QListView.__init__(self)
 
         self.setFlow(QtWidgets.QListView.LeftToRight)
@@ -5377,26 +5733,38 @@ class StampChooserWidget(QtWidgets.QListView):
 
 
     class StampItemDelegate(QtWidgets.QStyledItemDelegate):
-        """Handles stamp rendering"""
+        """
+        Handles stamp rendering
+        """
 
         def __init__(self):
-            """Initializes the delegate"""
+            """
+            Initializes the delegate
+            """
             QtWidgets.QStyledItemDelegate.__init__(self)
 
         def createEditor(self, parent, option, index):
-            """Creates a stamp name editor"""
+            """
+            Creates a stamp name editor
+            """
             return QtWidgets.QLineEdit(parent)
 
         def setEditorData(self, editor, index):
-            """Sets the data for the stamp name editor from the data at index"""
+            """
+            Sets the data for the stamp name editor from the data at index
+            """
             editor.setText(index.model().data(index, Qt.UserRole + 1))
 
         def setModelData(self, editor, model, index):
-            """Set the data in the model for the data at index"""
+            """
+            Set the data in the model for the data at index
+            """
             index.model().setData(index, editor.text())
 
         def paint(self, painter, option, index):
-            """Paints a stamp"""
+            """
+            Paints a stamp
+            """
 
             if option.state & QtWidgets.QStyle.State_Selected:
                 painter.fillRect(option.rect, option.palette.highlight())
@@ -5412,23 +5780,31 @@ class StampChooserWidget(QtWidgets.QListView):
             return
 
         def sizeHint(self, option, index):
-            """Returns the size for the stamp"""
+            """
+            Returns the size for the stamp
+            """
             p = index.model().data(index, Qt.UserRole)
             return p
 
 
     def addStamp(self, stamp):
-        """Adds a stamp"""
+        """
+        Adds a stamp
+        """
         self.model.addStamp(stamp)
 
 
     def removeStamp(self, stamp):
-        """Removes a stamp"""
+        """
+        Removes a stamp
+        """
         self.model.removeStamp(stamp)
 
 
     def currentlySelectedStamp(self):
-        """Returns the currently selected stamp"""
+        """
+        Returns the currently selected stamp
+        """
         idxobj = self.currentIndex()
         if idxobj.row() == -1: return
         return self.model.items[idxobj.row()]
@@ -5437,20 +5813,28 @@ class StampChooserWidget(QtWidgets.QListView):
 
 
 class StampListModel(QtCore.QAbstractListModel):
-    """Model containing all the stamps"""
+    """
+    Model containing all the stamps
+    """
 
     def __init__(self):
-        """Initializes the model"""
+        """
+        Initializes the model
+        """
         QtCore.QAbstractListModel.__init__(self)
 
         self.items = [] # list of Stamp objects
 
     def rowCount(self, parent=None):
-        """Required by Qt"""
+        """
+        Required by Qt
+        """
         return len(self.items)
 
     def data(self, index, role=Qt.DisplayRole):
-        """Get what we have for a specific row"""
+        """
+        Get what we have for a specific row
+        """
         if not index.isValid(): return None
         n = index.row()
         if n < 0: return None
@@ -5475,7 +5859,9 @@ class StampListModel(QtCore.QAbstractListModel):
         else: return None
 
     def addStamp(self, stamp):
-        """Adds a stamp"""
+        """
+        Adds a stamp
+        """
 
         # Start resetting
         self.beginResetModel()
@@ -5487,7 +5873,9 @@ class StampListModel(QtCore.QAbstractListModel):
         self.endResetModel()
 
     def removeStamp(self, stamp):
-        """Removes a stamp"""
+        """
+        Removes a stamp
+        """
 
         # Start resetting
         self.beginResetModel()
@@ -5501,9 +5889,13 @@ class StampListModel(QtCore.QAbstractListModel):
 
 
 class Stamp():
-    """Class that represents a stamp in the list"""
+    """
+    Class that represents a stamp in the list
+    """
     def __init__(self, ReggieClip=None, Name=''):
-        """Initializes the stamp"""
+        """
+        Initializes the stamp
+        """
 
         self.ReggieClip = ReggieClip
         self.Name = Name
@@ -5511,7 +5903,9 @@ class Stamp():
         self.Size = QtCore.QSize(self.Icon.width() + 4, self.Icon.height() + 4)
 
     def render(self):
-        """Renders the stamp"""
+        """
+        Renders the stamp
+        """
         px = QtGui.QPixmap(72, 72)
         px.fill(Qt.transparent)
         pn = QtGui.QPainter(px)
@@ -5529,9 +5923,13 @@ class Stamp():
 
 
 class SpritePickerWidget(QtWidgets.QTreeWidget):
-    """Widget that shows a list of available sprites"""
+    """
+    Widget that shows a list of available sprites
+    """
     def __init__(self):
-        """Initializes the widget"""
+        """
+        Initializes the widget
+        """
         QtWidgets.QTreeWidget.__init__(self)
         self.setColumnCount(1)
         self.setHeaderHidden(True)
@@ -5544,7 +5942,9 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
         self.LoadItems()
 
     def LoadItems(self):
-        """Loads tree widget items"""
+        """
+        Loads tree widget items
+        """
         self.clear()
 
         for viewname, view, nodelist in SpriteCategories:
@@ -5585,7 +5985,9 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
 
 
     def SwitchView(self, view):
-        """Changes the selected sprite view"""
+        """
+        Changes the selected sprite view
+        """
         for i in range(1, self.topLevelItemCount()):
             self.topLevelItem(i).setHidden(True)
 
@@ -5595,7 +5997,9 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
 
     @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, QtWidgets.QTreeWidgetItem)
     def HandleItemChange(self, current, previous):
-        """Throws a signal when the selected object changed"""
+        """
+        Throws a signal when the selected object changed
+        """
         if current is None: return
         id = current.data(0, Qt.UserRole)
         if id != -1:
@@ -5603,7 +6007,9 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
 
 
     def SetSearchString(self, searchfor):
-        """Shows the items containing that string"""
+        """
+        Shows the items containing that string
+        """
         check = self.SearchResultsCategory
 
         rawresults = self.findItems(searchfor, Qt.MatchContains | Qt.MatchRecursive)
@@ -5619,7 +6025,9 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
 
     @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
     def HandleSprReplace(self, item, column):
-        """Throws a signal when the selected sprite is used as a replacement"""
+        """
+        Throws a signal when the selected sprite is used as a replacement
+        """
         if QtWidgets.QApplication.keyboardModifiers() == Qt.AltModifier:
             id = item.data(0, Qt.UserRole)
             if id != -1:
@@ -5630,11 +6038,15 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
 
 
 class SpriteEditorWidget(QtWidgets.QWidget):
-    """Widget for editing sprite data"""
+    """
+    Widget for editing sprite data
+    """
     DataUpdate = QtCore.pyqtSignal('PyQt_PyObject')
 
     def __init__(self, defaultmode=False):
-        """Constructor"""
+        """
+        Constructor
+        """
         QtWidgets.QWidget.__init__(self)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
@@ -5691,15 +6103,21 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
 
     class PropertyDecoder(QtCore.QObject):
-        """Base class for all the sprite data decoder/encoders"""
+        """
+        Base class for all the sprite data decoder/encoders
+        """
         updateData = QtCore.pyqtSignal('PyQt_PyObject')
 
         def __init__(self):
-            """Generic constructor"""
+            """
+            Generic constructor
+            """
             super().__init__()
 
         def retrieve(self, data):
-            """Extracts the value from the specified nybble(s)"""
+            """
+            Extracts the value from the specified nybble(s)
+            """
             nybble = self.nybble
 
             if isinstance(nybble, tuple):
@@ -5721,7 +6139,9 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
 
         def insertvalue(self, data, value):
-            """Assigns a value to the specified nybble(s)"""
+            """
+            Assigns a value to the specified nybble(s)
+            """
             nybble = self.nybble
             sdata = list(data)
 
@@ -5752,10 +6172,14 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
 
     class CheckboxPropertyDecoder(PropertyDecoder):
-        """Class that decodes/encodes sprite data to/from a checkbox"""
+        """
+        Class that decodes/encodes sprite data to/from a checkbox
+        """
 
         def __init__(self, title, nybble, mask, comment, layout, row):
-            """Creates the widget"""
+            """
+            Creates the widget
+            """
             super().__init__()
 
             self.widget = QtWidgets.QCheckBox(title)
@@ -5777,12 +6201,16 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             layout.addWidget(self.widget, row, 0, 1, 2)
 
         def update(self, data):
-            """Updates the value shown by the widget"""
+            """
+            Updates the value shown by the widget
+            """
             value = ((self.retrieve(data) & self.mask) == self.mask)
             self.widget.setChecked(value)
 
         def assign(self, data):
-            """Assigns the selected value to the data"""
+            """
+            Assigns the selected value to the data
+            """
             value = self.retrieve(data) & (self.mask ^ self.xormask)
             if self.widget.isChecked():
                 value |= self.mask
@@ -5790,15 +6218,21 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         @QtCore.pyqtSlot(bool)
         def HandleClick(self, clicked=False):
-            """Handles clicks on the checkbox"""
+            """
+            Handles clicks on the checkbox
+            """
             self.updateData.emit(self)
 
 
     class ListPropertyDecoder(PropertyDecoder):
-        """Class that decodes/encodes sprite data to/from a combobox"""
+        """
+        Class that decodes/encodes sprite data to/from a combobox
+        """
 
         def __init__(self, title, nybble, model, comment, layout, row):
-            """Creates the widget"""
+            """
+            Creates the widget
+            """
             super().__init__()
 
             self.model = model
@@ -5812,7 +6246,9 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             layout.addWidget(self.widget, row, 1)
 
         def update(self, data):
-            """Updates the value shown by the widget"""
+            """
+            Updates the value shown by the widget
+            """
             value = self.retrieve(data)
             if not self.model.existingLookup[value]:
                 self.widget.setCurrentIndex(-1)
@@ -5826,20 +6262,28 @@ class SpriteEditorWidget(QtWidgets.QWidget):
                 i += 1
 
         def assign(self, data):
-            """Assigns the selected value to the data"""
+            """
+            Assigns the selected value to the data
+            """
             return self.insertvalue(data, self.model.entries[self.widget.currentIndex()][0])
 
         @QtCore.pyqtSlot(int)
         def HandleIndexChanged(self, index):
-            """Handle the current index changing in the combobox"""
+            """
+            Handle the current index changing in the combobox
+            """
             self.updateData.emit(self)
 
 
     class ValuePropertyDecoder(PropertyDecoder):
-        """Class that decodes/encodes sprite data to/from a spinbox"""
+        """
+        Class that decodes/encodes sprite data to/from a spinbox
+        """
 
         def __init__(self, title, nybble, max, comment, layout, row):
-            """Creates the widget"""
+            """
+            Creates the widget
+            """
             super().__init__()
 
             self.widget = QtWidgets.QSpinBox()
@@ -5852,25 +6296,35 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             layout.addWidget(self.widget, row, 1)
 
         def update(self, data):
-            """Updates the value shown by the widget"""
+            """
+            Updates the value shown by the widget
+            """
             value = self.retrieve(data)
             self.widget.setValue(value)
 
         def assign(self, data):
-            """Assigns the selected value to the data"""
+            """
+            Assigns the selected value to the data
+            """
             return self.insertvalue(data, self.widget.value())
 
         @QtCore.pyqtSlot(int)
         def HandleValueChanged(self, value):
-            """Handle the value changing in the spinbox"""
+            """
+            Handle the value changing in the spinbox
+            """
             self.updateData.emit(self)
 
 
     class BitfieldPropertyDecoder(PropertyDecoder):
-        """Class that decodes/encodes sprite data to/from a bitfield"""
+        """
+        Class that decodes/encodes sprite data to/from a bitfield
+        """
 
         def __init__(self, title, startbit, bitnum, comment, layout, row):
-            """Creates the widget"""
+            """
+            Creates the widget
+            """
             super().__init__()
 
             self.startbit = startbit
@@ -5897,7 +6351,9 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             layout.addWidget(w, row, 1)
 
         def update(self, data):
-            """Updates the value shown by the widget"""
+            """
+            Updates the value shown by the widget
+            """
             for bitIdx in range(self.bitnum):
                 checkbox = self.widgets[bitIdx]
 
@@ -5907,7 +6363,9 @@ class SpriteEditorWidget(QtWidgets.QWidget):
                 checkbox.setChecked((data[byteNum] >> (7 - bitNum) & 1))
 
         def assign(self, data):
-            """Assigns the checkbox states to the data"""
+            """
+            Assigns the checkbox states to the data
+            """
             data = bytearray(data)
 
             for idx in range(self.bitnum):
@@ -5940,12 +6398,16 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         @QtCore.pyqtSlot(int)
         def HandleValueChanged(self, value):
-            """Handle any checkbox being changed"""
+            """
+            Handle any checkbox being changed
+            """
             self.updateData.emit(self)
 
 
     def setSprite(self, type, reset=False):
-        """Change the sprite type used by the data editor"""
+        """
+        Change the sprite type used by the data editor
+        """
         if (self.spritetype == type) and not reset: return
 
         self.spritetype = type
@@ -5999,7 +6461,9 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
 
     def update(self):
-        """Updates all the fields to display the appropriate info"""
+        """
+        Updates all the fields to display the appropriate info
+        """
         self.UpdateFlag = True
 
         data = self.data
@@ -6020,7 +6484,9 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot('PyQt_PyObject')
     def HandleFieldUpdate(self, field):
-        """Triggered when a field's data is updated"""
+        """
+        Triggered when a field's data is updated
+        """
         if self.UpdateFlag: return
 
         data = field.assign(self.data)
@@ -6037,7 +6503,9 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(str)
     def HandleRawDataEdited(self, text):
-        """Triggered when the raw data textbox is edited"""
+        """
+        Triggered when the raw data textbox is edited
+        """
 
         raw = text.replace(' ', '')
         valid = False
@@ -6069,10 +6537,14 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
 
 class EntranceEditorWidget(QtWidgets.QWidget):
-    """Widget for editing entrance properties"""
+    """
+    Widget for editing entrance properties
+    """
     @QtCore.pyqtSlot()
     def __init__(self, defaultmode=False):
-        """Constructor"""
+        """
+        Constructor
+        """
         QtWidgets.QWidget.__init__(self)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
@@ -6186,7 +6658,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def setEntrance(self, ent):
-        """Change the entrance being edited by the editor, update all fields"""
+        """
+        Change the entrance being edited by the editor, update all fields
+        """
         if self.ent == ent: return
 
         self.editingLabel.setText(trans.string('EntranceDataEditor', 23, '[id]', ent.entid))
@@ -6226,7 +6700,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def HandleEntranceIDChanged(self, i):
-        """Handler for the entrance ID changing"""
+        """
+        Handler for the entrance ID changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.ent.entid = i
@@ -6238,7 +6714,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def HandleEntranceTypeChanged(self, i):
-        """Handler for the entrance type changing"""
+        """
+        Handler for the entrance type changing
+        """
         self.connectedPipeCheckbox.setVisible(i in self.CanUseFlag8)
         self.connectedPipeReverseCheckbox.setVisible(i in self.CanUseFlag8 and ((self.ent.entsettings & 8) != 0))
         self.pathIDLabel.setVisible(i and ((self.ent.entsettings & 8) != 0))
@@ -6259,7 +6737,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def HandleDestAreaChanged(self, i):
-        """Handler for the destination area changing"""
+        """
+        Handler for the destination area changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.ent.destarea = i
@@ -6269,7 +6749,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def HandleDestEntranceChanged(self, i):
-        """Handler for the destination entrance changing"""
+        """
+        Handler for the destination entrance changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.ent.destentrance = i
@@ -6279,7 +6761,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(bool)
     def HandleAllowEntryClicked(self, checked):
-        """Handle for the Allow Entry checkbox being clicked"""
+        """
+        Handle for the Allow Entry checkbox being clicked
+        """
         if self.UpdateFlag: return
         SetDirty()
         if not checked:
@@ -6292,7 +6776,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(bool)
     def HandleUnknownFlagClicked(self, checked):
-        """Handle for the Unknown Flag checkbox being clicked"""
+        """
+        Handle for the Unknown Flag checkbox being clicked
+        """
         if self.UpdateFlag: return
         SetDirty()
         if checked:
@@ -6303,7 +6789,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(bool)
     def HandleConnectedPipeClicked(self, checked):
-        """Handle for the connected pipe checkbox being clicked"""
+        """
+        Handle for the connected pipe checkbox being clicked
+        """
         self.connectedPipeReverseCheckbox.setVisible(checked)
         self.pathID.setVisible(checked)
         self.pathIDLabel.setVisible(checked)
@@ -6319,7 +6807,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(bool)
     def HandleConnectedPipeReverseClicked(self, checked):
-        """Handle for the connected pipe reverse checkbox being clicked"""
+        """
+        Handle for the connected pipe reverse checkbox being clicked
+        """
         if self.UpdateFlag: return
         SetDirty()
         if checked:
@@ -6329,14 +6819,18 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def HandlePathIDChanged(self, i):
-        """Handler for the path ID changing"""
+        """
+        Handler for the path ID changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.ent.entpath = i
 
     @QtCore.pyqtSlot(bool)
     def HandleForwardPipeClicked(self, checked):
-        """Handle for the forward pipe checkbox being clicked"""
+        """
+        Handle for the forward pipe checkbox being clicked
+        """
         if self.UpdateFlag: return
         SetDirty()
         if checked:
@@ -6346,14 +6840,18 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def HandleActiveLayerChanged(self, i):
-        """Handle for the active layer changing"""
+        """
+        Handle for the active layer changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.ent.entlayer = i
 
     @QtCore.pyqtSlot(int)
     def HandleCpDirectionChanged(self, i):
-        """Handle for CP Direction changing"""
+        """
+        Handle for CP Direction changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.ent.cpdirection = i
@@ -6361,10 +6859,14 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
 
 class PathNodeEditorWidget(QtWidgets.QWidget):
-    """Widget for editing path node properties"""
+    """
+    Widget for editing path node properties
+    """
 
     def __init__(self, defaultmode=False):
-        """Constructor"""
+        """
+        Constructor
+        """
         QtWidgets.QWidget.__init__(self)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
@@ -6423,7 +6925,9 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
 
 
     def setPath(self, path):
-        """Change the path being edited by the editor, update all fields"""
+        """
+        Change the path being edited by the editor, update all fields
+        """
         if self.path == path: return
         self.editingPathLabel.setText(trans.string('PathDataEditor', 8, '[id]', path.pathid))
         self.editingLabel.setText(trans.string('PathDataEditor', 9, '[id]', path.nodeid))
@@ -6440,7 +6944,9 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(float)
     def HandleSpeedChanged(self, i):
-        """Handler for the speed changing"""
+        """
+        Handler for the speed changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.path.nodeinfo['speed'] = i
@@ -6448,7 +6954,9 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(float)
     def HandleAccelChanged(self, i):
-        """Handler for the accel changing"""
+        """
+        Handler for the accel changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.path.nodeinfo['accel'] = i
@@ -6456,7 +6964,9 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def HandleDelayChanged(self, i):
-        """Handler for the delay changing"""
+        """
+        Handler for the delay changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.path.nodeinfo['delay'] = i
@@ -6473,9 +6983,13 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
 
 
 class IslandGeneratorWidget(QtWidgets.QWidget):
-    """Widget for editing entrance properties"""
+    """
+    Widget for editing entrance properties
+    """
     def __init__(self, defaultmode=False):
-        """Constructor"""
+        """
+        Constructor
+        """
         QtWidgets.QWidget.__init__(self)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
@@ -6743,7 +7257,9 @@ class IslandGeneratorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def HandleCopy(self):
-        """Makes a copy of the island"""
+        """
+        Makes a copy of the island
+        """
         retcb = self.GetClipboardString()
         mainWindow.actions['paste'].setEnabled(True)
         mainWindow.clipboard = retcb
@@ -6752,17 +7268,23 @@ class IslandGeneratorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def HandlePlace(self):
-        """Places the island directly into the editor"""
+        """
+        Places the island directly into the editor
+        """
         retcb = self.GetClipboardString()
         mainWindow.placeEncodedObjects(retcb)
 
 
 
 class LocationEditorWidget(QtWidgets.QWidget):
-    """Widget for editing location properties"""
+    """
+    Widget for editing location properties
+    """
 
     def __init__(self, defaultmode=False):
-        """Constructor"""
+        """
+        Constructor
+        """
         QtWidgets.QWidget.__init__(self)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
@@ -6830,7 +7352,9 @@ class LocationEditorWidget(QtWidgets.QWidget):
 
 
     def setLocation(self, loc):
-        """Change the location being edited by the editor, update all fields"""
+        """
+        Change the location being edited by the editor, update all fields
+        """
         self.loc = loc
         self.UpdateFlag = True
 
@@ -6850,7 +7374,9 @@ class LocationEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def HandleLocationIDChanged(self, i):
-        """Handler for the location ID changing"""
+        """
+        Handler for the location ID changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.loc.id = i
@@ -6860,7 +7386,9 @@ class LocationEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def HandleLocationXChanged(self, i):
-        """Handler for the location X-pos changing"""
+        """
+        Handler for the location X-pos changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.loc.objx = i
@@ -6872,7 +7400,9 @@ class LocationEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def HandleLocationYChanged(self, i):
-        """Handler for the location Y-pos changing"""
+        """
+        Handler for the location Y-pos changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.loc.objy = i
@@ -6884,7 +7414,9 @@ class LocationEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def HandleLocationWidthChanged(self, i):
-        """Handler for the location width changing"""
+        """
+        Handler for the location width changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.loc.width = i
@@ -6893,7 +7425,9 @@ class LocationEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def HandleLocationHeightChanged(self, i):
-        """Handler for the location height changing"""
+        """
+        Handler for the location height changing
+        """
         if self.UpdateFlag: return
         SetDirty()
         self.loc.height = i
@@ -6902,7 +7436,9 @@ class LocationEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def HandleSnapToGrid(self):
-        """Snaps the current location to an 8x8 grid"""
+        """
+        Snaps the current location to an 8x8 grid
+        """
         SetDirty()
 
         loc = self.loc
@@ -6947,7 +7483,9 @@ class LocationEditorWidget(QtWidgets.QWidget):
 
 
 def LoadTheme():
-    """Loads the theme"""
+    """
+    Loads the theme
+    """
     global theme
 
     id = setting('Theme')
@@ -6963,15 +7501,21 @@ def LoadTheme():
 
 
 class ReggieTheme():
-    """Class that represents a Reggie theme"""
+    """
+    Class that represents a Reggie theme
+    """
     def __init__(self, file=None):
-        """Initializes the theme"""
+        """
+        Initializes the theme
+        """
         self.initAsClassic()
         if file is not None: self.initFromFile(file)
 
 
     def initAsClassic(self):
-        """Initializes the theme as the hardcoded Classic theme"""
+        """
+        Initializes the theme as the hardcoded Classic theme
+        """
         self.fileName = 'Classic'
         self.formatver = 1.0
         self.version = 1.0
@@ -7029,7 +7573,9 @@ class ReggieTheme():
             }
 
     def initFromFile(self, file):
-        """Initializes the theme from the file"""
+        """
+        Initializes the theme from the file
+        """
         try:
             zipf = zipfile.ZipFile(file, 'r')
             zipfList = zipf.namelist()
@@ -7110,7 +7656,9 @@ class ReggieTheme():
 
 
     def parseMainXMLHead(self, root):
-        """Parses the main attributes of main.xml"""
+        """
+        Parses the main attributes of main.xml
+        """
         MaxSupportedXMLVersion = 1.0
 
         # Check for required attributes
@@ -7140,7 +7688,9 @@ class ReggieTheme():
         return True
 
     def loadColorsXml(self, file):
-        """Loads a colors.xml file"""
+        """
+        Loads a colors.xml file
+        """
         try: tree = etree.parse(file)
         except Exception: return
         
@@ -7187,15 +7737,21 @@ class ReggieTheme():
 
 
     def loadStylesheet(self, file):
-        """Loads a stylesheet"""
+        """
+        Loads a stylesheet
+        """
         print(file)
 
     def color(self, name):
-        """Returns a color"""
+        """
+        Returns a color
+        """
         return self.colors[name]
 
     def GetIcon(self, name, big=False):
-        """Returns an icon"""
+        """
+        Returns an icon
+        """
 
         cache = self.iconCacheLg if big else self.iconCacheSm
 
@@ -7207,13 +7763,17 @@ class ReggieTheme():
         return cache[name]
 
     def ui(self):
-        """Returns the UI style"""
+        """
+        Returns the UI style
+        """
         return self.uiStyle
 
 
 # Related function
 def toQColor(*args):
-    """Usage: toQColor(r, g, b[, a]) OR toQColor((r, g, b[, a]))"""
+    """
+    Usage: toQColor(r, g, b[, a]) OR toQColor((r, g, b[, a]))
+    """
     if len(args) == 1: args = args[0]
     r = args[0]
     g = args[1]
@@ -7228,7 +7788,9 @@ def toQColor(*args):
 # Game Definitions
 
 def LoadGameDef(name=None, dlg=None):
-    """Loads a game definition"""
+    """
+    Loads a game definition
+    """
     global gamedef
     if dlg: dlg.setMaximum(7)
 
@@ -7645,7 +8207,9 @@ class ReggieGameDefinition():
 
 # Related functions
 def GetPath(id_):
-    """Checks the game definition and the translation and returns the appropriate path"""
+    """
+    Checks the game definition and the translation and returns the appropriate path
+    """
     global gamedef
     global trans
 
@@ -7655,7 +8219,9 @@ def GetPath(id_):
 
 
 def getMusic():
-    """Uses the current gamedef + translation to get the music data, and returns it as a list of tuples"""
+    """
+    Uses the current gamedef + translation to get the music data, and returns it as a list of tuples
+    """
 
     transsong = trans.files['music']
     print(gamedef.recursiveFiles('music', True))
@@ -7708,7 +8274,9 @@ def FindGameDef(name, skip=None):
 # Translations
 
 def LoadTranslation():
-    """Loads the translation"""
+    """
+    Loads the translation
+    """
     global trans
 
     name = setting('Translation')
@@ -7720,9 +8288,13 @@ def LoadTranslation():
 
 
 class ReggieTranslation():
-    """A translation of all visible Reggie strings"""
+    """
+    A translation of all visible Reggie strings
+    """
     def __init__(self, name):
-        """Creates a Reggie translation"""
+        """
+        Creates a Reggie translation
+        """
         self.InitAsEnglish()
 
         # Try to load it from an XML
@@ -7733,7 +8305,9 @@ class ReggieTranslation():
 
 
     def InitAsEnglish(self):
-        """Initializes the ReggieTranslation as the English translation"""
+        """
+        Initializes the ReggieTranslation as the English translation
+        """
         self.name = 'English'
         self.version = 1.0
         self.translator = 'Treeki, Tempus'
@@ -8567,7 +9141,9 @@ class ReggieTranslation():
 
 
     def InitFromXML(self, name):
-        """Parses the translation XML"""
+        """
+        Parses the translation XML
+        """
         if name in ('', None, 'None'): return
         name = str(name)
         MaxVer = 1.0
@@ -8656,7 +9232,9 @@ class ReggieTranslation():
 
 
     def string(*args):
-        """Usage: string(section, numcode, replacementDummy, replacement, replacementDummy2, replacement2, etc.)"""
+        """
+        Usage: string(section, numcode, replacementDummy, replacement, replacementDummy2, replacement2, etc.)
+        """
         self = args[0]
 
         # If there are errors when the string is found, return an error report instead
@@ -8671,7 +9249,9 @@ class ReggieTranslation():
             return text
 
     def string_(*args):
-        """Gets a string from the translation and returns it"""
+        """
+        Gets a string from the translation and returns it
+        """
         # Get self and remove it from args
         self = args[0]
         args = args[1]
@@ -8713,12 +9293,16 @@ class ReggieTranslation():
         return astring
 
     def stringList(self, section, numcode):
-        """Returns a list of strings"""
+        """
+        Returns a list of strings
+        """
         try: return self.strings[section][numcode]
         except Exception: return ('ReggieTranslation.stringList() ERROR:', section, numcode)
 
     def path(self, key):
-        """Returns the path to the file indicated by key"""
+        """
+        Returns the path to the file indicated by key
+        """
         try: return self.files[key]
         except Exception:
             # (print, save, return) an error message
@@ -8730,7 +9314,9 @@ class ReggieTranslation():
             raise SystemExit
 
     def generateXML(self):
-        """Generates a strings.xml and places it in the folder of reggie.py"""
+        """
+        Generates a strings.xml and places it in the folder of reggie.py
+        """
 
         # Sort self.strings
         sortedstrings = sorted(
@@ -8768,7 +9354,9 @@ class ReggieTranslation():
 
 
 class LevelScene(QtWidgets.QGraphicsScene):
-    """GraphicsView subclass for the level scene"""
+    """
+    GraphicsView subclass for the level scene
+    """
     def __init__(self, *args):
         global theme
 
@@ -8776,7 +9364,9 @@ class LevelScene(QtWidgets.QGraphicsScene):
         QtWidgets.QGraphicsScene.__init__(self, *args)
 
     def drawBackground(self, painter, rect):
-        """Draws all visible tiles"""
+        """
+        Draws all visible tiles
+        """
         painter.fillRect(rect, self.bgbrush)
         if not hasattr(Area, 'layers'): return
 
@@ -8856,14 +9446,18 @@ class LevelScene(QtWidgets.QGraphicsScene):
 
 
 class LevelViewWidget(QtWidgets.QGraphicsView):
-    """GraphicsView subclass for the level view"""
+    """
+    GraphicsView subclass for the level view
+    """
     PositionHover = QtCore.pyqtSignal(int, int)
     FrameSize = QtCore.pyqtSignal(int, int)
     repaint = QtCore.pyqtSignal()
     dragstamp = False
 
     def __init__(self, scene, parent):
-        """Constructor"""
+        """
+        Constructor
+        """
         QtWidgets.QGraphicsView.__init__(self, scene, parent)
 
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
@@ -8880,7 +9474,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         self.currentobj = None
 
     def mousePressEvent(self, event):
-        """Overrides mouse pressing events if needed"""
+        """
+        Overrides mouse pressing events if needed
+        """
         if event.button() == Qt.RightButton:
             if CurrentPaintType in (0,1,2,3):
                 # paint an object
@@ -8991,7 +9587,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 #if selectedpn is None:
                 #    QtWidgets.QMessageBox.warning(None, 'Error', 'No pathnode selected. Select a pathnode of the path you want to create a new node in.')
                 if selectedpn is None:
-                    """"""
+                    """
+                    
+                    """
                     getids = [False for x in range(256)]
                     getids[0] = True
                     for pathdatax in Area.pathdata:
@@ -9179,14 +9777,18 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
 
     def resizeEvent(self, event):
-        """Catches resize events"""
+        """
+        Catches resize events
+        """
         self.FrameSize.emit(event.size().width(), event.size().height())
         event.accept()
         QtWidgets.QGraphicsView.resizeEvent(self, event)
 
 
     def mouseMoveEvent(self, event):
-        """Overrides mouse movement events if needed"""
+        """
+        Overrides mouse movement events if needed
+        """
 
         pos = mainWindow.view.mapToScene(event.x(), event.y())
         if pos.x() < 0: pos.setX(0)
@@ -9398,7 +10000,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
 
     def mouseReleaseEvent(self, event):
-        """Overrides mouse release events if needed"""
+        """
+        Overrides mouse release events if needed
+        """
         if event.button() == Qt.RightButton:
             self.currentobj = None
             event.accept()
@@ -9407,13 +10011,17 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
 
     def paintEvent(self, e):
-        """Handles paint events and fires a signal"""
+        """
+        Handles paint events and fires a signal
+        """
         self.repaint.emit()
         QtWidgets.QGraphicsView.paintEvent(self, e)
 
 
     def drawForeground(self, painter, rect):
-        """Draws a foreground grid"""
+        """
+        Draws a foreground grid
+        """
         if GridType is None: return
         global theme
 
@@ -9611,9 +10219,13 @@ class InputBox(QtWidgets.QDialog):
 
 
 class AboutDialog(QtWidgets.QDialog):
-    """Shows the About info for Reggie"""
+    """
+    Shows the About info for Reggie
+    """
     def __init__(self):
-        """Creates and initializes the dialog"""
+        """
+        Creates and initializes the dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('AboutDlg', 0))
         self.setWindowIcon(GetIcon('reggie'))
@@ -9671,9 +10283,13 @@ class AboutDialog(QtWidgets.QDialog):
 
 
 class ObjectShiftDialog(QtWidgets.QDialog):
-    """Lets you pick an amount to shift selected items by"""
+    """
+    Lets you pick an amount to shift selected items by
+    """
     def __init__(self):
-        """Creates and initializes the dialog"""
+        """
+        Creates and initializes the dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('ShftItmDlg', 0))
         self.setWindowIcon(GetIcon('move'))
@@ -9706,9 +10322,13 @@ class ObjectShiftDialog(QtWidgets.QDialog):
 
 
 class ObjectTilesetSwapDialog(QtWidgets.QDialog):
-    """Lets you pick tilesets to swap objects to"""
+    """
+    Lets you pick tilesets to swap objects to
+    """
     def __init__(self):
-        """Creates and initializes the dialog"""
+        """
+        Creates and initializes the dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle('Swap Objects\' Tilesets')
         self.setWindowIcon(GetIcon('swap'))
@@ -9746,9 +10366,13 @@ class ObjectTilesetSwapDialog(QtWidgets.QDialog):
 
 
 class ObjectTypeSwapDialog(QtWidgets.QDialog):
-    """Lets you pick object types to swap objects to"""
+    """
+    Lets you pick object types to swap objects to
+    """
     def __init__(self):
-        """Creates and initializes the dialog"""
+        """
+        Creates and initializes the dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle('Swap Objects\' Types')
         self.setWindowIcon(GetIcon('swap'))
@@ -9802,9 +10426,13 @@ class ObjectTypeSwapDialog(QtWidgets.QDialog):
 
 
 class MetaInfoDialog(QtWidgets.QDialog):
-    """Allows the user to enter in various meta-info to be kept in the level for display"""
+    """
+    Allows the user to enter in various meta-info to be kept in the level for display
+    """
     def __init__(self):
-        """Creates and initializes the dialog"""
+        """
+        Creates and initializes the dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('InfoDlg', 0))
         self.setWindowIcon(GetIcon('info'))
@@ -9925,10 +10553,14 @@ class MetaInfoDialog(QtWidgets.QDialog):
 
 
     def ChangeButton(self):
-        """Allows the changing of a given password"""
+        """
+        Allows the changing of a given password
+        """
 
         class ChangePWDialog(QtWidgets.QDialog):
-            """Dialog"""
+            """
+            Dialog
+            """
             def __init__(self):
                 QtWidgets.QDialog.__init__(self)
                 self.setWindowTitle(trans.string('InfoDlg', 9))
@@ -9995,9 +10627,13 @@ class MetaInfoDialog(QtWidgets.QDialog):
 
 # Sets up the Area Options Menu
 class AreaOptionsDialog(QtWidgets.QDialog):
-    """Dialog which lets you choose among various area options from tabs"""
+    """
+    Dialog which lets you choose among various area options from tabs
+    """
     def __init__(self, NewTilesetsTab = True):
-        """Creates and initializes the tab dialog"""
+        """
+        Creates and initializes the tab dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('AreaDlg', 0))
         self.setWindowIcon(GetIcon('area'))
@@ -10107,7 +10743,9 @@ class TilesetsTab(QtWidgets.QWidget):
 
             # Add entries for each tileset
             def ParseCategory(items):
-                """Parses a list of strings and returns a tuple of QTreeWidgetItem's"""
+                """
+                Parses a list of strings and returns a tuple of QTreeWidgetItem's
+                """
                 nodes = []
                 for item in items:
                     node = QtWidgets.QTreeWidgetItem()
@@ -10176,7 +10814,9 @@ class TilesetsTab(QtWidgets.QWidget):
     def handleTreeSel3(self):
         self.handleTreeSel(3)
     def handleTreeSel(self, slot):
-        """Handles changes to the selections in all tree widgets"""
+        """
+        Handles changes to the selections in all tree widgets
+        """
         selItems = self.trees[slot].selectedItems()
         if len(selItems) != 1: return
         item = selItems[0]
@@ -10194,7 +10834,9 @@ class TilesetsTab(QtWidgets.QWidget):
     def handleTextEdit3(self):
         self.handleTextEdit(3)
     def handleTextEdit(self, slot):
-        """Handles changes made to the line-edit widgets"""
+        """
+        Handles changes made to the line-edit widgets
+        """
         self.trees[slot].clearSelection()
         txt = str(self.lineEdits[slot].text())
 
@@ -10219,7 +10861,9 @@ class TilesetsTab(QtWidgets.QWidget):
                 parent = parent.parent()
 
     def values(self):
-        """Returns all 4 tileset choices"""
+        """
+        Returns all 4 tileset choices
+        """
         result = []
         for i in range(4):
             result.append(str(self.lineEdits[i].text()))
@@ -10349,7 +10993,9 @@ class OldTilesetsTab(QtWidgets.QWidget):
         self.currentChoices[tileset] = index
 
     def values(self):
-        """Returns all 4 tileset choices"""
+        """
+        Returns all 4 tileset choices
+        """
         result = []
         for i in range(4):
             widget = eval('self.tile%d' % i)
@@ -10359,10 +11005,14 @@ class OldTilesetsTab(QtWidgets.QWidget):
         return tuple(result)
 
 def SimpleTilesetNames():
-    """simple"""
+    """
+    simple
+    """
     # Category parser
     def ParseCategory(items):
-        """Parses a list of strings and returns a tuple of strings"""
+        """
+        Parses a list of strings and returns a tuple of strings
+        """
         result = []
         for item in items:
             if isinstance(item[1], str):
@@ -10387,9 +11037,13 @@ def SimpleTilesetNames():
 
 #Sets up the Zones Menu
 class ZonesDialog(QtWidgets.QDialog):
-    """Dialog which lets you choose among various from tabs"""
+    """
+    Dialog which lets you choose among various from tabs
+    """
     def __init__(self):
-        """Creates and initializes the tab dialog"""
+        """
+        Creates and initializes the tab dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('ZonesDlg', 0))
         self.setWindowIcon(GetIcon('zones'))
@@ -10790,7 +11444,9 @@ class ZoneTab(QtWidgets.QWidget):
 
 
     def handleMusicListSelect(self):
-        """Handles the user selecting an entry from the music list"""
+        """
+        Handles the user selecting an entry from the music list
+        """
         if self.AutoEditMusic: return
         id = self.Zone_music.itemData(self.Zone_music.currentIndex())
         id = int(str(id)) # id starts out as a QString
@@ -10800,7 +11456,9 @@ class ZoneTab(QtWidgets.QWidget):
         self.AutoEditMusic = False
 
     def handleMusicIDChange(self):
-        """Handles the user selecting a custom music ID"""
+        """
+        Handles the user selecting a custom music ID
+        """
         if self.AutoEditMusic: return
         id = self.Zone_musicid.value()
 
@@ -10811,7 +11469,9 @@ class ZoneTab(QtWidgets.QWidget):
         self.AutoEditMusic = False
 
     def PresetSelected(self, info=None):
-        """Handles a zone size preset being selected"""
+        """
+        Handles a zone size preset being selected
+        """
         if self.AutoChangingSize: return
 
         if self.Zone_presets.currentText() == trans.string('ZonesDlg', 60): return
@@ -10825,7 +11485,9 @@ class ZoneTab(QtWidgets.QWidget):
         if self.Zone_presets.itemText(0) == trans.string('ZonesDlg', 60): self.Zone_presets.removeItem(0)
 
     def PresetDeselected(self, info=None):
-        """Handles the zone height or width boxes being changed"""
+        """
+        Handles the zone height or width boxes being changed
+        """
         if self.AutoChangingSize: return
 
         self.AutoChangingSize = True
@@ -10850,9 +11512,13 @@ class ZoneTab(QtWidgets.QWidget):
 
 #Sets up the Background Dialog
 class BGDialog(QtWidgets.QDialog):
-    """Dialog which lets you choose among various from tabs"""
+    """
+    Dialog which lets you choose among various from tabs
+    """
     def __init__(self):
-        """Creates and initializes the tab dialog"""
+        """
+        Creates and initializes the tab dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('BGDlg', 0))
         self.setWindowIcon(GetIcon('backgrounds'))
@@ -10903,7 +11569,9 @@ class BGTab(QtWidgets.QWidget):
 
 
     def createBGSettings(self, z):
-        """Creates the BG Settings for BGA and BGB"""
+        """
+        Creates the BG Settings for BGA and BGB
+        """
         for slot in ('A', 'B'):
             g = QtWidgets.QGroupBox(trans.string('BGDlg', 3 if slot == 'A' else 4)) # 'Scenery' or 'Backdrop'
             exec('self.BG%sSettings = g' % slot)
@@ -11046,7 +11714,9 @@ class BGTab(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def handleHexBox(self):
-        """Handles any hex box changing"""
+        """
+        Handles any hex box changing
+        """
         for slot in ('A', 'B'):
             for boxnum in (1, 2, 3):
                 hexbox = eval('self.hex%d%s' % (boxnum, slot))
@@ -11068,7 +11738,9 @@ class BGTab(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def handleNameBox(self):
-        """Handles any name box changing"""
+        """
+        Handles any name box changing
+        """
         for slot in ('A', 'B'):
             for boxnum in (1, 2, 3):
                 hexbox = eval('self.hex%d%s' % (boxnum, slot))
@@ -11080,7 +11752,9 @@ class BGTab(QtWidgets.QWidget):
 
 
     def updatePreviews(self):
-        """Updates all 6 preview labels"""
+        """
+        Updates all 6 preview labels
+        """
         scale = 0.75
         for slot in ('A', 'B'):
             for boxnum in (1, 2, 3):
@@ -11104,7 +11778,9 @@ class BGTab(QtWidgets.QWidget):
 
 
 def calculateBgAlignmentMode(idA, idB, idC):
-    """Calculates alignment modes using the exact same logic as NSMBW"""
+    """
+    Calculates alignment modes using the exact same logic as NSMBW
+    """
     # This really is RE'd ASM translated to Python, mostly
 
     if idA <= 0x000A: idA = 0
@@ -11149,9 +11825,13 @@ def calculateBgAlignmentMode(idA, idB, idC):
 
 #Sets up the Screen Cap Choice Dialog
 class ScreenCapChoiceDialog(QtWidgets.QDialog):
-    """Dialog which lets you choose which zone to take a pic of"""
+    """
+    Dialog which lets you choose which zone to take a pic of
+    """
     def __init__(self):
-        """Creates and initializes the dialog"""
+        """
+        Creates and initializes the dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('ScrShtDlg', 0))
         self.setWindowIcon(GetIcon('screenshot'))
@@ -11177,10 +11857,14 @@ class ScreenCapChoiceDialog(QtWidgets.QDialog):
 
 
 class AutoSavedInfoDialog(QtWidgets.QDialog):
-    """Dialog which lets you know that an auto saved level exists"""
+    """
+    Dialog which lets you know that an auto saved level exists
+    """
 
     def __init__(self, filename):
-        """Creates and initializes the dialog"""
+        """
+        Creates and initializes the dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('AutoSaveDlg', 0))
         self.setWindowIcon(GetIcon('save'))
@@ -11206,10 +11890,14 @@ class AutoSavedInfoDialog(QtWidgets.QDialog):
 
 
 class AreaChoiceDialog(QtWidgets.QDialog):
-    """Dialog which lets you choose an area"""
+    """
+    Dialog which lets you choose an area
+    """
 
     def __init__(self, areacount):
-        """Creates and initializes the dialog"""
+        """
+        Creates and initializes the dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('AreaChoiceDlg', 0))
         self.setWindowIcon(GetIcon('areas'))
@@ -11230,9 +11918,13 @@ class AreaChoiceDialog(QtWidgets.QDialog):
 
 
 class DiagnosticToolDialog(QtWidgets.QDialog):
-    """Dialog which checks for errors within the level"""
+    """
+    Dialog which checks for errors within the level
+    """
     def __init__(self):
-        """Creates and initializes the dialog"""
+        """
+        Creates and initializes the dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('Diag', 0))
         self.setWindowIcon(GetIcon('diagnostics'))
@@ -11276,7 +11968,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
         self.setLayout(self.mainLayout)
 
     def updateHeader(self, testresult, secondTime = False):
-        """Creates the header"""
+        """
+        Creates the header
+        """
         self.header = QtWidgets.QGridLayout()
         self.header.addWidget(QtWidgets.QLabel(trans.string('Diag', 18)), 0, 0, 1, 3)
 
@@ -11347,7 +12041,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def populateLists(self):
-        """Runs the check functions and adds items to the list if needed"""
+        """
+        Runs the check functions and adds items to the list if needed
+        """
         self.buttonHandlers = []
 
         self.errorList = QtWidgets.QListWidget()
@@ -11384,7 +12080,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def FixSelected(self):
-        """Fixes the selected items"""
+        """
+        Fixes the selected items
+        """
 
         # Ask the user to make sure
         btn = QtWidgets.QMessageBox.warning(None, trans.string('Diag', 27), trans.string('Diag', 28), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
@@ -11419,7 +12117,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def UnusedTilesets(self, mode='f'):
-        """Checks for any tilesets in this area not found in NSMBWii"""
+        """
+        Checks for any tilesets in this area not found in NSMBWii
+        """
         global Area
         global TilesetNames
 
@@ -11470,7 +12170,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def ObjsInTileset(self, mode='f'):
-        """Checks for any objects which cannot be found in the tilesets"""
+        """
+        Checks for any objects which cannot be found in the tilesets
+        """
         global Area
         global ObjectDefinitions
 
@@ -11498,7 +12200,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def CrashSprites(self, mode='f'):
-        """Checks if there are any sprites which are known to be crashy and cause problems often"""
+        """
+        Checks if there are any sprites which are known to be crashy and cause problems often
+        """
         global Area
         problems = (0,1,2,3,4,5,6,7,8,9, # glitch sprites
                     121, # en reverse
@@ -11518,7 +12222,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def CrashSpriteSettings(self, mode='f'):
-        """Checks for sprite settings which are known to cause major glitches and crashes"""
+        """
+        Checks for sprite settings which are known to cause major glitches and crashes
+        """
         global Area
 
         checkfor = []
@@ -11585,7 +12291,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def TooManySprites(self, mode='f'):
-        """Determines if the # of sprites in the current area is > max"""
+        """
+        Determines if the # of sprites in the current area is > max
+        """
         global Area
         max = 1000
 
@@ -11603,7 +12311,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def DuplicateEntranceIDs(self, mode='f'):
-        """Checks for the prescence of multiple entrances with the same ID"""
+        """
+        Checks for the prescence of multiple entrances with the same ID
+        """
         global Area
 
         IDs = []
@@ -11625,7 +12335,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def NoStartEntrance(self, mode='f'):
-        """Determines if there is a start entrance or not"""
+        """
+        Determines if there is a start entrance or not
+        """
         global Area
 
         start = None
@@ -11654,7 +12366,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def EntranceTooCloseToZoneEdge(self, mode='f'):
-        """Checks if the main entrance is too close to the left zone edge"""
+        """
+        Checks if the main entrance is too close to the left zone edge
+        """
         global Area
         offset = 24 * 8 # 8 blocks away from the left zone edge
         if len(Area.zones) == 0: return False
@@ -11679,7 +12393,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def EntranceOutsideOfZone(self, mode='f'):
-        """Checks if any entrances are not inside of a zone"""
+        """
+        Checks if any entrances are not inside of a zone
+        """
         global Area
         left_offset = 24 * 8 # 8 blocks away from the left zone edge
         if len(Area.zones) == 0: return False
@@ -11716,7 +12432,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def TooManyZones(self, mode='f'):
-        """Checks if there are too many zones in this area"""
+        """
+        Checks if there are too many zones in this area
+        """
         global Area
 
         problem = len(Area.zones) > 8
@@ -11730,7 +12448,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def NoZones(self, mode='f'):
-        """Checks if there are no zones in this area"""
+        """
+        Checks if there are no zones in this area
+        """
         global Area
 
         problem = len(Area.zones) == 0
@@ -11751,7 +12471,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def ZonesTooClose(self, mode='f'):
-        """Checks for any zones which are too close together or are overlapping"""
+        """
+        Checks for any zones which are too close together or are overlapping
+        """
         global Area
         padding = 4 # minimum blocks between zones
 
@@ -11817,7 +12539,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def ZonesTooCloseToAreaEdges(self, mode='f'):
-        """Checks for any zones which are too close to the area edges, and moves them"""
+        """
+        Checks for any zones which are too close to the area edges, and moves them
+        """
         global Area
         areaw = 16384
         areah = 8192
@@ -11837,7 +12561,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def BiasNotEnabled(self, mode='f'):
-        """Checks for any zones which do not have bias enabled"""
+        """
+        Checks for any zones which do not have bias enabled
+        """
         global Area
         fix = {'0 0':  (0, 1),
                '0 7':  (0, 6),
@@ -11865,7 +12591,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def ZonesTooBig(self, mode='f'):
-        """Checks for any zones which may be too large"""
+        """
+        Checks for any zones which may be too large
+        """
         global Area
         maxarea = 16384 # blocks (approximated value)
 
@@ -11882,7 +12610,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def ZonesTooSmall(self, mode='f'):
-        """Checks for any zones which may be too small for their zoom level"""
+        """
+        Checks for any zones which may be too small for their zoom level
+        """
         global Area
         MinimumSize = (484, 272)
 ##                        (484, 272), # -1
@@ -11925,7 +12655,9 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
     def UnusedBackgrounds(self, mode='f'):
-        """Checks if there are custom background IDs in this area"""
+        """
+        Checks if there are custom background IDs in this area
+        """
         global Area
         global BgANames
         global BgBNames
@@ -11955,9 +12687,13 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
 
 class ReggieRibbon(QRibbon):
-    """Class that represents Reggie's ribbon"""
+    """
+    Class that represents Reggie's ribbon
+    """
     def __init__(self):
-        """Creates and initializes the Reggie Ribbon"""
+        """
+        Creates and initializes the Reggie Ribbon
+        """
         QRibbon.__init__(self)
 
         # Set up the file menu
@@ -11983,7 +12719,9 @@ class ReggieRibbon(QRibbon):
 
 
     def addHomeTab(self):
-        """Adds the Home Tab"""
+        """
+        Adds the Home Tab
+        """
         tab = self.addTab(trans.string('Ribbon', 0)) # "Home"
         self.homeTab = tab
 
@@ -12055,7 +12793,9 @@ class ReggieRibbon(QRibbon):
 
 
     def addActionsTab(self):
-        """Adds the Actions Tab"""
+        """
+        Adds the Actions Tab
+        """
         tab = self.addTab(trans.string('Ribbon', 1)) # "Actions"
         self.actionsTab = tab
 
@@ -12103,7 +12843,9 @@ class ReggieRibbon(QRibbon):
 ##        return tab
 
     def addViewTab(self):
-        """Adds the View Tab"""
+        """
+        Adds the View Tab
+        """
         tab = self.addTab(trans.string('Ribbon', 2)) # "View"
         self.viewTab = tab
 
@@ -12172,20 +12914,26 @@ class ReggieRibbon(QRibbon):
 
 
     def addOverview(self, dock, act):
-        """Adds the Show/Hide Overview action to the ribbon"""
+        """
+        Adds the Show/Hide Overview action to the ribbon
+        """
         return
         self.oDock = dock
         self.dockGroup = RibbonGroup(trans.string('Ribbon', 17))
         self.overBtn = self.dockGroup.addButton(self.HandleOverviewClick, act.shortcut(), trans.string('MenuItems', 95), True, 'overview', trans.string('MenuItems', 94), True, True)
 
     def addPalette(self, dock, act):
-        """Adds the Show/Hide Palette action to the ribbon"""
+        """
+        Adds the Show/Hide Palette action to the ribbon
+        """
         return
         self.pDock = dock
         self.palBtn = self.dockGroup.addButton(self.HandlePaletteClick, act.shortcut(), trans.string('MenuItems', 97), True, 'palette', trans.string('MenuItems', 96), True, True)
 
     def addIslandGen(self, dock, act):
-        """Adds the Show/Hide Island Generator action to the ribbon"""
+        """
+        Adds the Show/Hide Island Generator action to the ribbon
+        """
         return
         self.iDock = dock
         self.genBtn = self.dockGroup.addButton(self.HandleIslandGenClick, act.shortcut(), trans.string('MenuItems', 101), True, 'islandgen', trans.string('MenuItems', 100), True, True)
@@ -12194,7 +12942,9 @@ class ReggieRibbon(QRibbon):
 
     @QtCore.pyqtSlot(bool)
     def HandleOverviewClick(self, checked = None):
-        """Updates the overview btn"""
+        """
+        Updates the overview btn
+        """
         return
         visible = checked if checked is not None else not self.oDock.isVisible()
         self.oDock.setVisible(visible)
@@ -12202,7 +12952,9 @@ class ReggieRibbon(QRibbon):
 
     @QtCore.pyqtSlot(bool)
     def HandlePaletteClick(self, checked = None):
-        """Updates the palette btn"""
+        """
+        Updates the palette btn
+        """
         return
         visible = checked if checked is not None else not self.pDock.isVisible()
         self.pDock.setVisible(visible)
@@ -12210,14 +12962,18 @@ class ReggieRibbon(QRibbon):
 
     @QtCore.pyqtSlot(bool)
     def HandleIslandGenClick(self, checked = None):
-        """Updates the island generator btn"""
+        """
+        Updates the island generator btn
+        """
         return
         visible = checked if checked is not None else not self.iDock.isVisible()
         self.iDock.setVisible(visible)
         if checked is None: self.genBtn.setChecked(visible)
 
     def updateAreaComboBox(self, areas, area):
-        """Updates the Area Combo Box"""
+        """
+        Updates the Area Combo Box
+        """
         return
         self.homeTab.areaComboBox.clear()
         for i in range(1, len(Level.areas) + 1):
@@ -12225,15 +12981,21 @@ class ReggieRibbon(QRibbon):
         self.homeTab.areaComboBox.setCurrentIndex(area-1)
 
     def setBtnEnabled(self, btn, enabled):
-        """Enables or disables a button"""
+        """
+        Enables or disables a button
+        """
         try: self.btns[btn].setEnabled(enabled)
         except Exception: print('Ribbon enabling error: ' + btn + ', ' + str(enabled))
 
 
 class ReggieRibbonFileMenu(QFileMenu):
-    """Widget that represents the file menu for the ribbon"""
+    """
+    Widget that represents the file menu for the ribbon
+    """
     def __init__(self):
-        """Creates and initializes the menu"""
+        """
+        Creates and initializes the menu
+        """
         QFileMenu.__init__(self)
         self.setRecentFilesText('Recent levels')
         self.btns = {}
@@ -12328,15 +13090,21 @@ class ReggieRibbonFileMenu(QFileMenu):
 ##        self.setLayout(self.mainLayout)
 
     def handleRecentFileClicked(self, path):
-        """Handles recent files being clicked"""
+        """
+        Handles recent files being clicked
+        """
         mainWindow.LoadLevel(str(path), True, 1)
 
 
 
 class InfoPreviewWidget(QtWidgets.QWidget):
-    """Widget that shows a preview of the level metadata info - available in vertical & horizontal flavors"""
+    """
+    Widget that shows a preview of the level metadata info - available in vertical & horizontal flavors
+    """
     def __init__(self, direction):
-        """Creates and initializes the widget"""
+        """
+        Creates and initializes the widget
+        """
         QtWidgets.QWidget.__init__(self)
         self.direction = direction
 
@@ -12352,7 +13120,9 @@ class InfoPreviewWidget(QtWidgets.QWidget):
         if self.direction == Qt.Horizontal: self.setMinimumWidth(256)
 
     def updateLabels(self):
-        """Updates the widget labels"""
+        """
+        Updates the widget labels
+        """
         if ('Area' not in globals()) or not hasattr(Area, 'filename'): # can't get level metadata if there's no level
             self.Label1.setText('')
             if self.direction == Qt.Horizontal: self.Label2.setText('')
@@ -12385,9 +13155,13 @@ class InfoPreviewWidget(QtWidgets.QWidget):
 
 
 class GameDefViewer(QtWidgets.QWidget):
-    """Widget which displays basic info about the current game definition"""
+    """
+    Widget which displays basic info about the current game definition
+    """
     def __init__(self):
-        """Initializes the widget"""
+        """
+        Initializes the widget
+        """
         QtWidgets.QWidget.__init__(self)
         self.imgLabel = QtWidgets.QLabel()
         self.imgLabel.setToolTip(trans.string('Gamedefs', 0))
@@ -12418,7 +13192,9 @@ class GameDefViewer(QtWidgets.QWidget):
         self.updateLabels()
 
     def updateLabels(self):
-        """Updates all labels"""
+        """
+        Updates all labels
+        """
         empty = QtGui.QPixmap(16, 16)
         empty.fill(QtGui.QColor(0,0,0,0))
         img = GetIcon('sprites', False).pixmap(16, 16) if ((gamedef.recursiveFiles('sprites', False, True) != []) or (not gamedef.custom)) else empty
@@ -12433,10 +13209,14 @@ class GameDefViewer(QtWidgets.QWidget):
 
 
 class GameDefSelector(QtWidgets.QWidget):
-    """Widget which lets you pick a new game definition"""
+    """
+    Widget which lets you pick a new game definition
+    """
     gameChanged = QtCore.pyqtSignal()
     def __init__(self):
-        """Initializes the widget"""
+        """
+        Initializes the widget
+        """
         QtWidgets.QWidget.__init__(self)
 
         # Populate a list of gamedefs
@@ -12473,7 +13253,9 @@ class GameDefSelector(QtWidgets.QWidget):
 
 
     def HandleRadioButtonClick(self, checked):
-        """Handles radio button clicks"""
+        """
+        Handles radio button clicks
+        """
         if not checked: return # this is called twice; one button is checked, another is unchecked
 
         loadNewGameDef(self.GameDefs[self.group.checkedId()])
@@ -12481,10 +13263,14 @@ class GameDefSelector(QtWidgets.QWidget):
 
 
 class GameDefMenu(QtWidgets.QMenu):
-    """A menu which lets the user pick gamedefs"""
+    """
+    A menu which lets the user pick gamedefs
+    """
     gameChanged = QtCore.pyqtSignal()
     def __init__(self):
-        """Creates and initializes the menu"""
+        """
+        Creates and initializes the menu
+        """
         QtWidgets.QMenu.__init__(self)
 
         # Add the gamedef viewer widget
@@ -12517,7 +13303,9 @@ class GameDefMenu(QtWidgets.QMenu):
             self.addAction(act)
 
     def handleGameDefClicked(self, checked):
-        """Handles the user clicking a gamedef"""
+        """
+        Handles the user clicking a gamedef
+        """
         if not checked: return
 
         name = self.actGroup.checkedAction().data()
@@ -12545,7 +13333,9 @@ def getAvailableGameDefs():
     return new
 
 def loadNewGameDef(def_):
-    """Loads ReggieGameDefinition def_, and displays a progress dialog"""
+    """
+    Loads ReggieGameDefinition def_, and displays a progress dialog
+    """
     dlg = QtWidgets.QProgressDialog()
     dlg.setAutoClose(True)
     btn = QtWidgets.QPushButton('Cancel')
@@ -12562,7 +13352,9 @@ def loadNewGameDef(def_):
 
 
 def clipStr(text, idealWidth, font=None):
-    """Returns a shortened string, or None if it need not be shortened"""
+    """
+    Returns a shortened string, or None if it need not be shortened
+    """
     if font is None: font = QtGui.QFont()
     width = QtGui.QFontMetrics(font).width(text)
     if width <= idealWidth: return None
@@ -12575,9 +13367,13 @@ def clipStr(text, idealWidth, font=None):
 
 
 class RecentFilesMenu(QtWidgets.QMenu):
-    """A menu which displays recently opened files"""
+    """
+    A menu which displays recently opened files
+    """
     def __init__(self):
-        """Creates and initializes the menu"""
+        """
+        Creates and initializes the menu
+        """
         QtWidgets.QMenu.__init__(self)
         self.setMinimumWidth(192)
 
@@ -12604,11 +13400,15 @@ class RecentFilesMenu(QtWidgets.QMenu):
 
 
     def writeSettings(self):
-        """Writes FileList back to the Registry"""
+        """
+        Writes FileList back to the Registry
+        """
         setSetting('RecentFiles', str('|'.join(self.FileList)))
 
     def updateActionList(self):
-        """Updates the actions visible in the menu"""
+        """
+        Updates the actions visible in the menu
+        """
 
         self.clear() # removes any actions already in the menu
         ico = GetIcon('new')
@@ -12644,7 +13444,9 @@ class RecentFilesMenu(QtWidgets.QMenu):
             self.addAction(act)
 
     def AddToList(self, path):
-        """Adds an entry to the list"""
+        """
+        Adds an entry to the list
+        """
         MaxLength = 16
 
         if path in ('None', 'True', 'False', None, True, False): return # fixes bugs
@@ -12661,13 +13463,17 @@ class RecentFilesMenu(QtWidgets.QMenu):
         self.updateActionList()
 
     def RemoveFromList(self, index):
-        """Removes an entry from the list"""
+        """
+        Removes an entry from the list
+        """
         del self.FileList[index]
         self.writeSettings()
         self.updateActionList()
 
     def clearAll(self):
-        """Clears all recent files from the list and the registry"""
+        """
+        Clears all recent files from the list and the registry
+        """
         self.FileList = []
         self.writeSettings()
         self.updateActionList()
@@ -12703,16 +13509,22 @@ class RecentFilesMenu(QtWidgets.QMenu):
     def HandleOpenRecentFile14(self):
         self.HandleOpenRecentFile(14)
     def HandleOpenRecentFile(self, number):
-        """Open a recently opened level picked from the main menu"""
+        """
+        Open a recently opened level picked from the main menu
+        """
         if mainWindow.CheckDirty(): return
 
         if not mainWindow.LoadLevel(self.FileList[number], True, 1): self.RemoveFromList(number)
 
 
 class ZoomWidget(QtWidgets.QWidget):
-    """Widget that allows easy zoom level control"""
+    """
+    Widget that allows easy zoom level control
+    """
     def __init__(self):
-        """Creates and initializes the widget"""
+        """
+        Creates and initializes the widget
+        """
         QtWidgets.QWidget.__init__(self)
         maxwidth = 512-128
         maxheight = 20
@@ -12762,11 +13574,15 @@ class ZoomWidget(QtWidgets.QWidget):
         self.setMaximumHeight(maxheight)
 
     def sliderMoved(self):
-        """Handle the slider being moved"""
+        """
+        Handle the slider being moved
+        """
         mainWindow.ZoomTo(mainWindow.ZoomLevels[self.slider.value()])
 
     def setZoomLevel(self, newLevel):
-        """Moves the slider to the zoom level given"""
+        """
+        Moves the slider to the zoom level given
+        """
         self.slider.setSliderPosition(self.findIndexOfLevel(newLevel))
 
     def findIndexOfLevel(self, level):
@@ -12775,9 +13591,13 @@ class ZoomWidget(QtWidgets.QWidget):
 
 
 class ZoomStatusWidget(QtWidgets.QWidget):
-    """Shows the current zoom level, in percent"""
+    """
+    Shows the current zoom level, in percent
+    """
     def __init__(self):
-        """Creates and initializes the widget"""
+        """
+        Creates and initializes the widget
+        """
         QtWidgets.QWidget.__init__(self)
         self.label = QtWidgets.QPushButton('100%')
         self.label.setFlat(True)
@@ -12791,7 +13611,9 @@ class ZoomStatusWidget(QtWidgets.QWidget):
         self.setLayout(self.layout)
 
     def setZoomLevel(self, zoomLevel):
-        """Updates the widget"""
+        """
+        Updates the widget
+        """
         if float(int(zoomLevel)) == float(zoomLevel):
             self.label.setText(str(int(zoomLevel))+'%')
         else:
@@ -12868,9 +13690,13 @@ def LoadActionsLists():
 
 
 class PreferencesDialog(QtWidgets.QDialog):
-    """Dialog which lets you customize Reggie"""
+    """
+    Dialog which lets you customize Reggie
+    """
     def __init__(self):
-        """Creates and initializes the dialog"""
+        """
+        Creates and initializes the dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('PrefsDlg', 0))
         self.setWindowIcon(GetIcon('settings'))
@@ -12905,23 +13731,33 @@ class PreferencesDialog(QtWidgets.QDialog):
         self.menuSettingChanged()
 
     def tabChanged(self):
-        """Handles the current tab being changed"""
+        """
+        Handles the current tab being changed
+        """
         self.infoLabel.setText(self.tabWidget.currentWidget().info)
 
     def menuSettingChanged(self):
-        """Handles the menu-style option being changed"""
+        """
+        Handles the menu-style option being changed
+        """
         self.tabWidget.setTabEnabled(1, self.generalTab.MenuM.isChecked())
 
 
     def getGeneralTab(self):
-        """Returns the General Tab"""
+        """
+        Returns the General Tab
+        """
 
         class GeneralTab(QtWidgets.QWidget):
-            """General Tab"""
+            """
+            General Tab
+            """
             info = trans.string('PrefsDlg', 4)
 
             def __init__(self, menuHandler):
-                """Initializes the General Tab"""
+                """
+                Initializes the General Tab
+                """
                 QtWidgets.QWidget.__init__(self)
 
                 # Add the Splash Screen settings
@@ -12984,7 +13820,9 @@ class PreferencesDialog(QtWidgets.QDialog):
 
 
             def Reset(self):
-                """Read the preferences and check the respective boxes"""
+                """
+                Read the preferences and check the respective boxes
+                """
                 if str(setting('ShowSplash')): self.SplashA.setChecked(True)
                 elif str(setting('ShowSplash')): self.SplashN.setChecked(True)
                 else: self.SplashR.setChecked(True)
@@ -13014,7 +13852,9 @@ class PreferencesDialog(QtWidgets.QDialog):
                     i += 1
 
             def ClearRecent(self):
-                """Handle the Clear Recent Files button being clicked"""
+                """
+                Handle the Clear Recent Files button being clicked
+                """
                 ans = QtWidgets.QMessageBox.question(None, trans.string('PrefsDlg', 17), trans.string('PrefsDlg', 18), QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
                 if ans != QtWidgets.QMessageBox.Yes: return
                 self.RecentMenu.clearAll()
@@ -13024,14 +13864,20 @@ class PreferencesDialog(QtWidgets.QDialog):
 
 
     def getToolbarTab(self):
-        """Returns the Toolbar Tab"""
+        """
+        Returns the Toolbar Tab
+        """
 
         class ToolbarTab(QtWidgets.QWidget):
-            """Toolbar Tab"""
+            """
+            Toolbar Tab
+            """
             info = trans.string('PrefsDlg', 5)
 
             def __init__(self):
-                """Initializes the Toolbar Tab"""
+                """
+                Initializes the Toolbar Tab
+                """
                 global FileActions
                 global EditActions
                 global ViewActions
@@ -13113,7 +13959,9 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.setLayout(L)
 
             def reset(self):
-                """This is called when the Reset button is clicked"""
+                """
+                This is called when the Reset button is clicked
+                """
                 items = (
                     (self.FileBoxes, FileActions),
                     (self.EditBoxes, EditActions),
@@ -13130,14 +13978,20 @@ class PreferencesDialog(QtWidgets.QDialog):
 
 
     def getThemesTab(self):
-        """Returns the Themes Tab"""
+        """
+        Returns the Themes Tab
+        """
 
         class ThemesTab(QtWidgets.QWidget):
-            """Themes Tab"""
+            """
+            Themes Tab
+            """
             info = trans.string('PrefsDlg', 6)
 
             def __init__(self):
-                """Initializes the Themes Tab"""
+                """
+                Initializes the Themes Tab
+                """
                 QtWidgets.QWidget.__init__(self)
 
                 # Get the current and available themes
@@ -13224,7 +14078,9 @@ class PreferencesDialog(QtWidgets.QDialog):
                 return tuple(themeList)
 
             def UpdatePreview(self):
-                """Updates the preview"""
+                """
+                Updates the preview
+                """
                 for btn in self.btns:
                     if btn.isChecked():
                         t = self.btnvals[btn][1]
@@ -13233,7 +14089,9 @@ class PreferencesDialog(QtWidgets.QDialog):
                         self.description.setText(text)
 
             def drawPreview(self, theme):
-                """Returns a preview pixmap for the given theme"""
+                """
+                Returns a preview pixmap for the given theme
+                """
 
                 # Set up some things
                 px = QtGui.QPixmap(350, 185)
@@ -13330,9 +14188,13 @@ class PreferencesDialog(QtWidgets.QDialog):
 
 
 class UpdateDialog(QtWidgets.QDialog):
-    """Dialog to display any available updates"""
+    """
+    Dialog to display any available updates
+    """
     def __init__(self):
-        """Init the dialog"""
+        """
+        Init the dialog
+        """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(trans.string('Updates', 0))
         self.setWindowIcon(GetIcon('download'))
@@ -13362,7 +14224,9 @@ class UpdateDialog(QtWidgets.QDialog):
         self.setLayout(L)
 
     def PerformCheck(self):
-        """Performs the update check"""
+        """
+        Performs the update check
+        """
         # Attempt to download data
         errors = False
         try: data = self.getTxt()
@@ -13390,7 +14254,9 @@ class UpdateDialog(QtWidgets.QDialog):
             self.UpdateUi(False)
 
     def getTxt(self):
-        """Returns the parsed data in the online text file"""
+        """
+        Returns the parsed data in the online text file
+        """
         rawdata = urllib.request.urlopen(UpdateURL)
         rawdata = rawdata.read(20000).decode('latin-1')
 
@@ -13422,7 +14288,9 @@ class UpdateDialog(QtWidgets.QDialog):
 
 
     def UpdateUi(self, available, name='', infourl='', url=''):
-        """Updates the UI based on updateinfo"""
+        """
+        Updates the UI based on updateinfo
+        """
         if available == 'error':
             # Error while checking for update
             self.msgLabel.setText(trans.string('Updates', 1))
@@ -13438,7 +14306,9 @@ class UpdateDialog(QtWidgets.QDialog):
 
 
     def handleDldBtn(self):
-        """Handles the user clicking the Download Now button"""
+        """
+        Handles the user clicking the Download Now button
+        """
         self.dldBtn.hide()
         self.progLabel.show()
         self.progLabel.setText(trans.string('Updates', 5))
@@ -13450,18 +14320,26 @@ class UpdateDialog(QtWidgets.QDialog):
         thread.start()
 
     def handleDldDone(self):
-        """The download finished"""
+        """
+        The download finished
+        """
         self.progLabel.setText(trans.string('Updates', 6))
 
     class downloader(QtCore.QObject):
-        """An object that downloads the update. Contains signals."""
+        """
+        An object that downloads the update. Contains signals.
+        """
         done = QtCore.pyqtSignal()
         def __init__(self, url):
-            """Initializes it"""
+            """
+            Initializes it
+            """
             QtCore.QObject.__init__(self)
             self.url = url
         def run(self):
-            """Runs the download"""
+            """
+            Runs the download
+            """
             local_filename, headers = urllib.request.urlretrieve(self.url)
 
             if local_filename.startswith('\\'):
@@ -13483,10 +14361,14 @@ class UpdateDialog(QtWidgets.QDialog):
 
 
 class ReggieWindow(QtWidgets.QMainWindow):
-    """Reggie main level editor window"""
+    """
+    Reggie main level editor window
+    """
 
     def CreateAction(self, shortname, function, icon, text, statustext, shortcut, toggle=False):
-        """Helper function to create an action"""
+        """
+        Helper function to create an action
+        """
 
         if icon is not None:
             act = QtWidgets.QAction(icon, text, self)
@@ -13503,7 +14385,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def __init__(self):
-        """Editor window constructor"""
+        """
+        Editor window constructor
+        """
         global Initialising
         Initialising = True
 
@@ -13556,7 +14440,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def __init2__(self):
-        """Finishes initialisation. (fixes bugs with some widgets calling mainWindow.something before it's init'ed"""
+        """
+        Finishes initialisation. (fixes bugs with some widgets calling mainWindow.something before it's init'ed
+        """
         # set up actions and menus
         self.SetupActionsAndMenus()
 
@@ -13613,7 +14499,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def SetupActionsAndMenus(self):
-        """Sets up Reggie's actions, menus and toolbars"""
+        """
+        Sets up Reggie's actions, menus and toolbars
+        """
         self.RecentMenu = RecentFilesMenu()
         self.GameDefMenu = GameDefMenu()
 
@@ -13624,7 +14512,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
             self.createMenubar()
 
     def createRibbon(self):
-        """Create a ribbon rather than a menubar/toolbar"""
+        """
+        Create a ribbon rather than a menubar/toolbar
+        """
         self.ribbon = ReggieRibbon()
         self.setMenuWidget(self.ribbon)
         self.RecentFilesMgr = self.ribbon.fileMenu.recentFilesMgr
@@ -13632,7 +14522,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     actions = {}
     def createMenubar(self):
-        """Create actions, a menubar and a toolbar"""
+        """
+        Create actions, a menubar and a toolbar
+        """
 
         # File
         self.CreateAction('newlevel', self.HandleNewLevel, GetIcon('new'), trans.string('MenuItems', 0), trans.string('MenuItems', 1), QtGui.QKeySequence.New)
@@ -13822,7 +14714,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.toolbar.addWidget(self.areaComboBox)
 
     def SetupHelpMenu(self, menu=None):
-        """Creates the help menu. This is separate because both the ribbon and the menubar use this"""
+        """
+        Creates the help menu. This is separate because both the ribbon and the menubar use this
+        """
         self.CreateAction('infobox', self.AboutBox, GetIcon('reggie'), trans.string('MenuItems', 86), trans.string('MenuItems', 87), QtGui.QKeySequence('Ctrl+Shift+I'))
         self.CreateAction('helpbox', self.HelpBox, GetIcon('contents'), trans.string('MenuItems', 88), trans.string('MenuItems', 89), QtGui.QKeySequence('Ctrl+Shift+H'))
         self.CreateAction('tipbox', self.TipBox, GetIcon('tips'), trans.string('MenuItems', 90), trans.string('MenuItems', 91), QtGui.QKeySequence('Ctrl+Shift+T'))
@@ -13841,7 +14735,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         return menu
 
     def addToolbarButtons(self):
-        """Reads from the Preferences file and adds the appropriate options to the toolbar"""
+        """
+        Reads from the Preferences file and adds the appropriate options to the toolbar
+        """
         global FileActions
         global EditActions
         global ViewActions
@@ -13941,12 +14837,16 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def handleRecentFilesPathAdded(self, path):
-        """Handles a file being added to self.RecentFilesMgr"""
+        """
+        Handles a file being added to self.RecentFilesMgr
+        """
         setSetting('RecentFiles', self.RecentFilesMgr.data())
 
 
     def SetupDocksAndPanels(self):
-        """Sets up the dock widgets and panels"""
+        """
+        Sets up the dock widgets and panels
+        """
         # level overview
         dock = QtWidgets.QDockWidget(trans.string('MenuItems', 94), self)
         dock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable | QtWidgets.QDockWidget.DockWidgetClosable)
@@ -14342,13 +15242,17 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.CreationTabChanged(0)
 
     def DeselectPathSelection(self, checked):
-        """Deselects selected path nodes in the list"""
+        """
+        Deselects selected path nodes in the list
+        """
         for selecteditem in self.pathList.selectedItems():
             self.pathList.setItemSelected(selecteditem, False)
 
     @QtCore.pyqtSlot()
     def Autosave(self):
-        """Auto saves the level"""
+        """
+        Auto saves the level
+        """
         global AutoSaveDirty
         if not AutoSaveDirty: return
 
@@ -14360,7 +15264,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def TrackClipboardUpdates(self):
-        """Catches systemwide clipboard updates"""
+        """
+        Catches systemwide clipboard updates
+        """
         if Initialising: return
         clip = self.systemClipboard.text()
         if clip is not None and clip != '':
@@ -14379,13 +15285,17 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def XScrollChange(self, pos):
-        """Moves the Overview current position box based on X scroll bar value"""
+        """
+        Moves the Overview current position box based on X scroll bar value
+        """
         self.levelOverview.Xposlocator = pos
         self.levelOverview.update()
 
     @QtCore.pyqtSlot(int)
     def YScrollChange(self, pos):
-        """Moves the Overview current position box based on Y scroll bar value"""
+        """
+        Moves the Overview current position box based on Y scroll bar value
+        """
         self.levelOverview.Yposlocator = pos
         self.levelOverview.update()
 
@@ -14396,11 +15306,15 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.levelOverview.update()
 
     def UpdateTitle(self):
-        """Sets the window title accordingly"""
+        """
+        Sets the window title accordingly
+        """
         self.setWindowTitle('Reggie! Level Editor Next - %s%s' % (Level.filename, (' ' + trans.string('MainWindow', 0)) if Dirty else ''))
 
     def CheckDirty(self):
-        """Checks if the level is unsaved and asks for a confirmation if so - if it returns True, Cancel was picked"""
+        """
+        Checks if the level is unsaved and asks for a confirmation if so - if it returns True, Cancel was picked
+        """
         if not Dirty: return False
 
         msg = QtWidgets.QMessageBox()
@@ -14421,7 +15335,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
             return True
 
     def LoadEventTabFromLevel(self):
-        """Configures the Events tab from the data in Area.defEvents"""
+        """
+        Configures the Events tab from the data in Area.defEvents
+        """
         defEvents = Area.defEvents
         checked = Qt.Checked
         unchecked = Qt.Unchecked
@@ -14457,7 +15373,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.eventNotesEditor.setText(txt0)
 
     def handleEventTabItemClick(self, item):
-        """Handles an item being clicked in the Events tab"""
+        """
+        Handles an item being clicked in the Events tab
+        """
         noteText = item.text(1)
         self.eventNotesEditor.setText(noteText)
         selIdx = self.eventChooserItems.index(item)
@@ -14471,7 +15389,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
             Area.defEvents = ~Area.defEvents
 
     def handleEventNotesEdit(self):
-        """Handles the text within self.eventNotesEditor changing"""
+        """
+        Handles the text within self.eventNotesEditor changing
+        """
         newText = self.eventNotesEditor.text()
 
         # Set the text to the event chooser
@@ -14502,7 +15422,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         SetDirty()
 
     def handleStampsAdd(self):
-        """Handles the "Add Stamp" btn being clicked"""
+        """
+        Handles the "Add Stamp" btn being clicked
+        """
         # Create a ReggieClip
         selitems = self.scene.selectedItems()
         if len(selitems) == 0: return
@@ -14523,11 +15445,15 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def handleStampsRemove(self):
-        """Handles the "Remove Stamp" btn being clicked"""
+        """
+        Handles the "Remove Stamp" btn being clicked
+        """
         self.stampChooser.removeStamp(self.stampChooser.currentlySelectedStamp())
 
     def handleStampsOpen(self):
-        """Handles the "Open Set..." btn being clicked"""
+        """
+        Handles the "Open Set..." btn being clicked
+        """
         filetypes = trans.string('Palette', 35) + ' (*.stamps);;'
         fn = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 6), '', filetypes)[0]
         if fn == '': return
@@ -14548,21 +15474,29 @@ class ReggieWindow(QtWidgets.QMainWindow):
             
 
     def handleStampsSave(self):
-        """Handles the "Save Set As..." btn being clicked"""
+        """
+        Handles the "Save Set As..." btn being clicked
+        """
         print('Stamp Save')
 
     def StampChoiceChanged(self):
-        """Handles the user picking a new stamp"""
+        """
+        Handles the user picking a new stamp
+        """
         print('Stamp Changed')
 
     @QtCore.pyqtSlot()
     def AboutBox(self):
-        """Shows the about box"""
+        """
+        Shows the about box
+        """
         AboutDialog().exec_()
 
     @QtCore.pyqtSlot()
     def HandlePaths(self):
-        """Creates the Path Editing mode"""
+        """
+        Creates the Path Editing mode
+        """
 
         # Step 1: Freeze all scene items
         # Step 2: Gray out the scene
@@ -14580,7 +15514,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleInfo(self):
-        """Records the Level Meta Information"""
+        """
+        Records the Level Meta Information
+        """
         if Area.areanum == 1:
             dlg = MetaInfoDialog()
             if dlg.exec_() == QtWidgets.QDialog.Accepted:
@@ -14599,25 +15535,33 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HelpBox(self):
-        """Shows the help box"""
+        """
+        Shows the help box
+        """
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(os.path.join(module_path(), 'reggiedata', 'help', 'index.html')))
 
 
     @QtCore.pyqtSlot()
     def TipBox(self):
-        """Reggie! Tips and Commands"""
+        """
+        Reggie! Tips and Commands
+        """
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(os.path.join(module_path(), 'reggiedata', 'help', 'tips.html')))
 
 
     @QtCore.pyqtSlot()
     def UpdateCheck(self):
-        """Checks for updates and displays an appropriate dialog"""
+        """
+        Checks for updates and displays an appropriate dialog
+        """
         UpdateDialog().exec_()
 
 
     @QtCore.pyqtSlot()
     def SelectAll(self):
-        """Select all objects in the current area"""
+        """
+        Select all objects in the current area
+        """
         paintRect = QtGui.QPainterPath()
         paintRect.addRect(float(0), float(0), float(1024*24), float(512*24))
         self.scene.setSelectionArea(paintRect)
@@ -14625,7 +15569,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def Deselect(self):
-        """Deselect all currently selected items"""
+        """
+        Deselect all currently selected items
+        """
         items = self.scene.selectedItems()
         for obj in items:
             obj.setSelected(False)
@@ -14633,7 +15579,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def Cut(self):
-        """Cuts the selected items"""
+        """
+        Cuts the selected items
+        """
         self.SelectionUpdateFlag = True
         selitems = self.scene.selectedItems()
         self.scene.clearSelection()
@@ -14672,7 +15620,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def Copy(self):
-        """Copies the selected items"""
+        """
+        Copies the selected items
+        """
         selitems = self.scene.selectedItems()
         if len(selitems) > 0:
             clipboard_o = []
@@ -14695,12 +15645,16 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def Paste(self):
-        """Paste the selected items"""
+        """
+        Paste the selected items
+        """
         if self.clipboard is not None:
             self.placeEncodedObjects(self.clipboard)
 
     def encodeObjects(self, clipboard_o, clipboard_s):
-        """Encode a set of objects and sprites into a string"""
+        """
+        Encode a set of objects and sprites into a string
+        """
         convclip = ['ReggieClip']
 
         # get objects
@@ -14718,7 +15672,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         return '|'.join(convclip)
 
     def placeEncodedObjects(self, encoded, select=True, xOverride=None, yOverride=None):
-        """Decode and place a set of objects"""
+        """
+        Decode and place a set of objects
+        """
         self.SelectionUpdateFlag = True
         self.scene.clearSelection()
         layer0 = []
@@ -14904,7 +15860,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def ShiftItems(self):
-        """Shifts the selected object(s)"""
+        """
+        Shifts the selected object(s)
+        """
         items = self.scene.selectedItems()
         if len(items) == 0: return
 
@@ -14952,7 +15910,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def SwapObjectsTilesets(self):
-        """Swaps objects' tilesets"""
+        """
+        Swaps objects' tilesets
+        """
         global Area
 
         dlg = ObjectTilesetSwapDialog()
@@ -14969,7 +15929,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def SwapObjectsTypes(self):
-        """Swaps objects' types"""
+        """
+        Swaps objects' types
+        """
         global Area
 
         dlg = ObjectTypeSwapDialog()
@@ -14987,7 +15949,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def MergeLocations(self):
-        """Merges selected sprite locations"""
+        """
+        Merges selected sprite locations
+        """
         items = self.scene.selectedItems()
         if len(items) == 0: return
 
@@ -15036,7 +16000,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleAddNewArea(self):
-        """Adds a new area to the level"""
+        """
+        Adds a new area to the level
+        """
         if len(Level.areas) >= 4:
             QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('AreaChoiceDlg', 2))
             return
@@ -15053,7 +16019,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleImportArea(self):
-        """Imports an area from another level"""
+        """
+        Imports an area from another level
+        """
         if len(Level.areas) >= 4:
             QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('AreaChoiceDlg', 2))
             return
@@ -15128,7 +16096,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleDeleteArea(self):
-        """Deletes the current area"""
+        """
+        Deletes the current area
+        """
         result = QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('DeleteArea', 0), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
         if result == QtWidgets.QMessageBox.No: return
 
@@ -15146,7 +16116,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleChangeGamePath(self, auto=False):
-        """Change the game path used by the current game definition"""
+        """
+        Change the game path used by the current game definition
+        """
         if self.CheckDirty(): return
 
         path = None
@@ -15169,7 +16141,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandlePreferences(self):
-        """Edit Reggie preferences"""
+        """
+        Edit Reggie preferences
+        """
 
         # Show the dialog
         dlg = PreferencesDialog()
@@ -15222,14 +16196,18 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleNewLevel(self):
-        """Create a new level"""
+        """
+        Create a new level
+        """
         if self.CheckDirty(): return
         self.LoadLevel(None, False, 1)
 
 
     @QtCore.pyqtSlot()
     def HandleOpenFromName(self):
-        """Open a level using the level picker"""
+        """
+        Open a level using the level picker
+        """
         if self.CheckDirty(): return
 
         LoadLevelNames()
@@ -15240,7 +16218,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleOpenFromFile(self):
-        """Open a level using the filename"""
+        """
+        Open a level using the filename
+        """
         if self.CheckDirty(): return
 
         filetypes = ''
@@ -15254,7 +16234,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleSave(self):
-        """Save a level back to the archive"""
+        """
+        Save a level back to the archive
+        """
         if not Level.hasName:
             self.HandleSaveAs()
             return
@@ -15280,7 +16262,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleSaveAs(self):
-        """Save a level back to the archive, with a new filename"""
+        """
+        Save a level back to the archive, with a new filename
+        """
         fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', trans.string('FileDlgs', 1) + ' (*.arc);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
         if fn == '': return
         fn = str(fn)
@@ -15307,13 +16291,17 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleExit(self):
-        """Exit the editor. Why would you want to do this anyway?"""
+        """
+        Exit the editor. Why would you want to do this anyway?
+        """
         self.close()
 
 
     @QtCore.pyqtSlot(int)
     def HandleSwitchArea(self, idx):
-        """Handle activated signals for areaComboBox"""
+        """
+        Handle activated signals for areaComboBox
+        """
         if self.CheckDirty():
             self.areaComboBox.setCurrentIndex(Area.areanum)
             return
@@ -15324,7 +16312,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleUpdateLayer0(self, checked):
-        """Handle toggling of layer 0 being shown"""
+        """
+        Handle toggling of layer 0 being shown
+        """
         global Layer0Shown
 
         Layer0Shown = checked
@@ -15337,7 +16327,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleUpdateLayer1(self, checked):
-        """Handle toggling of layer 1 being shown"""
+        """
+        Handle toggling of layer 1 being shown
+        """
         global Layer1Shown
 
         Layer1Shown = checked
@@ -15350,7 +16342,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleUpdateLayer2(self, checked):
-        """Handle toggling of layer 2 being shown"""
+        """
+        Handle toggling of layer 2 being shown
+        """
         global Layer2Shown
 
         Layer2Shown = checked
@@ -15363,7 +16357,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleTilesetAnimToggle(self, checked):
-        """Handle toggling of tileset animations"""
+        """
+        Handle toggling of tileset animations
+        """
         global TilesetsAnimating
 
         TilesetsAnimating = checked
@@ -15375,7 +16371,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleCollisionsToggle(self, checked):
-        """Handle toggling of tileset collisions viewing"""
+        """
+        Handle toggling of tileset collisions viewing
+        """
         global CollisionsShown
 
         CollisionsShown = checked
@@ -15386,7 +16384,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleRealViewToggle(self, checked):
-        """Handle toggling of Real View"""
+        """
+        Handle toggling of Real View
+        """
         global RealViewEnabled
 
         RealViewEnabled = checked
@@ -15398,7 +16398,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleSpritesVisibility(self, checked):
-        """Handle toggling of sprite visibility"""
+        """
+        Handle toggling of sprite visibility
+        """
         global SpritesShown
 
         SpritesShown = checked
@@ -15412,7 +16414,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleSpriteImages(self, checked):
-        """Handle toggling of sprite images"""
+        """
+        Handle toggling of sprite images
+        """
         global SpriteImagesShown
 
         SpriteImagesShown = checked
@@ -15424,7 +16428,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleLocationsVisibility(self, checked):
-        """Handle toggling of location visibility"""
+        """
+        Handle toggling of location visibility
+        """
         global LocationsShown
 
         LocationsShown = checked
@@ -15438,7 +16444,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleCommentsVisibility(self, checked):
-        """Handle toggling of comment visibility"""
+        """
+        Handle toggling of comment visibility
+        """
         global CommentsShown
 
         CommentsShown = checked
@@ -15452,7 +16460,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleObjectsFreeze(self, checked):
-        """Handle toggling of objects being frozen"""
+        """
+        Handle toggling of objects being frozen
+        """
         global ObjectsFrozen
 
         ObjectsFrozen = checked
@@ -15470,7 +16480,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleSpritesFreeze(self, checked):
-        """Handle toggling of sprites being frozen"""
+        """
+        Handle toggling of sprites being frozen
+        """
         global SpritesFrozen
 
         SpritesFrozen = checked
@@ -15487,7 +16499,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleEntrancesFreeze(self, checked):
-        """Handle toggling of entrances being frozen"""
+        """
+        Handle toggling of entrances being frozen
+        """
         global EntrancesFrozen
 
         EntrancesFrozen = checked
@@ -15504,7 +16518,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleLocationsFreeze(self, checked):
-        """Handle toggling of locations being frozen"""
+        """
+        Handle toggling of locations being frozen
+        """
         global LocationsFrozen
 
         LocationsFrozen = checked
@@ -15521,7 +16537,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandlePathsFreeze(self, checked):
-        """Handle toggling of entrances being frozen"""
+        """
+        Handle toggling of entrances being frozen
+        """
         global PathsFrozen
 
         PathsFrozen = checked
@@ -15538,7 +16556,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleCommentsFreeze(self, checked):
-        """Handle toggling of comments being frozen"""
+        """
+        Handle toggling of comments being frozen
+        """
         global CommentsFrozen
 
         CommentsFrozen = checked
@@ -15555,7 +16575,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def HandleSwitchGrid(self):
-        """Handle switching of the grid view"""
+        """
+        Handle switching of the grid view
+        """
         global GridType
 
         if GridType is None: GridType = 'grid'
@@ -15568,7 +16590,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleZoomIn(self):
-        """Handle zooming in"""
+        """
+        Handle zooming in
+        """
         z = self.ZoomLevel
         zi = self.ZoomLevels.index(z)
         zi += 1
@@ -15578,7 +16602,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleZoomOut(self):
-        """Handle zooming out"""
+        """
+        Handle zooming out
+        """
         z = self.ZoomLevel
         zi = self.ZoomLevels.index(z)
         zi -= 1
@@ -15588,22 +16614,30 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleZoomActual(self):
-        """Handle zooming to the actual size"""
+        """
+        Handle zooming to the actual size
+        """
         self.ZoomTo(100.0)
 
     @QtCore.pyqtSlot()
     def HandleZoomMin(self):
-        """Handle zooming to the minimum size"""
+        """
+        Handle zooming to the minimum size
+        """
         self.ZoomTo(self.ZoomLevels[0])
 
     @QtCore.pyqtSlot()
     def HandleZoomMax(self):
-        """Handle zooming to the maximum size"""
+        """
+        Handle zooming to the maximum size
+        """
         self.ZoomTo(self.ZoomLevels[len(self.ZoomLevels)-1])
 
 
     def ZoomTo(self, z):
-        """Zoom to a specific level"""
+        """
+        Zoom to a specific level
+        """
         tr = QtGui.QTransform()
         tr.scale(z / 100.0, z / 100.0)
         self.ZoomLevel = z
@@ -15637,13 +16671,17 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int, int)
     def HandleOverviewClick(self, x, y):
-        """Handle position changes from the level overview"""
+        """
+        Handle position changes from the level overview
+        """
         self.view.centerOn(x, y)
         self.levelOverview.update()
 
 
     def SaveComments(self):
-        """Saves the comments data back to self.Metadata"""
+        """
+        Saves the comments data back to self.Metadata
+        """
         b = []
         for com in Area.comments:
             xpos, ypos, tlen = com.objx, com.objy, len(com.text)
@@ -15664,7 +16702,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def closeEvent(self, event):
-        """Handler for the main window close event"""
+        """
+        Handler for the main window close event
+        """
 
         if self.CheckDirty():
             event.ignore()
@@ -15696,7 +16736,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def LoadLevel(self, name, fullpath, area):
-        """Load a level into the editor"""
+        """
+        Load a level into the editor
+        """
 
         if name is not None:
             if fullpath:
@@ -15936,7 +16978,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def ReloadTilesets(self, soft=False):
-        """Reloads all the tilesets. If soft is True, they will not be reloaded if the filepaths have not changed."""
+        """
+        Reloads all the tilesets. If soft is True, they will not be reloaded if the filepaths have not changed.
+        """
         tilesets = [Area.tileset0, Area.tileset1, Area.tileset2, Area.tileset3]
         for idx, name in enumerate(tilesets):
             if (name is not None) and (name != ''):
@@ -15958,7 +17002,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def ChangeSelectionHandler(self):
-        """Update the visible panels whenever the selection changes"""
+        """
+        Update the visible panels whenever the selection changes
+        """
         if self.SelectionUpdateFlag: return
 
         try:
@@ -16162,7 +17208,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def HandleObjPosChange(self, obj, oldx, oldy, x, y):
-        """Handle the object being dragged"""
+        """
+        Handle the object being dragged
+        """
         if obj == self.selObj:
             if oldx == x and oldy == y: return
             SetDirty()
@@ -16171,7 +17219,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def CreationTabChanged(self, nt):
-        """Handles the selected palette tab changing"""
+        """
+        Handles the selected palette tab changing
+        """
         CPT = 0
         if   self.creationTabs.currentIndex() == 0: # objects
             CPT = self.objAllTab.currentIndex()
@@ -16190,7 +17240,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def ObjTabChanged(self, nt):
-        """Handles the selected slot tab in the object palette changing"""
+        """
+        Handles the selected slot tab in the object palette changing
+        """
         if hasattr(self, 'objPicker'):
             if nt >= 0 and nt <= 3:
                 self.objPicker.ShowTileset(nt)
@@ -16202,7 +17254,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def SprTabChanged(self, nt):
-        """Handles the selected tab in the sprite palette changing"""
+        """
+        Handles the selected tab in the sprite palette changing
+        """
         if nt == 0: cpt = 4
         else: cpt = -1
         global CurrentPaintType
@@ -16211,7 +17265,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def LayerChoiceChanged(self, nl):
-        """Handles the selected layer changing"""
+        """
+        Handles the selected layer changing
+        """
         global CurrentLayer
         CurrentLayer = nl
 
@@ -16265,14 +17321,18 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def ObjectChoiceChanged(self, type):
-        """Handles a new object being chosen"""
+        """
+        Handles a new object being chosen
+        """
         global CurrentObject
         CurrentObject = type
 
 
     @QtCore.pyqtSlot(int)
     def ObjectReplace(self, type):
-        """Handles a new object being chosen to replace the selected objects"""
+        """
+        Handles a new object being chosen to replace the selected objects
+        """
         items = self.scene.selectedItems()
         type_obj = ObjectItem
         tileset = CurrentPaintType
@@ -16290,7 +17350,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def SpriteChoiceChanged(self, type):
-        """Handles a new sprite being chosen"""
+        """
+        Handles a new sprite being chosen
+        """
         global CurrentSprite
         CurrentSprite = type
         if type != 1000 and type >= 0:
@@ -16306,7 +17368,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def SpriteReplace(self, type):
-        """Handles a new sprite type being chosen to replace the selected sprites"""
+        """
+        Handles a new sprite type being chosen to replace the selected sprites
+        """
         items = self.scene.selectedItems()
         type_spr = SpriteItem
         changed = False
@@ -16326,7 +17390,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def SelectNewSpriteView(self, type):
-        """Handles a new sprite view being chosen"""
+        """
+        Handles a new sprite view being chosen
+        """
         cat = SpriteCategories[type]
         self.sprPicker.SwitchView(cat)
 
@@ -16338,18 +17404,24 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(str)
     def NewSearchTerm(self, text):
-        """Handles a new sprite search term being entered"""
+        """
+        Handles a new sprite search term being entered
+        """
         self.sprPicker.SetSearchString(text)
 
 
     @QtCore.pyqtSlot()
     def ShowDefaultProps(self):
-        """Handles the Show Default Properties button being clicked"""
+        """
+        Handles the Show Default Properties button being clicked
+        """
         self.defaultPropDock.setVisible(True)
 
 
     def HandleSprPosChange(self, obj, oldx, oldy, x, y):
-        """Handle the sprite being dragged"""
+        """
+        Handle the sprite being dragged
+        """
         obj.listitem.setText(obj.ListString())
         if obj == self.selObj:
             if oldx == x and oldy == y: return
@@ -16358,7 +17430,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot('PyQt_PyObject')
     def SpriteDataUpdated(self, data):
-        """Handle the current sprite's data being updated"""
+        """
+        Handle the current sprite's data being updated
+        """
         if self.spriteEditorDock.isVisible():
             obj = self.selObj
             obj.spritedata = data
@@ -16369,7 +17443,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def HandleEntPosChange(self, obj, oldx, oldy, x, y):
-        """Handle the entrance being dragged"""
+        """
+        Handle the entrance being dragged
+        """
         if oldx == x and oldy == y: return
         obj.listitem.setText(obj.ListString())
         if obj == self.selObj:
@@ -16377,7 +17453,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def HandlePathPosChange(self, obj, oldx, oldy, x, y):
-        """Handle the path being dragged"""
+        """
+        Handle the path being dragged
+        """
         if oldx == x and oldy == y: return
         obj.listitem.setText(obj.ListString())
         obj.updatePos()
@@ -16387,7 +17465,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def HandleComPosChange(self, obj, oldx, oldy, x, y):
-        """Handle the comment being dragged"""
+        """
+        Handle the comment being dragged
+        """
         if oldx == x and oldy == y: return
         obj.listitem.setText(obj.ListString())
         obj.UpdateTooltip()
@@ -16398,7 +17478,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def HandleComTxtChange(self, obj):
-        """Handle the comment's text being changed"""
+        """
+        Handle the comment's text being changed
+        """
         obj.listitem.setText(obj.ListString())
         obj.UpdateTooltip()
         self.SaveComments()
@@ -16407,7 +17489,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleEntranceSelectByList(self, item):
-        """Handle an entrance being selected from the list"""
+        """
+        Handle an entrance being selected from the list
+        """
         if self.UpdateFlag: return
 
         # can't really think of any other way to do this
@@ -16425,7 +17509,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleLocationSelectByList(self, item):
-        """Handle an location being selected from the list"""
+        """
+        Handle an location being selected from the list
+        """
         if self.UpdateFlag: return
 
         # can't really think of any other way to do this
@@ -16443,7 +17529,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleSpriteSelectByList(self, item):
-        """Handle an sprite being selected from the list"""
+        """
+        Handle an sprite being selected from the list
+        """
         if self.UpdateFlag: return
 
         # can't really think of any other way to do this
@@ -16461,7 +17549,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandlePathSelectByList(self, item):
-        """Handle a path node being selected"""
+        """
+        Handle a path node being selected
+        """
         #if self.UpdateFlag: return
 
         #can't really think of any other way to do this
@@ -16480,7 +17570,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleCommentSelectByList(self, item):
-        """Handle a comment being selected"""
+        """
+        Handle a comment being selected
+        """
         comment = None
         for check in Area.comments:
            if check.listitem == item:
@@ -16493,7 +17585,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         comment.setSelected(True)
 
     def HandleLocPosChange(self, loc, oldx, oldy, x, y):
-        """Handle the location being dragged"""
+        """
+        Handle the location being dragged
+        """
         if loc == self.selObj:
             if oldx == x and oldy == y: return
             self.locationEditor.setLocation(loc)
@@ -16503,7 +17597,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def HandleLocSizeChange(self, loc, width, height):
-        """Handle the location being resized"""
+        """
+        Handle the location being resized
+        """
         if loc == self.selObj:
             self.locationEditor.setLocation(loc)
             SetDirty()
@@ -16512,7 +17608,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def UpdateModeInfo(self):
-        """Change the info in the currently visible panel"""
+        """
+        Change the info in the currently visible panel
+        """
         self.UpdateFlag = True
 
         if self.spriteEditorDock.isVisible():
@@ -16532,7 +17630,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int, int)
     def PositionHovered(self, x, y):
-        """Handle a position being hovered in the view"""
+        """
+        Handle a position being hovered in the view
+        """
         info = ''
         hovereditems = self.scene.items(QtCore.QPointF(x, y))
         hovered = None
@@ -16565,7 +17665,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
 
     def keyPressEvent(self, event):
-        """Handles key press events for the main window if needed"""
+        """
+        Handles key press events for the main window if needed
+        """
         if event.key() == Qt.Key_Delete or event.key() == Qt.Key_Backspace:
             sel = self.scene.selectedItems()
             self.SelectionUpdateFlag = True
@@ -16587,7 +17689,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleAreaOptions(self):
-        """Pops up the options for Area Dialogue"""
+        """
+        Pops up the options for Area Dialogue
+        """
         dlg = AreaOptionsDialog(setting('TilesetTab') != 'Old')
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
@@ -16644,7 +17748,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleZones(self):
-        """Pops up the options for Zone dialog"""
+        """
+        Pops up the options for Zone dialog
+        """
         dlg = ZonesDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
@@ -16933,7 +18039,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
     # Handles setting the backgrounds
     @QtCore.pyqtSlot()
     def HandleBG(self):
-        """Pops up the Background settings Dialog"""
+        """
+        Pops up the Background settings Dialog
+        """
         dlg = BGDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
@@ -16968,7 +18076,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def HandleScreenshot(self):
-        """Takes a screenshot of the entire level and saves it"""
+        """
+        Takes a screenshot of the entire level and saves it
+        """
 
         dlg = ScreenCapChoiceDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
@@ -17020,13 +18130,17 @@ class ReggieWindow(QtWidgets.QMainWindow):
             ScreenshotImage.save(fn, 'PNG', 50)
 
     def HandleDiagnostics(self):
-        """Checks the level for any obvious problems and provides options to autofix them"""
+        """
+        Checks the level for any obvious problems and provides options to autofix them
+        """
         dlg = DiagnosticToolDialog()
         dlg.exec_()
 
 
 def main():
-    """Main startup function for Reggie"""
+    """
+    Main startup function for Reggie
+    """
 
     global app, mainWindow, settings, ReggieVersion
 
@@ -17143,3 +18257,4 @@ if '-generatestringsxml' in sys.argv:
     generateStringsXML = True
 
 if __name__ == '__main__': main()
+
