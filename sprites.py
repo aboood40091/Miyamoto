@@ -1549,6 +1549,39 @@ class SpriteImage_BigBoo(SLib.SpriteImage): # 61
         SLib.loadIfNotInImageCache('BigBoo', 'bigboo.png')
 
 
+class SpriteImage_SpinningFirebar(SLib.SpriteImage): # 62
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.spritebox.shown = False
+        self.aux.append(SLib.AuxiliaryCircleOutline(parent, 12, Qt.AlignCenter))
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('FirebarBase', 'firebar_base_0.png')
+        SLib.loadIfNotInImageCache('FirebarBaseWide', 'firebar_base_1.png')
+
+    def updateSize(self):
+        super().updateSize()
+
+        size = self.parent.spritedata[5] & 0xF
+        wideBase = (self.parent.spritedata[3] >> 4) & 1
+
+        width = ((size * 2) + 1) * 12
+        self.aux[0].setSize(width)
+
+        currentAuxX = self.aux[0].x()
+        currentAuxY = self.aux[0].y()
+        if wideBase: self.aux[0].setPos(currentAuxX + 12, currentAuxY)
+
+        self.image = ImageCache['FirebarBase'] if not wideBase else ImageCache['FirebarBaseWide']
+        self.xOffset = 0 if not wideBase else -8
+        self.width = 16 if not wideBase else 32
+
+    def paint(self, painter):
+        super().paint(painter)
+        painter.drawPixmap(0, 0, self.image)
+
+
 class SpriteImage_SpikeBall(SLib.SpriteImage_Static): # 63
     def __init__(self, parent):
         super().__init__(
@@ -7269,6 +7302,7 @@ ImageClasses = {
         59: SpriteImage_LineTiltGirder,
         60: SpriteImage_SpikeTop,
         61: SpriteImage_BigBoo,
+        62: SpriteImage_SpinningFirebar,
         63: SpriteImage_SpikeBall,
         64: SpriteImage_OutdoorsFog,
         65: SpriteImage_PipePiranhaUp,

@@ -410,21 +410,36 @@ class AuxiliaryTrackObject(AuxiliaryItem):
 
 
 class AuxiliaryCircleOutline(AuxiliaryItem):
-    def __init__(self, parent, width):
+    def __init__(self, parent, width, alignMode=Qt.AlignHCenter):
         """
         Constructor
         """
         super().__init__(parent)
 
-        self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, width * 1.5)
-        self.setPos((8 - (width / 2)) * 1.5, 0)
-        self.width = width
         self.hover = False
+        self.alignMode = alignMode
+        self.setSize(width)
 
     def setSize(self, width):
         self.prepareGeometryChange()
         self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, width * 1.5)
-        self.setPos((8 - (width / 2)) * 1.5, 0)
+
+        centerOffset = (8 - (width / 2)) * 1.5
+        fullOffset = -(width * 1.5) + 24
+
+        xval = 0
+        if self.alignMode & Qt.AlignHCenter:
+            xval = centerOffset
+        elif self.alignMode & Qt.AlignRight:
+            xval = fullOffset
+
+        yval = 0
+        if self.alignMode & Qt.AlignVCenter:
+            yval = centerOffset
+        elif self.alignMode & Qt.AlignBottom:
+            yval = fullOffset
+
+        self.setPos(xval, yval)
         self.width = width
 
     def paint(self, painter, option, widget):
