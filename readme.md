@@ -106,6 +106,8 @@ Release Next (Milestone 2 Alpha 3): (unreleased)
  * A couple of small icon changes
  * Entrance visualizations have been improved
  * The default setting for new entrances is now Non-Enterable
+ * New sprite image:
+   62: Spinning Firebar
  * A few bugfixes
 
 Release Next (Milestone 2 Alpha 2): (July 31, 2014)
