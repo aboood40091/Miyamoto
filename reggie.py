@@ -4444,9 +4444,18 @@ class EntranceItem(LevelEditorItem):
             """
             Handles type changes to the entrance
             """
-            if self.parent.enttype == 21:
+            if self.parent.enttype == 20:
+                # Jumping facing right
+                self.setPos(0, -276)
+                self.BoundingRect = QtCore.QRectF(0, 0, 98, 300)
+            elif self.parent.enttype == 21:
+                # Vine
                 self.setPos(-12, -240)
-                self.BoundingRect = QtCore.QRectF(0, 0, 48, 696) # FIX THIS
+                self.BoundingRect = QtCore.QRectF(0, 0, 48, 696)
+            elif self.parent.enttype == 24:
+                # Jumping facing left
+                self.setPos(-74, -276)
+                self.BoundingRect = QtCore.QRectF(0, 0, 98, 300)
             else:
                 self.setPos(0, 0)
                 self.BoundingRect = QtCore.QRectF(0, 0, 24, 24)
@@ -4455,7 +4464,23 @@ class EntranceItem(LevelEditorItem):
             """
             Paints the entrance aux
             """
-            if self.parent.enttype == 21:
+
+            painter.setClipRect(option.exposedRect)
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
+            if self.parent.enttype == 20:
+                # Jumping facing right
+
+                path = QtGui.QPainterPath(QtCore.QPoint(12, 276))
+                path.cubicTo(QtCore.QPoint(40, -24), QtCore.QPoint(50, -24), QtCore.QPoint(60, 36))
+                path.lineTo(QtCore.QPoint(96, 300))
+
+                painter.setPen(SLib.OutlinePen)
+                painter.drawPath(path)
+
+            elif self.parent.enttype == 21:
+                # Vine
+
                 # Draw the top half
                 painter.setOpacity(1)
                 painter.drawPixmap(0, 0, SLib.ImageCache['VineTop'])
@@ -4465,6 +4490,16 @@ class EntranceItem(LevelEditorItem):
                 painter.setOpacity(0.5)
                 painter.drawTiledPixmap(12, 216, 24, 456, SLib.ImageCache['VineMid'])
                 painter.drawPixmap(12, 672, SLib.ImageCache['VineBtm'])
+
+            elif self.parent.enttype == 24:
+                # Jumping facing left
+
+                path = QtGui.QPainterPath(QtCore.QPoint(86, 276))
+                path.cubicTo(QtCore.QPoint(58, -24), QtCore.QPoint(48, -24), QtCore.QPoint(38, 36))
+                path.lineTo(QtCore.QPoint(2, 300))
+
+                painter.setPen(SLib.OutlinePen)
+                painter.drawPath(path)
 
         def boundingRect(self):
             """
