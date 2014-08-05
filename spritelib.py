@@ -175,19 +175,19 @@ class SpriteImage():
     def setOffset(self, new):
         self.xOffset, self.yOffset = new[0], new[1]
     def delOffset(self):
-        self.xOffset, self.yOffset = [0, 0]
+        self.xOffset, self.yOffset = 0, 0
     def getSize(self):
         return (self.width, self.height)
     def setSize(self, new):
         self.width, self.height = new[0], new[1]
     def delSize(self):
-        self.width, self.height = [16, 16]
+        self.width, self.height = 16, 16
     def getDimensions(self):
         return (self.xOffset, self.yOffset, self.width, self.height)
     def setDimensions(self, new):
         self.xOffset, self.yOffset, self.width, self.height = new[0], new[1], new[2], new[3]
     def delDimensions(self):
-        self.xOffset, self.yOffset, self.width, self.height = [0, 0, 16, 16]
+        self.xOffset, self.yOffset, self.width, self.height = 0, 0, 16, 16
 
     offset = property(getOffset, setOffset, delOffset,
         'Convenience property that provides access to self.xOffset and self.yOffset in one tuple')
@@ -264,19 +264,19 @@ class Spritebox():
     def setOffset(self, new):
         self.xOffset, self.yOffset = new[0], new[1]
     def delOffset(self):
-        self.xOffset, self.yOffset = [0, 0]
+        self.xOffset, self.yOffset = 0, 0
     def getSize(self):
         return (self.width, self.height)
     def setSize(self, new):
         self.width, self.height = new[0], new[1]
     def delSize(self):
-        self.width, self.height = [16, 16]
+        self.width, self.height = 16, 16
     def getDimensions(self):
         return (self.xOffset, self.yOffset, self.width, self.height)
     def setDimensions(self, new):
         self.xOffset, self.yOffset, self.width, self.height = new[0], new[1], new[2], new[3]
     def delDimensions(self):
-        self.xOffset, self.yOffset, self.width, self.height = [0, 0, 16, 16]
+        self.xOffset, self.yOffset, self.width, self.height = 0, 0, 16, 16
 
     offset = property(getOffset, setOffset, delOffset,
         'Convenience property that provides access to self.xOffset and self.yOffset in one tuple')
@@ -430,7 +430,7 @@ class AuxiliaryRotationAreaOutline(AuxiliaryItem):
         """Constructor"""
         super().__init__(parent)
 
-        self.BoundingRect = QtCore.QRectF(0,0,width*1.5,width*1.5)
+        self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, width * 1.5)
         self.setPos((8 - (width / 2)) * 1.5, (8 - (width / 2)) * 1.5)
         self.width = width
         self.startAngle = 0
@@ -454,12 +454,12 @@ class AuxiliaryRectOutline(AuxiliaryItem):
         """Constructor"""
         super().__init__(parent)
 
-        self.BoundingRect = QtCore.QRectF(0,0,width,height)
+        self.BoundingRect = QtCore.QRectF(0, 0, width, height)
         self.setPos(xoff, yoff)
         self.hover = False
 
     def setSize(self, width, height, xoff=0, yoff=0):
-        self.BoundingRect = QtCore.QRectF(0,0,width,height)
+        self.BoundingRect = QtCore.QRectF(0, 0, width, height)
         self.setPos(xoff, yoff)
 
     def paint(self, painter, option, widget):
@@ -501,7 +501,7 @@ class AuxiliaryImage(AuxiliaryItem):
     def __init__(self, parent, width, height):
         """Constructor"""
         super().__init__(parent)
-        self.BoundingRect = QtCore.QRectF(0,0,width,height)
+        self.BoundingRect = QtCore.QRectF(0, 0, width, height)
         self.width = width
         self.height = height
         self.image = None
@@ -509,7 +509,7 @@ class AuxiliaryImage(AuxiliaryItem):
 
     def setSize(self, width, height, xoff=0, yoff=0):
         self.prepareGeometryChange()
-        self.BoundingRect = QtCore.QRectF(0,0,width,height)
+        self.BoundingRect = QtCore.QRectF(0, 0, width, height)
         self.setPos(xoff, yoff)
         self.width = width
         self.height = height
