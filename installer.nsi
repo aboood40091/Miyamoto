@@ -2,11 +2,11 @@
 # 
 # Change the values below to change basic settings:
 !define Name "Reggie! Level Editor Next"
-!define InputDir "distrib\reggie_next_m2a3_win32"
-!define OutputName "reggie-next-0.13-win32.exe"
+!define InputDir "distrib\reggie_next_m2a4_win32"
+!define OutputName "reggie-next-0.14-win32.exe"
 !define Publisher "RVLution"
 !define IconPath "reggiedata\win_icon.ico"
-!define VersionStr "Milestone 2 Alpha 3"
+!define VersionStr "Milestone 2 Alpha 4"
 
 ###############################################################
 ###############################################################

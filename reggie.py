@@ -2,7 +2,7 @@
 # -*- coding: latin-1 -*-
 
 # Reggie! - New Super Mario Bros. Wii Level Editor
-# Version Next Milestone 2 Alpha 3
+# Version Next Milestone 2 Alpha 4
 # Copyright (C) 2009-2014 Treeki, Tempus, angelsl, JasonP27, Kamek64,
 # MalStar1000, RoadrunnerWMC
 
@@ -77,7 +77,7 @@ import sprites
 import TPLLib
 
 ReggieID = 'Reggie! Level Editor Next by Treeki, Tempus, RoadrunnerWMC'
-ReggieVersion = 'Next Milestone 2 Alpha 3'
+ReggieVersion = 'Next Milestone 2 Alpha 4'
 UpdateURL = 'http://rvlution.net/reggie/updates.xml'
 
 
