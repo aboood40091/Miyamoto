@@ -5994,6 +5994,7 @@ class Stamp():
         pix = QtGui.QPixmap(pixmapSize[0], pixmapSize[1])
         pix.fill(Qt.transparent)
         painter = QtGui.QPainter(pix)
+        painter.setRenderHint(painter.Antialiasing)
 
         # Paint all objects
         objw, objh = int(pixmapSize[0] // 24) + 1, int(pixmapSize[1] // 24) + 1
@@ -10137,7 +10138,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     if obj.objx != newx or obj.objy != newy:
                         obj.objx = newx
                         obj.objy = newy
-                        obj.setPos(int((newx+obj.xoffset) * 1.5), int((newy+obj.yoffset) * 1.5))
+                        obj.setPos(int((newx + obj.ImageObj.xOffset) * 1.5), int((newy + obj.ImageObj.yOffset) * 1.5))
 
             self.scene().update()
             
@@ -15852,11 +15853,12 @@ class ReggieWindow(QtWidgets.QMainWindow):
             if y < y1: y1 = y
             if y > y2: y2 = y
 
-            self.scene.addItem(spr)
+            Area.sprites.append(spr)
             added.append(spr)
+            self.scene.addItem(spr)
 
         # Go through the objects
-        for layer in layers:
+        for layer, layernum in zip(layers, range(2)):
             for obj in layer:
                 xs = obj.objx
                 xe = obj.objx + obj.width - 1
@@ -15867,8 +15869,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 if ys < y1: y1 = ys
                 if ye > y2: y2 = ye
 
-                self.scene.addItem(obj)
+                #Area.layers[layernum].append(obj)
                 added.append(obj)
+                self.scene.addItem(obj)
 
         layer0, layer1, layer2 = layers
                 
