@@ -15370,6 +15370,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         stampNameLabel = QtWidgets.QLabel(trans.string('Palette', 35))
         self.stampNameEdit = QtWidgets.QLineEdit()
         self.stampNameEdit.setEnabled(False)
+        self.stampNameEdit.textChanged.connect(self.handleStampNameEdited)
 
         nameLayout = QtWidgets.QHBoxLayout()
         nameLayout.addWidget(stampNameLabel)
@@ -15685,9 +15686,24 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Called when the stamp selection is changed
         """
-        isSelection = self.stampChooser.currentlySelectedStamp() is not None
-        self.stampRemoveBtn.setEnabled(isSelection)
-        self.stampNameEdit.setEnabled(isSelection)
+        newStamp = self.stampChooser.currentlySelectedStamp()
+        stampSelected = newStamp is not None
+        self.stampRemoveBtn.setEnabled(stampSelected)
+        self.stampNameEdit.setEnabled(stampSelected)
+
+        newName = '' if not stampSelected else newStamp.Name
+        self.stampNameEdit.setText(newName)
+
+
+    def handleStampNameEdited(self):
+        """
+        Called when the user edits the name of the current stamp
+        """
+        stamp = self.stampChooser.currentlySelectedStamp()
+        text = self.stampNameEdit.text()
+        stamp.Name = text
+
+        self.stampChooser.update(self.stampChooser.currentIndex())
 
 
     @QtCore.pyqtSlot()
