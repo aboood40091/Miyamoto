@@ -4427,34 +4427,52 @@ class SpriteItem(LevelEditorItem):
             (self.objy * 1.5) + self.ImageObj.spritebox.BoundingRect.topLeft().y(),
             )
 
-        unitedRect = imgRect.united(spriteboxRect)
-        unitedOffsetRect = imgOffsetRect.united(spriteboxOffsetRect)
+        if SpriteImagesShown:
+            unitedRect = imgRect.united(spriteboxRect)
+            unitedOffsetRect = imgOffsetRect.united(spriteboxOffsetRect)
 
-        # SelectionRect: Used to determine the size of the
-        # "this sprite is selected" translucent white box that
-        # appears when a sprite with an image is selected.
-        self.SelectionRect = QtCore.QRectF(
-            0, 0,
-            imgRect.width() - 1,
-            imgRect.height() - 1,
-            )
+            # SelectionRect: Used to determine the size of the
+            # "this sprite is selected" translucent white box that
+            # appears when a sprite with an image is selected.
+            self.SelectionRect = QtCore.QRectF(
+                0, 0,
+                imgRect.width() - 1,
+                imgRect.height() - 1,
+                )
 
-        # LevelRect: Used by the Level Overview to determine
-        # the size and position of the sprite in the level.
-        # Measured in blocks.
-        self.LevelRect = QtCore.QRectF(
-            unitedOffsetRect.topLeft().x() / 24,
-            unitedOffsetRect.topLeft().y() / 24,
-            unitedOffsetRect.width() / 24,
-            unitedOffsetRect.height() / 24,
-            )
+            # LevelRect: Used by the Level Overview to determine
+            # the size and position of the sprite in the level.
+            # Measured in blocks.
+            self.LevelRect = QtCore.QRectF(
+                unitedOffsetRect.topLeft().x() / 24,
+                unitedOffsetRect.topLeft().y() / 24,
+                unitedOffsetRect.width() / 24,
+                unitedOffsetRect.height() / 24,
+                )
 
-        # BoundingRect: The sprite can only paint within
-        # this area.
-        self.BoundingRect = unitedRect.translated(
-            self.ImageObj.spritebox.BoundingRect.topLeft().x(),
-            self.ImageObj.spritebox.BoundingRect.topLeft().y(),
-            )
+            # BoundingRect: The sprite can only paint within
+            # this area.
+            self.BoundingRect = unitedRect.translated(
+                self.ImageObj.spritebox.BoundingRect.topLeft().x(),
+                self.ImageObj.spritebox.BoundingRect.topLeft().y(),
+                )
+
+        else:
+            self.SelectionRect = QtCore.QRectF(0, 0, 24, 24)
+
+            self.LevelRect = QtCore.QRectF(
+                spriteboxOffsetRect.topLeft().x() / 24,
+                spriteboxOffsetRect.topLeft().y() / 24,
+                spriteboxOffsetRect.width() / 24,
+                spriteboxOffsetRect.height() / 24,
+                )
+
+            # BoundingRect: The sprite can only paint within
+            # this area.
+            self.BoundingRect = spriteboxRect.translated(
+                self.ImageObj.spritebox.BoundingRect.topLeft().x(),
+                self.ImageObj.spritebox.BoundingRect.topLeft().y(),
+                )
 
     def itemChange(self, change, value):
         """
@@ -4465,8 +4483,12 @@ class SpriteItem(LevelEditorItem):
             if self.scene() is None: return value
             if self.ChangingPos: return value
 
-            xOffset, xOffsetAdjusted = self.ImageObj.xOffset, self.ImageObj.xOffset * 1.5
-            yOffset, yOffsetAdjusted = self.ImageObj.yOffset, self.ImageObj.yOffset * 1.5
+            if SpriteImagesShown:
+                xOffset, xOffsetAdjusted = self.ImageObj.xOffset, self.ImageObj.xOffset * 1.5
+                yOffset, yOffsetAdjusted = self.ImageObj.yOffset, self.ImageObj.yOffset * 1.5
+            else:
+                xOffset, xOffsetAdjusted = 0, 0
+                yOffset, yOffsetAdjusted = 0, 0
 
             # snap to 24x24
             newpos = value
@@ -4524,7 +4546,7 @@ class SpriteItem(LevelEditorItem):
                 #self.scene().update(updRect.united(oldrect))
                 self.scene().update(updRect)
 
-                self.LevelRect.moveTo((x+xOffset) / 16, (y+yOffset) / 16)
+                self.LevelRect.moveTo((x + xOffset) / 16, (y + yOffset) / 16)
 
                 for auxObj in self.ImageObj.aux:
                     auxUpdRect = QtCore.QRectF(
@@ -4596,14 +4618,15 @@ class SpriteItem(LevelEditorItem):
         if self.scene() is not None: self.scene().update()
 
 
-    def paint(self, painter, option, widget):
+    def paint(self, painter, option=None, widget=None, overrideGlobals=False):
         """
         Paints the sprite
         """
 
         # Setup stuff
-        painter.setClipRect(option.exposedRect)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        if option is not None:
+            painter.setClipRect(option.exposedRect)
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
         # Turn aux things on or off
         for aux in self.ImageObj.aux:
@@ -4613,7 +4636,7 @@ class SpriteItem(LevelEditorItem):
         drawSpritebox = True
         spriteboxRect = QtCore.QRectF(1, 1, 22, 22)
 
-        if SpriteImagesShown:
+        if SpriteImagesShown or overrideGlobals:
             self.ImageObj.paint(painter)
 
             drawSpritebox = self.ImageObj.spritebox.shown
@@ -4626,8 +4649,7 @@ class SpriteItem(LevelEditorItem):
 
             # Determine the spritebox position
             if drawSpritebox:
-                RR = self.ImageObj.spritebox.RoundedRect
-                spriteboxRect = RR.translated(-self.ImageObj.xOffset * 1.5, -self.ImageObj.yOffset * 1.5)
+                spriteboxRect = self.ImageObj.spritebox.RoundedRect
 
         # Draw the spritebox if applicable
         if drawSpritebox:
@@ -5906,20 +5928,144 @@ class Stamp():
         """
         Renders the stamp
         """
-        px = QtGui.QPixmap(72, 72)
-        px.fill(Qt.transparent)
-        pn = QtGui.QPainter(px)
-        pn.drawLine(0,0,72,72)
-        pn.drawLine(0,72,72,0)
-        del pn
-        return px
-        if option.state & QtWidgets.QStyle.State_Selected:
-            painter.fillRect(option.rect, option.palette.highlight())
 
-        p = index.model().data(index, Qt.DecorationRole)
-        painter.drawPixmap(option.rect.x()+2, option.rect.y()+2, p)
-        #painter.drawText(option.rect, str(index.row()))
+        minX, minY, maxX, maxY = 24576, 12288, 0, 0
 
+        layers, sprites = mainWindow.getEncodedObjects(self.ReggieClip)
+
+        # Go through the sprites and find the maxs and mins
+        for spr in sprites:
+            spr.UpdateRects()
+            
+            br = spr.BoundingRect.translated(
+                spr.x(),
+                spr.y(),
+                )
+            for aux in spr.ImageObj.aux:
+                br = br.united(
+                    aux.BoundingRect.translated(
+                        aux.x() + spr.x(),
+                        aux.y() + spr.y(),
+                        )
+                    )
+
+            x1 = br.topLeft().x()
+            y1 = br.topLeft().y()
+            x2 = x1 + br.width()
+            y2 = y1 + br.height()
+
+            if x1 < minX: minX = x1
+            if x2 > maxX: maxX = x2
+            if y1 < minY: minY = y1
+            if y2 > maxY: maxY = y2
+
+        # Go through the objects and find the maxs and mins
+        for layer in layers:
+            for obj in layer:
+                x1 = (obj.objx * 24)
+                x2 = x1 + (obj.width * 24)
+                y1 = (obj.objy * 24)
+                y2 = y1 + (obj.height * 24)
+
+                if x1 < minX: minX = x1
+                if x2 > maxX: maxX = x2
+                if y1 < minY: minY = y1
+                if y2 > maxY: maxY = y2
+
+        # Calculate offset amounts (snap to 24x24 increments)
+        offsetX = int(minX // 24) * 24
+        offsetY = int(minY // 24) * 24
+        drawOffsetX = offsetX - minX
+        drawOffsetY = offsetY - minY
+
+        # Go through the things again and shift them by the offset amount
+        for spr in sprites:
+            spr.objx -= offsetX / 1.5
+            spr.objy -= offsetY / 1.5
+        for layer in layers:
+            for obj in layer:
+                obj.objx -= offsetX // 24
+                obj.objy -= offsetY // 24
+
+        # Calculate the required pixmap size
+        pixmapSize = (maxX - minX, maxY - minY)
+
+        # Create the pixmap, and a painter
+        pix = QtGui.QPixmap(pixmapSize[0], pixmapSize[1])
+        pix.fill(Qt.transparent)
+        painter = QtGui.QPainter(pix)
+
+        # Paint all objects
+        objw, objh = int(pixmapSize[0] // 24) + 1, int(pixmapSize[1] // 24) + 1
+        for layer in reversed(layers):
+            tmap = []
+            for i in range(objh):
+                tmap.append([-1] * objw)
+            for obj in layer:
+                startx = int(obj.objx)
+                starty = int(obj.objy)
+
+                desty = starty
+                for row in obj.objdata:
+                    destrow = tmap[desty]
+                    destx = startx
+                    for tile in row:
+                        if tile > 0:
+                            destrow[destx] = tile
+                        destx += 1
+                    desty += 1
+
+                painter.save()
+                desty = 0
+                for row in tmap:
+                    destx = 0
+                    for tile in row:
+                        if tile > 0:
+                            if Tiles[tile] is None: continue
+                            r = Tiles[tile].main
+                            painter.drawPixmap(destx + drawOffsetX, desty + drawOffsetY, r)
+                        destx += 24
+                    desty += 24
+                painter.restore()
+
+        # Paint all sprites
+        for spr in sprites:
+            offx = ((spr.objx + spr.ImageObj.xOffset) * 1.5) + drawOffsetX
+            offy = ((spr.objy + spr.ImageObj.yOffset) * 1.5) + drawOffsetY
+
+            painter.save()
+            painter.translate(offx, offy)
+
+            spr.paint(painter, None, None, True)
+
+            painter.restore()
+
+            # Paint any auxiliary things
+            for aux in spr.ImageObj.aux:
+                painter.save()
+                painter.translate(
+                    offx + aux.x(),
+                    offy + aux.y(),
+                    )
+
+                aux.paint(painter, None, None)
+
+                painter.restore()
+
+        # End painting
+        painter.end()
+        del painter
+
+        # Scale it
+        maxW, maxH = 96, 96
+        w, h = pix.width(), pix.height()
+        if w > h and w > maxW:
+            pix = pix.scaledToWidth(maxW)
+        elif h > w and h > maxH:
+            pix = pix.scaledToHeight(maxH)
+
+        # Return it
+        return pix
 
 
 class SpritePickerWidget(QtWidgets.QTreeWidget):
@@ -15677,9 +15823,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         self.SelectionUpdateFlag = True
         self.scene.clearSelection()
-        layer0 = []
-        layer1 = []
-        layer2 = []
         added = []
 
         x1 = 1024
@@ -15690,128 +15833,75 @@ class ReggieWindow(QtWidgets.QMainWindow):
         global OverrideSnapping
         OverrideSnapping = True
 
-        # possibly a small optimization
-        type_obj = ObjectItem
-        type_spr = SpriteItem
-        func_len = len
-        func_chr = chr
-        func_map = map
-        func_int = int
-        func_ii = isinstance
-        func_bytes = bytes
-        layers = Area.layers
-        sprites = Area.sprites
-        scene = self.scene
+        if not (encoded.startswith('ReggieClip|') and encoded.endswith('|%')): return
 
-        try:
-            if not (encoded.startswith('ReggieClip|') and encoded.endswith('|%')): return
+        clip = encoded.split('|')[1:-1]
 
-            clip = encoded[11:-2].split('|')
+        if len(clip) > 300:
+            result = QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('MainWindow', 1), QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+            if result == QtWidgets.QMessageBox.No: return
 
-            if func_len(clip) > 300:
-                result = QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('MainWindow', 1), QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-                if result == QtWidgets.QMessageBox.No:
-                    return
+        layers, sprites = self.getEncodedObjects(encoded)
 
-            for item in clip:
-                # Check to see whether it's an object or sprite
-                # and add it to the correct stack
-                split = item.split(':')
-                if split[0] == '0':
-                    # object
-                    if func_len(split) != 8: continue
+        # Go through the sprites
+        for spr in sprites:
+            x = spr.objx / 16
+            y = spr.objy / 16
+            if x < x1: x1 = x
+            if x > x2: x2 = x
+            if y < y1: y1 = y
+            if y > y2: y2 = y
 
-                    tileset = func_int(split[1])
-                    type = func_int(split[2])
-                    layer = func_int(split[3])
-                    objx = func_int(split[4])
-                    objy = func_int(split[5])
-                    width = func_int(split[6])
-                    height = func_int(split[7])
+            self.scene.addItem(spr)
+            added.append(spr)
 
-                    # basic sanity checks
-                    if tileset < 0 or tileset > 3: continue
-                    if type < 0 or type > 255: continue
-                    if layer < 0 or layer > 2: continue
-                    if objx < 0 or objx > 1023: continue
-                    if objy < 0 or objy > 511: continue
-                    if width < 1 or width > 1023: continue
-                    if height < 1 or height > 511: continue
+        # Go through the objects
+        for layer in layers:
+            for obj in layer:
+                xs = obj.objx
+                xe = obj.objx + obj.width - 1
+                ys = obj.objy
+                ye = obj.objy + obj.height - 1
+                if xs < x1: x1 = xs
+                if xe > x2: x2 = xe
+                if ys < y1: y1 = ys
+                if ye > y2: y2 = ye
 
-                    xs = objx
-                    xe = objx+width-1
-                    ys = objy
-                    ye = objy+height-1
-                    if xs < x1: x1 = xs
-                    if xe > x2: x2 = xe
-                    if ys < y1: y1 = ys
-                    if ye > y2: y2 = ye
+                self.scene.addItem(obj)
+                added.append(obj)
 
-                    newitem = type_obj(tileset, type, layer, objx, objy, width, height, 1)
-                    added.append(newitem)
-                    scene.addItem(newitem)
-
-                    if layer == 0:
-                        layer0.append(newitem)
-                    elif layer == 1:
-                        layer1.append(newitem)
-                    else:
-                        layer2.append(newitem)
-
-                elif split[0] == '1':
-                    # sprite
-                    if func_len(split) != 11: continue
-
-                    objx = func_int(split[2])
-                    objy = func_int(split[3])
-                    data = func_bytes(func_map(func_int, [split[4], split[5], split[6], split[7], split[8], split[9], '0', split[10]]))
-
-                    x = objx / 16
-                    y = objy / 16
-                    if x < x1: x1 = x
-                    if x > x2: x2 = x
-                    if y < y1: y1 = y
-                    if y > y2: y2 = y
-
-                    newitem = type_spr(func_int(split[1]), objx, objy, data)
-                    sprites.append(newitem)
-                    added.append(newitem)
-                    scene.addItem(newitem)
-
-        except ValueError:
-            # an int() probably failed somewhere
-            pass
-
-        if func_len(layer0) > 0:
-            layer = layers[0]
-            if func_len(layer) > 0:
-                z = layer[-1].zValue() + 1
+        layer0, layer1, layer2 = layers
+                
+        if len(layer0) > 0:
+            AreaLayer = Area.layers[0]
+            if len(AreaLayer) > 0:
+                z = AreaLayer[-1].zValue() + 1
             else:
                 z = 16384
             for obj in layer0:
-                layer.append(obj)
+                AreaLayer.append(obj)
                 obj.setZValue(z)
                 z += 1
 
-        if func_len(layer1) > 0:
-            layer = layers[1]
-            if func_len(layer) > 0:
-                z = layer[-1].zValue() + 1
+        if len(layer1) > 0:
+            AreaLayer = Area.layers[1]
+            if len(AreaLayer) > 0:
+                z = AreaLayer[-1].zValue() + 1
             else:
                 z = 8192
             for obj in layer1:
-                layer.append(obj)
+                AreaLayer.append(obj)
                 obj.setZValue(z)
                 z += 1
 
-        if func_len(layer2) > 0:
-            layer = layers[2]
-            if func_len(layer) > 0:
-                z = layer[-1].zValue() + 1
+        if len(layer2) > 0:
+            AreaLayer = Area.layers[2]
+            if len(AreaLayer) > 0:
+                z = AreaLayer[-1].zValue() + 1
             else:
                 z = 0
             for obj in layer2:
-                layer.append(obj)
+                AreaLayer.append(obj)
                 obj.setZValue(z)
                 z += 1
 
@@ -15839,12 +15929,12 @@ class ReggieWindow(QtWidgets.QMainWindow):
             ypixeloffset = yoffset * 16
 
         for item in added:
-            if func_ii(item, type_spr):
+            if isinstance(item, SpriteItem):
                 item.setPos(
                     (item.objx + xpixeloffset + item.ImageObj.xOffset) * 1.5,
                     (item.objy + ypixeloffset + item.ImageObj.yOffset) * 1.5,
                     )
-            elif func_ii(item, type_obj):
+            elif isinstance(item, ObjectItem):
                 item.setPos((item.objx + xoffset) * 24, (item.objy + yoffset) * 24)
             if select: item.setSelected(True)
 
@@ -15856,6 +15946,73 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.ChangeSelectionHandler()
 
         return added
+
+    def getEncodedObjects(self, encoded):
+        """
+        Create the objects from a ReggieClip
+        """
+
+        layers = ([], [], [])
+        sprites = []
+
+        try:
+            if not (encoded.startswith('ReggieClip|') and encoded.endswith('|%')): return
+
+            clip = encoded[11:-2].split('|')
+
+            if len(clip) > 300:
+                result = QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('MainWindow', 1), QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                if result == QtWidgets.QMessageBox.No:
+                    return
+
+            for item in clip:
+                # Check to see whether it's an object or sprite
+                # and add it to the correct stack
+                split = item.split(':')
+                if split[0] == '0':
+                    # object
+                    if len(split) != 8: continue
+
+                    tileset = int(split[1])
+                    type = int(split[2])
+                    layer = int(split[3])
+                    objx = int(split[4])
+                    objy = int(split[5])
+                    width = int(split[6])
+                    height = int(split[7])
+
+                    # basic sanity checks
+                    if tileset < 0 or tileset > 3: continue
+                    if type < 0 or type > 255: continue
+                    if layer < 0 or layer > 2: continue
+                    if objx < 0 or objx > 1023: continue
+                    if objy < 0 or objy > 511: continue
+                    if width < 1 or width > 1023: continue
+                    if height < 1 or height > 511: continue
+
+                    newitem = ObjectItem(tileset, type, layer, objx, objy, width, height, 1)
+
+                    layers[layer].append(newitem)
+
+                elif split[0] == '1':
+                    # sprite
+                    if len(split) != 11: continue
+
+                    objx = int(split[2])
+                    objy = int(split[3])
+                    data = bytes(map(int, [split[4], split[5], split[6], split[7], split[8], split[9], '0', split[10]]))
+
+                    x = objx / 16
+                    y = objy / 16
+
+                    newitem = SpriteItem(int(split[1]), objx, objy, data)
+                    sprites.append(newitem)
+
+        except ValueError:
+            # an int() probably failed somewhere
+            pass
+
+        return layers, sprites
 
 
     @QtCore.pyqtSlot()
@@ -16422,8 +16579,21 @@ class ReggieWindow(QtWidgets.QMainWindow):
         SpriteImagesShown = checked
 
         setSetting('ShowSpriteImages', SpriteImagesShown)
-        self.scene.update()
 
+        for spr in Area.sprites:
+            spr.UpdateRects()
+            if SpriteImagesShown:
+                spr.setPos(
+                    (spr.objx + spr.ImageObj.xOffset) * 1.5,
+                    (spr.objy + spr.ImageObj.yOffset) * 1.5,
+                    )
+            else:
+                spr.setPos(
+                    spr.objx * 1.5,
+                    spr.objy * 1.5,
+                    )
+
+        self.scene.update()
 
 
     @QtCore.pyqtSlot(bool)

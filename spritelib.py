@@ -109,7 +109,6 @@ def LoadBasicSuite():
     ImageCache['SpecialCoin'] = GetImg('special_coin.png')
     ImageCache['PCoin'] = GetImg('p_coin.png')
     ImageCache['RedCoin'] = GetImg('redcoin.png')
-    ImageCache['RedCoinRing'] = GetImg('redcoinring.png')
     ImageCache['StarCoin'] = GetImg('starcoin.png')
 
     # Load blocks
@@ -392,9 +391,12 @@ class AuxiliaryTrackObject(AuxiliaryItem):
         self.width = width
         self.height = height
 
-    def paint(self, painter, option, widget):
-        painter.setClipRect(option.exposedRect)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+    def paint(self, painter, option, widget=None):
+
+        if option is not None:
+            painter.setClipRect(option.exposedRect)
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
         painter.setPen(OutlinePen)
 
         if self.direction == self.Horizontal:
@@ -442,9 +444,12 @@ class AuxiliaryCircleOutline(AuxiliaryItem):
         self.setPos(xval, yval)
         self.width = width
 
-    def paint(self, painter, option, widget):
-        painter.setClipRect(option.exposedRect)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+    def paint(self, painter, option, widget=None):
+
+        if option is not None:
+            painter.setClipRect(option.exposedRect)
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
         painter.setPen(OutlinePen)
         painter.setBrush(OutlineBrush)
         painter.drawEllipse(self.BoundingRect)
@@ -468,9 +473,12 @@ class AuxiliaryRotationAreaOutline(AuxiliaryItem):
         self.startAngle = startAngle * 16
         self.spanAngle = spanAngle * 16
 
-    def paint(self, painter, option, widget):
-        painter.setClipRect(option.exposedRect)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+    def paint(self, painter, option, widget=None):
+
+        if option is not None:
+            painter.setClipRect(option.exposedRect)
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
         painter.setPen(OutlinePen)
         painter.setBrush(OutlineBrush)
         painter.drawPie(self.BoundingRect, self.startAngle, self.spanAngle)
@@ -491,9 +499,12 @@ class AuxiliaryRectOutline(AuxiliaryItem):
         self.BoundingRect = QtCore.QRectF(0, 0, width, height)
         self.setPos(xoff, yoff)
 
-    def paint(self, painter, option, widget):
-        painter.setClipRect(option.exposedRect)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+    def paint(self, painter, option, widget=None):
+
+        if option is not None:
+            painter.setClipRect(option.exposedRect)
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
         painter.setPen(OutlinePen)
         painter.setBrush(OutlineBrush)
         painter.drawRect(self.BoundingRect)
@@ -520,9 +531,12 @@ class AuxiliaryPainterPath(AuxiliaryItem):
         self.BoundingRect = QtCore.QRectF(0, 0, width, height)
         self.setPos(xoff, yoff)
 
-    def paint(self, painter, option, widget):
-        painter.setClipRect(option.exposedRect)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+    def paint(self, painter, option, widget=None):
+
+        if option is not None:
+            painter.setClipRect(option.exposedRect)
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
         painter.setPen(OutlinePen)
         if self.fillFlag: painter.setBrush(OutlineBrush)
         painter.drawPath(self.PainterPath)
@@ -547,9 +561,12 @@ class AuxiliaryImage(AuxiliaryItem):
         self.width = width
         self.height = height
 
-    def paint(self, painter, option, widget):
-        painter.setClipRect(option.exposedRect)
-        if self.image != None:
+    def paint(self, painter, option, widget=None):
+
+        if option is not None:
+            painter.setClipRect(option.exposedRect)
+
+        if self.image is not None:
             painter.drawPixmap(0, 0, self.image)
 
 
@@ -568,13 +585,16 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
 
     def setSize(self, width, height):
         super().setSize(width, height)
+
         self.realwidth = width
         self.realheight = height
 
-    def paint(self, painter, option, widget):
+    def paint(self, painter, option, widget=None):
+
         if not RealViewEnabled: return
         super().paint(painter, option, widget)
-        if self.realimage == None:
+
+        if self.realimage is None:
             try: self.realimage = self.image
             except: pass
 
@@ -598,7 +618,7 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
         if h < self.height:
             self.height = h
             changedSize = True
-        if self.realimage != None:
+        if self.realimage is not None:
             if changedSize:
                 self.image = self.realimage.copy(0, 0, w, h)
             else:
@@ -630,6 +650,6 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
         self.setPos(newx, newy)
 
         # Update the affected area of the scene
-        if self.scene() != None:
+        if self.scene() is not None:
             self.scene().update(oldx + parent.x(), oldy + parent.y(), self.width, self.height)
 

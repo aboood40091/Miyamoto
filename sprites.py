@@ -3048,7 +3048,7 @@ class SpriteImage_RedCoinRing(SLib.SpriteImage): # 156
         super().__init__(parent)
         self.spritebox.shown = False
 
-        self.aux.append(SLib.AuxiliaryImage(parent, 243, 248))
+        self.aux.append(SLib.AuxiliaryImage(parent, 76, 95))
         self.aux[0].image = ImageCache['RedCoinRing']
         self.aux[0].setPos(-10, -15)
         self.aux[0].hover = False
