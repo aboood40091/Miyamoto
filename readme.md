@@ -101,7 +101,7 @@ See the license file in the distribution for information.
 ## Changelog
 
 Release Next (Milestone 2 Alpha 4): (unreleased)
- * No changes yet...
+ * Stamp preview icons are now functional
 
 Release Next (Milestone 2 Alpha 3): (August 5, 2014)
  * Now requires TPLLib, which is not included
