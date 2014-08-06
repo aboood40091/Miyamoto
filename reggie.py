@@ -5735,7 +5735,6 @@ class StampChooserWidget(QtWidgets.QListView):
     """
     Widget that shows a list of available stamps
     """
-    stampChanged = QtCore.pyqtSignal()
     def __init__(self):
         """
         Initializes the widget
@@ -5833,7 +5832,6 @@ class StampChooserWidget(QtWidgets.QListView):
 
 
 
-
 class StampListModel(QtCore.QAbstractListModel):
     """
     Model containing all the stamps
@@ -5869,13 +5867,12 @@ class StampListModel(QtCore.QAbstractListModel):
             return QtGui.qApp.palette().base()
 
         elif role == Qt.UserRole:
-            return self.items[n].Icon.size() + QtCore.QSize(4, 2 + 2 + 36 + 2)
+            return self.items[n].Icon.size() + QtCore.QSize(4, 42)
 
         elif role == Qt.UserRole + 1:
             return self.items[n].Name
 
         elif role == Qt.StatusTipRole:
-            print('STATUSTIPROLE')
             return self.items[n].Name
 
         else: return None
@@ -15357,7 +15354,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
         stampToolsBtn.setMinimumHeight(stampAddBtn.height()/20)
 
         self.stampChooser = StampChooserWidget()
-        self.stampChooser.stampChanged.connect(self.StampChoiceChanged)
 
         stampL = QtWidgets.QGridLayout()
         stampL.addWidget(stampLabel, 0, 0, 1, 3)
@@ -15606,16 +15602,30 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if fn == '': return
 
         stamps = []
-        with open(fn) as file:
-            tree = etree.parse(file)
-            root = tree.getroot()
 
-            if root.tag.lower() != 'stamps': return
-            for stampElem in root:
-                if stampElem.tag.lower() != 'stamp': continue
-                if not all(thing in stampElem.attrib for thing in ['name', 'clip']): continue
+        with open(fn, 'r', encoding='utf-8') as file:
+            filedata = file.read()
 
-                stamps.append(Stamp(stampElem.attrib['clip'], stampElem.attrib['name']))
+            if not filedata.startswith('stamps\n------\n'): return
+
+            filesplit = filedata.split('\n')[3:]
+            i = 0
+            while i < len(filesplit):
+                try:
+                    # Get data
+                    name = filesplit[i]
+                    rc = filesplit[i + 1]
+
+                    # Increment the line counter by 3, tp
+                    # account for the blank line
+                    i += 3
+
+                except IndexError:
+                    # Meh. Malformed stamps file.
+                    i += 9999 # avoid infinite loops
+                    continue
+
+                stamps.append(Stamp(rc, name))
 
         for stamp in stamps: self.stampChooser.addStamp(stamp)
             
@@ -15624,13 +15634,23 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Handles the "Save Set As..." btn being clicked
         """
-        print('Stamp Save')
+        filetypes = trans.string('Palette', 35) + ' (*.stamps);;'
+        fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', filetypes)[0]
+        if fn == '': return
 
-    def StampChoiceChanged(self):
-        """
-        Handles the user picking a new stamp
-        """
-        print('Stamp Changed')
+        newdata = ''
+        newdata += 'stamps\n'
+        newdata += '------\n'
+
+        for stampobj in self.stampChooser.model.items:
+            name = stampobj.Name
+            rc = stampobj.ReggieClip
+            newdata += '\n'
+            newdata += stampobj.Name + '\n'
+            newdata += stampobj.ReggieClip + '\n'
+
+        with open(fn, 'w', encoding='utf-8') as f:
+            f.write(newdata)
 
     @QtCore.pyqtSlot()
     def AboutBox(self):
@@ -15869,7 +15889,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 if ys < y1: y1 = ys
                 if ye > y2: y2 = ye
 
-                #Area.layers[layernum].append(obj)
                 added.append(obj)
                 self.scene.addItem(obj)
 
