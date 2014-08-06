@@ -5735,6 +5735,7 @@ class StampChooserWidget(QtWidgets.QListView):
     """
     Widget that shows a list of available stamps
     """
+    selectionChangedSignal = QtCore.pyqtSignal()
     def __init__(self):
         """
         Initializes the widget
@@ -5830,6 +5831,13 @@ class StampChooserWidget(QtWidgets.QListView):
         if idxobj.row() == -1: return
         return self.model.items[idxobj.row()]
 
+    def selectionChanged(self, selected, deselected):
+        """
+        Called when the selection changes.
+        """
+        val = super().selectionChanged(selected, deselected)
+        self.selectionChangedSignal.emit()
+        return val
 
 
 class StampListModel(QtCore.QAbstractListModel):
@@ -8709,6 +8717,7 @@ class ReggieTranslation():
                 4: 'Portable Network Graphics',
                 5: 'Compressed Level Archives',
                 6: 'Choose a stamp archive',
+                7: 'Stamps File',
                 },
             'Gamedefs': {
                 0: 'This game has custom sprite images',
@@ -8950,7 +8959,7 @@ class ReggieTranslation():
                 32: 'Save Set As...',
                 33: 'Comments',
                 34: 'Comments currently in this area:[br](Double-click one to jump to it instantly)',
-                35: 'Stamps File',
+                35: 'Name:'
                 },
             'PathDataEditor': {
                 0: 'Loops:',
@@ -9384,12 +9393,15 @@ class ReggieTranslation():
         # If there are errors when the string is found, return an error report instead
         try: return self.string_(args[1:])
         except Exception as e:
-            text = 'ReggieTranslation.string() ERROR: ' + str(args[1]) + '; ' + str(args[2]) + '; ' + str(e)
+            text = '\nReggieTranslation.string() ERROR: ' + str(args[1]) + '; ' + str(args[2]) + '; ' + repr(e) + '\n'
             # do 3 things with the text - print it, save it to ReggieErrors.txt, return it
             print(text)
-            F = open('ReggieErrors.txt', 'a')
-            F.write(text)
-            F.close()
+            if not os.path.isfile('ReggieErrors.txt'):
+                f = open('ReggieErrors.txt', 'w')
+            else:
+                f = open('ReggieErrors.txt', 'a')
+            f.write(text)
+            f.close(); del f
             return text
 
     def string_(*args):
@@ -15342,6 +15354,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.stampAddBtn = stampAddBtn # so we can enable/disable it later
         stampRemoveBtn = QtWidgets.QPushButton(trans.string('Palette', 29))
         stampRemoveBtn.clicked.connect(self.handleStampsRemove)
+        stampRemoveBtn.setEnabled(False)
+        self.stampRemoveBtn = stampRemoveBtn # so we can enable/disable it later
 
         menu = QtWidgets.QMenu()
         menu.addAction(trans.string('Palette', 31), self.handleStampsOpen, 0) # Open Set...
@@ -15351,16 +15365,26 @@ class ReggieWindow(QtWidgets.QMainWindow):
         stampToolsBtn.setMenu(menu)
         stampToolsBtn.setPopupMode(QtWidgets.QToolButton.InstantPopup)
         stampToolsBtn.setSizePolicy(stampAddBtn.sizePolicy())
-        stampToolsBtn.setMinimumHeight(stampAddBtn.height()/20)
+        stampToolsBtn.setMinimumHeight(stampAddBtn.height() / 20)
+
+        stampNameLabel = QtWidgets.QLabel(trans.string('Palette', 35))
+        self.stampNameEdit = QtWidgets.QLineEdit()
+        self.stampNameEdit.setEnabled(False)
+
+        nameLayout = QtWidgets.QHBoxLayout()
+        nameLayout.addWidget(stampNameLabel)
+        nameLayout.addWidget(self.stampNameEdit)
 
         self.stampChooser = StampChooserWidget()
+        self.stampChooser.selectionChangedSignal.connect(self.handleStampSelectionChanged)
 
         stampL = QtWidgets.QGridLayout()
         stampL.addWidget(stampLabel, 0, 0, 1, 3)
         stampL.addWidget(stampAddBtn, 1, 0)
         stampL.addWidget(stampRemoveBtn, 1, 1)
         stampL.addWidget(stampToolsBtn, 1, 2)
-        stampL.addWidget(self.stampChooser, 2, 0, 1, 3)
+        stampL.addLayout(nameLayout, 2, 0, 1, 3)
+        stampL.addWidget(self.stampChooser, 3, 0, 1, 3)
         self.stampTab.setLayout(stampL)
 
         # comments tab
@@ -15597,7 +15621,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Handles the "Open Set..." btn being clicked
         """
-        filetypes = trans.string('Palette', 35) + ' (*.stamps);;'
+        filetypes = ''
+        filetypes += trans.string('FileDlgs', 7) + ' (*.stamps);;' # *.stamps
+        filetypes += trans.string('FileDlgs', 2) + ' (*)' # *
         fn = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 6), '', filetypes)[0]
         if fn == '': return
 
@@ -15634,7 +15660,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Handles the "Save Set As..." btn being clicked
         """
-        filetypes = trans.string('Palette', 35) + ' (*.stamps);;'
+        filetypes = ''
+        filetypes += trans.string('FileDlgs', 7) + ' (*.stamps);;' # *.stamps
+        filetypes += trans.string('FileDlgs', 2) + ' (*)' # *
         fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', filetypes)[0]
         if fn == '': return
 
@@ -15651,6 +15679,16 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         with open(fn, 'w', encoding='utf-8') as f:
             f.write(newdata)
+
+
+    def handleStampSelectionChanged(self):
+        """
+        Called when the stamp selection is changed
+        """
+        isSelection = self.stampChooser.currentlySelectedStamp() is not None
+        self.stampRemoveBtn.setEnabled(isSelection)
+        self.stampNameEdit.setEnabled(isSelection)
+
 
     @QtCore.pyqtSlot()
     def AboutBox(self):
