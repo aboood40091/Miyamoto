@@ -15932,7 +15932,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             self.scene.addItem(spr)
 
         # Go through the objects
-        for layer, layernum in zip(layers, range(2)):
+        for layer in layers:
             for obj in layer:
                 xs = obj.objx
                 xe = obj.objx + obj.width - 1
