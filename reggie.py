@@ -11298,7 +11298,7 @@ class ZonesDialog(QtWidgets.QDialog):
         a.append([0, 0, 0, 0, 0, 0])
         b.append([0, 0, 0, 0, 0, 10, 10, 10, 0])
         id = len(self.zoneTabs)
-        z = ZoneItem(16, 16, 448, 224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a, b, b, id)
+        z = ZoneItem(256, 256, 448, 224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a, b, b, id)
         ZoneTabName = trans.string('ZonesDlg', 3, '[num]', id+1)
         tab = ZoneTab(z)
         self.zoneTabs.append(tab)
