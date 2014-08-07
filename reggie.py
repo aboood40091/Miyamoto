@@ -1827,8 +1827,8 @@ def _LoadTileset(idx, name, reload=False):
     dest = QtGui.QPixmap.fromImage(img)
     sourcex = 4
     sourcey = 4
-    tileoffset = idx*256
-    for i in range(tileoffset,tileoffset+256):
+    tileoffset = idx * 256
+    for i in range(tileoffset,tileoffset + 256):
         T = TilesetTile(dest.copy(sourcex,sourcey,24,24))
         T.setCollisions(struct.unpack_from('>8B', colldata, (i-tileoffset)*8))
         Tiles[i] = T
@@ -2330,7 +2330,7 @@ def MapPositionToZoneID(zones, x, y, useid=False):
 
     for zone in zones:
         r = zone.ZoneRect
-        if   r.contains(x,y) and     useid: return zone.zoneID
+        if   r.contains(x,y) and     useid: return zone.id
         elif r.contains(x,y) and not useid: return id
 
         xdist = 0
@@ -2340,10 +2340,10 @@ def MapPositionToZoneID(zones, x, y, useid=False):
         if y <= r.top(): ydist = r.top() - y
         if y >= r.bottom(): ydist = y - r.bottom()
 
-        dist = (xdist**2+ydist**2)**0.5
+        dist = (xdist ** 2 + ydist ** 2) ** 0.5
         if dist < minimumdist or minimumdist == -1:
             minimumdist = dist
-            rval = zone.zoneID
+            rval = zone.id
 
         id += 1
 
@@ -3721,16 +3721,14 @@ class ZoneItem(LevelEditorItem):
     Level editor item that represents a zone
     """
 
-    def __init__(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, boundings, bgA, bgB, id):
+    def __init__(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, boundings, bgA, bgB, id=None):
         """
         Creates a zone with specific data
         """
         LevelEditorItem.__init__(self)
 
         self.font = NumberFont
-        self.id = id
         self.TitlePos = QtCore.QPointF(10,18)
-        self.UpdateTitle()
 
         self.objx = a
         self.objy = b
@@ -3738,7 +3736,7 @@ class ZoneItem(LevelEditorItem):
         self.height = d
         self.modeldark = e
         self.terraindark = f
-        self.zoneID = g
+        self.id = g
         self.block3id = h
         self.cammode = i
         self.camzoom = j
@@ -3749,6 +3747,11 @@ class ZoneItem(LevelEditorItem):
         self.music = o
         self.sfxmod = p
         self.UpdateRects()
+
+        if id is not None:
+            self.id = id
+
+        self.UpdateTitle()
 
         bounding = None
         id = self.block3id
@@ -3807,7 +3810,7 @@ class ZoneItem(LevelEditorItem):
         """
         Updates the zone's title
         """
-        self.title = trans.string('Zones', 0, '[num]', self.id+1)
+        self.title = trans.string('Zones', 0, '[num]', self.id + 1)
 
 
     def UpdateRects(self):
@@ -3844,7 +3847,7 @@ class ZoneItem(LevelEditorItem):
             zoneRect = QtCore.QRectF(self.objx * 1.5, self.objy * 1.5, self.width * 1.5, self.height * 1.5)
             viewRect = mainWindow.view.mapToScene(mainWindow.view.viewport().rect()).boundingRect()
             for sprite in Area.sprites:
-                if self.zoneID == sprite.getZone():
+                if self.id == sprite.getZone():
                     sprite.ImageObj.realViewZone(painter, zoneRect, viewRect)
 
         # Now paint the borders
@@ -9614,7 +9617,7 @@ class LevelScene(QtWidgets.QGraphicsScene):
                 tmap = []
                 i = 0
                 while i < height:
-                    tmap.append([-1] * width)
+                    tmap.append([None] * width)
                     i += 1
 
                 for item in layer:
@@ -9627,20 +9630,29 @@ class LevelScene(QtWidgets.QGraphicsScene):
                         for tile in row:
                             if tile > 0:
                                 destrow[destx] = tile
+                            else:
+                                destrow[destx] = -1
                             destx += 1
                         desty += 1
 
                 painter.save()
-                painter.translate(x1*24, y1*24)
+                painter.translate(x1 * 24, y1 * 24)
                 drawPixmap = painter.drawPixmap
                 desty = 0
                 for row in tmap:
                     destx = 0
                     for tile in row:
-                        if tile > 0:
-                            if tiles[tile] is None: continue # fixes a weird bug
-                            r = tiles[tile].getCurrentTile()
-                            drawPixmap(destx, desty, r)
+                        pix = None
+
+                        if tile == -1:
+                            # Draw unknown tiles
+                            pix = Overrides[108].getCurrentTile()
+                        elif tile is not None:
+                            pix = tiles[tile].getCurrentTile()
+
+                        if pix is not None:
+                            painter.drawPixmap(destx, desty, pix)
+                    
                         destx += 24
                     desty += 24
                 painter.restore()
@@ -9649,7 +9661,7 @@ class LevelScene(QtWidgets.QGraphicsScene):
 
 class LevelViewWidget(QtWidgets.QGraphicsView):
     """
-    GraphicsView subclass for the level view
+    QGraphicsView subclass for the level view
     """
     PositionHover = QtCore.pyqtSignal(int, int)
     FrameSize = QtCore.pyqtSignal(int, int)
@@ -12663,7 +12675,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
             b = []
             a.append([0, 0, 0, 0, 0, 0])
             b.append([0, 0, 0, 0, 0, 10, 10, 10, 0])
-            z = ZoneItem(16, 16, 448, 224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a, b, b, 0)
+            z = ZoneItem(16, 16, 448, 224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a, b, b, len(Area.zones))
 
             z.UpdateTitle()
             Area.zones.append(z)
