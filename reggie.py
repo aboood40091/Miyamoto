@@ -5791,22 +5791,13 @@ class StampChooserWidget(QtWidgets.QListView):
             if option.state & QtWidgets.QStyle.State_Selected:
                 painter.fillRect(option.rect, option.palette.highlight())
 
-            xstart, ystart = option.rect.x() + 2, option.rect.y() + 2
-
-            p = index.model().data(index, Qt.DecorationRole)
-            painter.drawPixmap(xstart, ystart, p)
-
-            textrect = QtCore.QRectF(xstart, ystart + p.height() + 2, p.width(), 36)
-            painter.drawText(textrect, Qt.AlignTop | Qt.AlignLeft, index.model().data(index, Qt.UserRole + 1))
-
-            return
+            painter.drawPixmap(option.rect.x() + 2, option.rect.y() + 2, index.model().data(index, Qt.DecorationRole))
 
         def sizeHint(self, option, index):
             """
             Returns the size for the stamp
             """
-            p = index.model().data(index, Qt.UserRole)
-            return p
+            return index.model().data(index, Qt.DecorationRole).size() + QtCore.QSize(4, 4)
 
 
     def addStamp(self, stamp):
@@ -5875,15 +5866,24 @@ class StampListModel(QtCore.QAbstractListModel):
             return QtGui.qApp.palette().base()
 
         elif role == Qt.UserRole:
-            return self.items[n].Icon.size() + QtCore.QSize(4, 42)
-
-        elif role == Qt.UserRole + 1:
             return self.items[n].Name
 
         elif role == Qt.StatusTipRole:
             return self.items[n].Name
 
         else: return None
+
+    def setData(self, index, value, role=Qt.DisplayRole):
+        """
+        Set data for a specific row
+        """
+        if not index.isValid(): return None
+        n = index.row()
+        if n < 0: return None
+        if n >= len(self.items): return None
+
+        if role == Qt.UserRole:
+            self.items[n].Name = value
 
     def addStamp(self, stamp):
         """
@@ -5927,11 +5927,10 @@ class Stamp():
         self.ReggieClip = ReggieClip
         self.Name = Name
         self.Icon = self.render()
-        self.Size = QtCore.QSize(self.Icon.width() + 4, self.Icon.height() + 4)
 
-    def render(self):
+    def renderPreview(self):
         """
-        Renders the stamp
+        Renders the stamp preview
         """
 
         minX, minY, maxX, maxY = 24576, 12288, 0, 0
@@ -6072,6 +6071,53 @@ class Stamp():
 
         # Return it
         return pix
+
+    def render(self):
+        """
+        Renders the stamp icon, preview AND text
+        """
+
+        # Get the preview icon
+        prevIcon = self.renderPreview()
+
+        # Calculate the total size of the icon
+        textSize = self.calculateTextSize(self.Name)
+        totalWidth = max(prevIcon.width(), textSize.width())
+        totalHeight = prevIcon.height() + 2 + textSize.height()
+
+        # Make a pixmap and painter
+        pix = QtGui.QPixmap(totalWidth, totalHeight)
+        pix.fill(Qt.transparent)
+        painter = QtGui.QPainter(pix)
+
+        # Draw the preview
+        iconWidth = prevIcon.width()
+        iconXOffset = (totalWidth - prevIcon.width()) / 2
+        painter.drawPixmap(iconXOffset, 0, prevIcon)
+
+        # Draw the text
+        textRect = QtCore.QRectF(0, prevIcon.height() + 2, totalWidth, textSize.height())
+        painter.setFont(QtGui.QFont())
+        painter.drawText(textRect, Qt.AlignTop | Qt.TextWordWrap, self.Name)
+
+        # Return the pixmap
+        return pix
+
+    @staticmethod
+    def calculateTextSize(text):
+        """
+        Calculates the size of text. Crops to 96 pixels wide.
+        """
+        fontMetrics = QtGui.QFontMetrics(QtGui.QFont())
+        fontRect = fontMetrics.boundingRect(QtCore.QRect(0, 0, 96, 48), Qt.TextWordWrap, text)
+        w, h = fontRect.width(), fontRect.height()
+        return QtCore.QSizeF(min(w, 96), h)
+
+    def update(self):
+        """
+        Updates the stamp icon
+        """
+        self.Icon = self.render()
 
 
 class SpritePickerWidget(QtWidgets.QTreeWidget):
@@ -15702,8 +15748,14 @@ class ReggieWindow(QtWidgets.QMainWindow):
         stamp = self.stampChooser.currentlySelectedStamp()
         text = self.stampNameEdit.text()
         stamp.Name = text
+        stamp.update()
 
-        self.stampChooser.update(self.stampChooser.currentIndex())
+        # Try to get it to update!!! But fail. D:
+        for i in range(3):
+            self.stampChooser.updateGeometries()
+            self.stampChooser.update(self.stampChooser.currentIndex())
+            self.stampChooser.update()
+            self.stampChooser.repaint()
 
 
     @QtCore.pyqtSlot()
