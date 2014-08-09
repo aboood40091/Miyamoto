@@ -18,7 +18,7 @@ class SpriteImage_CustomModelSprite(SLib.SpriteImage_StaticMultiple): # 11
                 img = SLib.GetImg(name)
                 if img != None: ImageCache['Model%s%02X' % (('Anim' if anim else ''), model)] = img
 
-    def updateSize(self):
+    def dataChanged(self):
 
         # Get all neccessary values: anim, type, and multiplier
         anim = self.parent.spritedata[4] & 1
@@ -85,7 +85,7 @@ class SpriteImage_CustomModelSprite(SLib.SpriteImage_StaticMultiple): # 11
             pos[1] * multiplier,
             )
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_CharginChuck(SLib.SpriteImage_Static): # 102

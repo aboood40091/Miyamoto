@@ -3748,6 +3748,8 @@ class ZoneItem(LevelEditorItem):
         self.sfxmod = p
         self.UpdateRects()
 
+        self.aux = set()
+
         if id is not None:
             self.id = id
 
@@ -3841,14 +3843,13 @@ class ZoneItem(LevelEditorItem):
         #painter.setClipRect(option.exposedRect)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
-        # Paint sprite Real View things first, so they end up on bottom
-        if RealViewEnabled:
-            # Sprites
-            zoneRect = QtCore.QRectF(self.objx * 1.5, self.objy * 1.5, self.width * 1.5, self.height * 1.5)
-            viewRect = mainWindow.view.mapToScene(mainWindow.view.viewport().rect()).boundingRect()
-            for sprite in Area.sprites:
-                if self.id == sprite.getZone():
-                    sprite.ImageObj.realViewZone(painter, zoneRect, viewRect)
+        # Paint an indicator line to show the leftmost edge of
+        # where entrances can be safely placed
+        if 24 * 13 < self.DrawRect.width():
+            painter.setPen(QtGui.QPen(theme.color('zone_lines'), 1.5))
+            lineStart = QtCore.QPointF(self.DrawRect.x() + (24 * 13), self.DrawRect.y())
+            lineEnd = QtCore.QPointF(self.DrawRect.x() + (24 * 13), self.DrawRect.y() + self.DrawRect.height())
+            painter.drawLine(lineStart, lineEnd)
 
         # Now paint the borders
         painter.setPen(QtGui.QPen(theme.color('zone_lines'), 3))
@@ -3994,6 +3995,11 @@ class ZoneItem(LevelEditorItem):
 
                 mainWindow.levelOverview.update()
 
+                # Call the zoneRepositioned function of all
+                # the sprite auxs for this zone
+                for a in self.aux:
+                    a.zoneRepositioned()
+
                 SetDirty()
 
             event.accept()
@@ -4005,6 +4011,7 @@ class ZoneItem(LevelEditorItem):
         Avoids snapping for zones
         """
         return QtWidgets.QGraphicsItem.itemChange(self, change, value)
+
 
 class LocationItem(LevelEditorItem):
     """
@@ -4081,9 +4088,9 @@ class LocationItem(LevelEditorItem):
         """
         global theme
 
-        painter.setClipRect(option.exposedRect)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
+        # Draw the purple rectangle
         if not self.isSelected():
             painter.setBrush(QtGui.QBrush(theme.color('location_fill')))
             painter.setPen(QtGui.QPen(theme.color('location_lines')))
@@ -4092,10 +4099,12 @@ class LocationItem(LevelEditorItem):
             painter.setPen(QtGui.QPen(theme.color('location_lines_s'), 1, Qt.DotLine))
         painter.drawRect(self.DrawRect)
 
+        # Draw the ID
         painter.setPen(QtGui.QPen(theme.color('location_text')))
         painter.setFont(self.font)
         painter.drawText(self.TitlePos, self.title)
 
+        # Draw the resizer rectangle, if selected
         if self.isSelected(): painter.fillRect(self.GrabberRect, theme.color('location_lines_s'))
 
 
@@ -4149,6 +4158,11 @@ class LocationItem(LevelEditorItem):
 
                 if self.sizeChanged is not None:
                     self.sizeChanged(self, self.width, self.height)
+
+                if RealViewEnabled:
+                    for sprite in Area.sprites:
+                        if self.id in sprite.ImageObj.locationIDs and sprite.ImageObj.updateSceneAfterLocationMoved:
+                            self.scene().update()
 
             event.accept()
         else:
@@ -4385,7 +4399,7 @@ class SpriteItem(LevelEditorItem):
                 auxObj.BoundingRect.height(),
                 ))
 
-        self.ImageObj.updateSize()
+        self.ImageObj.dataChanged()
         self.UpdateRects()
 
         self.ChangingPos = True
@@ -4574,7 +4588,7 @@ class SpriteItem(LevelEditorItem):
                 if self.positionChanged is not None:
                     self.positionChanged(self, oldx, oldy, x, y)
 
-                if self.ImageObj.updateSceneAfterPaint: mainWindow.scene.update()
+                self.ImageObj.positionChanged()
 
                 SetDirty()
 
@@ -4600,7 +4614,7 @@ class SpriteItem(LevelEditorItem):
 
         LevelEditorItem.mousePressEvent(self, event)
 
-    def getZone(self, obj = False):
+    def nearestZone(self, obj = False):
         """
         Calls a modified MapPositionToZoneID (if obj = True, it returns the actual ZoneItem object)
         """
@@ -9652,7 +9666,7 @@ class LevelScene(QtWidgets.QGraphicsScene):
 
                         if pix is not None:
                             painter.drawPixmap(destx, desty, pix)
-                    
+
                         destx += 24
                     desty += 24
                 painter.restore()
@@ -14918,6 +14932,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # create a toolbar
         self.toolbar = self.addToolBar(trans.string('Menubar', 5))
+        self.toolbar.setObjectName('MainToolbar')
 
         # Add buttons to the toolbar
         self.addToolbarButtons()
@@ -17130,6 +17145,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             else:
                 Level.loadLevel(name, fullpath, area, progress)
         Area = Level.areas[area - 1]
+        SLib.Area = Area
 
         OverrideSnapping = False
 

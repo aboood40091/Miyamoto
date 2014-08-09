@@ -59,7 +59,7 @@ class SpriteImage_NewerGoomba(SLib.SpriteImage_StaticMultiple): # 20
 		for i in range(8):
 			ImageCache['Goomba%d' % (i+1)] = SLib.GetImg('goomba_%d.png' % (i+1))
 
-	def updateSize(self):
+	def dataChanged(self):
 
 		color = (self.parent.spritedata[2] & 0xF) % 9
 
@@ -70,7 +70,7 @@ class SpriteImage_NewerGoomba(SLib.SpriteImage_StaticMultiple): # 20
 			self.image = ImageCache['Goomba%d' % color]
 			self.offset = (0, -4) if color not in (7, 8) else (0, -5)
 
-		super().updateSize()
+		super().dataChanged()
 
 
 class SpriteImage_PumpkinGoomba(SLib.SpriteImage_StaticMultiple): # 22
@@ -83,12 +83,12 @@ class SpriteImage_PumpkinGoomba(SLib.SpriteImage_StaticMultiple): # 22
         SLib.loadIfNotInImageCache('PumpkinGoomba', 'pumpkin_goomba.png')
         SLib.loadIfNotInImageCache('PumpkinParagoomba', 'pumpkin_paragoomba.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         para = self.parent.spritedata[5] & 1
         self.image = ImageCache['PumpkinGoomba' if not para else 'PumpkinParagoomba']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_FakeStarCoin(SLib.SpriteImage_Static): # 49
@@ -120,7 +120,7 @@ class SpriteImage_NewerKoopa(SLib.SpriteImage_StaticMultiple): # 57
 	        		ImageCache['KoopaShell%d%d' % (flag, style + 1)] = \
 	        			SLib.GetImg('koopa_shell_%d%d.png'% (flag, style + 1))
 
-    def updateSize(self):
+    def dataChanged(self):
         # get properties
         props = self.parent.spritedata[5]
         shell = (props >> 4) & 1
@@ -143,7 +143,7 @@ class SpriteImage_NewerKoopa(SLib.SpriteImage_StaticMultiple): # 57
             else:
                 self.image = ImageCache['KoopaShell%d%d' % (red, texhack)]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_BigPumpkin(SLib.SpriteImage_StaticMultiple): # 157
@@ -188,11 +188,11 @@ class SpriteImage_BigPumpkin(SLib.SpriteImage_StaticMultiple): # 157
             del paint
             ImageCache['BigPumpkin%d' % power] = new
 
-    def updateSize(self):
+    def dataChanged(self):
 
         power = self.parent.spritedata[5] & 0xF
         self.image = ImageCache['BigPumpkin%d' % power]
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Meteor(SLib.SpriteImage_StaticMultiple): # 183
@@ -201,7 +201,7 @@ class SpriteImage_Meteor(SLib.SpriteImage_StaticMultiple): # 183
         SLib.loadIfNotInImageCache('Meteor', 'meteor.png')
         SLib.loadIfNotInImageCache('MeteorElectric', 'meteor_electric.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         multiplier = self.parent.spritedata[4] / 20.0
         if multiplier == 0: multiplier = 0.01
@@ -235,7 +235,7 @@ class SpriteImage_Meteor(SLib.SpriteImage_StaticMultiple): # 183
             (relYoff * multiplier) + absYoff,
             )
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_MidwayFlag(SLib.SpriteImage_StaticMultiple): # 188
@@ -249,14 +249,14 @@ class SpriteImage_MidwayFlag(SLib.SpriteImage_StaticMultiple): # 188
         for i in range(18):
             ImageCache['MidwayFlag%d' % i] = SLib.GetImg('midway_flag_%d.png' % i)
 
-    def updateSize(self):
+    def dataChanged(self):
 
         style = self.parent.spritedata[2]
         if style > 17: style = 0
 
         self.image = ImageCache['MidwayFlag%d' % style]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Topman(SLib.SpriteImage_Static): # 210
@@ -302,13 +302,13 @@ class SpriteImage_AngrySun(SLib.SpriteImage_StaticMultiple): # 282
         SLib.loadIfNotInImageCache('AngrySun', 'angry_sun.png')
         SLib.loadIfNotInImageCache('AngryMoon', 'angry_moon.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         isMoon = self.parent.spritedata[5] & 1
         self.image = ImageCache['AngrySun' if not isMoon else 'AngryMoon']
         self.offset = (-18, -18) if not isMoon else (-13, -13)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_FuzzyBear(SLib.SpriteImage_StaticMultiple): # 283
@@ -317,12 +317,12 @@ class SpriteImage_FuzzyBear(SLib.SpriteImage_StaticMultiple): # 283
         SLib.loadIfNotInImageCache('FuzzyBear', 'fuzzy_bear.png')
         SLib.loadIfNotInImageCache('FuzzyBearBig', 'fuzzy_bear_big.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         big = (self.parent.spritedata[2] >> 4) & 1
         self.image = ImageCache['FuzzyBear' if not big else 'FuzzyBearBig']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Boolossus(SLib.SpriteImage_Static): # 290
@@ -355,12 +355,12 @@ class SpriteImage_Podoboule(SLib.SpriteImage_StaticMultiple): # 324
         SLib.loadIfNotInImageCache('PodobouleFire', 'podoboule_fire.png')
         SLib.loadIfNotInImageCache('PodobouleIce', 'podoboule_ice.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         fire = (self.parent.spritedata[2] >> 4) & 1
         self.image = ImageCache['PodobouleFire' if fire else 'PodobouleIce']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_ShyGuy(SLib.SpriteImage_StaticMultiple): # 351
@@ -371,7 +371,7 @@ class SpriteImage_ShyGuy(SLib.SpriteImage_StaticMultiple): # 351
             if i == 7: continue # there's no ShyGuy7.png
             ImageCache['ShyGuy%d' % i] = SLib.GetImg('shyguy_%d.png' % i)
 
-    def updateSize(self):
+    def dataChanged(self):
         type = (self.parent.spritedata[2] >> 4) % 9
 
         imgtype = type if type != 7 else 6 # both linear ballooneers have image 6
@@ -389,7 +389,7 @@ class SpriteImage_ShyGuy(SLib.SpriteImage_StaticMultiple): # 351
             (2, -9), # 8: blue (ballooneer - circular)
             )[type]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_GigaGoomba(SLib.SpriteImage_Static): # 410

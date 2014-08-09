@@ -107,8 +107,8 @@ class SpriteImage_DSStoneBlock(SLib.SpriteImage): # 27, 28
         ImageCache['DSBlockBottom'] = SLib.GetImg('dsblock_bottom.png')
         ImageCache['DSBlockBottomRight'] = SLib.GetImg('dsblock_bottomright.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         # get size
         width = self.parent.spritedata[5] & 7
@@ -169,7 +169,7 @@ class SpriteImage_Switch(SLib.SpriteImage_StaticMultiple): # 40, 41, 42, 153
             ImageCache['ESwitch'] = QtGui.QPixmap.fromImage(e)
             ImageCache['ESwitchU'] = QtGui.QPixmap.fromImage(e.mirrored(True, True))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         upsideDown = self.parent.spritedata[5] & 1
 
@@ -178,7 +178,7 @@ class SpriteImage_Switch(SLib.SpriteImage_StaticMultiple): # 40, 41, 42, 153
         else:
             self.image = ImageCache[self.switchType + 'SwitchU']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_OldStoneBlock(SLib.SpriteImage): # 30, 81, 82, 83, 84, 85, 86
@@ -211,8 +211,8 @@ class SpriteImage_OldStoneBlock(SLib.SpriteImage): # 30, 81, 82, 83, 84, 85, 86
         ImageCache['SpikeR'] = SLib.GetImg('spike_right.png')
         ImageCache['SpikeD'] = SLib.GetImg('spike_down.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         size = self.parent.spritedata[5]
         height = (size & 0xF0) >> 4
@@ -299,9 +299,174 @@ class SpriteImage_OldStoneBlock(SLib.SpriteImage): # 30, 81, 82, 83, 84, 85, 86
 
 
 class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 64, 138, 139, 216, 358, 374, 435
+    
+    class AuxiliaryZoneItem_LiquidOrFog(SLib.AuxiliaryZoneItem):
+        """
+        An auxiliary item that paints liquid or fog in a zone
+        """
+        def __init__(self, parent, imageObj):
+            super().__init__(parent, imageObj)
+
+        def zoneRepositioned(self):
+            self.updateSize()
+
+        def paint(self, painter, option, widget=None):
+            painter.setClipRect(option.rect)
+
+            # Determine the rise and top to be drawn, if any
+            riseToDraw = self.imageObj.rise if self.imageObj.drawCrest else self.imageObj.riseCrestless
+
+            # Temp stuff
+            painter.setBrush(QtGui.QBrush(Qt.red))
+            painter.setOpacity(0.2)
+            painter.drawRect(0, 0, self.BoundingRect.width(), self.BoundingRect.height())
+            painter.setOpacity(1)
+
+            # Paint the water top
+            if self.waterTopUsesRise:
+                wTNRPH = self.waterTopNonRisePartHeight
+                crestToDraw = self.imageObj.crest if self.imageObj.drawCrest else self.imageObj.mid
+                painter.drawTiledPixmap(0, self.waterTop, self.BoundingRect.width(), wTNRPH, crestToDraw)
+                painter.drawTiledPixmap(0, self.waterTop + wTNRPH, self.BoundingRect.width(), riseToDraw.height() - wTNRPH, riseToDraw, 0, wTNRPH)
+            else:
+                drawCrest = self.imageObj.drawCrest
+                if self.waterTopCrestOverride is not None:
+                    drawCrest = self.waterTopCrestOverride
+                if drawCrest:
+                    painter.drawTiledPixmap(0, self.waterTop, self.BoundingRect.width(), min(self.waterDepth, self.imageObj.crest.height()), self.imageObj.crest)
+                    painter.drawTiledPixmap(0, self.waterTop + self.imageObj.crest.height(), self.BoundingRect.width(), max(0, self.waterDepth - self.imageObj.crest.height()), self.imageObj.mid)
+                else:
+                    painter.drawTiledPixmap(0, self.waterTop, self.BoundingRect.width(), self.waterDepth, self.imageObj.mid)
+
+            # Paint the rise, if going up
+            if self.imageObj.risingHeight > 0:
+                painter.drawTiledPixmap(0, 0, self.BoundingRect.width(), riseToDraw.height(), riseToDraw)
+
+            # Paint the rise, if going down
+            if self.imageObj.risingHeight < 0:
+                painter.drawTiledPixmap(0, -self.imageObj.risingHeight, self.BoundingRect.width(), riseToDraw.height(), riseToDraw)
+
+
+        def updateSize(self):
+            """
+            Updates the size and position of the aux
+            """
+            if None in (self.imageObj.rise, self.imageObj.riseCrestless): return
+
+            # Reset stuff
+            self.waterTop = 0
+            self.waterDepth = 0
+            self.riseTop = 0
+            self.waterTopUsesRise = False
+            self.waterTopNonRisePartHeight = 0
+            self.waterTopCrestOverride = None
+
+            # Determine the rise to be drawn, if any
+            riseToDraw = self.imageObj.rise if self.imageObj.drawCrest else self.imageObj.riseCrestless
+
+            # Realign
+            self.alignToZone()
+            width = self.BoundingRect.width()
+
+            # Keep track of the old position
+            oldy, oldh = self.y(), self.BoundingRect.height()
+
+            # First, calculate simple offsets
+            self.waterTop = 0
+            if self.imageObj.top < 0:
+                self.waterTop = -self.imageObj.top
+                self.waterTopCrestOverride = False
+            self.waterDepth = self.BoundingRect.height() - self.imageObj.top
+            if self.imageObj.risingHeight > 0:
+                self.waterTop = self.imageObj.risingHeight
+                self.waterDepth -= self.imageObj.risingHeight
+            elif self.imageObj.risingHeight < 0:
+                self.riseTop = -self.imageObj.risingHeight
+            if self.BoundingRect.height() - self.imageObj.top < riseToDraw.height():
+                self.waterTopUsesRise = True
+                self.waterTopNonRisePartHeight = self.BoundingRect.height() - self.imageObj.top
+
+            print('------------------')
+            print(self.waterTop)
+            print(self.waterDepth)
+            print(self.riseTop)
+            print(self.waterTopUsesRise)
+            print(self.waterTopNonRisePartHeight)
+            print(self.waterTopCrestOverride)
+
+            # Determine the top edge
+            y = self.waterTop
+
+            # Special case: if there is a rise going up
+            if self.imageObj.risingHeight > 0:
+                y = self.imageObj.top - self.imageObj.risingHeight
+
+            # Determine the height
+            h = self.BoundingRect.height() - y
+
+            # Don't allow negative height
+            h = max(h, 0)
+
+            # Special case: if the water to be drawn is smaller than the rise image
+            if y + self.waterTop > self.BoundingRect.height() - riseToDraw.height():
+                h = riseToDraw.height()
+
+            # Special case: if there is a rise going down
+            if self.imageObj.risingHeight < 0:
+                h = max(h, -self.imageObj.risingHeight + riseToDraw.height())
+
+            # Set the settings
+            self.setPos(0, y)
+            self.BoundingRect.setHeight(h)
+
+            # Update the old area
+            self.parent.scene().update(self.parent.x(), self.parent.y() + oldy, width, oldh)
+
+        def paintLiquidInRect(self, painter, rect):
+            """
+            Generic liquid-in-rect painter
+            """
+            rx, ry, rw, rh = rect.topLeft().x(), rect.topLeft().y(), rect.width(), rect.height()
+
+            drawRise = self.risingHeight != 0
+            drawCrest = self.drawCrest
+            drawRiseCrest = drawCrest
+
+            # Get positions
+            offsetFromTop = self.top
+            if offsetFromTop < 0:
+                offsetFromTop = 0
+                drawCrest = False # off the top of the rect; no crest
+            if self.top > rh:
+                # the sprite is below the rect; don't draw anything
+                return
+
+            # If all that fits in the rect is some of the crest, determine how much
+            if drawCrest:
+                crestSizeRemoval = (ry + offsetFromTop + self.crest.height()) - (ry + rh)
+                if crestSizeRemoval < 0: crestSizeRemoval = 0
+                crestHeight = self.crest.height() - crestSizeRemoval
+
+            # Determine where to put the rise image
+            offsetRise = offsetFromTop - self.risingHeight
+            riseToDraw = self.rise
+            if not drawRiseCrest:
+                riseToDraw = self.riseCrestless
+
+            # Draw everything!
+            if drawCrest:
+                painter.drawTiledPixmap(0, offsetFromTop, rw, crestHeight, self.crest)
+                painter.drawTiledPixmap(0, offsetFromTop + crestHeight, rw, rh - crestHeight - offsetFromTop, self.mid)
+            else:
+                painter.drawTiledPixmap(0, offsetFromTop, rw, rh - offsetFromTop - 4, self.mid)
+            if drawRise:
+                painter.drawTiledPixmap(0, offsetRise, rw, riseToDraw.height(), riseToDraw)
+
     def __init__(self, parent):
         super().__init__(parent)
-        self.updateSceneAfterPaint = True
+
+        self.updateSceneAfterZoneMoved = True
+        self.updateSceneAfterLocationMoved = True
 
         self.crest = None
         self.mid = None
@@ -314,56 +479,19 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 64, 138, 139, 216, 358, 374, 
         self.risingHeight = 0
 
         self.paintZone = False
-        self.paintLoc = False
 
-    def updateSize(self):
-        super().updateSize()
-        self.parent.updateScene()
+        self.aux.append(self.AuxiliaryZoneItem_LiquidOrFog(None, self))
+        self.aux[0].setZoneID(self.parent.nearestZone())
+        self.aux[0].updateSize()
 
-    def realViewZone(self, painter, zoneRect, viewRect):
-        """
-        Real view zone painter for liquids/fog
-        """
-        if not self.paintZone: return
+    def dataChanged(self):
+        super().dataChanged()
+        self.aux[0].updateSize()
 
-        # (0, 0) is the top-left corner of the zone
-
-        zx, zy, zw, zh = zoneRect.topLeft().x(), zoneRect.topLeft().y(), zoneRect.width(), zoneRect.height()
-
-        drawRise = self.risingHeight != 0
-        drawCrest = self.drawCrest
-
-        # Get positions
-        offsetFromTop = (self.top * 1.5) - zy
-        if offsetFromTop <= 4:
-            offsetFromTop = 4
-            drawCrest = False # off the top of the zone; no crest
-        if self.top > (zy + zh) / 1.5:
-            # the sprite is below the zone; don't draw anything
-            return
-
-        # If all that fits in the zone is some of the crest, determine how much
-        if drawCrest:
-            crestSizeRemoval = (zy + offsetFromTop + self.crest.height()) - (zy + zh) + 4
-            if crestSizeRemoval < 0: crestSizeRemoval = 0
-            crestHeight = self.crest.height() - crestSizeRemoval
-
-        # Determine where to put the rise image
-        offsetRise = offsetFromTop - (self.risingHeight * 24)
-        riseToDraw = self.rise
-        if offsetRise < 4: # close enough to the top zone border
-            offsetRise = 4
-            riseToDraw = self.riseCrestless
-        if not drawCrest:
-            riseToDraw = self.riseCrestless
-
-        if drawCrest:
-            painter.drawTiledPixmap(4, offsetFromTop, zw - 8, crestHeight, self.crest)
-            painter.drawTiledPixmap(4, offsetFromTop + crestHeight, zw - 8, zh - crestHeight - offsetFromTop - 4, self.mid)
-        else:
-            painter.drawTiledPixmap(4, offsetFromTop, zw - 8, zh - offsetFromTop - 4, self.mid)
-        if drawRise:
-            painter.drawTiledPixmap(4, offsetRise, zw - 8, riseToDraw.height(), riseToDraw)
+    def positionChanged(self):
+        super().positionChanged()
+        self.aux[0].setZoneID(self.parent.nearestZone())
+        self.aux[0].updateSize()
 
 
 class SpriteImage_HammerBro(SLib.SpriteImage_Static): # 95, 308
@@ -436,8 +564,8 @@ class SpriteImage_SpikedStake(SLib.SpriteImage): # 137, 140, 141, 142
                 ImageCache['StakeE0' + dir] = SLib.GetImg('stake_%s_e_0.png' % dir)
                 ImageCache['StakeE1' + dir] = SLib.GetImg('stake_%s_e_1.png' % dir)
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         distance = self.parent.spritedata[3] >> 4
         if distance == 0:
@@ -516,8 +644,8 @@ class SpriteImage_ScrewMushroom(SLib.SpriteImage): # 172, 382
             ImageCache['ScrewShroomM'] = SLib.GetImg('screw_shroom_middle.png')
             ImageCache['ScrewShroomB'] = SLib.GetImg('screw_shroom_bottom.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         # I wish I knew what this does
         SomeOffset = self.parent.spritedata[3]
@@ -570,8 +698,8 @@ class SpriteImage_Door(SLib.SpriteImage): # 182, 259, 276, 277, 278, 421, 452
             ImageCache[door + 'D'] = QtGui.QPixmap.fromImage(image.transformed(transform180))
             ImageCache[door + 'L'] = QtGui.QPixmap.fromImage(image.transformed(transform270))
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         rotstatus = self.parent.spritedata[4]
         if rotstatus & 1 == 0:
@@ -639,8 +767,8 @@ class SpriteImage_GiantBubble(SLib.SpriteImage): # 205, 226
             for shape in range(4):
                 ImageCache['GiantBubble%d' % shape] = SLib.GetImg('giant_bubble_%d.png' % shape)
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         self.shape = self.parent.spritedata[4] >> 4
         self.direction = self.parent.spritedata[5] & 15
@@ -675,8 +803,8 @@ class SpriteImage_Block(SLib.SpriteImage): # 207, 208, 209, 221, 255, 256, 402, 
         self.twelveIsMushroom = False
         self.rotates = False
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         # SET CONTENTS
         # In the blocks.png file:
@@ -759,8 +887,8 @@ class SpriteImage_Pipe(SLib.SpriteImage): # 254, 339, 353, 377, 378, 379, 380, 4
                 ImageCache['PipeMiddleH%s' % color] = SLib.GetImg('pipe_%s_center.png' % color)
                 ImageCache['PipeRight%s' % color] = SLib.GetImg('pipe_%s_right.png' % color)
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
         # sprite types:
         # 339 = Moving Pipe Facing Up
         # 353 = Moving Pipe Facing Down
@@ -872,7 +1000,7 @@ class SpriteImage_PipeStationary(SpriteImage_Pipe): # 254, 377, 378, 379, 380, 4
         super().__init__(parent)
         self.length = 4
 
-    def updateSize(self):
+    def dataChanged(self):
         self.color = (
             'Green', 'Red', 'Yellow', 'Blue',
             )[(self.parent.spritedata[5] >> 4) % 4]
@@ -880,7 +1008,7 @@ class SpriteImage_PipeStationary(SpriteImage_Pipe): # 254, 377, 378, 379, 380, 4
         self.length1 = self.length
         self.length2 = self.length
         
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_UnusedGiantDoor(SLib.SpriteImage_Static): # 319, 320
@@ -916,20 +1044,20 @@ class SpriteImage_ToadHouseBalloon(SLib.SpriteImage_StaticMultiple): # 411, 412
                 ImageCache['ToadHouseBalloon' + handleCacheStr + str(num)] = \
                     SLib.GetImg('mg_house_balloon_' + handleFileStr + str(num) + '.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         self.image = ImageCache['ToadHouseBalloon' + ('Handle' if self.hasHandle else '') + str(self.livesNum)]
 
         self.xOffset = 8 - (self.image.width() / 3)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 # ---- High-Level Classes ----
 
 
 class SpriteImage_CharacterSpawner(SLib.SpriteImage_StaticMultiple): # 9
-    def updateSize(self):
+    def dataChanged(self):
 
         direction = self.parent.spritedata[2] & 1
         character = (self.parent.spritedata[5] & 0xF) % 4
@@ -943,7 +1071,7 @@ class SpriteImage_CharacterSpawner(SLib.SpriteImage_StaticMultiple): # 9
             -(self.image.height() / 1.5),
             )
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Goomba(SLib.SpriteImage_Static): # 20
@@ -979,8 +1107,8 @@ class SpriteImage_HorzMovingPlatform(SpriteImage_WoodenPlatform): # 23
         self.width = ((self.parent.spritedata[5] & 0xF) + 1) << 4
         self.aux.append(SLib.AuxiliaryTrackObject(parent, self.width, 16, SLib.AuxiliaryTrackObject.Horizontal))
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         # get width and distance
         self.width = ((self.parent.spritedata[5] & 0xF) + 1) << 4
@@ -1012,7 +1140,7 @@ class SpriteImage_BuzzyBeetle(SLib.SpriteImage_StaticMultiple): # 24
         SLib.loadIfNotInImageCache('BuzzyBeetleShell', 'buzzy_beetle_shell.png')
         SLib.loadIfNotInImageCache('BuzzyBeetleShellU', 'buzzy_beetle_shell_u.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         orient = self.parent.spritedata[5] & 15
         if orient == 1:
@@ -1028,7 +1156,7 @@ class SpriteImage_BuzzyBeetle(SLib.SpriteImage_StaticMultiple): # 24
             self.image = ImageCache['BuzzyBeetle']
             self.yOffset = 0
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Spiny(SLib.SpriteImage_StaticMultiple): # 25
@@ -1039,7 +1167,7 @@ class SpriteImage_Spiny(SLib.SpriteImage_StaticMultiple): # 25
         SLib.loadIfNotInImageCache('SpinyShellU', 'spiny_shell_u.png')
         SLib.loadIfNotInImageCache('SpinyBall', 'spiny_ball.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         orient = self.parent.spritedata[5] & 15
         if orient == 1:
@@ -1055,7 +1183,7 @@ class SpriteImage_Spiny(SLib.SpriteImage_StaticMultiple): # 25
             self.image = ImageCache['Spiny']
             self.yOffset = 0
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_UpsideDownSpiny(SLib.SpriteImage_Static): # 26
@@ -1077,8 +1205,8 @@ class SpriteImage_DSStoneBlock_Vert(SpriteImage_DSStoneBlock): # 27
         self.aux.append(SLib.AuxiliaryTrackObject(parent, 32, 16, SLib.AuxiliaryTrackObject.Vertical))
         self.size = (32, 16)
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         # get height and distance
         byte5 = self.parent.spritedata[4]
@@ -1104,8 +1232,8 @@ class SpriteImage_DSStoneBlock_Horz(SpriteImage_DSStoneBlock): # 28
         self.aux.append(SLib.AuxiliaryTrackObject(parent, 32, 16, SLib.AuxiliaryTrackObject.Horizontal))
         self.size = (32, 16)
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         # get height and distance
         byte5 = self.parent.spritedata[4]
@@ -1136,8 +1264,8 @@ class SpriteImage_VertMovingPlatform(SpriteImage_WoodenPlatform): # 31
         self.aux.append(SLib.AuxiliaryTrackObject(parent, self.width, 16, SLib.AuxiliaryTrackObject.Vertical))
 
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         # get width and distance
         self.width = ((self.parent.spritedata[5] & 0xF) + 1) << 4
@@ -1272,7 +1400,7 @@ class SpriteImage_UnusedSeesaw(SLib.SpriteImage): # 49
     def loadImages():
         SLib.loadIfNotInImageCache('UnusedPlatformDark', 'unused_platform_dark.png')
 
-    def updateSize(self):
+    def dataChanged(self):
         w = self.parent.spritedata[5] & 15
         if w == 0:
             self.width = 16 * 16 # 16 blocks wide
@@ -1309,7 +1437,7 @@ class SpriteImage_UnusedSeesaw(SLib.SpriteImage): # 49
         self.aux[0].setPos((self.width / 1.5) - 36, -36)
         self.aux[0].update()
 
-        super().updateSize()
+        super().dataChanged()
 
     def paint(self, painter):
         super().paint(painter)
@@ -1321,8 +1449,8 @@ class SpriteImage_FallingPlatform(SpriteImage_WoodenPlatform): # 50
     def __init__(self, parent):
         super().__init__(parent)
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         # get width
         self.width = ((self.parent.spritedata[5] & 0xF) + 1) << 4
@@ -1432,7 +1560,7 @@ class SpriteImage_KoopaTroopa(SLib.SpriteImage_StaticMultiple): # 57
         ImageCache['KoopaShellG'] = SLib.GetImg('koopa_green_shell.png')
         ImageCache['KoopaShellR'] = SLib.GetImg('koopa_red_shell.png')
 
-    def updateSize(self):
+    def dataChanged(self):
         # get properties
         props = self.parent.spritedata[5]
         shell = (props >> 4) & 1
@@ -1445,7 +1573,7 @@ class SpriteImage_KoopaTroopa(SLib.SpriteImage_StaticMultiple): # 57
             del self.offset
             self.image = ImageCache['KoopaShellG'] if not red else ImageCache['KoopaR']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_KoopaParatroopa(SLib.SpriteImage_StaticMultiple): # 58
@@ -1458,7 +1586,7 @@ class SpriteImage_KoopaParatroopa(SLib.SpriteImage_StaticMultiple): # 58
         SLib.loadIfNotInImageCache('ParakoopaG', 'parakoopa_green.png')
         SLib.loadIfNotInImageCache('ParakoopaR', 'parakoopa_red.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         # get properties
         color = self.parent.spritedata[5] & 1
@@ -1468,7 +1596,7 @@ class SpriteImage_KoopaParatroopa(SLib.SpriteImage_StaticMultiple): # 58
         else:
             self.image = ImageCache['ParakoopaR']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_LineTiltGirder(SLib.SpriteImage_Static): # 59
@@ -1515,7 +1643,7 @@ class SpriteImage_SpikeTop(SLib.SpriteImage_StaticMultiple): # 60
         Transform.rotate(90)
         ImageCache['SpikeTop31'] = ImageCache['SpikeTop01'].transformed(Transform)
 
-    def updateSize(self):
+    def dataChanged(self):
 
         orientation = (self.parent.spritedata[5] >> 4) % 4
         direction = self.parent.spritedata[5] & 1
@@ -1529,7 +1657,7 @@ class SpriteImage_SpikeTop(SLib.SpriteImage_StaticMultiple): # 60
             (-4, 0),
             )[orientation]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_BigBoo(SLib.SpriteImage): # 61
@@ -1560,8 +1688,8 @@ class SpriteImage_SpinningFirebar(SLib.SpriteImage): # 62
         SLib.loadIfNotInImageCache('FirebarBase', 'firebar_base_0.png')
         SLib.loadIfNotInImageCache('FirebarBaseWide', 'firebar_base_1.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         size = self.parent.spritedata[5] & 0xF
         wideBase = (self.parent.spritedata[3] >> 4) & 1
@@ -1603,11 +1731,11 @@ class SpriteImage_OutdoorsFog(SpriteImage_LiquidOrFog): # 64
     def loadImages():
         SLib.loadIfNotInImageCache('OutdoorsFog', 'fog_outdoors.png')
 
-    def updateSize(self):
-        super().updateSize()
-        self.parent.updateScene()
+    def dataChanged(self):
+        super().dataChanged()
+        self.parent.scene().update()
 
-    def realViewZone(self, painter, zoneRect, viewRect):
+    def realViewZone(self, painter, zoneRect):
 
         self.paintZone = self.parent.spritedata[5] == 0
 
@@ -1616,7 +1744,7 @@ class SpriteImage_OutdoorsFog(SpriteImage_LiquidOrFog): # 64
         # Get pixmaps
         mid = ImageCache['OutdoorsFog']
 
-        super().realViewZone(painter, zoneRect, viewRect)
+        super().realViewZone(painter, zoneRect)
 
 
 class SpriteImage_PipePiranhaUp(SLib.SpriteImage_Static): # 65
@@ -1735,7 +1863,7 @@ class SpriteImage_GroundPiranha(SLib.SpriteImage_StaticMultiple): # 73
         ImageCache['GroundPiranha'] = QtGui.QPixmap.fromImage(GP)
         ImageCache['GroundPiranhaU'] = QtGui.QPixmap.fromImage(GP.mirrored(False, True))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         upsideDown = self.parent.spritedata[5] & 1
         if not upsideDown:
@@ -1745,7 +1873,7 @@ class SpriteImage_GroundPiranha(SLib.SpriteImage_StaticMultiple): # 73
             self.yOffset = 0
             self.image = ImageCache['GroundPiranhaU']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_BigGroundPiranha(SLib.SpriteImage_StaticMultiple): # 74
@@ -1760,7 +1888,7 @@ class SpriteImage_BigGroundPiranha(SLib.SpriteImage_StaticMultiple): # 74
         ImageCache['BigGroundPiranha'] = QtGui.QPixmap.fromImage(BGP)
         ImageCache['BigGroundPiranhaU'] = QtGui.QPixmap.fromImage(BGP.mirrored(False, True))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         upsideDown = self.parent.spritedata[5] & 1
         if not upsideDown:
@@ -1770,7 +1898,7 @@ class SpriteImage_BigGroundPiranha(SLib.SpriteImage_StaticMultiple): # 74
             self.yOffset = 0
             self.image = ImageCache['BigGroundPiranhaU']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_GroundFiretrap(SLib.SpriteImage_StaticMultiple): # 75
@@ -1785,7 +1913,7 @@ class SpriteImage_GroundFiretrap(SLib.SpriteImage_StaticMultiple): # 75
         ImageCache['GroundFiretrap'] = QtGui.QPixmap.fromImage(GF)
         ImageCache['GroundFiretrapU'] = QtGui.QPixmap.fromImage(GF.mirrored(False, True))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         upsideDown = self.parent.spritedata[5] & 1
         if not upsideDown:
@@ -1795,7 +1923,7 @@ class SpriteImage_GroundFiretrap(SLib.SpriteImage_StaticMultiple): # 75
             self.yOffset = 0
             self.image = ImageCache['GroundFiretrapU']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_BigGroundFiretrap(SLib.SpriteImage_StaticMultiple): # 76
@@ -1810,7 +1938,7 @@ class SpriteImage_BigGroundFiretrap(SLib.SpriteImage_StaticMultiple): # 76
         ImageCache['BigGroundFiretrap'] = QtGui.QPixmap.fromImage(BGF)
         ImageCache['BigGroundFiretrapU'] = QtGui.QPixmap.fromImage(BGF.mirrored(False, True))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         upsideDown = self.parent.spritedata[5] & 1
         if not upsideDown:
@@ -1820,7 +1948,7 @@ class SpriteImage_BigGroundFiretrap(SLib.SpriteImage_StaticMultiple): # 76
             self.yOffset = 0
             self.image = ImageCache['BigGroundFiretrapU']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_ShipKey(SLib.SpriteImage_Static): # 77
@@ -1849,7 +1977,7 @@ class SpriteImage_CloudTrampoline(SLib.SpriteImage_StaticMultiple): # 78
         SLib.loadIfNotInImageCache('CloudTrBig', 'cloud_trampoline_big.png')
         SLib.loadIfNotInImageCache('CloudTrSmall', 'cloud_trampoline_small.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         size = (self.parent.spritedata[4] & 0x10) >> 4
         if size == 0:
@@ -1859,7 +1987,7 @@ class SpriteImage_CloudTrampoline(SLib.SpriteImage_StaticMultiple): # 78
             self.image = ImageCache['CloudTrBig']
             self.size = (132, 32)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_FireBro(SLib.SpriteImage_Static): # 80
@@ -1921,7 +2049,7 @@ class SpriteImage_TrampolineWall(SLib.SpriteImage_StaticMultiple): # 87
     def loadImages():
         SLib.loadIfNotInImageCache('UnusedPlatformDark', 'unused_platform_dark.png')
 
-    def updateSize(self):
+    def dataChanged(self):
         height = (self.parent.spritedata[5] & 15) + 1
 
         self.image = ImageCache['UnusedPlatformDark'].scaled(
@@ -1930,7 +2058,7 @@ class SpriteImage_TrampolineWall(SLib.SpriteImage_StaticMultiple): # 87
             )
         self.height = height * 16
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_BulletBillLauncher(SLib.SpriteImage): # 92
@@ -1943,8 +2071,8 @@ class SpriteImage_BulletBillLauncher(SLib.SpriteImage): # 92
         SLib.loadIfNotInImageCache('BBLauncherT', 'bullet_launcher_top.png')
         SLib.loadIfNotInImageCache('BBLauncherM', 'bullet_launcher_middle.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
         height = (self.parent.spritedata[5] & 0xF0) >> 4
 
         self.height = (height + 2) * 16
@@ -1993,8 +2121,8 @@ class SpriteImage_RotationControllerSwaying(SLib.SpriteImage): # 96
         self.parent.setZValue(100000)
         self.aux.append(SLib.AuxiliaryRotationAreaOutline(parent, 48))
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
         # get the swing arc: 4 == 90 degrees (45 left from the origin, 45 right)
         swingArc = self.parent.spritedata[2] >> 4
         realSwingArc = swingArc * 11.25
@@ -2013,7 +2141,7 @@ class SpriteImage_RotationControlledSolidBetaPlatform(SpriteImage_UnusedBlockPla
         super().__init__(parent)
         self.isDark = True
 
-    def updateSize(self):
+    def dataChanged(self):
         size = self.parent.spritedata[4]
         width = size >> 4
         height = size & 0xF
@@ -2027,7 +2155,7 @@ class SpriteImage_RotationControlledSolidBetaPlatform(SpriteImage_UnusedBlockPla
             self.drawPlatformImage = True
             self.size = (width * 16, height * 16)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_GiantSpikeBall(SLib.SpriteImage_Static): # 98
@@ -2046,8 +2174,8 @@ class SpriteImage_GiantSpikeBall(SLib.SpriteImage_Static): # 98
 class SpriteImage_PipeEnemyGenerator(SLib.SpriteImage): # 99
     def __init__(self, parent):
         super().__init__(parent)
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         direction = (self.parent.spritedata[5] & 0xF) % 4
         if direction in (0, 1): # vertical pipe
@@ -2097,8 +2225,8 @@ class SpriteImage_Broozer(SLib.SpriteImage_Static): # 102
 
 class SpriteImage_PlatformGenerator(SpriteImage_WoodenPlatform): # 103
     # TODO: Add arrows
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
         # get width
         self.width = (((self.parent.spritedata[5] & 0xF0) >> 4) + 1) << 4
 
@@ -2129,8 +2257,8 @@ class SpriteImage_Pokey(SLib.SpriteImage): # 105
         ImageCache['PokeyMiddle'] = SLib.GetImg('pokey_middle.png')
         ImageCache['PokeyBottom'] = SLib.GetImg('pokey_bottom.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         # get the height
         height = self.parent.spritedata[5] & 0xF
@@ -2150,8 +2278,8 @@ class SpriteImage_LinePlatform(SpriteImage_WoodenPlatform): # 106
         super().__init__(parent)
         self.yOffset = 8
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         # get width
         self.width = (self.parent.spritedata[5] & 0xF) << 4
@@ -2173,14 +2301,14 @@ class SpriteImage_RotationControlledPassBetaPlatform(SpriteImage_UnusedBlockPlat
         self.isDark = True
         self.width = 16
 
-    def updateSize(self):
+    def dataChanged(self):
         size = self.parent.spritedata[4]
         height = (size & 0xF) + 1
 
         self.yOffset = -(height - 1) * 8
         self.height = height * 16
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_AmpLine(SpriteImage_Amp): # 108
@@ -2199,7 +2327,7 @@ class SpriteImage_ChainBall(SLib.SpriteImage_StaticMultiple): # 109
         ImageCache['ChainBallD'] = SLib.GetImg('chainball_down.png')
         ImageCache['ChainBallL'] = SLib.GetImg('chainball_left.png')
 
-    def updateSize(self):
+    def dataChanged(self):
         direction = self.parent.spritedata[5] & 3
         if direction > 3: direction = 0
 
@@ -2221,7 +2349,7 @@ class SpriteImage_ChainBall(SLib.SpriteImage_StaticMultiple): # 109
             self.image = ImageCache['ChainBallD']
             self.offset = (-11, 3.5)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Sunlight(SLib.SpriteImage): # 110
@@ -2304,7 +2432,7 @@ class SpriteImage_Flagpole(SLib.SpriteImage): # 113
         ImageCache['SnowCastle'] = SLib.GetImg('snow_castle.png')
         ImageCache['SnowCastleSecret'] = SLib.GetImg('snow_castle_secret.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         # get the info
         exit = (self.parent.spritedata[2] >> 4) & 1
@@ -2328,7 +2456,7 @@ class SpriteImage_Flagpole(SLib.SpriteImage): # 113
             else:
                 self.aux[0].image = ImageCache['SnowCastleSecret']
 
-        super().updateSize()
+        super().dataChanged()
 
     def paint(self, painter):
         super().paint(painter)
@@ -2355,7 +2483,7 @@ class SpriteImage_FlameCannon(SLib.SpriteImage_StaticMultiple): # 114
         ImageCache['FlameCannonL'] = QtGui.QPixmap.fromImage(image.mirrored(True, False))
         ImageCache['FlameCannonU'] = QtGui.QPixmap.fromImage(image.transformed(transform270).mirrored(True, False))
 
-    def updateSize(self):
+    def dataChanged(self):
         direction = self.parent.spritedata[5] & 15
         if direction > 3: direction = 0
 
@@ -2371,7 +2499,7 @@ class SpriteImage_FlameCannon(SLib.SpriteImage_StaticMultiple): # 114
         directionstr = 'RLUD'[direction]
         self.image = ImageCache['FlameCannon%s' % directionstr]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Cheep(SLib.SpriteImage): # 115
@@ -2390,7 +2518,7 @@ class SpriteImage_Cheep(SLib.SpriteImage): # 115
         ImageCache['CheepGreen'] = SLib.GetImg('cheep_green.png')
         ImageCache['CheepYellow'] = SLib.GetImg('cheep_yellow.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         type = self.parent.spritedata[5] & 0xF
         if type in (1, 7):
@@ -2410,7 +2538,7 @@ class SpriteImage_Cheep(SLib.SpriteImage): # 115
         else:
             self.aux[0].setSize(0, 24)
 
-        super().updateSize()
+        super().dataChanged()
 
     def paint(self, painter):
         super().paint(painter)
@@ -2431,7 +2559,7 @@ class SpriteImage_CoinCheep(SLib.SpriteImage): # 116
         ImageCache['CheepGreen'] = SLib.GetImg('cheep_green.png')
         ImageCache['CheepYellow'] = SLib.GetImg('cheep_yellow.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         waitFlag = self.parent.spritedata[5] & 1
         if waitFlag:
@@ -2451,7 +2579,7 @@ class SpriteImage_CoinCheep(SLib.SpriteImage): # 116
 
         if self.image is not None:
             self.size = (self.image.width() / 1.5, self.image.height() / 1.5)
-        super().updateSize()
+        super().dataChanged()
 
     def paint(self, painter):
         super().paint(painter)
@@ -2478,7 +2606,7 @@ class SpriteImage_PulseFlameCannon(SLib.SpriteImage_StaticMultiple): # 117
         ImageCache['PulseFlameCannonL'] = QtGui.QPixmap.fromImage(onImage.mirrored(True, False))
         ImageCache['PulseFlameCannonU'] = QtGui.QPixmap.fromImage(onImage.transformed(transform270).mirrored(True, False))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         direction = self.parent.spritedata[5] & 15
         if direction > 3: direction = 0
@@ -2495,7 +2623,7 @@ class SpriteImage_PulseFlameCannon(SLib.SpriteImage_StaticMultiple): # 117
         directionstr = 'RLUD'[direction]
         self.image = ImageCache['PulseFlameCannon%s' % directionstr]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_DryBones(SLib.SpriteImage_Static): # 118
@@ -2538,8 +2666,8 @@ class SpriteImage_SledgeBro(SLib.SpriteImage_Static): # 120
 
 
 class SpriteImage_OneWayPlatform(SpriteImage_WoodenPlatform): # 122
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
         width = self.parent.spritedata[5] & 0xF
         if width < 2: width = 2
         self.width = width * 32 + 32
@@ -2560,7 +2688,7 @@ class SpriteImage_UnusedCastlePlatform(SLib.SpriteImage_StaticMultiple): # 123
     def loadImages():
         SLib.loadIfNotInImageCache('UnusedCastlePlatform', 'unused_castle_platform.png')
 
-    def updateSize(self):
+    def dataChanged(self):
         rawSize = self.parent.spritedata[4] >> 4
 
         if rawSize != 0:
@@ -2578,7 +2706,7 @@ class SpriteImage_UnusedCastlePlatform(SLib.SpriteImage_StaticMultiple): # 123
             -topRadiusInBlocks * 16,
             )
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_FenceKoopaHorz(SLib.SpriteImage_StaticMultiple): # 125
@@ -2591,7 +2719,7 @@ class SpriteImage_FenceKoopaHorz(SLib.SpriteImage_StaticMultiple): # 125
         SLib.loadIfNotInImageCache('FenceKoopaHG', 'fencekoopa_horz.png')
         SLib.loadIfNotInImageCache('FenceKoopaHR', 'fencekoopa_horz_red.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         color = self.parent.spritedata[5] >> 4
         if color == 1:
@@ -2599,7 +2727,7 @@ class SpriteImage_FenceKoopaHorz(SLib.SpriteImage_StaticMultiple): # 125
         else:
             self.image = ImageCache['FenceKoopaHG']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_FenceKoopaVert(SLib.SpriteImage_StaticMultiple): # 126
@@ -2613,7 +2741,7 @@ class SpriteImage_FenceKoopaVert(SLib.SpriteImage_StaticMultiple): # 126
         SLib.loadIfNotInImageCache('FenceKoopaVG', 'fencekoopa_vert.png')
         SLib.loadIfNotInImageCache('FenceKoopaVR', 'fencekoopa_vert_red.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         color = self.parent.spritedata[5] >> 4
         if color == 1:
@@ -2621,7 +2749,7 @@ class SpriteImage_FenceKoopaVert(SLib.SpriteImage_StaticMultiple): # 126
         else:
             self.image = ImageCache['FenceKoopaVG']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_FlipFence(SLib.SpriteImage_Static): # 127
@@ -2664,8 +2792,8 @@ class SpriteImage_4Spinner(SLib.SpriteImage_Static): # 129
     def loadImages():
         SLib.loadIfNotInImageCache('4Spinner', '4spinner.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
         self.alpha = 0.6 if (self.parent.spritedata[2] >> 4) & 1 else 1
 
 
@@ -2699,10 +2827,10 @@ class SpriteImage_Boo(SLib.SpriteImage): # 131
 
 
 class SpriteImage_UnusedBlockPlatform1(SpriteImage_UnusedBlockPlatform): # 132
-    def updateSize(self):
+    def dataChanged(self):
         self.width = ((self.parent.spritedata[5] & 0xF) + 1) * 16
         self.height = ((self.parent.spritedata[5] >> 4)  + 1) * 16
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_StalagmitePlatform(SLib.SpriteImage): # 133
@@ -2769,8 +2897,8 @@ class SpriteImage_RotBulletLauncher(SLib.SpriteImage): # 136
         SLib.loadIfNotInImageCache('RotLauncherCannon', 'bullet_cannon_rot_0.png')
         SLib.loadIfNotInImageCache('RotLauncherPivot', 'bullet_cannon_rot_1.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
         pieces = self.parent.spritedata[3] & 15
         self.yOffset = -pieces * 16
         self.height = (pieces + 1) * 16
@@ -2830,18 +2958,26 @@ class SpriteImage_Water(SpriteImage_LiquidOrFog): # 138
         ImageCache['LiquidWaterRise'] = SLib.GetImg('liquid_water_rise.png')
         ImageCache['LiquidWaterRiseCrest'] = SLib.GetImg('liquid_water_rise_crest.png')
 
-    def realViewZone(self, painter, zoneRect, viewRect):
-
+    def dataChanged(self):
         self.paintZone = self.parent.spritedata[5] == 0
-        self.top = self.parent.objy
+
+        self.locationIDs = set()
+        if not self.paintZone:
+            self.locationIDs.add(self.parent.spritedata[5])
+
         self.drawCrest = self.parent.spritedata[4] & 15 == 0
         self.risingHeight = (self.parent.spritedata[3] & 0xF) << 4
         self.risingHeight |= self.parent.spritedata[4] >> 4
+        self.risingHeight *= 24
 
         if self.parent.spritedata[2] > 7: # falling
             self.risingHeight = -self.risingHeight
 
-        super().realViewZone(painter, zoneRect, viewRect)
+        super().dataChanged()
+
+    def positionChanged(self):
+        self.top = (self.parent.objy * 1.5) - self.aux[0].parent.y()
+        super().positionChanged()
 
 
 class SpriteImage_Lava(SpriteImage_LiquidOrFog): # 139
@@ -2861,7 +2997,7 @@ class SpriteImage_Lava(SpriteImage_LiquidOrFog): # 139
         ImageCache['LiquidLavaRise'] = SLib.GetImg('liquid_lava_rise.png')
         ImageCache['LiquidLavaRiseCrest'] = SLib.GetImg('liquid_lava_rise_crest.png')
 
-    def realViewZone(self, painter, zoneRect, viewRect):
+    def realViewZone(self, painter, zoneRect):
 
         self.paintZone = self.parent.spritedata[5] == 0
         self.top = self.parent.objy
@@ -2872,7 +3008,7 @@ class SpriteImage_Lava(SpriteImage_LiquidOrFog): # 139
         if self.parent.spritedata[2] > 7: # falling
             self.risingHeight = -self.risingHeight
 
-        super().realViewZone(painter, zoneRect, viewRect)
+        super().realViewZone(painter, zoneRect)
 
 
 class SpriteImage_SpikedStakeUp(SpriteImage_SpikedStake): # 140
@@ -2912,7 +3048,7 @@ class SpriteImage_Arrow(SLib.SpriteImage_StaticMultiple): # 143
         for i in range(8):
             ImageCache['Arrow%d' % i] = SLib.GetImg('arrow_%d.png' % i)
 
-    def updateSize(self):
+    def dataChanged(self):
         ArrowOffsets = [(3,0), (5,4), (1,3), (5,-1), (3,0), (-1,-1), (0,3), (-1,4)]
 
         direction = self.parent.spritedata[5] & 7
@@ -2922,7 +3058,7 @@ class SpriteImage_Arrow(SLib.SpriteImage_StaticMultiple): # 143
         self.height = self.image.height() / 1.5
         self.offset = ArrowOffsets[direction]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_RedCoin(SLib.SpriteImage_Static): # 144
@@ -2976,7 +3112,7 @@ class SpriteImage_Coin(SLib.SpriteImage_StaticMultiple): # 147
 
         ImageCache['CoinBubble'] = SLib.GetImg('coin_bubble.png')
 
-    def updateSize(self):
+    def dataChanged(self):
         type = self.parent.spritedata[5] & 0xF
 
         if type == 0:
@@ -2992,7 +3128,7 @@ class SpriteImage_Coin(SLib.SpriteImage_StaticMultiple): # 147
             self.image = ImageCache['SpecialCoin']
             self.offset = (0, 0)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Spring(SLib.SpriteImage_Static): # 148
@@ -3006,12 +3142,12 @@ class SpriteImage_Spring(SLib.SpriteImage_Static): # 148
     def loadImages():
         SLib.loadIfNotInImageCache('Spring', 'spring.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         offset = (self.parent.spritedata[5] >> 4) & 1
         self.xOffset = 8 if offset else 0
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_RotationControllerSpinning(SLib.SpriteImage): # 149
@@ -3098,11 +3234,11 @@ class SpriteImage_BigBrick(SLib.SpriteImage_StaticMultiple): # 157
             del paint
             ImageCache['BigBrick%d' % power] = new
 
-    def updateSize(self):
+    def dataChanged(self):
 
         power = self.parent.spritedata[5] & 0xF
         self.image = ImageCache['BigBrick%d' % power]
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_FireSnake(SLib.SpriteImage_StaticMultiple): # 158
@@ -3114,7 +3250,7 @@ class SpriteImage_FireSnake(SLib.SpriteImage_StaticMultiple): # 158
         SLib.loadIfNotInImageCache('FireSnakeWait', 'fire_snake_0.png')
         SLib.loadIfNotInImageCache('FireSnake', 'fire_snake_1.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         move = self.parent.spritedata[5] & 15
         if move == 1:
@@ -3126,14 +3262,14 @@ class SpriteImage_FireSnake(SLib.SpriteImage_StaticMultiple): # 158
             self.yOffset = -16
             self.image = ImageCache['FireSnake']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_UnusedBlockPlatform2(SpriteImage_UnusedBlockPlatform): # 160
-    def updateSize(self):
+    def dataChanged(self):
         self.width = ((self.parent.spritedata[4] & 0xF) + 1) * 16
         self.height = ((self.parent.spritedata[4] >> 4)  + 1) * 16
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_PipeBubbles(SLib.SpriteImage_StaticMultiple): # 161
@@ -3153,7 +3289,7 @@ class SpriteImage_PipeBubbles(SLib.SpriteImage_StaticMultiple): # 161
         ImageCache['PipeBubbles' + 'D'] = QtGui.QPixmap.fromImage(image.transformed(transform180))
         ImageCache['PipeBubbles' + 'L'] = QtGui.QPixmap.fromImage(image.transformed(transform270))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         direction = self.parent.spritedata[5] & 15
         if direction == 0 or direction > 3:
@@ -3171,7 +3307,7 @@ class SpriteImage_PipeBubbles(SLib.SpriteImage_StaticMultiple): # 161
 
         self.image = ImageCache['PipeBubbles%s' % direction]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_BlockTrain(SLib.SpriteImage): # 166
@@ -3183,8 +3319,8 @@ class SpriteImage_BlockTrain(SLib.SpriteImage): # 166
     def loadImages():
         SLib.loadIfNotInImageCache('BlockTrain', 'block_train.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
         length = self.parent.spritedata[5] & 15
         self.width = (length + 3) * 16
 
@@ -3286,7 +3422,7 @@ class SpriteImage_OneWayGate(SLib.SpriteImage_StaticMultiple): # 174
 
                 ImageCache['1WayGate%d%d' % (flip, direction)] = dest
 
-    def updateSize(self):
+    def dataChanged(self):
 
         flag = (self.parent.spritedata[5] >> 4) & 1
         direction = self.parent.spritedata[5] & 3
@@ -3300,7 +3436,7 @@ class SpriteImage_OneWayGate(SLib.SpriteImage_StaticMultiple): # 174
             (0, 0),
             )[direction]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_FlyingQBlock(SLib.SpriteImage): # 175
@@ -3373,8 +3509,8 @@ class SpriteImage_ScalePlatform(SLib.SpriteImage): # 178
             ImageCache['ScaleRopeV'] = SLib.GetImg('scale_rope_vert.png')
             ImageCache['ScalePulley'] = SLib.GetImg('scale_pulley.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         info1 = self.parent.spritedata[4]
         info2 = self.parent.spritedata[5]
@@ -3432,8 +3568,8 @@ class SpriteImage_SpecialExit(SLib.SpriteImage): # 179
         super().__init__(parent)
         self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         w = (self.parent.spritedata[4] & 15) + 1
         h = (self.parent.spritedata[5] >> 4) + 1
@@ -3531,8 +3667,8 @@ class SpriteImage_TileEvent(SLib.SpriteImage): # 191
         super().__init__(parent)
         self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         w = self.parent.spritedata[5] >> 4
         h = self.parent.spritedata[5] & 0xF
@@ -3578,7 +3714,7 @@ class SpriteImage_HuckitCrab(SLib.SpriteImage_StaticMultiple): # 195
         ImageCache['HuckitCrabL'] = QtGui.QPixmap.fromImage(Huckitcrab)
         ImageCache['HuckitCrabR'] = QtGui.QPixmap.fromImage(Huckitcrab.mirrored(True, False))
 
-    def updateSize(self):
+    def dataChanged(self):
         info = self.parent.spritedata[5]
 
         if info == 1:
@@ -3592,7 +3728,7 @@ class SpriteImage_HuckitCrab(SLib.SpriteImage_StaticMultiple): # 195
                 self.image = ImageCache['HuckitCrabL']
                 self.xOffset = -16
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Fishbones(SLib.SpriteImage_StaticMultiple): # 196
@@ -3600,7 +3736,7 @@ class SpriteImage_Fishbones(SLib.SpriteImage_StaticMultiple): # 196
         super().__init__(parent)
         self.offset = (0, -2)
 
-    def updateSize(self):
+    def dataChanged(self):
 
         direction = self.parent.spritedata[5] >> 4
         if direction == 1:
@@ -3608,7 +3744,7 @@ class SpriteImage_Fishbones(SLib.SpriteImage_StaticMultiple): # 196
         else:
             self.image = ImageCache['FishbonesL']
 
-        super().updateSize()
+        super().dataChanged()
 
     @staticmethod
     def loadImages():
@@ -3657,7 +3793,7 @@ class SpriteImage_Clam(SLib.SpriteImage_StaticMultiple): # 197
         del painter
         ImageCache['Clam2Coin'] = newPix
 
-    def updateSize(self):
+    def dataChanged(self):
 
         holds = self.parent.spritedata[5] & 0xF
         switchdir = self.parent.spritedata[4] & 0xF
@@ -3677,7 +3813,7 @@ class SpriteImage_Clam(SLib.SpriteImage_StaticMultiple): # 197
 
         self.image = ImageCache['Clam' + holdsStr]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Giantgoomba(SLib.SpriteImage_Static): # 198
@@ -3725,7 +3861,7 @@ class SpriteImage_Icicle(SLib.SpriteImage_StaticMultiple): # 201
         SLib.loadIfNotInImageCache('IcicleSmallS', 'icicle_small_static.png')
         SLib.loadIfNotInImageCache('IcicleLargeS', 'icicle_large_static.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         size = self.parent.spritedata[5] & 1
         if size == 0:
@@ -3733,7 +3869,7 @@ class SpriteImage_Icicle(SLib.SpriteImage_StaticMultiple): # 201
         else:
             self.image = ImageCache['IcicleLargeS']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_MGCannon(SLib.SpriteImage_Static): # 202
@@ -3771,8 +3907,8 @@ class SpriteImage_Zoom(SLib.SpriteImage): # 206
         super().__init__(parent)
         self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         w = self.parent.spritedata[5]+1
         h = self.parent.spritedata[4]+1
@@ -3812,8 +3948,8 @@ class SpriteImage_RollingHill(SLib.SpriteImage): # 212
 
         self.aux.append(SLib.AuxiliaryCircleOutline(parent, realSize))
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         size = (self.parent.spritedata[3] >> 4) & 0xF
         if size != 0: realSize = self.RollingHillSizes[size]
@@ -3854,7 +3990,7 @@ class SpriteImage_Poison(SpriteImage_LiquidOrFog): # 216
         ImageCache['LiquidPoisonRise'] = SLib.GetImg('liquid_poison_rise.png')
         ImageCache['LiquidPoisonRiseCrest'] = SLib.GetImg('liquid_poison_rise_crest.png')
 
-    def realViewZone(self, painter, zoneRect, viewRect):
+    def realViewZone(self, painter, zoneRect):
 
         self.paintZone = self.parent.spritedata[5] == 0
         self.top = self.parent.objy
@@ -3865,7 +4001,7 @@ class SpriteImage_Poison(SpriteImage_LiquidOrFog): # 216
         if self.parent.spritedata[2] > 7: # falling
             self.risingHeight = -self.risingHeight
 
-        super().realViewZone(painter, zoneRect, viewRect)
+        super().realViewZone(painter, zoneRect)
 
 
 class SpriteImage_LineBlock(SLib.SpriteImage): # 219
@@ -3880,7 +4016,7 @@ class SpriteImage_LineBlock(SLib.SpriteImage): # 219
     def loadImages():
         SLib.loadIfNotInImageCache('LineBlock', 'lineblock.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         direction = self.parent.spritedata[4] >> 4
         widthA = self.parent.spritedata[5] & 15
@@ -3972,7 +4108,7 @@ class SpriteImage_LineBlock(SLib.SpriteImage): # 219
         self.aux[0].image = imgB
         self.aux[0].setPos(xposB, yposB)
 
-        super().updateSize()
+        super().dataChanged()
 
     def paint(self, painter):
         super().paint(painter)
@@ -4003,12 +4139,12 @@ class SpriteImage_SpringBlock(SLib.SpriteImage_StaticMultiple): # 223
         SLib.loadIfNotInImageCache('SpringBlock1', 'spring_block.png')
         SLib.loadIfNotInImageCache('SpringBlock2', 'spring_block_alt.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         type = self.parent.spritedata[5] & 1
         self.image = ImageCache['SpringBlock2'] if type else ImageCache['SpringBlock1']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_JumboRay(SLib.SpriteImage_StaticMultiple): # 224
@@ -4019,7 +4155,7 @@ class SpriteImage_JumboRay(SLib.SpriteImage_StaticMultiple): # 224
         ImageCache['JumboRayL'] = QtGui.QPixmap.fromImage(Ray)
         ImageCache['JumboRayR'] = QtGui.QPixmap.fromImage(Ray.mirrored(True, False))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         flyleft = self.parent.spritedata[4] & 15
         if flyleft:
@@ -4029,7 +4165,7 @@ class SpriteImage_JumboRay(SLib.SpriteImage_StaticMultiple): # 224
             self.xOffset = -152
             self.image = ImageCache['JumboRayR']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_FloatingCoin(SpriteImage_SpecialCoin): # 225
@@ -4063,8 +4199,8 @@ class SpriteImage_PipeCannon(SLib.SpriteImage): # 227
         for i in range(7):
             ImageCache['PipeCannon%d' % i] = SLib.GetImg('pipe_cannon_%d.png' % i)
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         fireDirection = (self.parent.spritedata[5] & 0xF) % 7
 
@@ -4137,7 +4273,7 @@ class SpriteImage_ExtendShroom(SLib.SpriteImage): # 228
         ImageCache['ExtendShroomC'] = SLib.GetImg('extend_shroom_cont.png')
         ImageCache['ExtendShroomStem'] = SLib.GetImg('extend_shroom_stem.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         props = self.parent.spritedata[5]
         width = self.parent.spritedata[4] & 1
@@ -4158,7 +4294,7 @@ class SpriteImage_ExtendShroom(SLib.SpriteImage): # 228
         self.xOffset = 8 - (self.width / 2)
         self.height = (stemlength * 16) + 48
 
-        super().updateSize()
+        super().dataChanged()
 
     def paint(self, painter):
         super().paint(painter)
@@ -4213,8 +4349,8 @@ class SpriteImage_WiggleShroom(SLib.SpriteImage): # 231
         ImageCache['WiggleShroomR'] = SLib.GetImg('wiggle_shroom_right.png')
         ImageCache['WiggleShroomS'] = SLib.GetImg('wiggle_shroom_stem.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         width = (self.parent.spritedata[4] & 0xF0) >> 4
         stemlength = self.parent.spritedata[3] & 3
@@ -4312,7 +4448,7 @@ class SpriteImage_FallingLedgeBar(SLib.SpriteImage_Static): # 242
 
 class SpriteImage_EventDeactivBlock(SLib.SpriteImage_Static): # 252
     def __init__(self, parent):
-        super().__init__(self)
+        super().__init__(parent)
         self.image = SLib.Tiles[49].main # ? block
 
 
@@ -4321,11 +4457,11 @@ class SpriteImage_RotControlledCoin(SpriteImage_SpecialCoin): # 253
 
 
 class SpriteImage_RotControlledPipe(SpriteImage_PipeStationary): # 254
-    def updateSize(self):
+    def dataChanged(self):
         self.length = (self.parent.spritedata[4] >> 4) + 2
         dir = (self.parent.spritedata[4] & 0xF) % 4
         self.direction = 'URDL'[dir]
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_RotatingQBlock(SpriteImage_Block): # 255
@@ -4354,12 +4490,12 @@ class SpriteImage_MoveWhenOnMetalLavaBlock(SLib.SpriteImage_StaticMultiple): # 2
         ImageCache['MetalLavaBlock1'] = SLib.GetImg('lava_iron_block_1.png')
         ImageCache['MetalLavaBlock2'] = SLib.GetImg('lava_iron_block_2.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         size = (self.parent.spritedata[5] & 0xF) % 3
         self.image = ImageCache['MetalLavaBlock%d' % size]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_RegularDoor(SpriteImage_Door): # 259
@@ -4371,8 +4507,8 @@ class SpriteImage_MovementController_TwoWayLine(SLib.SpriteImage): # 260
         super().__init__(parent)
         self.aux.append(SLib.AuxiliaryTrackObject(parent, 16, 16, SLib.AuxiliaryTrackObject.Horizontal))
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         direction = (self.parent.spritedata[3] & 0xF) % 4
         distance = (self.parent.spritedata[5] >> 4) + 1
@@ -4429,7 +4565,7 @@ class SpriteImage_PoltergeistItem(SLib.SpriteImage): # 262
         ImageCache['PolterStand'] = polterstand
         ImageCache['PolterQBlock'] = polterblock
 
-    def updateSize(self):
+    def dataChanged(self):
 
         style = self.parent.spritedata[5] & 15
         if style == 0:
@@ -4445,7 +4581,7 @@ class SpriteImage_PoltergeistItem(SLib.SpriteImage): # 262
 
         self.aux[0].setPos(-18, -18)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_WaterPiranha(SLib.SpriteImage_Static): # 263
@@ -4480,8 +4616,8 @@ class SpriteImage_FallingIcicle(SLib.SpriteImage_StaticMultiple): # 265
         SLib.loadIfNotInImageCache('IcicleSmall', 'icicle_small.png')
         SLib.loadIfNotInImageCache('IcicleLarge', 'icicle_large.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         size = self.parent.spritedata[5] & 1
         if size == 0:
@@ -4518,7 +4654,7 @@ class SpriteImage_TiltGrate(SLib.SpriteImage_StaticMultiple): # 267
         ImageCache['TiltGrateL'] = SLib.GetImg('tilt_grate_left.png')
         ImageCache['TiltGrateR'] = SLib.GetImg('tilt_grate_right.png')
 
-    def updateSize(self):
+    def dataChanged(self):
         direction = self.parent.spritedata[5] & 3
         if direction > 3: direction = 3
 
@@ -4540,7 +4676,7 @@ class SpriteImage_TiltGrate(SLib.SpriteImage_StaticMultiple): # 267
             self.offset = (-20, 0)
             self.image = ImageCache['TiltGrateR']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_LavaGeyser(SLib.SpriteImage_StaticMultiple): # 268
@@ -4556,7 +4692,7 @@ class SpriteImage_LavaGeyser(SLib.SpriteImage_StaticMultiple): # 268
         for i in range(7):
             ImageCache['LavaGeyser%d' % i] = SLib.GetImg('lava_geyser_%d.png' % i)
 
-    def updateSize(self):
+    def dataChanged(self):
 
         height = self.parent.spritedata[4] >> 4
         startsOn = self.parent.spritedata[5] & 1
@@ -4576,7 +4712,7 @@ class SpriteImage_LavaGeyser(SLib.SpriteImage_StaticMultiple): # 268
 
         self.image = ImageCache['LavaGeyser%d' % height]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Parabomb(SLib.SpriteImage_Static): # 269
@@ -4601,8 +4737,8 @@ class SpriteImage_Mouser(SLib.SpriteImage): # 271
     def loadImages():
         SLib.loadIfNotInImageCache('Mouser', 'mouser.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         number = self.parent.spritedata[5] >> 4
         direction = self.parent.spritedata[5] & 0xF
@@ -4646,7 +4782,7 @@ class SpriteImage_CastleGear(SLib.SpriteImage_StaticMultiple): # 274
         SLib.loadIfNotInImageCache('CastleGearL', 'castle_gear_large.png')
         SLib.loadIfNotInImageCache('CastleGearS', 'castle_gear_small.png')
 
-    def updateSize(self):
+    def dataChanged(self):
         
         isBig = (self.parent.spritedata[4] & 0xF) == 1
         self.image = ImageCache['CastleGearL'] if isBig else ImageCache['CastleGearS']
@@ -4655,7 +4791,7 @@ class SpriteImage_CastleGear(SLib.SpriteImage_StaticMultiple): # 274
             -(((self.image.height() / 2) - 12) * (2 / 3)),
             )
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_FiveEnemyRaft(SLib.SpriteImage_Static): # 275
@@ -4702,7 +4838,7 @@ class SpriteImage_GiantIceBlock(SLib.SpriteImage_StaticMultiple): # 280
         ImageCache['BigIceBlockBobomb'] = SLib.GetImg('big_ice_block_bobomb.png')
         ImageCache['BigIceBlockSpikeBall'] = SLib.GetImg('big_ice_block_spikeball.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         item = self.parent.spritedata[5] & 3
         if item > 2: item = 0
@@ -4714,7 +4850,7 @@ class SpriteImage_GiantIceBlock(SLib.SpriteImage_StaticMultiple): # 280
         elif item == 2:
             self.image = ImageCache['BigIceBlockSpikeBall']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_WoodCircle(SLib.SpriteImage_StaticMultiple): # 286
@@ -4725,8 +4861,8 @@ class SpriteImage_WoodCircle(SLib.SpriteImage_StaticMultiple): # 286
         ImageCache['WoodCircle1'] = SLib.GetImg('wood_circle_1.png')
         ImageCache['WoodCircle2'] = SLib.GetImg('wood_circle_2.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
         size = self.parent.spritedata[5] & 3
 
         self.image = ImageCache['WoodCircle%d' % size]
@@ -4749,14 +4885,14 @@ class SpriteImage_PathIceBlock(SLib.SpriteImage_StaticMultiple): # 287
     def loadImages():
         SLib.loadIfNotInImageCache('PathIceBlock', 'unused_path_ice_block.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         width = (self.parent.spritedata[5] & 0xF) + 1
         height = (self.parent.spritedata[5] >> 4) + 1
 
         self.image = ImageCache['PathIceBlock'].scaled(width * 24, height * 24)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_OldBarrel(SLib.SpriteImage_Static): # 288
@@ -4780,14 +4916,14 @@ class SpriteImage_Box(SLib.SpriteImage_StaticMultiple): # 289
             for size, sizestr in zip(range(4), ('small', 'wide', 'tall', 'big')):
                 ImageCache['Box%d%d' % (style, size)] = SLib.GetImg('box_%s_%s.png' % (stylestr, sizestr))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         style = self.parent.spritedata[4] & 1
         size = (self.parent.spritedata[5] >> 4) % 4
 
         self.image = ImageCache['Box%d%d' % (style, size)]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Parabeetle(SLib.SpriteImage_StaticMultiple): # 291
@@ -4799,7 +4935,7 @@ class SpriteImage_Parabeetle(SLib.SpriteImage_StaticMultiple): # 291
         ImageCache['Parabeetle2'] = SLib.GetImg('parabeetle_moreright.png')
         ImageCache['Parabeetle3'] = SLib.GetImg('parabeetle_atyou.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         direction = self.parent.spritedata[5] & 3
         self.image = ImageCache['Parabeetle%d' % direction]
@@ -4813,7 +4949,7 @@ class SpriteImage_Parabeetle(SLib.SpriteImage_StaticMultiple): # 291
         elif direction == 3: # at you
             self.xOffset = -26
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_HeavyParabeetle(SLib.SpriteImage_StaticMultiple): # 292
@@ -4825,7 +4961,7 @@ class SpriteImage_HeavyParabeetle(SLib.SpriteImage_StaticMultiple): # 292
         ImageCache['HeavyParabeetle2'] = SLib.GetImg('heavy_parabeetle_moreright.png')
         ImageCache['HeavyParabeetle3'] = SLib.GetImg('heavy_parabeetle_atyou.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         direction = self.parent.spritedata[5] & 3
         self.image = ImageCache['HeavyParabeetle%d' % direction]
@@ -4839,7 +4975,7 @@ class SpriteImage_HeavyParabeetle(SLib.SpriteImage_StaticMultiple): # 292
         elif direction == 3: # at you
             self.xOffset = -52
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_IceCube(SLib.SpriteImage_Static): # 294
@@ -4859,7 +4995,7 @@ class SpriteImage_NutPlatform(SLib.SpriteImage_StaticMultiple): # 295
     def loadImages():
         SLib.loadIfNotInImageCache('NutPlatform', 'nut_platform.png')
 
-    def updateSize(self):
+    def dataChanged(self):
         offsetUp = self.parent.spritedata[5] >> 4
         offsetRight = self.parent.spritedata[5] & 15
 
@@ -4882,7 +5018,7 @@ class SpriteImage_NutPlatform(SLib.SpriteImage_StaticMultiple): # 295
 
         self.image = ImageCache['NutPlatform']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_MegaBuzzy(SLib.SpriteImage_StaticMultiple): # 296
@@ -4897,7 +5033,7 @@ class SpriteImage_MegaBuzzy(SLib.SpriteImage_StaticMultiple): # 296
         ImageCache['MegaBuzzyF'] = SLib.GetImg('megabuzzy_front.png')
         ImageCache['MegaBuzzyR'] = SLib.GetImg('megabuzzy_right.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         dir = self.parent.spritedata[5] & 3
         if dir == 0 or dir > 2:
@@ -4907,7 +5043,7 @@ class SpriteImage_MegaBuzzy(SLib.SpriteImage_StaticMultiple): # 296
         elif dir == 2:
             self.image = ImageCache['MegaBuzzyF']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_DragonCoaster(SLib.SpriteImage): # 297
@@ -4922,8 +5058,8 @@ class SpriteImage_DragonCoaster(SLib.SpriteImage): # 297
         ImageCache['DragonBody'] = SLib.GetImg('dragon_coaster_body.png')
         ImageCache['DragonTail'] = SLib.GetImg('dragon_coaster_tail.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         raw_size = self.parent.spritedata[5] & 7
 
@@ -4966,7 +5102,7 @@ class SpriteImage_CannonMulti(SLib.SpriteImage_StaticMultiple): # 299
         ImageCache['CannonMultiDR'] = SLib.GetImg('cannon_multi_10.png')
         ImageCache['CannonMultiDL'] = SLib.GetImg('cannon_multi_11.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         number = self.parent.spritedata[5]
         direction = 'UR'
@@ -4984,7 +5120,7 @@ class SpriteImage_CannonMulti(SLib.SpriteImage_StaticMultiple): # 299
 
         self.image = ImageCache['CannonMulti%s' % direction]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_RotCannon(SLib.SpriteImage_StaticMultiple): # 300
@@ -4993,7 +5129,7 @@ class SpriteImage_RotCannon(SLib.SpriteImage_StaticMultiple): # 300
         SLib.loadIfNotInImageCache('RotCannon', 'rot_cannon.png')
         SLib.loadIfNotInImageCache('RotCannonU', 'rot_cannon_u.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         upsideDown = (self.parent.spritedata[5] >> 4) & 1
         if not upsideDown:
@@ -5003,7 +5139,7 @@ class SpriteImage_RotCannon(SLib.SpriteImage_StaticMultiple): # 300
             self.image = ImageCache['RotCannonU']
             self.offset = (-12, 0)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_RotCannonPipe(SLib.SpriteImage_StaticMultiple): # 301
@@ -5012,7 +5148,7 @@ class SpriteImage_RotCannonPipe(SLib.SpriteImage_StaticMultiple): # 301
         SLib.loadIfNotInImageCache('RotCannonPipe', 'rot_cannon_pipe.png')
         SLib.loadIfNotInImageCache('RotCannonPipeU', 'rot_cannon_pipe_u.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         upsideDown = (self.parent.spritedata[5] >> 4) & 1
         if not upsideDown:
@@ -5022,7 +5158,7 @@ class SpriteImage_RotCannonPipe(SLib.SpriteImage_StaticMultiple): # 301
             self.image = ImageCache['RotCannonPipeU']
             self.offset = (-40, 0)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_MontyMole(SLib.SpriteImage_StaticMultiple): # 303
@@ -5031,7 +5167,7 @@ class SpriteImage_MontyMole(SLib.SpriteImage_StaticMultiple): # 303
         SLib.loadIfNotInImageCache('Mole', 'monty_mole.png')
         SLib.loadIfNotInImageCache('MoleCave', 'monty_mole_hole.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         notInCave = self.parent.spritedata[5] & 1
         if not notInCave: # wow, that looks weird
@@ -5041,7 +5177,7 @@ class SpriteImage_MontyMole(SLib.SpriteImage_StaticMultiple): # 303
             self.image = ImageCache['Mole']
             self.offset = (3.5, 0)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_RotFlameCannon(SLib.SpriteImage_StaticMultiple): # 304
@@ -5053,7 +5189,7 @@ class SpriteImage_RotFlameCannon(SLib.SpriteImage_StaticMultiple): # 304
             originalImg = SLib.GetImg('rotating_flame_cannon_%d.png' % i, True)
             ImageCache['RotFlameCannonFlipped%d' % i] = QtGui.QPixmap.fromImage(originalImg.mirrored(False, True))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         orientation = self.parent.spritedata[5] >> 4
         length = self.parent.spritedata[5] & 15
@@ -5067,7 +5203,7 @@ class SpriteImage_RotFlameCannon(SLib.SpriteImage_StaticMultiple): # 304
 
         self.image = ImageCache['RotFlameCannon%s%d' % (orientation, length)]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_LightCircle(SLib.SpriteImage): # 305
@@ -5086,7 +5222,7 @@ class SpriteImage_LightCircle(SLib.SpriteImage): # 305
 
 class SpriteImage_RotSpotlight(SLib.SpriteImage_StaticMultiple): # 306
     def __init__(self, parent):
-        super().__init__(self)
+        super().__init__(parent)
         self.offset = (-24, -64)
 
     @staticmethod
@@ -5095,12 +5231,12 @@ class SpriteImage_RotSpotlight(SLib.SpriteImage_StaticMultiple): # 306
         for i in range(16):
             ImageCache['RotSpotlight%d' % i] = SLib.GetImg('rotational_spotlight_%d.png' % i)
 
-    def updateSize(self):
+    def dataChanged(self):
 
         angle = self.parent.spritedata[3] & 15
         self.image = ImageCache['RotSpotlight%d' % angle]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_HammerBroPlatform(SpriteImage_HammerBro): # 308
@@ -5127,7 +5263,7 @@ class SpriteImage_SynchroFlameJet(SLib.SpriteImage_StaticMultiple): # 309
         ImageCache['SynchroFlameJetOffL'] = QtGui.QPixmap.fromImage(offImage.mirrored(True, False))
         ImageCache['SynchroFlameJetOffU'] = QtGui.QPixmap.fromImage(offImage.transformed(transform270).mirrored(True, False))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         mode = (self.parent.spritedata[4] & 15) % 2
         direction = (self.parent.spritedata[5] & 15) % 4
@@ -5143,7 +5279,7 @@ class SpriteImage_SynchroFlameJet(SLib.SpriteImage_StaticMultiple): # 309
 
         self.image = ImageCache['SynchroFlameJet%s%s' % (mode, directionstr)]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_ArrowSign(SLib.SpriteImage_StaticMultiple): # 310
@@ -5157,12 +5293,12 @@ class SpriteImage_ArrowSign(SLib.SpriteImage_StaticMultiple): # 310
         for i in range(8):
             ImageCache['ArrowSign%d' % i] = SLib.GetImg('arrow_sign_%d.png' % i)
 
-    def updateSize(self):
+    def dataChanged(self):
 
         direction = self.parent.spritedata[5] & 0xF
         self.image = ImageCache['ArrowSign%d' % direction]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_MegaIcicle(SLib.SpriteImage_Static): # 311
@@ -5179,19 +5315,21 @@ class SpriteImage_MegaIcicle(SLib.SpriteImage_Static): # 311
 
 
 class SpriteImage_BubbleGen(SLib.SpriteImage): # 314
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.updateSceneAfterPaint = True
 
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('BubbleGenEffect', 'bubble_gen.png')
 
-    def updateSize(self):
-        super().updateSize()
-        self.parent.updateScene()
+    def dataChanged(self):
+        super().dataChanged()
+        self.parent.scene().update()
 
-    def realViewZone(self, painter, zoneRect, viewRect):
+    def positionChanged(self):
+        super().positionChanged()
+        self.parent.scene().update()
+
+    def realViewZone(self, painter, zoneRect):
+
         # Constants (change these if you want)
         bubbleFrequency = .01
         bubbleEccentricityX = 16
@@ -5223,6 +5361,8 @@ class SpriteImage_BubbleGen(SLib.SpriteImage): # 314
 
         for x, y in coords:
             painter.drawPixmap(x, y, Image)
+
+        super().realViewZone(painter, zoneRect)
 
 
 class SpriteImage_Bolt(SLib.SpriteImage_Static): # 315
@@ -5256,8 +5396,8 @@ class SpriteImage_BoltBox(SLib.SpriteImage): # 316
         ImageCache['BoltBoxB'] = SLib.GetImg('boltbox_b.png')
         ImageCache['BoltBoxBR'] = SLib.GetImg('boltbox_br.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         size = self.parent.spritedata[5]
         self.width = (size & 0xF) * 16 + 32
@@ -5312,12 +5452,12 @@ class SpriteImage_ArrowBlock(SLib.SpriteImage_StaticMultiple): # 321
         ImageCache['ArrowBlock2'] = SLib.GetImg('arrow_block_left.png')
         ImageCache['ArrowBlock3'] = SLib.GetImg('arrow_block_right.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         direction = (self.parent.spritedata[5] & 3) % 4
         self.image = ImageCache['ArrowBlock%d' % direction]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_BooCircle(SLib.SpriteImage): # 323
@@ -5341,7 +5481,7 @@ class SpriteImage_BooCircle(SLib.SpriteImage): # 323
         ImageCache['Boo3'] = SLib.GetImg('boo3.png')
         ImageCache['Boo4'] = SLib.GetImg('boo4.png')
 
-    def updateSize(self):
+    def dataChanged(self):
         # Constants (change these to fine-tune the boo positions)
         radiusMultiplier = 24 # pixels between boos per distance value
         radiusConstant = 24 # add to all radius values
@@ -5478,7 +5618,7 @@ class SpriteImage_KingBill(SLib.SpriteImage): # 326
             PainterPath.closeSubpath()
             self.paths.append(PainterPath)
 
-    def updateSize(self):
+    def dataChanged(self):
 
         direction = (self.parent.spritedata[5] & 15) % 4
 
@@ -5492,7 +5632,7 @@ class SpriteImage_KingBill(SLib.SpriteImage): # 326
             )[direction]
         self.aux[0].setPos(newx, newy)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_LinePlatformBolt(SLib.SpriteImage_Static): # 327
@@ -5516,14 +5656,14 @@ class SpriteImage_RopeLadder(SLib.SpriteImage_StaticMultiple): # 330
         ImageCache['RopeLadder1'] = SLib.GetImg('ropeladder_1.png')
         ImageCache['RopeLadder2'] = SLib.GetImg('ropeladder_2.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         size = self.parent.spritedata[5]
         if size > 2: size = 0
 
         self.image = ImageCache['RopeLadder%d' % size]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_DishPlatform(SLib.SpriteImage_StaticMultiple): # 331
@@ -5532,7 +5672,7 @@ class SpriteImage_DishPlatform(SLib.SpriteImage_StaticMultiple): # 331
         SLib.loadIfNotInImageCache('DishPlatform0', 'dish_platform_short.png')
         SLib.loadIfNotInImageCache('DishPlatform1', 'dish_platform_long.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         size = self.parent.spritedata[4] & 15
         if size == 0:
@@ -5544,7 +5684,7 @@ class SpriteImage_DishPlatform(SLib.SpriteImage_StaticMultiple): # 331
 
         self.image = ImageCache['DishPlatform%d' % size]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_PlayerBlockPlatform(SLib.SpriteImage_Static): # 333
@@ -5574,7 +5714,7 @@ class SpriteImage_CheepGiant(SLib.SpriteImage): # 334
         ImageCache['CheepGiantGreen'] = SLib.GetImg('cheep_giant_green.png')
         ImageCache['CheepGiantYellow'] = SLib.GetImg('cheep_giant_yellow.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         type = self.parent.spritedata[5] & 0xF
         if type in (1, 7):
@@ -5595,7 +5735,7 @@ class SpriteImage_CheepGiant(SLib.SpriteImage): # 334
         else:
             self.aux[0].setSize(0, 24)
 
-        super().updateSize()
+        super().dataChanged()
 
     def paint(self, painter):
         super().paint(painter)
@@ -5629,14 +5769,14 @@ class SpriteImage_IggyKoopa(SLib.SpriteImage_Static): # 337
 
 
 class SpriteImage_Pipe_MovingUp(SpriteImage_Pipe): # 339
-    def updateSize(self):
+    def dataChanged(self):
         self.length1 = (self.parent.spritedata[5] >> 4) + 2
         self.length2 = (self.parent.spritedata[5] & 0xF) + 2
         self.color = (
             'Green', 'Red', 'Yellow', 'Blue',
             )[(self.parent.spritedata[3] & 0xF) % 4]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_LemmyKoopa(SLib.SpriteImage_Static): # 340
@@ -5662,7 +5802,7 @@ class SpriteImage_BigShell(SLib.SpriteImage_StaticMultiple): # 341
         SLib.loadIfNotInImageCache('BigShell', 'bigshell.png')
         SLib.loadIfNotInImageCache('BigShellGrass', 'bigshell_grass.png')
 
-    def updateSize(self):
+    def dataChanged(self):
         
         style = self.parent.spritedata[5] & 1
         if style == 0:
@@ -5670,7 +5810,7 @@ class SpriteImage_BigShell(SLib.SpriteImage_StaticMultiple): # 341
         else:
             self.image = ImageCache['BigShell']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Muncher(SLib.SpriteImage_StaticMultiple): # 342
@@ -5679,7 +5819,7 @@ class SpriteImage_Muncher(SLib.SpriteImage_StaticMultiple): # 342
         SLib.loadIfNotInImageCache('Muncher', 'muncher.png')
         SLib.loadIfNotInImageCache('MuncherF', 'muncher_frozen.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         frozen = self.parent.spritedata[5] & 1
         if frozen == 1:
@@ -5687,7 +5827,7 @@ class SpriteImage_Muncher(SLib.SpriteImage_StaticMultiple): # 342
         else:
             self.image = ImageCache['Muncher']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Fuzzy(SLib.SpriteImage_StaticMultiple): # 343
@@ -5696,14 +5836,14 @@ class SpriteImage_Fuzzy(SLib.SpriteImage_StaticMultiple): # 343
         SLib.loadIfNotInImageCache('Fuzzy', 'fuzzy.png')
         SLib.loadIfNotInImageCache('FuzzyGiant', 'fuzzy_giant.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         giant = self.parent.spritedata[4] & 1
 
         self.image = ImageCache['FuzzyGiant'] if giant else ImageCache['Fuzzy']
         self.offset = (-18, -18) if giant else (-7, -7)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_MortonKoopa(SLib.SpriteImage_Static): # 344
@@ -5739,7 +5879,7 @@ class SpriteImage_HangingChainPlatform(SLib.SpriteImage_StaticMultiple): # 346
         ImageCache['HangingChainPlatformM'] = SLib.GetImg('hanging_chain_platform_medium.png')
         ImageCache['HangingChainPlatformL'] = SLib.GetImg('hanging_chain_platform_large.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         size = ((self.parent.spritedata[4] & 0xF) % 4) % 3
         size, self.xOffset = (
@@ -5750,7 +5890,7 @@ class SpriteImage_HangingChainPlatform(SLib.SpriteImage_StaticMultiple): # 346
 
         self.image = ImageCache['HangingChainPlatform%s' % size]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_RoyKoopa(SLib.SpriteImage_Static): # 347
@@ -5797,14 +5937,14 @@ class SpriteImage_Pipe_MovingDown(SpriteImage_Pipe): # 353
         super().__init__(parent)
         self.direction = 'D'
 
-    def updateSize(self):
+    def dataChanged(self):
         self.length1 = (self.parent.spritedata[5] >> 4) + 2
         self.length2 = (self.parent.spritedata[5] & 0xF) + 2
         self.color = (
             'Green', 'Red', 'Yellow', 'Blue',
             )[(self.parent.spritedata[3] & 0xF) % 4]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_RollingHillWith1Pipe(SpriteImage_RollingHillWithPipe): # 355
@@ -5826,8 +5966,8 @@ class SpriteImage_BrownBlock(SLib.SpriteImage): # 356
                 ImageCache['BrownBlock' + vert + horz] = \
                     SLib.GetImg('brown_block_%s%s.png' % (vert.lower(), horz.lower()))
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         size = self.parent.spritedata[5]
         height = size >> 4
@@ -5888,7 +6028,7 @@ class SpriteImage_Fruit(SLib.SpriteImage_StaticMultiple): # 357
         SLib.loadIfNotInImageCache('Fruit', 'fruit.png')
         SLib.loadIfNotInImageCache('Cookie', 'cookie.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         style = self.parent.spritedata[5] & 1
         if style == 0:
@@ -5896,7 +6036,7 @@ class SpriteImage_Fruit(SLib.SpriteImage_StaticMultiple): # 357
         else:
             self.image = ImageCache['Cookie']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_LavaParticles(SpriteImage_LiquidOrFog): # 358
@@ -5911,7 +6051,7 @@ class SpriteImage_LavaParticles(SpriteImage_LiquidOrFog): # 358
         ImageCache['LavaParticlesB'] = SLib.GetImg('lava_particles_b.png')
         ImageCache['LavaParticlesC'] = SLib.GetImg('lava_particles_c.png')
 
-    def realViewZone(self, painter, zoneRect, viewRect):
+    def realViewZone(self, painter, zoneRect):
 
         type = (self.parent.spritedata[5] & 0xF) % 3
         self.mid = (
@@ -5920,7 +6060,7 @@ class SpriteImage_LavaParticles(SpriteImage_LiquidOrFog): # 358
             ImageCache['LavaParticlesC'],
             )[type]
 
-        super().realViewZone(painter, zoneRect, viewRect)
+        super().realViewZone(painter, zoneRect)
 
 
 class SpriteImage_WallLantern(SLib.SpriteImage): # 359
@@ -5957,12 +6097,12 @@ class SpriteImage_CrystalBlock(SLib.SpriteImage_StaticMultiple): # 361
         for size in range(3):
             ImageCache['CrystalBlock%d' % size] = SLib.GetImg('crystal_block_%d.png' % size)
 
-    def updateSize(self):
+    def dataChanged(self):
 
         size = (self.parent.spritedata[4] & 15) & 3
         self.image = ImageCache['CrystalBlock%d' % size]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_ColoredBox(SLib.SpriteImage): # 362
@@ -5977,8 +6117,8 @@ class SpriteImage_ColoredBox(SLib.SpriteImage): # 362
             for direction in ('TL', 'T', 'TR', 'L', 'M', 'R', 'BL', 'B', 'BR'):
                 ImageCache['CBox%d%s' % (color, direction)] = SLib.GetImg('cbox_%s_%d.png' % (direction, color))
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
         self.color = (self.parent.spritedata[3] >> 4) & 3
 
         size = self.parent.spritedata[4]
@@ -6014,7 +6154,7 @@ class SpriteImage_CubeKinokoRot(SLib.SpriteImage_StaticMultiple): # 366
         SLib.loadIfNotInImageCache('CubeKinokoG', 'cube_kinoko_g.png')
         SLib.loadIfNotInImageCache('CubeKinokoR', 'cube_kinoko_r.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         style = self.parent.spritedata[4] & 1
         if style == 0:
@@ -6022,7 +6162,7 @@ class SpriteImage_CubeKinokoRot(SLib.SpriteImage_StaticMultiple): # 366
         else:
             self.image = ImageCache['CubeKinokoG']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_CubeKinokoLine(SLib.SpriteImage_Static): # 367
@@ -6049,10 +6189,10 @@ class SpriteImage_FlashRaft(SLib.SpriteImage_Static): # 368
     def loadImages():
         SLib.loadIfNotInImageCache('FlashlightRaft', 'flashraft.png')
 
-    def updateSize(self):
+    def dataChanged(self):
         midway = (self.parent.spritedata[5] >> 4) & 1
         self.alpha = 0.5 if midway else 1
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_SlidingPenguin(SLib.SpriteImage_StaticMultiple): # 369
@@ -6063,7 +6203,7 @@ class SpriteImage_SlidingPenguin(SLib.SpriteImage_StaticMultiple): # 369
         ImageCache['PenguinL'] = QtGui.QPixmap.fromImage(penguin)
         ImageCache['PenguinR'] = QtGui.QPixmap.fromImage(penguin.mirrored(True, False))
 
-    def updateSize(self):
+    def dataChanged(self):
         
         direction = self.parent.spritedata[5] & 1
         if direction == 0:
@@ -6071,7 +6211,7 @@ class SpriteImage_SlidingPenguin(SLib.SpriteImage_StaticMultiple): # 369
         else:
             self.image = ImageCache['PenguinR']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_CloudBlock(SLib.SpriteImage_Static): # 370
@@ -6100,12 +6240,12 @@ class SpriteImage_SnowWind(SpriteImage_LiquidOrFog): # 374
     def loadImages():
         SLib.loadIfNotInImageCache('SnowEffect', 'snow.png')
 
-    def realViewZone(self, painter, zoneRect, viewRect):
+    def realViewZone(self, painter, zoneRect):
 
         # For now, we only paint snow
         self.paintZone = self.parent.spritedata[5] == 0
 
-        super().realViewZone(painter, zoneRect, viewRect)
+        super().realViewZone(painter, zoneRect)
 
 
 class SpriteImage_MovingChainLink(SLib.SpriteImage_StaticMultiple): # 376
@@ -6115,7 +6255,7 @@ class SpriteImage_MovingChainLink(SLib.SpriteImage_StaticMultiple): # 376
         for shape in range(4):
             ImageCache['MovingChainLink%d' % shape] = SLib.GetImg('moving_chain_link_%d.png' % shape)
 
-    def updateSize(self):
+    def dataChanged(self):
         
         self.shape = (self.parent.spritedata[4] >> 4) % 4
         arrow = None
@@ -6131,13 +6271,13 @@ class SpriteImage_MovingChainLink(SLib.SpriteImage_StaticMultiple): # 376
         self.yOffset = -size[1] / 2
         self.image = ImageCache['MovingChainLink%d' % self.shape]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Pipe_Up(SpriteImage_PipeStationary): # 377
-    def updateSize(self):
+    def dataChanged(self):
         self.length = (self.parent.spritedata[5] & 0xF) + 2
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Pipe_Down(SpriteImage_PipeStationary): # 378
@@ -6145,9 +6285,9 @@ class SpriteImage_Pipe_Down(SpriteImage_PipeStationary): # 378
         super().__init__(parent)
         self.direction = 'D'
 
-    def updateSize(self):
+    def dataChanged(self):
         self.length = (self.parent.spritedata[5] & 0xF) + 2
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Pipe_Right(SpriteImage_PipeStationary): # 379
@@ -6155,9 +6295,9 @@ class SpriteImage_Pipe_Right(SpriteImage_PipeStationary): # 379
         super().__init__(parent)
         self.direction = 'R'
 
-    def updateSize(self):
+    def dataChanged(self):
         self.length = (self.parent.spritedata[5] & 0xF) + 2
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Pipe_Left(SpriteImage_PipeStationary): # 380
@@ -6165,9 +6305,9 @@ class SpriteImage_Pipe_Left(SpriteImage_PipeStationary): # 380
         super().__init__(parent)
         self.direction = 'L'
 
-    def updateSize(self):
+    def dataChanged(self):
         self.length = (self.parent.spritedata[5] & 0xF) + 2
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_ScrewMushroomNoBolt(SpriteImage_ScrewMushroom): # 382
@@ -6191,7 +6331,7 @@ class SpriteImage_IceBlock(SLib.SpriteImage_StaticMultiple): # 385
             for j in range(4):
                 ImageCache['IceBlock%d%d' % (i, j)] = SLib.GetImg('iceblock%d%d.png' % (i, j))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         size = self.parent.spritedata[5]
         height = (size & 0x30) >> 4
@@ -6201,7 +6341,7 @@ class SpriteImage_IceBlock(SLib.SpriteImage_StaticMultiple): # 385
         self.xOffset = width * -4
         self.yOffset = height * -8
         
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_PowBlock(SLib.SpriteImage_Static): # 386
@@ -6228,7 +6368,7 @@ class SpriteImage_Bush(SLib.SpriteImage_StaticMultiple): # 387
             for sizenum, sizestr in zip(range(4), ('small', 'med', 'large', 'xlarge')):
                 ImageCache['Bush%d%d' % (typenum, sizenum)] = SLib.GetImg('bush_%s_%s.png' % (typestr, sizestr))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         props = self.parent.spritedata[5]
         style = (props >> 4) & 1
@@ -6243,7 +6383,7 @@ class SpriteImage_Bush(SLib.SpriteImage_StaticMultiple): # 387
 
         self.image = ImageCache['Bush%d%d' % (style, size)]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Barrel(SLib.SpriteImage_Static): # 388
@@ -6347,8 +6487,8 @@ class SpriteImage_MoveWhenOn(SLib.SpriteImage): # 396
             ImageCache['SmArrow'+'L'] = QtGui.QPixmap.fromImage(image.transformed(transform180))
             ImageCache['SmArrow'+'U'] = QtGui.QPixmap.fromImage(image.transformed(transform270))
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         # get width
         raw_size = self.parent.spritedata[5] & 0xF
@@ -6407,8 +6547,8 @@ class SpriteImage_GhostHouseBox(SLib.SpriteImage): # 397
         for direction in ('TL', 'T', 'TR', 'L', 'M', 'R', 'BL', 'B', 'BR'):
             ImageCache['GHBox%s' % direction] = SLib.GetImg('ghbox_%s.png' % direction)
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         height = self.parent.spritedata[4] >> 4
         width = self.parent.spritedata[5] & 15
@@ -6453,22 +6593,22 @@ class SpriteImage_LineBrickBlock(SpriteImage_Block): # 403
 
 
 class SpriteImage_ToadHouseBalloonUnused(SpriteImage_ToadHouseBalloon): # 411
-    def updateSize(self):
+    def dataChanged(self):
 
         self.livesNum = (self.parent.spritedata[4] >> 4) % 4
 
-        super().updateSize()
+        super().dataChanged()
 
         self.yOffset = 8 - (self.image.height() / 3)
 
 
 class SpriteImage_ToadHouseBalloonUsed(SpriteImage_ToadHouseBalloon): # 412
-    def updateSize(self):
+    def dataChanged(self):
 
         self.livesNum = (self.parent.spritedata[4] >> 4) % 4
         self.hasHandle = not ((self.parent.spritedata[5] >> 4) & 1)
 
-        super().updateSize()
+        super().dataChanged()
 
         if self.hasHandle:
             self.yOffset = 12
@@ -6497,7 +6637,7 @@ class SpriteImage_Gabon(SLib.SpriteImage_StaticMultiple): # 414
         ImageCache['GabonRight'] = SLib.GetImg('gabon_r.png')
         ImageCache['GabonDown'] = SLib.GetImg('gabon_d.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         throwdir = self.parent.spritedata[5] & 1
         if throwdir == 0: # down
@@ -6512,7 +6652,7 @@ class SpriteImage_Gabon(SLib.SpriteImage_StaticMultiple): # 414
                 )[facing]
             self.offset = (-7, -31)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_BetaLarryKoopa(SLib.SpriteImage_Static): # 415
@@ -6578,8 +6718,8 @@ class SpriteImage_GiantGlowBlock(SLib.SpriteImage): # 420
         SLib.loadIfNotInImageCache('GiantGlowBlockOn', 'giant_glow_block.png')
         SLib.loadIfNotInImageCache('GiantGlowBlockOff', 'giant_glow_block_off.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         type = self.parent.spritedata[4] >> 4
         if type == 0:
@@ -6628,13 +6768,13 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 424
         for i in range(8):
             ImageCache['PalmTree%d' % i] = SLib.GetImg('palmtree_%d.png' % i)
 
-    def updateSize(self):
+    def dataChanged(self):
 
         size = self.parent.spritedata[5] & 7
         self.image = ImageCache['PalmTree%d' % size]
         self.yOffset = 16 - (self.image.height() / 1.5)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_Jellybeam(SLib.SpriteImage_Static): # 425
@@ -6714,13 +6854,13 @@ class SpriteImage_WarpCannon(SLib.SpriteImage_StaticMultiple): # 434
         ImageCache['Warp1'] = SLib.GetImg('warp_w6.png')
         ImageCache['Warp2'] = SLib.GetImg('warp_w8.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         dest = self.parent.spritedata[5] & 3
         if dest == 3: dest = 0
         self.image = ImageCache['Warp%d' % dest]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_GhostFog(SpriteImage_LiquidOrFog): # 435
@@ -6733,12 +6873,12 @@ class SpriteImage_GhostFog(SpriteImage_LiquidOrFog): # 435
     def loadImages():
         SLib.loadIfNotInImageCache('GhostFog', 'fog_ghost.png')
 
-    def realViewZone(self, painter, zoneRect, viewRect):
+    def realViewZone(self, painter, zoneRect):
 
         self.paintZone = self.parent.spritedata[5] == 0
         self.top = self.parent.objy
 
-        super().realViewZone(painter, zoneRect, viewRect)
+        super().realViewZone(painter, zoneRect)
 
 
 class SpriteImage_PurplePole(SLib.SpriteImage): # 437
@@ -6753,8 +6893,8 @@ class SpriteImage_PurplePole(SLib.SpriteImage): # 437
         ImageCache['VertPole'] = SLib.GetImg('purple_pole_middle.png')
         ImageCache['VertPoleBottom'] = SLib.GetImg('purple_pole_bottom.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         length = self.parent.spritedata[5]
         self.height = (length + 3) * 16
@@ -6774,7 +6914,7 @@ class SpriteImage_CageBlocks(SLib.SpriteImage_StaticMultiple): # 438
         for type in range(8):
             ImageCache['CageBlock%d' % type] = SLib.GetImg('cage_block_%d.png' % type)
 
-    def updateSize(self):
+    def dataChanged(self):
 
         type = (self.parent.spritedata[4] & 15) % 5
 
@@ -6788,7 +6928,7 @@ class SpriteImage_CageBlocks(SLib.SpriteImage_StaticMultiple): # 438
 
         self.image = ImageCache['CageBlock%d' % type]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_CagePeachFake(SLib.SpriteImage_Static): # 439
@@ -6814,8 +6954,8 @@ class SpriteImage_HorizontalRope(SLib.SpriteImage): # 440
         SLib.loadIfNotInImageCache('HorzRope', 'horizontal_rope_middle.png')
         SLib.loadIfNotInImageCache('HorzRopeEnd', 'horizontal_rope_end.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         length = self.parent.spritedata[5]
         self.width = (length + 3) * 16
@@ -6850,8 +6990,8 @@ class SpriteImage_MushroomPlatform(SLib.SpriteImage): # 441
         ImageCache['OrangeShroomM'] = SLib.GetImg('orange_mushroom_middle.png')
         ImageCache['OrangeShroomR'] = SLib.GetImg('orange_mushroom_right.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         # get size/color
         self.color = self.parent.spritedata[4] & 1
@@ -6961,9 +7101,9 @@ class SpriteImage_MetalBar(SLib.SpriteImage_Static): # 448
 
 
 class SpriteImage_Pipe_EnterableUp(SpriteImage_PipeStationary): # 450
-    def updateSize(self):
+    def dataChanged(self):
         self.length = (self.parent.spritedata[5] & 0xF) + 2
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_MouserDespawner(SLib.SpriteImage_Static): # 451
@@ -6997,7 +7137,7 @@ class SpriteImage_Seaweed(SLib.SpriteImage_StaticMultiple): # 453
         for i in range(4):
             ImageCache['Seaweed%d' % i] = SLib.GetImg('seaweed_%d.png' % i)
 
-    def updateSize(self):
+    def dataChanged(self):
         SeaweedSizes = [0, 1, 2, 2, 3, 3]
         SeaweedXOffsets = [-26, -22, -31, -42]
 
@@ -7010,7 +7150,7 @@ class SpriteImage_Seaweed(SLib.SpriteImage_StaticMultiple): # 453
             17 - (self.image.height() / 1.5),
             )
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_HammerPlatform(SLib.SpriteImage_Static): # 455
@@ -7035,7 +7175,7 @@ class SpriteImage_BossBridge(SLib.SpriteImage_StaticMultiple): # 456
         ImageCache['BossBridgeM'] = SLib.GetImg('boss_bridge_middle.png')
         ImageCache['BossBridgeR'] = SLib.GetImg('boss_bridge_right.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         style = (self.parent.spritedata[5] & 3) % 3
         self.image = (
@@ -7044,7 +7184,7 @@ class SpriteImage_BossBridge(SLib.SpriteImage_StaticMultiple): # 456
             ImageCache['BossBridgeL'],
             )[style]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_SpinningThinBars(SLib.SpriteImage_Static): # 457
@@ -7066,12 +7206,12 @@ class SpriteImage_SwingingVine(SLib.SpriteImage_StaticMultiple): # 464
         SLib.loadIfNotInImageCache('SwingVine', 'swing_vine.png')
         SLib.loadIfNotInImageCache('SwingChain', 'swing_chain.png')
 
-    def updateSize(self):
+    def dataChanged(self):
 
         style = self.parent.spritedata[5] & 1
         self.image = ImageCache['SwingVine'] if not style else ImageCache['SwingChain']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_LavaIronBlock(SLib.SpriteImage_Static): # 466
@@ -7111,8 +7251,8 @@ class SpriteImage_BoltPlatform(SLib.SpriteImage): # 469
         ImageCache['BoltPlatformM'] = SLib.GetImg('bolt_platform_middle.png')
         ImageCache['BoltPlatformR'] = SLib.GetImg('bolt_platform_right.png')
 
-    def updateSize(self):
-        super().updateSize()
+    def dataChanged(self):
+        super().dataChanged()
 
         length = self.parent.spritedata[5] & 0xF
         self.width = (length + 2) * 16
@@ -7173,7 +7313,7 @@ class SpriteImage_IceFloe(SLib.SpriteImage_StaticMultiple): # 475
         for size in range(16):
             ImageCache['IceFloe%d' % size] = SLib.GetImg('ice_floe_%d.png' % size)
 
-    def updateSize(self):
+    def dataChanged(self):
 
         size = self.parent.spritedata[5] & 15
         self.offset = (
@@ -7194,7 +7334,7 @@ class SpriteImage_IceFloe(SLib.SpriteImage_StaticMultiple): # 475
 
         self.image = ImageCache['IceFloe%d' % size]
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_FlyingWrench(SLib.SpriteImage_Static): # 476
@@ -7230,7 +7370,7 @@ class SpriteImage_BowserSwitchSm(SLib.SpriteImage_StaticMultiple): # 478
         ImageCache['ESwitch'] = QtGui.QPixmap.fromImage(e)
         ImageCache['ESwitchU'] = QtGui.QPixmap.fromImage(e.mirrored(True, True))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         upsideDown = self.parent.spritedata[5] & 1
         if not upsideDown:
@@ -7238,7 +7378,7 @@ class SpriteImage_BowserSwitchSm(SLib.SpriteImage_StaticMultiple): # 478
         else:
             self.image = ImageCache['ESwitchU']
 
-        super().updateSize()
+        super().dataChanged()
 
 
 class SpriteImage_BowserSwitchLg(SLib.SpriteImage_StaticMultiple): # 479
@@ -7249,7 +7389,7 @@ class SpriteImage_BowserSwitchLg(SLib.SpriteImage_StaticMultiple): # 479
         ImageCache['ELSwitch'] = QtGui.QPixmap.fromImage(elg)
         ImageCache['ELSwitchU'] = QtGui.QPixmap.fromImage(elg.mirrored(True, True))
 
-    def updateSize(self):
+    def dataChanged(self):
 
         upsideDown = self.parent.spritedata[5] & 1
         if not upsideDown:
@@ -7259,7 +7399,7 @@ class SpriteImage_BowserSwitchLg(SLib.SpriteImage_StaticMultiple): # 479
             self.image = ImageCache['ELSwitchU']
             self.offset = (-16, 0)
 
-        super().updateSize()
+        super().dataChanged()
 
 
 ################################################################

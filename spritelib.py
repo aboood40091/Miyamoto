@@ -45,6 +45,7 @@ SpriteImagesLoaded = set()
 
 SpritesFolders = []
 RealViewEnabled = False
+Area = None
 
 
 ################################################################
@@ -152,52 +153,80 @@ class SpriteImage():
     Class that contains information about a sprite image
     """
     def __init__(self, parent):
+        """
+        Intializes the sprite image
+        """
         self.parent = parent
+
         self.alpha = 1.0
         self.image = None
+
         self.spritebox = Spritebox()
-        self.xOffset = 0
-        self.yOffset = 0
-        self.width = 16
-        self.height = 16
+
+        self.dimensions = 0, 0, 16, 16
+
         self.aux = []
-        self.updateSceneAfterPaint = False
 
     @staticmethod
     def loadImages():
-        pass
-    def updateSize(self):
-        pass
-    def paint(self, painter):
-        pass
-    def realViewZone(self, painter, zoneRect, viewRect):
+        """
+        Loads all images needed by the sprite
+        """
         pass
 
+    def dataChanged(self):
+        """
+        Called whenever the sprite data changes
+        """
+        pass
+
+    def positionChanged(self):
+        """
+        Called whenever the sprite position changes
+        """
+        pass
+
+    def paint(self, painter):
+        """
+        Paints the sprite
+        """
+        pass
+
+    # Offset property
     def getOffset(self):
         return (self.xOffset, self.yOffset)
     def setOffset(self, new):
         self.xOffset, self.yOffset = new[0], new[1]
     def delOffset(self):
         self.xOffset, self.yOffset = 0, 0
+    offset = property(
+        getOffset, setOffset, delOffset,
+        'Convenience property that provides access to self.xOffset and self.yOffset in one tuple',
+        )
+
+    # Size property
     def getSize(self):
         return (self.width, self.height)
     def setSize(self, new):
         self.width, self.height = new[0], new[1]
     def delSize(self):
         self.width, self.height = 16, 16
+    size = property(
+        getSize, setSize, delSize,
+        'Convenience property that provides access to self.width and self.height in one tuple',
+        )
+
+    # Dimensions property
     def getDimensions(self):
         return (self.xOffset, self.yOffset, self.width, self.height)
     def setDimensions(self, new):
         self.xOffset, self.yOffset, self.width, self.height = new[0], new[1], new[2], new[3]
     def delDimensions(self):
         self.xOffset, self.yOffset, self.width, self.height = 0, 0, 16, 16
-
-    offset = property(getOffset, setOffset, delOffset,
-        'Convenience property that provides access to self.xOffset and self.yOffset in one tuple')
-    size = property(getSize, setSize, delSize,
-        'Convenience property that provides access to self.width and self.height in one tuple')
-    dimensions = property(getDimensions, setDimensions, delDimensions,
-        'Convenience property that provides access to self.xOffset, self.yOffset, self.width and self.height in one tuple')
+    dimensions = property(
+        getDimensions, setDimensions, delDimensions,
+        'Convenience property that provides access to self.xOffset, self.yOffset, self.width and self.height in one tuple',
+        )
 
 
 class SpriteImage_Static(SpriteImage):
@@ -208,14 +237,16 @@ class SpriteImage_Static(SpriteImage):
         super().__init__(parent)
         self.image = image
         self.spritebox.shown = False
+
         if self.image is not None:
             self.width = (self.image.width() / 1.5) + 1
             self.height = (self.image.height() / 1.5) + 2
         if offset is not None:
             self.xOffset = offset[0]
             self.yOffset = offset[1]
-    def updateSize(self):
-        super().updateSize()
+
+    def dataChanged(self):
+        super().dataChanged()
 
         if self.image is not None:
             self.size = (
@@ -238,7 +269,7 @@ class SpriteImage_Static(SpriteImage):
 class SpriteImage_StaticMultiple(SpriteImage_Static):
     """
     A class that acts like a SpriteImage_Static but lets you change
-    the image with the updateSize() function
+    the image with the dataChanged() function
     """
     def __init__(self, parent, image=None, offset=None):
         super().__init__(parent, image, offset)
@@ -262,32 +293,43 @@ class Spritebox():
         self.width = 24
         self.height = 24
 
+    # Offset property
     def getOffset(self):
         return (self.xOffset, self.yOffset)
     def setOffset(self, new):
         self.xOffset, self.yOffset = new[0], new[1]
     def delOffset(self):
         self.xOffset, self.yOffset = 0, 0
+    offset = property(
+        getOffset, setOffset, delOffset,
+        'Convenience property that provides access to self.xOffset and self.yOffset in one tuple',
+        )
+
+    # Size property
     def getSize(self):
         return (self.width, self.height)
     def setSize(self, new):
         self.width, self.height = new[0], new[1]
     def delSize(self):
         self.width, self.height = 16, 16
+    size = property(
+        getSize, setSize, delSize,
+        'Convenience property that provides access to self.width and self.height in one tuple',
+        )
+
+    # Dimensions property
     def getDimensions(self):
         return (self.xOffset, self.yOffset, self.width, self.height)
     def setDimensions(self, new):
         self.xOffset, self.yOffset, self.width, self.height = new[0], new[1], new[2], new[3]
     def delDimensions(self):
         self.xOffset, self.yOffset, self.width, self.height = 0, 0, 16, 16
+    dimensions = property(
+        getDimensions, setDimensions, delDimensions,
+        'Convenience property that provides access to self.xOffset, self.yOffset, self.width and self.height in one tuple',
+        )
 
-    offset = property(getOffset, setOffset, delOffset,
-        'Convenience property that provides access to self.xOffset and self.yOffset in one tuple')
-    size = property(getSize, setSize, delSize,
-        'Convenience property that provides access to self.width and self.height in one tuple')
-    dimensions = property(getDimensions, setDimensions, delDimensions,
-        'Convenience property that provides access to self.xOffset, self.yOffset, self.width and self.height in one tuple')
-
+    # RoundedRect property
     def getRR(self):
         return QtCore.QRectF(
             self.xOffset + 1,
@@ -303,11 +345,13 @@ class Spritebox():
             new.height() + 2,
             )
     def delRR(self):
-        self.dimensions = (0, 0, 24, 24)
+        self.dimensions = 0, 0, 24, 24
+    RoundedRect = property(
+        getRR, setRR, delRR,
+        'Property that contains the rounded rect for the spritebox',
+        )
 
-    RoundedRect = property(getRR, setRR, delRR,
-        'Property that contains the rounded rect for the spritebox')
-
+    # BoundingRect property
     def getBR(self):
         return QtCore.QRectF(
             self.xOffset,
@@ -323,18 +367,27 @@ class Spritebox():
             new.height(),
             )
     def delBR(self):
-        self.dimensions = (0, 0, 24, 24)
-
-    BoundingRect = property(getBR, setBR, delBR,
-        'Property that contains the bounding rect for the spritebox')
+        self.dimensions = 0, 0, 24, 24
+    BoundingRect = property(
+        getBR, setBR, delBR,
+        'Property that contains the bounding rect for the spritebox',
+        )
 
 
 ################################################################
 ################################################################
 ################################################################
-#################### AuxiliaryItem Classes #####################
+#################### AuxiliarySpriteItem Classes #####################
 
-class AuxiliaryItem(QtWidgets.QGraphicsItem):
+
+class AuxiliaryItem():
+    """
+    Base class for all auxiliary things
+    """
+    pass
+
+
+class AuxiliarySpriteItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
     """
     Base class for auxiliary objects that accompany specific sprite types
     """
@@ -349,6 +402,8 @@ class AuxiliaryItem(QtWidgets.QGraphicsItem):
         self.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, True)
         self.setParentItem(parent)
         self.hover = False
+
+        self.BoundingRect = QtCore.QRectF(0, 0, 24, 24)
 
     def setIsBehindSprite(self, behind):
         """
@@ -365,7 +420,7 @@ class AuxiliaryItem(QtWidgets.QGraphicsItem):
         return self.BoundingRect
 
 
-class AuxiliaryTrackObject(AuxiliaryItem):
+class AuxiliaryTrackObject(AuxiliarySpriteItem):
     """
     Track shown behind moving platforms to show where they can move
     """
@@ -411,7 +466,7 @@ class AuxiliaryTrackObject(AuxiliaryItem):
             painter.drawEllipse(lineX - 4, (self.height * 1.5) - 16, 8, 8)
 
 
-class AuxiliaryCircleOutline(AuxiliaryItem):
+class AuxiliaryCircleOutline(AuxiliarySpriteItem):
     def __init__(self, parent, width, alignMode=Qt.AlignHCenter):
         """
         Constructor
@@ -455,7 +510,7 @@ class AuxiliaryCircleOutline(AuxiliaryItem):
         painter.drawEllipse(self.BoundingRect)
 
 
-class AuxiliaryRotationAreaOutline(AuxiliaryItem):
+class AuxiliaryRotationAreaOutline(AuxiliarySpriteItem):
     def __init__(self, parent, width):
         """
         Constructor
@@ -484,7 +539,7 @@ class AuxiliaryRotationAreaOutline(AuxiliaryItem):
         painter.drawPie(self.BoundingRect, self.startAngle, self.spanAngle)
 
 
-class AuxiliaryRectOutline(AuxiliaryItem):
+class AuxiliaryRectOutline(AuxiliarySpriteItem):
     def __init__(self, parent, width, height, xoff=0, yoff=0):
         """
         Constructor
@@ -510,7 +565,7 @@ class AuxiliaryRectOutline(AuxiliaryItem):
         painter.drawRect(self.BoundingRect)
 
 
-class AuxiliaryPainterPath(AuxiliaryItem):
+class AuxiliaryPainterPath(AuxiliarySpriteItem):
     def __init__(self, parent, path, width, height, xoff=0, yoff=0):
         """
         Constructor
@@ -542,7 +597,7 @@ class AuxiliaryPainterPath(AuxiliaryItem):
         painter.drawPath(self.PainterPath)
 
 
-class AuxiliaryImage(AuxiliaryItem):
+class AuxiliaryImage(AuxiliarySpriteItem):
     def __init__(self, parent, width, height):
         """
         Constructor
@@ -639,7 +694,7 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
         elif self.flagPresent(self.alignment, Qt.AlignBottom):
             newy = y + h - self.height
         else:
-            newy = y + (h/2) - (self.height/2)
+            newy = y + (h / 2) - (self.height / 2)
 
         # Translate that to relative coords
         parent = self.parent
@@ -653,3 +708,109 @@ class AuxiliaryImage_FollowsRect(AuxiliaryImage):
         if self.scene() is not None:
             self.scene().update(oldx + parent.x(), oldy + parent.y(), self.width, self.height)
 
+
+class AuxiliaryZoneItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
+    """
+    An auxiliary item that can have a zone as its parent
+    """
+    def __init__(self, parent, imageObj):
+        """
+        Generic constructor for auxiliary zone items
+        """
+        super().__init__(parent)
+        self.parent = parent
+        self.imageObj = imageObj
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, False)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+        self.setParentItem(parent)
+        self.hover = False
+
+        if parent is not None:
+            parent.aux.add(self)
+
+        self.BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+
+    def setIsBehindZone(self, behind):
+        """
+        This allows you to choose whether the auiliary item will display
+        behind the zone or in front of it. Default is for the item to
+        be in front of the zone.
+        """
+        self.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, behind)
+
+    def setZoneID(self, id):
+        """
+        Changes this aux item's parent to zone with the given id.
+        Raises ValueError if no zone with this id exists.
+        """
+        z = None
+        for iterz in Area.zones:
+            if iterz.id == id: z = iterz
+        if z is None:
+            raise ValueError('No zone with this ID exists.')
+        
+        if self.parent is not None:
+            self.parent.aux.remove(self)
+        self.setParentItem(z)
+        self.parent = z
+        z.aux.add(self)
+
+    def alignToZone(self):
+        """
+        Resets the position and size of the AuxiliaryZoneItem to that of the zone
+        """
+        self.setPos(0, 0)
+        self.BoundingRect = QtCore.QRectF(self.parent.BoundingRect)
+
+    def zoneRepositioned(self):
+        """
+        Called when the zone is repositioned or resized
+        """
+        pass
+
+    def boundingRect(self):
+        """
+        Required for Qt
+        """
+        return self.BoundingRect
+
+
+class AuxiliaryLocationItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
+    """
+    An auxiliary item that can have a location as its parent
+    """
+    def __init__(self, parent, imageObj):
+        """
+        Generic constructor for auxiliary items
+        """
+        super().__init__(parent)
+        self.parent = parent
+        self.imageObj = imageObj
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, False)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+        self.setParentItem(parent)
+        self.hover = False
+        self.BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+
+    def setIsBehindLocation(self, behind):
+        """
+        This allows you to choose whether the auiliary item will display
+        behind the zone or in front of it. Default is for the item to
+        be in front of the location.
+        """
+        self.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, behind)
+
+    def alignToLocation(self):
+        """
+        Resets the position and size of the AuxiliaryLocationItem to that of the location
+        """
+        self.setPos(0, 0)
+        self.setSize(self.parent.width(), self.parent.height())
+
+    def boundingRect(self):
+        """
+        Required for Qt
+        """
+        return self.BoundingRect
