@@ -31,7 +31,7 @@
 ################################################################
 
 # Python version: sanity check
-minimum = 3.3
+minimum = 3.4
 import sys
 currentRunningVersion = float(sys.version[:3] + sys.version[5])
 if currentRunningVersion < minimum:
