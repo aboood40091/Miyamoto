@@ -2567,6 +2567,8 @@ class LevelUnit():
         """
         Loads a specific level and area
         """
+        global Area
+
         startTime = time.clock()
 
         # read the archive
@@ -2645,8 +2647,11 @@ class LevelUnit():
 
             if thisArea == areaToLoad:
                 newarea = AreaUnit()
+                Area = newarea
+                SLib.Area = Area
             else:
                 newarea = FakeAreaUnit()
+
             newarea.areanum = thisArea
             newarea.loadArea(course, L0, L1, L2, progress)
             self.areas.append(newarea)
@@ -4365,6 +4370,7 @@ class SpriteItem(LevelEditorItem):
         Sets a new sprite image object for this SpriteItem
         """
         for auxObj in self.ImageObj.aux:
+            if auxObj.scene() is None: continue
             auxObj.scene().removeItem(auxObj)
 
         self.setZValue(25000)
@@ -9638,14 +9644,20 @@ class LevelScene(QtWidgets.QGraphicsScene):
                     startx = item.objx - x1
                     desty = item.objy - y1
 
+                    exists = True
+                    if ObjectDefinitions[item.tileset] is None:
+                        exists = False
+                    elif ObjectDefinitions[item.tileset][item.type] is None:
+                        exists = False
+
                     for row in item.objdata:
                         destrow = tmap[desty]
                         destx = startx
                         for tile in row:
-                            if tile > 0:
-                                destrow[destx] = tile
-                            else:
+                            if not exists:
                                 destrow[destx] = -1
+                            elif tile > 0:
+                                destrow[destx] = tile
                             destx += 1
                         desty += 1
 
@@ -12408,11 +12420,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
         for Layer in Area.layers:
             for obj in Layer:
 
-                if obj.tileset not in ObjectDefinitions:
-                    deletions.append(obj)
-                elif ObjectDefinitions[obj.tileset] is None:
-                    deletions.append(obj)
-                elif obj.type not in ObjectDefinitions[obj.tileset]:
+                if ObjectDefinitions[obj.tileset] is None:
                     deletions.append(obj)
                 elif ObjectDefinitions[obj.tileset][obj.type] is None:
                     deletions.append(obj)
@@ -17144,8 +17152,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 Level.loadLevel('AUTO_FLAG', True, 1, progress)
             else:
                 Level.loadLevel(name, fullpath, area, progress)
-        Area = Level.areas[area - 1]
-        SLib.Area = Area
 
         OverrideSnapping = False
 
@@ -18583,4 +18589,3 @@ if '-generatestringsxml' in sys.argv:
     generateStringsXML = True
 
 if __name__ == '__main__': main()
-
