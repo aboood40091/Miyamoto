@@ -1,5 +1,5 @@
-0001=None
-000A=None
+0001=Black
+000A=Transparent
 0102=Overworld Hills
 0104=Overworld Hills 2
 0202=Puzzle Bricks (Gr)
