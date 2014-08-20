@@ -351,7 +351,7 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 64, 138, 139, 216, 358, 374, 
             """
             Updates the size and position of the aux
             """
-            if None in (self.imageObj.rise, self.imageObj.riseCrestless): return
+            if None in (self.parent, self.imageObj.rise, self.imageObj.riseCrestless): return
 
             # Reset stuff
             self.waterTop = 0
@@ -374,17 +374,23 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 64, 138, 139, 216, 358, 374, 
             # First, calculate simple offsets
             self.waterTop = 0
             if self.imageObj.top < 0:
-                self.waterTop = -self.imageObj.top
+                self.waterTop = 0
                 self.waterTopCrestOverride = False
+                if self.imageObj.risingHeight > 0:
+                    self.waterTop += self.imageObj.risingHeight
             self.waterDepth = self.BoundingRect.height() - self.imageObj.top
+            if self.waterDepth < riseToDraw.height():
+                self.waterDepth = riseToDraw.height()
             if self.imageObj.risingHeight > 0:
                 self.waterTop = self.imageObj.risingHeight
-                self.waterDepth -= self.imageObj.risingHeight
+                if self.imageObj.top < 0:
+                    self.waterTop += self.imageObj.top
             elif self.imageObj.risingHeight < 0:
                 self.riseTop = -self.imageObj.risingHeight
             if self.BoundingRect.height() - self.imageObj.top < riseToDraw.height():
                 self.waterTopUsesRise = True
                 self.waterTopNonRisePartHeight = self.BoundingRect.height() - self.imageObj.top
+                self.waterTopNonRisePartHeight = max(0, self.waterTopNonRisePartHeight)
 
             print('------------------')
             print(self.waterTop)
@@ -395,14 +401,18 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 64, 138, 139, 216, 358, 374, 
             print(self.waterTopCrestOverride)
 
             # Determine the top edge
-            y = self.waterTop
+            y = self.imageObj.top
+
+            # Don't allow negative y
+            y = max(0, y)
+
+            # Determine the height
+            h = self.BoundingRect.height() - y
 
             # Special case: if there is a rise going up
             if self.imageObj.risingHeight > 0:
                 y = self.imageObj.top - self.imageObj.risingHeight
-
-            # Determine the height
-            h = self.BoundingRect.height() - y
+                h += self.imageObj.risingHeight
 
             # Don't allow negative height
             h = max(h, 0)
@@ -410,6 +420,8 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 64, 138, 139, 216, 358, 374, 
             # Special case: if the water to be drawn is smaller than the rise image
             if y + self.waterTop > self.BoundingRect.height() - riseToDraw.height():
                 h = riseToDraw.height()
+                if self.imageObj.risingHeight > 0:
+                    h += self.imageObj.risingHeight
 
             # Special case: if there is a rise going down
             if self.imageObj.risingHeight < 0:
@@ -481,8 +493,8 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 64, 138, 139, 216, 358, 374, 
         self.paintZone = False
 
         self.aux.append(self.AuxiliaryZoneItem_LiquidOrFog(None, self))
-        self.aux[0].setZoneID(self.parent.nearestZone())
-        self.aux[0].updateSize()
+        #self.aux[0].setZoneID(self.parent.nearestZone())
+        #self.aux[0].updateSize()
 
     def dataChanged(self):
         super().dataChanged()
@@ -490,6 +502,7 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 64, 138, 139, 216, 358, 374, 
 
     def positionChanged(self):
         super().positionChanged()
+        print(self.parent.nearestZone())
         self.aux[0].setZoneID(self.parent.nearestZone())
         self.aux[0].updateSize()
 
@@ -2976,6 +2989,7 @@ class SpriteImage_Water(SpriteImage_LiquidOrFog): # 138
         super().dataChanged()
 
     def positionChanged(self):
+        super().positionChanged()
         self.top = (self.parent.objy * 1.5) - self.aux[0].parent.y()
         super().positionChanged()
 
@@ -4628,12 +4642,12 @@ class SpriteImage_FallingIcicle(SLib.SpriteImage_StaticMultiple): # 265
             self.height = 36
 
 
-class SpriteImage_RotatingChainLink(SLib.SpriteImage_Static): # 266
+class SpriteImage_RotatingFence(SLib.SpriteImage_Static): # 266
     def __init__(self, parent):
-        w, h = ImageCache['RotatingChainLink'].width(), ImageCache['RotatingChainLink'].height()
+        w, h = ImageCache['RotatingFence'].width(), ImageCache['RotatingFence'].height()
         super().__init__(
             parent,
-            ImageCache['RotatingChainLink'],
+            ImageCache['RotatingFence'],
             (
                 -((w / 2) - 12) / 1.5,
                 -((h / 2) - 12) / 1.5,
@@ -4642,7 +4656,7 @@ class SpriteImage_RotatingChainLink(SLib.SpriteImage_Static): # 266
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('RotatingChainLink', 'rotating_chainlink.png')
+        SLib.loadIfNotInImageCache('RotatingFence', 'rotating_fence.png')
 
 
 class SpriteImage_TiltGrate(SLib.SpriteImage_StaticMultiple): # 267
@@ -4728,14 +4742,14 @@ class SpriteImage_Parabomb(SLib.SpriteImage_Static): # 269
         SLib.loadIfNotInImageCache('Parabomb', 'parabomb.png')
 
 
-class SpriteImage_Mouser(SLib.SpriteImage): # 271
+class SpriteImage_ScaredyRat(SLib.SpriteImage): # 271
     def __init__(self, parent):
         super().__init__(parent)
         self.spritebox.shown = False
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('Mouser', 'mouser.png')
+        SLib.loadIfNotInImageCache('ScaredyRat', 'scaredy_rat.png')
 
     def dataChanged(self):
         super().dataChanged()
@@ -4743,7 +4757,7 @@ class SpriteImage_Mouser(SLib.SpriteImage): # 271
         number = self.parent.spritedata[5] >> 4
         direction = self.parent.spritedata[5] & 0xF
 
-        self.width = (number + 1) * (ImageCache['Mouser'].width() / 1.5)
+        self.width = (number + 1) * (ImageCache['ScaredyRat'].width() / 1.5)
 
         if direction == 0: # Facing right
             self.xOffset = -self.width + 16
@@ -4755,12 +4769,12 @@ class SpriteImage_Mouser(SLib.SpriteImage): # 271
 
         direction = self.parent.spritedata[5] & 0xF
 
-        mouser = ImageCache['Mouser']
+        rat = ImageCache['ScaredyRat']
         if direction == 1:
-            mouser = QtGui.QImage(mouser)
-            mouser = QtGui.QPixmap.fromImage(mouser.mirrored(True, False))
+            rat = QtGui.QImage(rat)
+            rat = QtGui.QPixmap.fromImage(rat.mirrored(True, False))
 
-        painter.drawTiledPixmap(0, 0, self.width * 1.5, 24, mouser)
+        painter.drawTiledPixmap(0, 0, self.width * 1.5, 24, rat)
 
 
 class SpriteImage_IceBro(SLib.SpriteImage_Static): # 272
@@ -5175,7 +5189,7 @@ class SpriteImage_MontyMole(SLib.SpriteImage_StaticMultiple): # 303
             del self.offset
         else:
             self.image = ImageCache['Mole']
-            self.offset = (3.5, 0)
+            self.offset = (3.5, -4)
 
         super().dataChanged()
 
@@ -6248,12 +6262,12 @@ class SpriteImage_SnowWind(SpriteImage_LiquidOrFog): # 374
         super().realViewZone(painter, zoneRect)
 
 
-class SpriteImage_MovingChainLink(SLib.SpriteImage_StaticMultiple): # 376
+class SpriteImage_MovingFence(SLib.SpriteImage_StaticMultiple): # 376
     @staticmethod
     def loadImages():
-        if 'MovingChainLink0' in ImageCache: return
+        if 'MovingFence0' in ImageCache: return
         for shape in range(4):
-            ImageCache['MovingChainLink%d' % shape] = SLib.GetImg('moving_chain_link_%d.png' % shape)
+            ImageCache['MovingFence%d' % shape] = SLib.GetImg('moving_fence_%d.png' % shape)
 
     def dataChanged(self):
         
@@ -6269,7 +6283,7 @@ class SpriteImage_MovingChainLink(SLib.SpriteImage_StaticMultiple): # 376
 
         self.xOffset = -size[0] / 2
         self.yOffset = -size[1] / 2
-        self.image = ImageCache['MovingChainLink%d' % self.shape]
+        self.image = ImageCache['MovingFence%d' % self.shape]
 
         super().dataChanged()
 
@@ -7106,16 +7120,16 @@ class SpriteImage_Pipe_EnterableUp(SpriteImage_PipeStationary): # 450
         super().dataChanged()
 
 
-class SpriteImage_MouserDespawner(SLib.SpriteImage_Static): # 451
+class SpriteImage_ScaredyRatDespawner(SLib.SpriteImage_Static): # 451
     def __init__(self, parent):
         super().__init__(
             parent,
-            ImageCache['MouserDespawner'],
+            ImageCache['ScaredyRatDespawner'],
             )
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('MouserDespawner', 'mouser_despawner.png')
+        SLib.loadIfNotInImageCache('ScaredyRatDespawner', 'scaredy_rat_despawner.png')
 
 
 class SpriteImage_BowserDoor(SpriteImage_Door): # 452
@@ -7600,11 +7614,11 @@ ImageClasses = {
         263: SpriteImage_WaterPiranha,
         264: SpriteImage_WalkingPiranha,
         265: SpriteImage_FallingIcicle,
-        266: SpriteImage_RotatingChainLink,
+        266: SpriteImage_RotatingFence,
         267: SpriteImage_TiltGrate,
         268: SpriteImage_LavaGeyser,
         269: SpriteImage_Parabomb,
-        271: SpriteImage_Mouser,
+        271: SpriteImage_ScaredyRat,
         272: SpriteImage_IceBro,
         274: SpriteImage_CastleGear,
         275: SpriteImage_FiveEnemyRaft,
@@ -7678,7 +7692,7 @@ ImageClasses = {
         370: SpriteImage_CloudBlock,
         371: SpriteImage_RollingHillCoin,
         374: SpriteImage_SnowWind,
-        376: SpriteImage_MovingChainLink,
+        376: SpriteImage_MovingFence,
         377: SpriteImage_Pipe_Up,
         378: SpriteImage_Pipe_Down,
         379: SpriteImage_Pipe_Right,
@@ -7730,7 +7744,7 @@ ImageClasses = {
         447: SpriteImage_UnderwaterLamp,
         448: SpriteImage_MetalBar,
         450: SpriteImage_Pipe_EnterableUp,
-        451: SpriteImage_MouserDespawner,
+        451: SpriteImage_ScaredyRatDespawner,
         452: SpriteImage_BowserDoor,
         453: SpriteImage_Seaweed,
         455: SpriteImage_HammerPlatform,

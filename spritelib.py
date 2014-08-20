@@ -744,6 +744,9 @@ class AuxiliaryZoneItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         Changes this aux item's parent to zone with the given id.
         Raises ValueError if no zone with this id exists.
         """
+
+        if not hasattr(Area, 'zones'): return
+
         z = None
         for iterz in Area.zones:
             if iterz.id == id: z = iterz
@@ -761,7 +764,10 @@ class AuxiliaryZoneItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         Resets the position and size of the AuxiliaryZoneItem to that of the zone
         """
         self.setPos(0, 0)
-        self.BoundingRect = QtCore.QRectF(self.parent.BoundingRect)
+        if self.parent is not None:
+            self.BoundingRect = QtCore.QRectF(self.parent.BoundingRect)
+        else:
+            self.BoundingRect = QtCore.QRectF(0, 0, 24, 24)
 
     def zoneRepositioned(self):
         """
