@@ -2377,7 +2377,7 @@ class Metadata():
         self.DataDict = {}
         if data is None: return
 
-        if data[0:4] != [ord('M'), ord('D'), ord('2'), ord('_')]:
+        if data[0:4] != b'MD2_':
             # This is old-style metadata - convert it
             try:
                 strdata = ''
