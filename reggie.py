@@ -3851,7 +3851,7 @@ class ZoneItem(LevelEditorItem):
         # Paint an indicator line to show the leftmost edge of
         # where entrances can be safely placed
         if 24 * 13 < self.DrawRect.width():
-            painter.setPen(QtGui.QPen(theme.color('zone_lines'), 1.5))
+            painter.setPen(QtGui.QPen(theme.color('zone_entrance_helper'), 2))
             lineStart = QtCore.QPointF(self.DrawRect.x() + (24 * 13), self.DrawRect.y())
             lineEnd = QtCore.QPointF(self.DrawRect.x() + (24 * 13), self.DrawRect.y() + self.DrawRect.height())
             painter.drawLine(lineStart, lineEnd)
@@ -7786,7 +7786,7 @@ class ReggieTheme():
             'spritebox_fill_s':         QtGui.QColor(0,92,196,240),    # Selected sprite w/o image fill
             'spritebox_lines':          QtGui.QColor(0,0,0),           # Unselected sprite w/o image fill
             'spritebox_lines_s':        QtGui.QColor(255,255,255),     # Selected sprite w/o image fill
-            'watermark':                QtGui.QColor(0,0,0,36),        # Main menu Reggie-head watermark
+            'zone_entrance_helper':     QtGui.QColor(190,0,0,120),     # Zone entrance-placement left border indicator
             'zone_lines':               QtGui.QColor(145,200,255,176), # Zone lines
             'zone_corner':              QtGui.QColor(255,255,255),     # Zone grabbers/corners
             'zone_dark_fill':           QtGui.QColor(0,0,0,48),        # Zone fill when dark
