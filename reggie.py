@@ -702,14 +702,20 @@ def LoadSpriteData():
                 except ValueError: continue
                 spritename = sprite.attrib['name']
                 notes = None
+                relatedObjFiles = None
 
                 if 'notes' in sprite.attrib:
                     notes = trans.string('SpriteDataEditor', 2, '[notes]', sprite.attrib['notes'])
+
+                if 'files' in sprite.attrib:
+                    relatedObjFiles = trans.string('SpriteDataEditor', 8, '[list]', sprite.attrib['files'].replace(';', '<br>'))
 
                 sdef = SpriteDefinition()
                 sdef.id = spriteid
                 sdef.name = spritename
                 sdef.notes = notes
+                sdef.relatedObjFiles = relatedObjFiles
+
                 try:
                     sdef.loadFrom(sprite)
                 except Exception as e:
@@ -6296,10 +6302,18 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.noteButton.setAutoRaise(True)
         self.noteButton.clicked.connect(self.ShowNoteTooltip)
 
+        self.relatedObjFilesButton = QtWidgets.QToolButton()
+        self.relatedObjFilesButton.setIcon(GetIcon('data'))
+        self.relatedObjFilesButton.setText(trans.string('SpriteDataEditor', 7))
+        self.relatedObjFilesButton.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self.relatedObjFilesButton.setAutoRaise(True)
+        self.relatedObjFilesButton.clicked.connect(self.ShowRelatedObjFilesTooltip)
+
         toplayout = QtWidgets.QHBoxLayout()
         toplayout.addWidget(self.spriteLabel)
+        toplayout.addStretch(1)
+        toplayout.addWidget(self.relatedObjFilesButton)
         toplayout.addWidget(self.noteButton)
-        toplayout.setStretch(0, 1)
 
         subLayout = QtWidgets.QVBoxLayout()
         subLayout.setContentsMargins(0, 0, 0, 0)
@@ -6321,6 +6335,9 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.fields = []
         self.UpdateFlag = False
         self.DefaultMode = defaultmode
+
+        self.notes = None
+        self.relatedObjFiles = None
 
 
     class PropertyDecoder(QtCore.QObject):
@@ -6657,8 +6674,12 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         else:
             self.spriteLabel.setText(trans.string('SpriteDataEditor', 6, '[id]', type, '[name]', sprite.name))
-            self.noteButton.setVisible((sprite.notes is not None))
+
+            self.noteButton.setVisible(sprite.notes is not None)
             self.notes = sprite.notes
+
+            self.relatedObjFilesButton.setVisible(sprite.relatedObjFiles is not None)
+            self.relatedObjFiles = sprite.relatedObjFiles
 
             # create all the new fields
             fields = []
@@ -6701,6 +6722,11 @@ class SpriteEditorWidget(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def ShowNoteTooltip(self):
         QtWidgets.QToolTip.showText(QtGui.QCursor.pos(), self.notes, self)
+
+
+    @QtCore.pyqtSlot()
+    def ShowRelatedObjFilesTooltip(self):
+        QtWidgets.QToolTip.showText(QtGui.QCursor.pos(), self.relatedObjFiles, self)
 
 
     @QtCore.pyqtSlot('PyQt_PyObject')
@@ -9137,6 +9163,8 @@ class ReggieTranslation():
                 4: 'Notes',
                 5: '[b]Unidentified/Unknown Sprite ([id])[/b]',
                 6: '[b]Sprite [id]:[br][name][/b]',
+                7: 'Object Files',
+                8: '[b]This sprite uses:[/b][br][list]',
                 },
             'Sprites': {
                 0: '[b]Sprite [type]:[/b][br][name]',
