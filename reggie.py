@@ -70,7 +70,7 @@ except (ImportError, NameError):
 
 # Local imports
 import archive
-import LHdec
+import LHTool
 import lz77
 import spritelib as SLib
 import sprites
@@ -207,16 +207,16 @@ def IsNSMBLevel(filename):
     f.close()
     del f
 
-    if checkContent(data):
-        compressed = False
-        return True
-    else:
-        data = LHdec.getLH(filename)
-        if not data: return False
-        if checkContent(data):
+    if LHTool.isLHCompressed(data):
+        decomp = LHTool.decompressLH(data)
+        if checkContent(decomp):
             compressed = True
             return True
-        return False
+    else:
+        if checkContent(data):
+            compressed = False
+            return True
+
 
 def FilesAreMissing():
     """
@@ -1808,12 +1808,10 @@ def _LoadTileset(idx, name, reload=False):
     if TilesetFilesLoaded[idx] == arcname and not reload: return
 
     # get the data
+    with open(arcname, 'rb') as fileobj:
+        arcdata = fileobj.read()
     if compressed:
-        arcdata = LHdec.getLH(arcname)
-    else:
-        arcf = open(arcname,'rb')
-        arcdata = arcf.read()
-        arcf.close()
+        arcdata = LHTool.decompressLH(arcdata)
     arc = archive.U8.load(arcdata)
 
     # decompress the textures
@@ -2603,12 +2601,10 @@ class LevelUnit():
             self.filename = os.path.basename(self.arcname)
             self.hasName = True
 
-            if self.arcname[-3:].lower() == '.lh':
-                arcdata = LHdec.getLH(self.arcname)
-            else:
-                arcf = open(self.arcname, 'rb')
-                arcdata = arcf.read()
-                arcf.close()
+            with open(self.arcname, 'rb') as fileobj:
+                arcdata = fileobj.read()
+            if LHTool.isLHCompressed(arcdata):
+                arcdata = LHTool.decompressLH(arcdata)
 
         arc = archive.U8.load(arcdata)
 
@@ -8471,7 +8467,6 @@ def getMusic():
     """
 
     transsong = trans.files['music']
-    print(gamedef.recursiveFiles('music', True))
     gamedefsongs, isPatch = gamedef.recursiveFiles('music', True)
     if isPatch:
         paths = [transsong]
@@ -16384,12 +16379,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
         fn = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return
 
-        if fn[-3:].lower() == '.lh':
-            arcdata = LHdec.getLH(fn)
-        else:
-            getit = open(str(fn), 'rb')
-            arcdata = getit.read()
-            getit.close()
+        with open(str(fn), 'rb') as fileobj:
+            arcdata = fileobj.read()
+        if LHTool.isLHCompressed(arcdata):
+            arcdata = LHTool.decompressLH(arcdata)
 
         arc = archive.U8.load(arcdata)
 
