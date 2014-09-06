@@ -1524,7 +1524,9 @@ def RenderObject(tileset, objnum, width, height, fullslope=False):
     for i in range(height): dest.append([0]*width)
 
     # ignore non-existent objects
-    tileset_defs = ObjectDefinitions[tileset]
+    if tileset <= len(ObjectDefinitions):
+        tileset_defs = ObjectDefinitions[tileset]
+    else: tileset_defs = None
     if tileset_defs is None: return dest
     obj = tileset_defs[objnum]
     if obj is None: return dest
@@ -2794,13 +2796,16 @@ class AreaUnit():
 
         # load in the course file and blocks
         self.blocks = [None]*14
-        getblock = struct.Struct('>II')
+        getblock = struct.Struct('<II')
         for i in range(14):
             data = getblock.unpack_from(course, i*8)
             if data[1] == 0:
                 self.blocks[i] = b''
             else:
                 self.blocks[i] = course[data[0]:data[0]+data[1]]
+        for b in self.blocks:
+            print(len(b))
+        print(course[:256])
 
         # load stuff from individual blocks
         self.LoadMetadata() # block 1
@@ -2850,14 +2855,22 @@ class AreaUnit():
 
         self.layers = [[], [], []]
 
+        print('Load0')
         if L0 is not None:
             self.LoadLayer(0, L0)
+        print('Load0done')
 
+        print('Load1')
         if L1 is not None:
             self.LoadLayer(1, L1)
+        print('Load1done')
 
+        print('Load2')
         if L2 is not None:
             self.LoadLayer(2, L2)
+        print('Load2Done')
+
+        print('Done loading area!')
 
         return True
 
@@ -2896,7 +2909,7 @@ class AreaUnit():
 
         course = bytearray()
         for i in range(FileLength): course.append(0)
-        saveblock = struct.Struct('>II')
+        saveblock = struct.Struct('<II')
 
         HeaderOffset = 0
         FileOffset = (14 * 8) + len(rdata)
@@ -2932,7 +2945,7 @@ class AreaUnit():
         Loads block 2, the general options
         """
         optdata = self.blocks[1]
-        optstruct = struct.Struct('>IxxxxHhLBBBx')
+        optstruct = struct.Struct('<IxxxxHhLBBBx')
         offset = 0
         data = optstruct.unpack_from(optdata,offset)
         self.defEvents, self.wrapFlag, self.timeLimit, self.unk1, self.startEntrance, self.unk2, self.unk3 = data
@@ -2942,14 +2955,14 @@ class AreaUnit():
         Loads block 7, the entrances
         """
         entdata = self.blocks[6]
-        entcount = len(entdata) // 20
-        entstruct = struct.Struct('>HHxxxxBBBBxBBBHxB')
+        entcount = len(entdata) // 24
+        entstruct = struct.Struct('<HHxxxxBBBBxBBBHxB')
         offset = 0
         entrances = []
         for i in range(entcount):
             data = entstruct.unpack_from(entdata,offset)
             entrances.append(EntranceItem(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10]))
-            offset += 20
+            offset += 24
         self.entrances = entrances
 
     def LoadSprites(self):
@@ -2957,8 +2970,8 @@ class AreaUnit():
         Loads block 8, the sprites
         """
         spritedata = self.blocks[7]
-        sprcount = len(spritedata) // 16
-        sprstruct = struct.Struct('>HHH8sxx')
+        sprcount = len(spritedata) // 24
+        sprstruct = struct.Struct('<HHH8sxx')
         offset = 0
         sprites = []
 
@@ -2968,7 +2981,7 @@ class AreaUnit():
         for i in range(sprcount):
             data = unpack(spritedata,offset)
             append(obj(data[0], data[1], data[2], data[3]))
-            offset += 16
+            offset += 24
         self.sprites = sprites
 
     def LoadZones(self):
@@ -2977,7 +2990,7 @@ class AreaUnit():
         """
         bdngdata = self.blocks[2]
         count = len(bdngdata) // 24
-        bdngstruct = struct.Struct('>llllxBxBxxxx')
+        bdngstruct = struct.Struct('<llllxBxBxxxx')
         offset = 0
         bounding = []
         for i in range(count):
@@ -2991,7 +3004,7 @@ class AreaUnit():
         """
         bgAdata = self.blocks[4]
         bgAcount = len(bgAdata) // 24
-        bgAstruct = struct.Struct('>xBhhhhHHHxxxBxxxx')
+        bgAstruct = struct.Struct('<xBhhhhHHHxxxBxxxx')
         offset = 0
         bgA = []
         for i in range(bgAcount):
@@ -3005,7 +3018,7 @@ class AreaUnit():
         """
         bgBdata = self.blocks[5]
         bgBcount = len(bgBdata) // 24
-        bgBstruct = struct.Struct('>xBhhhhHHHxxxBxxxx')
+        bgBstruct = struct.Struct('<xBhhhhHHHxxxBxxxx')
         offset = 0
         bgB = []
         for i in range(bgBcount):
@@ -3018,7 +3031,7 @@ class AreaUnit():
         Loads block 10, the zone data
         """
         zonedata = self.blocks[9]
-        zonestruct = struct.Struct('>HHHHHHBBBBxBBBBxBB')
+        zonestruct = struct.Struct('<HHHHHHBBBBxBBBBxBB')
         count = len(zonedata) // 24
         offset = 0
         zones = []
@@ -3033,7 +3046,7 @@ class AreaUnit():
         Loads block 11, the locations
         """
         locdata = self.blocks[10]
-        locstruct = struct.Struct('>HHHHBxxx')
+        locstruct = struct.Struct('<HHHHBxxx')
         count = len(locdata) // 12
         offset = 0
         locations = []
@@ -3048,8 +3061,8 @@ class AreaUnit():
         """
         Loads a specific object layer from a string
         """
-        objcount = len(layerdata) // 10
-        objstruct = struct.Struct('>HHHHH')
+        objcount = len(layerdata) // 16
+        objstruct = struct.Struct('<HHHHHHHH')
         offset = 0
         z = (2 - idx) * 8192
 
@@ -3061,7 +3074,7 @@ class AreaUnit():
             data = unpack(layerdata,offset)
             append(obj(data[0] >> 12, data[0] & 4095, idx, data[1], data[2], data[3], data[4], z))
             z += 1
-            offset += 10
+            offset += 16
 
     def LoadPaths(self):
         """
@@ -3070,7 +3083,7 @@ class AreaUnit():
         # Path struct: >BxHHH
         pathdata = self.blocks[12]
         pathcount = len(pathdata) // 8
-        pathstruct = struct.Struct('>BxHHH')
+        pathstruct = struct.Struct('<BxHHH')
         offset = 0
         unpack = pathstruct.unpack_from
         pathinfo = []
@@ -3851,7 +3864,7 @@ class ZoneItem(LevelEditorItem):
         self.entryid = bounding[4]
         self.unknownbnf = bounding[5]
 
-        bgABlock = None
+        bgABlock = bgA[0]
         id = self.block5id
         for block in bgA:
             if block[0] == id: bgABlock = block
@@ -3866,20 +3879,33 @@ class ZoneItem(LevelEditorItem):
         self.bg3A = bgABlock[7]
         self.ZoomA = bgABlock[8]
 
-        bgBBlock = None
-        id = self.block6id
-        for block in bgB:
-            if block[0] == id: bgBBlock = block
+        try:
+            bgBBlock = bgB[0]
+            id = self.block6id
+            for block in bgB:
+                print('Block:')
+                print(block)
+                if block[0] == id: bgBBlock = block
 
-        self.entryidB = bgBBlock[0]
-        self.XscrollB = bgBBlock[1]
-        self.YscrollB = bgBBlock[2]
-        self.YpositionB = bgBBlock[3]
-        self.XpositionB = bgBBlock[4]
-        self.bg1B = bgBBlock[5]
-        self.bg2B = bgBBlock[6]
-        self.bg3B = bgBBlock[7]
-        self.ZoomB = bgBBlock[8]
+            self.entryidB = bgBBlock[0]
+            self.XscrollB = bgBBlock[1]
+            self.YscrollB = bgBBlock[2]
+            self.YpositionB = bgBBlock[3]
+            self.XpositionB = bgBBlock[4]
+            self.bg1B = bgBBlock[5]
+            self.bg2B = bgBBlock[6]
+            self.bg3B = bgBBlock[7]
+            self.ZoomB = bgBBlock[8]
+        except:
+            self.entryidB = 0
+            self.XscrollB = 0
+            self.YscrollB = 0
+            self.YpositionB = 0
+            self.XpositionB = 0
+            self.bg1B = 0
+            self.bg2B = 0
+            self.bg3B = 0
+            self.ZoomB = 0
 
         self.dragging = False
         self.dragstartx = -1
@@ -4289,8 +4315,11 @@ class SpriteItem(LevelEditorItem):
         SLib.SpriteImage.loadImages()
         self.ImageObj = SLib.SpriteImage(self)
 
-        sname = Sprites[type].name
-        self.name = sname
+        try:
+            sname = Sprites[type].name
+            self.name = sname
+        except:
+            self.name = 'UNKNOWN'
 
         self.InitializeSprite()
 
@@ -4429,6 +4458,8 @@ class SpriteItem(LevelEditorItem):
         global prefs
 
         type = self.type
+
+        if type > len(Sprites): return
 
         self.name = Sprites[type].name
         self.setToolTip(trans.string('Sprites', 0, '[type]', self.type, '[name]', self.name))
