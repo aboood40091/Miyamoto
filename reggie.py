@@ -40,6 +40,7 @@ if currentRunningVersion < minimum:
     raise Exception(errormsg)
 
 # Stdlib imports
+import base64
 import importlib
 from math import floor as math_floor
 import os.path
@@ -3152,9 +3153,11 @@ class AreaUnit():
                 idx += 1
 
             com = CommentItem(xpos, ypos, s)
-            com.listitem = QtWidgets.QListWidgetItem(com.ListString())
+            com.listitem = QtWidgets.QListWidgetItem()
 
             self.comments.append(com)
+
+            com.UpdateListItem()
 
 
     def SaveMetadata(self):
@@ -3472,6 +3475,80 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
             return newpos
 
         return QtWidgets.QGraphicsItem.itemChange(self, change, value)
+
+    def getFullRect(self):
+        """
+        Basic implementation that returns self.BoundingRect
+        """
+        return self.BoundingRect.translated(self.pos())
+
+    def UpdateListItem(self, updateTooltipPreview=False):
+        """
+        Updates the list item
+        """
+        if not hasattr(self, 'listitem'): return
+        if self.listitem is None: return
+
+        if updateTooltipPreview:
+            # It's just like Qt to make this overly complicated. XP
+            img = self.renderInLevelIcon()
+            byteArray = QtCore.QByteArray()
+            buf = QtCore.QBuffer(byteArray)
+            img.save(buf, 'PNG')
+            byteObj = bytes(byteArray)
+            b64 = base64.b64encode(byteObj).decode('utf-8')
+
+            self.listitem.setToolTip('<img src="data:image/png;base64,' + b64 + '" />')
+
+        self.listitem.setText(self.ListString())
+
+    def renderInLevelIcon(self):
+        """
+        Renders an icon of this item as it appears in the level
+        """
+        # Constants:
+        # Maximum size of the preview (it will be shrunk if it exceeds this)
+        maxSize = QtCore.QSize(256, 256)
+        # Percentage of the size to use for margins
+        marginPct = 0.75
+        # Maximum margin (24 = 1 block)
+        maxMargin = 96
+
+        # Get the full bounding rectangle
+        br = self.getFullRect()
+
+        # Expand the rect to add extra margins around the edges
+        marginX = br.width() * marginPct
+        marginY = br.height() * marginPct
+        marginX = min(marginX, maxMargin)
+        marginY = min(marginY, maxMargin)
+        br.setX(br.x() - marginX)
+        br.setY(br.y() - marginY)
+        br.setWidth(br.width() + marginX)
+        br.setHeight(br.height() + marginY)
+
+        # Take the screenshot
+        ScreenshotImage = QtGui.QImage(br.width(), br.height(), QtGui.QImage.Format_ARGB32)
+        ScreenshotImage.fill(Qt.transparent)
+
+        RenderPainter = QtGui.QPainter(ScreenshotImage)
+        mainWindow.scene.render(
+            RenderPainter,
+            QtCore.QRectF(0, 0, br.width(), br.height()),
+            br,
+            )
+        RenderPainter.end()
+
+        # Shrink it if it's too big
+        final = ScreenshotImage
+        if ScreenshotImage.width() > maxSize.width() or ScreenshotImage.height() > maxSize.height():
+            final = ScreenshotImage.scaled(
+                maxSize,
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation,
+                )
+
+        return final
 
     def boundingRect(self):
         """
@@ -4055,10 +4132,6 @@ class LocationItem(LevelEditorItem):
         self.setZValue(24000)
 
 
-    def UpdateListString(self):
-        if self.listitem is not None: self.listitem.setText(self.ListString())
-
-
     def ListString(self):
         """
         Returns a string that can be used to describe the location in a list
@@ -4071,7 +4144,7 @@ class LocationItem(LevelEditorItem):
         Updates the location's title
         """
         self.title = trans.string('Locations', 0, '[id]', self.id)
-        self.UpdateListString()
+        self.UpdateListItem()
 
 
     def UpdateRects(self):
@@ -4086,7 +4159,7 @@ class LocationItem(LevelEditorItem):
         self.ZoneRect = QtCore.QRectF(self.objx, self.objy, self.width, self.height)
         self.DrawRect = QtCore.QRectF(1, 1, (self.width * 1.5) - 2, (self.height * 1.5) - 2)
         self.GrabberRect = QtCore.QRectF((1.5 * self.width) - 6, (1.5 * self.height) - 6, 5, 5)
-        self.UpdateListString()
+        self.UpdateListItem()
 
 
     def paint(self, painter, option, widget):
@@ -4232,9 +4305,6 @@ class SpriteItem(LevelEditorItem):
             )
         DirtyOverride -= 1
 
-    def UpdateListString(self):
-        if self.listitem is not None: self.listitem.setText(self.ListString())
-
     def SetType(self, type):
         """
         Sets the type of the sprite
@@ -4245,7 +4315,7 @@ class SpriteItem(LevelEditorItem):
 
         self.InitializeSprite()
 
-        self.listitem.setText(self.ListString())
+        self.UpdateListItem()
 
     def ListString(self):
         """
@@ -4499,6 +4569,29 @@ class SpriteItem(LevelEditorItem):
                 self.ImageObj.spritebox.BoundingRect.topLeft().y(),
                 )
 
+
+    def getFullRect(self):
+        """
+        Returns a rectangle that contains the sprite and all
+        auxiliary objects.
+        """
+        self.UpdateRects()
+            
+        br = self.BoundingRect.translated(
+            self.x(),
+            self.y(),
+            )
+        for aux in self.ImageObj.aux:
+            br = br.united(
+                aux.BoundingRect.translated(
+                    aux.x() + self.x(),
+                    aux.y() + self.y(),
+                    )
+                )
+
+        return br
+
+
     def itemChange(self, change, value):
         """
         Makes sure positions don't go out of bounds and updates them as necessary
@@ -4617,6 +4710,7 @@ class SpriteItem(LevelEditorItem):
                 mainWindow.scene.addItem(newitem)
                 mainWindow.scene.clearSelection()
                 self.setSelected(True)
+                newitem.UpdateListItem()
                 SetDirty()
                 return
 
@@ -4977,6 +5071,26 @@ class EntranceItem(LevelEditorItem):
 
         return super().itemChange(change, value)
 
+    def getFullRect(self):
+        """
+        Returns a rectangle that contains the entrance and any
+        auxiliary objects.
+        """
+            
+        br = self.BoundingRect.translated(
+            self.x(),
+            self.y(),
+            )
+        br = br.united(
+            self.aux.BoundingRect.translated(
+                self.aux.x() + self.x(),
+                self.aux.y() + self.y(),
+                )
+            )
+
+        return br
+
+
 class PathItem(LevelEditorItem):
     """
     Level editor item that represents a pathnode
@@ -5046,8 +5160,8 @@ class PathItem(LevelEditorItem):
         # hacky code but it works. considering how pathnodes are stored.
         self.nodeid = self.pathinfo['nodes'].index(self.nodeinfo)
         self.UpdateTooltip()
-        self.listitem.setText(self.ListString())
         self.scene().update()
+        self.UpdateListItem()
 
         # if node doesn't exist, let Reggie implode!
 
@@ -5964,19 +6078,8 @@ class Stamp():
 
         # Go through the sprites and find the maxs and mins
         for spr in sprites:
-            spr.UpdateRects()
-            
-            br = spr.BoundingRect.translated(
-                spr.x(),
-                spr.y(),
-                )
-            for aux in spr.ImageObj.aux:
-                br = br.united(
-                    aux.BoundingRect.translated(
-                        aux.x() + spr.x(),
-                        aux.y() + spr.y(),
-                        )
-                    )
+
+            br = spr.getFullRect()
 
             x1 = br.topLeft().x()
             y1 = br.topLeft().y()
@@ -6951,7 +7054,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.entid = i
         self.ent.update()
         self.ent.UpdateTooltip()
-        self.ent.listitem.setText(self.ent.ListString())
+        self.ent.UpdateListItem()
         self.editingLabel.setText(trans.string('EntranceDataEditor', 23, '[id]', i))
 
 
@@ -6974,8 +7077,8 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.TypeChange()
         self.ent.update()
         self.ent.UpdateTooltip()
-        self.ent.listitem.setText(self.ent.ListString())
         mainWindow.scene.update()
+        self.ent.UpdateListItem()
 
 
     @QtCore.pyqtSlot(int)
@@ -6987,7 +7090,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         SetDirty()
         self.ent.destarea = i
         self.ent.UpdateTooltip()
-        self.ent.listitem.setText(self.ent.ListString())
+        self.ent.UpdateListItem()
 
 
     @QtCore.pyqtSlot(int)
@@ -6999,7 +7102,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         SetDirty()
         self.ent.destentrance = i
         self.ent.UpdateTooltip()
-        self.ent.listitem.setText(self.ent.ListString())
+        self.ent.UpdateListItem()
 
 
     @QtCore.pyqtSlot(bool)
@@ -7014,7 +7117,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         else:
             self.ent.entsettings &= ~0x80
         self.ent.UpdateTooltip()
-        self.ent.listitem.setText(self.ent.ListString())
+        self.ent.UpdateListItem()
 
 
     @QtCore.pyqtSlot(bool)
@@ -8113,7 +8216,7 @@ def LoadGameDef(name=None, dlg=None):
         if dlg: dlg.setLabelText(trans.string('Gamedefs', 12)) # Applying sprite image data...
         if Area is not None:
             for spr in Area.sprites:
-                spr.UpdateListString() # Reloads the sprite-picker text
+                spr.UpdateListItem() # Reloads the sprite-picker text
         if dlg: dlg.setValue(6)
 
         # Load entrance names
@@ -9790,7 +9893,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     spr.positionChanged = mw.HandleSprPosChange
                     mw.scene.addItem(spr)
 
-                    spr.listitem = QtWidgets.QListWidgetItem(spr.ListString())
+                    spr.listitem = QtWidgets.QListWidgetItem()
                     mw.spriteList.addItem(spr.listitem)
                     Area.sprites.append(spr)
 
@@ -9800,6 +9903,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     self.dragstarty = clickedy
 
                     self.scene().update()
+
+                    spr.UpdateListItem()
 
                 SetDirty()
 
@@ -9823,7 +9928,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 elist = mw.entranceList
                 # if it's the first available ID, all the other indexes should match right?
                 # so I can just use the ID to insert
-                ent.listitem = QtWidgets.QListWidgetItem(ent.ListString())
+                ent.listitem = QtWidgets.QListWidgetItem()
                 elist.insertItem(minimumID, ent.listitem)
 
                 global PaintingEntrance, PaintingEntranceListIndex
@@ -9836,6 +9941,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 self.currentobj = ent
                 self.dragstartx = clickedx
                 self.dragstarty = clickedy
+
+                ent.UpdateListItem()
+
                 SetDirty()
             elif CurrentPaintType == 6:
                 # paint a pathnode
@@ -9876,7 +9984,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                     Area.pathdata.sort(key=lambda path: int(path['id']));
 
-                    newnode.listitem = QtWidgets.QListWidgetItem(newnode.ListString())
+                    newnode.listitem = QtWidgets.QListWidgetItem()
                     plist.clear()
                     for fpath in Area.pathdata:
                         for fpnode in fpath['nodes']:
@@ -9890,6 +9998,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     self.currentobj = newnode
                     self.dragstartx = clickedx
                     self.dragstarty = clickedy
+
+                    newnode.UpdateListItem()
+
                     SetDirty()
                 else:
                     pathd = None
@@ -9910,7 +10021,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     newnode.positionChanged = mw.HandlePathPosChange
                     mw.scene.addItem(newnode)
 
-                    newnode.listitem = QtWidgets.QListWidgetItem(newnode.ListString())
+                    newnode.listitem = QtWidgets.QListWidgetItem()
                     plist.clear()
                     for fpath in Area.pathdata:
                         for fpnode in fpath['nodes']:
@@ -9928,6 +10039,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     self.currentobj = newnode
                     self.dragstartx = clickedx
                     self.dragstarty = clickedy
+
+                    newnode.UpdateListItem()
+
                     SetDirty()
 
             elif CurrentPaintType == 7:
@@ -9957,7 +10071,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 mw = mainWindow
                 loc.positionChanged = mw.HandleLocPosChange
                 loc.sizeChanged = mw.HandleLocSizeChange
-                loc.listitem = QtWidgets.QListWidgetItem(loc.ListString())
+                loc.listitem = QtWidgets.QListWidgetItem()
                 mw.locationList.addItem(loc.listitem)
                 mw.scene.addItem(loc)
 
@@ -9967,6 +10081,10 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 self.currentobj = loc
                 self.dragstartx = clickedx
                 self.dragstarty = clickedy
+
+                loc.UpdateListItem()
+
+                SetDirty()
 
             elif CurrentPaintType == 8:
                 # paint a stamp
@@ -9993,6 +10111,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     self.dragstarty = clickedy
                     self.currentobj = objs
 
+                    SetDirty()
+
             elif CurrentPaintType == 9:
                 # paint a comment
 
@@ -10010,7 +10130,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 com.setVisible(CommentsShown)
 
                 clist = mw.commentList
-                com.listitem = QtWidgets.QListWidgetItem(com.ListString())
+                com.listitem = QtWidgets.QListWidgetItem()
                 clist.addItem(com.listitem)
 
                 Area.comments.append(com)
@@ -10021,6 +10141,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 self.dragstarty = clickedy
 
                 mainWindow.SaveComments()
+
+                com.UpdateListItem()
+
                 SetDirty()
 
             event.accept()
@@ -12543,10 +12666,12 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
                 new.positionChanged = mainWindow.HandleSprPosChange
                 mainWindow.scene.addItem(new)
 
-                new.listitem = QtWidgets.QListWidgetItem(new.ListString())
+                new.listitem = QtWidgets.QListWidgetItem()
                 mainWindow.spriteList.addItem(new.listitem)
                 Area.sprites.append(new)
                 mainWindow.scene.update()
+
+                new.UpdateListItem()
 
 
     def TooManySprites(self, mode='f'):
@@ -12587,7 +12712,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
 
                     ent.entid = minimumID
                     ent.UpdateTooltip()
-                    ent.listitem.setText(ent.ListString())
+                    ent.UpdateListItem()
             IDs.append(ent.entid)
 
         return False
@@ -12614,13 +12739,16 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
             mainWindow.scene.addItem(ent)
 
             elist = mainWindow.entranceList
-            ent.listitem = QtWidgets.QListWidgetItem(ent.ListString())
+            ent.listitem = QtWidgets.QListWidgetItem()
             elist.insertItem(Area.startEntrance, ent.listitem)
 
             global PaintingEntrance, PaintingEntranceListIndex
             PaintingEntrance = ent
             PaintingEntranceListIndex = Area.startEntrance
             Area.entrances.insert(Area.startEntrance, ent)
+
+            ent.UpdateListItem()
+
             SetDirty()
 
 
@@ -14613,6 +14741,26 @@ class UpdateDialog(QtWidgets.QDialog):
 
 
 
+class ListWidgetWithToolTipSignal(QtWidgets.QListWidget):
+    """
+    A QtWidgets.QListWidget that includes a signal that
+    is emitted when a tooltip is about to be shown. Useful
+    for making tooltips that update every time you show
+    them.
+    """
+    toolTipAboutToShow = QtCore.pyqtSignal(QtWidgets.QListWidgetItem)
+
+    def viewportEvent(self, e):
+        """
+        Handles viewport events
+        """
+        if e.type() == e.ToolTip:
+            self.toolTipAboutToShow.emit(self.itemFromIndex(self.indexAt(e.pos())))
+            
+        return super().viewportEvent(e)
+
+
+
 ####################################################################
 ####################################################################
 ####################################################################
@@ -15354,8 +15502,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         slabel = QtWidgets.QLabel(trans.string('Palette', 11))
         slabel.setWordWrap(True)
-        self.spriteList = QtWidgets.QListWidget()
+        self.spriteList = ListWidgetWithToolTipSignal()
         self.spriteList.itemActivated.connect(self.HandleSpriteSelectByList)
+        self.spriteList.toolTipAboutToShow.connect(self.HandleSpriteToolTipAboutToShow)
 
         spel.addWidget(slabel)
         spel.addWidget(self.spriteList)
@@ -15370,8 +15519,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         elabel = QtWidgets.QLabel(trans.string('Palette', 8))
         elabel.setWordWrap(True)
-        self.entranceList = QtWidgets.QListWidget()
+        self.entranceList = ListWidgetWithToolTipSignal()
         self.entranceList.itemActivated.connect(self.HandleEntranceSelectByList)
+        self.entranceList.toolTipAboutToShow.connect(self.HandleEntranceToolTipAboutToShow)
 
         eel.addWidget(elabel)
         eel.addWidget(self.entranceList)
@@ -15386,8 +15536,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         Llabel = QtWidgets.QLabel(trans.string('Palette', 12))
         Llabel.setWordWrap(True)
-        self.locationList = QtWidgets.QListWidget()
+        self.locationList = ListWidgetWithToolTipSignal()
         self.locationList.itemActivated.connect(self.HandleLocationSelectByList)
+        self.locationList.toolTipAboutToShow.connect(self.HandleLocationToolTipAboutToShow)
 
         locL.addWidget(Llabel)
         locL.addWidget(self.locationList)
@@ -15404,8 +15555,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         pathlabel.setWordWrap(True)
         deselectbtn = QtWidgets.QPushButton(trans.string('Palette', 10))
         deselectbtn.clicked.connect(self.DeselectPathSelection)
-        self.pathList = QtWidgets.QListWidget()
+        self.pathList = ListWidgetWithToolTipSignal()
         self.pathList.itemActivated.connect(self.HandlePathSelectByList)
+        self.pathList.toolTipAboutToShow.connect(self.HandlePathToolTipAboutToShow)
 
         pathel.addWidget(pathlabel)
         pathel.addWidget(deselectbtn)
@@ -15504,8 +15656,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         clabel = QtWidgets.QLabel(trans.string('Palette', 34))
         clabel.setWordWrap(True)
 
-        self.commentList = QtWidgets.QListWidget()
+        self.commentList = ListWidgetWithToolTipSignal()
         self.commentList.itemActivated.connect(self.HandleCommentSelectByList)
+        self.commentList.toolTipAboutToShow.connect(self.HandleCommentToolTipAboutToShow)
 
         cel.addWidget(clabel)
         cel.addWidget(self.commentList)
@@ -16660,8 +16813,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         Layer0Shown = checked
 
-        for obj in Area.layers[0]:
-            obj.setVisible(Layer0Shown)
+        if Area is not None:
+            for obj in Area.layers[0]:
+                obj.setVisible(Layer0Shown)
 
         self.scene.update()
 
@@ -16675,8 +16829,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         Layer1Shown = checked
 
-        for obj in Area.layers[1]:
-            obj.setVisible(Layer1Shown)
+        if Area is not None:
+            for obj in Area.layers[1]:
+                obj.setVisible(Layer1Shown)
 
         self.scene.update()
 
@@ -16690,8 +16845,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         Layer2Shown = checked
 
-        for obj in Area.layers[2]:
-            obj.setVisible(Layer2Shown)
+        if Area is not None:
+            for obj in Area.layers[2]:
+                obj.setVisible(Layer2Shown)
 
         self.scene.update()
 
@@ -16746,8 +16902,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         SpritesShown = checked
 
-        for spr in Area.sprites:
-            spr.setVisible(SpritesShown)
+        if Area is not None:
+            for spr in Area.sprites:
+                spr.setVisible(SpritesShown)
 
         setSetting('ShowSprites', SpritesShown)
         self.scene.update()
@@ -16764,18 +16921,19 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         setSetting('ShowSpriteImages', SpriteImagesShown)
 
-        for spr in Area.sprites:
-            spr.UpdateRects()
-            if SpriteImagesShown:
-                spr.setPos(
-                    (spr.objx + spr.ImageObj.xOffset) * 1.5,
-                    (spr.objy + spr.ImageObj.yOffset) * 1.5,
-                    )
-            else:
-                spr.setPos(
-                    spr.objx * 1.5,
-                    spr.objy * 1.5,
-                    )
+        if Area is not None:
+            for spr in Area.sprites:
+                spr.UpdateRects()
+                if SpriteImagesShown:
+                    spr.setPos(
+                        (spr.objx + spr.ImageObj.xOffset) * 1.5,
+                        (spr.objy + spr.ImageObj.yOffset) * 1.5,
+                        )
+                else:
+                    spr.setPos(
+                        spr.objx * 1.5,
+                        spr.objy * 1.5,
+                        )
 
         self.scene.update()
 
@@ -16789,8 +16947,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         LocationsShown = checked
 
-        for loc in Area.locations:
-            loc.setVisible(LocationsShown)
+        if Area is not None:
+            for loc in Area.locations:
+                loc.setVisible(LocationsShown)
 
         setSetting('ShowLocations', LocationsShown)
         self.scene.update()
@@ -16805,8 +16964,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         CommentsShown = checked
 
-        for com in Area.comments:
-            com.setVisible(CommentsShown)
+        if Area is not None:
+            for com in Area.comments:
+                com.setVisible(CommentsShown)
 
         setSetting('ShowComments', CommentsShown)
         self.scene.update()
@@ -16823,10 +16983,11 @@ class ReggieWindow(QtWidgets.QMainWindow):
         flag1 = QtWidgets.QGraphicsItem.ItemIsSelectable
         flag2 = QtWidgets.QGraphicsItem.ItemIsMovable
 
-        for layer in Area.layers:
-            for obj in layer:
-                obj.setFlag(flag1, not ObjectsFrozen)
-                obj.setFlag(flag2, not ObjectsFrozen)
+        if Area is not None:
+            for layer in Area.layers:
+                for obj in layer:
+                    obj.setFlag(flag1, not ObjectsFrozen)
+                    obj.setFlag(flag2, not ObjectsFrozen)
 
         setSetting('FreezeObjects', ObjectsFrozen)
         self.scene.update()
@@ -16843,9 +17004,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
         flag1 = QtWidgets.QGraphicsItem.ItemIsSelectable
         flag2 = QtWidgets.QGraphicsItem.ItemIsMovable
 
-        for spr in Area.sprites:
-            spr.setFlag(flag1, not SpritesFrozen)
-            spr.setFlag(flag2, not SpritesFrozen)
+        if Area is not None:
+            for spr in Area.sprites:
+                spr.setFlag(flag1, not SpritesFrozen)
+                spr.setFlag(flag2, not SpritesFrozen)
 
         setSetting('FreezeSprites', SpritesFrozen)
         self.scene.update()
@@ -16862,9 +17024,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
         flag1 = QtWidgets.QGraphicsItem.ItemIsSelectable
         flag2 = QtWidgets.QGraphicsItem.ItemIsMovable
 
-        for ent in Area.entrances:
-            ent.setFlag(flag1, not EntrancesFrozen)
-            ent.setFlag(flag2, not EntrancesFrozen)
+        if Area is not None:
+            for ent in Area.entrances:
+                ent.setFlag(flag1, not EntrancesFrozen)
+                ent.setFlag(flag2, not EntrancesFrozen)
 
         setSetting('FreezeEntrances', EntrancesFrozen)
         self.scene.update()
@@ -16881,9 +17044,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
         flag1 = QtWidgets.QGraphicsItem.ItemIsSelectable
         flag2 = QtWidgets.QGraphicsItem.ItemIsMovable
 
-        for loc in Area.locations:
-            loc.setFlag(flag1, not LocationsFrozen)
-            loc.setFlag(flag2, not LocationsFrozen)
+        if Area is not None:
+            for loc in Area.locations:
+                loc.setFlag(flag1, not LocationsFrozen)
+                loc.setFlag(flag2, not LocationsFrozen)
 
         setSetting('FreezeLocations', LocationsFrozen)
         self.scene.update()
@@ -16900,9 +17064,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
         flag1 = QtWidgets.QGraphicsItem.ItemIsSelectable
         flag2 = QtWidgets.QGraphicsItem.ItemIsMovable
 
-        for node in Area.paths:
-            node.setFlag(flag1, not PathsFrozen)
-            node.setFlag(flag2, not PathsFrozen)
+        if Area is not None:
+            for node in Area.paths:
+                node.setFlag(flag1, not PathsFrozen)
+                node.setFlag(flag2, not PathsFrozen)
 
         setSetting('FreezePaths', PathsFrozen)
         self.scene.update()
@@ -16919,9 +17084,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
         flag1 = QtWidgets.QGraphicsItem.ItemIsSelectable
         flag2 = QtWidgets.QGraphicsItem.ItemIsMovable
 
-        for com in Area.comments:
-            com.setFlag(flag1, not CommentsFrozen)
-            com.setFlag(flag2, not CommentsFrozen)
+        if Area is not None:
+            for com in Area.comments:
+                com.setFlag(flag1, not CommentsFrozen)
+                com.setFlag(flag2, not CommentsFrozen)
 
         setSetting('FreezeComments', CommentsFrozen)
         self.scene.update()
@@ -17236,16 +17402,18 @@ class ReggieWindow(QtWidgets.QMainWindow):
         pcEvent = self.HandleSprPosChange
         for spr in Area.sprites:
             spr.positionChanged = pcEvent
-            spr.listitem = QtWidgets.QListWidgetItem(spr.ListString())
+            spr.listitem = QtWidgets.QListWidgetItem()
             sprlist.addItem(spr.listitem)
             addItem(spr)
+            spr.UpdateListItem()
 
         pcEvent = self.HandleEntPosChange
         for ent in Area.entrances:
-            addItem(ent)
             ent.positionChanged = pcEvent
-            ent.listitem = QtWidgets.QListWidgetItem(ent.ListString())
+            ent.listitem = QtWidgets.QListWidgetItem()
             entlist.addItem(ent.listitem)
+            addItem(ent)
+            ent.UpdateListItem()
 
         for zone in Area.zones:
             addItem(zone)
@@ -17253,30 +17421,34 @@ class ReggieWindow(QtWidgets.QMainWindow):
         pcEvent = self.HandleLocPosChange
         scEvent = self.HandleLocSizeChange
         for location in Area.locations:
-            addItem(location)
             location.positionChanged = pcEvent
             location.sizeChanged = scEvent
-            location.listitem = QtWidgets.QListWidgetItem(location.ListString())
+            location.listitem = QtWidgets.QListWidgetItem()
             loclist.addItem(location.listitem)
+            addItem(location)
+            location.UpdateListItem()
 
         for path in Area.paths:
-            addItem(path)
             path.positionChanged = self.HandlePathPosChange
-            path.listitem = QtWidgets.QListWidgetItem(path.ListString())
+            path.listitem = QtWidgets.QListWidgetItem()
             pathlist.addItem(path.listitem)
+            addItem(path)
+            path.UpdateListItem()
 
         for path in Area.pathdata:
             peline = PathEditorLineItem(path['nodes'])
             path['peline'] = peline
             addItem(peline)
             peline.loops = path['loops']
+            path.UpdateListItem()
 
         for com in Area.comments:
-            addItem(com)
             com.positionChanged = self.HandleComPosChange
             com.textChanged = self.HandleComTxtChange
-            com.listitem = QtWidgets.QListWidgetItem(com.ListString())
+            com.listitem = QtWidgets.QListWidgetItem()
             comlist.addItem(com.listitem)
+            addItem(com)
+            com.UpdateListItem()
 
 
         # fill up the area list
@@ -17775,9 +17947,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Handle the sprite being dragged
         """
-        obj.listitem.setText(obj.ListString())
         if obj == self.selObj:
             if oldx == x and oldy == y: return
+            obj.UpdateListItem()
             SetDirty()
 
 
@@ -17789,7 +17961,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if self.spriteEditorDock.isVisible():
             obj = self.selObj
             obj.spritedata = data
-            obj.UpdateListString()
+            obj.UpdateListItem()
             SetDirty()
 
             obj.UpdateDynamicSizing()
@@ -17800,7 +17972,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Handle the entrance being dragged
         """
         if oldx == x and oldy == y: return
-        obj.listitem.setText(obj.ListString())
+        obj.UpdateListItem()
         if obj == self.selObj:
             SetDirty()
 
@@ -17810,9 +17982,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Handle the path being dragged
         """
         if oldx == x and oldy == y: return
-        obj.listitem.setText(obj.ListString())
         obj.updatePos()
         obj.pathinfo['peline'].nodePosChanged()
+        obj.UpdateListItem()
         if obj == self.selObj:
             SetDirty()
 
@@ -17822,9 +17994,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Handle the comment being dragged
         """
         if oldx == x and oldy == y: return
-        obj.listitem.setText(obj.ListString())
         obj.UpdateTooltip()
         obj.handlePosChange(oldx, oldy)
+        obj.UpdateListItem()
         if obj == self.selObj:
             self.SaveComments()
             SetDirty()
@@ -17834,7 +18006,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Handle the comment's text being changed
         """
-        obj.listitem.setText(obj.ListString())
+        obj.UpdateListItem()
         obj.UpdateTooltip()
         self.SaveComments()
         SetDirty()
@@ -17861,9 +18033,23 @@ class ReggieWindow(QtWidgets.QMainWindow):
         ent.setSelected(True)
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
+    def HandleEntranceToolTipAboutToShow(self, item):
+        """
+        Handle an entrance being hovered in the list
+        """
+        ent = None
+        for check in Area.entrances:
+            if check.listitem == item:
+                ent = check
+                break
+        if ent is None: return
+
+        ent.UpdateListItem(True)
+
+    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleLocationSelectByList(self, item):
         """
-        Handle an location being selected from the list
+        Handle a location being selected from the list
         """
         if self.UpdateFlag: return
 
@@ -17881,9 +18067,23 @@ class ReggieWindow(QtWidgets.QMainWindow):
         loc.setSelected(True)
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
+    def HandleLocationToolTipAboutToShow(self, item):
+        """
+        Handle a location being hovered in the list
+        """
+        loc = None
+        for check in Area.locations:
+            if check.listitem == item:
+                loc = check
+                break
+        if loc is None: return
+
+        loc.UpdateListItem(True)
+
+    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleSpriteSelectByList(self, item):
         """
-        Handle an sprite being selected from the list
+        Handle a sprite being selected from the list
         """
         if self.UpdateFlag: return
 
@@ -17899,6 +18099,20 @@ class ReggieWindow(QtWidgets.QMainWindow):
         spr.ensureVisible(QtCore.QRectF(), 192, 192)
         self.scene.clearSelection()
         spr.setSelected(True)
+
+    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
+    def HandleSpriteToolTipAboutToShow(self, item):
+        """
+        Handle a sprite being hovered in the list
+        """
+        spr = None
+        for check in Area.sprites:
+            if check.listitem == item:
+                spr = check
+                break
+        if spr is None: return
+
+        spr.UpdateListItem(True)
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandlePathSelectByList(self, item):
@@ -17920,6 +18134,19 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.scene.clearSelection()
         path.setSelected(True)
 
+    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
+    def HandlePathToolTipAboutToShow(self, item):
+        """
+        Handle a path node being hovered in the list
+        """
+        path = None
+        for check in Area.paths:
+           if check.listitem == item:
+                path = check
+                break
+        if path is None: return
+
+        path.UpdateListItem(True)
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleCommentSelectByList(self, item):
@@ -17937,6 +18164,20 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.scene.clearSelection()
         comment.setSelected(True)
 
+    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
+    def HandleCommentToolTipAboutToShow(self, item):
+        """
+        Handle a comment being hovered in the list
+        """
+        comment = None
+        for check in Area.comments:
+           if check.listitem == item:
+                comment = check
+                break
+        if comment is None: return
+
+        comment.UpdateListItem(True)
+
     def HandleLocPosChange(self, loc, oldx, oldy, x, y):
         """
         Handle the location being dragged
@@ -17945,7 +18186,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             if oldx == x and oldy == y: return
             self.locationEditor.setLocation(loc)
             SetDirty()
-        loc.listitem.setText(loc.ListString())
+        loc.UpdateListItem()
         self.levelOverview.update()
 
 
@@ -17956,7 +18197,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if loc == self.selObj:
             self.locationEditor.setLocation(loc)
             SetDirty()
-        loc.listitem.setText(loc.ListString())
+        loc.UpdateListItem()
         self.levelOverview.update()
 
 
