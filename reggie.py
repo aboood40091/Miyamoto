@@ -2578,7 +2578,7 @@ class Metadata():
 
 class AbstractLevel():
     """
-    Class for an abstract level from any game
+    Class for an abstract level from any game. Defines the API.
     """
     def __init__(self):
         """
@@ -2595,7 +2595,7 @@ class AbstractLevel():
         """
         pass
 
-    def save(self, progress=None):
+    def save(self):
         """
         Returns the level as a bytes object. You MUST reimplement this in subclasses!
         """
@@ -2612,9 +2612,11 @@ class AbstractLevel():
 
     def deleteArea(self, number):
         """
-        Removes the area specified. Number is a 1-based value, not 0-based.
+        Removes the area specified. Number is a 1-based value, not 0-based;
+        so you would pass a 1 if you wanted to delete the first area.
         """
         del self.areas[number - 1]
+        return True
 
 
 class Level_NSMB2(AbstractLevel):
@@ -2685,7 +2687,7 @@ class Level_NSMB2(AbstractLevel):
                 newarea = AbstractArea()
 
             newarea.areanum = thisArea
-            newarea.loadArea(course, L0, L1, L2, progress)
+            newarea.load(course, L0, L1, L2, progress)
             self.areas.append(newarea)
 
             thisArea += 1
@@ -2720,73 +2722,52 @@ class Level_NSMB2(AbstractLevel):
         return newArchive._dump()
 
 
-    def addArea(self, course=None, L0=None, L1=None, L2=None):
+    def addArea(self):
         """
-        Adds an area
+        Adds an area to the level, and returns it.
         """
-        if course is None:
-            with open('reggiedata/blankcourse.bin', 'rb') as blank:
-                course = blank.read()
-        newArea = AbstractArea()
-        newArea.loadArea(course, L0, L1, L2)
-        self.areas.append(newArea)
-        return True
+        new = Area_NSMB2()
+        self.areas.append(new)
 
-    def deleteArea(self, number):
-        """
-        Removes the area specified by number
-        """
-        del self.areas[number-1]
-        return True
+        return new
 
 
 class AbstractArea():
     """
-    Class that simulates Area but doesn't actually load anything
+    An extremely basic abstract area. Implements the basic function API.
     """
-    def newArea(self):
+    def __init__(self):
+        self.areanum = 1
         self.course = None
         self.L0 = None
         self.L1 = None
         self.L2 = None
-    def loadArea(self, course, L0, L1, L2, progress=None):
+
+    def load(self, course, L0, L1, L2, progress=None):
         self.course = course
         self.L0 = L0
         self.L1 = L1
         self.L2 = L2
-    def saveArea(self):
+
+    def save(self):
         return (self.course, self.L0, self.L1, self.L2)
 
 
-class Area_NSMB2():
+class AbstractParsedArea(AbstractArea):
     """
-    Class for a NSMBWii level area
+    An area that is parsed to load sprites, entrances, etc. Still abstracted among games.
+    Don't instantiate this! It could blow up becuase many of the functions are only defined
+    within subclasses. If you want an area object, use a game-specific subclass.
     """
-    def newArea(self):
+    def __init__(self):
         """
         Creates a completely new area
         """
+
+        # Default area number
         self.areanum = 1
 
-        mainWindow.levelOverview.maxX = 100
-        mainWindow.levelOverview.maxY = 40
-
-        # we don't parse blocks 4, 11, 12, 13, 14
-        # we can create the rest manually
-        self.blocks = [None] * 14
-        self.blocks[3] = b'\0\0\0\0\0\0\0\0'
-        # other known values for block 4: 0000 0002 0042 0000,
-        #            0000 0002 0002 0000, 0000 0003 0003 0000
-        self.blocks[11] = '' # never used
-        self.blocks[12] = '' # paths
-        self.blocks[13] = '' # path points
-
-        # prepare all data
-        self.tileset0 = 'Pa0_jyotyu'
-        self.tileset1 = 'Pa1_nohara'
-        self.tileset2 = ''
-        self.tileset3 = ''
-
+        # Settings
         self.defEvents = 0
         self.wrapFlag = 0
         self.timeLimit = 300
@@ -2795,6 +2776,7 @@ class Area_NSMB2():
         self.unk2 = 0
         self.unk3 = 0
 
+        # Lists of things
         self.entrances = []
         self.sprites = []
         self.zones = []
@@ -2802,33 +2784,27 @@ class Area_NSMB2():
         self.pathdata = []
         self.paths = []
         self.comments = []
-
-        self.LoadReggieInfo(None)
-
-        CreateTilesets()
-        LoadTileset(0, 'Pa0_jyotyu')
-        LoadTileset(1, 'Pa1_nohara')
-
         self.layers = [[], [], []]
 
+        # Metadata
+        self.LoadReggieInfo(None)
 
-    def loadArea(self, course, L0, L1, L2, progress=None):
+        # Load tilesets
+        CreateTilesets()
+        LoadTileset(0, self.tileset0)
+        LoadTileset(1, self.tileset1)
+
+
+    def load(self, course, L0, L1, L2, progress=None):
         """
         Loads an area from the archive files
         """
 
-        # load in the course file and blocks
-        self.blocks = [None]*14
-        getblock = struct.Struct('<II')
-        for i in range(14):
-            data = getblock.unpack_from(course, i*8)
-            if data[1] == 0:
-                self.blocks[i] = b''
-            else:
-                self.blocks[i] = course[data[0]:data[0]+data[1]]
+        # Load in the course file and blocks
+        self.LoadBlocks(course)
 
-        # load stuff from individual blocks
-        self.LoadMetadata() # block 1
+        # Load stuff from individual blocks
+        self.LoadTilesetNames() # block 1
         self.LoadOptions() # block 2
         self.LoadEntrances() # block 7
         self.LoadSprites() # block 8
@@ -2836,19 +2812,19 @@ class Area_NSMB2():
         self.LoadLocations() # block 11
         self.LoadPaths() # block 12 and 13
 
-        # load the editor metadata
-        block1pos = getblock.unpack_from(course, 0)
-        if block1pos[0] != 0x70:
-            rdsize = block1pos[0] - 0x70
-            rddata = course[0x70:block1pos[0]]
+        # Load the editor metadata
+        if self.block1pos[0] != 0x70:
+            rdsize = self.block1pos[0] - 0x70
+            rddata = course[0x70:self.block1pos[0]]
             self.LoadReggieInfo(rddata)
         else:
             self.LoadReggieInfo(None)
+        del self.block1pos
 
         # Now, load the comments
         self.LoadComments()
 
-        # load the tilesets
+        # Load the tilesets
         if progress is not None: progress.setLabelText(trans.string('Splash', 3))
         if app.splashscrn is not None: updateSplash(trans.string('Splash', 3), 0)
 
@@ -2866,7 +2842,7 @@ class Area_NSMB2():
         if app.splashscrn is not None: updateSplash(trans.string('Splash', 3), 4)
         if self.tileset3 != '': LoadTileset(3, self.tileset3)
 
-        # load the object layers
+        # Load the object layers
         if progress is not None:
             progress.setLabelText(trans.string('Splash', 1))
             progress.setValue(5)
@@ -2882,18 +2858,30 @@ class Area_NSMB2():
         if L2 is not None:
             self.LoadLayer(2, L2)
 
+        # Delete self.blocks
+        del self.blocks
+
         return True
 
     def saveArea(self):
         """
         Save the area back to a file
         """
-        # prepare this because otherwise the game refuses to load some sprites
+        # Prepare this first because otherwise the game refuses to load some sprites
         self.SortSpritesByZone()
 
-        # save each block first
-        success = True
-        self.SaveMetadata() # block 1
+        # We don't parse blocks 4, 11, 12, 13, 14.
+        # We can create the rest manually.
+        self.blocks = [None] * 14
+        self.blocks[3] = b'\0\0\0\0\0\0\0\0'
+        # Other known values for block 4: 0000 0002 0042 0000,
+        #            0000 0002 0002 0000, 0000 0003 0003 0000
+        self.blocks[11] = '' # never used
+        self.blocks[12] = '' # paths
+        self.blocks[13] = '' # path points
+
+        # Save each block
+        self.SaveTilesetNames() # block 1
         self.SaveOptions() # block 2
         self.SaveEntrances() # block 7
         self.SaveSprites() # block 8
@@ -2902,6 +2890,7 @@ class Area_NSMB2():
         self.SaveLocations() # block 11
         self.SavePaths()
 
+        # Save the metadata
         rdata = bytearray(self.Metadata.save())
         if len(rdata) % 4 != 0:
            for i in range(4 - (len(rdata) % 4)):
@@ -2932,7 +2921,7 @@ class Area_NSMB2():
             HeaderOffset += 8
             FileOffset += blocksize
 
-        # return stuff
+        # Return stuff
         return (
             bytes(course),
             self.SaveLayer(0),
@@ -2940,7 +2929,87 @@ class Area_NSMB2():
             self.SaveLayer(2),
             )
 
-    def LoadMetadata(self):
+
+    def RemoveFromLayer(self, obj):
+        """
+        Removes a specific object from the level and updates Z indexes accordingly
+        """
+        layer = self.layers[obj.layer]
+        idx = layer.index(obj)
+        del layer[idx]
+        for i in range(idx,len(layer)):
+            upd = layer[i]
+            upd.setZValue(upd.zValue() - 1)
+
+    def SortSpritesByZone(self):
+        """
+        Sorts the sprite list by zone ID so it will work in-game
+        """
+
+        split = {}
+        zones = []
+
+        f_MapPositionToZoneID = MapPositionToZoneID
+        zonelist = self.zones
+
+        for sprite in self.sprites:
+            zone = f_MapPositionToZoneID(zonelist, sprite.objx, sprite.objy)
+            sprite.zoneID = zone
+            if not zone in split:
+                split[zone] = []
+                zones.append(zone)
+            split[zone].append(sprite)
+
+        newlist = []
+        zones.sort()
+        for z in zones:
+            newlist += split[z]
+
+        self.sprites = newlist
+
+
+    def LoadReggieInfo(self, data):
+        if (data is None) or (len(data) == 0):
+            self.Metadata = Metadata()
+            return
+
+        try: self.Metadata = Metadata(data)
+        except Exception: self.Metadata = Metadata() # fallback
+
+
+class Area_NSMB2(AbstractParsedArea):
+    """
+    Class for a parsed NSMB2 level area
+    """
+    def __init__(self):
+        """
+        Creates a completely new NSMB2 area
+        """
+        # Default tileset names for NSMB2
+        self.tileset0 = 'J_Kihon'
+        self.tileset1 = 'M_Nohara_Onpu'
+        self.tileset2 = ''
+        self.tileset3 = ''
+
+        super().__init__()
+
+    def LoadBlocks(self, course):
+        """
+        Loads self.blocks from the course file
+        """
+        self.blocks = [None] * 14
+        getblock = struct.Struct('<II')
+        for i in range(14):
+            data = getblock.unpack_from(course, i * 8)
+            if data[1] == 0:
+                self.blocks[i] = b''
+            else:
+                self.blocks[i] = course[data[0]:data[0] + data[1]]
+
+        self.block1pos = getblock.unpack_from(course, 0)
+
+
+    def LoadTilesetNames(self):
         """
         Loads block 1, the tileset names
         """
@@ -2949,6 +3018,7 @@ class Area_NSMB2():
         self.tileset1 = data[1].strip(b'\0').decode('latin-1')
         self.tileset2 = data[2].strip(b'\0').decode('latin-1')
         self.tileset3 = data[3].strip(b'\0').decode('latin-1')
+
 
     def LoadOptions(self):
         """
@@ -2959,6 +3029,7 @@ class Area_NSMB2():
         offset = 0
         data = optstruct.unpack_from(optdata,offset)
         self.defEvents, self.wrapFlag, self.timeLimit, self.unk1, self.startEntrance, self.unk2, self.unk3 = data
+
 
     def LoadEntrances(self):
         """
@@ -2974,6 +3045,7 @@ class Area_NSMB2():
             entrances.append(EntranceItem(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10]))
             offset += 24
         self.entrances = entrances
+
 
     def LoadSprites(self):
         """
@@ -2993,6 +3065,7 @@ class Area_NSMB2():
             append(obj(data[0], data[1], data[2], data[3]))
             offset += 24
         self.sprites = sprites
+
 
     def LoadZones(self):
         """
@@ -3051,6 +3124,7 @@ class Area_NSMB2():
             offset += 24
         self.zones = zones
 
+
     def LoadLocations(self):
         """
         Loads block 11, the locations
@@ -3082,10 +3156,10 @@ class Area_NSMB2():
         unpack = objstruct.unpack_from
         for i in range(objcount):
             data = unpack(layerdata, offset)
-            print(data)
             append(obj(data[0] >> 12, data[0] & 4095, idx, data[1], data[2], data[3], data[4], z))
             z += 1
             offset += 16
+
 
     def LoadPaths(self):
         """
@@ -3129,10 +3203,10 @@ class Area_NSMB2():
         """
         Loads block 13, the path nodes
         """
-        # PathNode struct: >HHffhxx
+        # PathNode struct: <HHffhxx
         ret = []
         nodedata = self.blocks[13]
-        nodestruct = struct.Struct('>HHffhxx')
+        nodestruct = struct.Struct('<HHffhxx')
         offset = startindex*16
         unpack = nodestruct.unpack_from
         for i in range(count):
@@ -3146,6 +3220,7 @@ class Area_NSMB2():
             })
             offset += 16
         return ret
+
 
     def LoadComments(self):
         """
@@ -3184,20 +3259,22 @@ class Area_NSMB2():
             com.UpdateListItem()
 
 
-    def SaveMetadata(self):
+    def SaveTilesetNames(self):
         """
         Saves the tileset names back to block 1
         """
         self.blocks[0] = ''.join([self.tileset0.ljust(32,'\0'), self.tileset1.ljust(32,'\0'), self.tileset2.ljust(32,'\0'), self.tileset3.ljust(32,'\0')]).encode('latin-1')
 
+
     def SaveOptions(self):
         """
         Saves block 2, the general options
         """
-        optstruct = struct.Struct('>IxxxxHhLBBBx')
+        optstruct = struct.Struct('<IxxxxHhLBBBx')
         buffer = bytearray(20)
         optstruct.pack_into(buffer, 0, self.defEvents, self.wrapFlag, self.timeLimit, self.unk1, self.startEntrance, self.unk2, self.unk3)
         self.blocks[1] = bytes(buffer)
+
 
     def SaveLayer(self, idx):
         """
@@ -3205,7 +3282,7 @@ class Area_NSMB2():
         """
         layer = self.layers[idx]
         offset = 0
-        objstruct = struct.Struct('>HHHHH')
+        objstruct = struct.Struct('<HHHHH')
         buffer = bytearray((len(layer) * 10) + 2)
         f_int = int
         for obj in layer:
@@ -3215,12 +3292,13 @@ class Area_NSMB2():
         buffer[offset+1] = 0xFF
         return bytes(buffer)
 
+
     def SaveEntrances(self):
         """
         Saves the entrances back to block 7
         """
         offset = 0
-        entstruct = struct.Struct('>HHxxxxBBBBxBBBHxB')
+        entstruct = struct.Struct('<HHxxxxBBBBxBBBHxB')
         buffer = bytearray(len(self.entrances) * 20)
         zonelist = self.zones
         for entrance in self.entrances:
@@ -3229,11 +3307,12 @@ class Area_NSMB2():
             offset += 20
         self.blocks[6] = bytes(buffer)
 
+
     def SavePaths(self):
         """
         Saves the paths back to block 13
         """
-        pathstruct = struct.Struct('>BxHHH')
+        pathstruct = struct.Struct('<BxHHH')
         nodecount = 0
         for path in self.pathdata:
             nodecount += len(path['nodes'])
@@ -3254,24 +3333,26 @@ class Area_NSMB2():
         self.blocks[12] = bytes(buffer)
         self.blocks[13] = bytes(nodebuffer)
 
+
     def SavePathNodes(self, buffer, offst, nodes):
         """
         Saves the pathnodes back to block 14
         """
         offset = int(offst)
         #[20:29:04]  [@Treeki] struct PathNode { unsigned short x; unsigned short y; float speed; float unknownMaybeAccel; short unknown; char padding[2]; }
-        nodestruct = struct.Struct('>HHffhxx')
+        nodestruct = struct.Struct('<HHffhxx')
         for node in nodes:
             nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), float(node['speed']), float(node['accel']), int(node['delay']))
             offset += 16
         return bytes(buffer)
+
 
     def SaveSprites(self):
         """
         Saves the sprites back to block 8
         """
         offset = 0
-        sprstruct = struct.Struct('>HHH6sB1sxx')
+        sprstruct = struct.Struct('<HHH6sB1sxx')
         buffer = bytearray((len(self.sprites) * 16) + 4)
         f_int = int
         for sprite in self.sprites:
@@ -3296,6 +3377,7 @@ class Area_NSMB2():
         buffer[offset + 3] = 0xFF
         self.blocks[7] = bytes(buffer)
 
+
     def SaveLoadedSprites(self):
         """
         Saves the list of loaded sprites back to block 9
@@ -3306,7 +3388,7 @@ class Area_NSMB2():
         ls.sort()
 
         offset = 0
-        sprstruct = struct.Struct('>Hxx')
+        sprstruct = struct.Struct('<Hxx')
         buffer = bytearray(len(ls) * 4)
         for s in ls:
             sprstruct.pack_into(buffer, offset, int(s))
@@ -3318,10 +3400,10 @@ class Area_NSMB2():
         """
         Saves blocks 10, 3, 5 and 6, the zone data, boundings, bgA and bgB data respectively
         """
-        bdngstruct = struct.Struct('>llllxBxBxxxx')
-        bgAstruct = struct.Struct('>xBhhhhHHHxxxBxxxx')
-        bgBstruct = struct.Struct('>xBhhhhHHHxxxBxxxx')
-        zonestruct = struct.Struct('>HHHHHHBBBBxBBBBxBB')
+        bdngstruct = struct.Struct('<llllxBxBxxxx')
+        bgAstruct = struct.Struct('<xBhhhhHHHxxxBxxxx')
+        bgBstruct = struct.Struct('<xBhhhhHHHxxxBxxxx')
+        zonestruct = struct.Struct('<HHHHHHBBBBxBBBBxBB')
         offset = 0
         i = 0
         zcount = len(Area.zones)
@@ -3347,7 +3429,7 @@ class Area_NSMB2():
         """
         Saves block 11, the location data
         """
-        locstruct = struct.Struct('>HHHHBxxx')
+        locstruct = struct.Struct('<HHHHBxxx')
         offset = 0
         zcount = len(Area.locations)
         buffer = bytearray(12 * zcount)
@@ -3358,52 +3440,6 @@ class Area_NSMB2():
 
         self.blocks[10] = bytes(buffer)
 
-
-    def RemoveFromLayer(self, obj):
-        """
-        Removes a specific object from the level and updates Z indexes accordingly
-        """
-        layer = self.layers[obj.layer]
-        idx = layer.index(obj)
-        del layer[idx]
-        for i in range(idx,len(layer)):
-            upd = layer[i]
-            upd.setZValue(upd.zValue() - 1)
-
-    def SortSpritesByZone(self):
-        """
-        Sorts the sprite list by zone ID so it will work in-game
-        """
-
-        split = {}
-        zones = []
-
-        f_MapPositionToZoneID = MapPositionToZoneID
-        zonelist = self.zones
-
-        for sprite in self.sprites:
-            zone = f_MapPositionToZoneID(zonelist, sprite.objx, sprite.objy)
-            sprite.zoneID = zone
-            if not zone in split:
-                split[zone] = []
-                zones.append(zone)
-            split[zone].append(sprite)
-
-        newlist = []
-        zones.sort()
-        for z in zones:
-            newlist += split[z]
-
-        self.sprites = newlist
-
-
-    def LoadReggieInfo(self, data):
-        if (data is None) or (len(data) == 0):
-            self.Metadata = Metadata()
-            return
-
-        try: self.Metadata = Metadata(data)
-        except Exception: self.Metadata = Metadata() # fallback
 
 
 class LevelEditorItem(QtWidgets.QGraphicsItem):
@@ -16549,7 +16585,14 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if self.CheckDirty():
             return
 
-        if not Level.addArea(): return
+        try:
+            newA = Level.addArea()
+        except: return
+
+        with open('reggiedata/blankcourse.bin', 'rb') as blank:
+            course = blank.read()
+        newA.load(course)
+
         newID = len(Level.areas)
 
         if not self.HandleSave(): return
@@ -16625,7 +16668,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # add them to our level
         newID = len(Level.areas) + 1
-        Level.addArea(course, L0, L1, L2)
+
+        newA = Level.addArea()
+        newA.load(course, L0, L1, L2)
 
         if not self.HandleSave(): return
         self.LoadLevel(None, self.fileSavePath, True, newID)
@@ -17359,7 +17404,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
             # Get the level data
             levelData = AutoSaveData
-            print('Loading autosaved data!')
             SetDirty(noautosave=True)
 
             # Turn off the autosave flag
@@ -17437,6 +17481,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
         elif game is NewSuperLuigiU:
             # This game is not supported... YET
             raise NotImplementedError
+
+        # Set the level overview settings
+        mainWindow.levelOverview.maxX = 100
+        mainWindow.levelOverview.maxY = 40
 
         # Fill up the area list
         if UseRibbon:
