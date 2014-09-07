@@ -87,10 +87,32 @@ if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
     QtWidgets.QGraphicsItem.ItemSendsGeometryChanges = QtWidgets.QGraphicsItem.GraphicsItemFlag(0x800)
 
 
+# Globals
 app = None
 mainWindow = None
 settings = None
 
+
+# Game enums
+NewSuperMarioBros = 0
+NewSuperMarioBrosWii = 1
+NewSuperMarioBros2 = 2
+NewSuperMarioBrosU = 3
+NewSuperLuigiU = 4
+FileExtentions = {
+    NewSuperMarioBros: (),
+    NewSuperMarioBrosWii: ('.arc', '.arc.LH'),
+    NewSuperMarioBros2: ('.sarc',),
+    NewSuperMarioBrosU: ('.sarc',),
+    NewSuperLuigiU: ('.sarc',),
+    }
+FirstLevels = {
+    NewSuperMarioBros: '',
+    NewSuperMarioBrosWii: '01-01',
+    NewSuperMarioBros2: '1-1',
+    NewSuperMarioBrosU: '',
+    NewSuperLuigiU: '',
+    }
 
 def checkSplashEnabled():
     """
@@ -2284,7 +2306,7 @@ NumberFont = None
 GridType = None
 RestoredFromAutoSave = False
 AutoSavePath = ''
-AutoSaveData = ''
+AutoSaveData = b''
 
 def createHorzLine():
     f = QtWidgets.QFrame()
@@ -2554,62 +2576,67 @@ class Metadata():
         return data
 
 
-class LevelUnit():
+class AbstractLevel():
     """
-    Class for a full NSMBWii level archive
+    Class for an abstract level from any game
     """
-    def newLevel(self):
-        self.arcname = None
-        self.filename = 'untitled'
-        self.hasName = False
-        arc = archive.U8()
-        arc['course'] = None
-        arc['course/course1.bin'] = ''
-        
-        self.areas = []
-        self.areas.append(AreaUnit())
-        self.areas[0].newArea()
+    def __init__(self):
+        """
+        Initializes the level with default settings
+        """
+        self.filepath = None
+        self.name = 'untitled'
 
-    def loadLevel(self, name, fullpath, areaToLoad, progress=None):
+        self.areas = []
+
+    def load(self, data, areaNum, progress=None):
         """
-        Loads a specific level and area
+        Loads a level from bytes data. You MUST reimplement this in subclasses!
         """
+        pass
+
+    def save(self, progress=None):
+        """
+        Returns the level as a bytes object. You MUST reimplement this in subclasses!
+        """
+        return b''
+
+    def addArea(self):
+        """
+        Adds an area to the level, and returns it.
+        """
+        new = AbstractArea()
+        self.areas.append(new)
+
+        return new
+
+    def deleteArea(self, number):
+        """
+        Removes the area specified. Number is a 1-based value, not 0-based.
+        """
+        del self.areas[number - 1]
+
+
+class Level_NSMB2(AbstractLevel):
+    """
+    Class for a level from New Super Mario Bros. 2
+    """
+    def __init__(self):
+        """
+        Initializes the level with default settings
+        """
+        super().__init__()
+        self.areas.append(Area_NSMB2())
+
+    def load(self, data, areaNum, progress=None):
+        """
+        Loads a NSMB2 level from bytes data.
+        """
+        super().load(data, areaNum, progress)
+
         global Area
 
-        startTime = time.clock()
-
-        # read the archive
-        if fullpath:
-            self.arcname = name
-        else:
-            self.arcname = os.path.join(gamedef.GetGamePath(), name+'.arc')
-
-        if name == 'AUTO_FLAG':
-            if AutoSavePath == 'None':
-                self.arcname = None
-                self.filename = trans.string('WindowTitle', 0)
-                self.hasName = False
-            else:
-                self.arcname = AutoSavePath
-                self.filename = os.path.basename(self.arcname)
-                self.hasName = True
-
-            arcdata = bytes(AutoSaveData)
-            SetDirty(noautosave=True)
-        else:
-            if not os.path.isfile(self.arcname):
-                QtWidgets.QMessageBox.warning(None, trans.string('Error_MissingLevel', 0), trans.string('Error_MissingLevel', 1, '[file]', name))
-                return False
-
-            self.filename = os.path.basename(self.arcname)
-            self.hasName = True
-
-            with open(self.arcname, 'rb') as fileobj:
-                arcdata = fileobj.read()
-            if LHTool.isLHCompressed(arcdata):
-                arcdata = LHTool.decompressLH(arcdata)
-
-        arc = archive.U8.load(arcdata)
+        arc = archive.U8.load(data)
 
         # Sort the area data
         areaData = {}
@@ -2650,21 +2677,18 @@ class LevelUnit():
             L1 = areaData[thisArea][2]
             L2 = areaData[thisArea][3]
 
-            if thisArea == areaToLoad:
-                newarea = AreaUnit()
+            if thisArea == areaNum:
+                newarea = Area_NSMB2()
                 Area = newarea
                 SLib.Area = Area
             else:
-                newarea = FakeAreaUnit()
+                newarea = AbstractArea()
 
             newarea.areanum = thisArea
             newarea.loadArea(course, L0, L1, L2, progress)
             self.areas.append(newarea)
 
             thisArea += 1
-
-        endTime = time.clock()
-        total = endTime - startTime
 
         return True
 
@@ -2701,10 +2725,9 @@ class LevelUnit():
         Adds an area
         """
         if course is None:
-            getit = open('reggiedata/blankcourse.bin', 'rb')
-            course = getit.read()
-            getit.close()
-        newArea = FakeAreaUnit()
+            with open('reggiedata/blankcourse.bin', 'rb') as blank:
+                course = blank.read()
+        newArea = AbstractArea()
         newArea.loadArea(course, L0, L1, L2)
         self.areas.append(newArea)
         return True
@@ -2717,9 +2740,9 @@ class LevelUnit():
         return True
 
 
-class FakeAreaUnit():
+class AbstractArea():
     """
-    Class that simulates AreaUnit but doesn't actually load anything
+    Class that simulates Area but doesn't actually load anything
     """
     def newArea(self):
         self.course = None
@@ -2735,7 +2758,7 @@ class FakeAreaUnit():
         return (self.course, self.L0, self.L1, self.L2)
 
 
-class AreaUnit():
+class Area_NSMB2():
     """
     Class for a NSMBWii level area
     """
@@ -2803,9 +2826,6 @@ class AreaUnit():
                 self.blocks[i] = b''
             else:
                 self.blocks[i] = course[data[0]:data[0]+data[1]]
-        for b in self.blocks:
-            print(len(b))
-        print(course[:256])
 
         # load stuff from individual blocks
         self.LoadMetadata() # block 1
@@ -2855,22 +2875,12 @@ class AreaUnit():
 
         self.layers = [[], [], []]
 
-        print('Load0')
         if L0 is not None:
             self.LoadLayer(0, L0)
-        print('Load0done')
-
-        print('Load1')
         if L1 is not None:
             self.LoadLayer(1, L1)
-        print('Load1done')
-
-        print('Load2')
         if L2 is not None:
             self.LoadLayer(2, L2)
-        print('Load2Done')
-
-        print('Done loading area!')
 
         return True
 
@@ -3062,7 +3072,7 @@ class AreaUnit():
         Loads a specific object layer from a string
         """
         objcount = len(layerdata) // 16
-        objstruct = struct.Struct('<HHHHHHHH')
+        objstruct = struct.Struct('<HHHHH')
         offset = 0
         z = (2 - idx) * 8192
 
@@ -3071,7 +3081,8 @@ class AreaUnit():
         obj = ObjectItem
         unpack = objstruct.unpack_from
         for i in range(objcount):
-            data = unpack(layerdata,offset)
+            data = unpack(layerdata, offset)
+            print(data)
             append(obj(data[0] >> 12, data[0] & 4095, idx, data[1], data[2], data[3], data[4], z))
             z += 1
             offset += 16
@@ -3883,8 +3894,6 @@ class ZoneItem(LevelEditorItem):
             bgBBlock = bgB[0]
             id = self.block6id
             for block in bgB:
-                print('Block:')
-                print(block)
                 if block[0] == id: bgBBlock = block
 
             self.entryidB = bgBBlock[0]
@@ -13511,7 +13520,7 @@ class ReggieRibbonFileMenu(QFileMenu):
         """
         Handles recent files being clicked
         """
-        mainWindow.LoadLevel(str(path), True, 1)
+        mainWindow.LoadLevel(None, str(path), True, 1)
 
 
 
@@ -13547,7 +13556,7 @@ class InfoPreviewWidget(QtWidgets.QWidget):
             return
 
         a = [ # MUST be a list, not a tuple
-            Level.filename,
+            mainWindow.fileTitle,
             Area.Title,
             trans.string('InfoDlg', 8, '[name]', Area.Creator),
             trans.string('InfoDlg', 5) + ' ' + Area.Author,
@@ -13932,7 +13941,7 @@ class RecentFilesMenu(QtWidgets.QMenu):
         """
         if mainWindow.CheckDirty(): return
 
-        if not mainWindow.LoadLevel(self.FileList[number], True, 1): self.RemoveFromList(number)
+        if not mainWindow.LoadLevel(None, self.FileList[number], True, 1): self.RemoveFromList(number)
 
 
 class ZoomWidget(QtWidgets.QWidget):
@@ -14844,6 +14853,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.selObj = None
         self.CurrentSelection = []
 
+        self.CurrentGame = setting('CurrentGame')
+
         # set up the window
         QtWidgets.QMainWindow.__init__(self, None)
         self.setWindowTitle('Reggie! Level Editor Next')
@@ -14901,14 +14912,15 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # now get stuff ready
         loaded = False
+        curgame = setting('CurrentGame')
         if len(sys.argv) > 1 and os.path.isfile(sys.argv[1]) and IsNSMBLevel(sys.argv[1]):
-            loaded = self.LoadLevel(sys.argv[1], True, 1)
+            loaded = self.LoadLevel(curgame, sys.argv[1], True, 1)
         elif settings.contains('LastLevel'):
             lastlevel = str(gamedef.GetLastLevel())
-            loaded = self.LoadLevel(lastlevel, True, 1)
+            loaded = self.LoadLevel(curgame, lastlevel, True, 1)
 
         if not loaded:
-            self.LoadLevel('01-01', False, 1)
+            self.LoadLevel(curgame, FirstLevels[curgame], False, 1)
 
         QtCore.QTimer.singleShot(100, self.levelOverview.update)
 
@@ -15713,7 +15725,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if not AutoSaveDirty: return
 
         data = Level.save()
-        setSetting('AutoSaveFilePath', Level.arcname)
+        setSetting('AutoSaveFilePath', self.fileSavePath)
         setSetting('AutoSaveFileData', QtCore.QByteArray(data))
         AutoSaveDirty = False
 
@@ -15765,7 +15777,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Sets the window title accordingly
         """
-        self.setWindowTitle('Reggie! Level Editor Next - %s%s' % (Level.filename, (' ' + trans.string('MainWindow', 0)) if Dirty else ''))
+        self.setWindowTitle('Reggie! Level Editor Next - %s%s' % (self.fileTitle, (' ' + trans.string('MainWindow', 0)) if Dirty else ''))
 
     def CheckDirty(self):
         """
@@ -16541,7 +16553,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         newID = len(Level.areas)
 
         if not self.HandleSave(): return
-        self.LoadLevel(Level.arcname, True, newID)
+        self.LoadLevel(None, self.fileSavePath, True, newID)
 
 
     @QtCore.pyqtSlot()
@@ -16616,7 +16628,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Level.addArea(course, L0, L1, L2)
 
         if not self.HandleSave(): return
-        self.LoadLevel(Level.arcname, True, newID)
+        self.LoadLevel(None, self.fileSavePath, True, newID)
 
 
     @QtCore.pyqtSlot()
@@ -16633,10 +16645,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # no error checking. if it saved last time, it will probably work now
 
-        f = open(Level.arcname, 'wb')
-        f.write(Level.save())
-        f.close()
-        self.LoadLevel(Level.arcname, True, 1)
+        with open(self.fileSavePath, 'wb') as f:
+            f.write(Level.save())
+        self.LoadLevel(None, self.fileSavePath, True, 1)
 
 
     @QtCore.pyqtSlot()
@@ -16660,7 +16671,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 SetGamePath(path)
                 break
 
-        if not auto: self.LoadLevel('01-01', False, 1)
+        if not auto: self.LoadLevel(None, '01-01', False, 1)
         return True
 
 
@@ -16725,7 +16736,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Create a new level
         """
         if self.CheckDirty(): return
-        self.LoadLevel(None, False, 1)
+        self.LoadLevel(None, None, False, 1)
 
 
     @QtCore.pyqtSlot()
@@ -16738,7 +16749,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         LoadLevelNames()
         dlg = ChooseLevelNameDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
-            self.LoadLevel(dlg.currentlevel, False, 1)
+            self.LoadLevel(None, dlg.currentlevel, False, 1)
 
 
     @QtCore.pyqtSlot()
@@ -16754,7 +16765,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         filetypes += trans.string('FileDlgs', 2) + ' (*)' # *
         fn = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return
-        self.LoadLevel(str(fn), True, 1)
+        self.LoadLevel(None, str(fn), True, 1)
 
 
     @QtCore.pyqtSlot()
@@ -16762,16 +16773,15 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Save a level back to the archive
         """
-        if not Level.hasName:
+        if not mainWindow.fileSavePath:
             self.HandleSaveAs()
             return
 
         global Dirty, AutoSaveDirty
         data = Level.save()
         try:
-            f = open(Level.arcname, 'wb')
-            f.write(data)
-            f.close()
+            with open(self.fileSavePath, 'wb') as f:
+                f.write(data)
         except IOError as e:
             QtWidgets.QMessageBox.warning(None, trans.string('Err_Save', 0), trans.string('Err_Save', 1, '[err1]', e.args[0], '[err2]', e.args[1]))
             return False
@@ -16780,7 +16790,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         AutoSaveDirty = False
         self.UpdateTitle()
 
-        setSetting('AutoSaveFilePath', Level.arcname)
+        setSetting('AutoSaveFilePath', self.fileSavePath)
         setSetting('AutoSaveFileData', 'x')
         return True
 
@@ -16799,20 +16809,19 @@ class ReggieWindow(QtWidgets.QMainWindow):
         AutoSaveDirty = False
         Dirty = False
 
-        Level.arcname = fn
-        Level.filename = os.path.basename(fn)
-        Level.hasName = True
+        self.fileSavePath = fn
+        self.fileTitle = os.path.basename(fn)
 
         data = Level.save()
-        f = open(fn, 'wb')
-        f.write(data)
-        f.close()
+        with open(fn, 'wb') as f:
+            f.write(data)
+
         setSetting('AutoSaveFilePath', fn)
         setSetting('AutoSaveFileData', 'x')
 
         self.UpdateTitle()
 
-        self.RecentFilesMgr.addPath(Level.arcname)
+        self.RecentFilesMgr.addPath(self.fileSavePath)
 
     @QtCore.pyqtSlot()
     def HandleExit(self):
@@ -16831,8 +16840,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
             self.areaComboBox.setCurrentIndex(Area.areanum)
             return
 
-        if Area.areanum != idx+1:
-            self.LoadLevel(Level.arcname, True, idx+1)
+        if Area.areanum != idx + 1:
+            self.LoadLevel(None, self.fileSavePath, True, idx + 1)
 
 
     @QtCore.pyqtSlot(bool)
@@ -17278,7 +17287,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             if hasattr(self, 'TipsBoxInstance'):
                 self.TipsBoxInstance.close()
 
-            gamedef.SetLastLevel(str(Level.arcname))
+            gamedef.SetLastLevel(str(mainWindow.fileSavePath))
 
             setSetting('AutoSaveFilePath', 'none')
             setSetting('AutoSaveFileData', 'x')
@@ -17286,94 +17295,232 @@ class ReggieWindow(QtWidgets.QMainWindow):
             event.accept()
 
 
-    def LoadLevel(self, name, fullpath, area):
+    def LoadLevel(self, game, name, isFullPath, areaNum):
         """
-        Load a level into the editor
+        Load a level from any game into the editor
         """
 
+        if game is None:
+            game = self.CurrentGame
+
+        # Get the file path, if possible
         if name is not None:
-            if fullpath:
-                checkname = name
+            checknames = []
+            if isFullPath:
+                checknames = [name,]
             else:
-                checkname = os.path.join(gamedef.GetGamePath(), name+'.arc')
+                for ext in FileExtentions[game]:
+                    checknames.append(os.path.join(gamedef.GetGamePath(), name + ext))
 
-            if not os.path.isfile(checkname):
+            found = False
+            for checkname in checknames:
+                if os.path.isfile(checkname):
+                    found = True
+                    break
+            if not found:
                 QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('Err_CantFindLevel', 0, '[name]', checkname), QtWidgets.QMessageBox.Ok)
                 return False
             if not IsNSMBLevel(checkname):
                 QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('Err_InvalidLevel', 0), QtWidgets.QMessageBox.Ok)
                 return False
 
+        name = checkname
+
+        # Get the data
+        global RestoredFromAutoSave
+        if not RestoredFromAutoSave:
+
+            # Check if there is a file by this name
+            if not os.path.isfile(name):
+                QtWidgets.QMessageBox.warning(None, trans.string('Err_MissingLevel', 0), trans.string('Err_MissingLevel', 1, '[file]', name))
+                return False
+
+            # Set the filepath variables
+            self.fileSavePath = name
+            self.fileTitle = os.path.basename(self.fileSavePath)
+
+            # Open the file
+            with open(self.fileSavePath, 'rb') as fileobj:
+                levelData = fileobj.read()
+
+            # Decompress, if needed
+            if LHTool.isLHCompressed(levelData):
+                levelData = LHTool.decompressLH(levelData)
+
+        else:
+            # Auto-saved level. Check if there's a path associated with it:
+
+            if AutoSavePath == 'None':
+                self.fileSavePath = None
+                self.fileTitle = trans.string('WindowTitle', 0)
+            else:
+                self.fileSavePath = AutoSavePath
+                self.fileTitle = os.path.basename(name)
+
+            # Get the level data
+            levelData = AutoSaveData
+            print('Loading autosaved data!')
+            SetDirty(noautosave=True)
+
+            # Turn off the autosave flag
+            RestoredFromAutoSave = False
+
+        # Turn the dirty flag off, and keep it that way
         global Dirty, DirtyOverride
         Dirty = False
         DirtyOverride += 1
 
-        # first clear out what we have
-        self.scene.clearSelection()
-        self.CurrentSelection = []
-        self.scene.clear()
-
-        # reset these here, because if the showlayer variables are set
-        # after creating the objects, it uses the old values
-        global CurrentLayer, Layer0Shown, Layer1Shown, Layer2Shown
-        CurrentLayer = 1
-        Layer0Shown = True
-        Layer1Shown = True
-        Layer2Shown = True
-
-
-        # track progress.. but we'll only do this if we don't have
-        # TPLLib Cython version because otherwise it's far too fast
+        # Track progress.. but only if we don't have TPLLib
+        # Cython version because otherwise it's far too fast.
         if TPLLib.using_cython:
             progress = None
         elif app.splashscrn is not None:
             progress = None
         else:
             progress = QtWidgets.QProgressDialog(self)
-            # yes, I did alphabetise the setX calls on purpose..
-            # code OCD is wonderful x_x
+
             progress.setCancelButton(None)
             progress.setMinimumDuration(0)
-            progress.setRange(0,7)
+            progress.setRange(0, 7)
             progress.setWindowModality(Qt.WindowModal)
             progress.setWindowTitle('Reggie!')
 
-        # this tracks progress
-        # current stages:
+        # Here's how progress is tracked. (After the major refactor, it may be a bit messed up now.)
         # - 0: Loading level data
-        # [AreaUnit.__init__ is entered here]
+        # [Area.__init__ is entered here]
         # - 1: Loading tilesets [1/2/3/4 allocated for each tileset]
         # - 5: Loading layers
-        # [Control is returned to LoadLevel]
+        # [Control is returned to LoadLevel_NSMB2]
         # - 6: Loading objects
         # - 7: Preparing editor
 
-        # stop it from snapping when created...
+        # First, clear out the existing level.
+        self.scene.clearSelection()
+        self.CurrentSelection = []
+        self.scene.clear()
+
+        # Clear out all level-thing lists
+        for thingList in (self.spriteList, self.entranceList, self.locationList, self.pathList, self.commentList):
+            thingList.clear()
+            thingList.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
+
+        # Reset these here, because if they are set after
+        # creating the objects, they use the old values.
+        global CurrentLayer, Layer0Shown, Layer1Shown, Layer2Shown
+        CurrentLayer = 1
+        Layer0Shown = True
+        Layer1Shown = True
+        Layer2Shown = True
+
+        # Prevent things from snapping when they're created
         global OverrideSnapping
         OverrideSnapping = True
 
+        # Update progress
         if progress is not None:
             progress.setLabelText(trans.string('Splash', 2))
             progress.setValue(0)
         if app.splashscrn is not None:
             updateSplash(trans.string('Splash', 2), 0)
 
-        global Level, Area
-        Level = LevelUnit()
+        # Load the actual level for this specific game
+        if game is NewSuperMarioBros:
+            # This game is not supported... YET
+            raise NotImplementedError
+        elif game is NewSuperMarioBrosWii:
+            self.LoadLevel_NSMBW(levelData, areaNum, progress)
+        elif game is NewSuperMarioBros2:
+            self.LoadLevel_NSMB2(levelData, areaNum, progress)
+        elif game is NewSuperMarioBrosU:
+            # This game is not supported... YET
+            raise NotImplementedError
+        elif game is NewSuperLuigiU:
+            # This game is not supported... YET
+            raise NotImplementedError
 
-        if name is None:
-            Level.newLevel()
+        # Fill up the area list
+        if UseRibbon:
+            self.ribbon.updateAreaComboBox(len(Level.areas), area)
         else:
-            global RestoredFromAutoSave
-            if RestoredFromAutoSave:
-                RestoredFromAutoSave = False
-                Level.loadLevel('AUTO_FLAG', True, 1, progress)
-            else:
-                Level.loadLevel(name, fullpath, area, progress)
+            self.areaComboBox.clear()
+            for i in range(1, len(Level.areas) + 1):
+                self.areaComboBox.addItem(trans.string('AreaCombobox', 0, '[num]', i))
+            self.areaComboBox.setCurrentIndex(areaNum - 1)
 
+        self.levelOverview.update()
+
+        # Scroll to the initial entrance
+        startEntID = Area.startEntrance
+        startEnt = None
+        for ent in Area.entrances:
+            if ent.entid == startEntID: startEnt = ent
+
+        self.view.centerOn(0, 0)
+        if startEnt is not None: self.view.centerOn(startEnt.objx * 1.5, startEnt.objy * 1.5)
+        self.ZoomTo(100.0)
+
+        # Reset some editor things
+        if UseRibbon:
+            self.ribbon.setBtnEnabled('addarea', len(Level.areas) < 4)
+            self.ribbon.setBtnEnabled('imarea', len(Level.areas) < 4)
+            self.ribbon.setBtnEnabled('delarea', len(Level.areas) > 1)
+        else:
+            self.actions['showlay0'].setChecked(True)
+            self.actions['showlay1'].setChecked(True)
+            self.actions['showlay2'].setChecked(True)
+            self.actions['addarea'].setEnabled(len(Level.areas) < 4)
+            self.actions['importarea'].setEnabled(len(Level.areas) < 4)
+            self.actions['deletearea'].setEnabled(len(Level.areas) > 1)
+
+        # Turn snapping back on
         OverrideSnapping = False
 
-        # prepare the object picker
+        # Turn the dirty flag off
+        DirtyOverride -= 1
+        self.UpdateTitle()
+
+        # Update UI things
+        self.scene.update()
+
+        self.levelOverview.Reset()
+        self.levelOverview.update()
+        QtCore.QTimer.singleShot(20, self.levelOverview.update)
+
+        # Remove the splashscreen
+        removeSplash()
+
+        # Add the path to Recent Files
+        self.RecentFilesMgr.addPath(mainWindow.fileSavePath)
+
+        # Set the Current Game setting
+        self.CurrentGame = game
+        setSetting('CurrentGame', self.CurrentGame)
+
+        # If we got this far, everything worked! Return True.
+        return True
+
+
+    def LoadLevel_NSMBW(self, levelData, areaNum, progress):
+        """
+        Performs all level-loading tasks specific to New Super Mario Bros. Wii levels.
+        Do not call this directly - use LoadLevel(NewSuperMarioBrosWii, ...) instead!
+        """
+        raise NotImplementedError
+
+    def LoadLevel_NSMB2(self, levelData, areaNum, progress):
+        """
+        Performs all level-loading tasks specific to New Super Mario Bros. 2 levels.
+        Do not call this directly - use LoadLevel(NewSuperMarioBros2, ...) instead!
+        """
+
+        # Create the new level object
+        global Level
+        Level = Level_NSMB2()
+
+        # Load it
+        Level.load(levelData, areaNum, progress)
+
+        # Prepare the object picker
         if progress is not None:
             progress.setLabelText(trans.string('Splash', 4))
             progress.setValue(6)
@@ -17390,64 +17537,41 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
         self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
 
-        # add all the objects to the scene
+        # Add all things to scene
         if progress is not None:
             progress.setLabelText(trans.string('Splash', 5))
             progress.setValue(7)
         if app.splashscrn is not None:
             updateSplash(trans.string('Splash', 5), 7)
 
-        scene = self.scene
-        scene.clear()
-
-        sprlist = self.spriteList
-        sprlist.clear()
-        sprlist.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
-
-        entlist = self.entranceList
-        entlist.clear()
-        entlist.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
-
-        loclist = self.locationList
-        loclist.clear()
-        loclist.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
-
-        pathlist = self.pathList
-        pathlist.clear()
-        pathlist.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
-
+        # Load events
         self.LoadEventTabFromLevel()
 
-        comlist = self.commentList
-        comlist.clear()
-        comlist.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
-
-        addItem = scene.addItem
-
+        # Add all things to the scene
         pcEvent = self.HandleObjPosChange
         for layer in reversed(Area.layers):
             for obj in layer:
                 obj.positionChanged = pcEvent
-                addItem(obj)
+                self.scene.addItem(obj)
 
         pcEvent = self.HandleSprPosChange
         for spr in Area.sprites:
             spr.positionChanged = pcEvent
             spr.listitem = QtWidgets.QListWidgetItem()
-            sprlist.addItem(spr.listitem)
-            addItem(spr)
+            self.spriteList.addItem(spr.listitem)
+            self.scene.addItem(spr)
             spr.UpdateListItem()
 
         pcEvent = self.HandleEntPosChange
         for ent in Area.entrances:
             ent.positionChanged = pcEvent
             ent.listitem = QtWidgets.QListWidgetItem()
-            entlist.addItem(ent.listitem)
-            addItem(ent)
+            self.entranceList.addItem(ent.listitem)
+            self.scene.addItem(ent)
             ent.UpdateListItem()
 
         for zone in Area.zones:
-            addItem(zone)
+            self.scene.addItem(zone)
 
         pcEvent = self.HandleLocPosChange
         scEvent = self.HandleLocSizeChange
@@ -17455,21 +17579,21 @@ class ReggieWindow(QtWidgets.QMainWindow):
             location.positionChanged = pcEvent
             location.sizeChanged = scEvent
             location.listitem = QtWidgets.QListWidgetItem()
-            loclist.addItem(location.listitem)
-            addItem(location)
+            self.locationList.addItem(location.listitem)
+            self.scene.addItem(location)
             location.UpdateListItem()
 
         for path in Area.paths:
             path.positionChanged = self.HandlePathPosChange
             path.listitem = QtWidgets.QListWidgetItem()
-            pathlist.addItem(path.listitem)
-            addItem(path)
+            self.pathList.addItem(path.listitem)
+            self.scene.addItem(path)
             path.UpdateListItem()
 
         for path in Area.pathdata:
             peline = PathEditorLineItem(path['nodes'])
             path['peline'] = peline
-            addItem(peline)
+            self.scene.addItem(peline)
             peline.loops = path['loops']
             path.UpdateListItem()
 
@@ -17477,59 +17601,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
             com.positionChanged = self.HandleComPosChange
             com.textChanged = self.HandleComTxtChange
             com.listitem = QtWidgets.QListWidgetItem()
-            comlist.addItem(com.listitem)
-            addItem(com)
+            self.commentList.addItem(com.listitem)
+            self.scene.addItem(com)
             com.UpdateListItem()
-
-
-        # fill up the area list
-        if UseRibbon:
-            self.ribbon.updateAreaComboBox(len(Level.areas), area)
-        else:
-            self.areaComboBox.clear()
-            for i in range(1, len(Level.areas) + 1):
-                self.areaComboBox.addItem(trans.string('AreaCombobox', 0, '[num]', i))
-            self.areaComboBox.setCurrentIndex(area-1)
-
-        self.levelOverview.update()
-
-        # scroll to the initial entrance
-        startEntID = Area.startEntrance
-        startEnt = None
-        for ent in Area.entrances:
-            if ent.entid == startEntID: startEnt = ent
-
-        self.view.centerOn(0,0)
-        if startEnt is not None: self.view.centerOn(startEnt.objx*1.5, startEnt.objy*1.5)
-        self.ZoomTo(100.0)
-
-        # reset some editor things
-        if UseRibbon:
-            self.ribbon.setBtnEnabled('addarea', len(Level.areas) < 4)
-            self.ribbon.setBtnEnabled('imarea', len(Level.areas) < 4)
-            self.ribbon.setBtnEnabled('delarea', len(Level.areas) > 1)
-        else:
-            self.actions['showlay0'].setChecked(True)
-            self.actions['showlay1'].setChecked(True)
-            self.actions['showlay2'].setChecked(True)
-            self.actions['addarea'].setEnabled(len(Level.areas) < 4)
-            self.actions['importarea'].setEnabled(len(Level.areas) < 4)
-            self.actions['deletearea'].setEnabled(len(Level.areas) > 1)
-        DirtyOverride -= 1
-        self.UpdateTitle()
-
-        self.scene.update()
-
-        self.levelOverview.Reset()
-        self.levelOverview.update()
-        QtCore.QTimer.singleShot(20, self.levelOverview.update)
-
-        # remove the splashscreen
-        removeSplash()
-
-        self.RecentFilesMgr.addPath(Level.arcname)
-
-        return True
 
 
     @QtCore.pyqtSlot()
@@ -18864,7 +18938,7 @@ def main():
             global RestoredFromAutoSave, AutoSavePath, AutoSaveData
             RestoredFromAutoSave = True
             AutoSavePath = autofile
-            AutoSaveData = autofiledata
+            AutoSaveData = bytes(autofiledata, 'latin-1')
         else:
             setSetting('AutoSaveFilePath', 'none')
             setSetting('AutoSaveFileData', 'x')
