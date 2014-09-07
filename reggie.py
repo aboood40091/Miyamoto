@@ -700,7 +700,7 @@ def LoadSpriteData():
     """
     global Sprites
 
-    Sprites = [None] * 483
+    Sprites = [None] * 500
     errors = []
     errortext = []
 
@@ -828,7 +828,7 @@ def LoadSpriteCategories(reload_=False):
                                 CurrentCategory.append(i)
 
     # Add a Search category
-    SpriteCategories.append((trans.string('Sprites', 19), [(trans.string('Sprites', 16), list(range(0,483)))], []))
+    SpriteCategories.append((trans.string('Sprites', 19), [(trans.string('Sprites', 16), list(range(0, 500)))], []))
     SpriteCategories[-1][1][0][1].append(9999) # 'no results' special case
 
 
@@ -2707,7 +2707,7 @@ class Level_NSMB2(AbstractLevel):
 
         # Go through the areas, save them and add them back to the archive
         for areanum, area in enumerate(self.areas):
-            course, L0, L1, L2 = area.saveArea()
+            course, L0, L1, L2 = area.save()
 
             if course is not None:
                 newArchive['course/course%d.bin' % (areanum+1)] = course
@@ -2863,7 +2863,7 @@ class AbstractParsedArea(AbstractArea):
 
         return True
 
-    def saveArea(self):
+    def save(self):
         """
         Save the area back to a file
         """
