@@ -700,7 +700,7 @@ def LoadSpriteData():
     """
     global Sprites
 
-    Sprites = [None] * 500
+    Sprites = [None] * 326
     errors = []
     errortext = []
 
@@ -828,7 +828,7 @@ def LoadSpriteCategories(reload_=False):
                                 CurrentCategory.append(i)
 
     # Add a Search category
-    SpriteCategories.append((trans.string('Sprites', 19), [(trans.string('Sprites', 16), list(range(0, 500)))], []))
+    SpriteCategories.append((trans.string('Sprites', 19), [(trans.string('Sprites', 16), list(range(0, 326)))], []))
     SpriteCategories[-1][1][0][1].append(9999) # 'no results' special case
 
 
