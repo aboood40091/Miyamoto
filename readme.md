@@ -1,4 +1,5 @@
 # Reggie! Level Editor Next
+## The New Super Mario Bros. Wii / New Super Mario Bros. 2 Editor 
 (Milestone 2 Alpha 4)
 
 ----------------------------------------------------------------
@@ -11,7 +12,7 @@ On GitHub: https://github.com/RoadrunnerWMC/Reggie-Next
 
 **NOTE: THIS IS A VERY UNSTABLE PRERELEASE VERSION! EXPECT CRASHES AND UNFINISHED THINGS!**
 
-Advanced level editor for New Super Mario Bros. Wii, created by Treeki, Tempus and RoadrunnerWMC using Python, PyQt and Wii.py .
+Advanced level editor for New Super Mario Bros. Wii and New Super Mario Bros. 2, created by Treeki, Tempus and RoadrunnerWMC using Python, PyQt and Wii.py .
 
 "Next" version created by RoadrunnerWMC, based on official release 3.
 
@@ -20,8 +21,11 @@ This release contains many improvements, in addition to code imports from the fo
  * "Reggie! Level Editor Mod (Newer Sprites) 3.8.1" by Kamek64 and MalStar1000
  * "NeweReggie! (Extension to Reggie! Level Editor)" by Treeki and angelsl
 
-Source code repository for Reggie! Next can be found at:  
+Source code repository for Reggie! Next can be found at: 
 https://github.com/RoadrunnerWMC/Reggie-Next 
+
+
+New Super Mario Bros. 2 support is currently experimental, unfinished and buggy.
 
 ----------------------------------------------------------------
 
@@ -102,6 +106,9 @@ See the license file in the distribution for information.
 
 Release Next (Milestone 2 Alpha 4): (unreleased)
  * Stamp preview icons are now functional
+ * Added image previews to sprite, entrance, location, paths and comments lists
+ * Added experimental New Super Mario Bros. 2 support
+ * Bug fixes
 
 Release Next (Milestone 2 Alpha 3): (August 5, 2014)
  * Now requires TPLLib, which is not included
