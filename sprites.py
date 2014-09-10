@@ -2978,7 +2978,10 @@ class SpriteImage_Water(SpriteImage_LiquidOrFog): # 138
         if not self.paintZone:
             self.locationIDs.add(self.parent.spritedata[5])
 
-        self.drawCrest = self.parent.spritedata[4] & 15 == 0
+        self.drawCrest = True
+        if self.parent.spritedata[4] & 0xF in (8, 12):
+            self.drawCrest = False
+
         self.risingHeight = (self.parent.spritedata[3] & 0xF) << 4
         self.risingHeight |= self.parent.spritedata[4] >> 4
         self.risingHeight *= 24
