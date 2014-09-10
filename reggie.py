@@ -8351,7 +8351,7 @@ class ReggieGameDefinition():
         if name in NoneTypes: return
         else:
             try: self.InitFromName(name)
-            except Exception: raise#self.InitAsEmpty() # revert
+            except Exception: self.InitAsEmpty() # revert
 
 
     def InitAsEmpty(self):
