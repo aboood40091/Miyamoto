@@ -8392,6 +8392,7 @@ class ReggieGameDefinition():
         """
         Attempts to open/load a Game Definition from a name string
         """
+        raise NotImplementedError
         self.custom = True
         name = str(name)
         self.gamepath = name
