@@ -73,6 +73,7 @@ except (ImportError, NameError):
 import archive
 import LHTool
 import lz77
+import SARC as SarcLib
 import spritelib as SLib
 import sprites
 import TPLLib
@@ -208,10 +209,10 @@ def module_path():
 
 compressed = False
 def checkContent(data):
-    if not data.startswith(b'U\xAA8-'):
+    if not data.startswith(b'SARC'):
         return False
 
-    required = (b'course\0', b'course1.bin\0', b'\0\0\0\x80')
+    required = (b'course/', b'course1.bin')
     for r in required:
         if r not in data:
             return False
@@ -289,14 +290,14 @@ def SetGamePath(newpath):
 
 def isValidGamePath(check='ug'):
     """
-    Checks to see if the path for NSMBWii contains a valid game
+    Checks to see if the path for NSMB2 contains a valid game
     """
     if check == 'ug': check = gamedef.GetGamePath()
 
     if check is None or check == '': return False
     if not os.path.isdir(check): return False
-    if not os.path.isdir(os.path.join(check, 'Texture')): return False
-    if not os.path.isfile(os.path.join(check, '01-01.arc')): return False
+    #if not os.path.isdir(os.path.join(check, 'Texture')): return False
+    if not os.path.isfile(os.path.join(check, '1-1.sarc')): return False
 
     return True
 
@@ -951,7 +952,7 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
             if isinstance(item[1], str):
                 # it's a level
                 node.setData(0, Qt.UserRole, item[1])
-                node.setToolTip(0, item[1] + '.arc')
+                node.setToolTip(0, item[1] + '.sarc')
             else:
                 # it's a category
                 children = self.ParseCategory(item[1])
@@ -1813,7 +1814,7 @@ def _LoadTileset(idx, name, reload=False):
     for path in TilesetPaths:
         if path is None: break
 
-        arcname = path + '/Texture/' + name + '.arc'
+        arcname = path + '/Texture/' + name + '.sarc'
         compressed = False
         if os.path.isfile(arcname):
             found = True
@@ -1837,7 +1838,8 @@ def _LoadTileset(idx, name, reload=False):
         arcdata = fileobj.read()
     if compressed:
         arcdata = LHTool.decompressLH(arcdata)
-    arc = archive.U8.load(arcdata)
+    arc = SarcLib.SARC_Archive()
+    arc.load(arcdata)
 
     # decompress the textures
     try:
@@ -2638,13 +2640,20 @@ class Level_NSMB2(AbstractLevel):
 
         global Area
 
-        arc = archive.U8.load(data)
+        arc = SarcLib.SARC_Archive()
+        arc.load(data)
+
+        try:
+            courseFolder = arc['course']
+        except:
+            return False
 
         # Sort the area data
         areaData = {}
-        for name, val in arc.files:
+        for file in courseFolder.contents:
+            name, val = file.name, file.data
+
             if val is None: continue
-            name = name.replace('\\', '/').split('/')[-1]
 
             if not name.startswith('course'): continue
             if not name.endswith('.bin'): continue
@@ -2700,26 +2709,27 @@ class Level_NSMB2(AbstractLevel):
         """
 
         # Make a new archive
-        newArchive = archive.U8()
+        newArchive = SarcLib.SARC_Archive()
 
         # Create a folder within the archive
-        newArchive['course'] = None
+        courseFolder = SarcLib.Folder('course')
+        newArchive.addFolder(courseFolder)
 
         # Go through the areas, save them and add them back to the archive
         for areanum, area in enumerate(self.areas):
             course, L0, L1, L2 = area.save()
 
             if course is not None:
-                newArchive['course/course%d.bin' % (areanum+1)] = course
+                courseFolder.addFile(SarcLib.File('course%d.bin' % (areanum + 1), course))
             if L0 is not None:
-                newArchive['course/course%d_bgdatL0.bin' % (areanum+1)] = L0
+                courseFolder.addFile(SarcLib.File('course%d_bgdatL0.bin' % (areanum + 1), L0))
             if L1 is not None:
-                newArchive['course/course%d_bgdatL1.bin' % (areanum+1)] = L1
+                courseFolder.addFile(SarcLib.File('course%d_bgdatL1.bin' % (areanum + 1), L1))
             if L2 is not None:
-                newArchive['course/course%d_bgdatL2.bin' % (areanum+1)] = L2
+                courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (areanum + 1), L2))
 
         # return the U8 archive data
-        return newArchive._dump()
+        return newArchive.save()
 
 
     def addArea(self):
@@ -8779,7 +8789,7 @@ class ReggieTranslation():
                 18: 'Custom filename... [name]',
                 19: '[name] ([file])',
                 20: 'Enter a Filename',
-                21: 'Enter the name of a custom tileset file to use. It must be placed in the game\'s Stage\\Texture folder in order for Reggie to recognize it. Do not add the \'.arc\' extension at the end of the filename.',
+                21: 'Enter the name of a custom tileset file to use. It must be placed in the game\'s Stage\\Texture or Unit folder in order for Reggie to recognize it. Do not add the \'.arc\' or \'.sarc\' extension at the end of the filename.',
                 22: 'Unknown Value 1:',
                 23: 'Unknown Value 2:',
                 24: 'Unknown Value 3:', # Currently unused
@@ -8851,7 +8861,7 @@ class ReggieTranslation():
                     ),
                 },
             'ChangeGamePath': {
-                0: 'Choose the Stage folder from [game]',
+                0: 'Choose the Course folder from [game]',
                 1: 'Error',
                 2: 'This folder doesn\'t have all of the files from the extracted NSMBWii Stage folder.',
                 3: 'This folder doesn\'t seem to have the required files. In order to use Reggie, you need the Stage folder from the game, including the Texture folder and the level files contained within it.',
@@ -8980,7 +8990,7 @@ class ReggieTranslation():
                 },
             'FileDlgs': {
                 0: 'Choose a level archive',
-                1: 'Level Archives',
+                1: 'NSMB2 Level Archives',
                 2: 'All Files',
                 3: 'Choose a new filename',
                 4: 'Portable Network Graphics',
@@ -9002,8 +9012,8 @@ class ReggieTranslation():
                 10: 'Reloading tilesets...',
                 11: 'Loading sprite image data...',
                 12: 'Applying sprite image data...',
-                13: 'New Super Mario Bros. Wii',
-                14: 'A new Mario adventure![br]Published by Nintendo in November 2009.',
+                13: 'New Super Mario Bros. 2',
+                14: '(insert catchphrase here)[br]Published by Nintendo in August 2012.',
                 15: '[i]No description[/i]',
                 16: 'Loading entrance names...',
                 17: 'Error',
@@ -11444,7 +11454,7 @@ class OldTilesetsTab(QtWidgets.QWidget):
 
             if result == QtWidgets.QDialog.Accepted:
                 fname = str(dbox.textbox.text())
-                if fname.endswith('.arc'): fname = fname[:-4]
+                if fname.endswith('.sarc'): fname = fname[:-4]
 
                 w.setItemText(index, trans.string('AreaDlg', 18, '[name]', fname))
                 w.setItemData(index, trans.string('AreaDlg', 17, '[name]', fname))
@@ -16612,8 +16622,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
             return
 
         filetypes = ''
-        filetypes += trans.string('FileDlgs', 1) + ' (*.arc);;' # *.arc
-        filetypes += trans.string('FileDlgs', 5) + ' (*.arc.lh);;' # *.arc.LH
+        filetypes += trans.string('FileDlgs', 1) + ' (*.sarc);;' # *.sarc
+        filetypes += trans.string('FileDlgs', 5) + ' (*.sarc.lh);;' # *.sarc.LH
         filetypes += trans.string('FileDlgs', 2) + ' (*)' # *
         fn = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return
@@ -16623,7 +16633,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if LHTool.isLHCompressed(arcdata):
             arcdata = LHTool.decompressLH(arcdata)
 
-        arc = archive.U8.load(arcdata)
+        arc = SarcLib.SARC_Archive()
+        arc.load(arcdata)
 
         # get the area count
         areacount = 0
@@ -16805,8 +16816,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if self.CheckDirty(): return
 
         filetypes = ''
-        filetypes += trans.string('FileDlgs', 1) + ' (*.arc);;' # *.arc
-        filetypes += trans.string('FileDlgs', 5) + ' (*.arc.lh);;' # *.arc.LH
+        filetypes += trans.string('FileDlgs', 1) + ' (*.sarc);;' # *.sarc
+        filetypes += trans.string('FileDlgs', 5) + ' (*.sarc.lh);;' # *.sarc.LH
         filetypes += trans.string('FileDlgs', 2) + ' (*)' # *
         fn = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return
@@ -16845,7 +16856,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Save a level back to the archive, with a new filename
         """
-        fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', trans.string('FileDlgs', 1) + ' (*.arc);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
+        fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', trans.string('FileDlgs', 1) + ' (*.sarc);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
         if fn == '': return
         fn = str(fn)
 
