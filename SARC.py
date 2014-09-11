@@ -213,6 +213,8 @@ class SARC_Archive(FileArchive):
         # to make some changes to reggie.py, because the
         # NSMB2 file-saving code assumes that a brand-new
         # SARC_Archive will be little-endian!
+
+        self.hashMultiplier = 0x65
         
         if data is not None:
             self.load(data)
@@ -271,10 +273,8 @@ class SARC_Archive(FileArchive):
         # Node count (0x1A - 0x1C)
         nodeCount = struct.unpack(endian + 'H', data[0x1A:0x1C])[0]
 
-        # Unknown value (0x1D - 0x1F)
-        unkVal = struct.unpack(endian + 'I', data[0x1C:0x20])[0]
-        # This is always 0x00000065, but let's not check for that
-        # because we ultimately don't know what this is.
+        # Hash multiplier (0x1D - 0x1F)
+        self.hashMultiplier = struct.unpack(endian + 'I', data[0x1C:0x20])[0]
 
 
         # SFAT Nodes (0x20 - 0x20+(0x10*nodeCount))
@@ -398,11 +398,10 @@ class SARC_Archive(FileArchive):
         return True
 
     @staticmethod
-    def filenameHash(filename, endian):
+    def filenameHash(filename, endian, multiplier):
         """
         Returns the hash that should be used by an SFAT node.
         """
-        multiplier = 0x65
         result = 0
         for char in filename:
             result = result * multiplier + ord(char)
@@ -444,7 +443,7 @@ class SARC_Archive(FileArchive):
             key=lambda filetuple:
                 struct.unpack(
                     self.endianness + 'I',
-                    self.filenameHash(filetuple[0], self.endianness),
+                    self.filenameHash(filetuple[0], self.endianness, self.hashMultiplier),
                     ),
             )
 
@@ -528,11 +527,8 @@ class SARC_Archive(FileArchive):
         # Number of files
         sfatHead += struct.pack(endian + 'H', len(files))
 
-        # Unknown value 0x00000065
-        if self.endianness == '>':
-            sfatHead += b'\x00\x00\x00\x65'
-        else:
-            sfatHead += b'\x65\x00\x00\x00'
+        # Hash multiplier
+        sfatHead += struct.pack(endian + 'I', self.hashMultiplier)
 
         # SFAT Nodes
         sfat = b''
@@ -540,7 +536,7 @@ class SARC_Archive(FileArchive):
             file, filenameoffset, filedataoffset = file_filenameoffset_filedataoffset
             filepath, file = filepath_file
             # File ID
-            sfat += self.filenameHash(filepath, self.endianness)
+            sfat += self.filenameHash(filepath, self.endianness, self.hashMultiplier)
             # Filename Offset (4 bytes + a constant?)
             sfat += struct.pack(endian + 'I', (filenameoffset // 4) | 0x1000000)
             # Filedata Offset
