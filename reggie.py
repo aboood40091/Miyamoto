@@ -14901,6 +14901,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.CurrentSelection = []
 
         self.CurrentGame = setting('CurrentGame')
+        if self.CurrentGame is None: self.CurrentGame = NewSuperMarioBros2
 
         # set up the window
         QtWidgets.QMainWindow.__init__(self, None)
@@ -14959,7 +14960,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # now get stuff ready
         loaded = False
-        curgame = setting('CurrentGame')
+        curgame = self.CurrentGame
+
         if len(sys.argv) > 1 and os.path.isfile(sys.argv[1]) and IsNSMBLevel(sys.argv[1]):
             loaded = self.LoadLevel(curgame, sys.argv[1], True, 1)
         elif settings.contains('LastLevel'):
