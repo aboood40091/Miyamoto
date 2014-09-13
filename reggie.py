@@ -3079,22 +3079,22 @@ class Area_NSMB2(AbstractParsedArea):
 
     def LoadZones(self):
         """
-        Loads block 3, the bounding preferences
+        Loads blocks 3, 5, 6 and 10 - the bounding, background and zone data
         """
+
+        # Block 3 - bounding data
         bdngdata = self.blocks[2]
-        count = len(bdngdata) // 24
+        count = len(bdngdata) // 28
         bdngstruct = struct.Struct('<llllxBxBxxxx')
         offset = 0
         bounding = []
         for i in range(count):
             datab = bdngstruct.unpack_from(bdngdata,offset)
             bounding.append([datab[0], datab[1], datab[2], datab[3], datab[4], datab[5]])
-            offset += 24
+            offset += 28
         self.bounding = bounding
 
-        """
-        Loads block 5, the top level background values
-        """
+        # Block 5 - BgA data
         bgAdata = self.blocks[4]
         bgAcount = len(bgAdata) // 24
         bgAstruct = struct.Struct('<xBhhhhHHHxxxBxxxx')
@@ -3106,9 +3106,7 @@ class Area_NSMB2(AbstractParsedArea):
             offset += 24
         self.bgA = bgA
 
-        """
-        Loads block 6, the bottom level background values
-        """
+        # Block 6 - BgB data
         bgBdata = self.blocks[5]
         bgBcount = len(bgBdata) // 24
         bgBstruct = struct.Struct('<xBhhhhHHHxxxBxxxx')
@@ -3120,18 +3118,17 @@ class Area_NSMB2(AbstractParsedArea):
             offset += 24
         self.bgB = bgB
 
-        """
-        Loads block 10, the zone data
-        """
+        # Block 10 - zone data
         zonedata = self.blocks[9]
+
         zonestruct = struct.Struct('<HHHHHHBBBBxBBBBxBB')
-        count = len(zonedata) // 24
+        count = len(zonedata) // 28
         offset = 0
         zones = []
         for i in range(count):
             dataz = zonestruct.unpack_from(zonedata,offset)
             zones.append(ZoneItem(dataz[0], dataz[1], dataz[2], dataz[3], dataz[4], dataz[5], dataz[6], dataz[7], dataz[8], dataz[9], dataz[10], dataz[11], dataz[12], dataz[13], dataz[14], dataz[15], bounding, bgA, bgB, i))
-            offset += 24
+            offset += 28
         self.zones = zones
 
 
@@ -3914,12 +3911,13 @@ class ZoneItem(LevelEditorItem):
         for block in boundings:
             if block[4] == id: bounding = block
 
-        self.yupperbound = bounding[0]
-        self.ylowerbound = bounding[1]
-        self.yupperbound2 = bounding[2]
-        self.ylowerbound2 = bounding[3]
-        self.entryid = bounding[4]
-        self.unknownbnf = bounding[5]
+        if bounding is not None:
+            self.yupperbound = bounding[0]
+            self.ylowerbound = bounding[1]
+            self.yupperbound2 = bounding[2]
+            self.ylowerbound2 = bounding[3]
+            self.entryid = bounding[4]
+            self.unknownbnf = bounding[5]
 
         bgABlock = bgA[0]
         id = self.block5id
