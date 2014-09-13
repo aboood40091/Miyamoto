@@ -4129,12 +4129,12 @@ class ZoneItem(LevelEditorItem):
                     self.width += xdelta
                     self.height += ydelta
 
-                if self.width < 300:
-                    self.objx -= (300 - self.width)
-                    self.width = 300
-                if self.height < 200:
-                    self.objy -= (200 - self.height)
-                    self.height = 200
+                if self.width < 16:
+                    self.objx -= (16 - self.width)
+                    self.width = 16
+                if self.height < 16:
+                    self.objy -= (16 - self.height)
+                    self.height = 16
 
                 if self.objx < 16:
                     self.width -= (16 - self.objx)
