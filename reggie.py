@@ -46,6 +46,7 @@ from math import floor as math_floor
 import os.path
 import pickle
 import struct
+import subprocess
 import threading
 import time
 import urllib.request
@@ -296,7 +297,7 @@ def isValidGamePath(check='ug'):
 
     if check is None or check == '': return False
     if not os.path.isdir(check): return False
-    #if not os.path.isdir(os.path.join(check, 'Texture')): return False
+    if not os.path.isdir(os.path.join(check, 'Unit')): return False
     if not os.path.isfile(os.path.join(check, '1-1.sarc')): return False
 
     return True
@@ -986,7 +987,7 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
             self.accept()
 
 
-Tiles = None # 256 tiles per tileset, plus 64 for each type of override
+Tiles = None # 441 tiles per tileset, plus 64 for each type of override
 TilesetFilesLoaded = [None, None, None, None]
 TilesetAnimTimer = None
 Overrides = None # 320 tiles, this is put into Tiles usually
@@ -1028,7 +1029,8 @@ class ObjectDef():
                 i += 1
             else:
                 extra = source[i+2]
-                tile = (cbyte, source[i+1] | ((extra & 3) << 8), extra >> 2)
+                tilesetoffset = ((extra & 7) >> 1) * 441
+                tile = (cbyte, source[i+1] + tilesetoffset, extra >> 2)
                 row.append(tile)
                 i += 3
 
@@ -1782,7 +1784,7 @@ def CreateTilesets():
     """
     global Tiles, TilesetFilesLoaded, TilesetAnimTimer, TileBehaviours, ObjectDefinitions
 
-    Tiles = [None]*1024
+    Tiles = [None]*441*4
     Tiles += Overrides
     TilesetFilesLoaded = [None, None, None, None]
     #TileBehaviours = [0]*1024
@@ -1814,7 +1816,7 @@ def _LoadTileset(idx, name, reload=False):
     for path in TilesetPaths:
         if path is None: break
 
-        arcname = path + '/Texture/' + name + '.sarc'
+        arcname = path + '/Unit/' + name + '.sarc'
         compressed = False
         if os.path.isfile(arcname):
             found = True
@@ -1843,39 +1845,38 @@ def _LoadTileset(idx, name, reload=False):
 
     # decompress the textures
     try:
-        comptiledata = arc['BG_tex/%s_tex.bin.LZ' % name]
-        colldata = arc['BG_chk/d_bgchk_%s.bin' % name]
+        comptiledata = arc['BG_tex/%s.ctpk' % name].data
+        colldata = arc['BG_chk/d_bgchk_%s.bin' % name].data
     except KeyError:
         QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
         return False
 
     # load in the textures
-    lz = lz77.LZS11()
-    img = LoadTexture(lz.Decompress11LZS(comptiledata))
+    img = LoadTexture(comptiledata)
 
     # Divide it into individual tiles and
     # add collisions at the same time
     dest = QtGui.QPixmap.fromImage(img)
-    sourcex = 4
-    sourcey = 4
-    tileoffset = idx * 256
-    for i in range(tileoffset,tileoffset + 256):
-        T = TilesetTile(dest.copy(sourcex,sourcey,24,24))
-        T.setCollisions(struct.unpack_from('>8B', colldata, (i-tileoffset)*8))
+    sourcex = 0
+    sourcey = 0
+    tileoffset = idx * 441
+    for i in range(tileoffset, tileoffset + 441):
+        T = TilesetTile(dest.copy(sourcex, sourcey, 24, 24))
         Tiles[i] = T
-        sourcex += 32
-        if sourcex >= 1024:
-            sourcex = 4
-            sourcey += 32
+        sourcex += 24
+        if sourcex >= 504:
+            sourcex = 0
+            sourcey += 24
 
 
     # Load the tileset animations, if there are any
-    isAnimated, prefix = CheckTilesetAnimated(arc)
+    #isAnimated, prefix = CheckTilesetAnimated(arc)
+    isAnimated = False
     if isAnimated:
-        tileoffset = idx*256
+        tileoffset = idx*441
         row = 0
         col = 0
-        for i in range(tileoffset,tileoffset+256):
+        for i in range(tileoffset,tileoffset+441):
             filenames = []
             filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].lower(), hex(col)[2].lower()))
             filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].upper(), hex(col)[2].upper()))
@@ -1900,19 +1901,19 @@ def _LoadTileset(idx, name, reload=False):
 
 
     # load the object definitions
-    defs = [None]*256
+    defs = [None] * 256
 
-    indexfile = arc['BG_unt/%s_hd.bin' % name]
-    deffile = arc['BG_unt/%s.bin' % name]
-    objcount = len(indexfile) // 4
-    indexstruct = struct.Struct('>HBB')
+    indexfile = arc['BG_unt/%s_hd.bin' % name].data
+    deffile = arc['BG_unt/%s.bin' % name].data
+    objcount = len(indexfile) // 6
+    indexstruct = struct.Struct('<HBBH')
 
     for i in range(objcount):
-        data = indexstruct.unpack_from(indexfile, i << 2)
+        data = indexstruct.unpack_from(indexfile, i * 6)
         obj = ObjectDef()
         obj.width = data[1]
         obj.height = data[2]
-        obj.load(deffile,data[0],tileoffset)
+        obj.load(deffile, data[0], tileoffset)
         defs[i] = obj
 
     ObjectDefinitions[idx] = defs
@@ -1927,10 +1928,25 @@ def _LoadTileset(idx, name, reload=False):
 
 
 def LoadTexture(tiledata):
-    decoder = TPLLib.decoder(TPLLib.RGB4A3)
-    decoder = decoder(tiledata, 1024, 256)
-    data = decoder.run()
-    img = QtGui.QImage(data, 1024, 256, 4096, QtGui.QImage.Format_ARGB32)
+    with open('texturipper/texture.ctpk', 'wb') as binfile:
+        binfile.write(tiledata)
+
+    with subprocess.Popen('texturipper/texturipper_1.2.exe texture.ctpk', cwd='texturipper') as proc:
+        pass
+
+    pngname = None
+    for filename in os.listdir('texturipper'):
+        if filename.endswith('.png'):
+            pngname = filename
+    if not pngname: raise Exception
+
+    with open(os.path.join('texturipper', pngname), 'rb') as pngfile:
+        img = QtGui.QImage(os.path.join('texturipper', pngname))
+
+    for filename in os.listdir('texturipper'):
+        if filename == 'texturipper_1.2.exe': continue
+        os.remove(os.path.join('texturipper', filename))
+
     return img
 
 
@@ -1988,7 +2004,7 @@ def UnloadTileset(idx):
     """
     Unload the tileset from a specific slot
     """
-    for i in range(idx*256, idx*256+256):
+    for i in range(idx*441, idx*441+441):
         Tiles[i] = None
 
     ObjectDefinitions[idx] = None
@@ -8961,7 +8977,7 @@ class ReggieTranslation():
                 },
             'Err_CorruptedTileset': {
                 0: 'Error',
-                1: 'An error occurred while trying to load [file].arc. Check your Texture folder to make sure it is complete and not corrupted. The editor may run in a broken state or crash after this.',
+                1: 'An error occurred while trying to load [file].arc. Check your Unit folder to make sure it is complete and not corrupted. The editor may run in a broken state or crash after this.',
                 },
             'Err_CorruptedTilesetData': {
                 0: 'Error',
@@ -17578,7 +17594,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Level = Level_NSMB2()
 
         # Load it
-        Level.load(levelData, areaNum, progress)
+        if not Level.load(levelData, areaNum, progress):
+            raise Exception
 
         # Prepare the object picker
         if progress is not None:

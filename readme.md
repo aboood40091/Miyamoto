@@ -93,6 +93,7 @@ TPLLib - Tempus, RoadrunnerWMC (https://github.com/RoadrunnerWMC/TPLLib)
 Wii.py - megazig, Xuzz, The Lemon Man, Matt_P, SquidMan, Omega (https://github.com/grp/Wii.py) (included)  
 Interface Icons - FlatIcons (http://flaticons.net)  
 cx_Freeze - Anthony Tuininga (http://cx-freeze.sourceforge.net)
+texturipper 1.2 - Normatt (http://gbatemp.net/threads/tool-texturipper.370920/) & (http://tcrf.net/File:Texturipper_1.1.7z) (included)
 
 
 ### License

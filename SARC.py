@@ -117,18 +117,20 @@ class FileArchive():
         currentPlaceToLook = self.contents
         folderStructure = key.replace('\\', '/').split('/')
 
-        for folderName in folderStructure[1:]:
+        for folderName in folderStructure[:-1]:
             found = False
+
             for lookObj in currentPlaceToLook:
                 if isinstance(lookObj, Folder) and lookObj.name == folderName:
                     currentPlaceToLook = lookObj.contents
                     found = True
                     break
+
             if not found:
                 raise KeyError('File/Folder not found')
 
         for file in currentPlaceToLook:
-            if file.name == key: return file
+            if file.name == folderStructure[-1]: return file
 
         raise KeyError('File/Folder not found')
 
