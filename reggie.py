@@ -1861,7 +1861,7 @@ def _LoadTileset(idx, name, reload=False):
     sourcey = 0
     tileoffset = idx * 441
     for i in range(tileoffset, tileoffset + 441):
-        T = TilesetTile(dest.copy(sourcex, sourcey, 24, 24))
+        T = TilesetTile(dest.copy(sourcex + 2, sourcey + 2, 20, 20).scaledToWidth(24, Qt.SmoothTransformation))
         Tiles[i] = T
         sourcex += 24
         if sourcex >= 504:
