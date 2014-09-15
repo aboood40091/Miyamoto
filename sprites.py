@@ -42,9 +42,29 @@ ImageCache = SLib.ImageCache
 
 ################################################################
 ################################################################
+
+
+class SpriteImage_Coin(SLib.SpriteImage_Static): # 55
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['Coin'],
+            )
+
+
+class SpriteImage_StarCoin(SLib.SpriteImage_Static): # 219
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            ImageCache['StarCoin'],
+            )
+
+
 ################################################################
 ################################################################
 
 
 ImageClasses = {
+    55: SpriteImage_Coin,
+    219: SpriteImage_StarCoin,
     }

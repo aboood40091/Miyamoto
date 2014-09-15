@@ -110,7 +110,7 @@ def LoadBasicSuite():
     ImageCache['SpecialCoin'] = GetImg('special_coin.png')
     ImageCache['PCoin'] = GetImg('p_coin.png')
     ImageCache['RedCoin'] = GetImg('redcoin.png')
-    ImageCache['StarCoin'] = GetImg('starcoin.png')
+    ImageCache['StarCoin'] = GetImg('star_coin.png')
 
     # Load blocks
     BlockImage = GetImg('blocks.png')
