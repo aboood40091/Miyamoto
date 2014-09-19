@@ -14905,8 +14905,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Editor window constructor
         """
-        global Initialising
-        Initialising = True
+        global Initializing
+        Initializing = True
 
         # Reggie Version number goes below here. 64 char max (32 if non-ascii).
         self.ReggieInfo = ReggieID
@@ -15089,7 +15089,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         LoadGameDef(setting('LastGameDef'), False)
 
         # Aaaaaand... initializing is done!
-        Initialising = False
+        Initializing = False
 
 
     def SetupActionsAndMenus(self):
@@ -15879,7 +15879,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Catches systemwide clipboard updates
         """
-        if Initialising: return
+        if Initializing: return
         clip = self.systemClipboard.text()
         if clip is not None and clip != '':
             clip = str(clip).strip()
