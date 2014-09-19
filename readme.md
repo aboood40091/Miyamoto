@@ -56,18 +56,20 @@ Developers:
  * Treeki - Creator, Programmer, Data, RE
  * Tempus - Programmer, Graphics, Data
  * AerialX - CheerIOS, Riivolution
- * megazig - Code, Optimisation, Data, RE
+ * megazig - Code, Optimization, Data, RE
  * Omega - int(), Python, Testing
- * Pop006 - Sprite Images
- * Tobias Amaranth - Sprite Info (a lot of it), Event Example Stage
- * RoadrunnerWMC - Reggie! Next Developer: Programmer, UI, Sprite Images
- * JasonP27 - ReggieMod Developer: Programmer, UI, Sprite Images
- * Kamek64 - Reggie! Newer Sprites Developer: Programmer, Sprite Images
- * ZementBlock - Sprite Data
- * MalStar1000 - Sprite Images, Other
- * Grop - Sprite Data
- * joietyfull64 - Sprite Data
- * MidiGuyDP - NewerSMBW Background Images & Names
+ * Pop006 - Sprite Images (NSMBW)
+ * Tobias Amaranth - Sprite Data (NSMBW), Event Example Stage
+ * RoadrunnerWMC - Reggie! Next Developer: Programmer, UI, Sprite Images (NSMBW), Other
+ * JasonP27 - ReggieMod Developer, Programmer, UI, Sprite Images (NSMBW)
+ * Kinnay (Kamek64) - Reggie! Newer Sprites Developer, Programmer, Sprite Images (NSMBW, NewerSMBW), Sprite Data (NSMB2)
+ * ZementBlock - Sprite Data (NSMBW)
+ * MalStar1000 - Sprite Images (NSMBW, NewerSMBW), Other
+ * joietyfull64 - Sprite Data (NSMBW)
+ * MidiGuyDP - Background Images & Names (NewerSMBW)
+ * Grop - Sprite Data (NSMBW, NSMB2), Tileset Names (NSMB2)
+ * Hiccup - Sprite Data (NSMB2), Sprite Images (NSMB2)
+ * SnakeBlock (lolBoo) - Sprite Data (NSMBW), Sprite Images (NSMB2)
 
 Translators: (in alphabetical order, by language)
  * Translation Leader: Wolfy76700
