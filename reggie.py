@@ -1549,11 +1549,15 @@ def RenderObject(tileset, objnum, width, height, fullslope=False):
     for i in range(height): dest.append([0]*width)
 
     # ignore non-existent objects
-    if tileset <= len(ObjectDefinitions):
+    try:
         tileset_defs = ObjectDefinitions[tileset]
-    else: tileset_defs = None
+    except IndexError:
+        tileset_defs = None
     if tileset_defs is None: return dest
-    obj = tileset_defs[objnum]
+    try:
+        obj = tileset_defs[objnum]
+    except IndexError:
+        obj = None
     if obj is None: return dest
     if len(obj.rows) == 0: return dest
 
@@ -1930,6 +1934,8 @@ def _LoadTileset(idx, name, reload=False):
 def LoadTexture(tiledata):
     with open('texturipper/texture.ctpk', 'wb') as binfile:
         binfile.write(tiledata)
+
+    if AutoOpenScriptEnabled: return QtGui.QImage(512, 512, QtGui.QImage.Format_ARGB32)
 
     with subprocess.Popen('texturipper/texturipper_1.2.exe texture.ctpk', cwd='texturipper') as proc:
         pass
@@ -2325,6 +2331,8 @@ GridType = None
 RestoredFromAutoSave = False
 AutoSavePath = ''
 AutoSaveData = b''
+AutoOpenScriptEnabled = False
+CurrentLevelNameForAutoOpenScript = None
 
 def createHorzLine():
     f = QtWidgets.QFrame()
@@ -2898,13 +2906,14 @@ class AbstractParsedArea(AbstractArea):
 
         # We don't parse blocks 4, 11, 12, 13, 14.
         # We can create the rest manually.
-        self.blocks = [None] * 14
+        self.blocks = [None] * 15
         self.blocks[3] = b'\0\0\0\0\0\0\0\0'
         # Other known values for block 4: 0000 0002 0042 0000,
         #            0000 0002 0002 0000, 0000 0003 0003 0000
-        self.blocks[11] = '' # never used
-        self.blocks[12] = '' # paths
-        self.blocks[13] = '' # path points
+        self.blocks[11] = b'' # never used
+        self.blocks[12] = b'' # never used
+        self.blocks[13] = b'' # paths
+        self.blocks[14] = b'' # path points
 
         # Save each block
         self.SaveTilesetNames() # block 1
@@ -3023,9 +3032,9 @@ class Area_NSMB2(AbstractParsedArea):
         """
         Loads self.blocks from the course file
         """
-        self.blocks = [None] * 14
+        self.blocks = [None] * 15
         getblock = struct.Struct('<II')
-        for i in range(14):
+        for i in range(15):
             data = getblock.unpack_from(course, i * 8)
             if data[1] == 0:
                 self.blocks[i] = b''
@@ -3189,8 +3198,8 @@ class Area_NSMB2(AbstractParsedArea):
         Loads block 12, the paths
         """
         # Path struct: >BxHHH
-        pathdata = self.blocks[12]
-        pathcount = len(pathdata) // 8
+        pathdata = self.blocks[13]
+        pathcount = len(pathdata) // 12
         pathstruct = struct.Struct('<BxHHH')
         offset = 0
         unpack = pathstruct.unpack_from
@@ -3208,7 +3217,7 @@ class Area_NSMB2(AbstractParsedArea):
             pathinfo.append(add2p)
 
 
-            offset += 8
+            offset += 12
 
         for i in range(pathcount):
             xpi = pathinfo[i]
@@ -3228,20 +3237,21 @@ class Area_NSMB2(AbstractParsedArea):
         """
         # PathNode struct: <HHffhxx
         ret = []
-        nodedata = self.blocks[13]
+        nodedata = self.blocks[14]
+        print(len(nodedata))
         nodestruct = struct.Struct('<HHffhxx')
-        offset = startindex*16
+        offset = startindex * 20
         unpack = nodestruct.unpack_from
         for i in range(count):
             data = unpack(nodedata, offset)
-            ret.append({'x':int(data[0]),
-                        'y':int(data[1]),
-                        'speed':float(data[2]),
-                        'accel':float(data[3]),
-                        'delay':int(data[4])
-                        #'id':i
+            ret.append({'x': int(data[0]),
+                        'y': int(data[1]),
+                        'speed': float(data[2]),
+                        'accel': float(data[3]),
+                        'delay': int(data[4]),
+                        #'id' : i
             })
-            offset += 16
+            offset += 20
         return ret
 
 
@@ -14952,7 +14962,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     def __init2__(self):
         """
-        Finishes initialisation. (fixes bugs with some widgets calling mainWindow.something before it's init'ed
+        Finishes initialization. (fixes bugs with some widgets calling mainWindow.something before it's fully init'ed)
         """
         # set up actions and menus
         self.SetupActionsAndMenus()
@@ -14976,14 +14986,86 @@ class ReggieWindow(QtWidgets.QMainWindow):
         loaded = False
         curgame = self.CurrentGame
 
-        if len(sys.argv) > 1 and os.path.isfile(sys.argv[1]) and IsNSMBLevel(sys.argv[1]):
-            loaded = self.LoadLevel(curgame, sys.argv[1], True, 1)
-        elif settings.contains('LastLevel'):
-            lastlevel = str(gamedef.GetLastLevel())
-            loaded = self.LoadLevel(curgame, lastlevel, True, 1)
+        if not AutoOpenScriptEnabled:
+            if len(sys.argv) > 1 and os.path.isfile(sys.argv[1]) and IsNSMBLevel(sys.argv[1]):
+                loaded = self.LoadLevel(curgame, sys.argv[1], True, 1)
+            elif settings.contains('LastLevel'):
+                lastlevel = str(gamedef.GetLastLevel())
+                loaded = self.LoadLevel(curgame, lastlevel, True, 1)
 
-        if not loaded:
-            self.LoadLevel(curgame, FirstLevels[curgame], False, 1)
+            if not loaded:
+                self.LoadLevel(curgame, FirstLevels[curgame], False, 1)
+        else:
+            # Auto-level-opening script for rapid testing and analysis
+            pass
+
+            # To search for sprites, put this in the __init__ function of SpriteItem:
+            # for byte in range(8):
+            #     nyb1 = data[byte] >> 4
+            #     nyb2 = data[byte] & 0xF
+            #     if nyb1 not in SpriteDatas[type][byte * 2]:
+            #         SpriteDatas[type][byte * 2][nyb1] = []
+            #     if CurrentLevelNameForAutoOpenScript not in SpriteDatas[type][byte * 2][nyb1]:
+            #         SpriteDatas[type][byte * 2][nyb1].append(CurrentLevelNameForAutoOpenScript)
+            #     if nyb2 not in SpriteDatas[type][byte * 2 + 1]:
+            #         SpriteDatas[type][byte * 2 + 1][nyb2] = []
+            #     if CurrentLevelNameForAutoOpenScript not in SpriteDatas[type][byte * 2 + 1][nyb2]:
+            #         SpriteDatas[type][byte * 2 + 1][nyb2].append(CurrentLevelNameForAutoOpenScript)
+            # SpriteDatas[type][16].append(CurrentLevelNameForAutoOpenScript)
+            # ... and this before the auto-opening loop:
+            # global SpriteDatas
+            # SpriteDatas = []
+            # for i in range(326):
+            #     newlist = []
+            #     for nyb in range(16):
+            #         newlist.append({})
+            #     newlist.append([]) # list of all levels in which it's used
+            #     SpriteDatas.append(newlist)
+            # ... and this after the auto-opening loop:
+            # prints = ''
+            # for sprnum in range(326):
+            #     data = SpriteDatas[sprnum]
+            #     printedFirstThing = False
+            #     if not data[9]:
+            #         prints += 'Sprite %d is unused.\n' % sprnum
+            #     else:
+            #         prints += 'Sprite %d:\n' % sprnum
+            #         prints += '    Used in ' + ', '.join(sorted(set(data[16]))) + '\n'
+            #         for byte in range(8):
+            #             nyb1 = data[byte * 2]
+            #             nyb2 = data[byte * 2 + 1]
+            #             if len(nyb1) > 1 or (len(nyb1) == 1 and 0 not in nyb1):
+            #                 prints += '    Nybble %d:\n' % (byte * 2 + 1)
+            #                 for nybval, usedin in sorted(nyb1.items(), key=lambda thing: thing[0]):
+            #                     if usedin:
+            #                         prints += '        Value %s used in ' % hex(nybval)[2:]
+            #                         prints += ', '.join(sorted(usedin))
+            #                         prints += '\n'
+            #             if len(nyb2) > 1 or (len(nyb2) == 1 and 0 not in nyb2):
+            #                 prints += '    Nybble %d:\n' % (byte * 2 + 2)
+            #                 for nybval, usedin in sorted(nyb2.items(), key=lambda thing: thing[0]):
+            #                     if usedin:
+            #                         prints += '        Value %s used in ' % hex(nybval)[2:]
+            #                         prints += ', '.join(sorted(usedin))
+            #                         prints += '\n'
+            # print(prints)
+
+            # To search for Pa0 objects, put this in the __init__ method for ObjectItem:
+            # unknownvalues = (0, 1, 2, 3, 4, 6, 7, 10, 12, 19, 24, 25, 28, 31, 36, 38)
+            # if tileset == 0 and type in unknownvalues:
+            #     print('Unknown thing in %s: Type %d (at (%d, %d))' % (CurrentLevelNameForAutoOpenScript, type, x, y))
+
+            # Leave this here
+            global CurrentLevelNameForAutoOpenScript
+            for levelname in os.listdir(setting('GamePath')):
+                if not levelname.endswith(FileExtentions[curgame]): continue
+                print('Loading %s...' % levelname)
+                for areanum in range(4):
+                    try:
+                        CurrentLevelNameForAutoOpenScript = levelname[:-5] + ' A' + str(areanum + 1)
+                        self.LoadLevel(curgame, os.path.join(setting('GamePath'), levelname), True, areanum + 1)
+                    except: pass
+
 
         QtCore.QTimer.singleShot(100, self.levelOverview.update)
 
@@ -17672,6 +17754,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
             path['peline'] = peline
             self.scene.addItem(peline)
             peline.loops = path['loops']
+
+        for path in Area.paths:
             path.UpdateListItem()
 
         for com in Area.comments:
