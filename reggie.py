@@ -3238,7 +3238,6 @@ class Area_NSMB2(AbstractParsedArea):
         # PathNode struct: <HHffhxx
         ret = []
         nodedata = self.blocks[14]
-        print(len(nodedata))
         nodestruct = struct.Struct('<HHffhxx')
         offset = startindex * 20
         unpack = nodestruct.unpack_from
