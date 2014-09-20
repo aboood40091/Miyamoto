@@ -70,6 +70,7 @@ Developers:
  * Grop - Sprite Data (NSMBW, NSMB2), Tileset Names (NSMB2)
  * Hiccup - Sprite Data (NSMB2), Sprite Images (NSMB2)
  * SnakeBlock (lolBoo) - Sprite Data (NSMBW), Sprite Images (NSMB2)
+ * LifeMushroom (Mario64) - run-python34.bat
 
 Translators: (in alphabetical order, by language)
  * Translation Leader: Wolfy76700
