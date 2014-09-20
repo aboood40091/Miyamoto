@@ -891,8 +891,12 @@ def LoadEntranceNames(reload_=False):
         newNames = {}
         for line in getit.readlines(): newNames[int(line.split(':')[0])] = line.split(':')[1].replace('\n', '')
         for idx in newNames: NameList[idx] = newNames[idx]
+
     EntranceTypeNames = []
-    for idx in range(30): EntranceTypeNames.append(NameList[idx])
+    idx = 0
+    while idx in NameList:
+        EntranceTypeNames.append(trans.string('EntranceDataEditor', 28, '[id]', idx, '[name]', NameList[idx]))
+        idx += 1
 
 
 class ChooseLevelNameDialog(QtWidgets.QDialog):
@@ -2010,7 +2014,7 @@ def UnloadTileset(idx):
     """
     Unload the tileset from a specific slot
     """
-    for i in range(idx*441, idx*441+441):
+    for i in range(idx * 441, idx * 441 + 441):
         Tiles[i] = None
 
     ObjectDefinitions[idx] = None
@@ -2023,74 +2027,80 @@ def ProcessOverrides(idx, name):
     """
 
     try:
-        tsindexes = ['Pa0_jyotyu', 'Pa0_jyotyu_chika', 'Pa0_jyotyu_setsugen', 'Pa0_jyotyu_yougan', 'Pa0_jyotyu_staffRoll']
+        tsindexes = ['J_Kihon', 'J_Chika', 'J_Setsugen', 'J_Yougan', 'J_Gold', 'J_Suichu']
         if name in tsindexes:
-            offset = 1024 + tsindexes.index(name) * 64
+            offset = (441 * 4) + (tsindexes.index(name) * 64)
             # Setsugen/Snow is unused for some reason? but we still override it
-            # StaffRoll is the same as plain Jyotyu, so if it's used, let's be lazy and treat it as the normal one
-            if offset == 1280: offset = 1024
 
             defs = ObjectDefinitions[idx]
             t = Tiles
 
             # Invisible blocks
             # these are all the same so let's just load them from the first row
-            replace = 1024
-            for i in [3,4,5,6,7,8,9,10,13]:
+            replace = 441 * 4
+            for i in [3, 4, 5, 6, 7, 8, 9, 10]:
                 t[i].main = t[replace].main
                 replace += 1
 
             # Question and brick blocks
             # these don't have their own tiles so we have to do them by objects
             replace = offset + 9
-            for i in range(38, 49):
+            for i in range(30, 41):
                 defs[i].rows[0][0] = (0, replace, 0)
                 replace += 1
-            for i in range(26, 38):
+            for i in range(16, 30):
                 defs[i].rows[0][0] = (0, replace, 0)
                 replace += 1
 
             # now the extra stuff (invisible collisions etc)
-            t[1].main = t[1280].main # solid
-            t[2].main = t[1311].main # vine stopper
-            t[11].main = t[1310].main # jumpthrough platform
-            t[12].main = t[1309].main # 16x8 roof platform
+            replace = 441 * 4 + 64 * 4
+            for i in [0, 1, 11, 14, 2, 13, 12]:
+                t[i].main = t[replace].main
+                replace += 1
+            replace = 441 * 4 + 64 * 5
+            for i in [190, 191, 192]:
+                t[i].main = t[replace].main
+                replace += 1
+            # t[1].main = t[1280].main # solid
+            # t[2].main = t[1311].main # vine stopper
+            # t[11].main = t[1310].main # jumpthrough platform
+            # t[12].main = t[1309].main # 16x8 roof platform
 
-            t[16].main = t[1291].main # 1x1 slope going up
-            t[17].main = t[1292].main # 1x1 slope going down
-            t[18].main = t[1281].main # 2x1 slope going up (part 1)
-            t[19].main = t[1282].main # 2x1 slope going up (part 2)
-            t[20].main = t[1283].main # 2x1 slope going down (part 1)
-            t[21].main = t[1284].main # 2x1 slope going down (part 2)
-            t[22].main = t[1301].main # 4x1 slope going up (part 1)
-            t[23].main = t[1302].main # 4x1 slope going up (part 2)
-            t[24].main = t[1303].main # 4x1 slope going up (part 3)
-            t[25].main = t[1304].main # 4x1 slope going up (part 4)
-            t[26].main = t[1305].main # 4x1 slope going down (part 1)
-            t[27].main = t[1306].main # 4x1 slope going down (part 2)
-            t[28].main = t[1307].main # 4x1 slope going down (part 3)
-            t[29].main = t[1308].main # 4x1 slope going down (part 4)
-            t[30].main = t[1062].main # coin
+            # t[16].main = t[1291].main # 1x1 slope going up
+            # t[17].main = t[1292].main # 1x1 slope going down
+            # t[18].main = t[1281].main # 2x1 slope going up (part 1)
+            # t[19].main = t[1282].main # 2x1 slope going up (part 2)
+            # t[20].main = t[1283].main # 2x1 slope going down (part 1)
+            # t[21].main = t[1284].main # 2x1 slope going down (part 2)
+            # t[22].main = t[1301].main # 4x1 slope going up (part 1)
+            # t[23].main = t[1302].main # 4x1 slope going up (part 2)
+            # t[24].main = t[1303].main # 4x1 slope going up (part 3)
+            # t[25].main = t[1304].main # 4x1 slope going up (part 4)
+            # t[26].main = t[1305].main # 4x1 slope going down (part 1)
+            # t[27].main = t[1306].main # 4x1 slope going down (part 2)
+            # t[28].main = t[1307].main # 4x1 slope going down (part 3)
+            # t[29].main = t[1308].main # 4x1 slope going down (part 4)
+            # t[30].main = t[1062].main # coin
 
-            t[32].main = t[1289].main # 1x1 roof going down
-            t[33].main = t[1290].main # 1x1 roof going up
-            t[34].main = t[1285].main # 2x1 roof going down (part 1)
-            t[35].main = t[1286].main # 2x1 roof going down (part 2)
-            t[36].main = t[1287].main # 2x1 roof going up (part 1)
-            t[37].main = t[1288].main # 2x1 roof going up (part 2)
-            t[38].main = t[1293].main # 4x1 roof going down (part 1)
-            t[39].main = t[1294].main # 4x1 roof going down (part 2)
-            t[40].main = t[1295].main # 4x1 roof going down (part 3)
-            t[41].main = t[1296].main # 4x1 roof going down (part 4)
-            t[42].main = t[1297].main # 4x1 roof going up (part 1)
-            t[43].main = t[1298].main # 4x1 roof going up (part 2)
-            t[44].main = t[1299].main # 4x1 roof going up (part 3)
-            t[45].main = t[1300].main # 4x1 roof going up (part 4)
-            t[46].main = t[1312].main # P-switch coins
+            # t[32].main = t[1289].main # 1x1 roof going down
+            # t[33].main = t[1290].main # 1x1 roof going up
+            # t[34].main = t[1285].main # 2x1 roof going down (part 1)
+            # t[35].main = t[1286].main # 2x1 roof going down (part 2)
+            # t[36].main = t[1287].main # 2x1 roof going up (part 1)
+            # t[37].main = t[1288].main # 2x1 roof going up (part 2)
+            # t[38].main = t[1293].main # 4x1 roof going down (part 1)
+            # t[39].main = t[1294].main # 4x1 roof going down (part 2)
+            # t[40].main = t[1295].main # 4x1 roof going down (part 3)
+            # t[41].main = t[1296].main # 4x1 roof going down (part 4)
+            # t[42].main = t[1297].main # 4x1 roof going up (part 1)
+            # t[43].main = t[1298].main # 4x1 roof going up (part 2)
+            # t[44].main = t[1299].main # 4x1 roof going up (part 3)
+            # t[45].main = t[1300].main # 4x1 roof going up (part 4)
+            # t[46].main = t[1312].main # P-switch coins
 
-            t[53].main = t[1314].main # donut lift
-            t[61].main = t[1063].main # multiplayer coin
-            t[63].main = t[1313].main # instant death tile
+            # t[53].main = t[1314].main # donut lift
+            # t[61].main = t[1063].main # multiplayer coin
+            # t[63].main = t[1313].main # instant death tile
 
         elif name == 'Pa1_nohara' or name == 'Pa1_nohara2' or name == 'Pa1_daishizen':
             # flowers
@@ -2257,9 +2267,9 @@ def LoadOverrides():
     Load overrides
     """
     global Overrides
-    Overrides = [None]*320
 
     OverrideBitmap = QtGui.QPixmap('reggiedata/overrides.png')
+    Overrides = [None]*384
     idx = 0
     xcount = OverrideBitmap.width() // 24
     ycount = OverrideBitmap.height() // 24
@@ -3348,11 +3358,11 @@ class Area_NSMB2(AbstractParsedArea):
         nodecount = 0
         for path in self.pathdata:
             nodecount += len(path['nodes'])
-        nodebuffer = bytearray(nodecount * 16)
+        nodebuffer = bytearray(nodecount * 20)
         nodeoffset = 0
         nodeindex = 0
         offset = 0
-        buffer = bytearray(len(self.pathdata) * 8)
+        buffer = bytearray(len(self.pathdata) * 12)
         #[20:28:38]  [@Treeki] struct Path { unsigned char id; char padding; unsigned short startNodeIndex; unsigned short nodeCount; unsigned short unknown; };
         for path in self.pathdata:
             if(len(path['nodes']) < 1): continue
@@ -3360,10 +3370,10 @@ class Area_NSMB2(AbstractParsedArea):
 
             pathstruct.pack_into(buffer, offset, int(path['id']), int(nodeindex), int(len(path['nodes'])), 2 if path['loops'] else 0)
             offset += 8
-            nodeoffset += len(path['nodes']) * 16
+            nodeoffset += len(path['nodes']) * 20
             nodeindex += len(path['nodes'])
-        self.blocks[12] = bytes(buffer)
-        self.blocks[13] = bytes(nodebuffer)
+        self.blocks[13] = bytes(buffer)
+        self.blocks[14] = bytes(nodebuffer)
 
 
     def SavePathNodes(self, buffer, offst, nodes):
@@ -3375,8 +3385,8 @@ class Area_NSMB2(AbstractParsedArea):
         nodestruct = struct.Struct('<HHffhxx')
         for node in nodes:
             nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), float(node['speed']), float(node['accel']), int(node['delay']))
-            offset += 16
-        return bytes(buffer)
+            offset += 20
+        return buffer
 
 
     def SaveSprites(self):
@@ -8966,6 +8976,7 @@ class ReggieTranslation():
                     'Left',
                     'Right',
                     ),
+                28: '([id]) [name]',
                 },
             'Entrances': {
                 0: '[b]Entrance [ent]:[/b][br]Type: [type][br][i][dest][/i]',
@@ -12644,7 +12655,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
                 if IsRetail: continue
 
                 UnloadTileset(slot)
-                exec(name + ' = \'\' if slot != 0 else \'Pa0_jyotyu\'')
+                exec(name + ' = \'\' if slot != 0 else \'J_Kihon\'')
 
             self.ObjsInTileset('f') # remove all orphaned objects w/o a loaded tileset
 
