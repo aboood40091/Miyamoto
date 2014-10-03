@@ -991,7 +991,7 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
             self.accept()
 
 
-Tiles = None # 441 tiles per tileset, plus 64 for each type of override
+Tiles = None # 0x200 tiles per tileset, plus 64 for each type of override
 TilesetFilesLoaded = [None, None, None, None]
 TilesetAnimTimer = None
 Overrides = None # 320 tiles, this is put into Tiles usually
@@ -1033,7 +1033,7 @@ class ObjectDef():
                 i += 1
             else:
                 extra = source[i+2]
-                tilesetoffset = ((extra & 7) >> 1) * 441
+                tilesetoffset = ((extra & 7) >> 1) * 0x200
                 tile = (cbyte, source[i+1] + tilesetoffset, extra >> 2)
                 row.append(tile)
                 i += 3
@@ -1053,6 +1053,7 @@ class TilesetTile():
         self.animTiles = []
         self.collData = ()
         self.collOverlay = None
+        self.depthMap = None
 
     def addAnimationData(self, data):
         """
@@ -1105,11 +1106,15 @@ class TilesetTile():
         result = None
         if (not TilesetsAnimating) or (not self.isAnimated): result = self.main
         else: result = self.animTiles[self.animFrame]
+        result = QtGui.QPixmap(result)
+
+        p = QtGui.QPainter(result)
         if CollisionsShown and (self.collOverlay is not None):
-            result = QtGui.QPixmap(result)
-            p = QtGui.QPainter(result)
             p.drawPixmap(0, 0, self.collOverlay)
-            del p
+        if DepthShown and (self.depthMap is not None):
+            p.drawPixmap(0, 0, self.depthMap)
+        del p
+
         return result
 
     def setCollisions(self, colldata):
@@ -1543,6 +1548,29 @@ class TilesetTile():
         self.collOverlay = collPix
 
 
+    def addOverlay(self, overlayTile):
+        """
+        Adds a 3D overlay tile
+        """
+        if overlayTile is not None:
+            overlayPix = overlayTile.main
+
+            # Create a depth map
+            self.depthMap = QtGui.QPixmap(24, 24)
+            self.depthMap.fill(theme.color('depth_highlight'))
+            p2 = QtGui.QPainter(self.depthMap)
+            p2.setCompositionMode(p2.CompositionMode_DestinationIn)
+            p2.drawPixmap(0, 0, overlayPix)
+            p2.end; del p2
+
+            # Known bug: if the depth_highlight color is
+            # fully opaque, things can get messed up.
+
+            # Overlay the overlay tile onto self.main
+            p1 = QtGui.QPainter(self.main)
+            p1.drawPixmap(0, 0, overlayPix)
+            p1.end; del p1
+
 
 def RenderObject(tileset, objnum, width, height, fullslope=False):
     """
@@ -1792,7 +1820,7 @@ def CreateTilesets():
     """
     global Tiles, TilesetFilesLoaded, TilesetAnimTimer, TileBehaviours, ObjectDefinitions
 
-    Tiles = [None]*441*4
+    Tiles = [None]*0x200*4
     Tiles += Overrides
     TilesetFilesLoaded = [None, None, None, None]
     #TileBehaviours = [0]*1024
@@ -1807,6 +1835,7 @@ def LoadTileset(idx, name, reload=False):
     try:
         return _LoadTileset(idx, name, reload)
     except Exception:
+        raise
         QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTileset', 0), trans.string('Err_CorruptedTileset', 1, '[file]', name))
         return False
 
@@ -1864,24 +1893,36 @@ def _LoadTileset(idx, name, reload=False):
 
     # Divide it into individual tiles and
     # add collisions at the same time
+    def getTileFromImage(tilemap, xtilenum, ytilenum):
+        return dest.copy((xtilenum * 24) + 2, (ytilenum * 24) + 2, 20, 20).scaledToWidth(24, Qt.SmoothTransformation)
     dest = QtGui.QPixmap.fromImage(img)
     sourcex = 0
     sourcey = 0
-    tileoffset = idx * 441
+    tileoffset = idx * 0x200
     for i in range(tileoffset, tileoffset + 441):
-        T = TilesetTile(dest.copy(sourcex + 2, sourcey + 2, 20, 20).scaledToWidth(24, Qt.SmoothTransformation))
+        T = TilesetTile(getTileFromImage(dest, sourcex, sourcey))
         Tiles[i] = T
-        sourcex += 24
-        if sourcex >= 504:
+        sourcex += 1
+        if sourcex >= 21:
             sourcex = 0
-            sourcey += 24
+            sourcey += 1
 
+    # Add overlays
+    overlayfile = arc['BG_unt/%s_add.bin' % name].data
+    overlayArray = struct.unpack('<441H', overlayfile[:882])
+    i = idx * 0x200
+    arrayi = 0
+    for y in range(21):
+        for x in range(21):
+            if Tiles[i] is not None:
+                Tiles[i].addOverlay(Tiles[overlayArray[arrayi]])
+            i += 1; arrayi += 1
 
     # Load the tileset animations, if there are any
     #isAnimated, prefix = CheckTilesetAnimated(arc)
     isAnimated = False
     if isAnimated:
-        tileoffset = idx*441
+        tileoffset = idx*0x200
         row = 0
         col = 0
         for i in range(tileoffset,tileoffset+441):
@@ -2014,7 +2055,7 @@ def UnloadTileset(idx):
     """
     Unload the tileset from a specific slot
     """
-    for i in range(idx * 441, idx * 441 + 441):
+    for i in range(idx * 0x200, idx * 0x200 + 0x200):
         Tiles[i] = None
 
     ObjectDefinitions[idx] = None
@@ -3129,29 +3170,17 @@ class Area_NSMB2(AbstractParsedArea):
             offset += 28
         self.bounding = bounding
 
-        # Block 5 - BgA data
-        bgAdata = self.blocks[4]
-        bgAcount = len(bgAdata) // 24
-        bgAstruct = struct.Struct('<xBhhhhHHHxxxBxxxx')
+        # Block 5 - Bg data
+        bgData = self.blocks[4]
+        bgCount = len(bgData) // 28
         offset = 0
-        bgA = []
-        for i in range(bgAcount):
-            data = bgAstruct.unpack_from(bgAdata,offset)
-            bgA.append([data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]])
-            offset += 24
-        self.bgA = bgA
-
-        # Block 6 - BgB data
-        bgBdata = self.blocks[5]
-        bgBcount = len(bgBdata) // 24
-        bgBstruct = struct.Struct('<xBhhhhHHHxxxBxxxx')
-        offset = 0
-        bgB = []
-        for i in range(bgBcount):
-            datab = bgBstruct.unpack_from(bgBdata,offset)
-            bgB.append([datab[0], datab[1], datab[2], datab[3], datab[4], datab[5], datab[6], datab[7], datab[8]])
-            offset += 24
-        self.bgB = bgB
+        bg = []
+        for i in range(bgCount):
+            newBg = Background_NSMB2()
+            bgId = newBg.loadFrom(bgData[offset:offset + 28])
+            bg.append([bgId, newBg])
+            offset += 28
+        self.bg = bg
 
         # Block 10 - zone data
         zonedata = self.blocks[9]
@@ -3162,7 +3191,8 @@ class Area_NSMB2(AbstractParsedArea):
         zones = []
         for i in range(count):
             dataz = zonestruct.unpack_from(zonedata,offset)
-            zones.append(ZoneItem(dataz[0], dataz[1], dataz[2], dataz[3], dataz[4], dataz[5], dataz[6], dataz[7], dataz[8], dataz[9], dataz[10], dataz[11], dataz[12], dataz[13], dataz[14], dataz[15], bounding, bgA, bgB, i))
+            bgz = bg[0][0]
+            zones.append(ZoneItem(dataz[0], dataz[1], dataz[2], dataz[3], dataz[4], dataz[5], dataz[6], dataz[7], dataz[8], dataz[9], dataz[10], dataz[11], dataz[12], dataz[13], dataz[14], dataz[15], bounding, bgz, i))
             offset += 28
         self.zones = zones
 
@@ -3902,12 +3932,53 @@ class ObjectItem(LevelEditorItem):
         self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
 
 
+class AbstractBackground():
+    """
+    A class that represents an abstract background for a zone (both bgA and bgB)
+    """
+    def __init__(self, xScroll=1, yScroll=1, xPos=1, yPos=1):
+        self.xScroll = xScroll
+        self.yScroll = yScroll
+        self.xPos = xPos
+        self.yPos = yPos
+
+    def save(idnum=0):
+        return b''
+
+
+class Background_NSMBW(AbstractBackground):
+    """
+    A class that represents a background from New Super Mario Bros. Wii
+    """
+    pass # not yet implemented
+
+
+class Background_NSMB2(AbstractBackground):
+    """
+    A class that represents a background from New Super Mario Bros. 2
+    """
+    def __init__(self, xScroll=1, yScroll=1, xPos=1, yPos=1, name=''):
+        super().__init__(xScroll, yScroll, xPos, yPos)
+        self.name = name
+
+    def loadFrom(self, data):
+        if len(data) != 28: return
+        id, self.xScroll, self.yScroll, self.xPos, self.yPos = struct.unpack('<Hbbbbxx', data[:8])
+        name = data[8:].split(b'\0')[0].decode('utf-8')
+        return id
+    
+    def save(idnum=0):
+        settings = struct.pack('<Hbbbbxx', idnum, self.xScroll, self.yScroll, self.xPos, self.yPos)
+        name = self.name.encode('utf-8') + b'\0' * (20 - len(self.name))
+        return settings + name
+
+
 class ZoneItem(LevelEditorItem):
     """
     Level editor item that represents a zone
     """
 
-    def __init__(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, boundings, bgA, bgB, id=None):
+    def __init__(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, boundings, bg, id=None):
         """
         Creates a zone with specific data
         """
@@ -3934,6 +4005,8 @@ class ZoneItem(LevelEditorItem):
         self.sfxmod = p
         self.UpdateRects()
 
+        self.background = bg
+
         self.aux = set()
 
         if id is not None:
@@ -3953,47 +4026,6 @@ class ZoneItem(LevelEditorItem):
             self.ylowerbound2 = bounding[3]
             self.entryid = bounding[4]
             self.unknownbnf = bounding[5]
-
-        bgABlock = bgA[0]
-        id = self.block5id
-        for block in bgA:
-            if block[0] == id: bgABlock = block
-
-        self.entryidA = bgABlock[0]
-        self.XscrollA = bgABlock[1]
-        self.YscrollA = bgABlock[2]
-        self.YpositionA = bgABlock[3]
-        self.XpositionA = bgABlock[4]
-        self.bg1A = bgABlock[5]
-        self.bg2A = bgABlock[6]
-        self.bg3A = bgABlock[7]
-        self.ZoomA = bgABlock[8]
-
-        try:
-            bgBBlock = bgB[0]
-            id = self.block6id
-            for block in bgB:
-                if block[0] == id: bgBBlock = block
-
-            self.entryidB = bgBBlock[0]
-            self.XscrollB = bgBBlock[1]
-            self.YscrollB = bgBBlock[2]
-            self.YpositionB = bgBBlock[3]
-            self.XpositionB = bgBBlock[4]
-            self.bg1B = bgBBlock[5]
-            self.bg2B = bgBBlock[6]
-            self.bg3B = bgBBlock[7]
-            self.ZoomB = bgBBlock[8]
-        except:
-            self.entryidB = 0
-            self.XscrollB = 0
-            self.YscrollB = 0
-            self.YpositionB = 0
-            self.XpositionB = 0
-            self.bg1B = 0
-            self.bg2B = 0
-            self.bg3B = 0
-            self.ZoomB = 0
 
         self.dragging = False
         self.dragstartx = -1
@@ -7991,13 +8023,14 @@ class ReggieTheme():
         self.iconCacheLg = {}
         self.style = None
 
-        # Add the colors                                                       # Descriptions:
+        # Add the colors                                               # Descriptions:
         self.colors = {
             'bg':                       QtGui.QColor(119,136,153),     # Main scene background fill
             'comment_fill':             QtGui.QColor(220,212,135,120), # Unselected comment fill
             'comment_fill_s':           QtGui.QColor(254,240,240,240), # Selected comment fill
             'comment_lines':            QtGui.QColor(192,192,192,120), # Unselected comment lines
             'comment_lines_s':          QtGui.QColor(220,212,135,240), # Selected comment lines
+            'depth_highlight':          QtGui.QColor(243,243,21,191),  # Tileset 3D effect highlight (NSMB2)
             'entrance_fill':            QtGui.QColor(190,0,0,120),     # Unselected entrance fill
             'entrance_fill_s':          QtGui.QColor(190,0,0,240),     # Selected entrance fill
             'entrance_lines':           QtGui.QColor(0,0,0),           # Unselected entrance lines
@@ -9226,6 +9259,8 @@ class ReggieTranslation():
                 119: 'Show special effects present in the level',
                 120: 'Check for Updates...',
                 121: 'Check if any updates for Reggie! Next are available to download',
+                122: 'Show Depth Highlighting',
+                123: 'Toggle viewing of highlighing of 3D depth effects (NSMB2 only).',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
@@ -15169,6 +15204,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.CreateAction('showlay2', self.HandleUpdateLayer2, GetIcon('layer2'), trans.string('MenuItems', 52), trans.string('MenuItems', 53), QtGui.QKeySequence('Ctrl+3'), True)
         self.CreateAction('tileanim', self.HandleTilesetAnimToggle, GetIcon('animation'), trans.string('MenuItems', 108), trans.string('MenuItems', 109), QtGui.QKeySequence('Ctrl+7'), True)
         self.CreateAction('collisions', self.HandleCollisionsToggle, GetIcon('collisions'), trans.string('MenuItems', 110), trans.string('MenuItems', 111), QtGui.QKeySequence('Ctrl+8'), True)
+        self.CreateAction('depth', self.HandleDepthToggle, None, trans.string('MenuItems', 122), trans.string('MenuItems', 123), QtGui.QKeySequence('Ctrl+H'), True)
         self.CreateAction('realview', self.HandleRealViewToggle, GetIcon('realview'), trans.string('MenuItems', 118), trans.string('MenuItems', 119), QtGui.QKeySequence('Ctrl+9'), True)
         self.CreateAction('showsprites', self.HandleSpritesVisibility, GetIcon('sprites'), trans.string('MenuItems', 54), trans.string('MenuItems', 55), QtGui.QKeySequence('Ctrl+4'), True)
         self.CreateAction('showspriteimages', self.HandleSpriteImages, GetIcon('sprites'), trans.string('MenuItems', 56), trans.string('MenuItems', 57), QtGui.QKeySequence('Ctrl+6'), True)
@@ -15202,6 +15238,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.actions['changegamedef'].setMenu(self.GameDefMenu)
 
         self.actions['collisions'].setChecked(CollisionsShown)
+        self.actions['depth'].setChecked(DepthShown)
         self.actions['realview'].setChecked(RealViewEnabled)
 
         self.actions['showsprites'].setChecked(SpritesShown)
@@ -15274,6 +15311,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         vmenu.addAction(self.actions['showlay2'])
         vmenu.addAction(self.actions['tileanim'])
         vmenu.addAction(self.actions['collisions'])
+        vmenu.addAction(self.actions['depth'])
         vmenu.addAction(self.actions['realview'])
         vmenu.addSeparator()
         vmenu.addAction(self.actions['showsprites'])
@@ -17081,6 +17119,19 @@ class ReggieWindow(QtWidgets.QMainWindow):
         CollisionsShown = checked
 
         setSetting('ShowCollisions', CollisionsShown)
+        self.scene.update()
+
+
+    @QtCore.pyqtSlot(bool)
+    def HandleDepthToggle(self, checked):
+        """
+        Handle toggling of tileset depth highlighting viewing
+        """
+        global DepthShown
+
+        DepthShown = checked
+
+        setSetting('ShowDepth', DepthShown)
         self.scene.update()
 
 
@@ -19064,7 +19115,7 @@ def main():
     if checkSplashEnabled():
         loadSplash()
 
-    global EnableAlpha, GridType, CollisionsShown, RealViewEnabled
+    global EnableAlpha, GridType, CollisionsShown, DepthShown, RealViewEnabled
     global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, CommentsFrozen
     global SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown
 
@@ -19073,6 +19124,7 @@ def main():
     elif gt == 'grid': GridType = 'grid'
     else: GridType = None
     CollisionsShown = setting('ShowCollisions', False)
+    DepthShown = setting('ShowDepth', False)
     RealViewEnabled = setting('RealViewEnabled', False)
     ObjectsFrozen = setting('FreezeObjects', False)
     SpritesFrozen = setting('FreezeSprites', False)
