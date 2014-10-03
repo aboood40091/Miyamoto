@@ -2070,7 +2070,7 @@ def ProcessOverrides(idx, name):
     try:
         tsindexes = ['J_Kihon', 'J_Chika', 'J_Setsugen', 'J_Yougan', 'J_Gold', 'J_Suichu']
         if name in tsindexes:
-            offset = (441 * 4) + (tsindexes.index(name) * 64)
+            offset = (0x200 * 4) + (tsindexes.index(name) * 64)
             # Setsugen/Snow is unused for some reason? but we still override it
 
             defs = ObjectDefinitions[idx]
@@ -2078,7 +2078,7 @@ def ProcessOverrides(idx, name):
 
             # Invisible blocks
             # these are all the same so let's just load them from the first row
-            replace = 441 * 4
+            replace = 0x200 * 4
             for i in [3, 4, 5, 6, 7, 8, 9, 10]:
                 t[i].main = t[replace].main
                 replace += 1
@@ -2094,11 +2094,11 @@ def ProcessOverrides(idx, name):
                 replace += 1
 
             # now the extra stuff (invisible collisions etc)
-            replace = 441 * 4 + 64 * 4
+            replace = 0x200 * 4 + 64 * 4
             for i in [0, 1, 11, 14, 2, 13, 12]:
                 t[i].main = t[replace].main
                 replace += 1
-            replace = 441 * 4 + 64 * 5
+            replace = 0x200 * 4 + 64 * 5
             for i in [190, 191, 192]:
                 t[i].main = t[replace].main
                 replace += 1
