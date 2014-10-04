@@ -3221,7 +3221,7 @@ class AreaUnit():
         #[20:28:38]  [@Treeki] struct Path { unsigned char id; char padding; unsigned short startNodeIndex; unsigned short nodeCount; unsigned short unknown; };
         for path in self.pathdata:
             if(len(path['nodes']) < 1): continue
-            nodebuffer = self.SavePathNodes(nodebuffer, nodeoffset, path['nodes'])
+            self.WritePathNodes(nodebuffer, nodeoffset, path['nodes'])
 
             pathstruct.pack_into(buffer, offset, int(path['id']), int(nodeindex), int(len(path['nodes'])), 2 if path['loops'] else 0)
             offset += 8
@@ -3230,9 +3230,9 @@ class AreaUnit():
         self.blocks[12] = bytes(buffer)
         self.blocks[13] = bytes(nodebuffer)
 
-    def SavePathNodes(self, buffer, offst, nodes):
+    def WritePathNodes(self, buffer, offst, nodes):
         """
-        Saves the pathnodes back to block 14
+        Writes the pathnode data to the block 14 bytearray
         """
         offset = int(offst)
         #[20:29:04]  [@Treeki] struct PathNode { unsigned short x; unsigned short y; float speed; float unknownMaybeAccel; short unknown; char padding[2]; }
@@ -3240,7 +3240,6 @@ class AreaUnit():
         for node in nodes:
             nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), float(node['speed']), float(node['accel']), int(node['delay']))
             offset += 16
-        return bytes(buffer)
 
     def SaveSprites(self):
         """
@@ -17440,7 +17439,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
             path['peline'] = peline
             addItem(peline)
             peline.loops = path['loops']
-            path.UpdateListItem()
 
         for com in Area.comments:
             com.positionChanged = self.HandleComPosChange
