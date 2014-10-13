@@ -9259,8 +9259,8 @@ class ReggieTranslation():
                 119: 'Show special effects present in the level',
                 120: 'Check for Updates...',
                 121: 'Check if any updates for Reggie! Next are available to download',
-                122: 'Show Depth Highlighting',
-                123: 'Toggle viewing of highlighing of 3D depth effects (NSMB2 only).',
+                122: 'Highlight 3D Effects',
+                123: 'Toggle viewing of 3D depth effect highlighting (NSMB2 only).',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
@@ -15204,7 +15204,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.CreateAction('showlay2', self.HandleUpdateLayer2, GetIcon('layer2'), trans.string('MenuItems', 52), trans.string('MenuItems', 53), QtGui.QKeySequence('Ctrl+3'), True)
         self.CreateAction('tileanim', self.HandleTilesetAnimToggle, GetIcon('animation'), trans.string('MenuItems', 108), trans.string('MenuItems', 109), QtGui.QKeySequence('Ctrl+7'), True)
         self.CreateAction('collisions', self.HandleCollisionsToggle, GetIcon('collisions'), trans.string('MenuItems', 110), trans.string('MenuItems', 111), QtGui.QKeySequence('Ctrl+8'), True)
-        self.CreateAction('depth', self.HandleDepthToggle, None, trans.string('MenuItems', 122), trans.string('MenuItems', 123), QtGui.QKeySequence('Ctrl+H'), True)
+        self.CreateAction('depth', self.HandleDepthToggle, GetIcon('depth'), trans.string('MenuItems', 122), trans.string('MenuItems', 123), QtGui.QKeySequence('Ctrl+H'), True)
         self.CreateAction('realview', self.HandleRealViewToggle, GetIcon('realview'), trans.string('MenuItems', 118), trans.string('MenuItems', 119), QtGui.QKeySequence('Ctrl+9'), True)
         self.CreateAction('showsprites', self.HandleSpritesVisibility, GetIcon('sprites'), trans.string('MenuItems', 54), trans.string('MenuItems', 55), QtGui.QKeySequence('Ctrl+4'), True)
         self.CreateAction('showspriteimages', self.HandleSpriteImages, GetIcon('sprites'), trans.string('MenuItems', 56), trans.string('MenuItems', 57), QtGui.QKeySequence('Ctrl+6'), True)
