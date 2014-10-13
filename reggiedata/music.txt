@@ -3,26 +3,25 @@
 2:Underground
 3:Underwater
 4:Mushrooms/Athletic
-5:Ghost House
-6:Pyramids
-7:Snow
-8:Lava
-9:Tower
-10:Castle
-11:Airship
-12:Bonus Area
-13:Drum Rolls
-14:Tower Boss
-15:Castle Boss
-16:Toad House
-17:Airship Boss
-18:Forest
-19:Enemy Ambush
-20:Beach
-21:Lava Cave
-22:Peach's Castle
-23:Credits Jazz
-24:Airship Drums
-25:Bowser
-26:Mega Bowser
-27:Epilogue
+5:Pyramids
+6:Snow
+7:Lava
+8:Lava Cave
+9:Beach
+10:Forest
+11:Ghost House
+12:Tower
+13:Castle
+14:Bonus Area
+15:Tower Boss
+16:Castle Boss
+17:Room Before Bowser
+18:Bowser
+19:Rainbow Level
+20:Cannon
+21:Power-Up Toad House
+22:1-Up Toad House
+23:Star Toad House
+24:Credits
+25:Special World Rainbow Level Opening Room
+26:Bonus (Underwater)
