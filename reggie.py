@@ -11784,7 +11784,7 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_visibility = QtWidgets.QComboBox()
 
         self.zv = z.visibility
-        VRadioDiv = self.zv / 16
+        VRadioDiv = self.zv // 16
 
         if VRadioDiv == 0:
             self.Zone_vnormal.setChecked(True)
