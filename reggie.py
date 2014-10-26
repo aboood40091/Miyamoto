@@ -2270,6 +2270,7 @@ SpriteImagesShown = True
 RealViewEnabled = False
 LocationsShown = True
 CommentsShown = True
+DrawEntIndicators = False
 ObjectsFrozen = False
 SpritesFrozen = False
 EntrancesFrozen = False
@@ -4150,7 +4151,7 @@ class ZoneItem(LevelEditorItem):
 
         # Paint an indicator line to show the leftmost edge of
         # where entrances can be safely placed
-        if 24 * 13 < self.DrawRect.width():
+        if DrawEntIndicators and (self.camtrack in (0, 1)) and (24 * 13 < self.DrawRect.width()):
             painter.setPen(QtGui.QPen(theme.color('zone_entrance_helper'), 2))
             lineStart = QtCore.QPointF(self.DrawRect.x() + (24 * 13), self.DrawRect.y())
             lineEnd = QtCore.QPointF(self.DrawRect.x() + (24 * 13), self.DrawRect.y() + self.DrawRect.height())
@@ -9682,6 +9683,7 @@ class ReggieTranslation():
                 28: 'Use Default Tileset Picker (recommended)',
                 29: 'Use Old Tileset Picker',
                 30: 'You may need to restart Reggie! for changes to take effect.',
+                31: 'Display lines indicating the leftmost x-position where entrances can be safely placed in zones',
                 },
             'Ribbon': {
                 0: '&Home',
@@ -14672,6 +14674,9 @@ class PreferencesDialog(QtWidgets.QDialog):
                 ClearRecentBtn.setMaximumWidth(ClearRecentBtn.minimumSizeHint().width())
                 ClearRecentBtn.clicked.connect(self.ClearRecent)
 
+                # Add the Zone Entrance Indicator checkbox
+                self.zEntIndicator = QtWidgets.QCheckBox(trans.string('PrefsDlg', 31))
+
                 # Create the main layout
                 L = QtWidgets.QFormLayout()
                 L.addRow(trans.string('PrefsDlg', 7), SplashL)
@@ -14679,6 +14684,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 L.addRow(trans.string('PrefsDlg', 27), TileL)
                 L.addRow(trans.string('PrefsDlg', 14), self.Trans)
                 L.addRow(trans.string('PrefsDlg', 15), ClearRecentBtn)
+                L.addWidget(self.zEntIndicator)
                 self.setLayout(L)
 
                 # Set the buttons
@@ -14716,6 +14722,8 @@ class PreferencesDialog(QtWidgets.QDialog):
                     if trans == str(setting('Translation')):
                         self.Trans.setCurrentIndex(i)
                     i += 1
+
+                self.zEntIndicator.setChecked(DrawEntIndicators)
 
             def ClearRecent(self):
                 """
@@ -17174,6 +17182,11 @@ class ReggieWindow(QtWidgets.QMainWindow):
         name = str(dlg.generalTab.Trans.itemData(dlg.generalTab.Trans.currentIndex(), Qt.UserRole))
         setSetting('Translation', name)
 
+        # Get the Zone Entrance Indicators setting
+        global DrawEntIndicators
+        DrawEntIndicators = dlg.generalTab.zEntIndicator.isChecked()
+        setSetting('ZoneEntIndicators', DrawEntIndicators)
+
         # Get the Toolbar tab settings
         boxes = (dlg.toolbarTab.FileBoxes, dlg.toolbarTab.EditBoxes, dlg.toolbarTab.ViewBoxes, dlg.toolbarTab.SettingsBoxes, dlg.toolbarTab.HelpBoxes)
         ToolbarSettings = {}
@@ -19295,7 +19308,7 @@ def main():
 
     global EnableAlpha, GridType, CollisionsShown, RealViewEnabled
     global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, CommentsFrozen
-    global SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown
+    global SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown, DrawEntIndicators
 
     gt = setting('GridType')
     if gt == 'checker': GridType = 'checker'
@@ -19313,6 +19326,7 @@ def main():
     SpriteImagesShown = setting('ShowSpriteImages', True)
     LocationsShown = setting('ShowLocations', True)
     CommentsShown = setting('ShowComments', True)
+    DrawEntIndicators = setting('ZoneEntIndicators', False)
     SLib.RealViewEnabled = RealViewEnabled
 
     # choose a folder for the game
