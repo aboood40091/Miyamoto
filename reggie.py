@@ -9304,9 +9304,9 @@ class ReggieTranslation():
                 2: 'Type:',
                 3: '[b]Type:[/b][br]Sets how the entrance behaves',
                 4: 'Dest. ID:',
-                5: '[b]Dest. ID:[/b][br]If this entrance leads nowhere or the destination is in this area, set this to 0.',
+                5: '[b]Dest. ID:[/b][br]If this entrance leads nowhere, set this to 0.',
                 6: 'Dest. Area:',
-                7: '[b]Dest. Area:[/b][br]If this entrance leads nowhere, set this to 0.',
+                7: '[b]Dest. Area:[/b][br]If this entrance leads nowhere or the destination is in this area, set this to 0.',
                 8: 'Enterable',
                 9: '[b]Enterable:[/b][br]If this box is checked on a pipe or door entrance, Mario will be able to enter the pipe/door. If it\'s not checked, he won\'t be able to enter it. Behaviour on other types of entrances is unknown/undefined.',
                 10: 'Unknown Flag',
@@ -9497,13 +9497,13 @@ class ReggieTranslation():
                 35: 'Merge selected locations into a single large location',
                 36: 'Level Diagnostics Tool...',
                 37: 'Find and fix problems with the level',
-                38: 'Freeze\\nObjects',
+                38: 'Freeze[br]Objects',
                 39: 'Make objects non-selectable',
-                40: 'Freeze\\nSprites',
+                40: 'Freeze[br]Sprites',
                 41: 'Make sprites non-selectable',
                 42: 'Freeze Entrances',
                 43: 'Make entrances non-selectable',
-                44: 'Freeze\\nLocations',
+                44: 'Freeze[br]Locations',
                 45: 'Make locations non-selectable',
                 46: 'Freeze Paths',
                 47: 'Make paths non-selectable',
@@ -9519,7 +9519,7 @@ class ReggieTranslation():
                 57: 'Toggle viewing of sprite images',
                 58: 'Show Locations',
                 59: 'Toggle viewing of locations',
-                60: 'Switch\\nGrid',
+                60: 'Switch[br]Grid',
                 61: 'Cycle through available grid views',
                 62: 'Zoom to Maximum',
                 63: 'Zoom in all the way',
@@ -9531,9 +9531,9 @@ class ReggieTranslation():
                 69: 'Zoom out of the main level view',
                 70: 'Zoom to Minimum',
                 71: 'Zoom out all the way',
-                72: 'Area\\nSettings...',
+                72: 'Area[br]Settings...',
                 73: 'Control tileset swapping, stage timer, entrance on load, and stage wrap',
-                74: 'Zone\\nSettings...',
+                74: 'Zone[br]Settings...',
                 75: 'Zone creation, deletion, and preference editing',
                 76: 'Backgrounds...',
                 77: 'Apply backgrounds to individual zones in the current area',
@@ -9581,10 +9581,12 @@ class ReggieTranslation():
                 119: 'Show special effects present in the level',
                 120: 'Check for Updates...',
                 121: 'Check if any updates for Reggie! Next are available to download',
-                122: 'Undo',
-                123: 'Undoes the last action',
-                124: 'Redo',
-                125: 'Redoes the last action that was undone',
+                122: 'Highlight 3D Effects',
+                123: 'Toggle viewing of 3D depth effect highlighting (NSMB2 only)',
+                124: 'Undo',
+                125: 'Undoes the last action',
+                126: 'Redo',
+                127: 'Redoes the last action that was undone',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
@@ -9921,7 +9923,7 @@ class ReggieTranslation():
                 48: 'Upper Bounds:',
                 49: '[b]Upper Bounds:[/b][br] - Positive Values: Easier to scroll upwards (110 is centered)[br] - Negative Values: Harder to scroll upwards (30 is the top edge of the screen)[br][br]Values higher than 240 can cause instant death upon screen scrolling',
                 50: 'Lower Bounds:',
-                51: '[b]Lower Bounds:[/b][br] - Positive Values: Harder to scroll downwards (65 is the bottom edge of the screen)[br] - Negative Values: Easier to scroll downwards (95 is centered)[br][br]Values higher than 100 will prevent the scene from scrolling while Mario until Mario is offscreen',
+                51: '[b]Lower Bounds:[/b][br] - Positive Values: Harder to scroll downwards (65 is the bottom edge of the screen)[br] - Negative Values: Easier to scroll downwards (95 is centered)[br][br]Values higher than 100 will prevent the scene from scrolling until Mario is offscreen',
                 52: 'Audio',
                 53: 'Background Music:',
                 54: '[b]Background Music:[/b][br]Changes the background music',
@@ -15440,8 +15442,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         # Edit
         self.CreateAction('selectall', self.SelectAll, GetIcon('select'), trans.string('MenuItems', 22), trans.string('MenuItems', 23), QtGui.QKeySequence.SelectAll)
         self.CreateAction('deselect', self.Deselect, GetIcon('deselect'), trans.string('MenuItems', 24), trans.string('MenuItems', 25), QtGui.QKeySequence('Ctrl+D'))
-        self.CreateAction('undo', self.Undo, GetIcon('undo'), trans.string('MenuItems', 122), trans.string('MenuItems', 123), QtGui.QKeySequence.Undo)
-        self.CreateAction('redo', self.Redo, GetIcon('redo'), trans.string('MenuItems', 124), trans.string('MenuItems', 125), QtGui.QKeySequence.Redo)
+        self.CreateAction('undo', self.Undo, GetIcon('undo'), trans.string('MenuItems', 124), trans.string('MenuItems', 125), QtGui.QKeySequence.Undo)
+        self.CreateAction('redo', self.Redo, GetIcon('redo'), trans.string('MenuItems', 126), trans.string('MenuItems', 127), QtGui.QKeySequence.Redo)
         self.CreateAction('cut', self.Cut, GetIcon('cut'), trans.string('MenuItems', 26), trans.string('MenuItems', 27), QtGui.QKeySequence.Cut)
         self.CreateAction('copy', self.Copy, GetIcon('copy'), trans.string('MenuItems', 28), trans.string('MenuItems', 29), QtGui.QKeySequence.Copy)
         self.CreateAction('paste', self.Paste, GetIcon('paste'), trans.string('MenuItems', 30), trans.string('MenuItems', 31), QtGui.QKeySequence.Paste)
