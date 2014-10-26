@@ -42,7 +42,7 @@ if currentRunningVersion < minimum:
 # Stdlib imports
 import base64
 import importlib
-from math import floor as math_floor
+import math
 import os.path
 import pickle
 import struct
@@ -3089,13 +3089,6 @@ class AreaUnit():
 
             offset += 8
 
-        for i in range(pathcount):
-            xpi = pathinfo[i]
-            for j, xpj in enumerate(xpi['nodes']):
-                nobjx = None if ((j+1) == len(xpi['nodes'])) else xpi['nodes'][j+1]['x']
-                nobjy = None if ((j+1) == len(xpi['nodes'])) else xpi['nodes'][j+1]['y']
-                paths.append(PathItem(xpj['x'], xpj['y'], nobjx, nobjy, xpi, xpj))
-
 
         self.pathdata = pathinfo
         self.paths = paths
@@ -3381,10 +3374,215 @@ class AreaUnit():
         except Exception: self.Metadata = Metadata() # fallback
 
 
+
+class InstanceDefinition():
+    """
+    ABC for a definition of an instance of a LevelEditorItem class, used for persistence and comparisons
+    """
+    fieldNames = []
+    def __init__(self, other=None):
+        """
+        Initializes it
+        """
+        self.fields = [[name, None] for name in self.fieldNames]
+        if other:
+            self.setFrom(other)
+        else:
+            self.clear()
+    @staticmethod
+    def itemList():
+        """
+        Returns a list of all instances of this item currently in the level
+        """
+        return []
+    def clear(self):
+        """
+        Clears all data and position data
+        """
+        self.objx = None
+        self.objy = None
+        self.clearData()
+    def clearData(self):
+        """
+        Clears all data
+        """
+        for field in self.fields:
+            field[1] = None
+    def setFrom(self, other):
+        """
+        Sets data and position from an item
+        """
+        self.objx = other.objx
+        self.objy = other.objy
+        self.setDataFrom(other)
+    def setDataFrom(self, other):
+        """
+        Sets data from an item
+        """
+        for field in self.fields:
+            field[1] = getattr(other, field[0])
+    def matches(self, other):
+        """
+        Returns True if this instance definition matches the specified item
+        """
+        matches = True
+        matches = matches and abs(self.objx - other.objx) <= 2
+        matches = matches and abs(self.objy - other.objy) <= 2
+        return matches and self.matchesData(other)
+    def matchesData(self, other):
+        """
+        Returns True if this instance definition's data matches the specified item's data
+        """
+        matches = True
+        for field in self.fields:
+            matches = matches and (field[1] == getattr(other, field[0]))
+        return matches
+    def defMatches(self, other):
+        """
+        Returns True if this instance definition matches the specified instance definition
+        """
+        matches = True
+        matches = matches and (self.objx == other.objx)
+        matches = matches and (self.objy == other.objy)
+        return matches and self.defMatchesData(other)
+    def defMatchesData(self, other):
+        """
+        Returns True if this instance definition's data matches the specified instance definition's data
+        """
+        matches = True
+        for myField, otherField in zip(self.fields, other.fields):
+            matches = matches and (myField == otherField)
+        return matches
+    def createNew(self):
+        """
+        Creates a new instance of the target class, with the data specified here
+        """
+        # This will need to be implemented separately in each subclass
+        return LevelEditorItem()
+    def findInstance(self):
+        """
+        Returns a matching instance of this thing in the level
+        """
+        for item in self.itemList():
+            if self.matches(item):
+                return item
+
+
+class InstanceDefinition_ObjectItem(InstanceDefinition):
+    """
+    Definition of an instance of ObjectItem
+    """
+    fieldNames = (
+        'tileset',
+        'type',
+        'layer',
+        'width',
+        'height',
+        )
+    @staticmethod
+    def itemList():
+        # list concatenation here
+        return Area.layers[0] + Area.layers[1] + Area.layers[2]
+    def createNew(self):
+        return ObjectItem(
+            self.fields[0][1],
+            self.fields[1][1],
+            self.fields[2][1],
+            self.objx,
+            self.objy,
+            self.fields[3][1],
+            self.fields[4][1],
+            1,
+            )
+
+
+class InstanceDefinition_LocationItem(InstanceDefinition):
+    """
+    Definition of an instance of LocationItem
+    """
+    fieldNames = (
+        'width',
+        'height',
+        'id',
+        )
+    @staticmethod
+    def itemList():
+        return Area.locations
+    def createNew(self):
+        return LocationItem(self.objx, self.objy, *(field[1] for field in self.fields))
+
+
+class InstanceDefinition_SpriteItem(InstanceDefinition):
+    """
+    Definition of an instance of SpriteItem
+    """
+    fieldNames = (
+        'type',
+        'spritedata',
+        )
+    @staticmethod
+    def itemList():
+        return Area.sprites
+    def createNew(self):
+        return SpriteItem(self.fields[0][1], self.objx, self.objy, self.fields[1][1])
+
+
+class InstanceDefinition_EntranceItem(InstanceDefinition):
+    """
+    Definition of an instance of EntranceItem
+    """
+    fieldNames = (
+        'entid',
+        'destarea',
+        'destentrance',
+        'enttype',
+        'entzone',
+        'entlayer',
+        'entpath',
+        'cpdirection',
+        'entsettings',
+        )
+    @staticmethod
+    def itemList():
+        return Area.entrances
+    def createNew(self):
+        return EntranceItem(self.objx, self.objy, *(field[1] for field in self.fields))
+
+
+class InstanceDefinition_PathItem(InstanceDefinition):
+    """
+    Definition of an instance of PathItem
+    """
+    fieldNames = (
+        'pathinfo',
+        'nodeinfo',
+        )
+    @staticmethod
+    def itemList():
+        return Area.paths
+    def createNew(self):
+        return PathItem(self.objx, self.objy, *(field[1] for field in self.fields))
+
+
+class InstanceDefinition_CommentItem(InstanceDefinition):
+    """
+    Definition of an instance of CommentItem
+    """
+    fieldNames = (
+        'text',
+        )
+    @staticmethod
+    def itemList():
+        return Area.comments
+    def createNew(self):
+        return CommentItem(self.objx, self.objy, field[0][1])
+
+
 class LevelEditorItem(QtWidgets.QGraphicsItem):
     """
     Class for any type of item that can show up in the level editor control
     """
+    instanceDef = InstanceDefinition
     positionChanged = None # Callback: positionChanged(LevelEditorItem obj, int oldx, int oldy, int x, int y)
     autoPosChange = False
     dragoffsetx = 0
@@ -3468,6 +3666,23 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
                 self.objy = y
                 if self.positionChanged is not None:
                     self.positionChanged(self, oldx, oldy, x, y)
+
+                if not isinstance(self, PathEditorLineItem):
+                    if len(mainWindow.CurrentSelection) == 1:
+                        act = MoveItemUndoAction(self, oldx, oldy, x, y)
+                        mainWindow.undoStack.addOrExtendAction(act)
+                    elif len(mainWindow.CurrentSelection) > 1:
+                        # This is certainly not the most efficient way to do this
+                        # (the number of UndoActions > (selection size ^ 2)), but
+                        # it works and I can't think of a better way to do it. :P
+                        acts = set()
+                        acts.add(MoveItemUndoAction(self, oldx, oldy, x, y))
+                        for item in mainWindow.CurrentSelection:
+                            if item is self: continue
+                            act = MoveItemUndoAction(item, item.objx, item.objy, item.objx, item.objy)
+                            acts.add(act)
+                        act = SimultaneousUndoAction(acts)
+                        mainWindow.undoStack.addOrExtendAction(act)
 
                 SetDirty()
 
@@ -3560,6 +3775,7 @@ class ObjectItem(LevelEditorItem):
     """
     Level editor item that represents an ingame object
     """
+    instanceDef = InstanceDefinition_ObjectItem
 
     def __init__(self, tileset, type, layer, x, y, width, height, z):
         """
@@ -3674,6 +3890,12 @@ class ObjectItem(LevelEditorItem):
                 self.objy = y
                 if self.positionChanged is not None:
                     self.positionChanged(self, oldx, oldy, x, y)
+
+                if len(mainWindow.CurrentSelection) == 1:
+                    act = MoveItemUndoAction(self, oldx, oldy, x, y)
+                    mainWindow.undoStack.addOrExtendAction(act)
+                elif len(mainWindow.CurrentSelection) > 1:
+                    pass
 
                 SetDirty()
 
@@ -4100,6 +4322,7 @@ class LocationItem(LevelEditorItem):
     """
     Level editor item that represents a sprite location
     """
+    instanceDef = InstanceDefinition_LocationItem
     sizeChanged = None # Callback: sizeChanged(SpriteItem obj, int width, int height)
 
     def __init__(self, x, y, width, height, id):
@@ -4267,6 +4490,7 @@ class SpriteItem(LevelEditorItem):
     """
     Level editor item that represents a sprite
     """
+    instanceDef = InstanceDefinition_SpriteItem
     BoundingRect = QtCore.QRectF(0, 0, 24, 24)
     SelectionRect = QtCore.QRectF(0, 0, 23, 23)
 
@@ -4608,7 +4832,7 @@ class SpriteItem(LevelEditorItem):
                 yOffset, yOffsetAdjusted = 0, 0
 
             # snap to 24x24
-            newpos = value
+            newpos = QtCore.QPointF(value)
 
             # snap even further if Shift isn't held
             # but -only- if OverrideSnapping is off
@@ -4616,8 +4840,8 @@ class SpriteItem(LevelEditorItem):
                 objectsSelected = any([isinstance(thing, ObjectItem) for thing in mainWindow.CurrentSelection])
                 if QtWidgets.QApplication.keyboardModifiers() == Qt.AltModifier:
                     # Alt is held; don't snap
-                    newpos.setX((int((newpos.x() + 0.75) / 1.5) * 1.5))
-                    newpos.setY((int((newpos.y() + 0.75) / 1.5) * 1.5))
+                    newpos.setX(((newpos.x() + 0.75) // 1.5) * 1.5)
+                    newpos.setY(((newpos.y() + 0.75) // 1.5) * 1.5)
                 elif not objectsSelected and self.isSelected() and len(mainWindow.CurrentSelection) > 1:
                     # Snap to 8x8, but with the dragoffsets
                     dragoffsetx, dragoffsety = int(self.dragoffsetx), int(self.dragoffsety)
@@ -4625,8 +4849,8 @@ class SpriteItem(LevelEditorItem):
                     if dragoffsety < -12: dragoffsety += 12
                     if dragoffsetx == 0: dragoffsetx = -12
                     if dragoffsety == 0: dragoffsety = -12
-                    referenceX = int((newpos.x() + 6 + 12 + dragoffsetx - xOffsetAdjusted) / 12) * 12
-                    referenceY = int((newpos.y() + 6 + 12 + dragoffsety - yOffsetAdjusted) / 12) * 12
+                    referenceX = ((newpos.x() + 6 + 12 + dragoffsetx - xOffsetAdjusted) // 12) * 12
+                    referenceY = ((newpos.y() + 6 + 12 + dragoffsety - yOffsetAdjusted) // 12) * 12
                     newpos.setX(referenceX - (12 + dragoffsetx) + xOffsetAdjusted)
                     newpos.setY(referenceY - (12 + dragoffsety) + yOffsetAdjusted)
                 elif objectsSelected and self.isSelected():
@@ -4634,14 +4858,14 @@ class SpriteItem(LevelEditorItem):
                     dragoffsetx, dragoffsety = int(self.dragoffsetx), int(self.dragoffsety)
                     if dragoffsetx == 0: dragoffsetx = -24
                     if dragoffsety == 0: dragoffsety = -24
-                    referenceX = int((newpos.x() + 12 + 24 + dragoffsetx - xOffsetAdjusted) / 24) * 24
-                    referenceY = int((newpos.y() + 12 + 24 + dragoffsety - yOffsetAdjusted) / 24) * 24
+                    referenceX = ((newpos.x() + 12 + 24 + dragoffsetx - xOffsetAdjusted) // 24) * 24
+                    referenceY = ((newpos.y() + 12 + 24 + dragoffsety - yOffsetAdjusted) // 24) * 24
                     newpos.setX(referenceX - (24 + dragoffsetx) + xOffsetAdjusted)
                     newpos.setY(referenceY - (24 + dragoffsety) + yOffsetAdjusted)
                 else:
                     # Snap to 8x8
-                    newpos.setX(int(int((newpos.x() + 6 - xOffsetAdjusted) / 12) * 12 + xOffsetAdjusted))
-                    newpos.setY(int(int((newpos.y() + 6 - yOffsetAdjusted) / 12) * 12 + yOffsetAdjusted))
+                    newpos.setX(((newpos.x() + 6 - xOffsetAdjusted) // 12) * 12 + xOffsetAdjusted)
+                    newpos.setY(((newpos.y() + 6 - yOffsetAdjusted) // 12) * 12 + yOffsetAdjusted)
 
             x = newpos.x()
             y = newpos.y()
@@ -4653,14 +4877,11 @@ class SpriteItem(LevelEditorItem):
             if y > 12264: newpos.setY(12264)
 
             # update the data
-            x = int(newpos.x() / 1.5 - xOffset)
-            y = int(newpos.y() / 1.5 - yOffset)
+            x = int(newpos.x() // 1.5) - xOffset
+            y = int(newpos.y() // 1.5) - yOffset
 
             if x != self.objx or y != self.objy:
-                #oldrect = self.BoundingRect
-                #oldrect.translate(self.objx*1.5, self.objy*1.5)
                 updRect = QtCore.QRectF(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
-                #self.scene().update(updRect.united(oldrect))
                 self.scene().update(updRect)
 
                 self.LevelRect.moveTo((x + xOffset) / 16, (y + yOffset) / 16)
@@ -4688,6 +4909,12 @@ class SpriteItem(LevelEditorItem):
                 if self.positionChanged is not None:
                     self.positionChanged(self, oldx, oldy, x, y)
 
+                if len(mainWindow.CurrentSelection) == 1:
+                    act = MoveItemUndoAction(self, oldx, oldy, x, y)
+                    mainWindow.undoStack.addOrExtendAction(act)
+                elif len(mainWindow.CurrentSelection) > 1:
+                    pass
+
                 self.ImageObj.positionChanged()
 
                 SetDirty()
@@ -4695,6 +4922,13 @@ class SpriteItem(LevelEditorItem):
             return newpos
 
         return QtWidgets.QGraphicsItem.itemChange(self, change, value)
+
+    def setNewObjPos(self, newobjx, newobjy):
+        """
+        Sets a new position, through objx and objy
+        """
+        self.objx, self.objy = newobjx, newobjy
+        self.setPos((newobjx + self.ImageObj.xOffset) * 1.5, (newobjy + self.ImageObj.yOffset) * 1.5)
 
     def mousePressEvent(self, event):
         """
@@ -4807,6 +5041,7 @@ class EntranceItem(LevelEditorItem):
     """
     Level editor item that represents an entrance
     """
+    instanceDef = InstanceDefinition_EntranceItem
     BoundingRect = QtCore.QRectF(0, 0, 24, 24)
     RoundedRect = QtCore.QRectF(1, 1, 22, 22)
     EntranceImages = None
@@ -5094,12 +5329,12 @@ class PathItem(LevelEditorItem):
     """
     Level editor item that represents a pathnode
     """
+    instanceDef = InstanceDefinition_PathItem
     BoundingRect = QtCore.QRectF(0, 0, 24, 24)
-    SelectionRect = QtCore.QRectF(0, 0, 23, 23)
     RoundedRect = QtCore.QRectF(1, 1, 22, 22)
 
 
-    def __init__(self, objx, objy, nobjx, nobjy, pathinfo, nodeinfo):
+    def __init__(self, objx, objy, pathinfo, nodeinfo):
         """
         Creates a path with specific data
         """
@@ -5114,10 +5349,8 @@ class PathItem(LevelEditorItem):
         self.nodeid = pathinfo['nodes'].index(nodeinfo)
         self.pathinfo = pathinfo
         self.nodeinfo = nodeinfo
-        self.nobjx = nobjx
-        self.nobjy = nobjy
         self.listitem = None
-        self.LevelRect = (QtCore.QRectF(self.objx/16, self.objy/16, 24/16, 24/16))
+        self.LevelRect = (QtCore.QRectF(self.objx / 16, self.objy / 16, 1.5, 1.5))
         self.setFlag(self.ItemIsMovable, not PathsFrozen)
         self.setFlag(self.ItemIsSelectable, not PathsFrozen)
 
@@ -5184,15 +5417,9 @@ class PathItem(LevelEditorItem):
         icontype = 0
 
         painter.setFont(self.font)
-        painter.drawText(4,11,str(self.pathid))
-        painter.drawText(4,9 + QtGui.QFontMetrics(self.font).height(),str(self.nodeid))
+        painter.drawText(4, 11, str(self.pathid))
+        painter.drawText(4, 9 + QtGui.QFontMetrics(self.font).height(), str(self.nodeid))
         painter.drawPoint(self.objx, self.objy)
-
-        if self.isSelected():
-            #painter.setRenderHint(QtGui.QPainter.Antialiasing, False)
-            #painter.setPen(QtGui.QPen(Qt.black, 1, Qt.DotLine))
-            #painter.drawRect(self.SelectionRect)
-            pass
 
     def delete(self):
         """
@@ -5211,7 +5438,7 @@ class PathItem(LevelEditorItem):
             Area.pathdata.remove(self.pathinfo)
             self.scene().removeItem(self.pathinfo['peline'])
 
-        #update other node's IDs
+        # update other node's IDs
         for pathnode in self.pathinfo['nodes']:
             pathnode['graphicsitem'].updateId()
 
@@ -5324,6 +5551,7 @@ class CommentItem(LevelEditorItem):
     """
     Level editor item that represents a in-level comment
     """
+    instanceDef = InstanceDefinition_CommentItem
     BoundingRect = QtCore.QRectF(-8, -8, 48, 48)
     SelectionRect = QtCore.QRectF(-4, -4, 4, 4)
     Circle = QtCore.QRectF(0, 0, 32, 32)
@@ -7516,12 +7744,12 @@ class IslandGeneratorWidget(QtWidgets.QWidget):
 
 
         # Middle Filler! Hard
-        fullwidt = int(math_floor((self.wpos.value()-2) / self.midix.value()))
+        fullwidt = int(math.floor((self.wpos.value()-2) / self.midix.value()))
 
-        widtremainder = int(math_floor((self.wpos.value()-2) % self.midix.value()))
+        widtremainder = int(math.floor((self.wpos.value()-2) % self.midix.value()))
 
-        fullvert = int(math_floor((self.hpos.value()-2) / self.midiy.value()))
-        vertremainder = int(math_floor((self.hpos.value()-2) % self.midiy.value()))
+        fullvert = int(math.floor((self.hpos.value()-2) / self.midiy.value()))
+        vertremainder = int(math.floor((self.hpos.value()-2) % self.midiy.value()))
 
 
 
@@ -8127,6 +8355,254 @@ def toQColor(*args):
     return QtGui.QColor(r, g, b, a)
 
 
+
+
+# Undo stuff
+class UndoStack():
+    """
+    A stack you can push UndoActions on, and stuff.
+    """
+    def __init__(self):
+        self.pastActions = []
+        self.futureActions = []
+
+    def addAction(self, act):
+        """
+        Adds an action to the stack
+        """
+        self.pastActions.append(act)
+        self.futureActions = []
+
+        self.enableOrDisableMenuItems()
+
+    def addOrExtendAction(self, act):
+        """
+        Adds an action to the stack, or extends the current one if applicable
+        """
+        if len(self.pastActions) > 0 and self.pastActions[-1].isExtentionOf(act):
+            self.pastActions[-1].extend(act)
+            self.enableOrDisableMenuItems()
+        else:
+            self.addAction(act)
+
+    def undo(self):
+        """
+        Undoes the last action
+        """
+        if len(self.pastActions) == 0: return
+
+        act = self.pastActions.pop()
+        while act.isNull():
+            # Keep popping null actions off
+            if len(self.pastActions) == 0:
+                return
+            act = self.pastActions.pop()
+
+        act.undo()
+        self.futureActions.append(act)
+
+        self.enableOrDisableMenuItems()
+
+    def redo(self):
+        """
+        Redoes the last undid action
+        """
+        if len(self.futureActions) == 0: return
+
+        act = self.futureActions.pop()
+        while act.isNull():
+            # Keep popping null actions off
+            act = self.futureActions.pop()
+
+        act.redo()
+        self.pastActions.append(act)
+
+        self.enableOrDisableMenuItems()
+
+    def enableOrDisableMenuItems(self):
+        """
+        Enables or disables the menu items of mainWindow
+        """
+        mainWindow.actions['undo'].setEnabled(len(self.pastActions) > 0)
+        mainWindow.actions['redo'].setEnabled(len(self.futureActions) > 0)
+
+
+class UndoAction():
+    """
+    Abstract undo action
+    """
+    def undo(self):
+        """
+        Sets the target to its initial state
+        """
+        pass
+    def redo(self):
+        """
+        Sets the target to its final state
+        """
+        pass
+    def isExtentionOf(self, other):
+        """
+        Returns True if this action extends another, else False
+        """
+        return False
+    def extend(self, other):
+        """
+        Extends this UndoAction with the data from an extention of it.
+        isExtentionOf must have returned True first!
+        """
+        pass
+    def isNull(self):
+        """
+        Returns True if this action is effectively a no-op
+        """
+        return True
+
+
+class MoveItemUndoAction(UndoAction):
+    """
+    An UndoAction for movement of a single level item that is not an object
+    """
+    def __init__(self, target, origX, origY, finalX, finalY):
+        """
+        Initializes the undo action
+        """
+        defType = target.instanceDef
+        self.origDef = defType(target)
+        self.finalDef = defType(target)
+        self.origDef.objx = origX
+        self.origDef.objy = origY
+        self.finalDef.objx = finalX
+        self.finalDef.objy = finalY
+    def undo(self):
+        """
+        Sets the target object's position to the original position
+        """
+        instance = self.finalDef.findInstance()
+        if instance:
+            self.changeObjectPos(instance, self.origDef.objx, self.origDef.objy)
+        else:
+            print('Undo Move Item: Cannot find item instance! ' + str(self.finalDef))
+    def redo(self):
+        """
+        Sets the target object's position to the final position
+        """
+        instance = self.origDef.findInstance()
+        if instance:
+            self.changeObjectPos(instance, self.finalDef.objx, self.finalDef.objy)
+        else:
+            print('Redo Move Item: Cannot find item instance! ' + str(self.origDef))
+    @staticmethod
+    def changeObjectPos(object, newX, newY):
+        """
+        Changes the position of an object
+        """
+        oldX, oldY = object.objx, object.objy
+        oldBR = object.getFullRect()
+
+        if isinstance(object, SpriteItem):
+            # Sprites are weird so they handle this themselves
+            object.setNewObjPos(newX, newY)
+        elif isinstance(object, ObjectItem):
+            # Objects use the objx and objy properties differently
+            object.objx, object.objy = newX, newY
+            object.setPos(newX * 24, newY * 24)
+        else:
+            # Everything else is normal
+            object.objx, object.objy = newX, newY
+            object.setPos(newX * 1.5, newY * 1.5)
+        newBR = object.getFullRect()
+
+        mainWindow.scene.update(oldBR)
+        mainWindow.scene.update(newBR)
+
+        if isinstance(object, PathItem):
+            object.updatePos()
+            object.pathinfo['peline'].nodePosChanged()
+    def isExtentionOf(self, other):
+        """
+        Returns True if this MoveItemUndoAction extends another
+        """
+        return hasattr(other, 'origDef') and self.origDef.defMatchesData(other.origDef)
+    def extend(self, other):
+        """
+        Extends this MoveItemUndoAction with the data from an extention of it.
+        isExtentionOf must have returned True first!
+        """
+        self.finalDef.objx = other.finalDef.objx
+        self.finalDef.objy = other.finalDef.objy
+    def isNull(self):
+        """
+        Returns True if this action is effectively a no-op
+        """
+        matches = True
+        matches = matches and abs(self.origDef.objx - self.finalDef.objx) <= 2
+        matches = matches and abs(self.origDef.objy - self.finalDef.objy) <= 2
+        return matches
+
+
+class SimultaneousUndoAction(UndoAction):
+    """
+    An undo action that consists of multiple undo actions at once
+    """
+    def __init__(self, children):
+        """
+        Initializes the undo action
+        """
+        self.children = set(children)
+    def undo(self):
+        """
+        Calls undo() on all children
+        """
+        for c in self.children:
+            c.undo()
+    def redo(self):
+        """
+        Calls redo() on all children
+        """
+        for c in self.children:
+            c.redo()
+    def isExtentionOf(self, other):
+        """
+        Returns True if this SinultaneousUndoAction and another one have equivalent children
+        """
+        if not hasattr(other, 'children'): return False
+        searchIn = set(self.children)
+        searchAgainst = set(other.children)
+        for searchInObj in searchIn:
+            found = False
+            for searchAgainstObj in searchAgainst:
+                if searchAgainstObj.isExtentionOf(searchInObj):
+                    found = True
+                    searchAgainst.remove(searchAgainstObj)
+                    break # only breaks out of inner loop
+            if not found:
+                return False
+        return True
+    def extend(self, other):
+        """
+        Extend this SimultaneousUndoAction with the data from an extention of it.
+        isExtentionOf must have returned True first!
+        """
+        searchMine = set(self.children)
+        searchOther = set(other.children)
+        for searchMineObj in searchMine:
+            found = False
+            for searchOtherObj in searchOther:
+                if searchOtherObj.isExtentionOf(searchMineObj):
+                    searchMineObj.extend(searchOtherObj)
+                    searchOther.remove(searchOtherObj)
+                    break # only breaks out of inner loop
+
+    def isNull(self):
+        """
+        Returns True if this action is effectively a no-op
+        """
+        # Hopefully this code is easy enough for you to follow.
+        anythingIsDifferent = False
+        for c in self.children:
+            anythingIsDifferent = anythingIsDifferent or not c.isNull()
+        return not anythingIsDifferent
 
 
 
@@ -9104,6 +9580,10 @@ class ReggieTranslation():
                 119: 'Show special effects present in the level',
                 120: 'Check for Updates...',
                 121: 'Check if any updates for Reggie! Next are available to download',
+                122: 'Undo',
+                123: 'Undoes the last action',
+                124: 'Redo',
+                125: 'Redoes the last action that was undone',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
@@ -9972,7 +10452,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                                    'loops': False
                     }
                     Area.pathdata.append(newpathdata)
-                    newnode = PathItem(clickedx, clickedy, None, None, newpathdata, newpathdata['nodes'][0])
+                    newnode = PathItem(clickedx, clickedy, newpathdata, newpathdata['nodes'][0])
                     newnode.positionChanged = mw.HandlePathPosChange
 
                     mw.scene.addItem(newnode)
@@ -10015,7 +10495,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     nodeid = pathd['nodes'].index(newnodedata)
 
 
-                    newnode = PathItem(clickedx, clickedy, None, None, pathd, newnodedata)
+                    newnode = PathItem(clickedx, clickedy, pathd, newnodedata)
 
                     newnode.positionChanged = mw.HandlePathPosChange
                     mw.scene.addItem(newnode)
@@ -14806,6 +15286,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.AutosaveTimer.timeout.connect(self.Autosave)
         self.AutosaveTimer.start(20000)
 
+        # add the undo stack object
+        self.undoStack = UndoStack()
+
         # required variables
         self.UpdateFlag = False
         self.SelectionUpdateFlag = False
@@ -14949,6 +15432,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         # Edit
         self.CreateAction('selectall', self.SelectAll, GetIcon('select'), trans.string('MenuItems', 22), trans.string('MenuItems', 23), QtGui.QKeySequence.SelectAll)
         self.CreateAction('deselect', self.Deselect, GetIcon('deselect'), trans.string('MenuItems', 24), trans.string('MenuItems', 25), QtGui.QKeySequence('Ctrl+D'))
+        self.CreateAction('undo', self.Undo, GetIcon('undo'), trans.string('MenuItems', 122), trans.string('MenuItems', 123), QtGui.QKeySequence.Undo)
+        self.CreateAction('redo', self.Redo, GetIcon('redo'), trans.string('MenuItems', 124), trans.string('MenuItems', 125), QtGui.QKeySequence.Redo)
         self.CreateAction('cut', self.Cut, GetIcon('cut'), trans.string('MenuItems', 26), trans.string('MenuItems', 27), QtGui.QKeySequence.Cut)
         self.CreateAction('copy', self.Copy, GetIcon('copy'), trans.string('MenuItems', 28), trans.string('MenuItems', 29), QtGui.QKeySequence.Copy)
         self.CreateAction('paste', self.Paste, GetIcon('paste'), trans.string('MenuItems', 30), trans.string('MenuItems', 31), QtGui.QKeySequence.Paste)
@@ -15017,6 +15502,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.actions['freezepaths'].setChecked(PathsFrozen)
         self.actions['freezecomments'].setChecked(CommentsFrozen)
 
+        self.actions['undo'].setEnabled(False)
+        self.actions['redo'].setEnabled(False)
         self.actions['cut'].setEnabled(False)
         self.actions['copy'].setEnabled(False)
         self.actions['paste'].setEnabled(False)
@@ -15050,6 +15537,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         emenu = menubar.addMenu(trans.string('Menubar', 1))
         emenu.addAction(self.actions['selectall'])
         emenu.addAction(self.actions['deselect'])
+        emenu.addSeparator()
+        emenu.addAction(self.actions['undo'])
+        emenu.addAction(self.actions['redo'])
         emenu.addSeparator()
         emenu.addAction(self.actions['cut'])
         emenu.addAction(self.actions['copy'])
@@ -16058,6 +16548,22 @@ class ReggieWindow(QtWidgets.QMainWindow):
         items = self.scene.selectedItems()
         for obj in items:
             obj.setSelected(False)
+
+
+    @QtCore.pyqtSlot()
+    def Undo(self):
+        """
+        Undoes something
+        """
+        self.undoStack.undo()
+
+
+    @QtCore.pyqtSlot()
+    def Redo(self):
+        """
+        Redoes something previously undone
+        """
+        self.undoStack.redo()
 
 
     @QtCore.pyqtSlot()
@@ -17980,6 +18486,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Handle the path being dragged
         """
         if oldx == x and oldy == y: return
+        print('handlepathposchange')
         obj.updatePos()
         obj.pathinfo['peline'].nodePosChanged()
         obj.UpdateListItem()
