@@ -3090,6 +3090,10 @@ class AreaUnit():
 
             offset += 8
 
+        for i in range(pathcount):
+            xpi = pathinfo[i]
+            for xpj in xpi['nodes']:
+                paths.append(PathItem(xpj['x'], xpj['y'], xpi, xpj))
 
         self.pathdata = pathinfo
         self.paths = paths
@@ -9162,7 +9166,7 @@ class ReggieTranslation():
                 1: 'Tilesets',
                 2: 'Settings',
                 3: 'Timer:',
-                4: '[b]Timer:[/b][br]Sets the countdown timer on load from the world map. It\'s possible to set different times for the midpoint area.',
+                4: '[b]Timer:[/b][br]Sets the time limit, in "Mario seconds," for the level.[br][b]Midway Timer Info:[/b] The midway timer is calculated by subtracting 200 from this value. Because the game will use the timer setting from whatever area the midpoint is located in, it\'s possible to pick your own time limit if you put the midpoint in any area other than Area 1. Just set the time limit value for that area to the midpoint time you want + 200.',
                 5: 'Entrance ID:',
                 6: '[b]Entrance ID:[/b][br]Sets the entrance ID to load into when loading from the World Map',
                 7: 'Wrap across Edges',
@@ -18501,7 +18505,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Handle the path being dragged
         """
         if oldx == x and oldy == y: return
-        print('handlepathposchange')
         obj.updatePos()
         obj.pathinfo['peline'].nodePosChanged()
         obj.UpdateListItem()
