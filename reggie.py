@@ -10066,14 +10066,13 @@ class ReggieTranslation():
                 self.strings[index][index2] = strings[index][index2]
 
 
-    def string(*args):
+    def string(self, *args):
         """
         Usage: string(section, numcode, replacementDummy, replacement, replacementDummy2, replacement2, etc.)
         """
-        self = args[0]
-
+    
         # If there are errors when the string is found, return an error report instead
-        try: return self.string_(args[1:])
+        try: return self.string_(*args)
         except Exception as e:
             text = '\nReggieTranslation.string() ERROR: ' + str(args[1]) + '; ' + str(args[2]) + '; ' + repr(e) + '\n'
             # do 3 things with the text - print it, save it to ReggieErrors.txt, return it
@@ -10086,13 +10085,10 @@ class ReggieTranslation():
             f.close(); del f
             return text
 
-    def string_(*args):
+    def string_(self, *args):
         """
         Gets a string from the translation and returns it
         """
-        # Get self and remove it from args
-        self = args[0]
-        args = args[1]
 
         # Get the string
         astring = self.strings[args[0]][args[1]]
@@ -10129,6 +10125,13 @@ class ReggieTranslation():
 
         # Return it
         return astring
+
+    def stringOneLine(self, *args):
+        """
+        Works like string(), but gurantees that the resulting string will have no line breaks or <br>s.
+        """
+        newstr = self.string(*args)
+        return newstr.replace('\n', ' ').replace('<br>', ' ')
 
     def stringList(self, section, numcode):
         """
@@ -15430,66 +15433,66 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
 
         # File
-        self.CreateAction('newlevel', self.HandleNewLevel, GetIcon('new'), trans.string('MenuItems', 0), trans.string('MenuItems', 1), QtGui.QKeySequence.New)
-        self.CreateAction('openfromname', self.HandleOpenFromName, GetIcon('open'), trans.string('MenuItems', 2), trans.string('MenuItems', 3), QtGui.QKeySequence.Open)
-        self.CreateAction('openfromfile', self.HandleOpenFromFile, GetIcon('openfromfile'), trans.string('MenuItems', 4), trans.string('MenuItems', 5), QtGui.QKeySequence('Ctrl+Shift+O'))
-        self.CreateAction('openrecent', None, GetIcon('recent'), trans.string('MenuItems', 6), trans.string('MenuItems', 7), None)
-        self.CreateAction('save', self.HandleSave, GetIcon('save'), trans.string('MenuItems', 8), trans.string('MenuItems', 9), QtGui.QKeySequence.Save)
-        self.CreateAction('saveas', self.HandleSaveAs, GetIcon('saveas'), trans.string('MenuItems', 10), trans.string('MenuItems', 11), QtGui.QKeySequence.SaveAs)
-        self.CreateAction('metainfo', self.HandleInfo, GetIcon('info'), trans.string('MenuItems', 12), trans.string('MenuItems', 13), QtGui.QKeySequence('Ctrl+Alt+I'))
-        self.CreateAction('changegamedef', None, GetIcon('game'), trans.string('MenuItems', 98), trans.string('MenuItems', 99), None)
-        self.CreateAction('screenshot', self.HandleScreenshot, GetIcon('screenshot'), trans.string('MenuItems', 14), trans.string('MenuItems', 15), QtGui.QKeySequence('Ctrl+Alt+S'))
-        self.CreateAction('changegamepath', self.HandleChangeGamePath, GetIcon('folderpath'), trans.string('MenuItems', 16), trans.string('MenuItems', 17), QtGui.QKeySequence('Ctrl+Alt+G'))
-        self.CreateAction('preferences', self.HandlePreferences, GetIcon('settings'), trans.string('MenuItems', 18), trans.string('MenuItems', 19), QtGui.QKeySequence('Ctrl+Alt+P'))
-        self.CreateAction('exit', self.HandleExit, GetIcon('delete'), trans.string('MenuItems', 20), trans.string('MenuItems', 21), QtGui.QKeySequence('Ctrl+Q'))
+        self.CreateAction('newlevel', self.HandleNewLevel, GetIcon('new'), trans.stringOneLine('MenuItems', 0), trans.stringOneLine('MenuItems', 1), QtGui.QKeySequence.New)
+        self.CreateAction('openfromname', self.HandleOpenFromName, GetIcon('open'), trans.stringOneLine('MenuItems', 2), trans.stringOneLine('MenuItems', 3), QtGui.QKeySequence.Open)
+        self.CreateAction('openfromfile', self.HandleOpenFromFile, GetIcon('openfromfile'), trans.stringOneLine('MenuItems', 4), trans.stringOneLine('MenuItems', 5), QtGui.QKeySequence('Ctrl+Shift+O'))
+        self.CreateAction('openrecent', None, GetIcon('recent'), trans.stringOneLine('MenuItems', 6), trans.stringOneLine('MenuItems', 7), None)
+        self.CreateAction('save', self.HandleSave, GetIcon('save'), trans.stringOneLine('MenuItems', 8), trans.stringOneLine('MenuItems', 9), QtGui.QKeySequence.Save)
+        self.CreateAction('saveas', self.HandleSaveAs, GetIcon('saveas'), trans.stringOneLine('MenuItems', 10), trans.stringOneLine('MenuItems', 11), QtGui.QKeySequence.SaveAs)
+        self.CreateAction('metainfo', self.HandleInfo, GetIcon('info'), trans.stringOneLine('MenuItems', 12), trans.stringOneLine('MenuItems', 13), QtGui.QKeySequence('Ctrl+Alt+I'))
+        self.CreateAction('changegamedef', None, GetIcon('game'), trans.stringOneLine('MenuItems', 98), trans.stringOneLine('MenuItems', 99), None)
+        self.CreateAction('screenshot', self.HandleScreenshot, GetIcon('screenshot'), trans.stringOneLine('MenuItems', 14), trans.stringOneLine('MenuItems', 15), QtGui.QKeySequence('Ctrl+Alt+S'))
+        self.CreateAction('changegamepath', self.HandleChangeGamePath, GetIcon('folderpath'), trans.stringOneLine('MenuItems', 16), trans.stringOneLine('MenuItems', 17), QtGui.QKeySequence('Ctrl+Alt+G'))
+        self.CreateAction('preferences', self.HandlePreferences, GetIcon('settings'), trans.stringOneLine('MenuItems', 18), trans.stringOneLine('MenuItems', 19), QtGui.QKeySequence('Ctrl+Alt+P'))
+        self.CreateAction('exit', self.HandleExit, GetIcon('delete'), trans.stringOneLine('MenuItems', 20), trans.stringOneLine('MenuItems', 21), QtGui.QKeySequence('Ctrl+Q'))
 
         # Edit
-        self.CreateAction('selectall', self.SelectAll, GetIcon('select'), trans.string('MenuItems', 22), trans.string('MenuItems', 23), QtGui.QKeySequence.SelectAll)
-        self.CreateAction('deselect', self.Deselect, GetIcon('deselect'), trans.string('MenuItems', 24), trans.string('MenuItems', 25), QtGui.QKeySequence('Ctrl+D'))
-        self.CreateAction('undo', self.Undo, GetIcon('undo'), trans.string('MenuItems', 124), trans.string('MenuItems', 125), QtGui.QKeySequence.Undo)
-        self.CreateAction('redo', self.Redo, GetIcon('redo'), trans.string('MenuItems', 126), trans.string('MenuItems', 127), QtGui.QKeySequence.Redo)
-        self.CreateAction('cut', self.Cut, GetIcon('cut'), trans.string('MenuItems', 26), trans.string('MenuItems', 27), QtGui.QKeySequence.Cut)
-        self.CreateAction('copy', self.Copy, GetIcon('copy'), trans.string('MenuItems', 28), trans.string('MenuItems', 29), QtGui.QKeySequence.Copy)
-        self.CreateAction('paste', self.Paste, GetIcon('paste'), trans.string('MenuItems', 30), trans.string('MenuItems', 31), QtGui.QKeySequence.Paste)
-        self.CreateAction('shiftitems', self.ShiftItems, GetIcon('move'), trans.string('MenuItems', 32), trans.string('MenuItems', 33), QtGui.QKeySequence('Ctrl+Shift+S'))
-        self.CreateAction('mergelocations', self.MergeLocations, GetIcon('merge'), trans.string('MenuItems', 34), trans.string('MenuItems', 35), QtGui.QKeySequence('Ctrl+Shift+E'))
-        self.CreateAction('swapobjectstilesets', self.SwapObjectsTilesets, GetIcon('swap'), trans.string('MenuItems', 104), trans.string('MenuItems', 105), QtGui.QKeySequence('Ctrl+Shift+L'))
-        self.CreateAction('swapobjectstypes', self.SwapObjectsTypes, GetIcon('swap'), trans.string('MenuItems', 106), trans.string('MenuItems', 107), QtGui.QKeySequence('Ctrl+Shift+Y'))
-        self.CreateAction('diagnostic', self.HandleDiagnostics, GetIcon('diagnostics'), trans.string('MenuItems', 36), trans.string('MenuItems', 37), QtGui.QKeySequence('Ctrl+Shift+D'))
-        self.CreateAction('freezeobjects', self.HandleObjectsFreeze, GetIcon('objectsfreeze'), trans.string('MenuItems', 38), trans.string('MenuItems', 39), QtGui.QKeySequence('Ctrl+Shift+1'), True)
-        self.CreateAction('freezesprites', self.HandleSpritesFreeze, GetIcon('spritesfreeze'), trans.string('MenuItems', 40), trans.string('MenuItems', 41), QtGui.QKeySequence('Ctrl+Shift+2'), True)
-        self.CreateAction('freezeentrances', self.HandleEntrancesFreeze, GetIcon('entrancesfreeze'), trans.string('MenuItems', 42), trans.string('MenuItems', 43), QtGui.QKeySequence('Ctrl+Shift+3'), True)
-        self.CreateAction('freezelocations', self.HandleLocationsFreeze, GetIcon('locationsfreeze'), trans.string('MenuItems', 44), trans.string('MenuItems', 45), QtGui.QKeySequence('Ctrl+Shift+4'), True)
-        self.CreateAction('freezepaths', self.HandlePathsFreeze, GetIcon('pathsfreeze'), trans.string('MenuItems', 46), trans.string('MenuItems', 47), QtGui.QKeySequence('Ctrl+Shift+5'), True)
-        self.CreateAction('freezecomments', self.HandleCommentsFreeze, GetIcon('commentsfreeze'), trans.string('MenuItems', 114), trans.string('MenuItems', 115), QtGui.QKeySequence('Ctrl+Shift+9'), True)
+        self.CreateAction('selectall', self.SelectAll, GetIcon('select'), trans.stringOneLine('MenuItems', 22), trans.stringOneLine('MenuItems', 23), QtGui.QKeySequence.SelectAll)
+        self.CreateAction('deselect', self.Deselect, GetIcon('deselect'), trans.stringOneLine('MenuItems', 24), trans.stringOneLine('MenuItems', 25), QtGui.QKeySequence('Ctrl+D'))
+        self.CreateAction('undo', self.Undo, GetIcon('undo'), trans.stringOneLine('MenuItems', 124), trans.stringOneLine('MenuItems', 125), QtGui.QKeySequence.Undo)
+        self.CreateAction('redo', self.Redo, GetIcon('redo'), trans.stringOneLine('MenuItems', 126), trans.stringOneLine('MenuItems', 127), QtGui.QKeySequence.Redo)
+        self.CreateAction('cut', self.Cut, GetIcon('cut'), trans.stringOneLine('MenuItems', 26), trans.stringOneLine('MenuItems', 27), QtGui.QKeySequence.Cut)
+        self.CreateAction('copy', self.Copy, GetIcon('copy'), trans.stringOneLine('MenuItems', 28), trans.stringOneLine('MenuItems', 29), QtGui.QKeySequence.Copy)
+        self.CreateAction('paste', self.Paste, GetIcon('paste'), trans.stringOneLine('MenuItems', 30), trans.stringOneLine('MenuItems', 31), QtGui.QKeySequence.Paste)
+        self.CreateAction('shiftitems', self.ShiftItems, GetIcon('move'), trans.stringOneLine('MenuItems', 32), trans.stringOneLine('MenuItems', 33), QtGui.QKeySequence('Ctrl+Shift+S'))
+        self.CreateAction('mergelocations', self.MergeLocations, GetIcon('merge'), trans.stringOneLine('MenuItems', 34), trans.stringOneLine('MenuItems', 35), QtGui.QKeySequence('Ctrl+Shift+E'))
+        self.CreateAction('swapobjectstilesets', self.SwapObjectsTilesets, GetIcon('swap'), trans.stringOneLine('MenuItems', 104), trans.stringOneLine('MenuItems', 105), QtGui.QKeySequence('Ctrl+Shift+L'))
+        self.CreateAction('swapobjectstypes', self.SwapObjectsTypes, GetIcon('swap'), trans.stringOneLine('MenuItems', 106), trans.stringOneLine('MenuItems', 107), QtGui.QKeySequence('Ctrl+Shift+Y'))
+        self.CreateAction('diagnostic', self.HandleDiagnostics, GetIcon('diagnostics'), trans.stringOneLine('MenuItems', 36), trans.stringOneLine('MenuItems', 37), QtGui.QKeySequence('Ctrl+Shift+D'))
+        self.CreateAction('freezeobjects', self.HandleObjectsFreeze, GetIcon('objectsfreeze'), trans.stringOneLine('MenuItems', 38), trans.stringOneLine('MenuItems', 39), QtGui.QKeySequence('Ctrl+Shift+1'), True)
+        self.CreateAction('freezesprites', self.HandleSpritesFreeze, GetIcon('spritesfreeze'), trans.stringOneLine('MenuItems', 40), trans.stringOneLine('MenuItems', 41), QtGui.QKeySequence('Ctrl+Shift+2'), True)
+        self.CreateAction('freezeentrances', self.HandleEntrancesFreeze, GetIcon('entrancesfreeze'), trans.stringOneLine('MenuItems', 42), trans.stringOneLine('MenuItems', 43), QtGui.QKeySequence('Ctrl+Shift+3'), True)
+        self.CreateAction('freezelocations', self.HandleLocationsFreeze, GetIcon('locationsfreeze'), trans.stringOneLine('MenuItems', 44), trans.stringOneLine('MenuItems', 45), QtGui.QKeySequence('Ctrl+Shift+4'), True)
+        self.CreateAction('freezepaths', self.HandlePathsFreeze, GetIcon('pathsfreeze'), trans.stringOneLine('MenuItems', 46), trans.stringOneLine('MenuItems', 47), QtGui.QKeySequence('Ctrl+Shift+5'), True)
+        self.CreateAction('freezecomments', self.HandleCommentsFreeze, GetIcon('commentsfreeze'), trans.stringOneLine('MenuItems', 114), trans.stringOneLine('MenuItems', 115), QtGui.QKeySequence('Ctrl+Shift+9'), True)
 
         # View
-        self.CreateAction('showlay0', self.HandleUpdateLayer0, GetIcon('layer0'), trans.string('MenuItems', 48), trans.string('MenuItems', 49), QtGui.QKeySequence('Ctrl+1'), True)
-        self.CreateAction('showlay1', self.HandleUpdateLayer1, GetIcon('layer1'), trans.string('MenuItems', 50), trans.string('MenuItems', 51), QtGui.QKeySequence('Ctrl+2'), True)
-        self.CreateAction('showlay2', self.HandleUpdateLayer2, GetIcon('layer2'), trans.string('MenuItems', 52), trans.string('MenuItems', 53), QtGui.QKeySequence('Ctrl+3'), True)
-        self.CreateAction('tileanim', self.HandleTilesetAnimToggle, GetIcon('animation'), trans.string('MenuItems', 108), trans.string('MenuItems', 109), QtGui.QKeySequence('Ctrl+7'), True)
-        self.CreateAction('collisions', self.HandleCollisionsToggle, GetIcon('collisions'), trans.string('MenuItems', 110), trans.string('MenuItems', 111), QtGui.QKeySequence('Ctrl+8'), True)
-        self.CreateAction('realview', self.HandleRealViewToggle, GetIcon('realview'), trans.string('MenuItems', 118), trans.string('MenuItems', 119), QtGui.QKeySequence('Ctrl+9'), True)
-        self.CreateAction('showsprites', self.HandleSpritesVisibility, GetIcon('sprites'), trans.string('MenuItems', 54), trans.string('MenuItems', 55), QtGui.QKeySequence('Ctrl+4'), True)
-        self.CreateAction('showspriteimages', self.HandleSpriteImages, GetIcon('sprites'), trans.string('MenuItems', 56), trans.string('MenuItems', 57), QtGui.QKeySequence('Ctrl+6'), True)
-        self.CreateAction('showlocations', self.HandleLocationsVisibility, GetIcon('locations'), trans.string('MenuItems', 58), trans.string('MenuItems', 59), QtGui.QKeySequence('Ctrl+5'), True)
-        self.CreateAction('showcomments', self.HandleCommentsVisibility, GetIcon('comments'), trans.string('MenuItems', 116), trans.string('MenuItems', 117), QtGui.QKeySequence('Ctrl+0'), True)
-        self.CreateAction('grid', self.HandleSwitchGrid, GetIcon('grid'), trans.string('MenuItems', 60), trans.string('MenuItems', 61), QtGui.QKeySequence('Ctrl+G'), False)
-        self.CreateAction('zoommax', self.HandleZoomMax, GetIcon('zoommax'), trans.string('MenuItems', 62), trans.string('MenuItems', 63), QtGui.QKeySequence('Ctrl+PgDown'), False)
-        self.CreateAction('zoomin', self.HandleZoomIn, GetIcon('zoomin'), trans.string('MenuItems', 64), trans.string('MenuItems', 65), QtGui.QKeySequence.ZoomIn, False)
-        self.CreateAction('zoomactual', self.HandleZoomActual, GetIcon('zoomactual'), trans.string('MenuItems', 66), trans.string('MenuItems', 67), QtGui.QKeySequence('Ctrl+0'), False)
-        self.CreateAction('zoomout', self.HandleZoomOut, GetIcon('zoomout'), trans.string('MenuItems', 68), trans.string('MenuItems', 69), QtGui.QKeySequence.ZoomOut, False)
-        self.CreateAction('zoommin', self.HandleZoomMin, GetIcon('zoommin'), trans.string('MenuItems', 70), trans.string('MenuItems', 71), QtGui.QKeySequence('Ctrl+PgUp'), False)
+        self.CreateAction('showlay0', self.HandleUpdateLayer0, GetIcon('layer0'), trans.stringOneLine('MenuItems', 48), trans.stringOneLine('MenuItems', 49), QtGui.QKeySequence('Ctrl+1'), True)
+        self.CreateAction('showlay1', self.HandleUpdateLayer1, GetIcon('layer1'), trans.stringOneLine('MenuItems', 50), trans.stringOneLine('MenuItems', 51), QtGui.QKeySequence('Ctrl+2'), True)
+        self.CreateAction('showlay2', self.HandleUpdateLayer2, GetIcon('layer2'), trans.stringOneLine('MenuItems', 52), trans.stringOneLine('MenuItems', 53), QtGui.QKeySequence('Ctrl+3'), True)
+        self.CreateAction('tileanim', self.HandleTilesetAnimToggle, GetIcon('animation'), trans.stringOneLine('MenuItems', 108), trans.stringOneLine('MenuItems', 109), QtGui.QKeySequence('Ctrl+7'), True)
+        self.CreateAction('collisions', self.HandleCollisionsToggle, GetIcon('collisions'), trans.stringOneLine('MenuItems', 110), trans.stringOneLine('MenuItems', 111), QtGui.QKeySequence('Ctrl+8'), True)
+        self.CreateAction('realview', self.HandleRealViewToggle, GetIcon('realview'), trans.stringOneLine('MenuItems', 118), trans.stringOneLine('MenuItems', 119), QtGui.QKeySequence('Ctrl+9'), True)
+        self.CreateAction('showsprites', self.HandleSpritesVisibility, GetIcon('sprites'), trans.stringOneLine('MenuItems', 54), trans.stringOneLine('MenuItems', 55), QtGui.QKeySequence('Ctrl+4'), True)
+        self.CreateAction('showspriteimages', self.HandleSpriteImages, GetIcon('sprites'), trans.stringOneLine('MenuItems', 56), trans.stringOneLine('MenuItems', 57), QtGui.QKeySequence('Ctrl+6'), True)
+        self.CreateAction('showlocations', self.HandleLocationsVisibility, GetIcon('locations'), trans.stringOneLine('MenuItems', 58), trans.stringOneLine('MenuItems', 59), QtGui.QKeySequence('Ctrl+5'), True)
+        self.CreateAction('showcomments', self.HandleCommentsVisibility, GetIcon('comments'), trans.stringOneLine('MenuItems', 116), trans.stringOneLine('MenuItems', 117), QtGui.QKeySequence('Ctrl+0'), True)
+        self.CreateAction('grid', self.HandleSwitchGrid, GetIcon('grid'), trans.stringOneLine('MenuItems', 60), trans.stringOneLine('MenuItems', 61), QtGui.QKeySequence('Ctrl+G'), False)
+        self.CreateAction('zoommax', self.HandleZoomMax, GetIcon('zoommax'), trans.stringOneLine('MenuItems', 62), trans.stringOneLine('MenuItems', 63), QtGui.QKeySequence('Ctrl+PgDown'), False)
+        self.CreateAction('zoomin', self.HandleZoomIn, GetIcon('zoomin'), trans.stringOneLine('MenuItems', 64), trans.stringOneLine('MenuItems', 65), QtGui.QKeySequence.ZoomIn, False)
+        self.CreateAction('zoomactual', self.HandleZoomActual, GetIcon('zoomactual'), trans.stringOneLine('MenuItems', 66), trans.stringOneLine('MenuItems', 67), QtGui.QKeySequence('Ctrl+0'), False)
+        self.CreateAction('zoomout', self.HandleZoomOut, GetIcon('zoomout'), trans.stringOneLine('MenuItems', 68), trans.stringOneLine('MenuItems', 69), QtGui.QKeySequence.ZoomOut, False)
+        self.CreateAction('zoommin', self.HandleZoomMin, GetIcon('zoommin'), trans.stringOneLine('MenuItems', 70), trans.stringOneLine('MenuItems', 71), QtGui.QKeySequence('Ctrl+PgUp'), False)
         # Show Overview and Show Palette are added later
 
         # Settings
-        self.CreateAction('areaoptions', self.HandleAreaOptions, GetIcon('area'), trans.string('MenuItems', 72), trans.string('MenuItems', 73), QtGui.QKeySequence('Ctrl+Alt+A'))
-        self.CreateAction('zones', self.HandleZones, GetIcon('zones'), trans.string('MenuItems', 74), trans.string('MenuItems', 75), QtGui.QKeySequence('Ctrl+Alt+Z'))
-        self.CreateAction('backgrounds', self.HandleBG, GetIcon('background'), trans.string('MenuItems', 76), trans.string('MenuItems', 77), QtGui.QKeySequence('Ctrl+Alt+B'))
-        self.CreateAction('addarea', self.HandleAddNewArea, GetIcon('add'), trans.string('MenuItems', 78), trans.string('MenuItems', 79), QtGui.QKeySequence('Ctrl+Alt+N'))
-        self.CreateAction('importarea', self.HandleImportArea, GetIcon('import'), trans.string('MenuItems', 80), trans.string('MenuItems', 81), QtGui.QKeySequence('Ctrl+Alt+O'))
-        self.CreateAction('deletearea', self.HandleDeleteArea, GetIcon('delete'), trans.string('MenuItems', 82), trans.string('MenuItems', 83), QtGui.QKeySequence('Ctrl+Alt+D'))
-        self.CreateAction('reloadgfx', self.ReloadTilesets, GetIcon('reload'), trans.string('MenuItems', 84), trans.string('MenuItems', 85), QtGui.QKeySequence('Ctrl+Shift+R'))
+        self.CreateAction('areaoptions', self.HandleAreaOptions, GetIcon('area'), trans.stringOneLine('MenuItems', 72), trans.stringOneLine('MenuItems', 73), QtGui.QKeySequence('Ctrl+Alt+A'))
+        self.CreateAction('zones', self.HandleZones, GetIcon('zones'), trans.stringOneLine('MenuItems', 74), trans.stringOneLine('MenuItems', 75), QtGui.QKeySequence('Ctrl+Alt+Z'))
+        self.CreateAction('backgrounds', self.HandleBG, GetIcon('background'), trans.stringOneLine('MenuItems', 76), trans.stringOneLine('MenuItems', 77), QtGui.QKeySequence('Ctrl+Alt+B'))
+        self.CreateAction('addarea', self.HandleAddNewArea, GetIcon('add'), trans.stringOneLine('MenuItems', 78), trans.stringOneLine('MenuItems', 79), QtGui.QKeySequence('Ctrl+Alt+N'))
+        self.CreateAction('importarea', self.HandleImportArea, GetIcon('import'), trans.stringOneLine('MenuItems', 80), trans.stringOneLine('MenuItems', 81), QtGui.QKeySequence('Ctrl+Alt+O'))
+        self.CreateAction('deletearea', self.HandleDeleteArea, GetIcon('delete'), trans.stringOneLine('MenuItems', 82), trans.stringOneLine('MenuItems', 83), QtGui.QKeySequence('Ctrl+Alt+D'))
+        self.CreateAction('reloadgfx', self.ReloadTilesets, GetIcon('reload'), trans.stringOneLine('MenuItems', 84), trans.stringOneLine('MenuItems', 85), QtGui.QKeySequence('Ctrl+Shift+R'))
 
         # Help actions are created later
 
@@ -15628,11 +15631,11 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Creates the help menu. This is separate because both the ribbon and the menubar use this
         """
-        self.CreateAction('infobox', self.AboutBox, GetIcon('reggie'), trans.string('MenuItems', 86), trans.string('MenuItems', 87), QtGui.QKeySequence('Ctrl+Shift+I'))
-        self.CreateAction('helpbox', self.HelpBox, GetIcon('contents'), trans.string('MenuItems', 88), trans.string('MenuItems', 89), QtGui.QKeySequence('Ctrl+Shift+H'))
-        self.CreateAction('tipbox', self.TipBox, GetIcon('tips'), trans.string('MenuItems', 90), trans.string('MenuItems', 91), QtGui.QKeySequence('Ctrl+Shift+T'))
-        self.CreateAction('update', self.UpdateCheck, GetIcon('download'), trans.string('MenuItems', 120), trans.string('MenuItems', 121), QtGui.QKeySequence('Ctrl+Shift+U'))
-        self.CreateAction('aboutqt', QtWidgets.qApp.aboutQt, GetIcon('qt'), trans.string('MenuItems', 92), trans.string('MenuItems', 93), QtGui.QKeySequence('Ctrl+Shift+Q'))
+        self.CreateAction('infobox', self.AboutBox, GetIcon('reggie'), trans.stringOneLine('MenuItems', 86), trans.string('MenuItems', 87), QtGui.QKeySequence('Ctrl+Shift+I'))
+        self.CreateAction('helpbox', self.HelpBox, GetIcon('contents'), trans.stringOneLine('MenuItems', 88), trans.string('MenuItems', 89), QtGui.QKeySequence('Ctrl+Shift+H'))
+        self.CreateAction('tipbox', self.TipBox, GetIcon('tips'), trans.stringOneLine('MenuItems', 90), trans.string('MenuItems', 91), QtGui.QKeySequence('Ctrl+Shift+T'))
+        self.CreateAction('update', self.UpdateCheck, GetIcon('download'), trans.stringOneLine('MenuItems', 120), trans.string('MenuItems', 121), QtGui.QKeySequence('Ctrl+Shift+U'))
+        self.CreateAction('aboutqt', QtWidgets.qApp.aboutQt, GetIcon('qt'), trans.stringOneLine('MenuItems', 92), trans.string('MenuItems', 93), QtGui.QKeySequence('Ctrl+Shift+Q'))
 
         if menu is None:
             menu = QtWidgets.QMenu(trans.string('Menubar', 4))
