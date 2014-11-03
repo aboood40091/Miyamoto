@@ -2667,6 +2667,13 @@ class LevelUnit():
 
         return True
 
+    def setAreaGlobal(self, num):
+        """
+        Sets the global Area variable to the area number specified here
+        """
+        global Area
+        Area = self.areas[num - 1]
+
     def save(self):
         """
         Save the level back to a file
@@ -2743,6 +2750,7 @@ class AreaUnit():
         Creates a completely new area
         """
         self.areanum = 1
+        self.course, self.L0, self.L1, self.L2 = [None] * 4
 
         mainWindow.levelOverview.maxX = 100
         mainWindow.levelOverview.maxY = 40
@@ -2778,14 +2786,13 @@ class AreaUnit():
         self.pathdata = []
         self.paths = []
         self.comments = []
+        self.layers = [[], [], []]
 
         self.LoadReggieInfo(None)
 
         CreateTilesets()
         LoadTileset(0, 'Pa0_jyotyu')
         LoadTileset(1, 'Pa1_nohara')
-
-        self.layers = [[], [], []]
 
 
     def loadArea(self, course, L0, L1, L2, progress=None):
@@ -10070,7 +10077,7 @@ class ReggieTranslation():
         """
         Usage: string(section, numcode, replacementDummy, replacement, replacementDummy2, replacement2, etc.)
         """
-    
+
         # If there are errors when the string is found, return an error report instead
         try: return self.string_(*args)
         except Exception as e:
@@ -17859,6 +17866,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         if name is None:
             Level.newLevel()
+            Level.setAreaGlobal(area)
         else:
             global RestoredFromAutoSave
             if RestoredFromAutoSave:
