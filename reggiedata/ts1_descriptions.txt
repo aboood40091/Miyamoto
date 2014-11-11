@@ -168,6 +168,6 @@
 167=Gold Block
 168=UNKNOWN
 169=Pipe Joint (2x1)
-170=UNKNOWN
+170=Solid Black Tile
 171=Snake Block with Vertical Eyes
 172=POW Block
