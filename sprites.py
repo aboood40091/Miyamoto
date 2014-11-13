@@ -2196,6 +2196,11 @@ class SpriteImage_PipeEnemyGenerator(SLib.SpriteImage): # 99
         else: # horizontal pipe
             self.spritebox.size = (24, 48)
 
+        if direction == 1:
+            self.xOffset = 24
+        else if direction == 3:
+            self.yOffset = 24
+
 
 class SpriteImage_Swooper(SLib.SpriteImage_Static): # 100
     def __init__(self, parent):
