@@ -4664,7 +4664,7 @@ class SpriteImage_RotatingFence(SLib.SpriteImage_Static): # 266
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('RotatingFence', 'rotating_fence.png')
+        SLib.loadIfNotInImageCache('RotatingFence', 'rotating_chainlink.png')
 
 
 class SpriteImage_TiltGrate(SLib.SpriteImage_StaticMultiple): # 267
