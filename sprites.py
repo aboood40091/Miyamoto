@@ -2198,7 +2198,7 @@ class SpriteImage_PipeEnemyGenerator(SLib.SpriteImage): # 99
 
         if direction == 1:
             self.xOffset = 24
-        else if direction == 3:
+        elif direction == 3:
             self.yOffset = 24
 
 
