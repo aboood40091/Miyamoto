@@ -33,7 +33,7 @@
 # Python version: sanity check
 minimum = 3.4
 import sys
-currentRunningVersion = float(sys.version[:3] + sys.version[5])
+currentRunningVersion = sys.version_info.major + (.1 * sys.version_info.minor)
 if currentRunningVersion < minimum:
     errormsg = 'Please update your copy of Python to ' + str(minimum) + \
         ' or greater. Currently running on: ' + sys.version[:5]
