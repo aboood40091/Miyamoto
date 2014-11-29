@@ -9598,6 +9598,8 @@ class ReggieTranslation():
                 125: 'Undoes the last action',
                 126: 'Redo',
                 127: 'Redoes the last action that was undone',
+                128: 'Save Copy of Level As...',
+                129: 'Save a copy of level with a new filename but keeps the current file open for editing',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
@@ -11606,6 +11608,7 @@ class TilesetsTab(QtWidgets.QWidget):
             # Create the tree widget
             tree = QtWidgets.QTreeWidget()
             tree.setColumnCount(2)
+            tree.setColumnWidth(0, 192) # hardcoded default width because Grop was complaining that the default width is too small
             tree.setHeaderLabels([trans.string('AreaDlg', 28), trans.string('AreaDlg', 29)]) # ['Name', 'File']
             tree.setIndentation(16)
             if slot == 0: handler = self.handleTreeSel0
@@ -11685,7 +11688,7 @@ class TilesetsTab(QtWidgets.QWidget):
         L = QtWidgets.QVBoxLayout()
         L.addWidget(T)
         self.setLayout(L)
-        return
+
 
     # Tree handlers
     def handleTreeSel0(self):
@@ -14521,6 +14524,7 @@ def LoadActionsLists():
         (trans.string('MenuItems', 6),  False, 'openrecent'),
         (trans.string('MenuItems', 8),  True,  'save'),
         (trans.string('MenuItems', 10), False, 'saveas'),
+        (trans.string('MenuItems', 10), False, 'savecopyas'),
         (trans.string('MenuItems', 12), False, 'metainfo'),
         (trans.string('MenuItems', 14), True,  'screenshot'),
         (trans.string('MenuItems', 16), False, 'changegamepath'),
@@ -15446,6 +15450,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.CreateAction('openrecent', None, GetIcon('recent'), trans.stringOneLine('MenuItems', 6), trans.stringOneLine('MenuItems', 7), None)
         self.CreateAction('save', self.HandleSave, GetIcon('save'), trans.stringOneLine('MenuItems', 8), trans.stringOneLine('MenuItems', 9), QtGui.QKeySequence.Save)
         self.CreateAction('saveas', self.HandleSaveAs, GetIcon('saveas'), trans.stringOneLine('MenuItems', 10), trans.stringOneLine('MenuItems', 11), QtGui.QKeySequence.SaveAs)
+        self.CreateAction('savecopyas', self.HandleSaveCopyAs, GetIcon('savecopyas'), trans.stringOneLine('MenuItems', 128), trans.stringOneLine('MenuItems', 129), None)
         self.CreateAction('metainfo', self.HandleInfo, GetIcon('info'), trans.stringOneLine('MenuItems', 12), trans.stringOneLine('MenuItems', 13), QtGui.QKeySequence('Ctrl+Alt+I'))
         self.CreateAction('changegamedef', None, GetIcon('game'), trans.stringOneLine('MenuItems', 98), trans.stringOneLine('MenuItems', 99), None)
         self.CreateAction('screenshot', self.HandleScreenshot, GetIcon('screenshot'), trans.stringOneLine('MenuItems', 14), trans.stringOneLine('MenuItems', 15), QtGui.QKeySequence('Ctrl+Alt+S'))
@@ -15549,6 +15554,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         fmenu.addSeparator()
         fmenu.addAction(self.actions['save'])
         fmenu.addAction(self.actions['saveas'])
+        fmenu.addAction(self.actions['savecopyas'])
         fmenu.addAction(self.actions['metainfo'])
         fmenu.addSeparator()
         fmenu.addAction(self.actions['changegamedef'])
@@ -15674,6 +15680,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 'openrecent',
                 'save',
                 'saveas',
+                'savecopyas',
                 'metainfo',
                 'screenshot',
                 'changegamepath',
@@ -15749,7 +15756,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         for group in Groups:
             addedButtons = False
             for key in group:
-                if toggled[key]:
+                if key in toggled and toggled[key]:
                     act = self.actions[key]
                     self.toolbar.addAction(act)
                     addedButtons = True
@@ -17316,6 +17323,20 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.UpdateTitle()
 
         self.RecentFilesMgr.addPath(Level.arcname)
+
+    @QtCore.pyqtSlot()
+    def HandleSaveCopyAs(self):
+        """
+        Save a level back to the archive, with a new filename, but does not store this filename
+        """
+        fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', trans.string('FileDlgs', 1) + ' (*.arc);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
+        if fn == '': return
+        fn = str(fn)
+
+        data = Level.save()
+        f = open(fn, 'wb')
+        f.write(data)
+        f.close()
 
     @QtCore.pyqtSlot()
     def HandleExit(self):
