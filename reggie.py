@@ -3108,12 +3108,6 @@ class Area_NSMB2(AbstractParsedArea):
                 self.blocks[i] = course[data[0]:data[0] + data[1]]
 
         self.block1pos = getblock.unpack_from(course, 0)
-        if self.areanum == 2:
-            with open('course2_7.bin', 'rb') as f:
-                self.blocks[7] = f.read()
-        else:
-            with open('course1_2.bin', 'rb') as f:
-                self.blocks[2] = f.read()
 
 
     def LoadTilesetNames(self):
