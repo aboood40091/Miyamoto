@@ -33,7 +33,7 @@
 # Python version: sanity check
 minimum = 3.4
 import sys
-currentRunningVersion = float(sys.version[:3] + sys.version[5])
+currentRunningVersion = sys.version_info.major + (.1 * sys.version_info.minor)
 if currentRunningVersion < minimum:
     errormsg = 'Please update your copy of Python to ' + str(minimum) + \
         ' or greater. Currently running on: ' + sys.version[:5]
@@ -58,7 +58,7 @@ try:
     from PyQt5 import QtCore, QtGui, QtWidgets
 except (ImportError, NameError):
     errormsg = 'PyQt5 is not installed for this Python installation. Go online and download it.'
-    raise Exception(errormsg)
+    raise Exception(errormsg) from None
 Qt = QtCore.Qt
 
 # PyQtRibbon: import, and error msg if not installed
@@ -1605,7 +1605,8 @@ def RenderObject(tileset, objnum, width, height, fullslope=False):
 
         for row in obj.rows:
             if len(row) == 0: continue
-            if (row[0][0] & 2) != 0:
+            # row[0][0] is 0, 1, 2, 4
+            if (row[0][0] & 2) != 0 or (row[0][0] & 4) != 0:
                 repeatFound = True
                 inRepeat.append(row)
             else:
@@ -1641,7 +1642,13 @@ def RenderStandardRow(dest, row, y, width):
     afterRepeat = []
 
     for tile in row:
-        if (tile[0] & 1) != 0:
+        # NSMB2 introduces two (?) new ways to define horizontal tiling, IN ADDITION TO the original one
+        tiling = False
+        tiling = tiling or ((tile[2] & 1) != 0 and (tile[0] & 1) != 0) # NSMBW-style (still applies to NSMB2)
+        tiling = tiling or ((row[0][0] & 4) != 0 and (tile[0] & 4) == 0) # NSMB2-style (J_Kihon BG rocks)
+        tiling = tiling or ((tile[0] & 1) != 0) # NSMB2-style (horizontal pipes)
+
+        if tiling:
             repeatFound = True
             inRepeat.append(tile)
         else:
@@ -2357,7 +2364,7 @@ Dirty = False
 DirtyOverride = 0
 AutoSaveDirty = False
 OverrideSnapping = False
-CurrentPaintType = 0
+CurrentPaintType = -1
 CurrentObject = -1
 CurrentSprite = -1
 CurrentLayer = 1
@@ -2374,6 +2381,7 @@ SpritesFrozen = False
 EntrancesFrozen = False
 LocationsFrozen = False
 PathsFrozen = False
+ProgressPathsFrozen = False
 CommentsFrozen = False
 PaintingEntrance = None
 PaintingEntranceListIndex = None
@@ -2868,6 +2876,8 @@ class AbstractParsedArea(AbstractArea):
         self.locations = []
         self.pathdata = []
         self.paths = []
+        self.progpathdata = []
+        self.progpaths = []
         self.comments = []
         self.layers = [[], [], []]
 
@@ -2896,6 +2906,7 @@ class AbstractParsedArea(AbstractArea):
         self.LoadZones() # block 10 (also blocks 3, 5, and 6)
         self.LoadLocations() # block 11
         self.LoadPaths() # block 12 and 13
+        self.LoadProgPaths() # block 16 and 17
 
         # Load the editor metadata
         if self.block1pos[0] != 0x70:
@@ -2944,7 +2955,7 @@ class AbstractParsedArea(AbstractArea):
             self.LoadLayer(2, L2)
 
         # Delete self.blocks
-        del self.blocks
+        #del self.blocks
 
         return True
 
@@ -2957,24 +2968,28 @@ class AbstractParsedArea(AbstractArea):
 
         # We don't parse blocks 4, 11, 12, 13, 14.
         # We can create the rest manually.
-        self.blocks = [None] * 15
+        #self.blocks = [None] * 17
         self.blocks[3] = b'\0\0\0\0\0\0\0\0'
-        # Other known values for block 4: 0000 0002 0042 0000,
-        #            0000 0002 0002 0000, 0000 0003 0003 0000
+        # Other known values for block 4 in NSMBW: 0000 0002 0042 0000,
+        #                     0000 0002 0002 0000, 0000 0003 0003 0000
+        self.blocks[5] = b'\0\0\xFF\xFF\xFF\xFF\0\0\0\0\0\0\0\0\0\0\0\0\0\0' # always this
         self.blocks[11] = b'' # never used
         self.blocks[12] = b'' # never used
-        self.blocks[13] = b'' # paths
-        self.blocks[14] = b'' # path points
+        #self.blocks[13] = b'' # paths
+        #self.blocks[14] = b'' # path nodes
+        #self.blocks[15] = b'' # progress paths
+        #self.blocks[16] = b'' # progress path nodes
 
         # Save each block
         self.SaveTilesetNames() # block 1
-        self.SaveOptions() # block 2
-        self.SaveEntrances() # block 7
+        #self.SaveOptions() # block 2
+        #self.SaveEntrances() # block 7
         self.SaveSprites() # block 8
         self.SaveLoadedSprites() # block 9
-        self.SaveZones() # block 10 (and 3, 5 and 6)
+        #self.SaveZones() # block 10 (and 3, 5 and 6)
         self.SaveLocations() # block 11
-        self.SavePaths()
+        #self.SavePaths() # blocks 14 and 15
+        self.SaveProgPaths() # blocks 16 and 17
 
         # Save the metadata
         rdata = bytearray(self.Metadata.save())
@@ -2988,7 +3003,7 @@ class AbstractParsedArea(AbstractArea):
         # Using bytearray here because it offers mutable bytes
         # and works directly with struct.pack_into(), so it's a
         # win-win situation
-        FileLength = (14 * 8) + len(rdata)
+        FileLength = (len(self.blocks) * 8) + len(rdata)
         for block in self.blocks:
             FileLength += len(block)
 
@@ -2997,7 +3012,7 @@ class AbstractParsedArea(AbstractArea):
         saveblock = struct.Struct('<II')
 
         HeaderOffset = 0
-        FileOffset = (14 * 8) + len(rdata)
+        FileOffset = (len(self.blocks) * 8) + len(rdata)
         struct.pack_into('{0}s'.format(len(rdata)), course, 0x70, rdata)
         for block in self.blocks:
             blocksize = len(block)
@@ -3018,7 +3033,7 @@ class AbstractParsedArea(AbstractArea):
 
     def RemoveFromLayer(self, obj):
         """
-        Removes a specific object from the level and updates Z indexes accordingly
+        Removes a specific object from the level and updates Z-indices accordingly
         """
         layer = self.layers[obj.layer]
         idx = layer.index(obj)
@@ -3083,9 +3098,9 @@ class Area_NSMB2(AbstractParsedArea):
         """
         Loads self.blocks from the course file
         """
-        self.blocks = [None] * 15
+        self.blocks = [None] * 17
         getblock = struct.Struct('<II')
-        for i in range(15):
+        for i in range(17):
             data = getblock.unpack_from(course, i * 8)
             if data[1] == 0:
                 self.blocks[i] = b''
@@ -3093,6 +3108,12 @@ class Area_NSMB2(AbstractParsedArea):
                 self.blocks[i] = course[data[0]:data[0] + data[1]]
 
         self.block1pos = getblock.unpack_from(course, 0)
+        if self.areanum == 2:
+            with open('course2_7.bin', 'rb') as f:
+                self.blocks[7] = f.read()
+        else:
+            with open('course1_2.bin', 'rb') as f:
+                self.blocks[2] = f.read()
 
 
     def LoadTilesetNames(self):
@@ -3128,6 +3149,7 @@ class Area_NSMB2(AbstractParsedArea):
         entrances = []
         for i in range(entcount):
             data = entstruct.unpack_from(entdata,offset)
+            #def __init__(self, x, y, id, destarea, destentrance, type, zone, layer, path, settings, cpd):
             entrances.append(EntranceItem(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10]))
             offset += 24
         self.entrances = entrances
@@ -3139,7 +3161,7 @@ class Area_NSMB2(AbstractParsedArea):
         """
         spritedata = self.blocks[7]
         sprcount = len(spritedata) // 24
-        sprstruct = struct.Struct('<HHH8sxx')
+        sprstruct = struct.Struct('<HHH10sxx2sxxxx')
         offset = 0
         sprites = []
 
@@ -3147,8 +3169,8 @@ class Area_NSMB2(AbstractParsedArea):
         append = sprites.append
         obj = SpriteItem
         for i in range(sprcount):
-            data = unpack(spritedata,offset)
-            append(obj(data[0], data[1], data[2], data[3]))
+            data = unpack(spritedata, offset)
+            append(obj(data[0], data[1], data[2], data[3] + data[4]))
             offset += 24
         self.sprites = sprites
 
@@ -3161,7 +3183,7 @@ class Area_NSMB2(AbstractParsedArea):
         # Block 3 - bounding data
         bdngdata = self.blocks[2]
         count = len(bdngdata) // 28
-        bdngstruct = struct.Struct('<llllxBxBxxxx')
+        bdngstruct = struct.Struct('<llllHHxxxxxxxx')
         offset = 0
         bounding = []
         for i in range(count):
@@ -3174,25 +3196,35 @@ class Area_NSMB2(AbstractParsedArea):
         bgData = self.blocks[4]
         bgCount = len(bgData) // 28
         offset = 0
-        bg = []
+        bg = {}
         for i in range(bgCount):
             newBg = Background_NSMB2()
             bgId = newBg.loadFrom(bgData[offset:offset + 28])
-            bg.append([bgId, newBg])
+            bg[bgId] = newBg
             offset += 28
         self.bg = bg
 
         # Block 10 - zone data
         zonedata = self.blocks[9]
-
-        zonestruct = struct.Struct('<HHHHHHBBBBxBBBBxBB')
+        zonestruct = struct.Struct('<hhhhHxxBBxxxxxxBBBxBxxx')
         count = len(zonedata) // 28
         offset = 0
         zones = []
         for i in range(count):
-            dataz = zonestruct.unpack_from(zonedata,offset)
-            bgz = bg[0][0]
-            zones.append(ZoneItem(dataz[0], dataz[1], dataz[2], dataz[3], dataz[4], dataz[5], dataz[6], dataz[7], dataz[8], dataz[9], dataz[10], dataz[11], dataz[12], dataz[13], dataz[14], dataz[15], bounding, bgz, i))
+            dataz = zonestruct.unpack_from(zonedata, offset)
+
+            # Find the proper bounding
+            boundObj = None
+            id = dataz[6]
+            for checkb in self.bounding:
+                if checkb[4] == id: boundObj = checkb
+
+            # Find the proper bg
+            bgObj = None
+            if dataz[10] in bg:
+                bgObj = bg[dataz[10]]
+
+            zones.append(ZoneItem(dataz[0], dataz[1], dataz[2], dataz[3], dataz[4], dataz[5], dataz[6], dataz[7], dataz[8], dataz[9], dataz[10], boundObj, bgObj, i))
             offset += 28
         self.zones = zones
 
@@ -3215,20 +3247,21 @@ class Area_NSMB2(AbstractParsedArea):
 
     def LoadLayer(self, idx, layerdata):
         """
-        Loads a specific object layer from a string
+        Loads a specific object layer from a bytes object
         """
+        if idx == 0: return
         objcount = len(layerdata) // 16
-        objstruct = struct.Struct('<HHHHH')
+        objstruct = struct.Struct('<HhhHH')
         offset = 0
         z = (2 - idx) * 8192
 
         layer = self.layers[idx]
         append = layer.append
-        obj = ObjectItem
         unpack = objstruct.unpack_from
         for i in range(objcount):
             data = unpack(layerdata, offset)
-            append(obj(data[0] >> 12, data[0] & 4095, idx, data[1], data[2], data[3], data[4], z))
+            x, y = data[1], data[2]
+            append(ObjectItem(data[0] >> 12, data[0] & 4095, idx, x, y, data[3], data[4], z))
             z += 1
             offset += 16
 
@@ -3237,7 +3270,7 @@ class Area_NSMB2(AbstractParsedArea):
         """
         Loads block 12, the paths
         """
-        # Path struct: >BxHHH
+        # Path struct: <BxHHH
         pathdata = self.blocks[13]
         pathcount = len(pathdata) // 12
         pathstruct = struct.Struct('<BxHHH')
@@ -3250,7 +3283,7 @@ class Area_NSMB2(AbstractParsedArea):
             nodes = self.LoadPathNodes(data[1], data[2])
             add2p = {'id': int(data[0]),
                      'nodes': [],
-                     'loops': data[3] == 2
+                     'loops': data[3] == 2,
                      }
             for node in nodes:
                 add2p['nodes'].append(node)
@@ -3262,9 +3295,7 @@ class Area_NSMB2(AbstractParsedArea):
         for i in range(pathcount):
             xpi = pathinfo[i]
             for j, xpj in enumerate(xpi['nodes']):
-                nobjx = None if ((j+1) == len(xpi['nodes'])) else xpi['nodes'][j+1]['x']
-                nobjy = None if ((j+1) == len(xpi['nodes'])) else xpi['nodes'][j+1]['y']
-                paths.append(PathItem(xpj['x'], xpj['y'], nobjx, nobjy, xpi, xpj))
+                paths.append(PathItem(xpj['x'], xpj['y'], xpi, xpj))
 
 
         self.pathdata = pathinfo
@@ -3289,6 +3320,59 @@ class Area_NSMB2(AbstractParsedArea):
                         'accel': float(data[3]),
                         'delay': int(data[4]),
                         #'id' : i
+            })
+            offset += 20
+        return ret
+
+    def LoadProgPaths(self):
+        """
+        Loads block 16, the progress paths
+        """
+        # Progress path struct: <HHHxxx?xx
+        progpathdata = self.blocks[15]
+        progpathcount = len(progpathdata) // 12
+        progpathstruct = struct.Struct('<HHHxxx?xx')
+        offset = 0
+        unpack = progpathstruct.unpack_from
+        progpathinfo = []
+        progpaths = []
+        for i in range(progpathcount):
+            data = unpack(progpathdata, offset)
+            nodes = self.LoadProgPathNodes(data[1], data[2])
+            add2p = {'id': data[0],
+                     'nodes': [],
+                     'altpath': data[3],
+                     }
+            for node in nodes:
+                add2p['nodes'].append(node)
+            progpathinfo.append(add2p)
+
+            offset += 12
+
+        for i in range(progpathcount):
+            xpi = progpathinfo[i]
+            for j, xpj in enumerate(xpi['nodes']):
+                progpaths.append(ProgressPathItem(xpj['x'], xpj['y'], xpi, xpj))
+
+
+        self.progpathdata = progpathinfo
+        self.progpaths = progpaths
+
+
+    def LoadProgPathNodes(self, startindex, count):
+        """
+        Loads block 17, the progress path nodes
+        """
+
+        ret = []
+        nodedata = self.blocks[16]
+        nodestruct = struct.Struct('<hh16x')
+        offset = startindex * 20
+        unpack = nodestruct.unpack_from
+        for i in range(count):
+            data = unpack(nodedata, offset)
+            ret.append({'x': int(data[0]),
+                        'y': int(data[1]),
             })
             offset += 20
         return ret
@@ -3335,7 +3419,7 @@ class Area_NSMB2(AbstractParsedArea):
         """
         Saves the tileset names back to block 1
         """
-        self.blocks[0] = ''.join([self.tileset0.ljust(32,'\0'), self.tileset1.ljust(32,'\0'), self.tileset2.ljust(32,'\0'), self.tileset3.ljust(32,'\0')]).encode('latin-1')
+        self.blocks[0] = ''.join([self.tileset0.ljust(32, '\0'), self.tileset1.ljust(32, '\0'), self.tileset2.ljust(32, '\0'), self.tileset3.ljust(32, '\0')]).encode('latin-1')
 
 
     def SaveOptions(self):
@@ -3350,18 +3434,22 @@ class Area_NSMB2(AbstractParsedArea):
 
     def SaveLayer(self, idx):
         """
-        Saves an object layer to a string
+        Saves an object layer to a bytes object
         """
+        if idx == 0: return None
+
         layer = self.layers[idx]
+        if not layer: return None
+
         offset = 0
-        objstruct = struct.Struct('<HHHHH')
-        buffer = bytearray((len(layer) * 10) + 2)
+        objstruct = struct.Struct('<HhhHH')
+        buffer = bytearray((len(layer) * 16) + 2)
         f_int = int
         for obj in layer:
             objstruct.pack_into(buffer, offset, f_int((obj.tileset << 12) | obj.type), f_int(obj.objx), f_int(obj.objy), f_int(obj.width), f_int(obj.height))
-            offset += 10
+            offset += 16
         buffer[offset] = 0xFF
-        buffer[offset+1] = 0xFF
+        buffer[offset + 1] = 0xFF
         return bytes(buffer)
 
 
@@ -3393,30 +3481,69 @@ class Area_NSMB2(AbstractParsedArea):
         nodeindex = 0
         offset = 0
         buffer = bytearray(len(self.pathdata) * 12)
-        #[20:28:38]  [@Treeki] struct Path { unsigned char id; char padding; unsigned short startNodeIndex; unsigned short nodeCount; unsigned short unknown; };
+        
         for path in self.pathdata:
             if(len(path['nodes']) < 1): continue
-            nodebuffer = self.SavePathNodes(nodebuffer, nodeoffset, path['nodes'])
+            self.WritePathNodes(nodebuffer, nodeoffset, path['nodes'])
 
             pathstruct.pack_into(buffer, offset, int(path['id']), int(nodeindex), int(len(path['nodes'])), 2 if path['loops'] else 0)
-            offset += 8
+            offset += 12
             nodeoffset += len(path['nodes']) * 20
             nodeindex += len(path['nodes'])
+
         self.blocks[13] = bytes(buffer)
         self.blocks[14] = bytes(nodebuffer)
 
 
-    def SavePathNodes(self, buffer, offst, nodes):
+    def WritePathNodes(self, buffer, offst, nodes):
         """
-        Saves the pathnodes back to block 14
+        Writes the pathnode data to the block 14 bytearray
         """
         offset = int(offst)
-        #[20:29:04]  [@Treeki] struct PathNode { unsigned short x; unsigned short y; float speed; float unknownMaybeAccel; short unknown; char padding[2]; }
-        nodestruct = struct.Struct('<HHffhxx')
+        
+        nodestruct = struct.Struct('<HHffhxxxxxx')
         for node in nodes:
             nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), float(node['speed']), float(node['accel']), int(node['delay']))
             offset += 20
-        return buffer
+
+
+    def SaveProgPaths(self):
+        """
+        Saves the progress paths back to block 16
+        """
+        pathstruct = struct.Struct('<HHHxxx?xx')
+        nodecount = 0
+        for path in self.progpathdata:
+            nodecount += len(path['nodes'])
+        nodebuffer = bytearray(nodecount * 20)
+        nodeoffset = 0
+        nodeindex = 0
+        offset = 0
+        buffer = bytearray(len(self.progpathdata) * 12)
+        
+        for path in self.progpathdata:
+            if(len(path['nodes']) < 1): continue
+            self.WriteProgPathNodes(nodebuffer, nodeoffset, path['nodes'])
+
+            pathstruct.pack_into(buffer, offset, int(path['id']), int(nodeindex), int(len(path['nodes'])), path['altpath'])
+            offset += 12
+            nodeoffset += len(path['nodes']) * 20
+            nodeindex += len(path['nodes'])
+
+        self.blocks[15] = bytes(buffer)
+        self.blocks[16] = bytes(nodebuffer)
+
+
+    def WriteProgPathNodes(self, buffer, offst, nodes):
+        """
+        Writes the progpathnode data to the block 17 bytearray
+        """
+        offset = int(offst)
+        
+        nodestruct = struct.Struct('<hh16x')
+        for node in nodes:
+            nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']))
+            offset += 20
 
 
     def SaveSprites(self):
@@ -3424,12 +3551,12 @@ class Area_NSMB2(AbstractParsedArea):
         Saves the sprites back to block 8
         """
         offset = 0
-        sprstruct = struct.Struct('<HHH6sB1sxx')
-        buffer = bytearray((len(self.sprites) * 16) + 4)
+        sprstruct = struct.Struct('<HHH10sH2sxxxx')
+        buffer = bytearray((len(self.sprites) * 24) + 4)
         f_int = int
         for sprite in self.sprites:
             try:
-                sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy), sprite.spritedata[:6], sprite.zoneID, bytes([sprite.spritedata[7],]))
+                sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy), sprite.spritedata[:10], sprite.zoneID, sprite.spritedata[10:])
             except struct.error:
                 # Hopefully this will solve the mysterious bug, and will
                 # soon no longer be necessary.
@@ -3442,7 +3569,7 @@ class Area_NSMB2(AbstractParsedArea):
                     str(sprite.zoneID) + '\n' + \
                     str(bytes([sprite.spritedata[7],])) + '\n',
                     )
-            offset += 16
+            offset += 24
         buffer[offset] = 0xFF
         buffer[offset + 1] = 0xFF
         buffer[offset + 2] = 0xFF
@@ -3513,6 +3640,16 @@ class Area_NSMB2(AbstractParsedArea):
         self.blocks[10] = bytes(buffer)
 
 
+class ListWidgetItem_SortsByOther(QtWidgets.QListWidgetItem):
+    """
+    A ListWidgetItem that defers sorting to another object.
+    """
+    def __init__(self, reference, text=''):
+        super().__init__(text)
+        self.reference = reference
+    def __lt__(self, other):
+        return self.reference < other.reference
+
 
 class LevelEditorItem(QtWidgets.QGraphicsItem):
     """
@@ -3529,6 +3666,9 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
         """
         QtWidgets.QGraphicsItem.__init__(self)
         self.setFlag(self.ItemSendsGeometryChanges, True)
+
+    def __lt__(self, other):
+        return (self.objx * 100000 + self.objy) < (other.objx * 100000 + other.objy)
 
     def itemChange(self, change, value):
         """
@@ -3962,12 +4102,24 @@ class Background_NSMB2(AbstractBackground):
         self.name = name
 
     def loadFrom(self, data):
-        if len(data) != 28: return
-        id, self.xScroll, self.yScroll, self.xPos, self.yPos = struct.unpack('<Hbbbbxx', data[:8])
-        name = data[8:].split(b'\0')[0].decode('utf-8')
+        if len(data) != 28:
+            raise ValueError('Wrong data length: must be 28 bytes exactly')
+
+        bgstruct = struct.Struct('<Hbbbbxx15sbxxxx')
+        bgvalues = bgstruct.unpack(data)
+        id = bgvalues[0]
+        self.xScroll = bgvalues[1]
+        self.yScroll = bgvalues[2]
+        self.xPos = bgvalues[3]
+        self.yPos = bgvalues[4]
+        self.name = bgvalues[5].split(b'\0')[0].decode('utf-8')
+        self.unk1 = bgvalues[6]
+
         return id
     
     def save(idnum=0):
+        bgstruct = struct.struct('<Hbbbbxx15sbxxxx')
+        return # not yet implemented properly; ignore the stuff below
         settings = struct.pack('<Hbbbbxx', idnum, self.xScroll, self.yScroll, self.xPos, self.yPos)
         name = self.name.encode('utf-8') + b'\0' * (20 - len(self.name))
         return settings + name
@@ -3978,34 +4130,38 @@ class ZoneItem(LevelEditorItem):
     Level editor item that represents a zone
     """
 
-    def __init__(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, boundings, bg, id=None):
+    def __init__(self, a, b, c, d, e, f, g, h, i, j, k, bounding, bg, id=None):
         """
         Creates a zone with specific data
         """
         LevelEditorItem.__init__(self)
 
         self.font = NumberFont
-        self.TitlePos = QtCore.QPointF(10,18)
+        self.TitlePos = QtCore.QPointF(10, 18)
 
         self.objx = a
         self.objy = b
         self.width = c
         self.height = d
-        self.modeldark = e
-        self.terraindark = f
-        self.id = g
-        self.block3id = h
-        self.cammode = i
-        self.camzoom = j
-        self.visibility = k
-        self.block5id = l
-        self.block6id = m
-        self.camtrack = n
-        self.music = o
-        self.sfxmod = p
+
+        self.unk1 = e
+        self.id = f
+        self.block3id = g
+        self.camtrack = h
+        self.unk2 = i
+        self.music = j
+        self.background = bg
         self.UpdateRects()
 
-        self.background = bg
+        # These options aren't present in NSMB2, as far as I can tell
+        self.modeldark = 0
+        self.terraindark = 0
+        self.cammode = 0
+        self.camzoom = 0
+        self.visibility = 0
+        self.block5id = 0
+        self.block6id = 0
+        self.sfxmod = 0
 
         self.aux = set()
 
@@ -4014,11 +4170,6 @@ class ZoneItem(LevelEditorItem):
 
         self.UpdateTitle()
 
-        bounding = None
-        id = self.block3id
-        for block in boundings:
-            if block[4] == id: bounding = block
-
         if bounding is not None:
             self.yupperbound = bounding[0]
             self.ylowerbound = bounding[1]
@@ -4026,6 +4177,13 @@ class ZoneItem(LevelEditorItem):
             self.ylowerbound2 = bounding[3]
             self.entryid = bounding[4]
             self.unknownbnf = bounding[5]
+        else:
+            self.yupperbound = 0
+            self.ylowerbound = 0
+            self.yupperbound2 = 0
+            self.ylowerbound2 = 0
+            self.entryid = 0
+            self.unknownbnf = 0
 
         self.dragging = False
         self.dragstartx = -1
@@ -4079,7 +4237,7 @@ class ZoneItem(LevelEditorItem):
             painter.setPen(QtGui.QPen(theme.color('zone_entrance_helper'), 2))
             lineStart = QtCore.QPointF(self.DrawRect.x() + (24 * 13), self.DrawRect.y())
             lineEnd = QtCore.QPointF(self.DrawRect.x() + (24 * 13), self.DrawRect.y() + self.DrawRect.height())
-            painter.drawLine(lineStart, lineEnd)
+            #painter.drawLine(lineStart, lineEnd)
 
         # Now paint the borders
         painter.setPen(QtGui.QPen(theme.color('zone_lines'), 3))
@@ -4291,6 +4449,10 @@ class LocationItem(LevelEditorItem):
         """
         self.title = trans.string('Locations', 0, '[id]', self.id)
         self.UpdateListItem()
+
+
+    def __lt__(self, other):
+        return self.id < other.id
 
 
     def UpdateRects(self):
@@ -4570,6 +4732,10 @@ class SpriteItem(LevelEditorItem):
         baseString += trans.string('Sprites', 15)
 
         return baseString
+
+    def __lt__(self, other):
+        # Sort by objx, then objy, then sprite type
+        return (self.objx * 100000 + self.objy) * 1000 + self.type < (other.objx * 100000 + other.objy) * 1000 + other.type
 
     def InitializeSprite(self):
         """
@@ -4855,7 +5021,7 @@ class SpriteItem(LevelEditorItem):
         if event.button() == Qt.LeftButton:
             if QtWidgets.QApplication.keyboardModifiers() == Qt.ControlModifier:
                 newitem = SpriteItem(self.type, self.objx, self.objy, self.spritedata)
-                newitem.listitem = QtWidgets.QListWidgetItem(newitem.ListString())
+                newitem.listitem = ListWidgetItem_SortsByOther(newitem, newitem.ListString())
                 mainWindow.spriteList.addItem(newitem.listitem)
                 Area.sprites.append(newitem)
                 mainWindow.scene.addItem(newitem)
@@ -4867,7 +5033,7 @@ class SpriteItem(LevelEditorItem):
 
         LevelEditorItem.mousePressEvent(self, event)
 
-    def nearestZone(self, obj = False):
+    def nearestZone(self, obj=False):
         """
         Calls a modified MapPositionToZoneID (if obj = True, it returns the actual ZoneItem object)
         """
@@ -5124,6 +5290,9 @@ class EntranceItem(LevelEditorItem):
         else:
             return trans.string('Entrances', 6, '[id]', self.entid, '[name]', name, '[x]', self.objx, '[y]', self.objy)
 
+    def __lt__(self, other):
+        return self.entid < other.entid
+
     def TypeChange(self):
         """
         Handles the entrance's type changing
@@ -5244,16 +5413,16 @@ class EntranceItem(LevelEditorItem):
 
 class PathItem(LevelEditorItem):
     """
-    Level editor item that represents a pathnode
+    Level editor item that represents a path node
     """
     BoundingRect = QtCore.QRectF(0, 0, 24, 24)
     SelectionRect = QtCore.QRectF(0, 0, 23, 23)
     RoundedRect = QtCore.QRectF(1, 1, 22, 22)
 
 
-    def __init__(self, objx, objy, nobjx, nobjy, pathinfo, nodeinfo):
+    def __init__(self, objx, objy, pathinfo, nodeinfo):
         """
-        Creates a path with specific data
+        Creates a path node with specific data
         """
 
         global mainWindow
@@ -5266,8 +5435,6 @@ class PathItem(LevelEditorItem):
         self.nodeid = pathinfo['nodes'].index(nodeinfo)
         self.pathinfo = pathinfo
         self.nodeinfo = nodeinfo
-        self.nobjx = nobjx
-        self.nobjy = nobjy
         self.listitem = None
         self.LevelRect = (QtCore.QRectF(self.objx/16, self.objy/16, 24/16, 24/16))
         self.setFlag(self.ItemIsMovable, not PathsFrozen)
@@ -5292,9 +5459,12 @@ class PathItem(LevelEditorItem):
 
     def ListString(self):
         """
-        Returns a string that can be used to describe the entrance in a list
+        Returns a string that can be used to describe the path in a list
         """
         return trans.string('Paths', 1, '[path]', self.pathid, '[node]', self.nodeid)
+
+    def __lt__(self, other):
+        return (self.pathid * 10000 + self.nodeid) < (other.pathid * 10000 + other.nodeid)
 
     def updatePos(self):
         """
@@ -5318,7 +5488,7 @@ class PathItem(LevelEditorItem):
 
     def paint(self, painter, option, widget):
         """
-        Paints the object
+        Paints the path
         """
         global theme
 
@@ -5340,12 +5510,6 @@ class PathItem(LevelEditorItem):
         painter.drawText(4,9 + QtGui.QFontMetrics(self.font).height(),str(self.nodeid))
         painter.drawPoint(self.objx, self.objy)
 
-        if self.isSelected():
-            #painter.setRenderHint(QtGui.QPainter.Antialiasing, False)
-            #painter.setPen(QtGui.QPen(Qt.black, 1, Qt.DotLine))
-            #painter.drawRect(self.SelectionRect)
-            pass
-
     def delete(self):
         """
         Delete the path from the level
@@ -5363,7 +5527,7 @@ class PathItem(LevelEditorItem):
             Area.pathdata.remove(self.pathinfo)
             self.scene().removeItem(self.pathinfo['peline'])
 
-        #update other node's IDs
+        # update other nodes' IDs
         for pathnode in self.pathinfo['nodes']:
             pathnode['graphicsitem'].updateId()
 
@@ -5373,13 +5537,13 @@ class PathItem(LevelEditorItem):
 
 class PathEditorLineItem(LevelEditorItem):
     """
-    Level editor item to draw a line between two pathnodes
+    Level editor item to draw a line between two path nodes
     """
     BoundingRect = QtCore.QRectF(0, 0, 1, 1) # compute later
 
     def __init__(self, nodelist):
         """
-        Creates a path with specific data
+        Creates a path line with specific data
         """
 
         global mainWindow
@@ -5467,6 +5631,230 @@ class PathEditorLineItem(LevelEditorItem):
     def delete(self):
         """
         Delete the line from the level
+        """
+        self.scene().update()
+
+
+
+class ProgressPathItem(LevelEditorItem):
+    """
+    Level editor item that represents a progress path node
+    """
+    BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+    SelectionRect = QtCore.QRectF(0, 0, 23, 23)
+    RoundedRect = QtCore.QRectF(1, 1, 22, 22)
+
+
+    def __init__(self, objx, objy, progpathinfo, nodeinfo):
+        """
+        Creates a progress path node with specific data
+        """
+
+        global mainWindow
+        LevelEditorItem.__init__(self)
+
+        self.font = NumberFont
+        self.objx = objx
+        self.objy = objy
+        self.progpathid = progpathinfo['id']
+        self.nodeid = progpathinfo['nodes'].index(nodeinfo)
+        self.progpathinfo = progpathinfo
+        self.nodeinfo = nodeinfo
+        self.listitem = None
+        self.LevelRect = (QtCore.QRectF(self.objx/16, self.objy/16, 24/16, 24/16))
+        self.setFlag(self.ItemIsMovable, not ProgressPathsFrozen)
+        self.setFlag(self.ItemIsSelectable, not ProgressPathsFrozen)
+
+        global DirtyOverride
+        DirtyOverride += 1
+        self.setPos(int(objx*1.5),int(objy*1.5))
+        DirtyOverride -= 1
+
+        self.setZValue(25002)
+        self.UpdateTooltip()
+
+        # now that we're inited, set
+        self.nodeinfo['graphicsitem'] = self
+
+    def UpdateTooltip(self):
+        """
+        Updates the progress path object's tooltip
+        """
+        self.setToolTip(trans.string('ProgPaths', (3 if self.progpathinfo['altpath'] else 2), '[path]', self.progpathid, '[node]', self.nodeid))
+
+    def ListString(self):
+        """
+        Returns a string that can be used to describe the progress path in a list
+        """
+        return trans.string('ProgPaths', (5 if self.progpathinfo['altpath'] else 4), '[path]', self.progpathid, '[node]', self.nodeid)
+
+    def __lt__(self, other):
+        myWeight = self.progpathid * 100000 + (1 if self.progpathinfo['altpath'] else 0) * 10000 + self.nodeid
+        otherWeight = other.progpathid * 100000 + (1 if other.progpathinfo['altpath'] else 0) * 10000 + other.nodeid
+        return myWeight < otherWeight
+
+    def updatePos(self):
+        """
+        Our x/y was changed, update pathinfo
+        """
+        self.progpathinfo['nodes'][self.nodeid]['x'] = self.objx
+        self.progpathinfo['nodes'][self.nodeid]['y'] = self.objy
+
+    def updateId(self):
+        """
+        Path was changed, find our new nodeid
+        """
+        # called when 1. add node 2. delete node 3. change node order
+        # hacky code but it works. considering how pathnodes are stored.
+        self.nodeid = self.progpathinfo['nodes'].index(self.nodeinfo)
+        self.UpdateTooltip()
+        self.scene().update()
+        self.UpdateListItem()
+
+        # if node doesn't exist, let Reggie implode!
+
+    def paint(self, painter, option, widget):
+        """
+        Paints the progress path
+        """
+        global theme
+
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setClipRect(option.exposedRect)
+
+        if self.isSelected():
+            painter.setBrush(QtGui.QBrush(theme.color('progpath_fill_s')))
+            painter.setPen(QtGui.QPen(theme.color('progpath_lines_s')))
+        else:
+            painter.setBrush(QtGui.QBrush(theme.color('progpath_fill')))
+            painter.setPen(QtGui.QPen(theme.color('progpath_lines')))
+        painter.drawRoundedRect(self.RoundedRect, 4, 4)
+
+        painter.setFont(self.font)
+        painter.drawText(4, 11, trans.string('ProgPaths', (1 if self.progpathinfo['altpath'] else 0), '[id]', self.progpathid))
+        painter.drawText(4, 9 + QtGui.QFontMetrics(self.font).height(), str(self.nodeid))
+        painter.drawPoint(self.objx, self.objy)
+
+    def delete(self):
+        """
+        Delete the progress path from the level
+        """
+        global mainWindow
+        plist = mainWindow.progPathList
+        mainWindow.UpdateFlag = True
+        plist.takeItem(plist.row(self.listitem))
+        mainWindow.UpdateFlag = False
+        plist.selectionModel().clearSelection()
+        Area.progpaths.remove(self)
+        self.progpathinfo['nodes'].remove(self.nodeinfo)
+
+        if(len(self.progpathinfo['nodes']) < 1):
+            Area.progpathdata.remove(self.progpathinfo)
+            self.scene().removeItem(self.progpathinfo['peline'])
+
+        # update other nodes' IDs
+        for progpathnode in self.progpathinfo['nodes']:
+            progpathnode['graphicsitem'].updateId()
+
+        self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
+
+
+
+class ProgressPathEditorLineItem(LevelEditorItem):
+    """
+    Level editor item to draw a line between two progress path nodes
+    """
+    BoundingRect = QtCore.QRectF(0, 0, 1, 1) # compute later
+
+    def __init__(self, nodelist):
+        """
+        Creates a progress path line with specific data
+        """
+
+        global mainWindow
+        LevelEditorItem.__init__(self)
+
+        self.font = NumberFont
+        self.objx = 0
+        self.objy = 0
+        self.nodelist = nodelist
+        self.loops = False
+        self.setFlag(self.ItemIsMovable, False)
+        self.setFlag(self.ItemIsSelectable, False)
+        self.computeBoundRectAndPos()
+        self.setZValue(25002)
+        self.UpdateTooltip()
+
+    def UpdateTooltip(self):
+        """
+        For compatibility, just in case
+        """
+        self.setToolTip('')
+
+    def ListString(self):
+        """
+        Returns an empty string
+        """
+        return ''
+
+    def nodePosChanged(self):
+        self.computeBoundRectAndPos()
+        self.scene().update()
+
+    def computeBoundRectAndPos(self):
+        xcoords = []
+        ycoords = []
+        for node in self.nodelist:
+            xcoords.append(int(node['x']))
+            ycoords.append(int(node['y']))
+        self.objx = (min(xcoords) - 4)
+        self.objy = (min(ycoords) - 4)
+
+        mywidth = (8 + (max(xcoords) - self.objx)) * 1.5
+        myheight = (8 + (max(ycoords) - self.objy)) * 1.5
+        global DirtyOverride
+        DirtyOverride += 1
+        self.setPos(self.objx * 1.5, self.objy * 1.5)
+        DirtyOverride -= 1
+        self.prepareGeometryChange()
+        self.BoundingRect = QtCore.QRectF(-4, -4, mywidth, myheight)
+
+
+
+    def paint(self, painter, option, widget):
+        """
+        Paints the progress path line
+        """
+        global theme
+
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setClipRect(option.exposedRect)
+        color = theme.color('progpath_connector')
+        painter.setBrush(QtGui.QBrush(color))
+        painter.setPen(QtGui.QPen(color, 3, join = Qt.RoundJoin, cap = Qt.RoundCap))
+        ppath = QtGui.QPainterPath()
+
+        lines = []
+
+        firstn = True
+
+        snl = self.nodelist
+        for j, node in enumerate(snl):
+            if ((j+1) < len(snl)):
+                a = QtCore.QPointF(float(snl[j]['x']*1.5) - self.x(),float(snl[j]['y']*1.5) - self.y())
+                b = QtCore.QPointF(float(snl[j+1]['x']*1.5) - self.x(),float(snl[j+1]['y']*1.5) - self.y())
+                lines.append(QtCore.QLineF(a, b))
+            elif self.loops and (j+1) == len(snl):
+                a = QtCore.QPointF(float(snl[j]['x']*1.5) - self.x(),float(snl[j]['y']*1.5) - self.y())
+                b = QtCore.QPointF(float(snl[0]['x']*1.5) - self.x(),float(snl[0]['y']*1.5) - self.y())
+                lines.append(QtCore.QLineF(a, b))
+
+        painter.drawLines(lines)
+
+
+    def delete(self):
+        """
+        Delete the progress path line from the level
         """
         self.scene().update()
 
@@ -5817,7 +6205,7 @@ class LevelOverviewWidget(QtWidgets.QWidget):
         else:
             self.scale = self.Yscale
 
-        if self.scale == 0: self.scale = 1
+        if self.scale < 0.002: self.scale = 0.002
 
         self.CalcSize()
 
@@ -6581,7 +6969,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.setLayout(mainLayout)
 
         self.spritetype = -1
-        self.data = b'\0\0\0\0\0\0\0\0'
+        self.data = b'\0\0\0\0\0\0\0\0\0\0\0\0'
         self.fields = []
         self.UpdateFlag = False
         self.DefaultMode = defaultmode
@@ -6959,7 +7347,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.UpdateFlag = True
 
         data = self.data
-        self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x' % (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]))
+        self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x' % (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]))
         self.raweditor.setStyleSheet('')
 
         # Go through all the data
@@ -6989,7 +7377,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         data = field.assign(self.data)
         self.data = data
 
-        self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x' % (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]))
+        self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x' % (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]))
         self.raweditor.setStyleSheet('')
 
         for f in self.fields:
@@ -7007,7 +7395,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         raw = text.replace(' ', '')
         valid = False
 
-        if len(raw) == 16:
+        if len(raw) == 24:
             try:
                 data = []
                 for r in range(0, len(raw), 2):
@@ -7398,7 +7786,7 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         layout = QtWidgets.QGridLayout()
         self.setLayout(layout)
 
-        # 'Editing Entrance #' label
+        # 'Editing Path #' label
         self.editingLabel = QtWidgets.QLabel('-')
         self.editingPathLabel = QtWidgets.QLabel('-')
         layout.addWidget(self.editingLabel, 3, 0, 1, 2, Qt.AlignTop)
@@ -7477,6 +7865,101 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         self.path.pathinfo['peline'].loops = (i == Qt.Checked)
         mainWindow.scene.update()
 
+
+
+class ProgressPathNodeEditorWidget(QtWidgets.QWidget):
+    """
+    Widget for editing progress path node properties
+    """
+
+    def __init__(self, defaultmode=False):
+        """
+        Constructor
+        """
+        QtWidgets.QWidget.__init__(self)
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
+
+        # create widgets
+        self.progpathid = QtWidgets.QSpinBox()
+        self.progpathid.setRange(1, 255) # ID 0 is not allowed in NSMB2
+        self.progpathid.setToolTip(trans.string('ProgPathDataEditor', 3))
+        self.progpathid.valueChanged.connect(self.HandleIDChanged)
+        self.progpathid.setMaximumWidth(256)
+
+        self.altpath = QtWidgets.QCheckBox()
+        self.altpath.setToolTip(trans.string('ProgPathDataEditor', 5))
+        self.altpath.stateChanged.connect(self.HandleAltPathChanged)
+
+        # create a layout
+        layout = QtWidgets.QGridLayout()
+        self.setLayout(layout)
+
+        # 'Editing Progress Path #' label
+        self.editingProgPathLabel = QtWidgets.QLabel('-')
+        self.editingNodeLabel = QtWidgets.QLabel('-')
+        layout.addWidget(self.editingProgPathLabel, 0, 0, 1, 2, Qt.AlignTop)
+        layout.addWidget(self.editingNodeLabel, 4, 0, 1, 2, Qt.AlignTop)
+
+        # add labels
+        layout.addWidget(QtWidgets.QLabel(trans.string('ProgPathDataEditor', 2)), 1, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(trans.string('ProgPathDataEditor', 4)), 2, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(createHorzLine(), 3, 0, 1, 2)
+
+        # add the widgets
+        layout.addWidget(self.progpathid, 1, 1)
+        layout.addWidget(self.altpath, 2, 1)
+
+
+        self.progpath = None
+        self.UpdateFlag = False
+
+
+    def setProgPath(self, progpath):
+        """
+        Change the progress path being edited by the editor, update all fields
+        """
+        if self.progpath == progpath: return
+        self.editingProgPathLabel.setText(trans.string('ProgPathDataEditor', 1, '[id]', progpath.progpathid))
+        self.editingNodeLabel.setText(trans.string('ProgPathDataEditor', 6, '[id]', progpath.nodeid))
+        self.progpath = progpath
+        self.UpdateFlag = True
+
+        self.progpathid.setValue(progpath.progpathinfo['id'])
+        self.altpath.setChecked(progpath.progpathinfo['altpath'])
+
+        self.UpdateFlag = False
+
+
+    @QtCore.pyqtSlot(int)
+    def HandleIDChanged(self, i):
+        """
+        Handler for the ID changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+
+        # This affects ALL nodes in the progpath, so update them accordingly
+        for nodedata in self.progpath.progpathinfo['nodes']:
+            node = nodedata['graphicsitem']
+            node.progpathinfo['id'] = i
+            node.progpathid = i
+            node.update()
+            node.UpdateTooltip()
+            node.UpdateListItem()
+
+
+    @QtCore.pyqtSlot(int)
+    def HandleAltPathChanged(self, i):
+        if self.UpdateFlag: return
+        SetDirty()
+        self.progpath.progpathinfo['altpath'] = (i == Qt.Checked)
+
+        # This affects ALL nodes in the progpath, so update them accordingly
+        for nodedata in self.progpath.progpathinfo['nodes']:
+            node = nodedata['graphicsitem']
+            node.update()
+            node.UpdateTooltip()
+            node.UpdateListItem()
 
 
 class IslandGeneratorWidget(QtWidgets.QWidget):
@@ -8056,6 +8539,11 @@ class ReggieTheme():
             'path_fill_s':              QtGui.QColor(6,249,20,240),    # Selected path node fill
             'path_lines':               QtGui.QColor(0,0,0),           # Unselected path node lines
             'path_lines_s':             QtGui.QColor(255,255,255),     # Selected path node lines
+            'progpath_connector':      QtGui.QColor(255,96,0),        # Progress path node connecting lines
+            'progpath_fill':           QtGui.QColor(255,96,0,120),    # Unselected progress path node fill
+            'progpath_fill_s':         QtGui.QColor(255,96,0,240),    # Selected progress path node fill
+            'progpath_lines':          QtGui.QColor(0,0,0),           # Unselected progress path node lines
+            'progpath_lines_s':        QtGui.QColor(255,255,255),     # Selected progress path node lines
             'smi':                      QtGui.QColor(255,255,255,80),  # Sprite movement indicator
             'sprite_fill_s':            QtGui.QColor(255,255,255,64),  # Selected sprite w/ image fill
             'sprite_lines_s':           QtGui.QColor(255,255,255),     # Selected sprite w/ image lines
@@ -8839,7 +9327,7 @@ class ReggieTranslation():
                 1: 'Tilesets',
                 2: 'Settings',
                 3: 'Timer:',
-                4: '[b]Timer:[/b][br]Sets the countdown timer on load from the world map. It\'s possible to set different times for the midpoint area.',
+                4: '[b]Timer:[/b][br]Sets the time limit, in "Mario seconds," for the level.[br][b]Midway Timer Info:[/b] The midway timer is calculated by subtracting 200 from this value. Because the game will use the timer setting from whatever area the midpoint is located in, it\'s possible to pick your own time limit if you put the midpoint in any area other than Area 1. Just set the time limit value for that area to the midpoint time you want + 200.',
                 5: 'Entrance ID:',
                 6: '[b]Entrance ID:[/b][br]Sets the entrance ID to load into when loading from the World Map',
                 7: 'Wrap across Edges',
@@ -9260,7 +9748,9 @@ class ReggieTranslation():
                 120: 'Check for Updates...',
                 121: 'Check if any updates for Reggie! Next are available to download',
                 122: 'Highlight 3D Effects',
-                123: 'Toggle viewing of 3D depth effect highlighting (NSMB2 only).',
+                123: 'Toggle viewing of 3D depth effect highlighting (NSMB2 only)',
+                124: 'Freeze\\nProgress Paths',
+                125: 'Make progress paths non-selectable',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
@@ -9274,7 +9764,7 @@ class ReggieTranslation():
                 },
             'Palette': {
                 0: 'Paint on Layer:',
-                1: '[b]Layer 0:[/b][br]This layer is mostly used for hidden caves, but can also be used to overlay tiles to create effects. The flashlight effect will occur if Mario walks behind a tile on layer 0 and the zone has it enabled.[br][b]Note:[/b] To switch objects on other layers to this layer, select them and then click this button while holding down the [i]Alt[/i] key.',
+                1: '[b]Layer 0:[/b][br]This layer is mostly used for hidden caves, but can also be used to overlay tiles to create effects. The flashlight effect will occur if Mario walks behind a tile on layer 0 and the zone has it enabled.[br]This layer is not supported in New Super Mario Bros. 2.[br][b]Note:[/b] To switch objects on other layers to this layer, select them and then click this button while holding down the [i]Alt[/i] key.',
                 2: '[b]Layer 1:[/b][br]All or most of your normal level objects should be placed on this layer. This is the only layer where tile interactions (solids, slopes, etc) will work.[br][b]Note:[/b] To switch objects on other layers to this layer, select them and then click this button while holding down the [i]Alt[/i] key.',
                 3: '[b]Layer 2:[/b][br]Background/wall tiles (such as those in the hidden caves) should be placed on this layer. Tiles on layer 2 have no effect on collisions.[br][b]Note:[/b] To switch objects on other layers to this layer, select them and then click this button while holding down the [i]Alt[/i] key.',
                 4: 'View:',
@@ -9282,7 +9772,7 @@ class ReggieTranslation():
                 6: 'Set Default Properties',
                 7: 'Default Properties',
                 8: 'Entrances currently in this area:[br](Double-click one to jump to it instantly)',
-                9: 'Path nodes currently in this area:[br](Double-click one to jump to its first node instantly)[br]To delete a path, remove all its nodes one by one.[br]To add new paths, hit the button below and right click.',
+                9: 'Path nodes currently in this area:[br](Double-click one to jump to it instantly)[br]To delete a path, remove all its nodes one by one.[br]To add new paths, hit the button below and right click.',
                 10: 'Deselect (then right click for new path)',
                 11: 'Sprites currently in this area:[br](Double-click one to jump to it instantly)',
                 12: 'Locations currently in this area:[br](Double-click one to jump to it instantly)',
@@ -9308,7 +9798,10 @@ class ReggieTranslation():
                 32: 'Save Set As...',
                 33: 'Comments',
                 34: 'Comments currently in this area:[br](Double-click one to jump to it instantly)',
-                35: 'Name:'
+                35: 'Name:',
+                36: 'Progress Paths',
+                37: 'Progress Path nodes currently in this area:[br](Double-click one to jump to it instantly)[br]To delete a progress path, remove all its nodes one by one.[br]To add new progress paths, hit the button below and right click.',
+                38: 'Deselect (then right click for new progress path)',
                 },
             'PathDataEditor': {
                 0: 'Loops:',
@@ -9359,6 +9852,23 @@ class ReggieTranslation():
                 28: 'Use Default Tileset Picker (recommended)',
                 29: 'Use Old Tileset Picker',
                 30: 'You may need to restart Reggie! for changes to take effect.',
+                },
+            'ProgPaths': {
+                0: '[id]',
+                1: '[id]A',
+                2: '[b]Progress Path [path][/b][br]Node [node]',
+                3: '[b]Progress Path [path]A[/b][br]Node [node]',
+                4: 'Progress Path [path], Node [node]',
+                5: 'Progress Path [path]A, Node [node]',
+                },
+            'ProgPathDataEditor': {
+                0: 'Modify Selected Progress Path Node Properties',
+                1: '[b]Progress Path [id][/b]',
+                2: 'ID:',
+                3: '[b]ID:[/b][br]This is the Progress Path ID. The game puts together all progress paths from all areas and sorts them by this ID. The first progress path should have an ID of 0. Duplicate IDs are allowed if one progress path has the Alternate Path checkbox checked.',
+                4: 'Alternate Path:',
+                5: '[b]Alternate Path:[/b][br]If there are two different zones for the player to choose from, and they both end up in the same place but the player has to choose one or the other, put a Progress Path in each one, give them the same ID and check this checkbox on one of them.',
+                6: '[b]Node [id][/b]',
                 },
             'Ribbon': {
                 0: '&Home',
@@ -9477,6 +9987,12 @@ class ReggieTranslation():
                 31: '1 comment',
                 32: '[x] comments',
                 33: '- Comment under mouse: [xpos], [ypos]; "[text]"',
+                34: '- 1 progress path node selected',
+                35: '- [x] progress path nodes selected',
+                36: '1 progress path node',
+                37: '[x] progress path nodes',
+                38: '- Progress Path node under mouse: Progress Path [path], Node [node] at [xpos], [ypos]',
+                39: '- Progress Path node under mouse: Progress Path [path]A, Node [node] at [xpos], [ypos]',
                 },
             'Themes': {
                 0: 'Classic',
@@ -9596,7 +10112,7 @@ class ReggieTranslation():
                 48: 'Upper Bounds:',
                 49: '[b]Upper Bounds:[/b][br] - Positive Values: Easier to scroll upwards (110 is centered)[br] - Negative Values: Harder to scroll upwards (30 is the top edge of the screen)[br][br]Values higher than 240 can cause instant death upon screen scrolling',
                 50: 'Lower Bounds:',
-                51: '[b]Lower Bounds:[/b][br] - Positive Values: Harder to scroll downwards (65 is the bottom edge of the screen)[br] - Negative Values: Easier to scroll downwards (95 is centered)[br][br]Values higher than 100 will prevent the scene from scrolling while Mario until Mario is offscreen',
+                51: '[b]Lower Bounds:[/b][br] - Positive Values: Harder to scroll downwards (65 is the bottom edge of the screen)[br] - Negative Values: Easier to scroll downwards (95 is centered)[br][br]Values higher than 100 will prevent the scene from scrolling until Mario is offscreen',
                 52: 'Audio',
                 53: 'Background Music:',
                 54: '[b]Background Music:[/b][br]Changes the background music',
@@ -10000,7 +10516,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         Overrides mouse pressing events if needed
         """
         if event.button() == Qt.RightButton:
-            if CurrentPaintType in (0,1,2,3):
+            if CurrentPaintType in (0, 1, 2, 3) and CurrentObject != -1:
                 # paint an object
                 clicked = mainWindow.view.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
@@ -10049,7 +10565,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     spr.positionChanged = mw.HandleSprPosChange
                     mw.scene.addItem(spr)
 
-                    spr.listitem = QtWidgets.QListWidgetItem()
+                    spr.listitem = ListWidgetItem_SortsByOther(spr)
                     mw.spriteList.addItem(spr.listitem)
                     Area.sprites.append(spr)
 
@@ -10084,7 +10600,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 elist = mw.entranceList
                 # if it's the first available ID, all the other indexes should match right?
                 # so I can just use the ID to insert
-                ent.listitem = QtWidgets.QListWidgetItem()
+                ent.listitem = ListWidgetItem_SortsByOther(ent)
                 elist.insertItem(minimumID, ent.listitem)
 
                 global PaintingEntrance, PaintingEntranceListIndex
@@ -10102,7 +10618,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 SetDirty()
             elif CurrentPaintType == 6:
-                # paint a pathnode
+                # paint a path node
                 clicked = mainWindow.view.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
@@ -10114,9 +10630,6 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 #if selectedpn is None:
                 #    QtWidgets.QMessageBox.warning(None, 'Error', 'No pathnode selected. Select a pathnode of the path you want to create a new node in.')
                 if selectedpn is None:
-                    """
-                    
-                    """
                     getids = [False for x in range(256)]
                     getids[0] = True
                     for pathdatax in Area.pathdata:
@@ -10124,12 +10637,12 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         getids[int(pathdatax['id'])] = True
 
                     newpathid = getids.index(False)
-                    newpathdata = { 'id': newpathid,
-                                   'nodes': [{'x':clickedx, 'y':clickedy, 'speed':0.5, 'accel':0.00498, 'delay':0}],
+                    newpathdata = {'id': newpathid,
+                                   'nodes': [{'x': clickedx, 'y': clickedy, 'speed': 0.5, 'accel': 0.00498, 'delay': 0}],
                                    'loops': False
                     }
                     Area.pathdata.append(newpathdata)
-                    newnode = PathItem(clickedx, clickedy, None, None, newpathdata, newpathdata['nodes'][0])
+                    newnode = PathItem(clickedx, clickedy, newpathdata, newpathdata['nodes'][0])
                     newnode.positionChanged = mw.HandlePathPosChange
 
                     mw.scene.addItem(newnode)
@@ -10138,13 +10651,13 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     newpathdata['peline'] = peline
                     mw.scene.addItem(peline)
 
-                    Area.pathdata.sort(key=lambda path: int(path['id']));
+                    Area.pathdata.sort(key=lambda path: int(path['id']))
 
-                    newnode.listitem = QtWidgets.QListWidgetItem()
+                    newnode.listitem = ListWidgetItem_SortsByOther(newnode)
                     plist.clear()
                     for fpath in Area.pathdata:
                         for fpnode in fpath['nodes']:
-                            fpnode['graphicsitem'].listitem = QtWidgets.QListWidgetItem(fpnode['graphicsitem'].ListString())
+                            fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'], fpnode['graphicsitem'].ListString())
                             plist.addItem(fpnode['graphicsitem'].listitem)
                             fpnode['graphicsitem'].updateId()
                     newnode.listitem.setSelected(True)
@@ -10164,24 +10677,24 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         if pathnode.listitem == selectedpn:
                             pathd = pathnode.pathinfo
 
-                    if(pathd is None): return # shouldn't happen
+                    if not pathd: return # shouldn't happen
 
                     pathid = pathd['id']
-                    newnodedata = {'x':clickedx, 'y':clickedy, 'speed':0.5, 'accel':0.00498,'delay':0}
+                    newnodedata = {'x': clickedx, 'y': clickedy, 'speed': 0.5, 'accel': 0.00498, 'delay': 0}
                     pathd['nodes'].append(newnodedata)
                     nodeid = pathd['nodes'].index(newnodedata)
 
 
-                    newnode = PathItem(clickedx, clickedy, None, None, pathd, newnodedata)
+                    newnode = PathItem(clickedx, clickedy, pathd, newnodedata)
 
                     newnode.positionChanged = mw.HandlePathPosChange
                     mw.scene.addItem(newnode)
 
-                    newnode.listitem = QtWidgets.QListWidgetItem()
+                    newnode.listitem = ListWidgetItem_SortsByOther(newnode)
                     plist.clear()
                     for fpath in Area.pathdata:
                         for fpnode in fpath['nodes']:
-                            fpnode['graphicsitem'].listitem = QtWidgets.QListWidgetItem(fpnode['graphicsitem'].ListString())
+                            fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'], fpnode['graphicsitem'].ListString())
                             plist.addItem(fpnode['graphicsitem'].listitem)
                             fpnode['graphicsitem'].updateId()
                     newnode.listitem.setSelected(True)
@@ -10227,7 +10740,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 mw = mainWindow
                 loc.positionChanged = mw.HandleLocPosChange
                 loc.sizeChanged = mw.HandleLocSizeChange
-                loc.listitem = QtWidgets.QListWidgetItem()
+                loc.listitem = ListWidgetItem_SortsByOther(loc)
                 mw.locationList.addItem(loc.listitem)
                 mw.scene.addItem(loc)
 
@@ -10302,6 +10815,104 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 SetDirty()
 
+            elif CurrentPaintType == 10:
+                # paint a progress path node
+                clicked = mainWindow.view.mapToScene(event.x(), event.y())
+                if clicked.x() < 0: clicked.setX(0)
+                if clicked.y() < 0: clicked.setY(0)
+                clickedx = int((clicked.x() - 12) / 1.5)
+                clickedy = int((clicked.y() - 12) / 1.5)
+                mw = mainWindow
+                plist = mw.progPathList
+                selectedpn = None if len(plist.selectedItems()) < 1 else plist.selectedItems()[0]
+                #if selectedpn is None:
+                #    QtWidgets.QMessageBox.warning(None, 'Error', 'No pathnode selected. Select a pathnode of the path you want to create a new node in.')
+                if selectedpn is None:
+                    getids = [False for x in range(256)]
+                    getids[0] = True
+                    for pathdatax in Area.progpathdata:
+                        #if(len(pathdatax['nodes']) > 0):
+                        getids[int(pathdatax['id'])] = True
+
+                    newpathid = getids.index(False)
+                    newpathdata = {'id': newpathid,
+                                   'nodes': [{'x': clickedx, 'y': clickedy}],
+                                   'altpath': False,
+                    }
+                    Area.progpathdata.append(newpathdata)
+                    newnode = ProgressPathItem(clickedx, clickedy, newpathdata, newpathdata['nodes'][0])
+                    newnode.positionChanged = mw.HandleProgressPathPosChange
+
+                    mw.scene.addItem(newnode)
+
+                    peline = ProgressPathEditorLineItem(newpathdata['nodes'])
+                    newpathdata['peline'] = peline
+                    mw.scene.addItem(peline)
+
+                    Area.progpathdata.sort(key=lambda path: int(path['id']))
+
+                    newnode.listitem = ListWidgetItem_SortsByOther(newnode)
+                    plist.clear()
+                    for fpath in Area.progpathdata:
+                        for fpnode in fpath['nodes']:
+                            fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'], fpnode['graphicsitem'].ListString())
+                            plist.addItem(fpnode['graphicsitem'].listitem)
+                            fpnode['graphicsitem'].updateId()
+                    newnode.listitem.setSelected(True)
+                    Area.progpaths.append(newnode)
+
+                    self.dragstamp = False
+                    self.currentobj = newnode
+                    self.dragstartx = clickedx
+                    self.dragstarty = clickedy
+
+                    newnode.UpdateListItem()
+
+                    SetDirty()
+                else:
+                    pathd = None
+                    for pathnode in Area.progpaths:
+                        if pathnode.listitem == selectedpn:
+                            pathd = pathnode.progpathinfo
+
+                    if not pathd:
+                        print(':(')
+                        return # shouldn't happen
+
+                    pathid = pathd['id']
+                    newnodedata = {'x': clickedx, 'y': clickedy, 'altpath': False}
+                    pathd['nodes'].append(newnodedata)
+                    nodeid = pathd['nodes'].index(newnodedata)
+
+
+                    newnode = ProgressPathItem(clickedx, clickedy, pathd, newnodedata)
+
+                    newnode.positionChanged = mw.HandleProgressPathPosChange
+                    mw.scene.addItem(newnode)
+
+                    newnode.listitem = ListWidgetItem_SortsByOther(newnode)
+                    plist.clear()
+                    for fpath in Area.progpathdata:
+                        for fpnode in fpath['nodes']:
+                            fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'], fpnode['graphicsitem'].ListString())
+                            plist.addItem(fpnode['graphicsitem'].listitem)
+                            fpnode['graphicsitem'].updateId()
+                    newnode.listitem.setSelected(True)
+                    #global PaintingEntrance, PaintingEntranceListIndex
+                    #PaintingEntrance = ent
+                    #PaintingEntranceListIndex = minimumID
+
+                    Area.progpaths.append(newnode)
+                    pathd['peline'].nodePosChanged()
+                    self.dragstamp = False
+                    self.currentobj = newnode
+                    self.dragstartx = clickedx
+                    self.dragstarty = clickedy
+
+                    newnode.UpdateListItem()
+
+                    SetDirty()
+
             event.accept()
         elif (event.button() == Qt.LeftButton) and (QtWidgets.QApplication.keyboardModifiers() == Qt.ShiftModifier):
             mw = mainWindow
@@ -10345,6 +10956,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             type_ent = EntranceItem
             type_loc = LocationItem
             type_path = PathItem
+            type_progpath = ProgressPathItem
             type_com = CommentItem
 
             # iterate through the objects if there's more than one
@@ -10473,7 +11085,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         obj.objy = clickedy
                         obj.setPos(int((clickedx+obj.ImageObj.xOffset) * 1.5), int((clickedy+obj.ImageObj.yOffset) * 1.5))
 
-                elif isinstance(obj, type_ent) or isinstance(obj, type_path) or isinstance(obj, type_com):
+                elif isinstance(obj, type_ent) or isinstance(obj, type_path) or isinstance(obj, type_progpath) or isinstance(obj, type_com):
                     # move the created entrance/path/comment
                     clicked = mainWindow.view.mapToScene(event.x(), event.y())
                     if clicked.x() < 0: clicked.setX(0)
@@ -12487,7 +13099,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
                                ('zones', trans.string('Diag', 13), self.ZonesTooCloseToAreaEdges, True),
                                ('zones', trans.string('Diag', 14), self.BiasNotEnabled, False),
                                ('zones', trans.string('Diag', 15), self.ZonesTooBig, True),
-                               ('background', trans.string('Diag', 16), self.UnusedBackgrounds, False),
+                               #('background', trans.string('Diag', 16), self.UnusedBackgrounds, False),
                                )
 
         box = QtWidgets.QGroupBox(trans.string('Diag', 17))
@@ -12822,7 +13434,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
                 new.positionChanged = mainWindow.HandleSprPosChange
                 mainWindow.scene.addItem(new)
 
-                new.listitem = QtWidgets.QListWidgetItem()
+                new.listitem = ListWidgetItem_SortsByOther(new)
                 mainWindow.spriteList.addItem(new.listitem)
                 Area.sprites.append(new)
                 mainWindow.scene.update()
@@ -12895,7 +13507,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
             mainWindow.scene.addItem(ent)
 
             elist = mainWindow.entranceList
-            ent.listitem = QtWidgets.QListWidgetItem()
+            ent.listitem = ListWidgetItem_SortsByOther(ent)
             elist.insertItem(Area.startEntrance, ent.listitem)
 
             global PaintingEntrance, PaintingEntranceListIndex
@@ -13933,11 +14545,8 @@ class RecentFilesMenu(QtWidgets.QMenu):
         else:
             self.FileList = ['']
 
-        for path in self.FileList: # fixes bugs
-            if path == '': self.FileList.remove(path)
-            if path == 'None': self.FileList.remove(path)
-            if path == 'False': self.FileList.remove(path)
-            if path == 'True': self.FileList.remove(path)
+        # This fixes bugs
+        self.FileList = [path for path in self.FileList if path.lower() not in ('', 'none', 'false', 'true')]
 
         self.updateActionList()
 
@@ -14200,6 +14809,7 @@ def LoadActionsLists():
         (trans.string('MenuItems', 42), False, 'freezeentrances'),
         (trans.string('MenuItems', 44), False, 'freezelocations'),
         (trans.string('MenuItems', 46), False, 'freezepaths'),
+        (trans.string('MenuItems', 124), False, 'freezeprogresspaths'),
         )
     ViewActions = (
         (trans.string('MenuItems', 48), True,  'showlay0'),
@@ -15196,6 +15806,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.CreateAction('freezeentrances', self.HandleEntrancesFreeze, GetIcon('entrancesfreeze'), trans.string('MenuItems', 42), trans.string('MenuItems', 43), QtGui.QKeySequence('Ctrl+Shift+3'), True)
         self.CreateAction('freezelocations', self.HandleLocationsFreeze, GetIcon('locationsfreeze'), trans.string('MenuItems', 44), trans.string('MenuItems', 45), QtGui.QKeySequence('Ctrl+Shift+4'), True)
         self.CreateAction('freezepaths', self.HandlePathsFreeze, GetIcon('pathsfreeze'), trans.string('MenuItems', 46), trans.string('MenuItems', 47), QtGui.QKeySequence('Ctrl+Shift+5'), True)
+        self.CreateAction('freezeprogresspaths', self.HandleProgressPathsFreeze, GetIcon('progresspathsfreeze'), trans.string('MenuItems', 124), trans.string('MenuItems', 125), QtGui.QKeySequence('Ctrl+Shift+6'), True)
         self.CreateAction('freezecomments', self.HandleCommentsFreeze, GetIcon('commentsfreeze'), trans.string('MenuItems', 114), trans.string('MenuItems', 115), QtGui.QKeySequence('Ctrl+Shift+9'), True)
 
         # View
@@ -15251,6 +15862,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.actions['freezeentrances'].setChecked(EntrancesFrozen)
         self.actions['freezelocations'].setChecked(LocationsFrozen)
         self.actions['freezepaths'].setChecked(PathsFrozen)
+        self.actions['freezeprogresspaths'].setChecked(ProgressPathsFrozen)
         self.actions['freezecomments'].setChecked(CommentsFrozen)
 
         self.actions['cut'].setEnabled(False)
@@ -15259,6 +15871,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.actions['shiftitems'].setEnabled(False)
         self.actions['mergelocations'].setEnabled(False)
         self.actions['deselect'].setEnabled(False)
+        self.actions['showlay0'].setEnabled(False)
 
 
         ####
@@ -15303,6 +15916,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         emenu.addAction(self.actions['freezeentrances'])
         emenu.addAction(self.actions['freezelocations'])
         emenu.addAction(self.actions['freezepaths'])
+        emenu.addAction(self.actions['freezeprogresspaths'])
         emenu.addAction(self.actions['freezecomments'])
 
         vmenu = menubar.addMenu(trans.string('Menubar', 2))
@@ -15418,6 +16032,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 'freezeentrances',
                 'freezelocations',
                 'freezepaths',
+                'freezeprogresspaths',
             ), (
                 'diagnostic',
             ), (
@@ -15472,7 +16087,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         for group in Groups:
             addedButtons = False
             for key in group:
-                if toggled[key]:
+                if key in toggled and toggled[key]:
                     act = self.actions[key]
                     self.toolbar.addAction(act)
                     addedButtons = True
@@ -15550,6 +16165,20 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.pathEditor = PathNodeEditorWidget()
         dock.setWidget(self.pathEditor)
         self.pathEditorDock = dock
+
+        self.addDockWidget(Qt.RightDockWidgetArea, dock)
+        dock.setFloating(True)
+
+        # create the progress path node editor panel
+        dock = QtWidgets.QDockWidget(trans.string('ProgPathDataEditor', 0), self)
+        dock.setVisible(False)
+        dock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable)
+        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        dock.setObjectName('progresspathnodeeditor') #needed for the state to save/restore correctly
+
+        self.progPathEditor = ProgressPathNodeEditorWidget()
+        dock.setWidget(self.progPathEditor)
+        self.progPathEditorDock = dock
 
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
         dock.setFloating(True)
@@ -15636,6 +16265,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         ll = QtWidgets.QHBoxLayout()
         self.objUseLayer0 = QtWidgets.QRadioButton('0')
         self.objUseLayer0.setToolTip(trans.string('Palette', 1))
+        self.objUseLayer0.setEnabled(False)
         self.objUseLayer1 = QtWidgets.QRadioButton('1')
         self.objUseLayer1.setToolTip(trans.string('Palette', 2))
         self.objUseLayer2 = QtWidgets.QRadioButton('2')
@@ -15741,6 +16371,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.spriteList = ListWidgetWithToolTipSignal()
         self.spriteList.itemActivated.connect(self.HandleSpriteSelectByList)
         self.spriteList.toolTipAboutToShow.connect(self.HandleSpriteToolTipAboutToShow)
+        self.spriteList.setSortingEnabled(True)
 
         spel.addWidget(slabel)
         spel.addWidget(self.spriteList)
@@ -15758,6 +16389,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.entranceList = ListWidgetWithToolTipSignal()
         self.entranceList.itemActivated.connect(self.HandleEntranceSelectByList)
         self.entranceList.toolTipAboutToShow.connect(self.HandleEntranceToolTipAboutToShow)
+        self.entranceList.setSortingEnabled(True)
 
         eel.addWidget(elabel)
         eel.addWidget(self.entranceList)
@@ -15775,6 +16407,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.locationList = ListWidgetWithToolTipSignal()
         self.locationList.itemActivated.connect(self.HandleLocationSelectByList)
         self.locationList.toolTipAboutToShow.connect(self.HandleLocationToolTipAboutToShow)
+        self.locationList.setSortingEnabled(True)
 
         locL.addWidget(Llabel)
         locL.addWidget(self.locationList)
@@ -15794,15 +16427,38 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.pathList = ListWidgetWithToolTipSignal()
         self.pathList.itemActivated.connect(self.HandlePathSelectByList)
         self.pathList.toolTipAboutToShow.connect(self.HandlePathToolTipAboutToShow)
+        self.pathList.setSortingEnabled(True)
 
         pathel.addWidget(pathlabel)
         pathel.addWidget(deselectbtn)
         pathel.addWidget(self.pathList)
 
+        # progress paths tab
+        self.progPathEditorTab = QtWidgets.QWidget()
+        tabs.addTab(self.progPathEditorTab, GetIcon('progresspaths'), '')
+        tabs.setTabToolTip(5, trans.string('Palette', 36))
+
+        progpathel = QtWidgets.QVBoxLayout(self.progPathEditorTab)
+        self.progPathEditorLayout = progpathel
+
+        progpathlabel = QtWidgets.QLabel(trans.string('Palette', 37))
+        progpathlabel.setWordWrap(True)
+        deselectbtn = QtWidgets.QPushButton(trans.string('Palette', 38))
+        deselectbtn.clicked.connect(self.DeselectProgressPathSelection)
+        self.progPathList = ListWidgetWithToolTipSignal()
+        self.progPathList.itemActivated.connect(self.HandleProgressPathSelectByList)
+        self.progPathList.toolTipAboutToShow.connect(self.HandleProgressPathToolTipAboutToShow)
+        self.progPathList.setSortingEnabled(True)
+
+        progpathel.addWidget(progpathlabel)
+        progpathel.addWidget(deselectbtn)
+        progpathel.addWidget(self.progPathList)
+
         # events tab
         self.eventEditorTab = QtWidgets.QWidget()
         tabs.addTab(self.eventEditorTab, GetIcon('events'), '')
-        tabs.setTabToolTip(5, trans.string('Palette', 18))
+        tabs.setTabToolTip(6, trans.string('Palette', 18))
+        tabs.setTabEnabled(6, False)
 
         eventel = QtWidgets.QGridLayout(self.eventEditorTab)
         self.eventEditorLayout = eventel
@@ -15836,7 +16492,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         # stamps tab
         self.stampTab = QtWidgets.QWidget()
         tabs.addTab(self.stampTab, GetIcon('stamp'), '')
-        tabs.setTabToolTip(6, trans.string('Palette', 19))
+        tabs.setTabToolTip(7, trans.string('Palette', 19))
 
         stampLabel = QtWidgets.QLabel(trans.string('Palette', 27))
 
@@ -15883,7 +16539,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         # comments tab
         self.commentsTab = QtWidgets.QWidget()
         tabs.addTab(self.commentsTab, GetIcon('comments'), '')
-        tabs.setTabToolTip(7, trans.string('Palette', 33))
+        tabs.setTabToolTip(8, trans.string('Palette', 33))
 
         cel = QtWidgets.QVBoxLayout()
         self.commentsTab.setLayout(cel)
@@ -15895,6 +16551,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.commentList = ListWidgetWithToolTipSignal()
         self.commentList.itemActivated.connect(self.HandleCommentSelectByList)
         self.commentList.toolTipAboutToShow.connect(self.HandleCommentToolTipAboutToShow)
+        self.commentList.setSortingEnabled(True)
 
         cel.addWidget(clabel)
         cel.addWidget(self.commentList)
@@ -15908,6 +16565,13 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         for selecteditem in self.pathList.selectedItems():
             self.pathList.setItemSelected(selecteditem, False)
+
+    def DeselectProgressPathSelection(self, checked):
+        """
+        Deselects selected progress path nodes in the list
+        """
+        for selecteditem in self.progPathList.selectedItems():
+            self.progPathList.setItemSelected(selecteditem, False)
 
     @QtCore.pyqtSlot()
     def Autosave(self):
@@ -16211,25 +16875,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Shows the about box
         """
         AboutDialog().exec_()
-
-    @QtCore.pyqtSlot()
-    def HandlePaths(self):
-        """
-        Creates the Path Editing mode
-        """
-
-        # Step 1: Freeze all scene items
-        # Step 2: Gray out the scene
-        # Step 3: Exchange the palette dock with a path palette
-        # Step 4: Allow the creation of path nodes on scene through right-clicking
-        # Step 5: Floating Palette to allow editing of the numerical values manually
-        # Step 6: Chain path nodes together in order
-        # Step 7: Smart handling of node creation and deletion
-        # Step 8: UI intuitive visualization of accel/speed
-        # Step 9: Mouse controls for the above
-        # Step 10: Attaching an instance of the path to all sprites which refer to it
-
-        return
 
 
     @QtCore.pyqtSlot()
@@ -17312,7 +17957,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(bool)
     def HandlePathsFreeze(self, checked):
         """
-        Handle toggling of entrances being frozen
+        Handle toggling of paths being frozen
         """
         global PathsFrozen
 
@@ -17326,6 +17971,26 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 node.setFlag(flag2, not PathsFrozen)
 
         setSetting('FreezePaths', PathsFrozen)
+        self.scene.update()
+
+
+    @QtCore.pyqtSlot(bool)
+    def HandleProgressPathsFreeze(self, checked):
+        """
+        Handle toggling of progress paths being frozen
+        """
+        global ProgressPathsFrozen
+
+        ProgressPathsFrozen = checked
+        flag1 = QtWidgets.QGraphicsItem.ItemIsSelectable
+        flag2 = QtWidgets.QGraphicsItem.ItemIsMovable
+
+        if Area is not None:
+            for node in Area.progpaths:
+                node.setFlag(flag1, not ProgressPathsFrozen)
+                node.setFlag(flag2, not ProgressPathsFrozen)
+
+        setSetting('FreezeProgressPaths', ProgressPathsFrozen)
         self.scene.update()
 
 
@@ -17489,6 +18154,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             self.spriteEditorDock.setVisible(False)
             self.entranceEditorDock.setVisible(False)
             self.pathEditorDock.setVisible(False)
+            self.progPathEditorDock.setVisible(False)
             self.locationEditorDock.setVisible(False)
             self.defaultPropDock.setVisible(False)
 
@@ -17515,6 +18181,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Load a level from any game into the editor
         """
+        global levName; levName=name.replace('\\', '/').split('/')[-1]
 
         if game is None:
             game = self.CurrentGame
@@ -17615,7 +18282,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.scene.clear()
 
         # Clear out all level-thing lists
-        for thingList in (self.spriteList, self.entranceList, self.locationList, self.pathList, self.commentList):
+        for thingList in (self.spriteList, self.entranceList, self.locationList, self.pathList, self.progPathList, self.commentList):
             thingList.clear()
             thingList.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
 
@@ -17777,7 +18444,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         pcEvent = self.HandleSprPosChange
         for spr in Area.sprites:
             spr.positionChanged = pcEvent
-            spr.listitem = QtWidgets.QListWidgetItem()
+            spr.listitem = ListWidgetItem_SortsByOther(spr)
             self.spriteList.addItem(spr.listitem)
             self.scene.addItem(spr)
             spr.UpdateListItem()
@@ -17785,7 +18452,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         pcEvent = self.HandleEntPosChange
         for ent in Area.entrances:
             ent.positionChanged = pcEvent
-            ent.listitem = QtWidgets.QListWidgetItem()
+            ent.listitem = ListWidgetItem_SortsByOther(ent)
+            ent.listitem.entid = ent.entid
             self.entranceList.addItem(ent.listitem)
             self.scene.addItem(ent)
             ent.UpdateListItem()
@@ -17798,14 +18466,14 @@ class ReggieWindow(QtWidgets.QMainWindow):
         for location in Area.locations:
             location.positionChanged = pcEvent
             location.sizeChanged = scEvent
-            location.listitem = QtWidgets.QListWidgetItem()
+            location.listitem = ListWidgetItem_SortsByOther(location)
             self.locationList.addItem(location.listitem)
             self.scene.addItem(location)
             location.UpdateListItem()
 
         for path in Area.paths:
             path.positionChanged = self.HandlePathPosChange
-            path.listitem = QtWidgets.QListWidgetItem()
+            path.listitem = ListWidgetItem_SortsByOther(path)
             self.pathList.addItem(path.listitem)
             self.scene.addItem(path)
             path.UpdateListItem()
@@ -17818,6 +18486,21 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         for path in Area.paths:
             path.UpdateListItem()
+
+        for progPath in Area.progpaths:
+            progPath.positionChanged = self.HandleProgressPathPosChange
+            progPath.listitem = ListWidgetItem_SortsByOther(progPath)
+            self.progPathList.addItem(progPath.listitem)
+            self.scene.addItem(progPath)
+            progPath.UpdateListItem()
+
+        for progPath in Area.progpathdata:
+            peline = ProgressPathEditorLineItem(progPath['nodes'])
+            progPath['peline'] = peline
+            self.scene.addItem(peline)
+
+        for progPath in Area.progpaths:
+            progPath.UpdateListItem()
 
         for com in Area.comments:
             com.positionChanged = self.HandleComPosChange
@@ -17871,6 +18554,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         showEntrancePanel = False
         showLocationPanel = False
         showPathPanel = False
+        showProgPathPanel = False
         updateModeInfo = False
 
         # clear our variables
@@ -17881,6 +18565,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.entranceList.setCurrentItem(None)
         self.locationList.setCurrentItem(None)
         self.pathList.setCurrentItem(None)
+        self.progPathList.setCurrentItem(None)
         self.commentList.setCurrentItem(None)
         
         # possibly a small optimization
@@ -17890,6 +18575,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         type_ent = EntranceItem
         type_loc = LocationItem
         type_path = PathItem
+        type_progpath = ProgressPathItem
         type_com = CommentItem
 
         if len(selitems) == 0:
@@ -17944,8 +18630,15 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 self.UpdateFlag = False
                 showPathPanel = True
                 updateModeInfo = True
+            elif func_ii(item, type_progpath):
+                self.creationTabs.setCurrentIndex(5)
+                self.UpdateFlag = True
+                self.progPathList.setCurrentItem(item.listitem)
+                self.UpdateFlag = False
+                showProgPathPanel = True
+                updateModeInfo = True
             elif func_ii(item, type_com):
-                self.creationTabs.setCurrentIndex(7)
+                self.creationTabs.setCurrentIndex(8)
                 self.UpdateFlag = True
                 self.commentList.setCurrentItem(item.listitem)
                 self.UpdateFlag = False
@@ -17977,14 +18670,16 @@ class ReggieWindow(QtWidgets.QMainWindow):
         obj = 0
         loc = 0
         path = 0
+        progpath = 0
         com = 0
         for item in selitems:
             if func_ii(item, type_spr): spr += 1
-            if func_ii(item, type_ent): ent += 1
-            if func_ii(item, type_obj): obj += 1
-            if func_ii(item, type_loc): loc += 1
-            if func_ii(item, type_path): path += 1
-            if func_ii(item, type_com): com += 1
+            elif func_ii(item, type_ent): ent += 1
+            elif func_ii(item, type_obj): obj += 1
+            elif func_ii(item, type_loc): loc += 1
+            elif func_ii(item, type_path): path += 1
+            elif func_ii(item, type_progpath): progpath += 1
+            elif func_ii(item, type_com): com += 1
 
         if loc > 2:
             if UseRibbon: self.ribbon.setBtnEnabled('MergeLocations', True)
@@ -17995,33 +18690,37 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if len(selitems) > 0:
             singleitem = len(selitems) == 1
             if singleitem:
-                if   obj  == 1: text = trans.string('Statusbar', 0)  # 1 object selected
-                elif spr  == 1: text = trans.string('Statusbar', 1)  # 1 sprite selected
-                elif ent  == 1: text = trans.string('Statusbar', 2)  # 1 entrance selected
-                elif loc  == 1: text = trans.string('Statusbar', 3)  # 1 location selected
-                elif path == 1: text = trans.string('Statusbar', 4)  # 1 path node selected
-                elif com == 1: text = trans.string('Statusbar', 29) # 1 comment selected
+                if obj: text = trans.string('Statusbar', 0)  # 1 object selected
+                elif spr: text = trans.string('Statusbar', 1)  # 1 sprite selected
+                elif ent: text = trans.string('Statusbar', 2)  # 1 entrance selected
+                elif loc: text = trans.string('Statusbar', 3)  # 1 location selected
+                elif path: text = trans.string('Statusbar', 4)  # 1 path node selected
+                elif progpath: text = trans.string('Statusbar', 34)  # 1 progress path node selected
+                else: text = trans.string('Statusbar', 29) # 1 comment selected
             else: # multiple things selected; see if they're all the same type
-                if   (spr, ent, loc, path, com) == (0, 0, 0, 0, 0):
+                if not any((spr, ent, loc, path, progpath, com)):
                     text = trans.string('Statusbar', 5, '[x]', obj) # x objects selected
-                elif (obj, ent, loc, path, com) == (0, 0, 0, 0, 0):
+                elif not any((obj, ent, loc, path, progpath, com)):
                     text = trans.string('Statusbar', 6, '[x]', spr) # x sprites selected
-                elif (obj, spr, loc, path, com) == (0, 0, 0, 0, 0):
+                elif not any((obj, spr, loc, path, progpath, com)):
                     text = trans.string('Statusbar', 7, '[x]', ent) # x entrances selected
-                elif (obj, spr, ent, path, com) == (0, 0, 0, 0, 0):
+                elif not any((obj, spr, ent, path, progpath, com)):
                     text = trans.string('Statusbar', 8, '[x]', loc) # x locations selected
-                elif (obj, spr, ent, loc, com) == (0, 0, 0, 0, 0):
-                    text = trans.string('Statusbar', 9, '[x]', path) # x paths selected
-                elif (obj, spr, ent, loc, path) == (0, 0, 0, 0, 0):
+                elif not any((obj, spr, ent, loc, progpath, com)):
+                    text = trans.string('Statusbar', 9, '[x]', path) # x path nodes selected
+                elif not any((obj, spr, ent, loc, path, com)):
+                    text = trans.string('Statusbar', 35, '[x]', progpath) # x progress path nodes selected
+                elif not any((obj, spr, ent, loc, path, progpath)):
                     text = trans.string('Statusbar', 30, '[x]', com) # x comments selected
                 else: # different types
                     text = trans.string('Statusbar', 10, '[x]', len(selitems)) # x items selected
                     types = (
-                        (obj, 12, 13), # variable, trans.string() code if var == 1, trans.string() code if var > 1
+                        (obj, 12, 13), # variable, translation string ID if var == 1, translation string ID if var > 1
                         (spr, 14, 15),
                         (ent, 16, 17),
                         (loc, 18, 19),
                         (path, 20, 21),
+                        (progpath, 36, 37),
                         (com, 31, 32),
                         )
                     first = True
@@ -18048,6 +18747,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         self.locationEditorDock.setVisible(showLocationPanel)
         self.pathEditorDock.setVisible(showPathPanel)
+        self.progPathEditorDock.setVisible(showProgPathPanel)
 
         if len(self.CurrentSelection) > 0:
             if UseRibbon: self.ribbon.setBtnEnabled('desel', True)
@@ -18074,18 +18774,20 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Handles the selected palette tab changing
         """
-        CPT = 0
-        if   self.creationTabs.currentIndex() == 0: # objects
+        idx = self.creationTabs.currentIndex()
+        CPT = -1
+        if idx == 0: # objects
             CPT = self.objAllTab.currentIndex()
-        elif self.creationTabs.currentIndex() == 1: # sprites
+        elif idx == 1: # sprites
             CPT = 4
             if self.sprAllTab.currentIndex() == 1: CPT = -1
-        elif self.creationTabs.currentIndex() == 2: CPT = 5 # entrances
-        elif self.creationTabs.currentIndex() == 3: CPT = 7 # locations
-        elif self.creationTabs.currentIndex() == 4: CPT = 6 # paths
-        elif self.creationTabs.currentIndex() == 5: CPT = -1 # events
-        elif self.creationTabs.currentIndex() == 6: CPT = 8 # stamp pad
-        elif self.creationTabs.currentIndex() == 7: CPT = 9 # comment
+        elif idx == 2: CPT = 5 # entrances
+        elif idx == 3: CPT = 7 # locations
+        elif idx == 4: CPT = 6 # paths
+        elif idx == 5: CPT = 10 # progress paths
+        elif idx == 6: CPT = -1 # events
+        elif idx == 7: CPT = 8 # stamp pad
+        elif idx == 8: CPT = 9 # comment
 
         global CurrentPaintType
         CurrentPaintType = CPT
@@ -18315,6 +19017,17 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if obj == self.selObj:
             SetDirty()
 
+    def HandleProgressPathPosChange(self, obj, oldx, oldy, x, y):
+        """
+        Handle the progress path being dragged
+        """
+        if oldx == x and oldy == y: return
+        obj.updatePos()
+        obj.progpathinfo['peline'].nodePosChanged()
+        obj.UpdateListItem()
+        if obj == self.selObj:
+            SetDirty()
+
 
     def HandleComPosChange(self, obj, oldx, oldy, x, y):
         """
@@ -18462,6 +19175,26 @@ class ReggieWindow(QtWidgets.QMainWindow):
         path.setSelected(True)
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
+    def HandleProgressPathSelectByList(self, item):
+        """
+        Handle a progress path node being selected
+        """
+        #if self.UpdateFlag: return
+
+        #can't really think of any other way to do this
+        #item = self.progPathlist.item(row)
+        progpath = None
+        for check in Area.progpaths:
+           if check.listitem == item:
+                progpath = check
+                break
+        if progpath is None: return
+
+        progpath.ensureVisible(QtCore.QRectF(), 192, 192)
+        self.scene.clearSelection()
+        progpath.setSelected(True)
+
+    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandlePathToolTipAboutToShow(self, item):
         """
         Handle a path node being hovered in the list
@@ -18474,6 +19207,20 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if path is None: return
 
         path.UpdateListItem(True)
+
+    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
+    def HandleProgressPathToolTipAboutToShow(self, item):
+        """
+        Handle a progress path node being hovered in the list
+        """
+        progpath = None
+        for check in Area.progpaths:
+           if check.listitem == item:
+                progpath = check
+                break
+        if progpath is None: return
+
+        progpath.UpdateListItem(True)
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleCommentSelectByList(self, item):
@@ -18543,6 +19290,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
             self.entranceEditor.setEntrance(self.selObj)
         elif self.pathEditorDock.isVisible():
             self.pathEditor.setPath(self.selObj)
+        elif self.progPathEditorDock.isVisible():
+            self.progPathEditor.setProgPath(self.selObj)
         elif self.locationEditorDock.isVisible():
             self.locationEditor.setLocation(self.selObj)
 
@@ -18559,9 +19308,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
         hovered = None
         type_zone = ZoneItem
         type_peline = PathEditorLineItem
+        type_ppeline = ProgressPathEditorLineItem
         for item in hovereditems:
             hover = item.hover if hasattr(item, 'hover') else True
-            if (not isinstance(item, type_zone)) and (not isinstance(item, type_peline)) and hover:
+            if (not isinstance(item, type_zone)) and (not isinstance(item, type_peline)) and(not isinstance(item, type_ppeline)) and hover:
                 hovered = item
                 break
 
@@ -18578,6 +19328,11 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 info = trans.string('Statusbar', 26, '[id]', int(hovered.id), '[xpos]', int(hovered.objx), '[ypos]', int(hovered.objy), '[width]', int(hovered.width), '[height]', int(hovered.height))
             elif isinstance(hovered, PathItem): # Path
                 info = trans.string('Statusbar', 27, '[path]', hovered.pathid, '[node]', hovered.nodeid, '[xpos]', hovered.objx, '[ypos]', hovered.objy)
+            elif isinstance(hovered, ProgressPathItem): # Progress Path
+                if not hovered.progpathinfo['altpath']:
+                    info = trans.string('Statusbar', 38, '[path]', hovered.progpathid, '[node]', hovered.nodeid, '[xpos]', hovered.objx, '[ypos]', hovered.objy)
+                else:
+                    info = trans.string('Statusbar', 39, '[path]', hovered.progpathid, '[node]', hovered.nodeid, '[xpos]', hovered.objx, '[ypos]', hovered.objy)
             elif isinstance(hovered, CommentItem): # Comment
                 info = trans.string('Statusbar', 33, '[xpos]', hovered.objx, '[ypos]', hovered.objy, '[text]', hovered.OneLineText())
 
@@ -19116,7 +19871,7 @@ def main():
         loadSplash()
 
     global EnableAlpha, GridType, CollisionsShown, DepthShown, RealViewEnabled
-    global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, CommentsFrozen
+    global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, ProgressPathsFrozen, CommentsFrozen
     global SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown
 
     gt = setting('GridType')
@@ -19131,6 +19886,7 @@ def main():
     EntrancesFrozen = setting('FreezeEntrances', False)
     LocationsFrozen = setting('FreezeLocations', False)
     PathsFrozen = setting('FreezePaths', False)
+    ProgressPathsFrozen = setting('FreezeProgressPaths', False)
     CommentsFrozen = setting('FreezeComments', False)
     SpritesShown = setting('ShowSprites', True)
     SpriteImagesShown = setting('ShowSpriteImages', True)

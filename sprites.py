@@ -48,6 +48,7 @@ class SpriteImage_Coin(SLib.SpriteImage_Static): # 55
     def __init__(self, parent):
         super().__init__(
             parent,
+            1.25,
             ImageCache['Coin'],
             )
 
@@ -56,6 +57,7 @@ class SpriteImage_StarCoin(SLib.SpriteImage_Static): # 219
     def __init__(self, parent):
         super().__init__(
             parent,
+            1.25,
             ImageCache['StarCoin'],
             )
 

@@ -152,7 +152,7 @@ class SpriteImage():
     """
     Class that contains information about a sprite image
     """
-    def __init__(self, parent):
+    def __init__(self, parent, scale=1.5):
         """
         Intializes the sprite image
         """
@@ -160,11 +160,9 @@ class SpriteImage():
 
         self.alpha = 1.0
         self.image = None
-
-        self.spritebox = Spritebox()
-
+        self.spritebox = Spritebox(scale)
         self.dimensions = 0, 0, 16, 16
-
+        self.scale = scale
         self.aux = []
 
     @staticmethod
@@ -229,18 +227,19 @@ class SpriteImage():
         )
 
 
+
 class SpriteImage_Static(SpriteImage):
     """
     A simple class for drawing a static sprite image
     """
-    def __init__(self, parent, image=None, offset=None):
-        super().__init__(parent)
+    def __init__(self, parent, scale=1.5, image=None, offset=None):
+        super().__init__(parent, scale)
         self.image = image
         self.spritebox.shown = False
 
         if self.image is not None:
-            self.width = (self.image.width() / 1.5) + 1
-            self.height = (self.image.height() / 1.5) + 2
+            self.width = (self.image.width() / self.scale) + 1
+            self.height = (self.image.height() / self.scale) + 2
         if offset is not None:
             self.xOffset = offset[0]
             self.yOffset = offset[1]
@@ -250,8 +249,8 @@ class SpriteImage_Static(SpriteImage):
 
         if self.image is not None:
             self.size = (
-                (self.image.width() / 1.5) + 1,
-                (self.image.height() / 1.5) + 2,
+                (self.image.width() / self.scale) + 1,
+                (self.image.height() / self.scale) + 2,
                 )
         else:
             del self.size
@@ -262,6 +261,8 @@ class SpriteImage_Static(SpriteImage):
         if self.image is None: return
         painter.save()
         painter.setOpacity(self.alpha)
+        painter.scale(1.5 / self.scale, 1.5 / self.scale) # rescale images not based on a 24x24 block size
+        painter.setRenderHint(painter.SmoothPixmapTransform)
         painter.drawPixmap(0, 0, self.image)
         painter.restore()
 
@@ -271,8 +272,8 @@ class SpriteImage_StaticMultiple(SpriteImage_Static):
     A class that acts like a SpriteImage_Static but lets you change
     the image with the dataChanged() function
     """
-    def __init__(self, parent, image=None, offset=None):
-        super().__init__(parent, image, offset)
+    def __init__(self, parent, scale=1.5, image=None, offset=None):
+        super().__init__(parent, scale, image, offset)
     # no other changes needed yet
 
 
@@ -285,13 +286,14 @@ class Spritebox():
     """
     Contains size and other information for a spritebox
     """
-    def __init__(self):
+    def __init__(self, scale=1.5):
         super().__init__()
         self.shown = True
         self.xOffset = 0
         self.yOffset = 0
-        self.width = 24
-        self.height = 24
+        self.width = 16
+        self.height = 16
+        self.scale = scale
 
     # Offset property
     def getOffset(self):
@@ -332,20 +334,20 @@ class Spritebox():
     # RoundedRect property
     def getRR(self):
         return QtCore.QRectF(
-            self.xOffset + 1,
-            self.yOffset + 1,
-            self.width - 2,
-            self.height - 2,
+            (self.xOffset * self.scale) + 1,
+            (self.yOffset * self.scale) + 1,
+            (self.width * self.scale) - 2,
+            (self.height * self.scale) - 2,
             )
     def setRR(self, new):
         self.dimensions = (
-            new.x() - 1,
-            new.y() - 1,
-            new.width() + 2,
-            new.height() + 2,
+            (new.x() / self.scale) - 1,
+            (new.y() / self.scale) - 1,
+            (new.width() / self.scale) + 2,
+            (new.height() / self.scale) + 2,
             )
     def delRR(self):
-        self.dimensions = 0, 0, 24, 24
+        self.dimensions = 0, 0, 16, 16
     RoundedRect = property(
         getRR, setRR, delRR,
         'Property that contains the rounded rect for the spritebox',
@@ -354,20 +356,20 @@ class Spritebox():
     # BoundingRect property
     def getBR(self):
         return QtCore.QRectF(
-            self.xOffset,
-            self.yOffset,
-            self.width,
-            self.height,
+            self.xOffset * self.scale,
+            self.yOffset * self.scale,
+            self.width * self.scale,
+            self.height * self.scale,
             )
     def setBR(self, new):
         self.dimensions = (
-            new.x(),
-            new.y(),
-            new.width(),
-            new.height(),
+            new.x() * self.scale,
+            new.y() * self.scale,
+            new.width() * self.scale,
+            new.height() * self.scale,
             )
     def delBR(self):
-        self.dimensions = 0, 0, 24, 24
+        self.dimensions = 0, 0, 16, 16
     BoundingRect = property(
         getBR, setBR, delBR,
         'Property that contains the bounding rect for the spritebox',
