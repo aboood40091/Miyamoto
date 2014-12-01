@@ -4521,6 +4521,7 @@ class SpriteItem(LevelEditorItem):
         Creates a sprite with specific data
         """
         LevelEditorItem.__init__(self)
+        self.setZValue(26000)
 
         self.font = NumberFont
         self.type = type
@@ -4690,7 +4691,7 @@ class SpriteItem(LevelEditorItem):
             if auxObj.scene() is None: continue
             auxObj.scene().removeItem(auxObj)
 
-        self.setZValue(25000)
+        self.setZValue(26000)
         self.resetTransform()
 
         if (self.type in gamedef.getImageClasses()) and (self.type not in SLib.SpriteImagesLoaded):
