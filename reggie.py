@@ -2772,12 +2772,14 @@ class AreaUnit():
         self.tileset3 = ''
 
         self.defEvents = 0
-        self.wrapFlag = 0
         self.timeLimit = 300
-        self.unk1 = 0
         self.startEntrance = 0
-        self.unk2 = 0
-        self.unk3 = 0
+        self.toadHouseType = 0
+        self.wrapFlag = False
+        self.creditsFlag = False
+        self.ambushFlag = False
+        self.unkFlag1 = False
+        self.unkFlag2 = True
 
         self.entrances = []
         self.sprites = []
@@ -2940,10 +2942,13 @@ class AreaUnit():
         Loads block 2, the general options
         """
         optdata = self.blocks[1]
-        optstruct = struct.Struct('>IxxxxHhLBBBx')
+        optstruct = struct.Struct('>IxxxxHh?BxxB?Bx')
         offset = 0
         data = optstruct.unpack_from(optdata,offset)
-        self.defEvents, self.wrapFlag, self.timeLimit, self.unk1, self.startEntrance, self.unk2, self.unk3 = data
+        self.defEvents, wrapByte, self.timeLimit, self.creditsFlag, unkVal, self.startEntrance, self.ambushFlag, self.toadHouseType = data
+        self.wrapFlag = bool(wrapByte & 1)
+        self.unkFlag1 = bool(wrapByte >> 3)
+        self.unkFlag2 = bool(unkVal == 100)
 
     def LoadEntrances(self):
         """
@@ -3171,14 +3176,19 @@ class AreaUnit():
         """
         self.blocks[0] = ''.join([self.tileset0.ljust(32,'\0'), self.tileset1.ljust(32,'\0'), self.tileset2.ljust(32,'\0'), self.tileset3.ljust(32,'\0')]).encode('latin-1')
 
+
     def SaveOptions(self):
         """
         Saves block 2, the general options
         """
-        optstruct = struct.Struct('>IxxxxHhLBBBx')
-        buffer = bytearray(20)
-        optstruct.pack_into(buffer, 0, self.defEvents, self.wrapFlag, self.timeLimit, self.unk1, self.startEntrance, self.unk2, self.unk3)
-        self.blocks[1] = bytes(buffer)
+        optstruct = struct.Struct('>IxxxxHh?BBBB?Bx')
+
+        wrapByte = 1 if self.wrapFlag else 0
+        if self.unkFlag1: wrapByte |= 8
+        unkVal = 100 if self.unkFlag2 else 0
+
+        self.blocks[1] = optstruct.pack(self.defEvents, wrapByte, self.timeLimit, self.creditsFlag, unkVal, unkVal, unkVal, self.startEntrance, self.ambushFlag, self.toadHouseType)
+
 
     def SaveLayer(self, idx):
         """
@@ -9191,16 +9201,31 @@ class ReggieTranslation():
                 19: '[name] ([file])',
                 20: 'Enter a Filename',
                 21: 'Enter the name of a custom tileset file to use. It must be placed in the game\'s Stage\\Texture folder in order for Reggie to recognize it. Do not add the \'.arc\' extension at the end of the filename.',
-                22: 'Unknown Value 1:',
-                23: 'Unknown Value 2:',
-                24: 'Unknown Value 3:', # Currently unused
-                25: '[b]Unknown Value 1:[/b] We haven\'t managed to figure out what this does, or if it does anything.',
-                26: '[b]Unknown Value 2:[/b] We haven\'t managed to figure out what this does, or if it does anything.',
-                27: '[b]Unknown Value 3:[/b] We haven\'t managed to figure out what this does, or if it does anything.', # Currently unused
+                22: None, # REMOVED: 'Unknown Value 1:'
+                23: None, # REMOVED: 'Unknown Value 2:'
+                24: None, # REMOVED: 'Unknown Value 3:'
+                25: None, # REMOVED: '[b]Unknown Value 1:[/b] We haven\'t managed to figure out what this does, or if it does anything.'
+                26: None, # REMOVED: '[b]Unknown Value 2:[/b] We haven\'t managed to figure out what this does, or if it does anything.'
+                27: None, # REMOVED: '[b]Unknown Value 3:[/b] We haven\'t managed to figure out what this does, or if it does anything.'
                 28: 'Name',
                 29: 'File',
                 30: '(None)',
                 31: 'Tileset (Pa[slot]):',
+                32: 'Toad House Type:',
+                33: (
+                    'Not a Toad House',
+                    'Star Toad House',
+                    'Power-Up Toad House',
+                    '1-UP Toad House',
+                    ),
+                34: 'Credits',
+                35: '[b]Credits:[/b][br]Activates the game\'s Credits mode for this area',
+                36: 'Ambush',
+                37: '[b]Ambush:[/b][br]Activates the game\'s Ambush mode for this area',
+                38: 'Unknown Option 1',
+                39: '[b]Unknown Option 1:[/b] We haven\'t managed to figure out what this does, or if it does anything. This option is turned off in most levels.',
+                40: 'Unknown Option 2',
+                41: '[b]Unknown Option 2:[/b] We haven\'t managed to figure out what this does, or if it does anything. This option is turned on in most levels.',
                 },
             'AutoSaveDlg': {
                 0: 'Auto-saved backup found',
@@ -11554,33 +11579,39 @@ class LoadingTab(QtWidgets.QWidget):
         self.entrance.setToolTip(trans.string('AreaDlg', 6))
         self.entrance.setValue(Area.startEntrance)
 
+        self.toadHouseType = QtWidgets.QComboBox()
+        self.toadHouseType.addItems(trans.stringList('AreaDlg', 33))
+        self.toadHouseType.setCurrentIndex(Area.toadHouseType)
+
         self.wrap = QtWidgets.QCheckBox(trans.string('AreaDlg', 7))
         self.wrap.setToolTip(trans.string('AreaDlg', 8))
-        self.wrap.setChecked((Area.wrapFlag & 1) != 0)
+        self.wrap.setChecked(Area.wrapFlag)
 
-        ##self.unk1 = QtWidgets.QSpinBox()
-        ##self.unk1.setRange(0, 0x255)
-        ##self.unk1.setToolTip(trans.string('AreaDlg', 25))
-        ##self.unk1.setValue(Area.unk1)
+        self.credits = QtWidgets.QCheckBox(trans.string('AreaDlg', 34))
+        self.credits.setToolTip(trans.string('AreaDlg', 35))
+        self.credits.setChecked(Area.creditsFlag)
 
-        self.unk2 = QtWidgets.QSpinBox()
-        self.unk2.setRange(0, 255)
-        self.unk2.setToolTip(trans.string('AreaDlg', 25))
-        self.unk2.setValue(Area.unk2)
+        self.ambush = QtWidgets.QCheckBox(trans.string('AreaDlg', 36))
+        self.ambush.setToolTip(trans.string('AreaDlg', 37))
+        self.ambush.setChecked(Area.ambushFlag)
 
-        self.unk3 = QtWidgets.QSpinBox()
-        self.unk3.setRange(0, 255)
-        self.unk3.setToolTip(trans.string('AreaDlg', 26))
-        self.unk3.setValue(Area.unk3)
+        self.unk1 = QtWidgets.QCheckBox(trans.string('AreaDlg', 38))
+        self.unk1.setToolTip(trans.string('AreaDlg', 39))
+        self.unk1.setChecked(Area.unkFlag1)
+
+        self.unk2 = QtWidgets.QCheckBox(trans.string('AreaDlg', 40))
+        self.unk2.setToolTip(trans.string('AreaDlg', 41))
+        self.unk2.setChecked(Area.unkFlag2)
 
         settingsLayout = QtWidgets.QFormLayout()
         settingsLayout.addRow(trans.string('AreaDlg', 3), self.timer)
         settingsLayout.addRow(trans.string('AreaDlg', 5), self.entrance)
-        ##settingsLayout.addRow(trans.string('AreaDlg', 22), self.unk1)
-        settingsLayout.addRow(trans.string('AreaDlg', 22), self.unk2)
-        settingsLayout.addRow(trans.string('AreaDlg', 23), self.unk3)
+        settingsLayout.addRow(trans.string('AreaDlg', 32), self.toadHouseType)
         settingsLayout.addRow(self.wrap)
-        # The max value of unk1 is too big for QtWidgets.QSpinBox() to handle...
+        settingsLayout.addRow(self.credits)
+        settingsLayout.addRow(self.ambush)
+        settingsLayout.addRow(self.unk1)
+        settingsLayout.addRow(self.unk2)
 
         Layout = QtWidgets.QVBoxLayout()
         Layout.addLayout(settingsLayout)
@@ -18844,16 +18875,15 @@ class ReggieWindow(QtWidgets.QMainWindow):
         dlg = AreaOptionsDialog(setting('TilesetTab') != 'Old')
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
+
             Area.timeLimit = dlg.LoadingTab.timer.value() - 200
             Area.startEntrance = dlg.LoadingTab.entrance.value()
-            #Area.unk1 = dlg.LoadingTab.unk1.value()
-            Area.unk2 = dlg.LoadingTab.unk2.value()
-            Area.unk3 = dlg.LoadingTab.unk3.value()
-
-            if dlg.LoadingTab.wrap.isChecked():
-                Area.wrapFlag |= 1
-            else:
-                Area.wrapFlag &= ~1
+            Area.toadHouseType = dlg.LoadingTab.toadHouseType.currentIndex()
+            Area.wrapFlag = dlg.LoadingTab.wrap.isChecked()
+            Area.creditsFlag = dlg.LoadingTab.credits.isChecked()
+            Area.ambushFlag = dlg.LoadingTab.ambush.isChecked()
+            Area.unkFlag1 = dlg.LoadingTab.unk1.isChecked()
+            Area.unkFlag2 = dlg.LoadingTab.unk2.isChecked()
 
             tileset0tmp = Area.tileset0
             tileset1tmp = Area.tileset1
