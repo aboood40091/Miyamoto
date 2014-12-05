@@ -966,6 +966,7 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
 Tiles = None # 256 tiles per tileset, plus 64 for each type of override
 TilesetFilesLoaded = [None, None, None, None]
 TilesetAnimTimer = None
+TilesetCache = {} # Tileset cache, to avoid reloading when possible
 Overrides = None # 320 tiles, this is put into Tiles usually
 TileBehaviours = None
 ObjectDefinitions = None # 4 tilesets
@@ -1815,62 +1816,71 @@ def _LoadTileset(idx, name, reload=False):
         arcdata = LHTool.decompressLH(arcdata)
     arc = archive.U8.load(arcdata)
 
-    # decompress the textures
-    try:
-        comptiledata = arc['BG_tex/%s_tex.bin.LZ' % name]
-        colldata = arc['BG_chk/d_bgchk_%s.bin' % name]
-    except KeyError:
-        QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
-        return False
-
-    # load in the textures
-    lz = lz77.LZS11()
-    img = LoadTexture(lz.Decompress11LZS(comptiledata))
-
-    # Divide it into individual tiles and
-    # add collisions at the same time
-    dest = QtGui.QPixmap.fromImage(img)
-    sourcex = 4
-    sourcey = 4
     tileoffset = idx * 256
-    for i in range(tileoffset,tileoffset + 256):
-        T = TilesetTile(dest.copy(sourcex,sourcey,24,24))
-        T.setCollisions(struct.unpack_from('>8B', colldata, (i-tileoffset)*8))
-        Tiles[i] = T
-        sourcex += 32
-        if sourcex >= 1024:
-            sourcex = 4
-            sourcey += 32
+
+    global Tiles, TilesetCache
+    if name not in TilesetCache:
+        # Load the tiles
+
+        # decompress the textures
+        try:
+            comptiledata = arc['BG_tex/%s_tex.bin.LZ' % name]
+            colldata = arc['BG_chk/d_bgchk_%s.bin' % name]
+        except KeyError:
+            QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
+            return False
+
+        # load in the textures
+        lz = lz77.LZS11()
+        img = LoadTexture(lz.Decompress11LZS(comptiledata))
+
+        # Divide it into individual tiles and
+        # add collisions at the same time
+        dest = QtGui.QPixmap.fromImage(img)
+        sourcex = 4
+        sourcey = 4
+        for i in range(tileoffset,tileoffset + 256):
+            T = TilesetTile(dest.copy(sourcex,sourcey,24,24))
+            T.setCollisions(struct.unpack_from('>8B', colldata, (i-tileoffset)*8))
+            Tiles[i] = T
+            sourcex += 32
+            if sourcex >= 1024:
+                sourcex = 4
+                sourcey += 32
 
 
-    # Load the tileset animations, if there are any
-    isAnimated, prefix = CheckTilesetAnimated(arc)
-    if isAnimated:
-        tileoffset = idx*256
-        row = 0
-        col = 0
-        for i in range(tileoffset,tileoffset+256):
-            filenames = []
-            filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].lower(), hex(col)[2].lower()))
-            filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].upper(), hex(col)[2].upper()))
-            if filenames[0] == filenames[1]:
-                item = filenames[0]
+        # Load the tileset animations, if there are any
+        isAnimated, prefix = CheckTilesetAnimated(arc)
+        if isAnimated:
+            row = 0
+            col = 0
+            for i in range(tileoffset,tileoffset+256):
                 filenames = []
-                filenames.append(item)
-            for fn in filenames:
-                fn = 'BG_tex/' + fn
-                found = False
-                try:
-                    arc[fn]
-                    found = True
-                except KeyError:
-                    pass
-                if found:
-                    Tiles[i].addAnimationData(arc[fn])
-            col += 1
-            if col == 16:
-                col = 0
-                row += 1
+                filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].lower(), hex(col)[2].lower()))
+                filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].upper(), hex(col)[2].upper()))
+                if filenames[0] == filenames[1]:
+                    item = filenames[0]
+                    filenames = []
+                    filenames.append(item)
+                for fn in filenames:
+                    fn = 'BG_tex/' + fn
+                    found = False
+                    try:
+                        arc[fn]
+                        found = True
+                    except KeyError:
+                        pass
+                    if found:
+                        Tiles[i].addAnimationData(arc[fn])
+                col += 1
+                if col == 16:
+                    col = 0
+                    row += 1
+
+    else:
+        # We already have tiles in the tileset cache; copy them over to Tiles
+        for i in range(256):
+            Tiles[i + tileoffset] = TilesetCache[name][i]
 
 
     # load the object definitions
@@ -1886,7 +1896,7 @@ def _LoadTileset(idx, name, reload=False):
         obj = ObjectDef()
         obj.width = data[1]
         obj.height = data[2]
-        obj.load(deffile,data[0],tileoffset)
+        obj.load(deffile, data[0], tileoffset)
         defs[i] = obj
 
     ObjectDefinitions[idx] = defs
@@ -1898,6 +1908,11 @@ def _LoadTileset(idx, name, reload=False):
 
     # Add Tiles to spritelib
     SLib.Tiles = Tiles
+
+    # Add Tiles to the cache
+    TilesetCache[name] = []
+    for i in range(256):
+        TilesetCache[name].append(Tiles[i + tileoffset])
 
 
 def LoadTexture(tiledata):
@@ -2927,6 +2942,7 @@ class AreaUnit():
             self.SaveLayer(2),
             )
 
+
     def LoadMetadata(self):
         """
         Loads block 1, the tileset names
@@ -2937,18 +2953,27 @@ class AreaUnit():
         self.tileset2 = data[2].strip(b'\0').decode('latin-1')
         self.tileset3 = data[3].strip(b'\0').decode('latin-1')
 
+
     def LoadOptions(self):
         """
         Loads block 2, the general options
         """
         optdata = self.blocks[1]
         optstruct = struct.Struct('>IxxxxHh?BxxB?Bx')
-        offset = 0
-        data = optstruct.unpack_from(optdata,offset)
+        data = optstruct.unpack(optdata)
         self.defEvents, wrapByte, self.timeLimit, self.creditsFlag, unkVal, self.startEntrance, self.ambushFlag, self.toadHouseType = data
         self.wrapFlag = bool(wrapByte & 1)
         self.unkFlag1 = bool(wrapByte >> 3)
         self.unkFlag2 = bool(unkVal == 100)
+
+        """
+        Loads block 4, the unknown maybe-more-general-options block
+        """
+        optdata2 = self.blocks[3]
+        optdata2struct = struct.Struct('>xxHHxx')
+        data = optdata2struct.unpack(optdata2)
+        self.unkVal1, self.unkVal2 = data
+
 
     def LoadEntrances(self):
         """
@@ -3188,6 +3213,12 @@ class AreaUnit():
         unkVal = 100 if self.unkFlag2 else 0
 
         self.blocks[1] = optstruct.pack(self.defEvents, wrapByte, self.timeLimit, self.creditsFlag, unkVal, unkVal, unkVal, self.startEntrance, self.ambushFlag, self.toadHouseType)
+
+        """
+        Saves block 4, the unknown maybe-more-general-options block
+        """
+        optdata2struct = struct.Struct('>xxHHxx')
+        self.blocks[3] = optdata2struct.pack(self.unkVal1, self.unkVal2)
 
 
     def SaveLayer(self, idx):
@@ -8763,7 +8794,7 @@ class ReggieGameDefinition():
         if name in NoneTypes: return
         else:
             try: self.InitFromName(name)
-            except Exception: raise#self.InitAsEmpty() # revert
+            except Exception: self.InitAsEmpty() # revert
 
 
     def InitAsEmpty(self):
@@ -9227,6 +9258,10 @@ class ReggieTranslation():
                 39: '[b]Unknown Option 1:[/b] We haven\'t managed to figure out what this does, or if it does anything. This option is turned off in most levels.',
                 40: 'Unknown Option 2',
                 41: '[b]Unknown Option 2:[/b] We haven\'t managed to figure out what this does, or if it does anything. This option is turned on in most levels.',
+                42: 'Unknown Option 3',
+                43: '[b]Unknown Option 3:[/b] We haven\'t managed to figure out what this does, or if it does anything.',
+                44: 'Unknown Option 4',
+                45: '[b]Unknown Option 4:[/b] We haven\'t managed to figure out what this does, or if it does anything.',
                 },
             'AutoSaveDlg': {
                 0: 'Auto-saved backup found',
@@ -11604,6 +11639,16 @@ class LoadingTab(QtWidgets.QWidget):
         self.unk2.setToolTip(trans.string('AreaDlg', 41))
         self.unk2.setChecked(Area.unkFlag2)
 
+        self.unk3 = QtWidgets.QSpinBox()
+        self.unk3.setRange(0, 999)
+        self.unk3.setToolTip(trans.string('AreaDlg', 43))
+        self.unk3.setValue(Area.unkVal1)
+
+        self.unk4 = QtWidgets.QSpinBox()
+        self.unk4.setRange(0, 999)
+        self.unk4.setToolTip(trans.string('AreaDlg', 45))
+        self.unk4.setValue(Area.unkVal2)
+
         settingsLayout = QtWidgets.QFormLayout()
         settingsLayout.addRow(trans.string('AreaDlg', 3), self.timer)
         settingsLayout.addRow(trans.string('AreaDlg', 5), self.entrance)
@@ -11613,6 +11658,8 @@ class LoadingTab(QtWidgets.QWidget):
         settingsLayout.addRow(self.ambush)
         settingsLayout.addRow(self.unk1)
         settingsLayout.addRow(self.unk2)
+        settingsLayout.addRow(trans.string('AreaDlg', 42), self.unk3)
+        settingsLayout.addRow(trans.string('AreaDlg', 44), self.unk4)
 
         Layout = QtWidgets.QVBoxLayout()
         Layout.addLayout(settingsLayout)
@@ -18093,6 +18140,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Reloads all the tilesets. If soft is True, they will not be reloaded if the filepaths have not changed.
         """
+        global TilesetCache
+        if not soft: TilesetCache = {} # blank out the tileset cache; we're reloading them
+
         tilesets = [Area.tileset0, Area.tileset1, Area.tileset2, Area.tileset3]
         for idx, name in enumerate(tilesets):
             if (name is not None) and (name != ''):
@@ -18885,6 +18935,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
             Area.ambushFlag = dlg.LoadingTab.ambush.isChecked()
             Area.unkFlag1 = dlg.LoadingTab.unk1.isChecked()
             Area.unkFlag2 = dlg.LoadingTab.unk2.isChecked()
+            Area.unkVal1 = dlg.LoadingTab.unk3.value()
+            Area.unkVal2 = dlg.LoadingTab.unk4.value()
 
             tileset0tmp = Area.tileset0
             tileset1tmp = Area.tileset1
