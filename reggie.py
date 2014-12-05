@@ -5222,7 +5222,7 @@ class EntranceItem(LevelEditorItem):
 
         self.aux = self.AuxEntranceItem(self)
 
-        self.setZValue(25001)
+        self.setZValue(27000)
         self.UpdateTooltip()
         self.TypeChange()
 
