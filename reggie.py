@@ -994,6 +994,7 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
 Tiles = None # 0x200 tiles per tileset, plus 64 for each type of override
 TilesetFilesLoaded = [None, None, None, None]
 TilesetAnimTimer = None
+TilesetCache = {} # Tileset cache, to avoid reloading when possible
 Overrides = None # 320 tiles, this is put into Tiles usually
 TileBehaviours = None
 ObjectDefinitions = None # 4 tilesets
@@ -1842,7 +1843,6 @@ def LoadTileset(idx, name, reload=False):
     try:
         return _LoadTileset(idx, name, reload)
     except Exception:
-        raise
         QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTileset', 0), trans.string('Err_CorruptedTileset', 1, '[file]', name))
         return False
 
@@ -1887,73 +1887,82 @@ def _LoadTileset(idx, name, reload=False):
     arc = SarcLib.SARC_Archive()
     arc.load(arcdata)
 
-    # decompress the textures
-    try:
-        comptiledata = arc['BG_tex/%s.ctpk' % name].data
-        colldata = arc['BG_chk/d_bgchk_%s.bin' % name].data
-    except KeyError:
-        QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
-        return False
-
-    # load in the textures
-    img = LoadTexture(comptiledata)
-
-    # Divide it into individual tiles and
-    # add collisions at the same time
-    def getTileFromImage(tilemap, xtilenum, ytilenum):
-        return dest.copy((xtilenum * 24) + 2, (ytilenum * 24) + 2, 20, 20).scaledToWidth(24, Qt.SmoothTransformation)
-    dest = QtGui.QPixmap.fromImage(img)
-    sourcex = 0
-    sourcey = 0
     tileoffset = idx * 0x200
-    for i in range(tileoffset, tileoffset + 441):
-        T = TilesetTile(getTileFromImage(dest, sourcex, sourcey))
-        Tiles[i] = T
-        sourcex += 1
-        if sourcex >= 21:
-            sourcex = 0
-            sourcey += 1
 
-    # Add overlays
-    overlayfile = arc['BG_unt/%s_add.bin' % name].data
-    overlayArray = struct.unpack('<441H', overlayfile[:882])
-    i = idx * 0x200
-    arrayi = 0
-    for y in range(21):
-        for x in range(21):
-            if Tiles[i] is not None:
-                Tiles[i].addOverlay(Tiles[overlayArray[arrayi]])
-            i += 1; arrayi += 1
+    global Tiles, TilesetCache
+    if name not in TilesetCache:
+        # Load the tiles
 
-    # Load the tileset animations, if there are any
-    #isAnimated, prefix = CheckTilesetAnimated(arc)
-    isAnimated = False
-    if isAnimated:
-        tileoffset = idx*0x200
-        row = 0
-        col = 0
-        for i in range(tileoffset,tileoffset+441):
-            filenames = []
-            filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].lower(), hex(col)[2].lower()))
-            filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].upper(), hex(col)[2].upper()))
-            if filenames[0] == filenames[1]:
-                item = filenames[0]
+        # decompress the textures
+        try:
+            comptiledata = arc['BG_tex/%s.ctpk' % name].data
+            colldata = arc['BG_chk/d_bgchk_%s.bin' % name].data
+        except KeyError:
+            QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
+            return False
+
+        # load in the textures
+        img = LoadTexture(comptiledata)
+
+        # Divide it into individual tiles and
+        # add collisions at the same time
+        def getTileFromImage(tilemap, xtilenum, ytilenum):
+            return dest.copy((xtilenum * 24) + 2, (ytilenum * 24) + 2, 20, 20).scaledToWidth(24, Qt.SmoothTransformation)
+        dest = QtGui.QPixmap.fromImage(img)
+        sourcex = 0
+        sourcey = 0
+        for i in range(tileoffset, tileoffset + 441):
+            T = TilesetTile(getTileFromImage(dest, sourcex, sourcey))
+            Tiles[i] = T
+            sourcex += 1
+            if sourcex >= 21:
+                sourcex = 0
+                sourcey += 1
+
+        # Add overlays
+        overlayfile = arc['BG_unt/%s_add.bin' % name].data
+        overlayArray = struct.unpack('<441H', overlayfile[:882])
+        i = idx * 0x200
+        arrayi = 0
+        for y in range(21):
+            for x in range(21):
+                if Tiles[i] is not None:
+                    Tiles[i].addOverlay(Tiles[overlayArray[arrayi]])
+                i += 1; arrayi += 1
+
+        # Load the tileset animations, if there are any
+        #isAnimated, prefix = CheckTilesetAnimated(arc)
+        isAnimated = False
+        if isAnimated:
+            row = 0
+            col = 0
+            for i in range(tileoffset,tileoffset+441):
                 filenames = []
-                filenames.append(item)
-            for fn in filenames:
-                fn = 'BG_tex/' + fn
-                found = False
-                try:
-                    arc[fn]
-                    found = True
-                except KeyError:
-                    pass
-                if found:
-                    Tiles[i].addAnimationData(arc[fn])
-            col += 1
-            if col == 16:
-                col = 0
-                row += 1
+                filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].lower(), hex(col)[2].lower()))
+                filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].upper(), hex(col)[2].upper()))
+                if filenames[0] == filenames[1]:
+                    item = filenames[0]
+                    filenames = []
+                    filenames.append(item)
+                for fn in filenames:
+                    fn = 'BG_tex/' + fn
+                    found = False
+                    try:
+                        arc[fn]
+                        found = True
+                    except KeyError:
+                        pass
+                    if found:
+                        Tiles[i].addAnimationData(arc[fn])
+                col += 1
+                if col == 16:
+                    col = 0
+                    row += 1
+
+    else:
+        # We already have tiles in the tileset cache; copy them over to Tiles
+        for i in range(0x200):
+            Tiles[i + tileoffset] = TilesetCache[name][i]
 
 
     # load the object definitions
@@ -1981,6 +1990,11 @@ def _LoadTileset(idx, name, reload=False):
 
     # Add Tiles to spritelib
     SLib.Tiles = Tiles
+
+    # Add Tiles to the cache
+    TilesetCache[name] = []
+    for i in range(0x200):
+        TilesetCache[name].append(Tiles[i + tileoffset])
 
 
 def LoadTexture(tiledata):
@@ -9032,19 +9046,19 @@ class ReggieGameDefinition():
         """
         Returns the game path
         """
-        if not self.custom: return str(setting('GamePath'))
+        if not self.custom: return str(setting('GamePath_NSMB2'))
         name = 'GamePath_' + self.name
         setname = setting(name)
 
         # Use the default if there are no settings for this yet
-        if setname is None: return str(setting('GamePath'))
+        if setname is None: return str(setting('GamePath_NSMB2'))
         else: return str(setname)
 
     def SetGamePath(self, path):
         """
         Sets the game path
         """
-        if not self.custom: setSetting('GamePath', path)
+        if not self.custom: setSetting('GamePath_NSMB2', path)
         else:
             name = 'GamePath_' + self.name
             setSetting(name, path)
@@ -9053,7 +9067,7 @@ class ReggieGameDefinition():
         """
         Returns game paths of this gamedef and its bases
         """
-        mainpath = str(setting('GamePath'))
+        mainpath = str(setting('GamePath_NSMB2'))
         if not self.custom: return [mainpath,]
 
         name = 'GamePath_' + self.name
@@ -15706,13 +15720,13 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
             # Leave this here
             global CurrentLevelNameForAutoOpenScript
-            for levelname in os.listdir(setting('GamePath')):
+            for levelname in os.listdir(setting('GamePath_NSMB2')):
                 if not levelname.endswith(FileExtentions[curgame]): continue
                 print('Loading %s...' % levelname)
                 for areanum in range(4):
                     try:
                         CurrentLevelNameForAutoOpenScript = levelname[:-5] + ' A' + str(areanum + 1)
-                        self.LoadLevel(curgame, os.path.join(setting('GamePath'), levelname), True, areanum + 1)
+                        self.LoadLevel(curgame, os.path.join(setting('GamePath_NSMB2'), levelname), True, areanum + 1)
                     except: pass
 
 
@@ -18510,6 +18524,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Reloads all the tilesets. If soft is True, they will not be reloaded if the filepaths have not changed.
         """
+        global TilesetCache
+        if not soft: TilesetCache = {} # blank out the tileset cache; we're reloading them
+
         tilesets = [Area.tileset0, Area.tileset1, Area.tileset2, Area.tileset3]
         for idx, name in enumerate(tilesets):
             if (name is not None) and (name != ''):
@@ -19899,7 +19916,7 @@ def main():
         if not isValidGamePath():
             QtWidgets.QMessageBox.information(None, trans.string('ChangeGamePath', 1),  trans.string('ChangeGamePath', 3))
         else:
-            setSetting('GamePath', path)
+            setSetting('GamePath_NSMB2', path)
             break
 
     # check to see if we have anything saved
