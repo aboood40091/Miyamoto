@@ -60,7 +60,7 @@ Developers:
  * Omega - int(), Python, Testing
  * Pop006 - Sprite Images (NSMBW)
  * Tobias Amaranth - Sprite Data (NSMBW), Event Example Stage
- * RoadrunnerWMC - Reggie! Next Developer: Programmer, UI, Sprite Images (NSMBW), Other
+ * RoadrunnerWMC - Reggie! Next Developer: Programmer, UI, Data, Sprite Images (NSMBW), Other
  * JasonP27 - ReggieMod Developer, Programmer, UI, Sprite Images (NSMBW)
  * Kinnay (Kamek64) - Reggie! Newer Sprites Developer, Programmer, Sprite Images (NSMBW, NewerSMBW), Sprite Data (NSMB2)
  * ZementBlock - Sprite Data (NSMBW)
@@ -81,7 +81,7 @@ Translators: (in alphabetical order, by language)
  * Turkish: nlgzrgn
 
 Other Testers and Contributors:
- * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl
+ * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl, ant888
  * Tobias Amaranth and Valeth - Text Tileset Addon
  * LifeMushroom (Mario64) - run-python34.bat
 
