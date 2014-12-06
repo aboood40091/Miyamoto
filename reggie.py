@@ -4592,6 +4592,7 @@ class SpriteItem(LevelEditorItem):
         Creates a sprite with specific data
         """
         LevelEditorItem.__init__(self)
+        self.setZValue(26000)
 
         self.font = NumberFont
         self.type = type
@@ -4770,7 +4771,7 @@ class SpriteItem(LevelEditorItem):
             if auxObj.scene() is None: continue
             auxObj.scene().removeItem(auxObj)
 
-        self.setZValue(25000)
+        self.setZValue(26000)
         self.resetTransform()
 
         if (self.type in gamedef.getImageClasses()) and (self.type not in SLib.SpriteImagesLoaded):
@@ -5259,7 +5260,7 @@ class EntranceItem(LevelEditorItem):
 
         self.aux = self.AuxEntranceItem(self)
 
-        self.setZValue(25001)
+        self.setZValue(27000)
         self.UpdateTooltip()
         self.TypeChange()
 
@@ -5310,7 +5311,7 @@ class EntranceItem(LevelEditorItem):
         x, y, w, h = 0, 0, 1, 1
         if self.enttype in (0, 1):
             # Standing entrance
-            x, w = -2.25, 5.5
+            x, w = -1, 3
         elif self.enttype in (3, 4):
             # Vertical pipe
             w = 2
@@ -17527,7 +17528,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 SetGamePath(path)
                 break
 
-        if not auto: self.LoadLevel(None, '01-01', False, 1)
+        if not auto: self.LoadLevel(None, FirstLevels[CurrentGame], False, 1)
         return True
 
 
