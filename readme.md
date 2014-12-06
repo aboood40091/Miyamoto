@@ -56,7 +56,7 @@ Developers:
  * Omega - int(), Python, Testing
  * Pop006 - Sprite Images
  * Tobias Amaranth - Sprite Info (a lot of it), Event Example Stage
- * RoadrunnerWMC - Reggie! Next Developer: Programmer, UI, Sprite Images
+ * RoadrunnerWMC - Reggie! Next Developer: Programmer, UI, Data, Sprite Images
  * JasonP27 - ReggieMod Developer: Programmer, UI, Sprite Images
  * Kamek64 - Reggie! Newer Sprites Developer: Programmer, Sprite Images
  * ZementBlock - Sprite Data
