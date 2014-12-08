@@ -96,4 +96,4 @@
 95=Closed Door
 96=Invisible Deadly Tile (hurts when touched)
 97=Multiplayer-only Coin Outline (invisible in single player)
-98=Unknown Brick
+98=Brick block containing nothing (turns into a used item block when hit)
