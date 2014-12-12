@@ -1010,6 +1010,15 @@ class ObjectDef():
                 row.append(tile)
                 i += 3
 
+        # Newer has this any-tileset-slot hack in place, so let's add it here
+        for row in self.rows:
+            for tile in row:
+                if len(tile) == 1:
+                    tile[0] = (tile[0] % 256) + tileoffset
+                elif len(tile) == 3:
+                    tile[1] = (tile[1] % 256) + tileoffset
+
+
 
 class TilesetTile():
     """
@@ -2668,6 +2677,7 @@ class LevelUnit():
                 newarea = AreaUnit()
                 Area = newarea
                 SLib.Area = Area
+                SLib.MapPositionToZoneID = MapPositionToZoneID
             else:
                 newarea = FakeAreaUnit()
 
