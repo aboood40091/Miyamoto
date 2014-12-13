@@ -2805,6 +2805,8 @@ class AreaUnit():
         self.ambushFlag = False
         self.unkFlag1 = False
         self.unkFlag2 = True
+        self.unkVal1 = 0
+        self.unkVal2 = 0
 
         self.entrances = []
         self.sprites = []
@@ -5291,6 +5293,7 @@ class EntranceItem(LevelEditorItem):
         # Now make the rects
         self.RoundedRect = QtCore.QRectF((x * 24) + 1, (y * 24) + 1, (w * 24) - 2, (h * 24) - 2)
         self.BoundingRect = QtCore.QRectF(x * 24, y * 24, w * 24, h * 24)
+        self.LevelRect = QtCore.QRectF(x + (self.objx / 16), y + (self.objy / 16), w, h)
 
         # Update the aux thing
         self.aux.TypeChange()
