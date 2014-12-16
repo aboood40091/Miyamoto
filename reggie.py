@@ -1828,7 +1828,9 @@ def _LoadTileset(idx, name, reload=False):
     tileoffset = idx * 256
 
     global Tiles, TilesetCache
-    if name not in TilesetCache:
+    tileCacheEntryName = name + (' ' * 256) + gamedef.name # It works :P
+    
+    if tileCacheEntryName not in TilesetCache:
         # Load the tiles
 
         # decompress the textures
@@ -1849,8 +1851,8 @@ def _LoadTileset(idx, name, reload=False):
         sourcex = 4
         sourcey = 4
         for i in range(tileoffset,tileoffset + 256):
-            T = TilesetTile(dest.copy(sourcex,sourcey,24,24))
-            T.setCollisions(struct.unpack_from('>8B', colldata, (i-tileoffset)*8))
+            T = TilesetTile(dest.copy(sourcex, sourcey, 24, 24))
+            T.setCollisions(struct.unpack_from('>8B', colldata, (i - tileoffset) * 8))
             Tiles[i] = T
             sourcex += 32
             if sourcex >= 1024:
@@ -1863,7 +1865,7 @@ def _LoadTileset(idx, name, reload=False):
         if isAnimated:
             row = 0
             col = 0
-            for i in range(tileoffset,tileoffset+256):
+            for i in range(tileoffset, tileoffset + 256):
                 filenames = []
                 filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].lower(), hex(col)[2].lower()))
                 filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].upper(), hex(col)[2].upper()))
@@ -1889,7 +1891,7 @@ def _LoadTileset(idx, name, reload=False):
     else:
         # We already have tiles in the tileset cache; copy them over to Tiles
         for i in range(256):
-            Tiles[i + tileoffset] = TilesetCache[name][i]
+            Tiles[i + tileoffset] = TilesetCache[tileCacheEntryName][i]
 
 
     # load the object definitions
@@ -1919,9 +1921,9 @@ def _LoadTileset(idx, name, reload=False):
     SLib.Tiles = Tiles
 
     # Add Tiles to the cache
-    TilesetCache[name] = []
+    TilesetCache[tileCacheEntryName] = []
     for i in range(256):
-        TilesetCache[name].append(Tiles[i + tileoffset])
+        TilesetCache[tileCacheEntryName].append(Tiles[i + tileoffset])
 
 
 def LoadTexture(tiledata):
