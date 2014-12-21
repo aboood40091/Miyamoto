@@ -1013,9 +1013,9 @@ class ObjectDef():
         # Newer has this any-tileset-slot hack in place, so let's add it here
         for row in self.rows:
             for tile in row:
-                if len(tile) == 1:
+                if len(tile) == 1 and tile[0] != 0:
                     tile[0] = (tile[0] % 256) + tileoffset
-                elif len(tile) == 3:
+                elif len(tile) == 3 and tile[1] != 0:
                     tile[1] = (tile[1] % 256) + tileoffset
 
 
