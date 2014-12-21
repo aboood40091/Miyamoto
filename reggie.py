@@ -1000,13 +1000,13 @@ class ObjectDef():
                 i += 1
                 row = []
             elif cbyte == 0xFF:
-                return
+                break
             elif (cbyte & 0x80) != 0:
-                row.append((cbyte,))
+                row.append([cbyte,])
                 i += 1
             else:
                 extra = source[i+2]
-                tile = (cbyte, source[i+1] | ((extra & 3) << 8), extra >> 2)
+                tile = [cbyte, source[i+1] | ((extra & 3) << 8), extra >> 2]
                 row.append(tile)
                 i += 3
 
@@ -1829,7 +1829,7 @@ def _LoadTileset(idx, name, reload=False):
 
     global Tiles, TilesetCache
     tileCacheEntryName = name + (' ' * 256) + gamedef.name # It works :P
-    
+
     if tileCacheEntryName not in TilesetCache:
         # Load the tiles
 
@@ -3312,7 +3312,7 @@ class AreaUnit():
         for sprite in self.sprites:
             try:
                 sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy), sprite.spritedata[:6], sprite.zoneID, bytes([sprite.spritedata[7],]))
-            except struct.error:
+            except:
                 # Hopefully this will solve the mysterious bug, and will
                 # soon no longer be necessary.
                 raise ValueError('SaveSprites struct.error. Current sprite data dump:\n' + \
