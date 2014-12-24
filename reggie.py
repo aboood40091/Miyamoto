@@ -17981,6 +17981,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Load a level into the editor
         """
 
+        app.splashScreen = ReggieSplashScreen()
+        app.splashScreen.setProgressLimit(9)
+        app.splashScreen.show()
+
         if name is not None:
             if fullpath:
                 checkname = name
@@ -18186,6 +18190,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         QtCore.QTimer.singleShot(20, self.levelOverview.update)
 
         self.RecentFilesMgr.addPath(Level.arcname)
+
+        app.splashScreen.hide()
+        del app.splashScreen
 
         return True
 
@@ -19480,11 +19487,6 @@ def main():
     app.setWindowIcon(GetIcon('reggie'))
     app.setApplicationDisplayName('Reggie Next')
 
-    # Load the splashscreen
-    app.splashScreen = ReggieSplashScreen()
-    app.splashScreen.setProgressLimit(9)
-    app.splashScreen.show()
-
     global EnableAlpha, GridType, CollisionsShown, RealViewEnabled
     global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, CommentsFrozen
     global SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown, DrawEntIndicators
@@ -19540,9 +19542,6 @@ def main():
     mainWindow = ReggieWindow()
     mainWindow.__init2__() # fixes bugs
     mainWindow.show()
-
-    app.splashScreen.hide()
-    del app.splashScreen
 
     exitcodesys = app.exec_()
     app.deleteLater()
