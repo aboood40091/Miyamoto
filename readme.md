@@ -1,5 +1,5 @@
 # Reggie! Level Editor Next
-(Milestone 2 Alpha 4)
+(Milestone 2 Alpha 4 Beta)
 
 ----------------------------------------------------------------
 

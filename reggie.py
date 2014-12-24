@@ -1,30 +1,30 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
 
-# Reggie! - New Super Mario Bros. Wii Level Editor
+# Reggie Next - New Super Mario Bros. Wii / New Super Mario Bros 2 Level Editor
 # Version Next Milestone 2 Alpha 4
 # Copyright (C) 2009-2014 Treeki, Tempus, angelsl, JasonP27, Kamek64,
 # MalStar1000, RoadrunnerWMC
 
-# This file is part of Reggie!.
+# This file is part of Reggie Next.
 
-# Reggie! is free software: you can redistribute it and/or modify
+# Reggie Next is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Reggie! is distributed in the hope that it will be useful,
+# Reggie Next is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Reggie!.  If not, see <http://www.gnu.org/licenses/>.
+# along with Reggie Next.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
 # reggie.py
-# This is the main executable for Reggie!
+# This is the main executable for Reggie Next.
 
 
 ################################################################
@@ -77,8 +77,9 @@ import spritelib as SLib
 import sprites
 import TPLLib
 
-ReggieID = 'Reggie! Level Editor Next by Treeki, Tempus, RoadrunnerWMC'
-ReggieVersion = 'Next Milestone 2 Alpha 4'
+ReggieID = 'Reggie Next Level Editor by Treeki, Tempus, RoadrunnerWMC'
+ReggieVersion = 'Milestone 2 Alpha 4'
+ReggieVersionShort = 'M2A4 (b)'
 UpdateURL = 'http://rvlution.net/reggie/updates.xml'
 
 
@@ -92,52 +93,159 @@ mainWindow = None
 settings = None
 
 
-def checkSplashEnabled():
+class ReggieSplashScreen(QtWidgets.QSplashScreen):
     """
-    Checks to see if the splash screen is enabled
+    Splash screen class for Reggie.
     """
-    global prefs
-    if setting('SplashEnabled') is None and not TPLLib.using_cython:
-        return True
-    elif setting('SplashEnabled'):
-        return True
-    else:
-        return False
+    cfgData = {}
+    currentDesc = ''
+    currentPos = 0
+    posLimit = 0
 
-def loadSplash():
-    """
-    If called, this will show the splash screen until removeSplash is called
-    """
-    splashpixmap = QtGui.QPixmap('reggiedata/splash.png')
-    app.splashscrn = QtWidgets.QSplashScreen(splashpixmap)
-    app.splashscrn.show()
-    app.processEvents()
+    def __init__(self):
+        """
+        Initializes the splash screen.
+        super().__init__(QPixmap) has to be called with the pixmap you want or else transparency
+        is messed up. self.setPixmap(QPixmap) doesn't seem to work properly.
+        """
+        self.loadCfg()
+        self.loadResources()
+        super().__init__(self.basePix)
 
-def updateSplash(message, progress):
-    """
-    This will update the splashscreen with the given message and progressval
-    """
-    font = QtGui.QFont()
-    font.setPointSize(10)
 
-    message = trans.string('Splash', 0, '[current]', message, '[stage]', progress)
-    splashtextpixmap = QtGui.QPixmap('reggiedata/splash.png')
-    splashtextpixmappainter = QtGui.QPainter(splashtextpixmap)
-    splashtextpixmappainter.setFont(font)
-    splashtextpixmappainter.drawText(220, 195, message)
-    app.splashscrn.setPixmap(splashtextpixmap)
-    splashtextpixmappainter = None
-    app.processEvents()
+    def loadCfg(self):
+        """
+        Loads the raw data from splash_config.txt
+        """
+        cfgData = {}
+        with open('reggiedata/splash_config.txt', encoding='utf-8') as cfg:
+            for line in cfg:
+                lsplit = line.replace('\n', '').split(':')
+                key = lsplit[0].lower()
+                value = ':'.join(lsplit[1:])
+                if value.lower() in ('true', 'false'):
+                    value = value.lower() == 'true'
+                elif ',' in value:
+                    value = value.split(',')
+                    for i, entry in enumerate(value):
+                        try:
+                            value[i] = int(entry)
+                        except ValueError: pass
+                if isinstance(value, str):
+                    try:
+                        value = int(value)
+                    except ValueError: pass
+                cfgData[key] = value
+        self.cfgData = cfgData
 
-def removeSplash():
-    """
-    This will delete the splash screen, if it exists
-    """
-    if app.splashscrn is not None:
-        app.splashscrn.close()
-        app.splashscrn = None
-        splashpixmap = None
-        splashtextpixmap = None
+
+    def loadResources(self):
+        """
+        Reads the info from self.cfgData and loads stuff
+        """
+        self.basePix = QtGui.QPixmap(os.path.join('reggiedata', self.cfgData['base_image']))
+
+        def loadFont(name):
+            fname = self.cfgData.get(name + '_font', 'Arial')
+            bold = self.cfgData.get(name + '_font_bold', False)
+            color = '#' + self.cfgData.get(name + '_font_color', '000000')
+            size = self.cfgData.get(name + '_font_size', 12)
+            wLim = self.cfgData.get(name + '_wrap_limit', 1024)
+            position = self.cfgData.get(name + '_position', (0, 0))
+            centered = self.cfgData.get(name + '_centered', False)
+
+            font = QtGui.QFont()
+            font.setFamily(fname)
+            font.setBold(bold)
+            font.setPointSize(size)
+            return font, position, color, centered, wLim
+
+        self.versionFontInfo = loadFont('version')
+        self.loadingFontInfo = loadFont('loading')
+        self.copyrightFontInfo = loadFont('copyright')
+
+        mNameL = self.cfgData.get('meter_left', '')
+        mNameM = self.cfgData.get('meter_mid', '')
+        mNameR = self.cfgData.get('meter_right', '')
+        self.meterPos = self.cfgData.get('meter_position', (0, 0))
+        self.meterWidth = self.cfgData.get('meter_width', 64)
+
+        self.meterL = QtGui.QPixmap(os.path.join('reggiedata', mNameL))
+        self.meterM = QtGui.QPixmap(os.path.join('reggiedata', mNameM))
+        self.meterR = QtGui.QPixmap(os.path.join('reggiedata', mNameR))
+
+
+    def setProgressLimit(self, limit):
+        """
+        Sets the maximum progress, used to calculate the progress bar
+        """
+        self.posLimit = limit
+
+
+    def setProgress(self, desc, pos):
+        """
+        Sets the current progress
+        """
+        self.currentDesc = desc
+        self.currentPos = pos
+        self.repaint()
+        app.processEvents()
+
+
+    def drawContents(self, painter):
+        """
+        Draws the contents of the splash screen
+        """
+        painter.setRenderHint(painter.Antialiasing)
+
+        totalWidthSoFar = self.meterWidth * (self.currentPos / self.posLimit)
+        painter.drawPixmap(
+            self.meterPos[0],
+            self.meterPos[1],
+            min(self.meterL.width(), self.meterWidth * (self.currentPos / self.posLimit)),
+            self.meterL.height(),
+            self.meterL,
+            )
+        painter.drawTiledPixmap(
+            self.meterPos[0] + self.meterL.width(),
+            self.meterPos[1],
+            min(self.meterWidth - self.meterL.width() - self.meterR.width(), totalWidthSoFar - self.meterL.width()),
+            self.meterM.height(),
+            self.meterM,
+            )
+        painter.drawTiledPixmap(
+            self.meterPos[0] + self.meterWidth - self.meterR.width(),
+            self.meterPos[1],
+            totalWidthSoFar - self.meterWidth + self.meterR.width(),
+            self.meterR.height(),
+            self.meterR,
+            )
+
+        def drawText(text, font, position, color, centered, wLim):
+            """
+            Draws some text
+            """
+            rect = QtCore.QRectF(
+                position[0] - (wLim / 2 if centered else 0),
+                position[1],
+                wLim,
+                512,
+                )
+            flags = (Qt.AlignHCenter if centered else Qt.AlignLeft) | Qt.AlignTop | Qt.TextWordWrap
+
+            painter.save()
+            painter.setFont(font)
+            r, g, b = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
+            painter.setPen(QtGui.QPen(QtGui.QColor(r, g, b)))
+            painter.drawText(rect, flags, text)
+            painter.restore()
+
+        drawText(ReggieVersionShort, *self.versionFontInfo)
+        drawText(self.currentDesc, *self.loadingFontInfo)
+        with open('license_short.txt', 'r') as copyFile:
+            drawText(copyFile.read(), *self.copyrightFontInfo)
+
+
 
 def GetUseRibbon():
     """
@@ -146,6 +254,7 @@ def GetUseRibbon():
     global UseRibbon
     if str(setting('Menu')) == 'Ribbon': UseRibbon = True
     else: UseRibbon = False
+
 
 defaultStyle = None
 defaultPalette = None
@@ -2595,7 +2704,7 @@ class LevelUnit():
         self.areas.append(AreaUnit())
         self.areas[0].newArea()
 
-    def loadLevel(self, name, fullpath, areaToLoad, progress=None):
+    def loadLevel(self, name, fullpath, areaToLoad):
         """
         Loads a specific level and area
         """
@@ -2684,7 +2793,7 @@ class LevelUnit():
                 newarea = FakeAreaUnit()
 
             newarea.areanum = thisArea
-            newarea.loadArea(course, L0, L1, L2, progress)
+            newarea.loadArea(course, L0, L1, L2)
             self.areas.append(newarea)
 
             thisArea += 1
@@ -2759,7 +2868,7 @@ class FakeAreaUnit():
         self.L0 = None
         self.L1 = None
         self.L2 = None
-    def loadArea(self, course, L0, L1, L2, progress=None):
+    def loadArea(self, course, L0, L1, L2):
         self.course = course
         self.L0 = L0
         self.L1 = L1
@@ -2826,7 +2935,7 @@ class AreaUnit():
         LoadTileset(1, 'Pa1_nohara')
 
 
-    def loadArea(self, course, L0, L1, L2, progress=None):
+    def loadArea(self, course, L0, L1, L2):
         """
         Loads an area from the archive files
         """
@@ -2863,29 +2972,20 @@ class AreaUnit():
         self.LoadComments()
 
         # load the tilesets
-        if progress is not None: progress.setLabelText(trans.string('Splash', 3))
-        if app.splashscrn is not None: updateSplash(trans.string('Splash', 3), 0)
+        app.splashScreen.setProgress(trans.string('Splash', 3), 1)
 
         CreateTilesets()
-        if progress is not None: progress.setValue(1)
-        if app.splashscrn is not None: updateSplash(trans.string('Splash', 3), 1)
+        app.splashScreen.setProgress(trans.string('Splash', 3), 2)
         if self.tileset0 != '': LoadTileset(0, self.tileset0)
-        if progress is not None: progress.setValue(2)
-        if app.splashscrn is not None: updateSplash(trans.string('Splash', 3), 2)
+        app.splashScreen.setProgress(trans.string('Splash', 3), 3)
         if self.tileset1 != '': LoadTileset(1, self.tileset1)
-        if progress is not None: progress.setValue(3)
-        if app.splashscrn is not None: updateSplash(trans.string('Splash', 3), 3)
+        app.splashScreen.setProgress(trans.string('Splash', 3), 4)
         if self.tileset2 != '': LoadTileset(2, self.tileset2)
-        if progress is not None: progress.setValue(4)
-        if app.splashscrn is not None: updateSplash(trans.string('Splash', 3), 4)
+        app.splashScreen.setProgress(trans.string('Splash', 3), 5)
         if self.tileset3 != '': LoadTileset(3, self.tileset3)
 
         # load the object layers
-        if progress is not None:
-            progress.setLabelText(trans.string('Splash', 1))
-            progress.setValue(5)
-        if app.splashscrn is not None:
-            updateSplash(trans.string('Splash', 1), 5)
+        app.splashScreen.setProgress(trans.string('Splash', 1), 6)
 
         self.layers = [[], [], []]
 
@@ -9215,12 +9315,12 @@ class ReggieTranslation():
 
         self.strings = {
             'AboutDlg': {
-                0: 'About Reggie!',
+                0: 'About Reggie Next',
                 },
             'AreaChoiceDlg': {
                 0: 'Choose an Area',
                 1: 'Area [num]',
-                2: 'You have reached the maximum amount of areas in this level.[br]Due to the game\'s limitations, Reggie! only allows you to add up to 4 areas to a level.',
+                2: 'You have reached the maximum amount of areas in this level.[br]Due to the game\'s limitations, Reggie Next only allows you to add up to 4 areas to a level.',
                 },
             'AreaCombobox': {
                 0: 'Area [num]',
@@ -9280,7 +9380,7 @@ class ReggieTranslation():
                 },
             'AutoSaveDlg': {
                 0: 'Auto-saved backup found',
-                1: 'Reggie! has found some level data which wasn\'t saved - possibly due to a crash within the editor or by your computer. Do you want to restore this level?[br][br]If you pick No, the autosaved level data will be deleted and will no longer be accessible.[br][br]Original file path: [path]',
+                1: 'Reggie Next has found some level data which wasn\'t saved - possibly due to a crash within the editor or by your computer. Do you want to restore this level?[br][br]If you pick No, the autosaved level data will be deleted and will no longer be accessible.[br][br]Original file path: [path]',
                 2: 'The level has unsaved changes in it.',
                 3: 'Do you want to save them?',
                 },
@@ -9450,8 +9550,8 @@ class ReggieTranslation():
                 },
             'Err_MissingFiles': {
                 0: 'Error',
-                1: 'Sorry, you seem to be missing the required data files for Reggie! to work. Please redownload your copy of the editor.',
-                2: 'Sorry, you seem to be missing some of the required data files for Reggie! to work. Please redownload your copy of the editor. These are the files you are missing: [files]',
+                1: 'Sorry, you seem to be missing the required data files for Reggie Next to work. Please redownload your copy of the editor.',
+                2: 'Sorry, you seem to be missing some of the required data files for Reggie Next to work. Please redownload your copy of the editor. These are the files you are missing: [files]',
                 },
             'Err_MissingLevel': {
                 0: 'Error',
@@ -9564,9 +9664,9 @@ class ReggieTranslation():
                 15: 'Take a full size screenshot of your level for you to share',
                 16: 'Change Game Path...',
                 17: 'Set a different folder to load the game files from',
-                18: 'Reggie! Preferences...',
-                19: 'Change important Reggie! settings',
-                20: 'Exit Reggie!',
+                18: 'Reggie Next Preferences...',
+                19: 'Change important Reggie Next settings',
+                20: 'Exit Reggie Next',
                 21: 'Exit the editor',
                 22: 'Select All',
                 23: 'Select all items in this area',
@@ -9632,20 +9732,20 @@ class ReggieTranslation():
                 83: 'Delete the area (sublevel) currently open from the level',
                 84: 'Reload Tilesets',
                 85: 'Reload the tileset data files, including any changes made since the level was loaded',
-                86: 'About Reggie!',
+                86: 'About Reggie Next...',
                 87: 'Info about the program, and the team behind it',
                 88: 'Help Contents...',
                 89: 'Help documentation for the needy newbie',
-                90: 'Reggie! Tips...',
+                90: 'Reggie Next Tips...',
                 91: 'Tips and controls for beginners and power users',
                 92: 'About PyQt...',
-                93: 'About the Qt library Reggie! is based on',
+                93: 'About the Qt library Reggie Next is based on',
                 94: 'Level Overview',
                 95: 'Show or hide the Level Overview window',
                 96: 'Palette',
                 97: 'Show or hide the Palette window',
                 98: 'Change Game',
-                99: 'Change the currently loaded Reggie! game patch',
+                99: 'Change the currently loaded Reggie Next game patch',
                 100: 'Island Generator',
                 101: 'Show or hide the Island Generator window',
                 102: None, # REMOVED: 'Stamp Pad'
@@ -9667,7 +9767,7 @@ class ReggieTranslation():
                 118: 'Real View',
                 119: 'Show special effects present in the level',
                 120: 'Check for Updates...',
-                121: 'Check if any updates for Reggie! Next are available to download',
+                121: 'Check if any updates for Reggie Next are available to download',
                 122: 'Highlight 3D Effects',
                 123: 'Toggle viewing of 3D depth effect highlighting (NSMB2 only)',
                 124: 'Undo',
@@ -9743,17 +9843,17 @@ class ReggieTranslation():
                 1: 'Path [path], Node [node]',
                 },
             'PrefsDlg': {
-                0: 'Reggie! Preferences',
+                0: 'Reggie Next Preferences',
                 1: 'General',
                 2: 'Toolbar',
                 3: 'Themes',
-                4: '[b]Reggie! Preferences[/b][br]Customize Reggie! by changing these settings.[br]Use the tabs below to view even more settings.[br]Reggie! must be restarted before certain changes can take effect.',
-                5: '[b]Toolbar Preferences[/b][br]Choose menu items you would like to appear on the toolbar.[br]Reggie! must be restarted before the toolbar can be updated.[br]',
-                6: '[b]Reggie! Themes[/b][br]Pick a theme below to change application colors and icons.[br]You can download more themes at [a href="rvlution.net"]rvlution.net[/a].[br]Reggie! must be restarted before the theme can be changed.',
-                7: 'Show the splash screen:',
-                8: 'If TPLLib cannot use a fast backend (recommended)',
-                9: 'Always',
-                10: 'Never',
+                4: '[b]Reggie Preferences[/b][br]Customize Reggie Next by changing these settings.[br]Use the tabs below to view even more settings.[br]Reggie Next must be restarted before certain changes can take effect.',
+                5: '[b]Toolbar Preferences[/b][br]Choose menu items you would like to appear on the toolbar.[br]Reggie Next must be restarted before the toolbar can be updated.[br]',
+                6: '[b]Reggie Themes[/b][br]Pick a theme below to change application colors and icons.[br]You can download more themes at [a href="rvlution.net"]rvlution.net[/a].[br]Reggie Next must be restarted before the theme can be changed.',
+                7: None, # REMOVED: 'Show the splash screen:'
+                8: None, # REMOVED: 'If TPLLib cannot use a fast backend (recommended)'
+                9: None, # REMOVED: 'Always'
+                10: None, # REMOVED: 'Never'
                 11: 'Menu format:',
                 12: 'Use the ribbon',
                 13: 'Use the menubar',
@@ -9773,7 +9873,7 @@ class ReggieTranslation():
                 27: 'Tilesets:',
                 28: 'Use Default Tileset Picker (recommended)',
                 29: 'Use Old Tileset Picker',
-                30: 'You may need to restart Reggie! for changes to take effect.',
+                30: 'You may need to restart Reggie Next for changes to take effect.',
                 31: 'Display lines indicating the leftmost x-position where entrances can be safely placed in zones',
                 },
             'Ribbon': {
@@ -9795,7 +9895,7 @@ class ReggieTranslation():
                 15: 'Visibility',
                 16: 'Zoom',
                 17: 'Docks',
-                18: 'Reggie!',
+                18: 'Reggie Next',
                 19: 'Libraries',
                 20: '([shortcut]) [description]',
                 21: ', ',
@@ -9897,7 +9997,7 @@ class ReggieTranslation():
             'Themes': {
                 0: 'Classic',
                 1: 'Treeki, Tempus',
-                2: 'The default Reggie! theme.',
+                2: 'The default Reggie Next theme.',
                 3: '[i](unknown)[/i]',
                 4: '[i]No description[/i]',
                 },
@@ -11208,13 +11308,13 @@ class AboutDialog(QtWidgets.QDialog):
         logoLabel.setContentsMargins(16, 4, 32, 4)
 
         # Description
-        description =  '<html><head><style type=\'text/CSS\'>'
+        description =  '<html><head><style type="text/CSS">'
         description += 'body {font-family: Calibri}'
         description += '.main {font-size: 12px}'
         description += '</style></head><body>'
-        description += '<center><h1><i>Reggie!</i> Level Editor</h1><div class=\'main\'>'
-        description += '<i>Reggie! Level Editor</i> is an open-source global project started by Treeki in 2010 that aims to bring you the fun of designing original New Super Mario Bros. Wii&trade;-compatible levels.<br>'
-        description += 'Interested? Check out <a href=\'http://rvlution.net/reggie\'>rvlution.net/reggie</a> for updates and related downloads, or <a href=\'http://rvlution.net/forums\'>rvlution.net/forums</a> to get in touch with the developers.<br>'
+        description += '<center><h1><i>Reggie Next</i> Level Editor</h1><div class="main">'
+        description += '<i>Reggie Next Level Editor</i> is an open-source project, started by Treeki in 2010 and forked by RoadrunnerWMC in 2013, that aims to bring you the fun of designing original New Super Mario Bros. Wii&trade;- and New Super Mario Bros. 2&trade;-compatible levels.<br>'
+        description += 'Interested? Check out <a href="http://rvlution.net/reggie">rvlution.net/reggie</a> for updates and related downloads, <a href="http://reggienext.byethost11.com/">http://reggienext.byethost11.com/</a> for the development forums, or <a href="http://rvlution.net/forums">rvlution.net/forums</a> to get in touch with the developers.<br>'
         description += '</div></center></body></html>'
 
         # Description label
@@ -14031,13 +14131,13 @@ class ReggieRibbonFileMenu(QFileMenu):
 ##        recentGroup.setLayout(RL)
 ##
 ##        # create a bottom buttons layout
-##        prefsButton = QtWidgets.QPushButton(GetIcon('settings'), trans.string('MenuItems', 18)) # Reggie! Preferences
+##        prefsButton = QtWidgets.QPushButton(GetIcon('settings'), trans.string('MenuItems', 18)) # Reggie Preferences
 ##        prefsButton.clicked.connect(mainWindow.HandlePreferences)
 ##        prefsButton.setToolTip(trans.string('MenuItems', 19))
 ##        s = QtGui.QShortcut(QtGui.QKeySequence('Ctrl+Alt+P'), mainWindow)
 ##        s.activated.connect(mainWindow.HandlePreferences)
 ##        self.setButtonColor(prefsButton)
-##        exitButton = QtWidgets.QPushButton(GetIcon('delete'), trans.string('MenuItems', 20)) # Exit Reggie!
+##        exitButton = QtWidgets.QPushButton(GetIcon('delete'), trans.string('MenuItems', 20)) # Exit Reggie
 ##        exitButton.clicked.connect(mainWindow.HandleExit)
 ##        exitButton.setToolTip(trans.string('MenuItems', 21))
 ##        s = QtGui.QShortcut(QtGui.QKeySequence.Quit, mainWindow)
@@ -14742,20 +14842,6 @@ class PreferencesDialog(QtWidgets.QDialog):
                 """
                 QtWidgets.QWidget.__init__(self)
 
-                # Add the Splash Screen settings
-                self.SplashR = QtWidgets.QRadioButton(trans.string('PrefsDlg', 8))
-                self.SplashA = QtWidgets.QRadioButton(trans.string('PrefsDlg', 9))
-                self.SplashN = QtWidgets.QRadioButton(trans.string('PrefsDlg', 10))
-                self.SplashG = QtWidgets.QButtonGroup() # huge glitches if it's not assigned to self.something
-                self.SplashG.setExclusive(True)
-                self.SplashG.addButton(self.SplashR)
-                self.SplashG.addButton(self.SplashA)
-                self.SplashG.addButton(self.SplashN)
-                SplashL = QtWidgets.QVBoxLayout()
-                SplashL.addWidget(self.SplashR)
-                SplashL.addWidget(self.SplashA)
-                SplashL.addWidget(self.SplashN)
-
                 # Add the Menu Format settings
                 self.MenuR = QtWidgets.QRadioButton(trans.string('PrefsDlg', 12))
                 self.MenuM = QtWidgets.QRadioButton(trans.string('PrefsDlg', 13))
@@ -14793,7 +14879,6 @@ class PreferencesDialog(QtWidgets.QDialog):
 
                 # Create the main layout
                 L = QtWidgets.QFormLayout()
-                L.addRow(trans.string('PrefsDlg', 7), SplashL)
                 L.addRow(trans.string('PrefsDlg', 11), MenuL)
                 L.addRow(trans.string('PrefsDlg', 27), TileL)
                 L.addRow(trans.string('PrefsDlg', 14), self.Trans)
@@ -14809,10 +14894,6 @@ class PreferencesDialog(QtWidgets.QDialog):
                 """
                 Read the preferences and check the respective boxes
                 """
-                if str(setting('ShowSplash')): self.SplashA.setChecked(True)
-                elif str(setting('ShowSplash')): self.SplashN.setChecked(True)
-                else: self.SplashR.setChecked(True)
-
                 if str(setting('Menu')) == 'Ribbon': self.MenuR.setChecked(True)
                 else: self.MenuM.setChecked(True)
 
@@ -15419,7 +15500,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # set up the window
         QtWidgets.QMainWindow.__init__(self, None)
-        self.setWindowTitle('Reggie! Level Editor Next')
+        self.setWindowTitle('Reggie Level Editor Next')
         self.setWindowIcon(QtGui.QIcon('reggiedata/icon.png'))
         self.setIconSize(QtCore.QSize(16, 16))
 
@@ -16348,7 +16429,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Sets the window title accordingly
         """
-        self.setWindowTitle('Reggie! Level Editor Next - %s%s' % (Level.filename, (' ' + trans.string('MainWindow', 0)) if Dirty else ''))
+        # ' - Reggie Next' is added automatically by Qt (see QApplication.setApplicationDisplayName()).
+        self.setWindowTitle('%s%s' % (Level.filename, (' ' + trans.string('MainWindow', 0)) if Dirty else ''))
 
     def CheckDirty(self):
         """
@@ -16642,7 +16724,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def TipBox(self):
         """
-        Reggie! Tips and Commands
+        Reggie Tips and Commands
         """
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(os.path.join(module_path(), 'reggiedata', 'help', 'tips.html')))
 
@@ -16806,7 +16888,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         clip = encoded.split('|')[1:-1]
 
         if len(clip) > 300:
-            result = QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('MainWindow', 1), QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+            result = QtWidgets.QMessageBox.warning(self, 'Reggie', trans.string('MainWindow', 1), QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
             if result == QtWidgets.QMessageBox.No: return
 
         layers, sprites = self.getEncodedObjects(encoded)
@@ -16930,7 +17012,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             clip = encoded[11:-2].split('|')
 
             if len(clip) > 300:
-                result = QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('MainWindow', 1), QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                result = QtWidgets.QMessageBox.warning(self, 'Reggie', trans.string('MainWindow', 1), QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
                 if result == QtWidgets.QMessageBox.No:
                     return
 
@@ -17130,7 +17212,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Adds a new area to the level
         """
         if len(Level.areas) >= 4:
-            QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('AreaChoiceDlg', 2))
+            QtWidgets.QMessageBox.warning(self, 'Reggie', trans.string('AreaChoiceDlg', 2))
             return
 
         if self.CheckDirty():
@@ -17149,7 +17231,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Imports an area from another level
         """
         if len(Level.areas) >= 4:
-            QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('AreaChoiceDlg', 2))
+            QtWidgets.QMessageBox.warning(self, 'Reggie', trans.string('AreaChoiceDlg', 2))
             return
 
         if self.CheckDirty():
@@ -17223,7 +17305,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Deletes the current area
         """
-        result = QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('DeleteArea', 0), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+        result = QtWidgets.QMessageBox.warning(self, 'Reggie', trans.string('DeleteArea', 0), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
         if result == QtWidgets.QMessageBox.No: return
 
         if not self.HandleSave(): return
@@ -17266,22 +17348,12 @@ class ReggieWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def HandlePreferences(self):
         """
-        Edit Reggie preferences
+        Edit Reggie Next preferences
         """
-
         # Show the dialog
         dlg = PreferencesDialog()
         if dlg.exec_() == QtWidgets.QDialog.Rejected:
             return
-
-
-        # Get the splash screen setting
-        if dlg.generalTab.SplashA.isChecked():
-            setSetting('ShowSplash', True)
-        elif dlg.generalTab.SplashN.isChecked():
-            setSetting('ShowSplash', False)
-        else:
-            setSetting('ShowSplash', 'TPLLib')
 
         # Get the Menubar/Ribbon setting
         if dlg.generalTab.MenuR.isChecked():
@@ -17916,10 +17988,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 checkname = os.path.join(gamedef.GetGamePath(), name+'.arc')
 
             if not os.path.isfile(checkname):
-                QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('Err_CantFindLevel', 0, '[name]', checkname), QtWidgets.QMessageBox.Ok)
+                QtWidgets.QMessageBox.warning(self, 'Reggie', trans.string('Err_CantFindLevel', 0, '[name]', checkname), QtWidgets.QMessageBox.Ok)
                 return False
             if not IsNSMBLevel(checkname):
-                QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('Err_InvalidLevel', 0), QtWidgets.QMessageBox.Ok)
+                QtWidgets.QMessageBox.warning(self, 'Reggie', trans.string('Err_InvalidLevel', 0), QtWidgets.QMessageBox.Ok)
                 return False
 
         global Dirty, DirtyOverride
@@ -17939,23 +18011,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Layer1Shown = True
         Layer2Shown = True
 
-
-        # track progress.. but we'll only do this if we don't have
-        # TPLLib Cython version because otherwise it's far too fast
-        if TPLLib.using_cython:
-            progress = None
-        elif app.splashscrn is not None:
-            progress = None
-        else:
-            progress = QtWidgets.QProgressDialog(self)
-            # yes, I did alphabetise the setX calls on purpose..
-            # code OCD is wonderful x_x
-            progress.setCancelButton(None)
-            progress.setMinimumDuration(0)
-            progress.setRange(0,7)
-            progress.setWindowModality(Qt.WindowModal)
-            progress.setWindowTitle('Reggie!')
-
         # this tracks progress
         # current stages:
         # - 0: Loading level data
@@ -17970,11 +18025,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         global OverrideSnapping
         OverrideSnapping = True
 
-        if progress is not None:
-            progress.setLabelText(trans.string('Splash', 2))
-            progress.setValue(0)
-        if app.splashscrn is not None:
-            updateSplash(trans.string('Splash', 2), 0)
+        app.splashScreen.setProgress(trans.string('Splash', 2), 0)
 
         global Level, Area
         Level = LevelUnit()
@@ -17986,18 +18037,14 @@ class ReggieWindow(QtWidgets.QMainWindow):
             global RestoredFromAutoSave
             if RestoredFromAutoSave:
                 RestoredFromAutoSave = False
-                Level.loadLevel('AUTO_FLAG', True, 1, progress)
+                Level.loadLevel('AUTO_FLAG', True, 1)
             else:
-                Level.loadLevel(name, fullpath, area, progress)
+                Level.loadLevel(name, fullpath, area)
 
         OverrideSnapping = False
 
         # prepare the object picker
-        if progress is not None:
-            progress.setLabelText(trans.string('Splash', 4))
-            progress.setValue(6)
-        if app.splashscrn is not None:
-            updateSplash(trans.string('Splash', 4), 6)
+        app.splashScreen.setProgress(trans.string('Splash', 4), 7)
 
         self.objUseLayer1.setChecked(True)
 
@@ -18010,11 +18057,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
 
         # add all the objects to the scene
-        if progress is not None:
-            progress.setLabelText(trans.string('Splash', 5))
-            progress.setValue(7)
-        if app.splashscrn is not None:
-            updateSplash(trans.string('Splash', 5), 7)
+        app.splashScreen.setProgress(trans.string('Splash', 5), 8)
 
         scene = self.scene
         scene.clear()
@@ -18141,9 +18184,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.levelOverview.Reset()
         self.levelOverview.update()
         QtCore.QTimer.singleShot(20, self.levelOverview.update)
-
-        # remove the splashscreen
-        removeSplash()
 
         self.RecentFilesMgr.addPath(Level.arcname)
 
@@ -19436,10 +19476,14 @@ def main():
     SLib.OutlineColor = theme.color('smi')
     SLib.main()
 
-    # load the splashscreen
-    app.splashscrn = None
-    if checkSplashEnabled():
-        loadSplash()
+    # Set the default window icon (used for random popups and stuff)
+    app.setWindowIcon(GetIcon('reggie'))
+    app.setApplicationDisplayName('Reggie Next')
+
+    # Load the splashscreen
+    app.splashScreen = ReggieSplashScreen()
+    app.splashScreen.setProgressLimit(9)
+    app.splashScreen.show()
 
     global EnableAlpha, GridType, CollisionsShown, RealViewEnabled
     global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, CommentsFrozen
@@ -19492,10 +19536,14 @@ def main():
             setSetting('AutoSaveFilePath', 'none')
             setSetting('AutoSaveFileData', 'x')
 
-    # create and show the main window
+    # Create and show the main window
     mainWindow = ReggieWindow()
     mainWindow.__init2__() # fixes bugs
     mainWindow.show()
+
+    app.splashScreen.hide()
+    del app.splashScreen
+
     exitcodesys = app.exec_()
     app.deleteLater()
     sys.exit(exitcodesys)
