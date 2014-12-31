@@ -19524,7 +19524,7 @@ def main():
             setSetting('GamePath', path)
             break
 
-    # check to see if we have anything saved
+    # Check to see if we have anything saved
     autofile = setting('AutoSaveFilePath')
     if autofile is not None:
         autofiledata = setting('AutoSaveFileData', 'x')
