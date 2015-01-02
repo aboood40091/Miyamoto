@@ -16,13 +16,15 @@
       <level file="1-8" name="World 1-A" />
       <level file="1-20" name="World 1-Item Toad House 2" />
       <level file="1-16" name="World 1-Castle" />
-      <level file="1-6" name="1-6 Course Placeholder" />
-      <level file="1-7" name="1-7 Course Placeholder" />
-      <level file="1-9" name="1-9 Course Placeholder" />
-      <level file="1-10" name="1-10 Course Placeholder" />
-      <level file="1-12" name="1-12 World 1-Castle (Early)" />  
-      <level file="1-22" name="1-22 Course Placeholder" />
-      <level file="1-23" name="1-23 Course Placeholder" />
+		<category name="Unused levels">
+	        <level file="1-6" name="1-6 Course Placeholder" />
+			<level file="1-7" name="1-7 Course Placeholder" />
+			<level file="1-9" name="1-9 Course Placeholder" />
+			<level file="1-10" name="1-10 Course Placeholder" />
+			<level file="1-12" name="1-12 World 1-Castle (Early)" />  
+			<level file="1-22" name="1-22 Course Placeholder" />
+			<level file="1-23" name="1-23 Course Placeholder" />
+		</category>
    </category>
 
    <category name="World 2 (Desert)">
@@ -37,9 +39,11 @@
       <level file="2-5" name="World 2-5" />
       <level file="2-9" name="World 2-B" />
       <level file="2-16" name="World 2-Castle" />
-      <level file="2-6" name="2-6 Placeholder Level" />
-      <level file="2-7" name="2-7 Placeholder Level" />
-      <level file="2-10" name="2-10 Placeholder Level" />
+		<category name="Unused levels">
+			<level file="2-6" name="2-6 Placeholder Level" />
+			<level file="2-7" name="2-7 Placeholder Level" />
+			<level file="2-10" name="2-10 Placeholder Level" />
+		</category>
    </category>
 
    <category name="World 3 (Beach, Jungle)">
@@ -54,8 +58,10 @@
       <level file="3-12" name="World 3-Ghost House" />
       <level file="3-5" name="World 3-5 (Boulders Underwater)" />
       <level file="3-16" name="World 3-Castle" />
-      <level file="3-6" name="3-6 Placeholder Level" />
-      <level file="3-7" name="3-7 Placeholder Level" />
+		<category name="Unused levels">
+			<level file="3-6" name="3-6 Placeholder Level" />
+			<level file="3-7" name="3-7 Placeholder Level" />
+		</category>
    </category>
 
    <category name="World 4 (Snow/Ice)">
@@ -68,10 +74,28 @@
 
    <category name="World Flower (8)">
       <level file="8-1" name="World Flower-1 (Sunset)" />
-      <level file="8-2" name="World Flower-2 (Horizontal Jungle)" />
-      <level file="8-16" name="World Flower-Castle (Conveyors)" />
-      <level file="8-6" name="8-6 Placeholder Level" />
-      <level file="8-14" name="8-14 Placeholder Level" />
+      <level file="8-2" name="World Flower-2" />
+	  <level file="8-3" name="World Flower-3" />
+	  <level file="8-9" name="World Flower-B" />
+	  <level file="8-8" name="World Flower-A" />
+	  <level file="8-24" name="World Flower-Cannon" />
+	  <level file="8-12" name="World Flower-Ghost House" />
+	  <level file="8-16" name="World Flower-Castle(Conveyors)" />
+	  <level file="8-18" name="World Flower-Item Toad House" />
+	  <level file="8-19" name="World Flower-Item Toad House 2" />
+	  <level file="8-20" name="World Flower-Extra Life Toad House" />
+		<category name="Unused levels">
+			<level file="8-14" name="8-14 Placeholder Level" />
+			<level file="8-5" name="8-5 Placeholder Level" />
+			<level file="8-6" name="8-6 Placeholder Level" />
+			<level file="8-7" name="8-7 Placeholder Level" />
+			<level file="8-14" name="8-14 Placeholder Level" />
+			<level file="8-10" name="8-10 Placeholder Level" />
+			<level file="8-21" name="8-21 Placeholder Level" />
+			<level file="8-22" name="8-22 Placeholder Level" />
+			<level file="8-23" name="8-23 Placeholder Level" />
+			<level file="8-4" name="8-4 Unused Level" />
+		</category>
    </category>
 
    <category name="World 5 (Sky, Mountain)">
@@ -82,8 +106,10 @@
       <level file="5-4" name="World 5-4" />
       <level file="5-8" name="World 5-A (Flying Ship)" />
       <level file="5-6" name="World 5-6" />
-      <level file="5-7" name="5-7 Placeholder Level" />
-      <level file="5-22" name="5-22 Unused Extra Life Toad House" />
+		<category name="Unused levels">
+			<level file="5-7" name="5-7 Placeholder Level" />
+			<level file="5-22" name="5-22 Unused Extra Life Toad House" />
+		</category>
    </category>
 
    <category name="World 6 (Lava, Ghost)">
@@ -92,9 +118,11 @@
       <level file="6-5" name="World 6-5" />
       <level file="6-14" name="World 6-Tower" />
       <level file="6-8" name="World 6-A" />
-      <level file="6-27" name="World 6-Playable Ending" />
-      <level file="6-6" name="6-6 Placeholder Level" />
-      <level file="6-7" name="6-7 Placeholder Level" />
+		<category name="Unused levels">
+			<level file="6-27" name="World 6-Playable Ending" />
+			<level file="6-6" name="6-6 Placeholder Level" />
+			<level file="6-7" name="6-7 Placeholder Level" />
+		</category>
    </category>
 
    <category name="World Mushroom (7)">
@@ -103,9 +131,6 @@
       <level file="7-12" name="World Mushroom-Ghost House" />
       <level file="7-16" name="World Mushroom-Castle" />
       <level file="7-4" name="World Star-5 (Early)" />
-   </category>
-
-   <category name="World Fire Flower (8)">
    </category>
 
    <category name="World Star (9)">
