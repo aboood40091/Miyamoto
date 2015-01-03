@@ -6,12 +6,12 @@
 	<level file="1-1" name="World 1-1" />
 	<level file="1-2" name="World 1-2" />
 	<level file="1-3" name="World 1-3" />
-	<level file="1-14" name="World 1-Tower" />
 	<level file="1-4" name="World 1-4" />
 	<level file="1-5" name="World 1-5" />
-	<level file="1-24" name="World 1-Cannon" />
 	<level file="1-8" name="World 1-A" />
+	<level file="1-14" name="World 1-Tower" />
 	<level file="1-16" name="World 1-Castle" />
+	<level file="1-24" name="World 1-Cannon" />
 		<category name="Toad Houses">
 			<level file="1-19" name="World 1-Item Toad House" />
 	  		<level file="1-20" name="World 1-Item Toad House 2" />
@@ -30,21 +30,21 @@
    </category>
 
    <category name="World 2 (Desert)">
-	<level file="1-29" name="World 1-Rainbow" />
+	<level file="2-29" name="World 2-Rainbow" />
 	<level file="2-1" name="World 2-1" />
 	<level file="2-2" name="World 2-2" />
 	<level file="2-3" name="World 2-3" />
-	<level file="2-8" name="World 2-A" />
-	<level file="2-14" name="World 2-Tower" />
-	<level file="2-12" name="World 2-Ghost House" />
-	<level file="2-9" name="World 2-B" />
 	<level file="2-4" name="World 2-4" />
 	<level file="2-5" name="World 2-5" />
+	<level file="2-8" name="World 2-A" />
+	<level file="2-9" name="World 2-B" />
+	<level file="2-12" name="World 2-Ghost House" />
+	<level file="2-14" name="World 2-Tower" />
 	<level file="2-16" name="World 2-Castle" />
 		<category name="Toad Houses">
 			<level file="2-18" name="World 2-Item Toad House" />
-			<level file="2-19" name="World 2-Extra Life Toad House" />
 			<level file="2-20" name="World 2-Item Toad House 2" />
+			<level file="2-19" name="World 2-Extra Life Toad House" />
 			<level file="2-21" name="World 2-Extra Life Toad House 2" />
 		</category>
 		<category name="Unused Levels">
@@ -62,19 +62,19 @@
 	<level file="3-1" name="World 3-1 (Jumping Cheep Beach)" />
 	<level file="3-2" name="World 3-2" />
 	<level file="3-3" name="World 3-3 (Spiderweb-Climb Jungle)" />
-	<level file="3-8" name="World 3-A (Rapid Water)" />
-	<level file="3-14" name="World 3-Tower (Water Tower)" />
 	<level file="3-4" name="World 3-4 (Floating Boxes)" />
+	<level file="3-5" name="World 3-5 (Boulders Underwater)" />
+	<level file="3-8" name="World 3-A (Rapid Water)" />
 	<level file="3-9" name="World 3-B (Mini Mario Water-Walking Level)" />
 	<level file="3-12" name="World 3-Ghost House" />
-	<level file="3-5" name="World 3-5 (Boulders Underwater)" />
+	<level file="3-14" name="World 3-Tower (Water Tower)" />
 	<level file="3-16" name="World 3-Castle" />
 	<level file="3-24" name="World 3-Cannon" />
 		<category name="Toad Houses">
 			<level file="3-18" name="World 3-Item Toad House" />
 			<level file="3-19" name="World 3-Extra Life Toad House" />
 			<level file="3-20" name="World 3-Gold Star Toad House" />
-			<level file="3-21" name="World 3-Gold Star Toad House 2 1 unused check 20/21" />
+			<level file="3-21" name="World 3-Gold Star Toad House 2 (1 unused check 20/21)" />
 		</category>
 		<category name="Unused Levels">
 			<level file="3-6" name="3-6 Placeholder Level" />
@@ -88,15 +88,15 @@
    <category name="World 4 (Snow/Ice)">
 	<level file="4-29" name="World 4-Rainbow" />
 	<level file="4-1" name="World 4-1" />
-	<level file="4-12" name="World 4-Ghost House" />
 	<level file="4-2" name="World 4-2" />
 	<level file="4-3" name="World 4-3" />
 	<level file="4-4" name="World 4-4" />
 	<level file="4-5" name="World 4-5" />
-	<level file="4-14" name="World 4-Tower" />
 	<level file="4-8" name="World 4-A" />
 	<level file="4-9" name="World 4-B" />
 	<level file="4-10" name="World 4-C" />
+	<level file="4-12" name="World 4-Ghost House" />
+	<level file="4-14" name="World 4-Tower" />
 	<level file="4-16" name="World 4-Castle" />
 		<category name="Toad Houses">
 			<level file="4-18" name="World 4-Extra Life Toad House" />
@@ -118,11 +118,11 @@
 	<level file="5-1" name="World 5-1" />
 	<level file="5-2" name="World 5-2" />
 	<level file="5-3" name="World 5-3" />
-	<level file="5-14" name="World 5-Tower" />
 	<level file="5-4" name="World 5-4" />
 	<level file="5-5" name="World 5-5" />
-	<level file="5-8" name="World 5-A (Flying Ship)" />
 	<level file="5-6" name="World 5-6" />
+	<level file="5-8" name="World 5-A (Flying Ship)" />
+	<level file="5-14" name="World 5-Tower" />
 	<level file="5-16" name="World 5-Castle" />
 		<category name="Toad Houses">
 			<level file="5-18" name="World 5-Item Toad House" />
@@ -133,9 +133,9 @@
 		</category>
 		<category name="Unused Levels">
 			<level file="5-9" name="5-9 Unused Level?" />
-			<level file="5-12" name="5-12 Unused Ghost House Level?" />
 			<level file="5-7" name="5-7 Placeholder Level" />
 			<level file="5-10" name="5-10 Placeholder Level" />
+			<level file="5-12" name="5-12 Unused Ghost House Level?" />
 			<level file="5-23" name="5-23 Placeholder Level" />
 			<level file="5-24" name="5-24 Placeholder Level" />
 		</category>
@@ -144,14 +144,14 @@
    <category name="World 6 (Lava, Ghost)">
 	<level file="6-29" name="World 6-Rainbow" />
 	<level file="6-1" name="World 6-1 (Volcano Eruption)" />
-	<level file="6-12" name="World 6-Ghost House" />
 	<level file="6-2" name="World 6-2" />
 	<level file="6-3" name="World 6-3" />
 	<level file="6-4" name="World 6-4" />
 	<level file="6-5" name="World 6-5" />
-	<level file="6-14" name="World 6-Tower" />
 	<level file="6-8" name="World 6-A" />
 	<level file="6-9" name="World 6-B" />
+	<level file="6-12" name="World 6-Ghost House" />
+	<level file="6-14" name="World 6-Tower" />
 	<level file="6-16" name="World 6-Bowsers Castle" />
 	<level file="6-27" name="World 6-Credits Sequence" />
 		<category name="Toad Houses">
@@ -161,9 +161,9 @@
 			<level file="6-19" name="World 6-Gold Star Toad House" />
 		</category>
 		<category name="Unused Levels">
-			<level file="6-10" name="World 6-Bowsers Castle (Early)" />
 			<level file="6-6" name="6-6 Placeholder Level" />
 			<level file="6-7" name="6-7 Placeholder Level" />
+			<level file="6-10" name="World 6-Bowsers Castle (Early)" />
 			<level file="6-22" name="6-22 Placeholder Level" />
 			<level file="6-23" name="6-23 Placeholder Level" />
 			<level file="6-24" name="6-24 Placeholder Level" />
@@ -173,13 +173,13 @@
    <category name="World Mushroom (7)">
 	<level file="7-29" name="World Mushroom-Rainbow" />
 	<level file="7-1" name="World Mushroom-1" />
-	<level file="7-8" name="World Mushroom-A" />
 	<level file="7-2" name="World Mushroom-2" />
 	<level file="7-3" name="World Mushroom-3" />
+	<level file="7-8" name="World Mushroom-A" />
 	<level file="7-9" name="World Mushroom-B" />
 	<level file="7-12" name="World Mushroom-Ghost House" />
-	<level file="7-24" name="World Mushroom-Cannon" />
 	<level file="7-16" name="World Mushroom-Castle" />
+	<level file="7-24" name="World Mushroom-Cannon" />
 		<category name="Toad Houses">
 			<level file="7-18" name="World 7-Extra Life Toad House" />
 			<level file="7-19" name="World 7-Item Toad House" />
