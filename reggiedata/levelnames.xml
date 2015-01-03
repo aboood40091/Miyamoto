@@ -122,6 +122,7 @@
 	<level file="5-5" name="World 5-5" />
 	<level file="5-6" name="World 5-6" />
 	<level file="5-8" name="World 5-A (Flying Ship)" />
+	<level file="5-12" name="World 5-Ghost House" />
 	<level file="5-14" name="World 5-Tower" />
 	<level file="5-16" name="World 5-Castle" />
 		<category name="Toad Houses">
@@ -135,7 +136,6 @@
 			<level file="5-9" name="5-9 Unused Level?" />
 			<level file="5-7" name="5-7 Placeholder Level" />
 			<level file="5-10" name="5-10 Placeholder Level" />
-			<level file="5-12" name="5-12 Unused Ghost House Level?" />
 			<level file="5-23" name="5-23 Placeholder Level" />
 			<level file="5-24" name="5-24 Placeholder Level" />
 		</category>
