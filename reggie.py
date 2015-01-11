@@ -18923,7 +18923,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         CurrentSprite = type
         if type != 1000 and type >= 0:
             self.defaultDataEditor.setSprite(type)
-            self.defaultDataEditor.data = b'\0\0\0\0\0\0\0\0\0\0'
+            self.defaultDataEditor.data = b'\0\0\0\0\0\0\0\0\0\0\0\0'
             self.defaultDataEditor.update()
             self.defaultPropButton.setEnabled(True)
         else:
