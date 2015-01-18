@@ -186,10 +186,11 @@ class ReggieSplashScreen(QtWidgets.QSplashScreen):
         self.basePix = QtGui.QPixmap(os.path.join('reggiedata', self.cfgData['base_image']))
 
         def loadFont(name):
-            fname = self.cfgData.get(name + '_font', 'Arial')
+            fname = self.cfgData.get(name + '_font', 'sans-serif')
             bold = self.cfgData.get(name + '_font_bold', False)
             color = '#' + self.cfgData.get(name + '_font_color', '000000')
             size = self.cfgData.get(name + '_font_size', 12)
+            weight = self.cfgData.get(name + '_font_weight', 12)
             wLim = self.cfgData.get(name + '_wrap_limit', 1024)
             position = self.cfgData.get(name + '_position', (0, 0))
             centered = self.cfgData.get(name + '_centered', False)
@@ -198,6 +199,7 @@ class ReggieSplashScreen(QtWidgets.QSplashScreen):
             font.setFamily(fname)
             font.setBold(bold)
             font.setPointSize(size)
+            font.setWeight(weight)
             return font, position, color, centered, wLim
 
         self.versionFontInfo = loadFont('version')
@@ -17103,6 +17105,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.setWindowTitle('Reggie Level Editor Next')
         self.setWindowIcon(QtGui.QIcon('reggiedata/icon.png'))
         self.setIconSize(QtCore.QSize(16, 16))
+        self.setUnifiedTitleAndToolBarOnMac(True)
 
         # create the level view
         self.scene = LevelScene(0, 0, 1024*24, 512*24, self)
