@@ -1,30 +1,29 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
 
-# Reggie! - New Super Mario Bros. Wii Level Editor
-# Version Next Milestone 2 Alpha 4
+# Reggie Next - New Super Mario Bros. Wii / New Super Mario Bros 2 Level Editor
+# Milestone 2 Alpha 4
 # Copyright (C) 2009-2014 Treeki, Tempus, angelsl, JasonP27, Kamek64,
 # MalStar1000, RoadrunnerWMC
 
-# This file is part of Reggie!.
+# This file is part of Reggie Next.
 
-# Reggie! is free software: you can redistribute it and/or modify
+# Reggie Next is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Reggie! is distributed in the hope that it will be useful,
+# Reggie Next is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Reggie!.  If not, see <http://www.gnu.org/licenses/>.
-
+# along with Reggie Next.  If not, see <http://www.gnu.org/licenses/>.
 
 
 # spritelib.py
-# Contains general code to render sprite images
+# Contains general code to render sprite images in the editor UI
 
 
 ################################################################
@@ -46,6 +45,7 @@ SpriteImagesLoaded = set()
 SpritesFolders = []
 RealViewEnabled = False
 Area = None
+MapPositionToZoneID = None
 
 
 ################################################################
@@ -68,7 +68,6 @@ def main():
     # won't receive it, which causes bugs.
     ImageCache.clear()
     SpriteImagesLoaded.clear()
-    LoadBasicSuite()
 
     SpritesFolders = []
 
@@ -80,10 +79,10 @@ def GetImg(imgname, image=False):
     imgname = str(imgname)
 
     # Try to find the best path
-    path = 'reggiedata/sprites/' + imgname
+    path = os.path.join(GameDataFolders[CurrentGame], 'sprites', imgname)
 
     for folder in reversed(SpritesFolders): # find the most recent copy
-        tryPath = folder + '/' + imgname
+        tryPath = os.path.join(folder, imgname)
         if os.path.isfile(tryPath):
             path = tryPath
             break
@@ -103,43 +102,23 @@ def loadIfNotInImageCache(name, filename):
         ImageCache[name] = GetImg(filename)
 
 
-def LoadBasicSuite():
 
-    # Load some coins, because coins are in almost every Mario level ever
-    ImageCache['Coin'] = GetImg('coin.png')
-    ImageCache['SpecialCoin'] = GetImg('special_coin.png')
-    ImageCache['PCoin'] = GetImg('p_coin.png')
-    ImageCache['RedCoin'] = GetImg('redcoin.png')
-    ImageCache['StarCoin'] = GetImg('star_coin.png')
 
-    # Load blocks
-    BlockImage = GetImg('blocks.png')
-    Blocks = []
-    count = BlockImage.width() // 24
-    for i in range(count):
-        Blocks.append(BlockImage.copy(i * 24, 0, 24, 24))
-    ImageCache['Blocks'] = Blocks
+def getNearestZoneTo(objx, objy):
+    """
+    Returns the nearest zone to the given position
+    """
+    print('getNearestZoneTo(%d, %d):' % (objx, objy))
+    if not hasattr(Area, 'zones'):
+        print('    not hasattr; bye bye')
+        return None
 
-    # Load the overrides
-    Overrides = QtGui.QPixmap('reggiedata/overrides.png')
-    Blocks = []
-    x = Overrides.width() // 24
-    y = Overrides.height() // 24
-    for i in range(y):
-        for j in range(x):
-            Blocks.append(Overrides.copy(j * 24, i * 24, 24, 24))
-    ImageCache['Overrides'] = Blocks
-
-    # Load the characters
-    for num in range(4):
-        for direction in 'lr':
-            ImageCache['Character%d%s' % (num + 1, direction.upper())] = \
-                GetImg('character_%d_%s.png' % (num + 1, direction))
-
-    # Load vines, because these are used by entrances
-    loadIfNotInImageCache('VineTop', 'vine_top.png')
-    loadIfNotInImageCache('VineMid', 'vine_mid.png')
-    loadIfNotInImageCache('VineBtm', 'vine_btm.png')
+    id = MapPositionToZoneID(Area.zones, objx, objy, True)
+    for z in Area.zones:
+        if z.id == id:
+            print(('    Found something for id %d; returning ' % id) + str(z))
+            return z
+    print('    Found nothing for id %d; bye bye' % id)
 
 
 
@@ -160,6 +139,8 @@ class SpriteImage():
 
         self.alpha = 1.0
         self.image = None
+        if not isinstance(scale, float):
+            print('Tell RoadrunnerWMC that he missed the __init__ API change for NSMBW sprite %d.' % self.parent.type)
         self.spritebox = Spritebox(scale)
         self.dimensions = 0, 0, 16, 16
         self.scale = scale

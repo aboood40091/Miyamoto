@@ -71,6 +71,8 @@ Developers:
  * Hiccup - Sprite Data (NSMB2), Sprite Images (NSMB2)
  * SnakeBlock (lolBoo) - Sprite Data (NSMBW), Sprite Images (NSMB2)
  * LifeMushroom (Mario64) - run-python34.bat
+ * RenolY2 - yaz0.py
+ * Yoshi2 - yaz0.py
 
 Translators: (in alphabetical order, by language)
  * Translation Leader: Wolfy76700
@@ -81,7 +83,7 @@ Translators: (in alphabetical order, by language)
  * Turkish: nlgzrgn
 
 Other Testers and Contributors:
- * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl, ant888
+ * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl, ant888, gamesquest1
  * Tobias Amaranth and Valeth - Text Tileset Addon
  * LifeMushroom (Mario64) - run-python34.bat
 

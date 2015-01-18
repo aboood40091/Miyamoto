@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<tilesets>
+	<slot num="0" sorted="true">
+		<tileset filename="Pa0_jyotyu" name="Standard" />
+		<tileset filename="Pa0_jyotyu_chika" name="Underground" />
+		<tileset filename="Pa0_jyotyu_setsugen" name="Snow" />
+		<tileset filename="Pa0_jyotyu_yougan" name="Lava" />
+		<tileset filename="Pa0_jyotyu_staffRoll" name="Credits" />
+	</slot>
+	<slot num="1">
+		<category name="Overworld">
+			<tileset filename="Pa1_kaigan" name="Beach" />
+			<tileset filename="Pa1_sabaku" name="Desert" />
+			<tileset filename="Pa1_daishizen" name="Forest" />
+			<tileset filename="Pa1_nohara" name="Grassland" />
+			<tileset filename="Pa1_gake" name="Mountains" />
+			<tileset filename="Pa1_gake_yougan" name="Mountains (Lava)" />
+			<tileset filename="Pa1_nohara2" name="Sky" />
+			<tileset filename="Pa1_setsugen" name="Snow" />
+			<tileset filename="Pa1_koopa_out" name="Volcano" />
+		</category>
+		<category name="Underground">
+			<tileset filename="Pa1_dokan_naibu" name="Sewer" />
+			<tileset filename="Pa1_chika" name="Underground" />
+			<tileset filename="Pa1_sabaku_chika" name="Underground (Desert)" />
+			<tileset filename="Pa1_korichika" name="Underground (Icy)" />
+			<tileset filename="Pa1_kurayami_chika" name="Underground (Water)" />
+			<tileset filename="Pa1_suichu" name="Underwater" />
+		</category>
+		<category name="Tower" sorted="true">
+			<tileset filename="Pa1_toride" name="Tower" />
+			<tileset filename="Pa1_toride_sabaku" name="Tower (Desert)" />
+			<tileset filename="Pa1_toride_kori" name="Tower (Ice)" />
+			<tileset filename="Pa1_toride_yogan" name="Tower (Lava)" />
+			<tileset filename="Pa1_toride_soto" name="Tower (Sky)" />
+			<!-- The boss tilesets need to be in this order which is why
+			     this category has sorted="true" -->
+			<tileset filename="Pa1_toride_boss1" name="Tower Battle (Larry)" />
+			<tileset filename="Pa1_toride_boss2" name="Tower Battle (Roy)" />
+			<tileset filename="Pa1_toride_boss3" name="Tower Battle (Lemmy)" />
+			<tileset filename="Pa1_toride_boss4" name="Tower Battle (Wendy)" />
+			<tileset filename="Pa1_toride_boss5" name="Tower Battle (Iggy)" />
+			<tileset filename="Pa1_toride_boss6" name="Tower Battle (Morton)" />
+			<tileset filename="Pa1_toride_boss7" name="Tower Battle (Ludwig)" />
+			<tileset filename="Pa1_toride_boss8" name="Tower Battle (Kamek)" />
+		</category>
+		<category name="Castle">
+			<tileset filename="Pa1_shiro" name="Castle" />
+			<tileset filename="Pa1_shiro_koopa" name="Castle (Final)" />
+			<tileset filename="Pa1_shiro_yogan" name="Castle (Lava)" />
+			<tileset filename="Pa1_shiro_sora" name="Castle (Sky)" />
+			<tileset filename="Pa1_shiro_boss1" name="Castle Boss Battle" />
+		</category>
+		<category name="Airship">
+			<tileset filename="Pa1_hikousen" name="Airship (Brown)" />
+			<tileset filename="Pa1_hikousen2" name="Airship (Red)" />
+		</category>
+		<category name="Ghost House" sorted="true">
+			<tileset filename="Pa1_obake" name="Ghost House Interior" />
+			<tileset filename="Pa1_obake_soto" name="Ghost House Exterior" />
+		</category>
+		<category name="Minigame/Other">
+			<tileset filename="Pa1_KinokoHouse" name="Toad House Lobby" />
+			<tileset filename="Pa1_MG_house" name="Toad House Interior" />
+			<tileset filename="Pa1_peach_castle" name="Peach's Castle" />
+		</category>
+	</slot>
+	<slot num="2">
+		<category name="Rocks" sorted="true">
+			<tileset filename="Pa2_doukutu"  name="Brown Rock" />
+			<tileset filename="Pa2_doukutu2" name="Blue Rock" />
+			<tileset filename="Pa2_doukutu8" name="Blue Rock (Repeat)" />
+			<tileset filename="Pa2_doukutu3" name="Brown Rock (Wavy)" />
+			<tileset filename="Pa2_doukutu4" name="Blue Rock (Wavy)" />
+			<tileset filename="Pa2_doukutu5" name="Brown Rock (Wavy) (Dark)" />
+			<tileset filename="Pa2_doukutu6" name="Blue Rock (Wavy) (Dark)" />
+			<tileset filename="Pa2_gake"     name="Sandstone (Brown)" />
+			<tileset filename="Pa2_doukutu7" name="Sandstone (Blue)" />
+		</category>
+		<category name="Airship">
+			<tileset filename="Pa2_hikousen" name="Airship (Brown)" />
+			<tileset filename="Pa2_hikousen2" name="Airship (Red)" />
+		</category>
+		<category name="Other">
+			<tileset filename="Pa2_sora" name="Bonus" />
+			<tileset filename="Pa2_shiro_koopa" name="Final Boss" />
+			<tileset filename="Pa2_kori" name="Ice" />
+			<tileset filename="Pa2_kinoko" name="Mushroom Stalks" />
+			<tileset filename="Pa2_dokan_naibu" name="Sewer" />
+		</category>
+	</slot>
+	<slot num="3">
+		<category name="Line Guides &amp; Fences">
+			<tileset filename="Pa3_rail" name="Normal Line Guides &amp; Fences" />
+			<tileset filename="Pa3_rail_white" name="White Line Guides &amp; Fences" />
+			<tileset filename="Pa3_daishizen" name="Forest &amp; Line Guides" />
+			<tileset filename="Pa3_MG_house_ami_rail" name="Line Guides &amp; Minigame Fences" />
+		</category>
+		<category name="Other">
+			<tileset filename="Pa3_shiro_koopa" name="Final Boss Effects" />
+			<tileset filename="Pa3_hanatari_saka" name="Sloped Solid-on-Top Platforms" />
+		</category>
+	</slot>
+</tilesets>

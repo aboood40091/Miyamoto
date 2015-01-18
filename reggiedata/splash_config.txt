@@ -1,0 +1,25 @@
+Base_Image:splash.png
+Version_Font:Segoe UI Semibold
+Version_Font_Bold:True
+Version_Font_Color:4C0000
+Version_Font_Size:14
+Version_Position:800,223
+Version_Centered:True
+Loading_Font:Segoe UI Semibold
+Loading_Font_Bold:True
+Loading_Font_Color:4C0000
+Loading_Font_Size:26
+Loading_Position:315,252
+Loading_Centered:False
+Copyright_Font:Segoe UI Semibold
+Copyright_Font_Bold:True
+Copyright_Font_Color:FF0000
+Copyright_Font_Size:8
+Copyright_Position:325,310
+Copyright_Centered:False
+Copyright_Wrap_Limit:490
+Meter_Left:splash_meter_l.png
+Meter_Mid:splash_meter_m.png
+Meter_Right:splash_meter_r.png
+Meter_Position:670,265
+Meter_Width:161

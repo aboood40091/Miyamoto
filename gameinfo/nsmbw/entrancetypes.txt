@@ -1,0 +1,30 @@
+0:Normal
+1:Normal?
+2:Door Exit
+3:Pipe Facing Up
+4:Pipe Facing Down
+5:Pipe Facing Left
+6:Pipe Facing Right
+7:Falling (Fast)
+8:Ground Pound
+9:Sliding
+10:Swimming
+11:Normal (Mispositioned)
+12:Normal (Mispositioned)
+13:Normal (Mispositioned)
+14:Unknown
+15:Unknown
+16:Mini Pipe Facing Up
+17:Mini Pipe Facing Down
+18:Mini Pipe Facing Left
+19:Mini Pipe Facing Right
+20:Jumping (Facing Right)
+21:Vine Entrance
+22:Pipe Facing Towards Screen
+23:Boss Entrance (Standing)
+24:Jumping (Facing Left)
+25:Boss Entrance (Jumping Right)
+26:Boss Entrance (Falling Right)
+27:Door Entrance
+28:Unknown (Crash)
+29:Unknown (Freeze)
