@@ -1,5 +1,6 @@
 # Reggie! Level Editor Next
-(Milestone 2 Alpha 4 Beta)
+## The New Super Mario Bros. Wii / New Super Mario Bros. 2 Editor 
+(Milestone 2 Alpha 4)
 
 ----------------------------------------------------------------
 
@@ -11,7 +12,7 @@ On GitHub: https://github.com/RoadrunnerWMC/Reggie-Next
 
 **NOTE: THIS IS A VERY UNSTABLE PRERELEASE VERSION! EXPECT CRASHES AND UNFINISHED THINGS!**
 
-Advanced level editor for New Super Mario Bros. Wii, created by Treeki, Tempus and RoadrunnerWMC using Python, PyQt and Wii.py .
+Advanced level editor for New Super Mario Bros. Wii and New Super Mario Bros. 2, created by Treeki, Tempus and RoadrunnerWMC using Python, PyQt and Wii.py .
 
 "Next" version created by RoadrunnerWMC, based on official release 3.
 
@@ -20,8 +21,11 @@ This release contains many improvements, in addition to code imports from the fo
  * "Reggie! Level Editor Mod (Newer Sprites) 3.8.1" by Kamek64 and MalStar1000
  * "NeweReggie! (Extension to Reggie! Level Editor)" by Treeki and angelsl
 
-Source code repository for Reggie! Next can be found at:  
+Source code repository for Reggie! Next can be found at: 
 https://github.com/RoadrunnerWMC/Reggie-Next 
+
+
+New Super Mario Bros. 2 support is currently experimental, unfinished and buggy.
 
 ----------------------------------------------------------------
 
@@ -52,18 +56,23 @@ Developers:
  * Treeki - Creator, Programmer, Data, RE
  * Tempus - Programmer, Graphics, Data
  * AerialX - CheerIOS, Riivolution
- * megazig - Code, Optimisation, Data, RE
+ * megazig - Code, Optimization, Data, RE
  * Omega - int(), Python, Testing
- * Pop006 - Sprite Images
- * Tobias Amaranth - Sprite Info (a lot of it), Event Example Stage
- * RoadrunnerWMC - Reggie! Next Developer: Programmer, UI, Data, Sprite Images
- * JasonP27 - ReggieMod Developer: Programmer, UI, Sprite Images
- * Kamek64 - Reggie! Newer Sprites Developer: Programmer, Sprite Images
- * ZementBlock - Sprite Data
- * MalStar1000 - Sprite Images, Other
- * Grop - Sprite Data
- * joietyfull64 - Sprite Data
- * MidiGuyDP - NewerSMBW Background Images & Names
+ * Pop006 - Sprite Images (NSMBW)
+ * Tobias Amaranth - Sprite Data (NSMBW), Event Example Stage
+ * RoadrunnerWMC - Reggie! Next Developer: Programmer, UI, Data, Sprite Images (NSMBW), Other
+ * JasonP27 - ReggieMod Developer, Programmer, UI, Sprite Images (NSMBW)
+ * Kinnay (Kamek64) - Reggie! Newer Sprites Developer, Programmer, Sprite Images (NSMBW, NewerSMBW), Sprite Data (NSMB2)
+ * ZementBlock - Sprite Data (NSMBW)
+ * MalStar1000 - Sprite Images (NSMBW, NewerSMBW), Other
+ * joietyfull64 - Sprite Data (NSMBW)
+ * MidiGuyDP - Background Images & Names (NewerSMBW)
+ * Grop - Sprite Data (NSMBW, NSMB2), Tileset Names (NSMB2)
+ * Hiccup - Sprite Data (NSMB2), Sprite Images (NSMB2)
+ * SnakeBlock (lolBoo) - Sprite Data (NSMBW), Sprite Images (NSMB2)
+ * LifeMushroom (Mario64) - run-python34.bat
+ * RenolY2 - yaz0.py
+ * Yoshi2 - yaz0.py
 
 Translators: (in alphabetical order, by language)
  * Translation Leader: Wolfy76700
@@ -74,7 +83,7 @@ Translators: (in alphabetical order, by language)
  * Turkish: nlgzrgn
 
 Other Testers and Contributors:
- * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl, ant888
+ * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl, ant888, gamesquest1
  * Tobias Amaranth and Valeth - Text Tileset Addon
  * LifeMushroom (Mario64) - run-python34.bat
 
@@ -89,6 +98,7 @@ TPLLib - Tempus, RoadrunnerWMC (https://github.com/RoadrunnerWMC/TPLLib)
 Wii.py - megazig, Xuzz, The Lemon Man, Matt_P, SquidMan, Omega (https://github.com/grp/Wii.py) (included)  
 Interface Icons - FlatIcons (http://flaticons.net)  
 cx_Freeze - Anthony Tuininga (http://cx-freeze.sourceforge.net)
+texturipper 1.2 - Normatt (http://gbatemp.net/threads/tool-texturipper.370920/) & (http://tcrf.net/File:Texturipper_1.1.7z) (included)
 
 
 ### License
@@ -103,6 +113,7 @@ See the license file in the distribution for information.
 Release Next (Milestone 2 Alpha 4): (unreleased)
  * Stamp preview icons are now functional
  * Added image previews to sprite, entrance, location, paths and comments lists
+ * Added experimental New Super Mario Bros. 2 support
  * Bug fixes
 
 Release Next (Milestone 2 Alpha 3): (August 5, 2014)

@@ -1,3 +1,36 @@
+#!/usr/bin/python
+# -*- coding: latin-1 -*-
+
+# Reggie Next - New Super Mario Bros. Wii / New Super Mario Bros 2 Level Editor
+# Milestone 2 Alpha 4
+# Copyright (C) 2009-2014 Treeki, Tempus, angelsl, JasonP27, Kamek64,
+# MalStar1000, RoadrunnerWMC
+
+# This file is part of Reggie Next.
+
+# Reggie Next is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Reggie Next is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with Reggie Next.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# archive.py
+# API for opening and saving Wii U8 archives.
+# From the wii.py library.
+
+
+################################################################
+################################################################
+
+
 from common import *
 
 

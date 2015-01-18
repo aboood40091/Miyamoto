@@ -1,30 +1,29 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
 
-# Reggie! - New Super Mario Bros. Wii Level Editor
-# Version Next Milestone 2 Alpha 4
+# Reggie Next - New Super Mario Bros. Wii / New Super Mario Bros 2 Level Editor
+# Milestone 2 Alpha 4
 # Copyright (C) 2009-2014 Treeki, Tempus, angelsl, JasonP27, Kamek64,
 # MalStar1000, RoadrunnerWMC
 
-# This file is part of Reggie!.
+# This file is part of Reggie Next.
 
-# Reggie! is free software: you can redistribute it and/or modify
+# Reggie Next is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Reggie! is distributed in the hope that it will be useful,
+# Reggie Next is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Reggie!.  If not, see <http://www.gnu.org/licenses/>.
-
+# along with Reggie Next.  If not, see <http://www.gnu.org/licenses/>.
 
 
 # spritelib.py
-# Contains general code to render sprite images
+# Contains general code to render sprite images in the editor UI
 
 
 ################################################################
@@ -46,6 +45,7 @@ SpriteImagesLoaded = set()
 SpritesFolders = []
 RealViewEnabled = False
 Area = None
+MapPositionToZoneID = None
 
 
 ################################################################
@@ -68,7 +68,6 @@ def main():
     # won't receive it, which causes bugs.
     ImageCache.clear()
     SpriteImagesLoaded.clear()
-    LoadBasicSuite()
 
     SpritesFolders = []
 
@@ -80,10 +79,10 @@ def GetImg(imgname, image=False):
     imgname = str(imgname)
 
     # Try to find the best path
-    path = 'reggiedata/sprites/' + imgname
+    path = os.path.join(GameDataFolders[CurrentGame], 'sprites', imgname)
 
     for folder in reversed(SpritesFolders): # find the most recent copy
-        tryPath = folder + '/' + imgname
+        tryPath = os.path.join(folder, imgname)
         if os.path.isfile(tryPath):
             path = tryPath
             break
@@ -103,43 +102,23 @@ def loadIfNotInImageCache(name, filename):
         ImageCache[name] = GetImg(filename)
 
 
-def LoadBasicSuite():
 
-    # Load some coins, because coins are in almost every Mario level ever
-    ImageCache['Coin'] = GetImg('coin.png')
-    ImageCache['SpecialCoin'] = GetImg('special_coin.png')
-    ImageCache['PCoin'] = GetImg('p_coin.png')
-    ImageCache['RedCoin'] = GetImg('redcoin.png')
-    ImageCache['StarCoin'] = GetImg('starcoin.png')
 
-    # Load blocks
-    BlockImage = GetImg('blocks.png')
-    Blocks = []
-    count = BlockImage.width() // 24
-    for i in range(count):
-        Blocks.append(BlockImage.copy(i * 24, 0, 24, 24))
-    ImageCache['Blocks'] = Blocks
+def getNearestZoneTo(objx, objy):
+    """
+    Returns the nearest zone to the given position
+    """
+    print('getNearestZoneTo(%d, %d):' % (objx, objy))
+    if not hasattr(Area, 'zones'):
+        print('    not hasattr; bye bye')
+        return None
 
-    # Load the overrides
-    Overrides = QtGui.QPixmap('reggiedata/overrides.png')
-    Blocks = []
-    x = Overrides.width() // 24
-    y = Overrides.height() // 24
-    for i in range(y):
-        for j in range(x):
-            Blocks.append(Overrides.copy(j * 24, i * 24, 24, 24))
-    ImageCache['Overrides'] = Blocks
-
-    # Load the characters
-    for num in range(4):
-        for direction in 'lr':
-            ImageCache['Character%d%s' % (num + 1, direction.upper())] = \
-                GetImg('character_%d_%s.png' % (num + 1, direction))
-
-    # Load vines, because these are used by entrances
-    loadIfNotInImageCache('VineTop', 'vine_top.png')
-    loadIfNotInImageCache('VineMid', 'vine_mid.png')
-    loadIfNotInImageCache('VineBtm', 'vine_btm.png')
+    id = MapPositionToZoneID(Area.zones, objx, objy, True)
+    for z in Area.zones:
+        if z.id == id:
+            print(('    Found something for id %d; returning ' % id) + str(z))
+            return z
+    print('    Found nothing for id %d; bye bye' % id)
 
 
 
@@ -152,7 +131,7 @@ class SpriteImage():
     """
     Class that contains information about a sprite image
     """
-    def __init__(self, parent):
+    def __init__(self, parent, scale=1.5):
         """
         Intializes the sprite image
         """
@@ -160,11 +139,11 @@ class SpriteImage():
 
         self.alpha = 1.0
         self.image = None
-
-        self.spritebox = Spritebox()
-
+        if not isinstance(scale, float):
+            print('Tell RoadrunnerWMC that he missed the __init__ API change for NSMBW sprite %d.' % self.parent.type)
+        self.spritebox = Spritebox(scale)
         self.dimensions = 0, 0, 16, 16
-
+        self.scale = scale
         self.aux = []
 
     @staticmethod
@@ -229,18 +208,19 @@ class SpriteImage():
         )
 
 
+
 class SpriteImage_Static(SpriteImage):
     """
     A simple class for drawing a static sprite image
     """
-    def __init__(self, parent, image=None, offset=None):
-        super().__init__(parent)
+    def __init__(self, parent, scale=1.5, image=None, offset=None):
+        super().__init__(parent, scale)
         self.image = image
         self.spritebox.shown = False
 
         if self.image is not None:
-            self.width = (self.image.width() / 1.5) + 1
-            self.height = (self.image.height() / 1.5) + 2
+            self.width = (self.image.width() / self.scale) + 1
+            self.height = (self.image.height() / self.scale) + 2
         if offset is not None:
             self.xOffset = offset[0]
             self.yOffset = offset[1]
@@ -250,8 +230,8 @@ class SpriteImage_Static(SpriteImage):
 
         if self.image is not None:
             self.size = (
-                (self.image.width() / 1.5) + 1,
-                (self.image.height() / 1.5) + 2,
+                (self.image.width() / self.scale) + 1,
+                (self.image.height() / self.scale) + 2,
                 )
         else:
             del self.size
@@ -262,6 +242,8 @@ class SpriteImage_Static(SpriteImage):
         if self.image is None: return
         painter.save()
         painter.setOpacity(self.alpha)
+        painter.scale(1.5 / self.scale, 1.5 / self.scale) # rescale images not based on a 24x24 block size
+        painter.setRenderHint(painter.SmoothPixmapTransform)
         painter.drawPixmap(0, 0, self.image)
         painter.restore()
 
@@ -271,8 +253,8 @@ class SpriteImage_StaticMultiple(SpriteImage_Static):
     A class that acts like a SpriteImage_Static but lets you change
     the image with the dataChanged() function
     """
-    def __init__(self, parent, image=None, offset=None):
-        super().__init__(parent, image, offset)
+    def __init__(self, parent, scale=1.5, image=None, offset=None):
+        super().__init__(parent, scale, image, offset)
     # no other changes needed yet
 
 
@@ -285,13 +267,14 @@ class Spritebox():
     """
     Contains size and other information for a spritebox
     """
-    def __init__(self):
+    def __init__(self, scale=1.5):
         super().__init__()
         self.shown = True
         self.xOffset = 0
         self.yOffset = 0
-        self.width = 24
-        self.height = 24
+        self.width = 16
+        self.height = 16
+        self.scale = scale
 
     # Offset property
     def getOffset(self):
@@ -332,20 +315,20 @@ class Spritebox():
     # RoundedRect property
     def getRR(self):
         return QtCore.QRectF(
-            self.xOffset + 1,
-            self.yOffset + 1,
-            self.width - 2,
-            self.height - 2,
+            (self.xOffset * self.scale) + 1,
+            (self.yOffset * self.scale) + 1,
+            (self.width * self.scale) - 2,
+            (self.height * self.scale) - 2,
             )
     def setRR(self, new):
         self.dimensions = (
-            new.x() - 1,
-            new.y() - 1,
-            new.width() + 2,
-            new.height() + 2,
+            (new.x() / self.scale) - 1,
+            (new.y() / self.scale) - 1,
+            (new.width() / self.scale) + 2,
+            (new.height() / self.scale) + 2,
             )
     def delRR(self):
-        self.dimensions = 0, 0, 24, 24
+        self.dimensions = 0, 0, 16, 16
     RoundedRect = property(
         getRR, setRR, delRR,
         'Property that contains the rounded rect for the spritebox',
@@ -354,20 +337,20 @@ class Spritebox():
     # BoundingRect property
     def getBR(self):
         return QtCore.QRectF(
-            self.xOffset,
-            self.yOffset,
-            self.width,
-            self.height,
+            self.xOffset * self.scale,
+            self.yOffset * self.scale,
+            self.width * self.scale,
+            self.height * self.scale,
             )
     def setBR(self, new):
         self.dimensions = (
-            new.x(),
-            new.y(),
-            new.width(),
-            new.height(),
+            new.x() * self.scale,
+            new.y() * self.scale,
+            new.width() * self.scale,
+            new.height() * self.scale,
             )
     def delBR(self):
-        self.dimensions = 0, 0, 24, 24
+        self.dimensions = 0, 0, 16, 16
     BoundingRect = property(
         getBR, setBR, delBR,
         'Property that contains the bounding rect for the spritebox',

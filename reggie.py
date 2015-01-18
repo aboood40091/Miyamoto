@@ -2,7 +2,7 @@
 # -*- coding: latin-1 -*-
 
 # Reggie Next - New Super Mario Bros. Wii / New Super Mario Bros 2 Level Editor
-# Version Next Milestone 2 Alpha 4
+# Milestone 2 Alpha 4
 # Copyright (C) 2009-2014 Treeki, Tempus, angelsl, JasonP27, Kamek64,
 # MalStar1000, RoadrunnerWMC
 
@@ -22,7 +22,6 @@
 # along with Reggie Next.  If not, see <http://www.gnu.org/licenses/>.
 
 
-
 # reggie.py
 # This is the main executable for Reggie Next.
 
@@ -37,7 +36,7 @@ currentRunningVersion = sys.version_info.major + (.1 * sys.version_info.minor)
 if currentRunningVersion < minimum:
     errormsg = 'Please update your copy of Python to ' + str(minimum) + \
         ' or greater. Currently running on: ' + sys.version[:5]
-    raise Exception(errormsg)
+    raise Exception(errormsg) from None
 
 # Stdlib imports
 import base64
@@ -46,6 +45,7 @@ import math
 import os.path
 import pickle
 import struct
+import subprocess
 import threading
 import time
 import urllib.request
@@ -73,9 +73,13 @@ except (ImportError, NameError):
 import archive
 import LHTool
 import lz77
+import sarc as SarcLib
 import spritelib as SLib
-import sprites
+import sprites_common
+import sprites_nsmbw
+import sprites_nsmb2
 import TPLLib
+import yaz0
 
 ReggieID = 'Reggie Next Level Editor by Treeki, Tempus, RoadrunnerWMC'
 ReggieVersion = 'Milestone 2 Alpha 4'
@@ -88,9 +92,45 @@ if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
     QtWidgets.QGraphicsItem.ItemSendsGeometryChanges = QtWidgets.QGraphicsItem.GraphicsItemFlag(0x800)
 
 
+# Globals
 app = None
 mainWindow = None
 settings = None
+
+# Game enums
+NewSuperMarioBros = 0
+NewSuperMarioBrosWii = 1
+NewSuperMarioBros2 = 2
+NewSuperMarioBrosU = 3
+MarioMaker = 4
+FileExtensions = {
+    NewSuperMarioBros: '.nml',
+    NewSuperMarioBrosWii: '.arc',
+    NewSuperMarioBros2: '.sarc',
+    NewSuperMarioBrosU: '.szs',
+    MarioMaker: None,
+    }
+FirstLevels = {
+    NewSuperMarioBros: 'A01',
+    NewSuperMarioBrosWii: '01-01',
+    NewSuperMarioBros2: '1-1',
+    NewSuperMarioBrosU: '1-1',
+    MarioMaker: '',
+    }
+SpriteModules = {
+    NewSuperMarioBros: None,
+    NewSuperMarioBrosWii: sprites_nsmbw,
+    NewSuperMarioBros2: sprites_nsmb2,
+    NewSuperMarioBrosU: None,
+    MarioMaker: None,
+    }
+GameDataFolders = {
+    NewSuperMarioBros: os.path.join('gameinfo', 'nsmb'),
+    NewSuperMarioBrosWii: os.path.join('gameinfo', 'nsmbw'),
+    NewSuperMarioBros2: os.path.join('gameinfo', 'nsmb2'),
+    NewSuperMarioBrosU: os.path.join('gameinfo', 'nsmbu'),
+    MarioMaker: os.path.join('gameinfo', 'mm'),
+    }
 
 
 class ReggieSplashScreen(QtWidgets.QSplashScreen):
@@ -295,15 +335,30 @@ def module_path():
 
 compressed = False
 def checkContent(data):
-    if not data.startswith(b'U\xAA8-'):
-        return False
-
-    required = (b'course\0', b'course1.bin\0', b'\0\0\0\x80')
-    for r in required:
-        if r not in data:
+    if CurrentGame == NewSuperMarioBrosWii:
+        if not data.startswith(b'U\xAA8-'):
             return False
 
-    return True
+        required = (b'course\0', b'course1.bin\0', b'\0\0\0\x80')
+        for r in required:
+            if r not in data:
+                return False
+
+        return True
+
+    elif CurrentGame == NewSuperMarioBros2:
+        if not data.startswith(b'SARC'):
+            return False
+
+        required = (b'course/', b'course1.bin')
+        for r in required:
+            if r not in data:
+                return False
+
+        return True
+
+    else:
+        return True
 
 def IsNSMBLevel(filename):
     global compressed
@@ -333,13 +388,11 @@ def FilesAreMissing():
     Checks to see if any of the required files for Reggie are missing
     """
 
-    if not os.path.isdir('reggiedata'):
+    if not (os.path.isdir('reggiedata') and os.path.isdir('gameinfo')):
         QtWidgets.QMessageBox.warning(None, trans.string('Err_MissingFiles', 0), trans.string('Err_MissingFiles', 1))
         return True
 
-    required = ['entrances.png', 'entrancetypes.txt', 'icon.png', 'levelnames.xml', 'overrides.png',
-                'spritedata.xml', 'tilesets.xml', 'bga/000A.png', 'bga.txt', 'bgb/000A.png', 'bgb.txt',
-                'about.png', 'spritecategories.xml']
+    required = ['icon.png', 'about.png',]
 
     missing = []
 
@@ -382,8 +435,12 @@ def isValidGamePath(check='ug'):
 
     if check is None or check == '': return False
     if not os.path.isdir(check): return False
-    if not os.path.isdir(os.path.join(check, 'Texture')): return False
-    if not os.path.isfile(os.path.join(check, '01-01.arc')): return False
+    if CurrentGame == NewSuperMarioBrosWii:
+        if not os.path.isdir(os.path.join(check, 'Texture')): return False
+        if not os.path.isfile(os.path.join(check, '01-01.arc')): return False
+    elif CurrentGame == NewSuperMarioBros2:
+        if not os.path.isdir(os.path.join(check, 'Unit')): return False
+        if not os.path.isfile(os.path.join(check, '1-1.sarc')): return False
 
     return True
 
@@ -787,7 +844,7 @@ def LoadSpriteData():
     """
     global Sprites
 
-    Sprites = [None] * 483
+    Sprites = [None] * 1000
     errors = []
     errortext = []
 
@@ -915,7 +972,7 @@ def LoadSpriteCategories(reload_=False):
                                 CurrentCategory.append(i)
 
     # Add a Search category
-    SpriteCategories.append((trans.string('Sprites', 19), [(trans.string('Sprites', 16), list(range(0,483)))], []))
+    SpriteCategories.append((trans.string('Sprites', 19), [(trans.string('Sprites', 16), list(range(0, 1000)))], []))
     SpriteCategories[-1][1][0][1].append(9999) # 'no results' special case
 
 
@@ -929,7 +986,7 @@ def LoadSpriteListData(reload_=False):
 
     paths = gamedef.recursiveFiles('spritelistdata')
     new = []
-    new.append('reggiedata/spritelistdata.txt')
+    new.append(os.path.join(GameDataFolders[CurrentGame], 'spritelistdata.txt'))
     for path in paths: new.append(path)
     paths = new
 
@@ -976,8 +1033,12 @@ def LoadEntranceNames(reload_=False):
         newNames = {}
         for line in getit.readlines(): newNames[int(line.split(':')[0])] = line.split(':')[1].replace('\n', '')
         for idx in newNames: NameList[idx] = newNames[idx]
+
     EntranceTypeNames = []
-    for idx in range(30): EntranceTypeNames.append(NameList[idx])
+    idx = 0
+    while idx in NameList:
+        EntranceTypeNames.append(trans.string('EntranceDataEditor', 28, '[id]', idx, '[name]', NameList[idx]))
+        idx += 1
 
 
 class ChooseLevelNameDialog(QtWidgets.QDialog):
@@ -1038,7 +1099,7 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
             if isinstance(item[1], str):
                 # it's a level
                 node.setData(0, Qt.UserRole, item[1])
-                node.setToolTip(0, item[1] + '.arc')
+                node.setToolTip(0, item[1] + FileExtensions[CurrentGame])
             else:
                 # it's a category
                 children = self.ParseCategory(item[1])
@@ -1072,7 +1133,7 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
             self.accept()
 
 
-Tiles = None # 256 tiles per tileset, plus 64 for each type of override
+Tiles = None # 0x200 tiles per tileset, plus 64 for each type of override
 TilesetFilesLoaded = [None, None, None, None]
 TilesetAnimTimer = None
 TilesetCache = {} # Tileset cache, to avoid reloading when possible
@@ -1114,8 +1175,15 @@ class ObjectDef():
                 row.append([cbyte,])
                 i += 1
             else:
-                extra = source[i+2]
-                tile = [cbyte, source[i+1] | ((extra & 3) << 8), extra >> 2]
+                if CurrentGame == NewSuperMarioBrosWii:
+                    extra = source[i+2]
+                    tile = [cbyte, source[i+1] | ((extra & 3) << 8), extra >> 2]
+                elif CurrentGame == NewSuperMarioBros2:
+                    extra = source[i+2]
+                    tilesetoffset = ((extra & 7) >> 1) * 0x200
+                    tile = [cbyte, source[i+1] + tilesetoffset, extra >> 2]
+                else:
+                    raise NotImplementedError
                 row.append(tile)
                 i += 3
 
@@ -1143,6 +1211,7 @@ class TilesetTile():
         self.animTiles = []
         self.collData = ()
         self.collOverlay = None
+        self.depthMap = None
 
     def addAnimationData(self, data):
         """
@@ -1195,11 +1264,15 @@ class TilesetTile():
         result = None
         if (not TilesetsAnimating) or (not self.isAnimated): result = self.main
         else: result = self.animTiles[self.animFrame]
+        result = QtGui.QPixmap(result)
+
+        p = QtGui.QPainter(result)
         if CollisionsShown and (self.collOverlay is not None):
-            result = QtGui.QPixmap(result)
-            p = QtGui.QPainter(result)
             p.drawPixmap(0, 0, self.collOverlay)
-            del p
+        if DepthShown and (self.depthMap is not None):
+            p.drawPixmap(0, 0, self.depthMap)
+        del p
+
         return result
 
     def setCollisions(self, colldata):
@@ -1633,6 +1706,32 @@ class TilesetTile():
         self.collOverlay = collPix
 
 
+    def addOverlay(self, overlayTile):
+        """
+        Adds a 3D overlay tile
+        """
+        if CurrentGame != NewSuperMarioBros2: return
+
+        if overlayTile is not None:
+            overlayPix = overlayTile.main
+
+            # Create a depth map
+            self.depthMap = QtGui.QPixmap(24, 24)
+            self.depthMap.fill(theme.color('depth_highlight'))
+            p2 = QtGui.QPainter(self.depthMap)
+            p2.setCompositionMode(p2.CompositionMode_DestinationIn)
+            p2.drawPixmap(0, 0, overlayPix)
+            p2.end; del p2
+
+            # Known bug: if the depth_highlight color is
+            # fully opaque, things can get messed up.
+
+            # Overlay the overlay tile onto self.main
+            p1 = QtGui.QPainter(self.main)
+            p1.drawPixmap(0, 0, overlayPix)
+            p1.end; del p1
+
+
 
 def RenderObject(tileset, objnum, width, height, fullslope=False):
     """
@@ -1643,9 +1742,15 @@ def RenderObject(tileset, objnum, width, height, fullslope=False):
     for i in range(height): dest.append([0]*width)
 
     # ignore non-existent objects
-    tileset_defs = ObjectDefinitions[tileset]
+    try:
+        tileset_defs = ObjectDefinitions[tileset]
+    except IndexError:
+        tileset_defs = None
     if tileset_defs is None: return dest
-    obj = tileset_defs[objnum]
+    try:
+        obj = tileset_defs[objnum]
+    except IndexError:
+        obj = None
     if obj is None: return dest
     if len(obj.rows) == 0: return dest
 
@@ -1661,7 +1766,7 @@ def RenderObject(tileset, objnum, width, height, fullslope=False):
 
         for row in obj.rows:
             if len(row) == 0: continue
-            if (row[0][0] & 2) != 0:
+            if (row[0][0] & 2) != 0 or (CurrentGame == NewSuperMarioBros2 and (row[0][0] & 4) != 0):
                 repeatFound = True
                 inRepeat.append(row)
             else:
@@ -1697,7 +1802,17 @@ def RenderStandardRow(dest, row, y, width):
     afterRepeat = []
 
     for tile in row:
-        if (tile[0] & 1) != 0:
+        # NSMB2 introduces two (?) new ways to define horizontal tiling, IN ADDITION TO the original one
+        # don't know what the point of that is, yet
+        tiling = False
+        if CurrentGame == NewSuperMarioBrosWii:
+            tiling = (tile[0] & 1) != 0
+        elif CurrentGame == NewSuperMarioBros2:
+            tiling = tiling or ((tile[2] & 1) != 0 and (tile[0] & 1) != 0) # NSMBW-style (still applies to NSMB2)
+            tiling = tiling or ((row[0][0] & 4) != 0 and (tile[0] & 4) == 0) # NSMB2-style (J_Kihon BG rocks)
+            tiling = tiling or ((tile[0] & 1) != 0) # NSMB2-style (horizontal pipes)
+
+        if tiling:
             repeatFound = True
             inRepeat.append(tile)
         else:
@@ -1876,7 +1991,7 @@ def CreateTilesets():
     """
     global Tiles, TilesetFilesLoaded, TilesetAnimTimer, TileBehaviours, ObjectDefinitions
 
-    Tiles = [None]*1024
+    Tiles = [None]*0x200*4
     Tiles += Overrides
     TilesetFilesLoaded = [None, None, None, None]
     #TileBehaviours = [0]*1024
@@ -1908,7 +2023,13 @@ def _LoadTileset(idx, name, reload=False):
     for path in TilesetPaths:
         if path is None: break
 
-        arcname = path + '/Texture/' + name + '.arc'
+        arcname = path
+        if CurrentGame == NewSuperMarioBrosWii:
+            arcname += '/Texture/'
+        elif CurrentGame == NewSuperMarioBros2:
+            arcname += '/Unit/'
+        arcname += name + FileExtensions[CurrentGame]
+
         compressed = False
         if os.path.isfile(arcname):
             found = True
@@ -1932,9 +2053,14 @@ def _LoadTileset(idx, name, reload=False):
         arcdata = fileobj.read()
     if compressed:
         arcdata = LHTool.decompressLH(arcdata)
-    arc = archive.U8.load(arcdata)
 
-    tileoffset = idx * 256
+    if CurrentGame == NewSuperMarioBrosWii:
+        arc = archive.U8.load(arcdata)
+    else:
+        arc = SarcLib.SARC_Archive()
+        arc.load(arcdata)
+
+    tileoffset = idx * 0x200
 
     global Tiles, TilesetCache
     tileCacheEntryName = name + (' ' * 256) + gamedef.name # It works :P
@@ -1944,33 +2070,71 @@ def _LoadTileset(idx, name, reload=False):
 
         # decompress the textures
         try:
-            comptiledata = arc['BG_tex/%s_tex.bin.LZ' % name]
-            colldata = arc['BG_chk/d_bgchk_%s.bin' % name]
+            if CurrentGame == NewSuperMarioBrosWii:
+                comptiledata = arc['BG_tex/%s_tex.bin.LZ' % name]
+                colldata = arc['BG_chk/d_bgchk_%s.bin' % name]
+            elif CurrentGame == NewSuperMarioBros2:
+                comptiledata = arc['BG_tex/%s.ctpk' % name].data
+                colldata = arc['BG_chk/d_bgchk_%s.bin' % name].data
         except KeyError:
             QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
             return False
 
         # load in the textures
-        lz = lz77.LZS11()
-        img = LoadTexture(lz.Decompress11LZS(comptiledata))
+        if CurrentGame == NewSuperMarioBrosWii:
+            lz = lz77.LZS11()
+            img = LoadTexture_NSMBW(lz.Decompress11LZS(comptiledata))
+        elif CurrentGame == NewSuperMarioBros2:
+            img = LoadTexture_NSMB2(comptiledata)
 
         # Divide it into individual tiles and
         # add collisions at the same time
-        dest = QtGui.QPixmap.fromImage(img)
-        sourcex = 4
-        sourcey = 4
-        for i in range(tileoffset,tileoffset + 256):
-            T = TilesetTile(dest.copy(sourcex, sourcey, 24, 24))
-            T.setCollisions(struct.unpack_from('>8B', colldata, (i - tileoffset) * 8))
-            Tiles[i] = T
-            sourcex += 32
-            if sourcex >= 1024:
-                sourcex = 4
-                sourcey += 32
+        def getTileFromImage(tilemap, xtilenum, ytilenum):
+            if CurrentGame == NewSuperMarioBrosWii:
+                return dest.copy(xtilenum * 24, ytilenum * 24, 24, 24)
+            elif CurrentGame == NewSuperMarioBros2:
+                return dest.copy((xtilenum * 24) + 2, (ytilenum * 24) + 2, 20, 20).scaledToWidth(24, Qt.SmoothTransformation)
 
+        dest = QtGui.QPixmap.fromImage(img)
+        if CurrentGame == NewSuperMarioBrosWii:
+            sourcex = 4
+            sourcey = 4
+            for i in range(tileoffset, tileoffset + 256):
+                T = TilesetTile(dest.copy(sourcex, sourcey, 24, 24))
+                T.setCollisions(struct.unpack_from('>8B', colldata, (i - tileoffset) * 8))
+                Tiles[i] = T
+                sourcex += 32
+                if sourcex >= 1024:
+                    sourcex = 4
+                    sourcey += 32
+        elif CurrentGame == NewSuperMarioBros2:
+            sourcex = 0
+            sourcey = 0
+            for i in range(tileoffset, tileoffset + 441):
+                T = TilesetTile(getTileFromImage(dest, sourcex, sourcey))
+                Tiles[i] = T
+                sourcex += 1
+                if sourcex >= 21:
+                    sourcex = 0
+                    sourcey += 1
+
+        if CurrentGame == NewSuperMarioBros2:
+            # Add 3D overlays
+            overlayfile = arc['BG_unt/%s_add.bin' % name].data
+            overlayArray = struct.unpack('<441H', overlayfile[:882])
+            i = idx * 0x200
+            arrayi = 0
+            for y in range(21):
+                for x in range(21):
+                    if Tiles[i] is not None:
+                        Tiles[i].addOverlay(Tiles[overlayArray[arrayi]])
+                    i += 1; arrayi += 1
 
         # Load the tileset animations, if there are any
-        isAnimated, prefix = CheckTilesetAnimated(arc)
+        if CurrentGame == NewSuperMarioBrosWii:
+            isAnimated, prefix = CheckTilesetAnimated(arc)
+        elif CurrentGame == NewSuperMarioBros2:
+            isAnimated, prefix = False, ''
         if isAnimated:
             row = 0
             col = 0
@@ -1999,20 +2163,29 @@ def _LoadTileset(idx, name, reload=False):
 
     else:
         # We already have tiles in the tileset cache; copy them over to Tiles
-        for i in range(256):
+        for i in range(0x200):
             Tiles[i + tileoffset] = TilesetCache[tileCacheEntryName][i]
 
 
     # load the object definitions
-    defs = [None]*256
+    defs = [None] * 256
 
-    indexfile = arc['BG_unt/%s_hd.bin' % name]
-    deffile = arc['BG_unt/%s.bin' % name]
-    objcount = len(indexfile) // 4
-    indexstruct = struct.Struct('>HBB')
+    if CurrentGame == NewSuperMarioBrosWii:
+        indexfile = arc['BG_unt/%s_hd.bin' % name]
+        deffile = arc['BG_unt/%s.bin' % name]
+        objcount = len(indexfile) // 4
+        indexstruct = struct.Struct('>HBB')
+    elif CurrentGame == NewSuperMarioBros2:
+        indexfile = arc['BG_unt/%s_hd.bin' % name].data
+        deffile = arc['BG_unt/%s.bin' % name].data
+        objcount = len(indexfile) // 6
+        indexstruct = struct.Struct('<HBBH')
 
     for i in range(objcount):
-        data = indexstruct.unpack_from(indexfile, i << 2)
+        if CurrentGame == NewSuperMarioBrosWii:
+            data = indexstruct.unpack_from(indexfile, i << 2)
+        elif CurrentGame == NewSuperMarioBros2:
+            data = indexstruct.unpack_from(indexfile, i * 6)
         obj = ObjectDef()
         obj.width = data[1]
         obj.height = data[2]
@@ -2031,15 +2204,40 @@ def _LoadTileset(idx, name, reload=False):
 
     # Add Tiles to the cache
     TilesetCache[tileCacheEntryName] = []
-    for i in range(256):
+    for i in range(0x200):
         TilesetCache[tileCacheEntryName].append(Tiles[i + tileoffset])
 
 
-def LoadTexture(tiledata):
+def LoadTexture_NSMBW(tiledata):
     decoder = TPLLib.decoder(TPLLib.RGB4A3)
     decoder = decoder(tiledata, 1024, 256)
     data = decoder.run()
     img = QtGui.QImage(data, 1024, 256, 4096, QtGui.QImage.Format_ARGB32)
+    return img
+
+
+def LoadTexture_NSMB2(tiledata):
+    with open('texturipper/texture.ctpk', 'wb') as binfile:
+        binfile.write(tiledata)
+
+    if AutoOpenScriptEnabled: return QtGui.QImage(512, 512, QtGui.QImage.Format_ARGB32)
+
+    with subprocess.Popen('texturipper/texturipper_1.2.exe texture.ctpk', cwd='texturipper') as proc:
+        pass
+
+    pngname = None
+    for filename in os.listdir('texturipper'):
+        if filename.endswith('.png'):
+            pngname = filename
+    if not pngname: raise Exception
+
+    with open(os.path.join('texturipper', pngname), 'rb') as pngfile:
+        img = QtGui.QImage(os.path.join('texturipper', pngname))
+
+    for filename in os.listdir('texturipper'):
+        if filename == 'texturipper_1.2.exe': continue
+        os.remove(os.path.join('texturipper', filename))
+
     return img
 
 
@@ -2097,7 +2295,7 @@ def UnloadTileset(idx):
     """
     Unload the tileset from a specific slot
     """
-    for i in range(idx*256, idx*256+256):
+    for i in range(idx * 0x200, idx * 0x200 + 0x200):
         Tiles[i] = None
 
     ObjectDefinitions[idx] = None
@@ -2110,230 +2308,256 @@ def ProcessOverrides(idx, name):
     """
 
     try:
-        tsindexes = ['Pa0_jyotyu', 'Pa0_jyotyu_chika', 'Pa0_jyotyu_setsugen', 'Pa0_jyotyu_yougan', 'Pa0_jyotyu_staffRoll']
+        tsindexes = {
+            NewSuperMarioBrosWii: ['Pa0_jyotyu', 'Pa0_jyotyu_chika', 'Pa0_jyotyu_setsugen', 'Pa0_jyotyu_yougan', 'Pa0_jyotyu_staffRoll'],
+            NewSuperMarioBros2: ['J_Kihon', 'J_Chika', 'J_Setsugen', 'J_Yougan', 'J_Gold', 'J_Suichu'],
+            }[CurrentGame]
         if name in tsindexes:
-            offset = 1024 + tsindexes.index(name) * 64
-            # Setsugen/Snow is unused for some reason? but we still override it
-            # StaffRoll is the same as plain Jyotyu, so if it's used, let's be lazy and treat it as the normal one
-            if offset == 1280: offset = 1024
+            offset = 0x800 + (tsindexes.index(name) * 64)
+
+            if CurrentGame == NewSuperMarioBrosWii:
+                # Setsugen/Snow is unused, but we still override it
+                # StaffRoll is the same as plain Jyotyu, so if it's used, let's be lazy and treat it as the normal one
+                if offset == 1280: offset = 1024
+            elif CurrentGame == NewSuperMarioBros2:
+                # J_Kihon_Test is weird and not supported at all yet.
+                pass
 
             defs = ObjectDefinitions[idx]
             t = Tiles
 
             # Invisible blocks
             # these are all the same so let's just load them from the first row
-            replace = 1024
-            for i in [3,4,5,6,7,8,9,10,13]:
+            invisiblocks = {
+                NewSuperMarioBrosWii: [3, 4, 5, 6, 7, 8, 9, 10, 13],
+                NewSuperMarioBros2: [3, 4, 5, 6, 7, 8, 9, 10],
+                }[CurrentGame]
+            replace = 0x800
+            for i in invisiblocks:
                 t[i].main = t[replace].main
                 replace += 1
 
             # Question and brick blocks
             # these don't have their own tiles so we have to do them by objects
+            rangeA, rangeB = {
+                NewSuperMarioBrosWii: (range(38, 49), range(26, 38)),
+                NewSuperMarioBros2: (range(30, 41), range(16, 30)),
+                }[CurrentGame]
             replace = offset + 9
-            for i in range(38, 49):
+            for i in rangeA:
                 defs[i].rows[0][0] = (0, replace, 0)
                 replace += 1
-            for i in range(26, 38):
+            for i in rangeB:
                 defs[i].rows[0][0] = (0, replace, 0)
                 replace += 1
 
             # now the extra stuff (invisible collisions etc)
-            t[1].main = t[1280].main # solid
-            t[2].main = t[1311].main # vine stopper
-            t[11].main = t[1310].main # jumpthrough platform
-            t[12].main = t[1309].main # 16x8 roof platform
+            if CurrentGame == NewSuperMarioBrosWii:
+                t[1].main = t[0x400 + 1280].main # solid
+                t[2].main = t[0x400 + 1311].main # vine stopper
+                t[11].main = t[0x400 + 1310].main # jumpthrough platform
+                t[12].main = t[0x400 + 1309].main # 16x8 roof platform
 
-            t[16].main = t[1291].main # 1x1 slope going up
-            t[17].main = t[1292].main # 1x1 slope going down
-            t[18].main = t[1281].main # 2x1 slope going up (part 1)
-            t[19].main = t[1282].main # 2x1 slope going up (part 2)
-            t[20].main = t[1283].main # 2x1 slope going down (part 1)
-            t[21].main = t[1284].main # 2x1 slope going down (part 2)
-            t[22].main = t[1301].main # 4x1 slope going up (part 1)
-            t[23].main = t[1302].main # 4x1 slope going up (part 2)
-            t[24].main = t[1303].main # 4x1 slope going up (part 3)
-            t[25].main = t[1304].main # 4x1 slope going up (part 4)
-            t[26].main = t[1305].main # 4x1 slope going down (part 1)
-            t[27].main = t[1306].main # 4x1 slope going down (part 2)
-            t[28].main = t[1307].main # 4x1 slope going down (part 3)
-            t[29].main = t[1308].main # 4x1 slope going down (part 4)
-            t[30].main = t[1062].main # coin
+                t[16].main = t[0x400 + 1291].main # 1x1 slope going up
+                t[17].main = t[0x400 + 1292].main # 1x1 slope going down
+                t[18].main = t[0x400 + 1281].main # 2x1 slope going up (part 1)
+                t[19].main = t[0x400 + 1282].main # 2x1 slope going up (part 2)
+                t[20].main = t[0x400 + 1283].main # 2x1 slope going down (part 1)
+                t[21].main = t[0x400 + 1284].main # 2x1 slope going down (part 2)
+                t[22].main = t[0x400 + 1301].main # 4x1 slope going up (part 1)
+                t[23].main = t[0x400 + 1302].main # 4x1 slope going up (part 2)
+                t[24].main = t[0x400 + 1303].main # 4x1 slope going up (part 3)
+                t[25].main = t[0x400 + 1304].main # 4x1 slope going up (part 4)
+                t[26].main = t[0x400 + 1305].main # 4x1 slope going down (part 1)
+                t[27].main = t[0x400 + 1306].main # 4x1 slope going down (part 2)
+                t[28].main = t[0x400 + 1307].main # 4x1 slope going down (part 3)
+                t[29].main = t[0x400 + 1308].main # 4x1 slope going down (part 4)
+                t[30].main = t[0x400 + 1062].main # coin
 
-            t[32].main = t[1289].main # 1x1 roof going down
-            t[33].main = t[1290].main # 1x1 roof going up
-            t[34].main = t[1285].main # 2x1 roof going down (part 1)
-            t[35].main = t[1286].main # 2x1 roof going down (part 2)
-            t[36].main = t[1287].main # 2x1 roof going up (part 1)
-            t[37].main = t[1288].main # 2x1 roof going up (part 2)
-            t[38].main = t[1293].main # 4x1 roof going down (part 1)
-            t[39].main = t[1294].main # 4x1 roof going down (part 2)
-            t[40].main = t[1295].main # 4x1 roof going down (part 3)
-            t[41].main = t[1296].main # 4x1 roof going down (part 4)
-            t[42].main = t[1297].main # 4x1 roof going up (part 1)
-            t[43].main = t[1298].main # 4x1 roof going up (part 2)
-            t[44].main = t[1299].main # 4x1 roof going up (part 3)
-            t[45].main = t[1300].main # 4x1 roof going up (part 4)
-            t[46].main = t[1312].main # P-switch coins
+                t[32].main = t[0x400 + 1289].main # 1x1 roof going down
+                t[33].main = t[0x400 + 1290].main # 1x1 roof going up
+                t[34].main = t[0x400 + 1285].main # 2x1 roof going down (part 1)
+                t[35].main = t[0x400 + 1286].main # 2x1 roof going down (part 2)
+                t[36].main = t[0x400 + 1287].main # 2x1 roof going up (part 1)
+                t[37].main = t[0x400 + 1288].main # 2x1 roof going up (part 2)
+                t[38].main = t[0x400 + 1293].main # 4x1 roof going down (part 1)
+                t[39].main = t[0x400 + 1294].main # 4x1 roof going down (part 2)
+                t[40].main = t[0x400 + 1295].main # 4x1 roof going down (part 3)
+                t[41].main = t[0x400 + 1296].main # 4x1 roof going down (part 4)
+                t[42].main = t[0x400 + 1297].main # 4x1 roof going up (part 1)
+                t[43].main = t[0x400 + 1298].main # 4x1 roof going up (part 2)
+                t[44].main = t[0x400 + 1299].main # 4x1 roof going up (part 3)
+                t[45].main = t[0x400 + 1300].main # 4x1 roof going up (part 4)
+                t[46].main = t[0x400 + 1312].main # P-switch coins
 
-            t[53].main = t[1314].main # donut lift
-            t[61].main = t[1063].main # multiplayer coin
-            t[63].main = t[1313].main # instant death tile
+                t[53].main = t[0x400 + 1314].main # donut lift
+                t[61].main = t[0x400 + 1063].main # multiplayer coin
+                t[63].main = t[0x400 + 1313].main # instant death tile
+            elif CurrentGame == NewSuperMarioBros2:
+                replace = 0x800 + 64 * 4
+                for i in [0, 1, 11, 14, 2, 13, 12]:
+                    t[i].main = t[replace].main
+                    replace += 1
+                replace = 0x800 + 64 * 5
+                for i in [190, 191, 192]:
+                    t[i].main = t[replace].main
+                    replace += 1
 
-        elif name == 'Pa1_nohara' or name == 'Pa1_nohara2' or name == 'Pa1_daishizen':
+        elif CurrentGame == NewSuperMarioBrosWii and (name in ('Pa1_nohara', 'Pa1_nohara2', 'Pa1_daishizen')):
             # flowers
             t = Tiles
-            t[416].main = t[1092].main # grass
-            t[417].main = t[1093].main
-            t[418].main = t[1094].main
-            t[419].main = t[1095].main
-            t[420].main = t[1096].main
+            t[416 + 0x100].main = t[0x400 + 1092].main # grass
+            t[417 + 0x100].main = t[0x400 + 1093].main
+            t[418 + 0x100].main = t[0x400 + 1094].main
+            t[419 + 0x100].main = t[0x400 + 1095].main
+            t[420 + 0x100].main = t[0x400 + 1096].main
 
             if name == 'Pa1_nohara' or name == 'Pa1_nohara2':
-                t[432].main = t[1068].main # flowers
-                t[433].main = t[1069].main # flowers
-                t[434].main = t[1070].main # flowers
+                t[432 + 0x100].main = t[0x400 + 1068].main # flowers
+                t[433 + 0x100].main = t[0x400 + 1069].main # flowers
+                t[434 + 0x100].main = t[0x400 + 1070].main # flowers
 
-                t[448].main = t[1158].main # flowers on grass
-                t[449].main = t[1159].main
-                t[450].main = t[1160].main
+                t[448 + 0x100].main = t[0x400 + 1158].main # flowers on grass
+                t[449 + 0x100].main = t[0x400 + 1159].main
+                t[450 + 0x100].main = t[0x400 + 1160].main
             elif name == 'Pa1_daishizen':
                 # forest flowers
-                t[432].main = t[1071].main # flowers
-                t[433].main = t[1072].main # flowers
-                t[434].main = t[1073].main # flowers
+                t[432 + 0x100].main = t[0x400 + 1071].main # flowers
+                t[433 + 0x100].main = t[0x400 + 1072].main # flowers
+                t[434 + 0x100].main = t[0x400 + 1073].main # flowers
 
-                t[448].main = t[1222].main # flowers on grass
-                t[449].main = t[1223].main
-                t[450].main = t[1224].main
+                t[448 + 0x100].main = t[0x400 + 1222].main # flowers on grass
+                t[449 + 0x100].main = t[0x400 + 1223].main
+                t[450 + 0x100].main = t[0x400 + 1224].main
 
-        elif name == 'Pa3_rail' or name == 'Pa3_rail_white' or name == 'Pa3_daishizen':
+        elif CurrentGame == NewSuperMarioBrosWii and (name in ('Pa3_rail', 'Pa3_rail_white', 'Pa3_daishizen')):
             # These are the line guides
             # Pa3_daishizen has less though
 
             t = Tiles
 
-            t[768].main = t[1088].main # horizontal line
-            t[769].main = t[1089].main # vertical line
-            t[770].main = t[1090].main # bottomright corner
-            t[771].main = t[1091].main # topleft corner
+            t[768 + 0x300].main = t[0x400 + 1088].main # horizontal line
+            t[769 + 0x300].main = t[0x400 + 1089].main # vertical line
+            t[770 + 0x300].main = t[0x400 + 1090].main # bottom-right corner
+            t[771 + 0x300].main = t[0x400 + 1091].main # top-left corner
 
-            t[784].main = t[1152].main # left red blob (part 1)
-            t[785].main = t[1153].main # top red blob (part 1)
-            t[786].main = t[1154].main # top red blob (part 2)
-            t[787].main = t[1155].main # right red blob (part 1)
-            t[788].main = t[1156].main # topleft red blob
-            t[789].main = t[1157].main # topright red blob
+            t[784 + 0x300].main = t[0x400 + 1152].main # left red blob (part 1)
+            t[785 + 0x300].main = t[0x400 + 1153].main # top red blob (part 1)
+            t[786 + 0x300].main = t[0x400 + 1154].main # top red blob (part 2)
+            t[787 + 0x300].main = t[0x400 + 1155].main # right red blob (part 1)
+            t[788 + 0x300].main = t[0x400 + 1156].main # top-left red blob
+            t[789 + 0x300].main = t[0x400 + 1157].main # top-right red blob
 
-            t[800].main = t[1216].main # left red blob (part 2)
-            t[801].main = t[1217].main # bottom red blob (part 1)
-            t[802].main = t[1218].main # bottom red blob (part 2)
-            t[803].main = t[1219].main # right red blob (part 2)
-            t[804].main = t[1220].main # bottomleft red blob
-            t[805].main = t[1221].main # bottomright red blob
+            t[800 + 0x300].main = t[0x400 + 1216].main # left red blob (part 2)
+            t[801 + 0x300].main = t[0x400 + 1217].main # bottom red blob (part 1)
+            t[802 + 0x300].main = t[0x400 + 1218].main # bottom red blob (part 2)
+            t[803 + 0x300].main = t[0x400 + 1219].main # right red blob (part 2)
+            t[804 + 0x300].main = t[0x400 + 1220].main # bottom-left red blob
+            t[805 + 0x300].main = t[0x400 + 1221].main # bottom-right red blob
 
             # Those are all for Pa3_daishizen
             if name == 'Pa3_daishizen': return
 
-            t[816].main = t[1056].main # 1x2 diagonal going up (top edge)
-            t[817].main = t[1057].main # 1x2 diagonal going down (top edge)
+            t[816 + 0x300].main = t[0x400 + 1056].main # 1x2 diagonal going up (top edge)
+            t[817 + 0x300].main = t[0x400 + 1057].main # 1x2 diagonal going down (top edge)
 
-            t[832].main = t[1120].main # 1x2 diagonal going up (part 1)
-            t[833].main = t[1121].main # 1x2 diagonal going down (part 1)
-            t[834].main = t[1186].main # 1x1 diagonal going up
-            t[835].main = t[1187].main # 1x1 diagonal going down
-            t[836].main = t[1058].main # 2x1 diagonal going up (part 1)
-            t[837].main = t[1059].main # 2x1 diagonal going up (part 2)
-            t[838].main = t[1060].main # 2x1 diagonal going down (part 1)
-            t[839].main = t[1061].main # 2x1 diagonal going down (part 2)
+            t[832 + 0x300].main = t[0x400 + 1120].main # 1x2 diagonal going up (part 1)
+            t[833 + 0x300].main = t[0x400 + 1121].main # 1x2 diagonal going down (part 1)
+            t[834 + 0x300].main = t[0x400 + 1186].main # 1x1 diagonal going up
+            t[835 + 0x300].main = t[0x400 + 1187].main # 1x1 diagonal going down
+            t[836 + 0x300].main = t[0x400 + 1058].main # 2x1 diagonal going up (part 1)
+            t[837 + 0x300].main = t[0x400 + 1059].main # 2x1 diagonal going up (part 2)
+            t[838 + 0x300].main = t[0x400 + 1060].main # 2x1 diagonal going down (part 1)
+            t[839 + 0x300].main = t[0x400 + 1061].main # 2x1 diagonal going down (part 2)
 
-            t[848].main = t[1184].main # 1x2 diagonal going up (part 2)
-            t[849].main = t[1185].main # 1x2 diagonal going down (part 2)
-            t[850].main = t[1250].main # 1x1 diagonal going up
-            t[851].main = t[1251].main # 1x1 diagonal going down
-            t[852].main = t[1122].main # 2x1 diagonal going up (part 1)
-            t[853].main = t[1123].main # 2x1 diagonal going up (part 2)
-            t[854].main = t[1124].main # 2x1 diagonal going down (part 1)
-            t[855].main = t[1125].main # 2x1 diagonal going down (part 2)
+            t[848 + 0x300].main = t[0x400 + 1184].main # 1x2 diagonal going up (part 2)
+            t[849 + 0x300].main = t[0x400 + 1185].main # 1x2 diagonal going down (part 2)
+            t[850 + 0x300].main = t[0x400 + 1250].main # 1x1 diagonal going up
+            t[851 + 0x300].main = t[0x400 + 1251].main # 1x1 diagonal going down
+            t[852 + 0x300].main = t[0x400 + 1122].main # 2x1 diagonal going up (part 1)
+            t[853 + 0x300].main = t[0x400 + 1123].main # 2x1 diagonal going up (part 2)
+            t[854 + 0x300].main = t[0x400 + 1124].main # 2x1 diagonal going down (part 1)
+            t[855 + 0x300].main = t[0x400 + 1125].main # 2x1 diagonal going down (part 2)
 
-            t[866].main = t[1065].main # big circle piece 1st row
-            t[867].main = t[1066].main # big circle piece 1st row
-            t[870].main = t[1189].main # medium circle piece 1st row
-            t[871].main = t[1190].main # medium circle piece 1st row
+            t[866 + 0x300].main = t[0x400 + 1065].main # big circle piece 1st row
+            t[867 + 0x300].main = t[0x400 + 1066].main # big circle piece 1st row
+            t[870 + 0x300].main = t[0x400 + 1189].main # medium circle piece 1st row
+            t[871 + 0x300].main = t[0x400 + 1190].main # medium circle piece 1st row
 
-            t[881].main = t[1128].main # big circle piece 2nd row
-            t[882].main = t[1129].main # big circle piece 2nd row
-            t[883].main = t[1130].main # big circle piece 2nd row
-            t[884].main = t[1131].main # big circle piece 2nd row
-            t[885].main = t[1252].main # medium circle piece 2nd row
-            t[886].main = t[1253].main # medium circle piece 2nd row
-            t[887].main = t[1254].main # medium circle piece 2nd row
-            t[888].main = t[1188].main # small circle
+            t[881 + 0x300].main = t[0x400 + 1128].main # big circle piece 2nd row
+            t[882 + 0x300].main = t[0x400 + 1129].main # big circle piece 2nd row
+            t[883 + 0x300].main = t[0x400 + 1130].main # big circle piece 2nd row
+            t[884 + 0x300].main = t[0x400 + 1131].main # big circle piece 2nd row
+            t[885 + 0x300].main = t[0x400 + 1252].main # medium circle piece 2nd row
+            t[886 + 0x300].main = t[0x400 + 1253].main # medium circle piece 2nd row
+            t[887 + 0x300].main = t[0x400 + 1254].main # medium circle piece 2nd row
+            t[888 + 0x300].main = t[0x400 + 1188].main # small circle
 
-            t[896].main = t[1191].main # big circle piece 3rd row
-            t[897].main = t[1192].main # big circle piece 3rd row
-            t[900].main = t[1195].main # big circle piece 3rd row
-            t[901].main = t[1316].main # medium circle piece 3rd row
-            t[902].main = t[1317].main # medium circle piece 3rd row
-            t[903].main = t[1318].main # medium circle piece 3rd row
+            t[896 + 0x300].main = t[0x400 + 1191].main # big circle piece 3rd row
+            t[897 + 0x300].main = t[0x400 + 1192].main # big circle piece 3rd row
+            t[900 + 0x300].main = t[0x400 + 1195].main # big circle piece 3rd row
+            t[901 + 0x300].main = t[0x400 + 1316].main # medium circle piece 3rd row
+            t[902 + 0x300].main = t[0x400 + 1317].main # medium circle piece 3rd row
+            t[903 + 0x300].main = t[0x400 + 1318].main # medium circle piece 3rd row
 
-            t[912].main = t[1255].main # big circle piece 4th row
-            t[913].main = t[1256].main # big circle piece 4th row
-            t[916].main = t[1259].main # big circle piece 4th row
+            t[912 + 0x300].main = t[0x400 + 1255].main # big circle piece 4th row
+            t[913 + 0x300].main = t[0x400 + 1256].main # big circle piece 4th row
+            t[916 + 0x300].main = t[0x400 + 1259].main # big circle piece 4th row
 
-            t[929].main = t[1320].main # big circle piece 5th row
-            t[930].main = t[1321].main # big circle piece 5th row
-            t[931].main = t[1322].main # big circle piece 5th row
-            t[932].main = t[1323].main # big circle piece 5th row
+            t[929 + 0x300].main = t[0x400 + 1320].main # big circle piece 5th row
+            t[930 + 0x300].main = t[0x400 + 1321].main # big circle piece 5th row
+            t[931 + 0x300].main = t[0x400 + 1322].main # big circle piece 5th row
+            t[932 + 0x300].main = t[0x400 + 1323].main # big circle piece 5th row
 
-        elif name == 'Pa3_MG_house_ami_rail':
+        elif CurrentGame == NewSuperMarioBrosWii and name == 'Pa3_MG_house_ami_rail':
             t = Tiles
 
-            t[832].main = t[1088].main # horizontal line
-            t[833].main = t[1090].main # bottomright corner
-            t[834].main = t[1088].main # horizontal line
+            t[832 + 0x300].main = t[0x400 + 1088].main # horizontal line
+            t[833 + 0x300].main = t[0x400 + 1090].main # bottom-right corner
+            t[834 + 0x300].main = t[0x400 + 1088].main # horizontal line
 
-            t[848].main = t[1089].main # vertical line
-            t[849].main = t[1089].main # vertical line
-            t[850].main = t[1091].main # topleft corner
+            t[848 + 0x300].main = t[0x400 + 1089].main # vertical line
+            t[849 + 0x300].main = t[0x400 + 1089].main # vertical line
+            t[850 + 0x300].main = t[0x400 + 1091].main # top-left corner
 
-            t[835].main = t[1152].main # left red blob (part 1)
-            t[836].main = t[1153].main # top red blob (part 1)
-            t[837].main = t[1154].main # top red blob (part 2)
-            t[838].main = t[1155].main # right red blob (part 1)
+            t[835 + 0x300].main = t[0x400 + 1152].main # left red blob (part 1)
+            t[836 + 0x300].main = t[0x400 + 1153].main # top red blob (part 1)
+            t[837 + 0x300].main = t[0x400 + 1154].main # top red blob (part 2)
+            t[838 + 0x300].main = t[0x400 + 1155].main # right red blob (part 1)
 
-            t[851].main = t[1216].main # left red blob (part 2)
-            t[852].main = t[1217].main # bottom red blob (part 1)
-            t[853].main = t[1218].main # bottom red blob (part 2)
-            t[854].main = t[1219].main # right red blob (part 2)
+            t[851 + 0x300].main = t[0x400 + 1216].main # left red blob (part 2)
+            t[852 + 0x300].main = t[0x400 + 1217].main # bottom red blob (part 1)
+            t[853 + 0x300].main = t[0x400 + 1218].main # bottom red blob (part 2)
+            t[854 + 0x300].main = t[0x400 + 1219].main # right red blob (part 2)
 
-            t[866].main = t[1065].main # big circle piece 1st row
-            t[867].main = t[1066].main # big circle piece 1st row
-            t[870].main = t[1189].main # medium circle piece 1st row
-            t[871].main = t[1190].main # medium circle piece 1st row
+            t[866 + 0x300].main = t[0x400 + 1065].main # big circle piece 1st row
+            t[867 + 0x300].main = t[0x400 + 1066].main # big circle piece 1st row
+            t[870 + 0x300].main = t[0x400 + 1189].main # medium circle piece 1st row
+            t[871 + 0x300].main = t[0x400 + 1190].main # medium circle piece 1st row
 
-            t[881].main = t[1128].main # big circle piece 2nd row
-            t[882].main = t[1129].main # big circle piece 2nd row
-            t[883].main = t[1130].main # big circle piece 2nd row
-            t[884].main = t[1131].main # big circle piece 2nd row
-            t[885].main = t[1252].main # medium circle piece 2nd row
-            t[886].main = t[1253].main # medium circle piece 2nd row
-            t[887].main = t[1254].main # medium circle piece 2nd row
+            t[881 + 0x300].main = t[0x400 + 1128].main # big circle piece 2nd row
+            t[882 + 0x300].main = t[0x400 + 1129].main # big circle piece 2nd row
+            t[883 + 0x300].main = t[0x400 + 1130].main # big circle piece 2nd row
+            t[884 + 0x300].main = t[0x400 + 1131].main # big circle piece 2nd row
+            t[885 + 0x300].main = t[0x400 + 1252].main # medium circle piece 2nd row
+            t[886 + 0x300].main = t[0x400 + 1253].main # medium circle piece 2nd row
+            t[887 + 0x300].main = t[0x400 + 1254].main # medium circle piece 2nd row
 
-            t[896].main = t[1191].main # big circle piece 3rd row
-            t[897].main = t[1192].main # big circle piece 3rd row
-            t[900].main = t[1195].main # big circle piece 3rd row
-            t[901].main = t[1316].main # medium circle piece 3rd row
-            t[902].main = t[1317].main # medium circle piece 3rd row
-            t[903].main = t[1318].main # medium circle piece 3rd row
+            t[896 + 0x300].main = t[0x400 + 1191].main # big circle piece 3rd row
+            t[897 + 0x300].main = t[0x400 + 1192].main # big circle piece 3rd row
+            t[900 + 0x300].main = t[0x400 + 1195].main # big circle piece 3rd row
+            t[901 + 0x300].main = t[0x400 + 1316].main # medium circle piece 3rd row
+            t[902 + 0x300].main = t[0x400 + 1317].main # medium circle piece 3rd row
+            t[903 + 0x300].main = t[0x400 + 1318].main # medium circle piece 3rd row
 
-            t[912].main = t[1255].main # big circle piece 4th row
-            t[913].main = t[1256].main # big circle piece 4th row
-            t[916].main = t[1259].main # big circle piece 4th row
+            t[912 + 0x300].main = t[0x400 + 1255].main # big circle piece 4th row
+            t[913 + 0x300].main = t[0x400 + 1256].main # big circle piece 4th row
+            t[916 + 0x300].main = t[0x400 + 1259].main # big circle piece 4th row
 
-            t[929].main = t[1320].main # big circle piece 5th row
-            t[930].main = t[1321].main # big circle piece 5th row
-            t[931].main = t[1322].main # big circle piece 5th row
-            t[932].main = t[1323].main # big circle piece 5th row
+            t[929 + 0x300].main = t[0x400 + 1320].main # big circle piece 5th row
+            t[930 + 0x300].main = t[0x400 + 1321].main # big circle piece 5th row
+            t[931 + 0x300].main = t[0x400 + 1322].main # big circle piece 5th row
+            t[932 + 0x300].main = t[0x400 + 1323].main # big circle piece 5th row
     except Exception:
         # Fail silently
         pass
@@ -2344,9 +2568,9 @@ def LoadOverrides():
     Load overrides
     """
     global Overrides
-    Overrides = [None]*320
+    Overrides = [None] * 384
 
-    OverrideBitmap = QtGui.QPixmap('reggiedata/overrides.png')
+    OverrideBitmap = QtGui.QPixmap(os.path.join(GameDataFolders[CurrentGame], 'overrides.png'))
     idx = 0
     xcount = OverrideBitmap.width() // 24
     ycount = OverrideBitmap.height() // 24
@@ -2388,6 +2612,7 @@ def SetAppStyle():
     app.setStyle(style)
 
 
+CurrentGame = None
 Area = None
 Dirty = False
 DirtyOverride = 0
@@ -2411,6 +2636,7 @@ SpritesFrozen = False
 EntrancesFrozen = False
 LocationsFrozen = False
 PathsFrozen = False
+ProgressPathsFrozen = False
 CommentsFrozen = False
 PaintingEntrance = None
 PaintingEntranceListIndex = None
@@ -2418,7 +2644,9 @@ NumberFont = None
 GridType = None
 RestoredFromAutoSave = False
 AutoSavePath = ''
-AutoSaveData = ''
+AutoSaveData = b''
+AutoOpenScriptEnabled = False
+CurrentLevelNameForAutoOpenScript = None
 
 def createHorzLine():
     f = QtWidgets.QFrame()
@@ -2688,62 +2916,74 @@ class Metadata():
         return data
 
 
-class LevelUnit():
+class AbstractLevel():
     """
-    Class for a full NSMBWii level archive
+    Class for an abstract level from any game. Defines the API.
     """
-    def newLevel(self):
-        self.arcname = None
-        self.filename = 'untitled'
-        self.hasName = False
-        arc = archive.U8()
-        arc['course'] = None
-        arc['course/course1.bin'] = ''
-        
-        self.areas = []
-        self.areas.append(AreaUnit())
-        self.areas[0].newArea()
+    def __init__(self):
+        """
+        Initializes the level with default settings
+        """
+        self.filepath = None
+        self.name = 'untitled'
 
-    def loadLevel(self, name, fullpath, areaToLoad):
+        self.areas = []
+
+    def load(self, data, areaNum):
         """
-        Loads a specific level and area
+        Loads a level from bytes data. You MUST reimplement this in subclasses!
         """
+        pass
+
+    def save(self):
+        """
+        Returns the level as a bytes object. You MUST reimplement this in subclasses!
+        """
+        return b''
+
+    def addArea(self):
+        """
+        Adds an area to the level, and returns it.
+        """
+        new = AbstractArea()
+        self.areas.append(new)
+
+        return new
+
+    def deleteArea(self, number):
+        """
+        Removes the area specified. Number is a 1-based value, not 0-based;
+        so you would pass a 1 if you wanted to delete the first area.
+        """
+        del self.areas[number - 1]
+        return True
+
+
+class Level_NSMBW(AbstractLevel):
+    """
+    Class for a level from New Super Mario Bros. Wii
+    """
+    def __init__(self):
+        """
+        Initializes the level with default settings
+        """
+        super().__init__()
+        self.areas.append(Area_NSMBW())
+
+    def load(self, data, areaToLoad):
+        """
+        Loads a NSMBW level from bytes data.
+        """
+        super().load(data, areaToLoad)
+
         global Area
 
-        startTime = time.clock()
+        arc = archive.U8.load(data)
 
-        # read the archive
-        if fullpath:
-            self.arcname = name
-        else:
-            self.arcname = os.path.join(gamedef.GetGamePath(), name+'.arc')
-
-        if name == 'AUTO_FLAG':
-            if AutoSavePath == 'None':
-                self.arcname = None
-                self.filename = trans.string('WindowTitle', 0)
-                self.hasName = False
-            else:
-                self.arcname = AutoSavePath
-                self.filename = os.path.basename(self.arcname)
-                self.hasName = True
-
-            arcdata = bytes(AutoSaveData)
-            SetDirty(noautosave=True)
-        else:
-            if not os.path.isfile(self.arcname):
-                QtWidgets.QMessageBox.warning(None, trans.string('Error_MissingLevel', 0), trans.string('Error_MissingLevel', 1, '[file]', name))
-                return False
-
-            self.filename = os.path.basename(self.arcname)
-            self.hasName = True
-
-            with open(self.arcname, 'rb') as fileobj:
-                arcdata = fileobj.read()
-            if LHTool.isLHCompressed(arcdata):
-                arcdata = LHTool.decompressLH(arcdata)
-
-        arc = archive.U8.load(arcdata)
+        try:
+            courseFolder = arc['course']
+        except:
+            return False
 
         # Sort the area data
         areaData = {}
@@ -2785,30 +3025,21 @@ class LevelUnit():
             L2 = areaData[thisArea][3]
 
             if thisArea == areaToLoad:
-                newarea = AreaUnit()
+                newarea = Area_NSMBW()
                 Area = newarea
                 SLib.Area = Area
                 SLib.MapPositionToZoneID = MapPositionToZoneID
             else:
-                newarea = FakeAreaUnit()
+                newarea = AbstractArea()
 
             newarea.areanum = thisArea
-            newarea.loadArea(course, L0, L1, L2)
+            newarea.load(course, L0, L1, L2)
             self.areas.append(newarea)
 
             thisArea += 1
 
-        endTime = time.clock()
-        total = endTime - startTime
-
         return True
 
-    def setAreaGlobal(self, num):
-        """
-        Sets the global Area variable to the area number specified here
-        """
-        global Area
-        Area = self.areas[num - 1]
 
     def save(self):
         """
@@ -2823,7 +3054,7 @@ class LevelUnit():
 
         # Go through the areas, save them and add them back to the archive
         for areanum, area in enumerate(self.areas):
-            course, L0, L1, L2 = area.saveArea()
+            course, L0, L1, L2 = area.save()
 
             if course is not None:
                 newArchive['course/course%d.bin' % (areanum+1)] = course
@@ -2838,140 +3069,233 @@ class LevelUnit():
         return newArchive._dump()
 
 
-    def addArea(self, course=None, L0=None, L1=None, L2=None):
+    def addArea(self):
         """
-        Adds an area
+        Adds an area to the level, and returns it.
         """
-        if course is None:
-            getit = open('reggiedata/blankcourse.bin', 'rb')
-            course = getit.read()
-            getit.close()
-        newArea = FakeAreaUnit()
-        newArea.loadArea(course, L0, L1, L2)
-        self.areas.append(newArea)
+        new = Area_NSMBW()
+        self.areas.append(new)
+
+        return new
+
+
+class Level_NSMB2(AbstractLevel):
+    """
+    Class for a level from New Super Mario Bros. 2
+    """
+    def __init__(self):
+        """
+        Initializes the level with default settings
+        """
+        super().__init__()
+        self.areas.append(Area_NSMB2())
+
+    def load(self, data, areaNum):
+        """
+        Loads a NSMB2 level from bytes data.
+        """
+        super().load(data, areaNum)
+
+        global Area
+
+        arc = SarcLib.SARC_Archive()
+        arc.load(data)
+
+        try:
+            courseFolder = arc['course']
+        except:
+            return False
+
+        # Sort the area data
+        areaData = {}
+        for file in courseFolder.contents:
+            name, val = file.name, file.data
+
+            if val is None: continue
+
+            if not name.startswith('course'): continue
+            if not name.endswith('.bin'): continue
+            if '_bgdatL' in name:
+                # It's a layer file
+                if len(name) != 19: continue
+                try:
+                    thisArea = int(name[6])
+                    laynum = int(name[14])
+                except ValueError: continue
+                if not (0 < thisArea < 5): continue
+
+                if thisArea not in areaData: areaData[thisArea] = [None] * 4
+                areaData[thisArea][laynum + 1] = val
+            else:
+                # It's the course file
+                if len(name) != 11: continue
+                try:
+                    thisArea = int(name[6])
+                except ValueError: continue
+                if not (0 < thisArea < 5): continue
+
+                if thisArea not in areaData: areaData[thisArea] = [None] * 4
+                areaData[thisArea][0] = val
+
+        # Create area objects
+        self.areas = []
+        thisArea = 1
+        while thisArea in areaData:
+            course = areaData[thisArea][0]
+            L0 = areaData[thisArea][1]
+            L1 = areaData[thisArea][2]
+            L2 = areaData[thisArea][3]
+
+            if thisArea == areaNum:
+                newarea = Area_NSMB2()
+                Area = newarea
+                SLib.Area = Area
+            else:
+                newarea = AbstractArea()
+
+            newarea.areanum = thisArea
+            newarea.load(course, L0, L1, L2)
+            self.areas.append(newarea)
+
+            thisArea += 1
+
         return True
 
-    def deleteArea(self, number):
+    def save(self):
         """
-        Removes the area specified by number
+        Save the level back to a file
         """
-        del self.areas[number-1]
-        return True
+
+        # Make a new archive
+        newArchive = SarcLib.SARC_Archive()
+
+        # Create a folder within the archive
+        courseFolder = SarcLib.Folder('course')
+        newArchive.addFolder(courseFolder)
+
+        # Go through the areas, save them and add them back to the archive
+        for areanum, area in enumerate(self.areas):
+            course, L0, L1, L2 = area.save()
+
+            if course is not None:
+                courseFolder.addFile(SarcLib.File('course%d.bin' % (areanum + 1), course))
+            if L0 is not None:
+                courseFolder.addFile(SarcLib.File('course%d_bgdatL0.bin' % (areanum + 1), L0))
+            if L1 is not None:
+                courseFolder.addFile(SarcLib.File('course%d_bgdatL1.bin' % (areanum + 1), L1))
+            if L2 is not None:
+                courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (areanum + 1), L2))
+
+        # return the sarc archive data
+        return newArchive.save()
 
 
-class FakeAreaUnit():
+    def addArea(self):
+        """
+        Adds an area to the level, and returns it.
+        """
+        new = Area_NSMB2()
+        self.areas.append(new)
+
+        return new
+
+
+class AbstractArea():
     """
-    Class that simulates AreaUnit but doesn't actually load anything
+    An extremely basic abstract area. Implements the basic function API.
     """
-    def newArea(self):
+    def __init__(self):
+        self.areanum = 1
         self.course = None
         self.L0 = None
         self.L1 = None
         self.L2 = None
-    def loadArea(self, course, L0, L1, L2):
+
+    def load(self, course, L0, L1, L2):
         self.course = course
         self.L0 = L0
         self.L1 = L1
         self.L2 = L2
-    def saveArea(self):
+
+    def save(self):
         return (self.course, self.L0, self.L1, self.L2)
 
 
-class AreaUnit():
+class AbstractParsedArea(AbstractArea):
     """
-    Class for a NSMBWii level area
+    An area that is parsed to load sprites, entrances, etc. Still abstracted among games.
+    Don't instantiate this! It could blow up becuase many of the functions are only defined
+    within subclasses. If you want an area object, use a game-specific subclass.
     """
-    def newArea(self):
+    def __init__(self):
         """
         Creates a completely new area
         """
+
+        # Default area number
         self.areanum = 1
-        self.course, self.L0, self.L1, self.L2 = [None] * 4
 
-        mainWindow.levelOverview.maxX = 100
-        mainWindow.levelOverview.maxY = 40
-
-        # we don't parse blocks 4, 11, 12, 13, 14
-        # we can create the rest manually
-        self.blocks = [None] * 14
-        self.blocks[3] = b'\0\0\0\0\0\0\0\0'
-        # other known values for block 4: 0000 0002 0042 0000,
-        #            0000 0002 0002 0000, 0000 0003 0003 0000
-        self.blocks[11] = '' # never used
-        self.blocks[12] = '' # paths
-        self.blocks[13] = '' # path points
-
-        # prepare all data
-        self.tileset0 = 'Pa0_jyotyu'
-        self.tileset1 = 'Pa1_nohara'
-        self.tileset2 = ''
-        self.tileset3 = ''
-
+        # Settings
         self.defEvents = 0
+        self.wrapFlag = 0
         self.timeLimit = 300
+        self.unk1 = 0
         self.startEntrance = 0
-        self.toadHouseType = 0
-        self.wrapFlag = False
-        self.creditsFlag = False
-        self.ambushFlag = False
-        self.unkFlag1 = False
-        self.unkFlag2 = True
-        self.unkVal1 = 0
-        self.unkVal2 = 0
+        self.unk2 = 0
+        self.unk3 = 0
 
+        # Lists of things
         self.entrances = []
         self.sprites = []
         self.zones = []
         self.locations = []
         self.pathdata = []
         self.paths = []
+        self.progpathdata = []
+        self.progpaths = []
         self.comments = []
         self.layers = [[], [], []]
 
+        # Metadata
         self.LoadReggieInfo(None)
 
+        # Load tilesets
         CreateTilesets()
-        LoadTileset(0, 'Pa0_jyotyu')
-        LoadTileset(1, 'Pa1_nohara')
+        LoadTileset(0, self.tileset0)
+        LoadTileset(1, self.tileset1)
 
 
-    def loadArea(self, course, L0, L1, L2):
+    def load(self, course, L0, L1, L2):
         """
         Loads an area from the archive files
         """
 
-        # load in the course file and blocks
-        self.blocks = [None]*14
-        getblock = struct.Struct('>II')
-        for i in range(14):
-            data = getblock.unpack_from(course, i*8)
-            if data[1] == 0:
-                self.blocks[i] = b''
-            else:
-                self.blocks[i] = course[data[0]:data[0]+data[1]]
+        # Load in the course file and blocks
+        self.LoadBlocks(course)
 
-        # load stuff from individual blocks
-        self.LoadMetadata() # block 1
+        # Load stuff from individual blocks
+        self.LoadTilesetNames() # block 1
         self.LoadOptions() # block 2
         self.LoadEntrances() # block 7
         self.LoadSprites() # block 8
         self.LoadZones() # block 10 (also blocks 3, 5, and 6)
         self.LoadLocations() # block 11
         self.LoadPaths() # block 12 and 13
+        self.LoadProgPaths() # block 16 and 17
 
-        # load the editor metadata
-        block1pos = getblock.unpack_from(course, 0)
-        if block1pos[0] != 0x70:
-            rdsize = block1pos[0] - 0x70
-            rddata = course[0x70:block1pos[0]]
+        # Load the editor metadata
+        if self.block1pos[0] != 0x70:
+            rdsize = self.block1pos[0] - 0x70
+            rddata = course[0x70:self.block1pos[0]]
             self.LoadReggieInfo(rddata)
         else:
             self.LoadReggieInfo(None)
+        del self.block1pos
 
         # Now, load the comments
         self.LoadComments()
 
-        # load the tilesets
+        # Load the tilesets
         app.splashScreen.setProgress(trans.string('Splash', 3), 1)
 
         CreateTilesets()
@@ -2984,40 +3308,56 @@ class AreaUnit():
         app.splashScreen.setProgress(trans.string('Splash', 3), 5)
         if self.tileset3 != '': LoadTileset(3, self.tileset3)
 
-        # load the object layers
+        # Load the object layers
         app.splashScreen.setProgress(trans.string('Splash', 1), 6)
 
         self.layers = [[], [], []]
 
         if L0 is not None:
             self.LoadLayer(0, L0)
-
         if L1 is not None:
             self.LoadLayer(1, L1)
-
         if L2 is not None:
             self.LoadLayer(2, L2)
 
+        # Delete self.blocks
+        #del self.blocks
+
         return True
 
-    def saveArea(self):
+    def save(self):
         """
         Save the area back to a file
         """
-        # prepare this because otherwise the game refuses to load some sprites
+        # Prepare this first because otherwise the game refuses to load some sprites
         self.SortSpritesByZone()
 
-        # save each block first
-        success = True
-        self.SaveMetadata() # block 1
-        self.SaveOptions() # block 2
-        self.SaveEntrances() # block 7
+        # We don't parse blocks 4, 11, 12, 13, 14.
+        # We can create the rest manually.
+        #self.blocks = [None] * 17
+        self.blocks[3] = b'\0\0\0\0\0\0\0\0'
+        # Other known values for block 4 in NSMBW: 0000 0002 0042 0000,
+        #                     0000 0002 0002 0000, 0000 0003 0003 0000
+        self.blocks[5] = b'\0\0\xFF\xFF\xFF\xFF\0\0\0\0\0\0\0\0\0\0\0\0\0\0' # always this
+        self.blocks[11] = b'' # never used
+        self.blocks[12] = b'' # never used
+        #self.blocks[13] = b'' # paths
+        #self.blocks[14] = b'' # path nodes
+        #self.blocks[15] = b'' # progress paths
+        #self.blocks[16] = b'' # progress path nodes
+
+        # Save each block
+        self.SaveTilesetNames() # block 1
+        #self.SaveOptions() # block 2
+        #self.SaveEntrances() # block 7
         self.SaveSprites() # block 8
         self.SaveLoadedSprites() # block 9
-        self.SaveZones() # block 10 (and 3, 5 and 6)
+        #self.SaveZones() # block 10 (and 3, 5 and 6)
         self.SaveLocations() # block 11
-        self.SavePaths()
+        #self.SavePaths() # blocks 14 and 15
+        self.SaveProgPaths() # blocks 16 and 17
 
+        # Save the metadata
         rdata = bytearray(self.Metadata.save())
         if len(rdata) % 4 != 0:
            for i in range(4 - (len(rdata) % 4)):
@@ -3029,16 +3369,16 @@ class AreaUnit():
         # Using bytearray here because it offers mutable bytes
         # and works directly with struct.pack_into(), so it's a
         # win-win situation
-        FileLength = (14 * 8) + len(rdata)
+        FileLength = (len(self.blocks) * 8) + len(rdata)
         for block in self.blocks:
             FileLength += len(block)
 
         course = bytearray()
         for i in range(FileLength): course.append(0)
-        saveblock = struct.Struct('>II')
+        saveblock = struct.Struct('<II')
 
         HeaderOffset = 0
-        FileOffset = (14 * 8) + len(rdata)
+        FileOffset = (len(self.blocks) * 8) + len(rdata)
         struct.pack_into('{0}s'.format(len(rdata)), course, 0x70, rdata)
         for block in self.blocks:
             blocksize = len(block)
@@ -3048,7 +3388,7 @@ class AreaUnit():
             HeaderOffset += 8
             FileOffset += blocksize
 
-        # return stuff
+        # Return stuff
         return (
             bytes(course),
             self.SaveLayer(0),
@@ -3057,7 +3397,642 @@ class AreaUnit():
             )
 
 
-    def LoadMetadata(self):
+    def RemoveFromLayer(self, obj):
+        """
+        Removes a specific object from the level and updates Z-indices accordingly
+        """
+        layer = self.layers[obj.layer]
+        idx = layer.index(obj)
+        del layer[idx]
+        for i in range(idx,len(layer)):
+            upd = layer[i]
+            upd.setZValue(upd.zValue() - 1)
+
+    def SortSpritesByZone(self):
+        """
+        Sorts the sprite list by zone ID so it will work in-game
+        """
+
+        split = {}
+        zones = []
+
+        f_MapPositionToZoneID = MapPositionToZoneID
+        zonelist = self.zones
+
+        for sprite in self.sprites:
+            zone = f_MapPositionToZoneID(zonelist, sprite.objx, sprite.objy)
+            sprite.zoneID = zone
+            if not zone in split:
+                split[zone] = []
+                zones.append(zone)
+            split[zone].append(sprite)
+
+        newlist = []
+        zones.sort()
+        for z in zones:
+            newlist += split[z]
+
+        self.sprites = newlist
+
+
+    def LoadReggieInfo(self, data):
+        if (data is None) or (len(data) == 0):
+            self.Metadata = Metadata()
+            return
+
+        try: self.Metadata = Metadata(data)
+        except Exception: self.Metadata = Metadata() # fallback
+
+
+class Area_NSMB2(AbstractParsedArea):
+    """
+    Class for a parsed NSMB2 level area
+    """
+    def __init__(self):
+        """
+        Creates a completely new NSMB2 area
+        """
+        # Default tileset names for NSMB2
+        self.tileset0 = 'J_Kihon'
+        self.tileset1 = 'M_Nohara_Onpu'
+        self.tileset2 = ''
+        self.tileset3 = ''
+
+        super().__init__()
+
+    def LoadBlocks(self, course):
+        """
+        Loads self.blocks from the course file
+        """
+        self.blocks = [None] * 17
+        getblock = struct.Struct('<II')
+        for i in range(17):
+            data = getblock.unpack_from(course, i * 8)
+            if data[1] == 0:
+                self.blocks[i] = b''
+            else:
+                self.blocks[i] = course[data[0]:data[0] + data[1]]
+
+        self.block1pos = getblock.unpack_from(course, 0)
+
+
+    def LoadTilesetNames(self):
+        """
+        Loads block 1, the tileset names
+        """
+        data = struct.unpack_from('32s32s32s32s', self.blocks[0])
+        self.tileset0 = data[0].strip(b'\0').decode('latin-1')
+        self.tileset1 = data[1].strip(b'\0').decode('latin-1')
+        self.tileset2 = data[2].strip(b'\0').decode('latin-1')
+        self.tileset3 = data[3].strip(b'\0').decode('latin-1')
+
+
+    def LoadOptions(self):
+        """
+        Loads block 2, the general options
+        """
+        optdata = self.blocks[1]
+        optstruct = struct.Struct('<IxxxxHhLBBBx')
+        offset = 0
+        data = optstruct.unpack_from(optdata,offset)
+        self.defEvents, self.wrapFlag, self.timeLimit, self.unk1, self.startEntrance, self.unk2, self.unk3 = data
+
+
+    def LoadEntrances(self):
+        """
+        Loads block 7, the entrances
+        """
+        entdata = self.blocks[6]
+        entcount = len(entdata) // 24
+        entstruct = struct.Struct('<HHxxxxBBBBxBBBHxB')
+        offset = 0
+        entrances = []
+        for i in range(entcount):
+            data = entstruct.unpack_from(entdata,offset)
+            #def __init__(self, x, y, id, destarea, destentrance, type, zone, layer, path, settings, cpd):
+            entrances.append(EntranceItem(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10]))
+            offset += 24
+        self.entrances = entrances
+
+
+    def LoadSprites(self):
+        """
+        Loads block 8, the sprites
+        """
+        spritedata = self.blocks[7]
+        sprcount = len(spritedata) // 24
+        sprstruct = struct.Struct('<HHH10sxx2sxxxx')
+        offset = 0
+        sprites = []
+
+        unpack = sprstruct.unpack_from
+        append = sprites.append
+        obj = SpriteItem
+        for i in range(sprcount):
+            data = unpack(spritedata, offset)
+            append(obj(data[0], data[1], data[2], data[3] + data[4]))
+            offset += 24
+        self.sprites = sprites
+
+
+    def LoadZones(self):
+        """
+        Loads blocks 3, 5, 6 and 10 - the bounding, background and zone data
+        """
+
+        # Block 3 - bounding data
+        bdngdata = self.blocks[2]
+        count = len(bdngdata) // 28
+        bdngstruct = struct.Struct('<llllHHxxxxxxxx')
+        offset = 0
+        bounding = []
+        for i in range(count):
+            datab = bdngstruct.unpack_from(bdngdata,offset)
+            bounding.append([datab[0], datab[1], datab[2], datab[3], datab[4], datab[5]])
+            offset += 28
+        self.bounding = bounding
+
+        # Block 5 - Bg data
+        bgData = self.blocks[4]
+        bgCount = len(bgData) // 28
+        offset = 0
+        bg = {}
+        for i in range(bgCount):
+            newBg = Background_NSMB2()
+            bgId = newBg.loadFrom(bgData[offset:offset + 28])
+            bg[bgId] = newBg
+            offset += 28
+        self.bg = bg
+
+        # Block 10 - zone data
+        zonedata = self.blocks[9]
+        zonestruct = struct.Struct('<hhhhHxxBBxxxxxxBBBxBxxx')
+        count = len(zonedata) // 28
+        offset = 0
+        zones = []
+        for i in range(count):
+            dataz = zonestruct.unpack_from(zonedata, offset)
+
+            # Find the proper bounding
+            boundObj = None
+            id = dataz[6]
+            for checkb in self.bounding:
+                if checkb[4] == id: boundObj = checkb
+
+            # Find the proper bg
+            bgObj = None
+            if dataz[10] in bg:
+                bgObj = bg[dataz[10]]
+
+            zones.append(ZoneItem(dataz[0], dataz[1], dataz[2], dataz[3], dataz[4], dataz[5], dataz[6], dataz[7], dataz[8], dataz[9], dataz[10], None, None, None, None, None, boundObj, bgObj, None, i))
+            offset += 28
+        self.zones = zones
+
+
+    def LoadLocations(self):
+        """
+        Loads block 11, the locations
+        """
+        locdata = self.blocks[10]
+        locstruct = struct.Struct('<HHHHBxxx')
+        count = len(locdata) // 12
+        offset = 0
+        locations = []
+        for i in range(count):
+            data = locstruct.unpack_from(locdata, offset)
+            locations.append(LocationItem(data[0], data[1], data[2], data[3], data[4]))
+            offset += 12
+        self.locations = locations
+
+
+    def LoadLayer(self, idx, layerdata):
+        """
+        Loads a specific object layer from a bytes object
+        """
+        if idx == 0: return
+        objcount = len(layerdata) // 16
+        objstruct = struct.Struct('<HhhHH')
+        offset = 0
+        z = (2 - idx) * 8192
+
+        layer = self.layers[idx]
+        append = layer.append
+        unpack = objstruct.unpack_from
+        for i in range(objcount):
+            data = unpack(layerdata, offset)
+            x, y = data[1], data[2]
+            append(ObjectItem(data[0] >> 12, data[0] & 4095, idx, x, y, data[3], data[4], z))
+            z += 1
+            offset += 16
+
+
+    def LoadPaths(self):
+        """
+        Loads block 12, the paths
+        """
+        # Path struct: <BxHHH
+        pathdata = self.blocks[13]
+        pathcount = len(pathdata) // 12
+        pathstruct = struct.Struct('<BxHHH')
+        offset = 0
+        unpack = pathstruct.unpack_from
+        pathinfo = []
+        paths = []
+        for i in range(pathcount):
+            data = unpack(pathdata, offset)
+            nodes = self.LoadPathNodes(data[1], data[2])
+            add2p = {'id': int(data[0]),
+                     'nodes': [],
+                     'loops': data[3] == 2,
+                     }
+            for node in nodes:
+                add2p['nodes'].append(node)
+            pathinfo.append(add2p)
+
+
+            offset += 12
+
+        for i in range(pathcount):
+            xpi = pathinfo[i]
+            for j, xpj in enumerate(xpi['nodes']):
+                paths.append(PathItem(xpj['x'], xpj['y'], xpi, xpj))
+
+
+        self.pathdata = pathinfo
+        self.paths = paths
+
+
+    def LoadPathNodes(self, startindex, count):
+        """
+        Loads block 13, the path nodes
+        """
+        # PathNode struct: <HHffhxx
+        ret = []
+        nodedata = self.blocks[14]
+        nodestruct = struct.Struct('<HHffhxx')
+        offset = startindex * 20
+        unpack = nodestruct.unpack_from
+        for i in range(count):
+            data = unpack(nodedata, offset)
+            ret.append({'x': int(data[0]),
+                        'y': int(data[1]),
+                        'speed': float(data[2]),
+                        'accel': float(data[3]),
+                        'delay': int(data[4]),
+                        #'id' : i
+            })
+            offset += 20
+        return ret
+
+    def LoadProgPaths(self):
+        """
+        Loads block 16, the progress paths
+        """
+        # Progress path struct: <HHHxxx?xx
+        progpathdata = self.blocks[15]
+        progpathcount = len(progpathdata) // 12
+        progpathstruct = struct.Struct('<HHHxxx?xx')
+        offset = 0
+        unpack = progpathstruct.unpack_from
+        progpathinfo = []
+        progpaths = []
+        for i in range(progpathcount):
+            data = unpack(progpathdata, offset)
+            nodes = self.LoadProgPathNodes(data[1], data[2])
+            add2p = {'id': data[0],
+                     'nodes': [],
+                     'altpath': data[3],
+                     }
+            for node in nodes:
+                add2p['nodes'].append(node)
+            progpathinfo.append(add2p)
+
+            offset += 12
+
+        for i in range(progpathcount):
+            xpi = progpathinfo[i]
+            for j, xpj in enumerate(xpi['nodes']):
+                progpaths.append(ProgressPathItem(xpj['x'], xpj['y'], xpi, xpj))
+
+
+        self.progpathdata = progpathinfo
+        self.progpaths = progpaths
+
+
+    def LoadProgPathNodes(self, startindex, count):
+        """
+        Loads block 17, the progress path nodes
+        """
+
+        ret = []
+        nodedata = self.blocks[16]
+        nodestruct = struct.Struct('<hh16x')
+        offset = startindex * 20
+        unpack = nodestruct.unpack_from
+        for i in range(count):
+            data = unpack(nodedata, offset)
+            ret.append({'x': int(data[0]),
+                        'y': int(data[1]),
+            })
+            offset += 20
+        return ret
+
+
+    def LoadComments(self):
+        """
+        Loads the comments from self.Metadata
+        """
+        self.comments = []
+        b = self.Metadata.binData('InLevelComments_A%d' % self.areanum)
+        if b is None: return
+        idx = 0
+        while idx < len(b):
+            xpos  = b[idx]   << 24
+            xpos |= b[idx+1] << 16
+            xpos |= b[idx+2] << 8
+            xpos |= b[idx+3]
+            idx += 4
+            ypos  = b[idx]   << 24
+            ypos |= b[idx+1] << 16
+            ypos |= b[idx+2] << 8
+            ypos |= b[idx+3]
+            idx += 4
+            tlen  = b[idx]   << 24
+            tlen |= b[idx+1] << 16
+            tlen |= b[idx+2] << 8
+            tlen |= b[idx+3]
+            idx += 4
+            s = ''
+            for char in range(tlen):
+                s += chr(b[idx])
+                idx += 1
+
+            com = CommentItem(xpos, ypos, s)
+            com.listitem = QtWidgets.QListWidgetItem()
+
+            self.comments.append(com)
+
+            com.UpdateListItem()
+
+
+    def SaveTilesetNames(self):
+        """
+        Saves the tileset names back to block 1
+        """
+        self.blocks[0] = ''.join([self.tileset0.ljust(32, '\0'), self.tileset1.ljust(32, '\0'), self.tileset2.ljust(32, '\0'), self.tileset3.ljust(32, '\0')]).encode('latin-1')
+
+
+    def SaveOptions(self):
+        """
+        Saves block 2, the general options
+        """
+        optstruct = struct.Struct('<IxxxxHhLBBBx')
+        buffer = bytearray(20)
+        optstruct.pack_into(buffer, 0, self.defEvents, self.wrapFlag, self.timeLimit, self.unk1, self.startEntrance, self.unk2, self.unk3)
+        self.blocks[1] = bytes(buffer)
+
+
+    def SaveLayer(self, idx):
+        """
+        Saves an object layer to a bytes object
+        """
+        if idx == 0: return None
+
+        layer = self.layers[idx]
+        if not layer: return None
+
+        offset = 0
+        objstruct = struct.Struct('<HhhHH')
+        buffer = bytearray((len(layer) * 16) + 2)
+        f_int = int
+        for obj in layer:
+            objstruct.pack_into(buffer, offset, f_int((obj.tileset << 12) | obj.type), f_int(obj.objx), f_int(obj.objy), f_int(obj.width), f_int(obj.height))
+            offset += 16
+        buffer[offset] = 0xFF
+        buffer[offset + 1] = 0xFF
+        return bytes(buffer)
+
+
+    def SaveEntrances(self):
+        """
+        Saves the entrances back to block 7
+        """
+        offset = 0
+        entstruct = struct.Struct('<HHxxxxBBBBxBBBHxB')
+        buffer = bytearray(len(self.entrances) * 20)
+        zonelist = self.zones
+        for entrance in self.entrances:
+            zoneID = MapPositionToZoneID(zonelist, entrance.objx, entrance.objy)
+            entstruct.pack_into(buffer, offset, int(entrance.objx), int(entrance.objy), int(entrance.entid), int(entrance.destarea), int(entrance.destentrance), int(entrance.enttype), zoneID, int(entrance.entlayer), int(entrance.entpath), int(entrance.entsettings), int(entrance.cpdirection))
+            offset += 20
+        self.blocks[6] = bytes(buffer)
+
+
+    def SavePaths(self):
+        """
+        Saves the paths back to block 13
+        """
+        pathstruct = struct.Struct('<BxHHH')
+        nodecount = 0
+        for path in self.pathdata:
+            nodecount += len(path['nodes'])
+        nodebuffer = bytearray(nodecount * 20)
+        nodeoffset = 0
+        nodeindex = 0
+        offset = 0
+        buffer = bytearray(len(self.pathdata) * 12)
+        
+        for path in self.pathdata:
+            if(len(path['nodes']) < 1): continue
+            self.WritePathNodes(nodebuffer, nodeoffset, path['nodes'])
+
+            pathstruct.pack_into(buffer, offset, int(path['id']), int(nodeindex), int(len(path['nodes'])), 2 if path['loops'] else 0)
+            offset += 12
+            nodeoffset += len(path['nodes']) * 20
+            nodeindex += len(path['nodes'])
+
+        self.blocks[13] = bytes(buffer)
+        self.blocks[14] = bytes(nodebuffer)
+
+
+    def WritePathNodes(self, buffer, offst, nodes):
+        """
+        Writes the pathnode data to the block 14 bytearray
+        """
+        offset = int(offst)
+        
+        nodestruct = struct.Struct('<HHffhxxxxxx')
+        for node in nodes:
+            nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), float(node['speed']), float(node['accel']), int(node['delay']))
+            offset += 20
+
+
+    def SaveProgPaths(self):
+        """
+        Saves the progress paths back to block 16
+        """
+        pathstruct = struct.Struct('<HHHxxx?xx')
+        nodecount = 0
+        for path in self.progpathdata:
+            nodecount += len(path['nodes'])
+        nodebuffer = bytearray(nodecount * 20)
+        nodeoffset = 0
+        nodeindex = 0
+        offset = 0
+        buffer = bytearray(len(self.progpathdata) * 12)
+        
+        for path in self.progpathdata:
+            if(len(path['nodes']) < 1): continue
+            self.WriteProgPathNodes(nodebuffer, nodeoffset, path['nodes'])
+
+            pathstruct.pack_into(buffer, offset, int(path['id']), int(nodeindex), int(len(path['nodes'])), path['altpath'])
+            offset += 12
+            nodeoffset += len(path['nodes']) * 20
+            nodeindex += len(path['nodes'])
+
+        self.blocks[15] = bytes(buffer)
+        self.blocks[16] = bytes(nodebuffer)
+
+
+    def WriteProgPathNodes(self, buffer, offst, nodes):
+        """
+        Writes the progpathnode data to the block 17 bytearray
+        """
+        offset = int(offst)
+        
+        nodestruct = struct.Struct('<hh16x')
+        for node in nodes:
+            nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']))
+            offset += 20
+
+
+    def SaveSprites(self):
+        """
+        Saves the sprites back to block 8
+        """
+        offset = 0
+        sprstruct = struct.Struct('<HHH10sH2sxxxx')
+        buffer = bytearray((len(self.sprites) * 24) + 4)
+        f_int = int
+        for sprite in self.sprites:
+            try:
+                sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy), sprite.spritedata[:10], sprite.zoneID, sprite.spritedata[10:])
+            except struct.error:
+                # Hopefully this will solve the mysterious bug, and will
+                # soon no longer be necessary.
+                raise ValueError('SaveSprites struct.error. Current sprite data dump:\n' + \
+                    str(offset) + '\n' + \
+                    str(sprite.type) + '\n' + \
+                    str(sprite.objx) + '\n' + \
+                    str(sprite.objy) + '\n' + \
+                    str(sprite.spritedata[:6]) + '\n' + \
+                    str(sprite.zoneID) + '\n' + \
+                    str(bytes([sprite.spritedata[7],])) + '\n',
+                    )
+            offset += 24
+        buffer[offset] = 0xFF
+        buffer[offset + 1] = 0xFF
+        buffer[offset + 2] = 0xFF
+        buffer[offset + 3] = 0xFF
+        self.blocks[7] = bytes(buffer)
+
+
+    def SaveLoadedSprites(self):
+        """
+        Saves the list of loaded sprites back to block 9
+        """
+        ls = []
+        for sprite in self.sprites:
+            if sprite.type not in ls: ls.append(sprite.type)
+        ls.sort()
+
+        offset = 0
+        sprstruct = struct.Struct('<Hxx')
+        buffer = bytearray(len(ls) * 4)
+        for s in ls:
+            sprstruct.pack_into(buffer, offset, int(s))
+            offset += 4
+        self.blocks[8] = bytes(buffer)
+
+
+    def SaveZones(self):
+        """
+        Saves blocks 10, 3, 5 and 6, the zone data, boundings, bgA and bgB data respectively
+        """
+        bdngstruct = struct.Struct('<llllxBxBxxxx')
+        bgAstruct = struct.Struct('<xBhhhhHHHxxxBxxxx')
+        bgBstruct = struct.Struct('<xBhhhhHHHxxxBxxxx')
+        zonestruct = struct.Struct('<HHHHHHBBBBxBBBBxBB')
+        offset = 0
+        i = 0
+        zcount = len(Area.zones)
+        buffer2 = bytearray(24 * zcount)
+        buffer4 = bytearray(24 * zcount)
+        buffer5 = bytearray(24 * zcount)
+        buffer9 = bytearray(24 * zcount)
+        for z in Area.zones:
+            bdngstruct.pack_into(buffer2, offset, z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, i, 0xF)
+            bgAstruct.pack_into(buffer4, offset, i, z.XscrollA, z.YscrollA, z.YpositionA, z.XpositionA, z.bg1A, z.bg2A, z.bg3A, z.ZoomA)
+            bgBstruct.pack_into(buffer5, offset, i, z.XscrollB, z.YscrollB, z.YpositionB, z.XpositionB, z.bg1B, z.bg2B, z.bg3B, z.ZoomB)
+            zonestruct.pack_into(buffer9, offset, z.objx, z.objy, z.width, z.height, z.modeldark, z.terraindark, i, i, z.cammode, z.camzoom, z.visibility, i, i, z.camtrack, z.music, z.sfxmod)
+            offset += 24
+            i += 1
+
+        self.blocks[2] = bytes(buffer2)
+        self.blocks[4] = bytes(buffer4)
+        self.blocks[5] = bytes(buffer5)
+        self.blocks[9] = bytes(buffer9)
+
+
+    def SaveLocations(self):
+        """
+        Saves block 11, the location data
+        """
+        locstruct = struct.Struct('<HHHHBxxx')
+        offset = 0
+        zcount = len(Area.locations)
+        buffer = bytearray(12 * zcount)
+
+        for z in Area.locations:
+            locstruct.pack_into(buffer, offset, int(z.objx), int(z.objy), int(z.width), int(z.height), int(z.id))
+            offset += 12
+
+        self.blocks[10] = bytes(buffer)
+
+
+class Area_NSMBW(AbstractParsedArea):
+    """
+    Class for a parsed NSMBW level area
+    """
+    def __init__(self):
+        """
+        Creates a completely new NSMBW area
+        """
+        # Default tileset names for NSMBW
+        self.tileset0 = 'Pa0_jyotyu'
+        self.tileset1 = 'Pa1_nohara'
+        self.tileset2 = ''
+        self.tileset3 = ''
+
+        super().__init__()
+
+    def LoadBlocks(self, course):
+        """
+        Loads self.blocks from the course file
+        """
+        self.blocks = [None]*14
+        getblock = struct.Struct('>II')
+        for i in range(14):
+            data = getblock.unpack_from(course, i*8)
+            if data[1] == 0:
+                self.blocks[i] = b''
+            else:
+                self.blocks[i] = course[data[0]:data[0]+data[1]]
+
+        self.block1pos = getblock.unpack_from(course, 0)
+
+
+    def LoadTilesetNames(self):
         """
         Loads block 1, the tileset names
         """
@@ -3133,7 +4108,7 @@ class AreaUnit():
         offset = 0
         bounding = []
         for i in range(count):
-            datab = bdngstruct.unpack_from(bdngdata,offset)
+            datab = bdngstruct.unpack_from(bdngdata, offset)
             bounding.append([datab[0], datab[1], datab[2], datab[3], datab[4], datab[5]])
             offset += 24
         self.bounding = bounding
@@ -3147,7 +4122,7 @@ class AreaUnit():
         offset = 0
         bgA = []
         for i in range(bgAcount):
-            data = bgAstruct.unpack_from(bgAdata,offset)
+            data = bgAstruct.unpack_from(bgAdata, offset)
             bgA.append([data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]])
             offset += 24
         self.bgA = bgA
@@ -3161,7 +4136,7 @@ class AreaUnit():
         offset = 0
         bgB = []
         for i in range(bgBcount):
-            datab = bgBstruct.unpack_from(bgBdata,offset)
+            datab = bgBstruct.unpack_from(bgBdata, offset)
             bgB.append([datab[0], datab[1], datab[2], datab[3], datab[4], datab[5], datab[6], datab[7], datab[8]])
             offset += 24
         self.bgB = bgB
@@ -3175,8 +4150,15 @@ class AreaUnit():
         offset = 0
         zones = []
         for i in range(count):
-            dataz = zonestruct.unpack_from(zonedata,offset)
-            zones.append(ZoneItem(dataz[0], dataz[1], dataz[2], dataz[3], dataz[4], dataz[5], dataz[6], dataz[7], dataz[8], dataz[9], dataz[10], dataz[11], dataz[12], dataz[13], dataz[14], dataz[15], bounding, bgA, bgB, i))
+            dataz = zonestruct.unpack_from(zonedata, offset)
+
+            # Find the proper bounding
+            boundObj = None
+            id = dataz[7]
+            for checkb in self.bounding:
+                if checkb[4] == id: boundObj = checkb
+
+            zones.append(ZoneItem(dataz[0], dataz[1], dataz[2], dataz[3], dataz[4], dataz[5], dataz[6], dataz[7], dataz[8], dataz[9], dataz[10], dataz[11], dataz[12], dataz[13], dataz[14], dataz[15], boundObj, bgA, bgB, i))
             offset += 24
         self.zones = zones
 
@@ -3272,6 +4254,12 @@ class AreaUnit():
             offset += 16
         return ret
 
+    def LoadProgPaths(self):
+        """
+        Dummy function for loading progress paths
+        """
+        pass
+
     def LoadComments(self):
         """
         Loads the comments from self.Metadata
@@ -3309,7 +4297,7 @@ class AreaUnit():
             com.UpdateListItem()
 
 
-    def SaveMetadata(self):
+    def SaveTilesetNames(self):
         """
         Saves the tileset names back to block 1
         """
@@ -3400,6 +4388,12 @@ class AreaUnit():
         for node in nodes:
             nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), float(node['speed']), float(node['accel']), int(node['delay']))
             offset += 16
+
+    def SaveProgPaths(self):
+        """
+        Dummy function for saving progress paths
+        """
+        pass
 
     def SaveSprites(self):
         """
@@ -3731,6 +4725,19 @@ class InstanceDefinition_PathItem(InstanceDefinition):
         return PathItem(self.objx, self.objy, *(field[1] for field in self.fields))
 
 
+class InstanceDefinition_ProgressPathItem(InstanceDefinition):
+    """
+    Definition of an instance of ProgressPathItem
+    """
+    fieldNames = (
+        )
+    @staticmethod
+    def itemList():
+        raise NotImplementedError
+    def createNew(self):
+        raise NotImplementedError
+
+
 class InstanceDefinition_CommentItem(InstanceDefinition):
     """
     Definition of an instance of CommentItem
@@ -3743,6 +4750,17 @@ class InstanceDefinition_CommentItem(InstanceDefinition):
         return Area.comments
     def createNew(self):
         return CommentItem(self.objx, self.objy, field[0][1])
+
+
+class ListWidgetItem_SortsByOther(QtWidgets.QListWidgetItem):
+    """
+    A ListWidgetItem that defers sorting to another object.
+    """
+    def __init__(self, reference, text=''):
+        super().__init__(text)
+        self.reference = reference
+    def __lt__(self, other):
+        return self.reference < other.reference
 
 
 class LevelEditorItem(QtWidgets.QGraphicsItem):
@@ -3761,6 +4779,9 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
         """
         QtWidgets.QGraphicsItem.__init__(self)
         self.setFlag(self.ItemSendsGeometryChanges, True)
+
+    def __lt__(self, other):
+        return (self.objx * 100000 + self.objy) < (other.objx * 100000 + other.objy)
 
     def itemChange(self, change, value):
         """
@@ -4188,36 +5209,112 @@ class ObjectItem(LevelEditorItem):
         self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
 
 
+class AbstractBackground():
+    """
+    A class that represents an abstract background for a zone (both bgA and bgB)
+    """
+    def __init__(self, xScroll=1, yScroll=1, xPos=1, yPos=1):
+        self.xScroll = xScroll
+        self.yScroll = yScroll
+        self.xPos = xPos
+        self.yPos = yPos
+
+    def save(idnum=0):
+        return b''
+
+
+class Background_NSMBW(AbstractBackground):
+    """
+    A class that represents a background from New Super Mario Bros. Wii
+    """
+    pass # not yet implemented
+
+
+class Background_NSMB2(AbstractBackground):
+    """
+    A class that represents a background from New Super Mario Bros. 2
+    """
+    def __init__(self, xScroll=1, yScroll=1, xPos=1, yPos=1, name=''):
+        super().__init__(xScroll, yScroll, xPos, yPos)
+        self.name = name
+
+    def loadFrom(self, data):
+        if len(data) != 28:
+            raise ValueError('Wrong data length: must be 28 bytes exactly')
+
+        bgstruct = struct.Struct('<Hbbbbxx15sbxxxx')
+        bgvalues = bgstruct.unpack(data)
+        id = bgvalues[0]
+        self.xScroll = bgvalues[1]
+        self.yScroll = bgvalues[2]
+        self.xPos = bgvalues[3]
+        self.yPos = bgvalues[4]
+        self.name = bgvalues[5].split(b'\0')[0].decode('utf-8')
+        self.unk1 = bgvalues[6]
+
+        return id
+    
+    def save(idnum=0):
+        bgstruct = struct.struct('<Hbbbbxx15sbxxxx')
+        return # not yet implemented properly; ignore the stuff below
+        settings = struct.pack('<Hbbbbxx', idnum, self.xScroll, self.yScroll, self.xPos, self.yPos)
+        name = self.name.encode('utf-8') + b'\0' * (20 - len(self.name))
+        return settings + name
+
+
+
 class ZoneItem(LevelEditorItem):
     """
     Level editor item that represents a zone
     """
 
-    def __init__(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, boundings, bgA, bgB, id=None):
+    def __init__(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, bounding, bgA, bgB, id=None):
         """
         Creates a zone with specific data
         """
         LevelEditorItem.__init__(self)
 
         self.font = NumberFont
-        self.TitlePos = QtCore.QPointF(10,18)
+        self.TitlePos = QtCore.QPointF(10, 18)
 
         self.objx = a
         self.objy = b
         self.width = c
         self.height = d
-        self.modeldark = e
-        self.terraindark = f
-        self.id = g
-        self.block3id = h
-        self.cammode = i
-        self.camzoom = j
-        self.visibility = k
-        self.block5id = l
-        self.block6id = m
-        self.camtrack = n
-        self.music = o
-        self.sfxmod = p
+        if CurrentGame == NewSuperMarioBrosWii:
+            self.modeldark = e
+            self.terraindark = f
+            self.id = g
+            self.block3id = h
+            self.cammode = i
+            self.camzoom = j
+            self.visibility = k
+            self.block5id = l
+            self.block6id = m
+            self.camtrack = n
+            self.music = o
+            self.sfxmod = p
+        elif CurrentGame == NewSuperMarioBros2:
+            self.unk1 = e
+            self.id = f
+            self.block3id = g
+            self.camtrack = h
+            self.unk2 = i
+            self.music = j
+            self.background = bgA
+            self.UpdateRects()
+
+            # These options aren't present in NSMB2, as far as I can tell
+            self.modeldark = 0
+            self.terraindark = 0
+            self.cammode = 0
+            self.camzoom = 0
+            self.visibility = 0
+            self.block5id = 0
+            self.block6id = 0
+            self.sfxmod = 0
+        else:
+            raise NotImplementedError
         self.UpdateRects()
 
         self.aux = set()
@@ -4227,47 +5324,51 @@ class ZoneItem(LevelEditorItem):
 
         self.UpdateTitle()
 
-        bounding = None
-        id = self.block3id
-        for block in boundings:
-            if block[4] == id: bounding = block
+        if bounding is not None:
+            self.yupperbound = bounding[0]
+            self.ylowerbound = bounding[1]
+            self.yupperbound2 = bounding[2]
+            self.ylowerbound2 = bounding[3]
+            self.entryid = bounding[4]
+            self.unknownbnf = bounding[5]
+        else:
+            self.yupperbound = 0
+            self.ylowerbound = 0
+            self.yupperbound2 = 0
+            self.ylowerbound2 = 0
+            self.entryid = 0
+            self.unknownbnf = 0
 
-        self.yupperbound = bounding[0]
-        self.ylowerbound = bounding[1]
-        self.yupperbound2 = bounding[2]
-        self.ylowerbound2 = bounding[3]
-        self.entryid = bounding[4]
-        self.unknownbnf = bounding[5]
+        if CurrentGame == NewSuperMarioBrosWii:
+            bgABlock = None
+            id = self.block5id
+            for block in bgA:
+                if block[0] == id: bgABlock = block
 
-        bgABlock = None
-        id = self.block5id
-        for block in bgA:
-            if block[0] == id: bgABlock = block
+            self.entryidA = bgABlock[0]
+            self.XscrollA = bgABlock[1]
+            self.YscrollA = bgABlock[2]
+            self.YpositionA = bgABlock[3]
+            self.XpositionA = bgABlock[4]
+            self.bg1A = bgABlock[5]
+            self.bg2A = bgABlock[6]
+            self.bg3A = bgABlock[7]
+            self.ZoomA = bgABlock[8]
 
-        self.entryidA = bgABlock[0]
-        self.XscrollA = bgABlock[1]
-        self.YscrollA = bgABlock[2]
-        self.YpositionA = bgABlock[3]
-        self.XpositionA = bgABlock[4]
-        self.bg1A = bgABlock[5]
-        self.bg2A = bgABlock[6]
-        self.bg3A = bgABlock[7]
-        self.ZoomA = bgABlock[8]
+            bgBBlock = None
+            id = self.block6id
+            for block in bgB:
+                if block[0] == id: bgBBlock = block
 
-        bgBBlock = None
-        id = self.block6id
-        for block in bgB:
-            if block[0] == id: bgBBlock = block
-
-        self.entryidB = bgBBlock[0]
-        self.XscrollB = bgBBlock[1]
-        self.YscrollB = bgBBlock[2]
-        self.YpositionB = bgBBlock[3]
-        self.XpositionB = bgBBlock[4]
-        self.bg1B = bgBBlock[5]
-        self.bg2B = bgBBlock[6]
-        self.bg3B = bgBBlock[7]
-        self.ZoomB = bgBBlock[8]
+            self.entryidB = bgBBlock[0]
+            self.XscrollB = bgBBlock[1]
+            self.YscrollB = bgBBlock[2]
+            self.YpositionB = bgBBlock[3]
+            self.XpositionB = bgBBlock[4]
+            self.bg1B = bgBBlock[5]
+            self.bg2B = bgBBlock[6]
+            self.bg3B = bgBBlock[7]
+            self.ZoomB = bgBBlock[8]
 
         self.dragging = False
         self.dragstartx = -1
@@ -4438,12 +5539,12 @@ class ZoneItem(LevelEditorItem):
                     self.width += xdelta
                     self.height += ydelta
 
-                if self.width < 300:
-                    self.objx -= (300 - self.width)
-                    self.width = 300
-                if self.height < 200:
-                    self.objy -= (200 - self.height)
-                    self.height = 200
+                if self.width < 16:
+                    self.objx -= (16 - self.width)
+                    self.width = 16
+                if self.height < 16:
+                    self.objy -= (16 - self.height)
+                    self.height = 16
 
                 if self.objx < 16:
                     self.width -= (16 - self.objx)
@@ -4534,6 +5635,10 @@ class LocationItem(LevelEditorItem):
         """
         self.title = trans.string('Locations', 0, '[id]', self.id)
         self.UpdateListItem()
+
+
+    def __lt__(self, other):
+        return self.id < other.id
 
 
     def UpdateRects(self):
@@ -4680,8 +5785,11 @@ class SpriteItem(LevelEditorItem):
         SLib.SpriteImage.loadImages()
         self.ImageObj = SLib.SpriteImage(self)
 
-        sname = Sprites[type].name
-        self.name = sname
+        try:
+            sname = Sprites[type].name
+            self.name = sname
+        except:
+            self.name = 'UNKNOWN'
 
         self.InitializeSprite()
 
@@ -4813,6 +5921,10 @@ class SpriteItem(LevelEditorItem):
 
         return baseString
 
+    def __lt__(self, other):
+        # Sort by objx, then objy, then sprite type
+        return (self.objx * 100000 + self.objy) * 1000 + self.type < (other.objx * 100000 + other.objy) * 1000 + other.type
+
     def InitializeSprite(self):
         """
         Initializes sprite and creates any auxiliary objects needed
@@ -4820,6 +5932,10 @@ class SpriteItem(LevelEditorItem):
         global prefs
 
         type = self.type
+
+        if type > len(Sprites):
+            print('Tried to initialize a sprite of type %d, but this is out of range %d.' % (type, len(Sprites)))
+            return
 
         self.name = Sprites[type].name
         self.setToolTip(trans.string('Sprites', 0, '[type]', self.type, '[name]', self.name))
@@ -5000,7 +6116,7 @@ class SpriteItem(LevelEditorItem):
                 yOffset, yOffsetAdjusted = 0, 0
 
             # snap to 24x24
-            newpos = QtCore.QPointF(value)
+            newpos = value
 
             # snap even further if Shift isn't held
             # but -only- if OverrideSnapping is off
@@ -5008,8 +6124,8 @@ class SpriteItem(LevelEditorItem):
                 objectsSelected = any([isinstance(thing, ObjectItem) for thing in mainWindow.CurrentSelection])
                 if QtWidgets.QApplication.keyboardModifiers() == Qt.AltModifier:
                     # Alt is held; don't snap
-                    newpos.setX(((newpos.x() + 0.75) // 1.5) * 1.5)
-                    newpos.setY(((newpos.y() + 0.75) // 1.5) * 1.5)
+                    newpos.setX((int((newpos.x() + 0.75) / 1.5) * 1.5))
+                    newpos.setY((int((newpos.y() + 0.75) / 1.5) * 1.5))
                 elif not objectsSelected and self.isSelected() and len(mainWindow.CurrentSelection) > 1:
                     # Snap to 8x8, but with the dragoffsets
                     dragoffsetx, dragoffsety = int(self.dragoffsetx), int(self.dragoffsety)
@@ -5017,8 +6133,8 @@ class SpriteItem(LevelEditorItem):
                     if dragoffsety < -12: dragoffsety += 12
                     if dragoffsetx == 0: dragoffsetx = -12
                     if dragoffsety == 0: dragoffsety = -12
-                    referenceX = ((newpos.x() + 6 + 12 + dragoffsetx - xOffsetAdjusted) // 12) * 12
-                    referenceY = ((newpos.y() + 6 + 12 + dragoffsety - yOffsetAdjusted) // 12) * 12
+                    referenceX = int((newpos.x() + 6 + 12 + dragoffsetx - xOffsetAdjusted) / 12) * 12
+                    referenceY = int((newpos.y() + 6 + 12 + dragoffsety - yOffsetAdjusted) / 12) * 12
                     newpos.setX(referenceX - (12 + dragoffsetx) + xOffsetAdjusted)
                     newpos.setY(referenceY - (12 + dragoffsety) + yOffsetAdjusted)
                 elif objectsSelected and self.isSelected():
@@ -5026,14 +6142,14 @@ class SpriteItem(LevelEditorItem):
                     dragoffsetx, dragoffsety = int(self.dragoffsetx), int(self.dragoffsety)
                     if dragoffsetx == 0: dragoffsetx = -24
                     if dragoffsety == 0: dragoffsety = -24
-                    referenceX = ((newpos.x() + 12 + 24 + dragoffsetx - xOffsetAdjusted) // 24) * 24
-                    referenceY = ((newpos.y() + 12 + 24 + dragoffsety - yOffsetAdjusted) // 24) * 24
+                    referenceX = int((newpos.x() + 12 + 24 + dragoffsetx - xOffsetAdjusted) / 24) * 24
+                    referenceY = int((newpos.y() + 12 + 24 + dragoffsety - yOffsetAdjusted) / 24) * 24
                     newpos.setX(referenceX - (24 + dragoffsetx) + xOffsetAdjusted)
                     newpos.setY(referenceY - (24 + dragoffsety) + yOffsetAdjusted)
                 else:
                     # Snap to 8x8
-                    newpos.setX(((newpos.x() + 6 - xOffsetAdjusted) // 12) * 12 + xOffsetAdjusted)
-                    newpos.setY(((newpos.y() + 6 - yOffsetAdjusted) // 12) * 12 + yOffsetAdjusted)
+                    newpos.setX(int(int((newpos.x() + 6 - xOffsetAdjusted) / 12) * 12 + xOffsetAdjusted))
+                    newpos.setY(int(int((newpos.y() + 6 - yOffsetAdjusted) / 12) * 12 + yOffsetAdjusted))
 
             x = newpos.x()
             y = newpos.y()
@@ -5045,8 +6161,8 @@ class SpriteItem(LevelEditorItem):
             if y > 12264: newpos.setY(12264)
 
             # update the data
-            x = int(newpos.x() // 1.5) - xOffset
-            y = int(newpos.y() // 1.5) - yOffset
+            x = int(newpos.x() / 1.5 - xOffset)
+            y = int(newpos.y() / 1.5 - yOffset)
 
             if x != self.objx or y != self.objy:
                 updRect = QtCore.QRectF(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
@@ -5105,7 +6221,7 @@ class SpriteItem(LevelEditorItem):
         if event.button() == Qt.LeftButton:
             if QtWidgets.QApplication.keyboardModifiers() == Qt.ControlModifier:
                 newitem = SpriteItem(self.type, self.objx, self.objy, self.spritedata)
-                newitem.listitem = QtWidgets.QListWidgetItem(newitem.ListString())
+                newitem.listitem = ListWidgetItem_SortsByOther(newitem, newitem.ListString())
                 mainWindow.spriteList.addItem(newitem.listitem)
                 Area.sprites.append(newitem)
                 mainWindow.scene.addItem(newitem)
@@ -5117,7 +6233,7 @@ class SpriteItem(LevelEditorItem):
 
         LevelEditorItem.mousePressEvent(self, event)
 
-    def nearestZone(self, obj = False):
+    def nearestZone(self, obj=False):
         """
         Calls a modified MapPositionToZoneID (if obj = True, it returns the actual ZoneItem object)
         """
@@ -5304,7 +6420,7 @@ class EntranceItem(LevelEditorItem):
         """
         if EntranceItem.EntranceImages is None:
             ei = []
-            src = QtGui.QPixmap('reggiedata/entrances.png')
+            src = QtGui.QPixmap(os.path.join(GameDataFolders[CurrentGame], 'entrances.png'))
             for i in range(18):
                 ei.append(src.copy(i * 24, 0, 24, 24))
             EntranceItem.EntranceImages = ei
@@ -5375,6 +6491,9 @@ class EntranceItem(LevelEditorItem):
         else:
             return trans.string('Entrances', 6, '[id]', self.entid, '[name]', name, '[x]', self.objx, '[y]', self.objy)
 
+    def __lt__(self, other):
+        return self.entid < other.entid
+
     def TypeChange(self):
         """
         Handles the entrance's type changing
@@ -5384,7 +6503,12 @@ class EntranceItem(LevelEditorItem):
         x, y, w, h = 0, 0, 1, 1
         if self.enttype in (0, 1):
             # Standing entrance
-            x, w = -2.25, 5.5
+            if CurrentGame == NewSuperMarioBrosWii:
+                x, w = -2.25, 5.5
+            elif CurrentGame == NewSuperMarioBros2:
+                x, w = -1, 3
+            else:
+                raise NotImplementedError
         elif self.enttype in (3, 4):
             # Vertical pipe
             w = 2
@@ -5496,7 +6620,7 @@ class EntranceItem(LevelEditorItem):
 
 class PathItem(LevelEditorItem):
     """
-    Level editor item that represents a pathnode
+    Level editor item that represents a path node
     """
     instanceDef = InstanceDefinition_PathItem
     BoundingRect = QtCore.QRectF(0, 0, 24, 24)
@@ -5505,7 +6629,7 @@ class PathItem(LevelEditorItem):
 
     def __init__(self, objx, objy, pathinfo, nodeinfo):
         """
-        Creates a path with specific data
+        Creates a path node with specific data
         """
 
         global mainWindow
@@ -5536,26 +6660,29 @@ class PathItem(LevelEditorItem):
 
     def UpdateTooltip(self):
         """
-        Updates the path object's tooltip
+        Updates the path node's tooltip
         """
         self.setToolTip(trans.string('Paths', 0, '[path]', self.pathid, '[node]', self.nodeid))
 
     def ListString(self):
         """
-        Returns a string that can be used to describe the entrance in a list
+        Returns a string that can be used to describe the path node in a list
         """
         return trans.string('Paths', 1, '[path]', self.pathid, '[node]', self.nodeid)
 
+    def __lt__(self, other):
+        return (self.pathid * 10000 + self.nodeid) < (other.pathid * 10000 + other.nodeid)
+
     def updatePos(self):
         """
-        Our x/y was changed, update pathinfo
+        Our x/y was changed, update path info
         """
         self.pathinfo['nodes'][self.nodeid]['x'] = self.objx
         self.pathinfo['nodes'][self.nodeid]['y'] = self.objy
 
     def updateId(self):
         """
-        Path was changed, find our new nodeid
+        Path was changed, find our new node id
         """
         # called when 1. add node 2. delete node 3. change node order
         # hacky code but it works. considering how pathnodes are stored.
@@ -5568,7 +6695,7 @@ class PathItem(LevelEditorItem):
 
     def paint(self, painter, option, widget):
         """
-        Paints the object
+        Paints the path node
         """
         global theme
 
@@ -5607,7 +6734,7 @@ class PathItem(LevelEditorItem):
             Area.pathdata.remove(self.pathinfo)
             self.scene().removeItem(self.pathinfo['peline'])
 
-        # update other node's IDs
+        # update other nodes' IDs
         for pathnode in self.pathinfo['nodes']:
             pathnode['graphicsitem'].updateId()
 
@@ -5617,13 +6744,235 @@ class PathItem(LevelEditorItem):
 
 class PathEditorLineItem(LevelEditorItem):
     """
-    Level editor item to draw a line between two pathnodes
+    Level editor item to draw a line between two path nodes
     """
     BoundingRect = QtCore.QRectF(0, 0, 1, 1) # compute later
 
     def __init__(self, nodelist):
         """
-        Creates a path with specific data
+        Creates a path line with specific data
+        """
+
+        global mainWindow
+        LevelEditorItem.__init__(self)
+
+        self.font = NumberFont
+        self.objx = 0
+        self.objy = 0
+        self.nodelist = nodelist
+        self.loops = False
+        self.setFlag(self.ItemIsMovable, False)
+        self.setFlag(self.ItemIsSelectable, False)
+        self.computeBoundRectAndPos()
+        self.setZValue(25002)
+        self.UpdateTooltip()
+
+    def UpdateTooltip(self):
+        """
+        For compatibility, just in case
+        """
+        self.setToolTip('')
+
+    def ListString(self):
+        """
+        Returns an empty string
+        """
+        return ''
+
+    def nodePosChanged(self):
+        self.computeBoundRectAndPos()
+        self.scene().update()
+
+    def computeBoundRectAndPos(self):
+        xcoords = []
+        ycoords = []
+        for node in self.nodelist:
+            xcoords.append(int(node['x']))
+            ycoords.append(int(node['y']))
+        self.objx = (min(xcoords) - 4)
+        self.objy = (min(ycoords) - 4)
+
+        mywidth = (8 + (max(xcoords) - self.objx)) * 1.5
+        myheight = (8 + (max(ycoords) - self.objy)) * 1.5
+        global DirtyOverride
+        DirtyOverride += 1
+        self.setPos(self.objx * 1.5, self.objy * 1.5)
+        DirtyOverride -= 1
+        self.prepareGeometryChange()
+        self.BoundingRect = QtCore.QRectF(-4, -4, mywidth, myheight)
+
+    def paint(self, painter, option, widget):
+        """
+        Paints the path lines
+        """
+        global theme
+
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setClipRect(option.exposedRect)
+
+        color = theme.color('path_connector')
+        painter.setBrush(QtGui.QBrush(color))
+        painter.setPen(QtGui.QPen(color, 3, join = Qt.RoundJoin, cap = Qt.RoundCap))
+        ppath = QtGui.QPainterPath()
+
+        lines = []
+
+        firstn = True
+
+        snl = self.nodelist
+        for j, node in enumerate(snl):
+            if ((j+1) < len(snl)):
+                a = QtCore.QPointF(float(snl[j]['x']*1.5) - self.x(),float(snl[j]['y']*1.5) - self.y())
+                b = QtCore.QPointF(float(snl[j+1]['x']*1.5) - self.x(),float(snl[j+1]['y']*1.5) - self.y())
+                lines.append(QtCore.QLineF(a, b))
+            elif self.loops and (j+1) == len(snl):
+                a = QtCore.QPointF(float(snl[j]['x']*1.5) - self.x(),float(snl[j]['y']*1.5) - self.y())
+                b = QtCore.QPointF(float(snl[0]['x']*1.5) - self.x(),float(snl[0]['y']*1.5) - self.y())
+                lines.append(QtCore.QLineF(a, b))
+
+        painter.drawLines(lines)
+
+
+    def delete(self):
+        """
+        Delete the line from the level
+        """
+        self.scene().update()
+
+
+class ProgressPathItem(LevelEditorItem):
+    """
+    Level editor item that represents a progress path node
+    """
+    BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+    SelectionRect = QtCore.QRectF(0, 0, 23, 23)
+    RoundedRect = QtCore.QRectF(1, 1, 22, 22)
+
+
+    def __init__(self, objx, objy, progpathinfo, nodeinfo):
+        """
+        Creates a progress path node with specific data
+        """
+
+        global mainWindow
+        LevelEditorItem.__init__(self)
+
+        self.font = NumberFont
+        self.objx = objx
+        self.objy = objy
+        self.progpathid = progpathinfo['id']
+        self.nodeid = progpathinfo['nodes'].index(nodeinfo)
+        self.progpathinfo = progpathinfo
+        self.nodeinfo = nodeinfo
+        self.listitem = None
+        self.LevelRect = (QtCore.QRectF(self.objx/16, self.objy/16, 24/16, 24/16))
+        self.setFlag(self.ItemIsMovable, not ProgressPathsFrozen)
+        self.setFlag(self.ItemIsSelectable, not ProgressPathsFrozen)
+
+        global DirtyOverride
+        DirtyOverride += 1
+        self.setPos(int(objx*1.5),int(objy*1.5))
+        DirtyOverride -= 1
+
+        self.setZValue(25002)
+        self.UpdateTooltip()
+
+        # now that we're inited, set
+        self.nodeinfo['graphicsitem'] = self
+
+    def UpdateTooltip(self):
+        """
+        Updates the progress path object's tooltip
+        """
+        self.setToolTip(trans.string('ProgPaths', (3 if self.progpathinfo['altpath'] else 2), '[path]', self.progpathid, '[node]', self.nodeid))
+
+    def ListString(self):
+        """
+        Returns a string that can be used to describe the progress path in a list
+        """
+        return trans.string('ProgPaths', (5 if self.progpathinfo['altpath'] else 4), '[path]', self.progpathid, '[node]', self.nodeid)
+
+    def __lt__(self, other):
+        myWeight = self.progpathid * 100000 + (1 if self.progpathinfo['altpath'] else 0) * 10000 + self.nodeid
+        otherWeight = other.progpathid * 100000 + (1 if other.progpathinfo['altpath'] else 0) * 10000 + other.nodeid
+        return myWeight < otherWeight
+
+    def updatePos(self):
+        """
+        Our x/y was changed, update pathinfo
+        """
+        self.progpathinfo['nodes'][self.nodeid]['x'] = self.objx
+        self.progpathinfo['nodes'][self.nodeid]['y'] = self.objy
+
+    def updateId(self):
+        """
+        Path was changed, find our new nodeid
+        """
+        # called when 1. add node 2. delete node 3. change node order
+        # hacky code but it works. considering how pathnodes are stored.
+        self.nodeid = self.progpathinfo['nodes'].index(self.nodeinfo)
+        self.UpdateTooltip()
+        self.scene().update()
+        self.UpdateListItem()
+
+        # if node doesn't exist, let Reggie implode!
+
+    def paint(self, painter, option, widget):
+        """
+        Paints the progress path
+        """
+        global theme
+
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setClipRect(option.exposedRect)
+
+        if self.isSelected():
+            painter.setBrush(QtGui.QBrush(theme.color('progpath_fill_s')))
+            painter.setPen(QtGui.QPen(theme.color('progpath_lines_s')))
+        else:
+            painter.setBrush(QtGui.QBrush(theme.color('progpath_fill')))
+            painter.setPen(QtGui.QPen(theme.color('progpath_lines')))
+        painter.drawRoundedRect(self.RoundedRect, 4, 4)
+
+        painter.setFont(self.font)
+        painter.drawText(4, 11, trans.string('ProgPaths', (1 if self.progpathinfo['altpath'] else 0), '[id]', self.progpathid))
+        painter.drawText(4, 9 + QtGui.QFontMetrics(self.font).height(), str(self.nodeid))
+        painter.drawPoint(self.objx, self.objy)
+
+    def delete(self):
+        """
+        Delete the progress path from the level
+        """
+        global mainWindow
+        plist = mainWindow.progPathList
+        mainWindow.UpdateFlag = True
+        plist.takeItem(plist.row(self.listitem))
+        mainWindow.UpdateFlag = False
+        plist.selectionModel().clearSelection()
+        Area.progpaths.remove(self)
+        self.progpathinfo['nodes'].remove(self.nodeinfo)
+
+        if(len(self.progpathinfo['nodes']) < 1):
+            Area.progpathdata.remove(self.progpathinfo)
+            self.scene().removeItem(self.progpathinfo['peline'])
+
+        # update other nodes' IDs
+        for progpathnode in self.progpathinfo['nodes']:
+            progpathnode['graphicsitem'].updateId()
+
+        self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
+
+
+
+class ProgressPathEditorLineItem(LevelEditorItem):
+    """
+    Level editor item to draw a line between two progress path nodes
+    """
+    BoundingRect = QtCore.QRectF(0, 0, 1, 1) # compute later
+
+    def __init__(self, nodelist):
+        """
+        Creates a progress path line with specific data
         """
 
         global mainWindow
@@ -5678,14 +7027,13 @@ class PathEditorLineItem(LevelEditorItem):
 
     def paint(self, painter, option, widget):
         """
-        Paints the path lines
+        Paints the progress path line
         """
         global theme
 
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         painter.setClipRect(option.exposedRect)
-
-        color = theme.color('path_connector')
+        color = theme.color('progpath_connector')
         painter.setBrush(QtGui.QBrush(color))
         painter.setPen(QtGui.QPen(color, 3, join = Qt.RoundJoin, cap = Qt.RoundCap))
         ppath = QtGui.QPainterPath()
@@ -5710,7 +7058,7 @@ class PathEditorLineItem(LevelEditorItem):
 
     def delete(self):
         """
-        Delete the line from the level
+        Delete the progress path line from the level
         """
         self.scene().update()
 
@@ -6062,7 +7410,7 @@ class LevelOverviewWidget(QtWidgets.QWidget):
         else:
             self.scale = self.Yscale
 
-        if self.scale == 0: self.scale = 1
+        if self.scale < 0.002: self.scale = 0.002
 
         self.CalcSize()
 
@@ -6688,7 +8036,9 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
                         snode.setData(0, Qt.UserRole, -2)
                         self.NoSpritesFound = snode
                     else:
-                        snode.setText(0, trans.string('Sprites', 18, '[id]', id, '[name]', Sprites[id].name))
+                        sname = Sprites[id]
+                        if sname is None: sname = 'ERROR'
+                        snode.setText(0, trans.string('Sprites', 18, '[id]', id, '[name]', sname))
                         snode.setData(0, Qt.UserRole, id)
 
                     if isSearch:
@@ -6826,7 +8176,10 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.setLayout(mainLayout)
 
         self.spritetype = -1
-        self.data = b'\0\0\0\0\0\0\0\0'
+        if CurrentGame == NewSuperMarioBrosWii:
+            self.data = b'\0\0\0\0\0\0\0\0'
+        elif CurrentGame == NewSuperMarioBros2:
+            self.data = b'\0\0\0\0\0\0\0\0\0\0\0\0'
         self.fields = []
         self.UpdateFlag = False
         self.DefaultMode = defaultmode
@@ -7204,7 +8557,10 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.UpdateFlag = True
 
         data = self.data
-        self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x' % (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]))
+        if CurrentGame == NewSuperMarioBrosWii:
+            self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x' % (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]))
+        elif CurrentGame == NewSuperMarioBros2:
+            self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x' % (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]))
         self.raweditor.setStyleSheet('')
 
         # Go through all the data
@@ -7234,7 +8590,12 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         data = field.assign(self.data)
         self.data = data
 
-        self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x' % (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]))
+        if CurrentGame == NewSuperMarioBrosWii:
+            self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x' % (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]))
+        elif CurrentGame == NewSuperMarioBros2:
+            self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x' % (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]))
+        else:
+            raise NotImplementedError
         self.raweditor.setStyleSheet('')
 
         for f in self.fields:
@@ -7251,6 +8612,8 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         raw = text.replace(' ', '')
         valid = False
+
+        expectedRawLen = 16 if CurrentGame == NewSuperMarioBrosWii else 24
 
         if len(raw) == 16:
             try:
@@ -7643,7 +9006,7 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         layout = QtWidgets.QGridLayout()
         self.setLayout(layout)
 
-        # 'Editing Entrance #' label
+        # 'Editing Path #' label
         self.editingLabel = QtWidgets.QLabel('-')
         self.editingPathLabel = QtWidgets.QLabel('-')
         layout.addWidget(self.editingLabel, 3, 0, 1, 2, Qt.AlignTop)
@@ -7722,6 +9085,100 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         self.path.pathinfo['peline'].loops = (i == Qt.Checked)
         mainWindow.scene.update()
 
+
+class ProgressPathNodeEditorWidget(QtWidgets.QWidget):
+    """
+    Widget for editing progress path node properties
+    """
+
+    def __init__(self, defaultmode=False):
+        """
+        Constructor
+        """
+        QtWidgets.QWidget.__init__(self)
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
+
+        # create widgets
+        self.progpathid = QtWidgets.QSpinBox()
+        self.progpathid.setRange(1, 255) # ID 0 is not allowed in NSMB2
+        self.progpathid.setToolTip(trans.string('ProgPathDataEditor', 3))
+        self.progpathid.valueChanged.connect(self.HandleIDChanged)
+        self.progpathid.setMaximumWidth(256)
+
+        self.altpath = QtWidgets.QCheckBox()
+        self.altpath.setToolTip(trans.string('ProgPathDataEditor', 5))
+        self.altpath.stateChanged.connect(self.HandleAltPathChanged)
+
+        # create a layout
+        layout = QtWidgets.QGridLayout()
+        self.setLayout(layout)
+
+        # 'Editing Progress Path #' label
+        self.editingProgPathLabel = QtWidgets.QLabel('-')
+        self.editingNodeLabel = QtWidgets.QLabel('-')
+        layout.addWidget(self.editingProgPathLabel, 0, 0, 1, 2, Qt.AlignTop)
+        layout.addWidget(self.editingNodeLabel, 4, 0, 1, 2, Qt.AlignTop)
+
+        # add labels
+        layout.addWidget(QtWidgets.QLabel(trans.string('ProgPathDataEditor', 2)), 1, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(trans.string('ProgPathDataEditor', 4)), 2, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(createHorzLine(), 3, 0, 1, 2)
+
+        # add the widgets
+        layout.addWidget(self.progpathid, 1, 1)
+        layout.addWidget(self.altpath, 2, 1)
+
+
+        self.progpath = None
+        self.UpdateFlag = False
+
+
+    def setProgPath(self, progpath):
+        """
+        Change the progress path being edited by the editor, update all fields
+        """
+        if self.progpath == progpath: return
+        self.editingProgPathLabel.setText(trans.string('ProgPathDataEditor', 1, '[id]', progpath.progpathid))
+        self.editingNodeLabel.setText(trans.string('ProgPathDataEditor', 6, '[id]', progpath.nodeid))
+        self.progpath = progpath
+        self.UpdateFlag = True
+
+        self.progpathid.setValue(progpath.progpathinfo['id'])
+        self.altpath.setChecked(progpath.progpathinfo['altpath'])
+
+        self.UpdateFlag = False
+
+
+    @QtCore.pyqtSlot(int)
+    def HandleIDChanged(self, i):
+        """
+        Handler for the ID changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+
+        # This affects ALL nodes in the progpath, so update them accordingly
+        for nodedata in self.progpath.progpathinfo['nodes']:
+            node = nodedata['graphicsitem']
+            node.progpathinfo['id'] = i
+            node.progpathid = i
+            node.update()
+            node.UpdateTooltip()
+            node.UpdateListItem()
+
+
+    @QtCore.pyqtSlot(int)
+    def HandleAltPathChanged(self, i):
+        if self.UpdateFlag: return
+        SetDirty()
+        self.progpath.progpathinfo['altpath'] = (i == Qt.Checked)
+
+        # This affects ALL nodes in the progpath, so update them accordingly
+        for nodedata in self.progpath.progpathinfo['nodes']:
+            node = nodedata['graphicsitem']
+            node.update()
+            node.UpdateTooltip()
+            node.UpdateListItem()
 
 
 class IslandGeneratorWidget(QtWidgets.QWidget):
@@ -8235,7 +9692,7 @@ def LoadTheme():
     if id is None: id = 'Classic'
     if id != 'Classic':
 
-        path = str('reggiedata\\themes\\'+id).replace('\\', '/')
+        path = os.path.join('reggiedata', 'themes', id)
         with open(path, 'rb') as f:
             theme = ReggieTheme(f)
         
@@ -8275,6 +9732,7 @@ class ReggieTheme():
             'comment_fill_s':           QtGui.QColor(254,240,240,240), # Selected comment fill
             'comment_lines':            QtGui.QColor(192,192,192,120), # Unselected comment lines
             'comment_lines_s':          QtGui.QColor(220,212,135,240), # Selected comment lines
+            'depth_highlight':          QtGui.QColor(243,243,21,191),  # Tileset 3D effect highlight (NSMB2)
             'entrance_fill':            QtGui.QColor(190,0,0,120),     # Unselected entrance fill
             'entrance_fill_s':          QtGui.QColor(190,0,0,240),     # Selected entrance fill
             'entrance_lines':           QtGui.QColor(0,0,0),           # Unselected entrance lines
@@ -8300,6 +9758,11 @@ class ReggieTheme():
             'path_fill_s':              QtGui.QColor(6,249,20,240),    # Selected path node fill
             'path_lines':               QtGui.QColor(0,0,0),           # Unselected path node lines
             'path_lines_s':             QtGui.QColor(255,255,255),     # Selected path node lines
+            'progpath_connector':       QtGui.QColor(255,96,0),        # Progress path node connecting lines
+            'progpath_fill':            QtGui.QColor(255,96,0,120),    # Unselected progress path node fill
+            'progpath_fill_s':          QtGui.QColor(255,96,0,240),    # Selected progress path node fill
+            'progpath_lines':           QtGui.QColor(0,0,0),           # Unselected progress path node lines
+            'progpath_lines_s':         QtGui.QColor(255,255,255),     # Selected progress path node lines
             'smi':                      QtGui.QColor(255,255,255,80),  # Sprite movement indicator
             'sprite_fill_s':            QtGui.QColor(255,255,255,64),  # Selected sprite w/ image fill
             'sprite_lines_s':           QtGui.QColor(255,255,255),     # Selected sprite w/ image lines
@@ -8836,7 +10299,7 @@ def LoadGameDef(name=None, dlg=None):
 
             SLib.ImageCache.clear()
             SLib.SpriteImagesLoaded.clear()
-            SLib.LoadBasicSuite()
+            SpriteModules[CurrentGame].LoadBasics()
 
             spriteClasses = gamedef.getImageClasses()
 
@@ -8925,7 +10388,7 @@ class ReggieGameDefinition():
         self.description = trans.string('Gamedefs', 14) # 'A new Mario adventure!<br>' and the date
         self.version = '2'
 
-        self.sprites = sprites
+        self.sprites = SpriteModules[CurrentGame]
 
         self.files = {
             'bga': gdf(None, False),
@@ -8950,13 +10413,15 @@ class ReggieGameDefinition():
         """
         Attempts to open/load a Game Definition from a name string
         """
+        raise NotImplementedError
+
         self.custom = True
         name = str(name)
         self.gamepath = name
         MaxVer = 1.0
 
         # Parse the file (errors are handled by __init__())
-        path = 'reggiedata/games/' + name + '/main.xml'
+        path = 'gameinfo/patches/' + name + '/main.xml'
         tree = etree.parse(path)
         root = tree.getroot()
 
@@ -8974,7 +10439,7 @@ class ReggieGameDefinition():
         else: self.base = ReggieGameDefinition()
 
         # Parse the nodes
-        addpath = 'reggiedata/games/' + name + '/'
+        addpath = 'gameinfo/patches/' + name + '/'
         for node in root:
             n = node.tag.lower()
             if n in ('file', 'folder'):
@@ -8986,9 +10451,9 @@ class ReggieGameDefinition():
                 if 'game' in node.attrib:
                     if node.attrib['game'] != trans.string('Gamedefs', 13): # 'New Super Mario Bros. Wii'
                         def_ = FindGameDef(node.attrib['game'], name)
-                        path = 'reggiedata/games/' + def_.gamepath + '/' + node.attrib['path']
+                        path = os.path.join('gameinfo', 'patches', def_.gamepath, node.attrib['path'])
                     else:
-                        path = 'reggiedata/' + node.attrib['path']
+                        path = os.path.join(GameDataFolders[CurrentGame], node.attrib['path'])
 
                 ListToAddTo = eval('self.%ss' % n) # self.files or self.folders
                 newdef = self.GameDefinitionFile(path, patch)
@@ -9016,7 +10481,7 @@ class ReggieGameDefinition():
         Returns the folder to a bg image. Layer must be 'a' or 'b'
         """
         # Name will be of the format '0000.png'
-        fallback = 'reggiedata/bg' + layer
+        fallback = os.path.join(GameDataFolders[CurrentGame], 'bg' + layer)
         filename = 'bg%s/%s' % (layer, name)
 
 
@@ -9041,19 +10506,19 @@ class ReggieGameDefinition():
         """
         Returns the game path
         """
-        if not self.custom: return str(setting('GamePath'))
+        if not self.custom: return setting('GamePath%d' % CurrentGame)
         name = 'GamePath_' + self.name
         setname = setting(name)
 
         # Use the default if there are no settings for this yet
-        if setname is None: return str(setting('GamePath'))
+        if setname is None: return setting('GamePath%d' % CurrentGame)
         else: return str(setname)
 
     def SetGamePath(self, path):
         """
         Sets the game path
         """
-        if not self.custom: setSetting('GamePath', path)
+        if not self.custom: setSetting('GamePath%d' % CurrentGame, path)
         else:
             name = 'GamePath_' + self.name
             setSetting(name, path)
@@ -9062,7 +10527,7 @@ class ReggieGameDefinition():
         """
         Returns game paths of this gamedef and its bases
         """
-        mainpath = str(setting('GamePath'))
+        mainpath = setting('GamePath%d' % CurrentGame)
         if not self.custom: return [mainpath,]
 
         name = 'GamePath_' + self.name
@@ -9247,16 +10712,13 @@ def getMusic():
 def FindGameDef(name, skip=None):
     "Helper function to find a game def with a specific name. Skip will be skipped"""
     toSearch = [None] # Add the original game first
-    for folder in os.listdir('reggiedata/games'): toSearch.append(folder)
+    for folder in os.listdir(os.path.join('gameinfo', 'patches')): toSearch.append(folder)
 
     for folder in toSearch:
         if folder == skip: continue
         def_ = ReggieGameDefinition(folder)
         if (not def_.custom) and (folder is not None): continue
         if def_.name == name: return def_
-
-
-
 
 
 
@@ -9302,15 +10764,15 @@ class ReggieTranslation():
         self.translator = 'Treeki, Tempus'
 
         self.files = {
-            'bga': 'reggiedata/bga.txt',
-            'bgb': 'reggiedata/bgb.txt',
-            'entrancetypes': 'reggiedata/entrancetypes.txt',
-            'levelnames': 'reggiedata/levelnames.xml',
-            'music': 'reggiedata/music.txt',
-            'spritecategories': 'reggiedata/spritecategories.xml',
-            'spritedata': 'reggiedata/spritedata.xml',
-            'tilesets': 'reggiedata/tilesets.xml',
-            'ts1_descriptions': 'reggiedata/ts1_descriptions.txt',
+            'bga': os.path.join(GameDataFolders[CurrentGame], 'bga.txt'),
+            'bgb': os.path.join(GameDataFolders[CurrentGame], 'bgb.txt'),
+            'entrancetypes': os.path.join(GameDataFolders[CurrentGame], 'entrancetypes.txt'),
+            'levelnames': os.path.join(GameDataFolders[CurrentGame], 'levelnames.xml'),
+            'music': os.path.join(GameDataFolders[CurrentGame], 'music.txt'),
+            'spritecategories': os.path.join(GameDataFolders[CurrentGame], 'spritecategories.xml'),
+            'spritedata': os.path.join(GameDataFolders[CurrentGame], 'spritedata.xml'),
+            'tilesets': os.path.join(GameDataFolders[CurrentGame], 'tilesets.xml'),
+            'ts1_descriptions': os.path.join(GameDataFolders[CurrentGame], 'ts1_descriptions.txt'),
             }
 
         self.strings = {
@@ -9347,7 +10809,7 @@ class ReggieTranslation():
                 18: 'Custom filename... [name]',
                 19: '[name] ([file])',
                 20: 'Enter a Filename',
-                21: 'Enter the name of a custom tileset file to use. It must be placed in the game\'s Stage\\Texture folder in order for Reggie to recognize it. Do not add the \'.arc\' extension at the end of the filename.',
+                21: 'Enter the name of a custom tileset file to use. It must be placed in the game\'s Stage\\Texture or Unit folder in order for Reggie to recognize it. Do not add the \'.arc\' or \'.sarc\' extension at the end of the filename.',
                 22: None, # REMOVED: 'Unknown Value 1:'
                 23: None, # REMOVED: 'Unknown Value 2:'
                 24: None, # REMOVED: 'Unknown Value 3:'
@@ -9438,10 +10900,18 @@ class ReggieTranslation():
                     ),
                 },
             'ChangeGamePath': {
-                0: 'Choose the Stage folder from [game]',
-                1: 'Error',
-                2: 'This folder doesn\'t have all of the files from the extracted NSMBWii Stage folder.',
-                3: 'This folder doesn\'t seem to have the required files. In order to use Reggie, you need the Stage folder from the game, including the Texture folder and the level files contained within it.',
+                0: 'Error',
+                1: 'Choose the Stage folder from [game]',
+                2: 'This folder doesn\'t have all of the files from the extracted New Super Mario Bros. Wii Stage folder.',
+                3: 'This folder doesn\'t seem to have the required files. In order to use Reggie Next in New Super Mario Bros Wii mode, you need the Stage folder from New Super Mario Bros. Wii, including the Texture folder and the level files contained within it.',
+                4: 'Choose the Course folder from [game]',
+                5: 'This folder doesn\'t have all of the files from the extracted New Super Mario Bros. 2 Course folder.',
+                6: 'This folder doesn\'t seem to have the required files. In order to use Reggie Next in New Super Mario Bros 2 mode, you need the Course folder from New Super Mario Bros. 2 including the level files contained within it, as well as the Unit folder including the tileset files contained within it.',
+                7: 'Choose the Unit folder from [game]',
+                8: 'This folder doesn\'t have all of the files from the extracted New Super Mario Bros. 2 Unit folder.',
+                9: 'Choose the course_res_pack folder from [game]',
+                10: 'This folder doesn\'t have all of the files from the extracted New Super Mario Bros. U or New Super Luigi U course_res_pack folder.',
+                11: 'This folder doesn\'t seem to have the required files. In order to use Reggie Next in New Super Mario Bros U or New Super Luigi U mode, you need the course_res_pack folder from New Super Mario Bros. U or New Super Luigi U, including the level files contained within it.',
                 },
             'Comments': {
                 0: '[x], [y]: [text]',
@@ -9519,6 +10989,7 @@ class ReggieTranslation():
                     'Left',
                     'Right',
                     ),
+                28: '([id]) [name]',
                 },
             'Entrances': {
                 0: '[b]Entrance [ent]:[/b][br]Type: [type][br][i][dest][/i]',
@@ -9540,6 +11011,7 @@ class ReggieTranslation():
             'Err_CorruptedTileset': {
                 0: 'Error',
                 1: 'An error occurred while trying to load [file].arc. Check your Texture folder to make sure it is complete and not corrupted. The editor may run in a broken state or crash after this.',
+                2: 'An error occurred while trying to load [file].sarc. Check your Unit folder to make sure it is complete and not corrupted. The editor may run in a broken state or crash after this.',
                 },
             'Err_CorruptedTilesetData': {
                 0: 'Error',
@@ -9567,13 +11039,16 @@ class ReggieTranslation():
                 },
             'FileDlgs': {
                 0: 'Choose a level archive',
-                1: 'Level Archives',
-                2: 'All Files',
-                3: 'Choose a new filename',
-                4: 'Portable Network Graphics',
-                5: 'Compressed Level Archives',
-                6: 'Choose a stamp archive',
-                7: 'Stamps File',
+                1: 'NSMBWii Level Archives',
+                2: 'NSMB2 Level Archives',
+                3: 'NSMBU/NSLU Level Archives',
+                4: 'All Level Archives',
+                5: 'All Files',
+                6: 'Choose a new filename',
+                7: 'Portable Network Graphics',
+                8: 'Compressed Level Archives',
+                9: 'Choose a stamp archive',
+                10: 'Stamps File',
                 },
             'Gamedefs': {
                 0: 'This game has custom sprite images',
@@ -9591,10 +11066,14 @@ class ReggieTranslation():
                 12: 'Applying sprite image data...',
                 13: 'New Super Mario Bros. Wii',
                 14: 'A new Mario adventure![br]Published by Nintendo in November 2009.',
-                15: '[i]No description[/i]',
-                16: 'Loading entrance names...',
-                17: 'Error',
-                18: 'An error occurred while attempting to load this game patch. It will now be unloaded. Here\'s the specific error:[br][error]',
+                15: 'New Super Mario Bros. 2',
+                16: '(insert catchphrase here)[br]Published by Nintendo in August 2012.',
+                17: 'New Super Mario Bros. U',
+                18: '(insert catchphrase here)[br]Published by Nintendo in November 2012.',
+                19: '[i]No description[/i]',
+                20: 'Loading entrance names...',
+                21: 'Error',
+                22: 'An error occurred while attempting to load this game patch. It will now be unloaded. Here\'s the specific error:[br][error]',
                 },
             'InfoDlg': {
                 0: 'Level Information',
@@ -9776,6 +11255,8 @@ class ReggieTranslation():
                 127: 'Redoes the last action that was undone',
                 128: 'Save Copy of Level As...',
                 129: 'Save a copy of level with a new filename but keeps the current file open for editing',
+                130: 'Freeze [br]Progress Paths',
+                131: 'Make progress paths non-selectable',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
@@ -9797,7 +11278,7 @@ class ReggieTranslation():
                 6: 'Set Default Properties',
                 7: 'Default Properties',
                 8: 'Entrances currently in this area:[br](Double-click one to jump to it instantly)',
-                9: 'Path nodes currently in this area:[br](Double-click one to jump to its first node instantly)[br]To delete a path, remove all its nodes one by one.[br]To add new paths, hit the button below and right click.',
+                9: 'Path nodes currently in this area:[br](Double-click one to jump to it instantly)[br]To delete a path, remove all its nodes one by one.[br]To add new paths, hit the button below and right click.',
                 10: 'Deselect (then right click for new path)',
                 11: 'Sprites currently in this area:[br](Double-click one to jump to it instantly)',
                 12: 'Locations currently in this area:[br](Double-click one to jump to it instantly)',
@@ -9823,7 +11304,10 @@ class ReggieTranslation():
                 32: 'Save Set As...',
                 33: 'Comments',
                 34: 'Comments currently in this area:[br](Double-click one to jump to it instantly)',
-                35: 'Name:'
+                35: 'Name:',
+                36: 'Progress Paths',
+                37: 'Progress Path nodes currently in this area:[br](Double-click one to jump to it instantly)[br]To delete a progress path, remove all its nodes one by one.[br]To add new progress paths, hit the button below and right click.',
+                38: 'Deselect (then right click for new progress path)',
                 },
             'PathDataEditor': {
                 0: 'Loops:',
@@ -9875,6 +11359,23 @@ class ReggieTranslation():
                 29: 'Use Old Tileset Picker',
                 30: 'You may need to restart Reggie Next for changes to take effect.',
                 31: 'Display lines indicating the leftmost x-position where entrances can be safely placed in zones',
+                },
+            'ProgPaths': {
+                0: '[id]',
+                1: '[id]A',
+                2: '[b]Progress Path [path][/b][br]Node [node]',
+                3: '[b]Progress Path [path]A[/b][br]Node [node]',
+                4: 'Progress Path [path], Node [node]',
+                5: 'Progress Path [path]A, Node [node]',
+                },
+            'ProgPathDataEditor': {
+                0: 'Modify Selected Progress Path Node Properties',
+                1: '[b]Progress Path [id][/b]',
+                2: 'ID:',
+                3: '[b]ID:[/b][br]This is the Progress Path ID. The game puts together all progress paths from all areas and sorts them by this ID. The first progress path should have an ID of 0. Duplicate IDs are allowed if one progress path has the Alternate Path checkbox checked.',
+                4: 'Alternate Path:',
+                5: '[b]Alternate Path:[/b][br]If there are two different zones for the player to choose from, and they both end up in the same place but the player has to choose one or the other, put a Progress Path in each one, give them the same ID and check this checkbox on one of them.',
+                6: '[b]Node [id][/b]',
                 },
             'Ribbon': {
                 0: '&Home',
@@ -9993,6 +11494,12 @@ class ReggieTranslation():
                 31: '1 comment',
                 32: '[x] comments',
                 33: '- Comment under mouse: [xpos], [ypos]; "[text]"',
+                34: '- 1 progress path node selected',
+                35: '- [x] progress path nodes selected',
+                36: '1 progress path node',
+                37: '[x] progress path nodes',
+                38: '- Progress Path node under mouse: Progress Path [path], Node [node] at [xpos], [ypos]',
+                39: '- Progress Path node under mouse: Progress Path [path]A, Node [node] at [xpos], [ypos]',
                 },
             'Themes': {
                 0: 'Classic',
@@ -10519,7 +12026,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         Overrides mouse pressing events if needed
         """
         if event.button() == Qt.RightButton:
-            if CurrentPaintType in (0,1,2,3):
+            if CurrentPaintType in (0, 1, 2, 3) and CurrentObject != -1:
                 # paint an object
                 clicked = mainWindow.view.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
@@ -10568,7 +12075,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     spr.positionChanged = mw.HandleSprPosChange
                     mw.scene.addItem(spr)
 
-                    spr.listitem = QtWidgets.QListWidgetItem()
+                    spr.listitem = ListWidgetItem_SortsByOther(spr)
                     mw.spriteList.addItem(spr.listitem)
                     Area.sprites.append(spr)
 
@@ -10603,7 +12110,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 elist = mw.entranceList
                 # if it's the first available ID, all the other indexes should match right?
                 # so I can just use the ID to insert
-                ent.listitem = QtWidgets.QListWidgetItem()
+                ent.listitem = ListWidgetItem_SortsByOther(ent)
                 elist.insertItem(minimumID, ent.listitem)
 
                 global PaintingEntrance, PaintingEntranceListIndex
@@ -10621,7 +12128,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 SetDirty()
             elif CurrentPaintType == 6:
-                # paint a pathnode
+                # paint a path node
                 clicked = mainWindow.view.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
@@ -10630,12 +12137,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 mw = mainWindow
                 plist = mw.pathList
                 selectedpn = None if len(plist.selectedItems()) < 1 else plist.selectedItems()[0]
-                #if selectedpn is None:
-                #    QtWidgets.QMessageBox.warning(None, 'Error', 'No pathnode selected. Select a pathnode of the path you want to create a new node in.')
+
                 if selectedpn is None:
-                    """
-                    
-                    """
                     getids = [False for x in range(256)]
                     getids[0] = True
                     for pathdatax in Area.pathdata:
@@ -10643,10 +12146,11 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         getids[int(pathdatax['id'])] = True
 
                     newpathid = getids.index(False)
-                    newpathdata = { 'id': newpathid,
-                                   'nodes': [{'x':clickedx, 'y':clickedy, 'speed':0.5, 'accel':0.00498, 'delay':0}],
-                                   'loops': False
-                    }
+                    newpathdata = {
+                        'id': newpathid,
+                        'nodes': [{'x': clickedx, 'y': clickedy, 'speed': 0.5, 'accel': 0.00498, 'delay': 0}],
+                        'loops': False,
+                        }
                     Area.pathdata.append(newpathdata)
                     newnode = PathItem(clickedx, clickedy, newpathdata, newpathdata['nodes'][0])
                     newnode.positionChanged = mw.HandlePathPosChange
@@ -10657,13 +12161,13 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     newpathdata['peline'] = peline
                     mw.scene.addItem(peline)
 
-                    Area.pathdata.sort(key=lambda path: int(path['id']));
+                    Area.pathdata.sort(key=lambda path: int(path['id']))
 
-                    newnode.listitem = QtWidgets.QListWidgetItem()
+                    newnode.listitem = ListWidgetItem_SortsByOther(newnode)
                     plist.clear()
                     for fpath in Area.pathdata:
                         for fpnode in fpath['nodes']:
-                            fpnode['graphicsitem'].listitem = QtWidgets.QListWidgetItem(fpnode['graphicsitem'].ListString())
+                            fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'], fpnode['graphicsitem'].ListString())
                             plist.addItem(fpnode['graphicsitem'].listitem)
                             fpnode['graphicsitem'].updateId()
                     newnode.listitem.setSelected(True)
@@ -10683,10 +12187,10 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         if pathnode.listitem == selectedpn:
                             pathd = pathnode.pathinfo
 
-                    if(pathd is None): return # shouldn't happen
+                    if not pathd: return # shouldn't happen
 
                     pathid = pathd['id']
-                    newnodedata = {'x':clickedx, 'y':clickedy, 'speed':0.5, 'accel':0.00498,'delay':0}
+                    newnodedata = {'x': clickedx, 'y': clickedy, 'speed': 0.5, 'accel': 0.00498, 'delay': 0}
                     pathd['nodes'].append(newnodedata)
                     nodeid = pathd['nodes'].index(newnodedata)
 
@@ -10696,7 +12200,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     newnode.positionChanged = mw.HandlePathPosChange
                     mw.scene.addItem(newnode)
 
-                    newnode.listitem = QtWidgets.QListWidgetItem()
+                    newnode.listitem = ListWidgetItem_SortsByOther(newnode)
                     plist.clear()
                     for fpath in Area.pathdata:
                         for fpnode in fpath['nodes']:
@@ -10704,9 +12208,6 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                             plist.addItem(fpnode['graphicsitem'].listitem)
                             fpnode['graphicsitem'].updateId()
                     newnode.listitem.setSelected(True)
-                    #global PaintingEntrance, PaintingEntranceListIndex
-                    #PaintingEntrance = ent
-                    #PaintingEntranceListIndex = minimumID
 
                     Area.paths.append(newnode)
                     pathd['peline'].nodePosChanged()
@@ -10746,7 +12247,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 mw = mainWindow
                 loc.positionChanged = mw.HandleLocPosChange
                 loc.sizeChanged = mw.HandleLocSizeChange
-                loc.listitem = QtWidgets.QListWidgetItem()
+                loc.listitem = ListWidgetItem_SortsByOther(loc)
                 mw.locationList.addItem(loc.listitem)
                 mw.scene.addItem(loc)
 
@@ -10821,7 +12322,102 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 SetDirty()
 
+            elif CurrentPaintType == 10:
+                # paint a progress path node
+                clicked = mainWindow.view.mapToScene(event.x(), event.y())
+                if clicked.x() < 0: clicked.setX(0)
+                if clicked.y() < 0: clicked.setY(0)
+                clickedx = int((clicked.x() - 12) / 1.5)
+                clickedy = int((clicked.y() - 12) / 1.5)
+                mw = mainWindow
+                plist = mw.progPathList
+                selectedpn = None if len(plist.selectedItems()) < 1 else plist.selectedItems()[0]
+
+                if selectedpn is None:
+                    getids = [False for x in range(256)]
+                    getids[0] = True
+                    for pathdatax in Area.progpathdata:
+                        #if(len(pathdatax['nodes']) > 0):
+                        getids[int(pathdatax['id'])] = True
+
+                    newpathid = getids.index(False)
+                    newpathdata = {'id': newpathid,
+                                   'nodes': [{'x': clickedx, 'y': clickedy}],
+                                   'altpath': False,
+                    }
+                    Area.progpathdata.append(newpathdata)
+                    newnode = ProgressPathItem(clickedx, clickedy, newpathdata, newpathdata['nodes'][0])
+                    newnode.positionChanged = mw.HandleProgressPathPosChange
+
+                    mw.scene.addItem(newnode)
+
+                    peline = ProgressPathEditorLineItem(newpathdata['nodes'])
+                    newpathdata['peline'] = peline
+                    mw.scene.addItem(peline)
+
+                    Area.progpathdata.sort(key=lambda path: int(path['id']))
+
+                    newnode.listitem = ListWidgetItem_SortsByOther(newnode)
+                    plist.clear()
+                    for fpath in Area.progpathdata:
+                        for fpnode in fpath['nodes']:
+                            fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'], fpnode['graphicsitem'].ListString())
+                            plist.addItem(fpnode['graphicsitem'].listitem)
+                            fpnode['graphicsitem'].updateId()
+                    newnode.listitem.setSelected(True)
+                    Area.progpaths.append(newnode)
+
+                    self.dragstamp = False
+                    self.currentobj = newnode
+                    self.dragstartx = clickedx
+                    self.dragstarty = clickedy
+
+                    newnode.UpdateListItem()
+
+                    SetDirty()
+                else:
+                    pathd = None
+                    for pathnode in Area.progpaths:
+                        if pathnode.listitem == selectedpn:
+                            pathd = pathnode.progpathinfo
+
+                    if not pathd:
+                        print(':(')
+                        return # shouldn't happen
+
+                    pathid = pathd['id']
+                    newnodedata = {'x': clickedx, 'y': clickedy, 'altpath': False}
+                    pathd['nodes'].append(newnodedata)
+                    nodeid = pathd['nodes'].index(newnodedata)
+
+
+                    newnode = ProgressPathItem(clickedx, clickedy, pathd, newnodedata)
+
+                    newnode.positionChanged = mw.HandleProgressPathPosChange
+                    mw.scene.addItem(newnode)
+
+                    newnode.listitem = ListWidgetItem_SortsByOther(newnode)
+                    plist.clear()
+                    for fpath in Area.progpathdata:
+                        for fpnode in fpath['nodes']:
+                            fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'], fpnode['graphicsitem'].ListString())
+                            plist.addItem(fpnode['graphicsitem'].listitem)
+                            fpnode['graphicsitem'].updateId()
+                    newnode.listitem.setSelected(True)
+
+                    Area.progpaths.append(newnode)
+                    pathd['peline'].nodePosChanged()
+                    self.dragstamp = False
+                    self.currentobj = newnode
+                    self.dragstartx = clickedx
+                    self.dragstarty = clickedy
+
+                    newnode.UpdateListItem()
+
+                    SetDirty()
+
             event.accept()
+
         elif (event.button() == Qt.LeftButton) and (QtWidgets.QApplication.keyboardModifiers() == Qt.ShiftModifier):
             mw = mainWindow
 
@@ -10864,6 +12460,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             type_ent = EntranceItem
             type_loc = LocationItem
             type_path = PathItem
+            type_progpath = ProgressPathItem
             type_com = CommentItem
 
             # iterate through the objects if there's more than one
@@ -10992,7 +12589,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         obj.objy = clickedy
                         obj.setPos(int((clickedx+obj.ImageObj.xOffset) * 1.5), int((clickedy+obj.ImageObj.yOffset) * 1.5))
 
-                elif isinstance(obj, type_ent) or isinstance(obj, type_path) or isinstance(obj, type_com):
+                elif isinstance(obj, type_ent) or isinstance(obj, type_path) or isinstance(obj, type_progpath) or isinstance(obj, type_com):
                     # move the created entrance/path/comment
                     clicked = mainWindow.view.mapToScene(event.x(), event.y())
                     if clicked.x() < 0: clicked.setX(0)
@@ -12062,7 +13659,7 @@ class OldTilesetsTab(QtWidgets.QWidget):
 
             if result == QtWidgets.QDialog.Accepted:
                 fname = str(dbox.textbox.text())
-                if fname.endswith('.arc'): fname = fname[:-4]
+                if fname.endswith(FileExtensions[CurrentGame]): fname = fname[:-len(FileExtensions[CurrentGame])]
 
                 w.setItemText(index, trans.string('AreaDlg', 18, '[name]', fname))
                 w.setItemData(index, trans.string('AreaDlg', 17, '[name]', fname))
@@ -12115,7 +13712,7 @@ def SimpleTilesetNames():
 
 
 
-#Sets up the Zones Menu
+# Sets up the Zones Menu
 class ZonesDialog(QtWidgets.QDialog):
     """
     Dialog which lets you choose among various from tabs
@@ -12177,7 +13774,7 @@ class ZonesDialog(QtWidgets.QDialog):
         b.append([0, 0, 0, 0, 0, 10, 10, 10, 0])
         id = len(self.zoneTabs)
         z = ZoneItem(256, 256, 448, 224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a, b, b, id)
-        ZoneTabName = trans.string('ZonesDlg', 3, '[num]', id+1)
+        ZoneTabName = trans.string('ZonesDlg', 3, '[num]', id + 1)
         tab = ZoneTab(z)
         self.zoneTabs.append(tab)
         self.tabWidget.addTab(tab, ZoneTabName)
@@ -12228,7 +13825,6 @@ class ZoneTab(QtWidgets.QWidget):
         mainLayout.addWidget(self.Bounds)
         mainLayout.addWidget(self.Audio)
         self.setLayout(mainLayout)
-
 
 
     def createDimensions(self, z):
@@ -12416,6 +14012,7 @@ class ZoneTab(QtWidgets.QWidget):
         InnerLayout.addLayout(ZoneDirectionLayout)
         self.Visibility.setLayout(InnerLayout)
 
+
     @QtCore.pyqtSlot(bool)
     def ChangeList(self):
         VRadioMod = self.zv % 16
@@ -12442,8 +14039,6 @@ class ZoneTab(QtWidgets.QWidget):
 
     def createBounds(self, z):
         self.Bounds = QtWidgets.QGroupBox(trans.string('ZonesDlg', 47))
-
-        #Block3 = Area.bounding[z.block3id]
 
         self.Zone_yboundup = QtWidgets.QSpinBox()
         self.Zone_yboundup.setRange(-32766, 32767)
@@ -12535,6 +14130,7 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_musicid.setValue(id)
         self.AutoEditMusic = False
 
+
     def handleMusicIDChange(self):
         """
         Handles the user selecting a custom music ID
@@ -12547,6 +14143,7 @@ class ZoneTab(QtWidgets.QWidget):
         self.AutoEditMusic = True
         self.Zone_music.setCurrentIndex(self.Zone_music.findData(id))
         self.AutoEditMusic = False
+
 
     def PresetSelected(self, info=None):
         """
@@ -12563,6 +14160,7 @@ class ZoneTab(QtWidgets.QWidget):
         self.AutoChangingSize = False
 
         if self.Zone_presets.itemText(0) == trans.string('ZonesDlg', 60): self.Zone_presets.removeItem(0)
+
 
     def PresetDeselected(self, info=None):
         """
@@ -12590,7 +14188,7 @@ class ZoneTab(QtWidgets.QWidget):
 
 
 
-#Sets up the Background Dialog
+# Sets up the Background Dialog
 class BGDialog(QtWidgets.QDialog):
     """
     Dialog which lets you choose among various from tabs
@@ -12843,7 +14441,7 @@ class BGTab(QtWidgets.QWidget):
 
                 filename = gamedef.bgFile(val + '.png', slot.lower())
                 if not os.path.isfile(filename):
-                    filename = 'reggiedata/bg%s/no_preview.png' % slot.lower()
+                    filename = os.path.join(GameDataFolders[CurrentGame], 'bg%s' % slot.lower(), 'no_preview.png')
                 pix = QtGui.QPixmap(filename)
                 pix = pix.scaled(pix.width() * scale, pix.height() * scale)
                 eval('self.preview%d%s' % (boxnum, slot)).setPixmap(pix)
@@ -12903,7 +14501,7 @@ def calculateBgAlignmentMode(idA, idB, idC):
 
 
 
-#Sets up the Screen Cap Choice Dialog
+# Sets up the Screen Cap Choice Dialog
 class ScreenCapChoiceDialog(QtWidgets.QDialog):
     """
     Dialog which lets you choose which zone to take a pic of
@@ -13228,7 +14826,11 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
                 if IsRetail: continue
 
                 UnloadTileset(slot)
-                exec(name + ' = \'\' if slot != 0 else \'Pa0_jyotyu\'')
+                if CurrentGame == NewSuperMarioBrosWii:
+                    exec(name + ' = \'\' if slot != 0 else \'Pa0_jyotyu\'')
+                elif CurrentGame == NewSuperMarioBros2:
+                    exec(name + ' = \'\' if slot != 0 else \'J_Kihon\'')
+
 
             self.ObjsInTileset('f') # remove all orphaned objects w/o a loaded tileset
 
@@ -13360,7 +14962,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
                 new.positionChanged = mainWindow.HandleSprPosChange
                 mainWindow.scene.addItem(new)
 
-                new.listitem = QtWidgets.QListWidgetItem()
+                new.listitem = ListWidgetItem_SortsByOther(new)
                 mainWindow.spriteList.addItem(new.listitem)
                 Area.sprites.append(new)
                 mainWindow.scene.update()
@@ -13433,7 +15035,7 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
             mainWindow.scene.addItem(ent)
 
             elist = mainWindow.entranceList
-            ent.listitem = QtWidgets.QListWidgetItem()
+            ent.listitem = ListWidgetItem_SortsByOther(ent)
             elist.insertItem(Area.startEntrance, ent.listitem)
 
             global PaintingEntrance, PaintingEntranceListIndex
@@ -14210,7 +15812,7 @@ class InfoPreviewWidget(QtWidgets.QWidget):
             return
 
         a = [ # MUST be a list, not a tuple
-            Level.filename,
+            mainWindow.fileTitle,
             Area.Title,
             trans.string('InfoDlg', 8, '[name]', Area.Creator),
             trans.string('InfoDlg', 5) + ' ' + Area.Author,
@@ -14399,10 +16001,10 @@ def getAvailableGameDefs():
     GameDefs = []
 
     # Add them
-    folders = os.listdir('reggiedata/games')
+    folders = os.listdir(os.path.join('gameinfo', 'patches'))
     for folder in folders:
-        if not os.path.isdir('reggiedata/games/' + folder): continue
-        inFolder = os.listdir('reggiedata/games/' + folder)
+        if not os.path.isdir(os.path.join('gameinfo', 'patches', folder)): continue
+        inFolder = os.listdir(os.path.join('gameinfo', 'patches', folder))
         if 'main.xml' not in inFolder: continue
         def_ = ReggieGameDefinition(folder)
         if def_.custom: GameDefs.append((def_, folder))
@@ -14471,11 +16073,8 @@ class RecentFilesMenu(QtWidgets.QMenu):
         else:
             self.FileList = ['']
 
-        for path in self.FileList: # fixes bugs
-            if path == '': self.FileList.remove(path)
-            if path == 'None': self.FileList.remove(path)
-            if path == 'False': self.FileList.remove(path)
-            if path == 'True': self.FileList.remove(path)
+        # This fixes bugs
+        self.FileList = [path for path in self.FileList if path.lower() not in ('', 'none', 'false', 'true')]
 
         self.updateActionList()
 
@@ -14595,7 +16194,7 @@ class RecentFilesMenu(QtWidgets.QMenu):
         """
         if mainWindow.CheckDirty(): return
 
-        if not mainWindow.LoadLevel(self.FileList[number], True, 1): self.RemoveFromList(number)
+        if not mainWindow.LoadLevel(None, self.FileList[number], True, 1): self.RemoveFromList(number)
 
 
 class ZoomWidget(QtWidgets.QWidget):
@@ -14739,6 +16338,7 @@ def LoadActionsLists():
         (trans.string('MenuItems', 42), False, 'freezeentrances'),
         (trans.string('MenuItems', 44), False, 'freezelocations'),
         (trans.string('MenuItems', 46), False, 'freezepaths'),
+        (trans.string('MenuItems', 124), False, 'freezeprogresspaths'),
         )
     ViewActions = (
         (trans.string('MenuItems', 48), True,  'showlay0'),
@@ -15173,7 +16773,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 UIColor = theme.color('ui')
                 if UIColor is None: UIColor = toQColor(240,240,240) # close enough
 
-                ice = QtGui.QPixmap('reggiedata/sprites/ice_flow_7.png')
+                ice = QtGui.QPixmap(os.path.join('gameinfo', 'nsmbw', 'sprites', 'ice_flow_7.png'))
 
                 global NumberFont
                 font = QtGui.QFont(NumberFont) # need to make a new instance to avoid changing global settings
@@ -15477,8 +17077,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Editor window constructor
         """
-        global Initialising
-        Initialising = True
+        global Initializing
+        Initializing = True
 
         # Reggie Version number goes below here. 64 char max (32 if non-ascii).
         self.ReggieInfo = ReggieID
@@ -15533,7 +17133,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
     def __init2__(self):
         """
-        Finishes initialisation. (fixes bugs with some widgets calling mainWindow.something before it's init'ed
+        Finishes initialization. (fixes bugs with some widgets calling mainWindow.something before it's init'ed
         """
         # set up actions and menus
         self.SetupActionsAndMenus()
@@ -15555,14 +17155,87 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # now get stuff ready
         loaded = False
-        if len(sys.argv) > 1 and os.path.isfile(sys.argv[1]) and IsNSMBLevel(sys.argv[1]):
-            loaded = self.LoadLevel(sys.argv[1], True, 1)
-        elif settings.contains('LastLevel'):
-            lastlevel = str(gamedef.GetLastLevel())
-            loaded = self.LoadLevel(lastlevel, True, 1)
 
-        if not loaded:
-            self.LoadLevel('01-01', False, 1)
+        if not AutoOpenScriptEnabled:
+            if len(sys.argv) > 1 and os.path.isfile(sys.argv[1]) and IsNSMBLevel(sys.argv[1]):
+                loaded = self.LoadLevel(None, sys.argv[1], True, 1)
+            elif settings.contains('LastLevel'):
+                lastlevel = str(gamedef.GetLastLevel())
+                loaded = self.LoadLevel(None, lastlevel, True, 1)
+
+            if not loaded:
+                self.LoadLevel(None, FirstLevels[CurrentGame], False, 1)
+        else:
+            # Auto-level-opening script for rapid testing and analysis
+            pass
+
+            # To search for sprites, put this in the __init__ function of SpriteItem:
+            # for byte in range(8):
+            #     nyb1 = data[byte] >> 4
+            #     nyb2 = data[byte] & 0xF
+            #     if nyb1 not in SpriteDatas[type][byte * 2]:
+            #         SpriteDatas[type][byte * 2][nyb1] = []
+            #     if CurrentLevelNameForAutoOpenScript not in SpriteDatas[type][byte * 2][nyb1]:
+            #         SpriteDatas[type][byte * 2][nyb1].append(CurrentLevelNameForAutoOpenScript)
+            #     if nyb2 not in SpriteDatas[type][byte * 2 + 1]:
+            #         SpriteDatas[type][byte * 2 + 1][nyb2] = []
+            #     if CurrentLevelNameForAutoOpenScript not in SpriteDatas[type][byte * 2 + 1][nyb2]:
+            #         SpriteDatas[type][byte * 2 + 1][nyb2].append(CurrentLevelNameForAutoOpenScript)
+            # SpriteDatas[type][16].append(CurrentLevelNameForAutoOpenScript)
+            # ... and this before the auto-opening loop:
+            # global SpriteDatas
+            # SpriteDatas = []
+            # for i in range(326):
+            #     newlist = []
+            #     for nyb in range(16):
+            #         newlist.append({})
+            #     newlist.append([]) # list of all levels in which it's used
+            #     SpriteDatas.append(newlist)
+            # ... and this after the auto-opening loop:
+            # prints = ''
+            # for sprnum in range(326):
+            #     data = SpriteDatas[sprnum]
+            #     printedFirstThing = False
+            #     if not data[9]:
+            #         prints += 'Sprite %d is unused.\n' % sprnum
+            #     else:
+            #         prints += 'Sprite %d:\n' % sprnum
+            #         prints += '    Used in ' + ', '.join(sorted(set(data[16]))) + '\n'
+            #         for byte in range(8):
+            #             nyb1 = data[byte * 2]
+            #             nyb2 = data[byte * 2 + 1]
+            #             if len(nyb1) > 1 or (len(nyb1) == 1 and 0 not in nyb1):
+            #                 prints += '    Nybble %d:\n' % (byte * 2 + 1)
+            #                 for nybval, usedin in sorted(nyb1.items(), key=lambda thing: thing[0]):
+            #                     if usedin:
+            #                         prints += '        Value %s used in ' % hex(nybval)[2:]
+            #                         prints += ', '.join(sorted(usedin))
+            #                         prints += '\n'
+            #             if len(nyb2) > 1 or (len(nyb2) == 1 and 0 not in nyb2):
+            #                 prints += '    Nybble %d:\n' % (byte * 2 + 2)
+            #                 for nybval, usedin in sorted(nyb2.items(), key=lambda thing: thing[0]):
+            #                     if usedin:
+            #                         prints += '        Value %s used in ' % hex(nybval)[2:]
+            #                         prints += ', '.join(sorted(usedin))
+            #                         prints += '\n'
+            # print(prints)
+
+            # To search for Pa0 objects, put this in the __init__ method for ObjectItem:
+            # unknownvalues = (0, 1, 2, 3, 4, 6, 7, 10, 12, 19, 24, 25, 28, 31, 36, 38)
+            # if tileset == 0 and type in unknownvalues:
+            #     print('Unknown thing in %s: Type %d (at (%d, %d))' % (CurrentLevelNameForAutoOpenScript, type, x, y))
+
+            # Leave this here
+            global CurrentLevelNameForAutoOpenScript
+            for levelname in os.listdir(setting('GamePath_NSMB2')):
+                if not levelname.endswith(FileExsentions[curgame]): continue
+                print('Loading %s...' % levelname)
+                for areanum in range(4):
+                    try:
+                        CurrentLevelNameForAutoOpenScript = levelname[:-5] + ' A' + str(areanum + 1)
+                        self.LoadLevel(curgame, os.path.join(setting('GamePath_NSMB2'), levelname), True, areanum + 1)
+                    except: pass
+
 
         QtCore.QTimer.singleShot(100, self.levelOverview.update)
 
@@ -15587,7 +17260,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         LoadGameDef(setting('LastGameDef'), False)
 
         # Aaaaaand... initializing is done!
-        Initialising = False
+        Initializing = False
 
 
     def SetupActionsAndMenus(self):
@@ -15634,7 +17307,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.CreateAction('exit', self.HandleExit, GetIcon('delete'), trans.stringOneLine('MenuItems', 20), trans.stringOneLine('MenuItems', 21), QtGui.QKeySequence('Ctrl+Q'))
 
         # Edit
-        self.CreateAction('selectall', self.SelectAll, GetIcon('select'), trans.stringOneLine('MenuItems', 22), trans.stringOneLine('MenuItems', 23), QtGui.QKeySequence.SelectAll)
+        self.CreateAction('selectall', self.SelectAll, GetIcon('selectall'), trans.stringOneLine('MenuItems', 22), trans.stringOneLine('MenuItems', 23), QtGui.QKeySequence.SelectAll)
         self.CreateAction('deselect', self.Deselect, GetIcon('deselect'), trans.stringOneLine('MenuItems', 24), trans.stringOneLine('MenuItems', 25), QtGui.QKeySequence('Ctrl+D'))
         self.CreateAction('undo', self.Undo, GetIcon('undo'), trans.stringOneLine('MenuItems', 124), trans.stringOneLine('MenuItems', 125), QtGui.QKeySequence.Undo)
         self.CreateAction('redo', self.Redo, GetIcon('redo'), trans.stringOneLine('MenuItems', 126), trans.stringOneLine('MenuItems', 127), QtGui.QKeySequence.Redo)
@@ -15651,6 +17324,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.CreateAction('freezeentrances', self.HandleEntrancesFreeze, GetIcon('entrancesfreeze'), trans.stringOneLine('MenuItems', 42), trans.stringOneLine('MenuItems', 43), QtGui.QKeySequence('Ctrl+Shift+3'), True)
         self.CreateAction('freezelocations', self.HandleLocationsFreeze, GetIcon('locationsfreeze'), trans.stringOneLine('MenuItems', 44), trans.stringOneLine('MenuItems', 45), QtGui.QKeySequence('Ctrl+Shift+4'), True)
         self.CreateAction('freezepaths', self.HandlePathsFreeze, GetIcon('pathsfreeze'), trans.stringOneLine('MenuItems', 46), trans.stringOneLine('MenuItems', 47), QtGui.QKeySequence('Ctrl+Shift+5'), True)
+        self.CreateAction('freezeprogresspaths', self.HandleProgressPathsFreeze, GetIcon('progresspathsfreeze'), trans.stringOneLine('MenuItems', 130), trans.stringOneLine('MenuItems', 131), QtGui.QKeySequence('Ctrl+Shift+6'), True)
         self.CreateAction('freezecomments', self.HandleCommentsFreeze, GetIcon('commentsfreeze'), trans.stringOneLine('MenuItems', 114), trans.stringOneLine('MenuItems', 115), QtGui.QKeySequence('Ctrl+Shift+9'), True)
 
         # View
@@ -15659,6 +17333,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.CreateAction('showlay2', self.HandleUpdateLayer2, GetIcon('layer2'), trans.stringOneLine('MenuItems', 52), trans.stringOneLine('MenuItems', 53), QtGui.QKeySequence('Ctrl+3'), True)
         self.CreateAction('tileanim', self.HandleTilesetAnimToggle, GetIcon('animation'), trans.stringOneLine('MenuItems', 108), trans.stringOneLine('MenuItems', 109), QtGui.QKeySequence('Ctrl+7'), True)
         self.CreateAction('collisions', self.HandleCollisionsToggle, GetIcon('collisions'), trans.stringOneLine('MenuItems', 110), trans.stringOneLine('MenuItems', 111), QtGui.QKeySequence('Ctrl+8'), True)
+        self.CreateAction('depth', self.HandleDepthToggle, GetIcon('depth'), trans.stringOneLine('MenuItems', 122), trans.stringOneLine('MenuItems', 123), QtGui.QKeySequence('Ctrl+H'), True)
         self.CreateAction('realview', self.HandleRealViewToggle, GetIcon('realview'), trans.stringOneLine('MenuItems', 118), trans.stringOneLine('MenuItems', 119), QtGui.QKeySequence('Ctrl+9'), True)
         self.CreateAction('showsprites', self.HandleSpritesVisibility, GetIcon('sprites'), trans.stringOneLine('MenuItems', 54), trans.stringOneLine('MenuItems', 55), QtGui.QKeySequence('Ctrl+4'), True)
         self.CreateAction('showspriteimages', self.HandleSpriteImages, GetIcon('sprites'), trans.stringOneLine('MenuItems', 56), trans.stringOneLine('MenuItems', 57), QtGui.QKeySequence('Ctrl+6'), True)
@@ -15692,6 +17367,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.actions['changegamedef'].setMenu(self.GameDefMenu)
 
         self.actions['collisions'].setChecked(CollisionsShown)
+        self.actions['depth'].setChecked(DepthShown)
         self.actions['realview'].setChecked(RealViewEnabled)
 
         self.actions['showsprites'].setChecked(SpritesShown)
@@ -15704,6 +17380,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.actions['freezeentrances'].setChecked(EntrancesFrozen)
         self.actions['freezelocations'].setChecked(LocationsFrozen)
         self.actions['freezepaths'].setChecked(PathsFrozen)
+        self.actions['freezeprogresspaths'].setChecked(ProgressPathsFrozen)
         self.actions['freezecomments'].setChecked(CommentsFrozen)
 
         self.actions['undo'].setEnabled(False)
@@ -15714,6 +17391,11 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.actions['shiftitems'].setEnabled(False)
         self.actions['mergelocations'].setEnabled(False)
         self.actions['deselect'].setEnabled(False)
+        if CurrentGame == NewSuperMarioBros2:
+            self.actions['showlay0'].setEnabled(False)
+        else:
+            self.actions['depth'].setEnabled(False)
+            self.actions['freezeprogresspaths'].setEnabled(False)
 
 
         ####
@@ -15762,6 +17444,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         emenu.addAction(self.actions['freezeentrances'])
         emenu.addAction(self.actions['freezelocations'])
         emenu.addAction(self.actions['freezepaths'])
+        emenu.addAction(self.actions['freezeprogresspaths'])
         emenu.addAction(self.actions['freezecomments'])
 
         vmenu = menubar.addMenu(trans.string('Menubar', 2))
@@ -15770,6 +17453,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         vmenu.addAction(self.actions['showlay2'])
         vmenu.addAction(self.actions['tileanim'])
         vmenu.addAction(self.actions['collisions'])
+        vmenu.addAction(self.actions['depth'])
         vmenu.addAction(self.actions['realview'])
         vmenu.addSeparator()
         vmenu.addAction(self.actions['showsprites'])
@@ -15877,6 +17561,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 'freezeentrances',
                 'freezelocations',
                 'freezepaths',
+                'freezeprogresspaths',
             ), (
                 'diagnostic',
             ), (
@@ -15922,7 +17607,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
                     toggled[key] = activated
         else: # Get the registry settings
             toggled = setting('ToolbarActs')
-            newToggled = {} # here, I'm replacing QStrings w/ python strings
+            newToggled = {} # here, I'm replacing QStrings with python strings
             for key in toggled:
                 newToggled[str(key)] = toggled[key]
             toggled = newToggled
@@ -16009,6 +17694,20 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.pathEditor = PathNodeEditorWidget()
         dock.setWidget(self.pathEditor)
         self.pathEditorDock = dock
+
+        self.addDockWidget(Qt.RightDockWidgetArea, dock)
+        dock.setFloating(True)
+
+        # create the progress path node editor panel
+        dock = QtWidgets.QDockWidget(trans.string('ProgPathDataEditor', 0), self)
+        dock.setVisible(False)
+        dock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable)
+        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        dock.setObjectName('progresspathnodeeditor') #needed for the state to save/restore correctly
+
+        self.progPathEditor = ProgressPathNodeEditorWidget()
+        dock.setWidget(self.progPathEditor)
+        self.progPathEditorDock = dock
 
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
         dock.setFloating(True)
@@ -16106,6 +17805,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         ll.addStretch(1)
         oel.addLayout(ll)
 
+        if CurrentGame == NewSuperMarioBros2:
+            self.objUseLayer0.setEnabled(False)
+
         lbg = QtWidgets.QButtonGroup(self)
         lbg.addButton(self.objUseLayer0, 0)
         lbg.addButton(self.objUseLayer1, 1)
@@ -16200,6 +17902,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.spriteList = ListWidgetWithToolTipSignal()
         self.spriteList.itemActivated.connect(self.HandleSpriteSelectByList)
         self.spriteList.toolTipAboutToShow.connect(self.HandleSpriteToolTipAboutToShow)
+        self.spriteList.setSortingEnabled(True)
 
         spel.addWidget(slabel)
         spel.addWidget(self.spriteList)
@@ -16217,6 +17920,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.entranceList = ListWidgetWithToolTipSignal()
         self.entranceList.itemActivated.connect(self.HandleEntranceSelectByList)
         self.entranceList.toolTipAboutToShow.connect(self.HandleEntranceToolTipAboutToShow)
+        self.entranceList.setSortingEnabled(True)
 
         eel.addWidget(elabel)
         eel.addWidget(self.entranceList)
@@ -16234,6 +17938,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.locationList = ListWidgetWithToolTipSignal()
         self.locationList.itemActivated.connect(self.HandleLocationSelectByList)
         self.locationList.toolTipAboutToShow.connect(self.HandleLocationToolTipAboutToShow)
+        self.locationList.setSortingEnabled(True)
 
         locL.addWidget(Llabel)
         locL.addWidget(self.locationList)
@@ -16253,15 +17958,41 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.pathList = ListWidgetWithToolTipSignal()
         self.pathList.itemActivated.connect(self.HandlePathSelectByList)
         self.pathList.toolTipAboutToShow.connect(self.HandlePathToolTipAboutToShow)
+        self.pathList.setSortingEnabled(True)
 
         pathel.addWidget(pathlabel)
         pathel.addWidget(deselectbtn)
         pathel.addWidget(self.pathList)
 
+        # progress paths tab
+        self.progPathEditorTab = QtWidgets.QWidget()
+        tabs.addTab(self.progPathEditorTab, GetIcon('progresspaths'), '')
+        tabs.setTabToolTip(5, trans.string('Palette', 36))
+        if CurrentGame != NewSuperMarioBros2:
+            tabs.setTabEnabled(5, False)
+
+        progpathel = QtWidgets.QVBoxLayout(self.progPathEditorTab)
+        self.progPathEditorLayout = progpathel
+
+        progpathlabel = QtWidgets.QLabel(trans.string('Palette', 37))
+        progpathlabel.setWordWrap(True)
+        deselectbtn = QtWidgets.QPushButton(trans.string('Palette', 38))
+        deselectbtn.clicked.connect(self.DeselectProgressPathSelection)
+        self.progPathList = ListWidgetWithToolTipSignal()
+        self.progPathList.itemActivated.connect(self.HandleProgressPathSelectByList)
+        self.progPathList.toolTipAboutToShow.connect(self.HandleProgressPathToolTipAboutToShow)
+        self.progPathList.setSortingEnabled(True)
+
+        progpathel.addWidget(progpathlabel)
+        progpathel.addWidget(deselectbtn)
+        progpathel.addWidget(self.progPathList)
+
         # events tab
         self.eventEditorTab = QtWidgets.QWidget()
         tabs.addTab(self.eventEditorTab, GetIcon('events'), '')
-        tabs.setTabToolTip(5, trans.string('Palette', 18))
+        tabs.setTabToolTip(6, trans.string('Palette', 18))
+        if CurrentGame == NewSuperMarioBros2:
+            tabs.setTabEnabled(6, False)
 
         eventel = QtWidgets.QGridLayout(self.eventEditorTab)
         self.eventEditorLayout = eventel
@@ -16295,7 +18026,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         # stamps tab
         self.stampTab = QtWidgets.QWidget()
         tabs.addTab(self.stampTab, GetIcon('stamp'), '')
-        tabs.setTabToolTip(6, trans.string('Palette', 19))
+        tabs.setTabToolTip(7, trans.string('Palette', 19))
 
         stampLabel = QtWidgets.QLabel(trans.string('Palette', 27))
 
@@ -16342,7 +18073,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         # comments tab
         self.commentsTab = QtWidgets.QWidget()
         tabs.addTab(self.commentsTab, GetIcon('comments'), '')
-        tabs.setTabToolTip(7, trans.string('Palette', 33))
+        tabs.setTabToolTip(8, trans.string('Palette', 33))
 
         cel = QtWidgets.QVBoxLayout()
         self.commentsTab.setLayout(cel)
@@ -16354,6 +18085,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.commentList = ListWidgetWithToolTipSignal()
         self.commentList.itemActivated.connect(self.HandleCommentSelectByList)
         self.commentList.toolTipAboutToShow.connect(self.HandleCommentToolTipAboutToShow)
+        self.commentList.setSortingEnabled(True)
 
         cel.addWidget(clabel)
         cel.addWidget(self.commentList)
@@ -16368,6 +18100,13 @@ class ReggieWindow(QtWidgets.QMainWindow):
         for selecteditem in self.pathList.selectedItems():
             self.pathList.setItemSelected(selecteditem, False)
 
+    def DeselectProgressPathSelection(self, checked):
+        """
+        Deselects selected progress path nodes in the list
+        """
+        for selecteditem in self.progPathList.selectedItems():
+            self.progPathList.setItemSelected(selecteditem, False)
+
     @QtCore.pyqtSlot()
     def Autosave(self):
         """
@@ -16377,7 +18116,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if not AutoSaveDirty: return
 
         data = Level.save()
-        setSetting('AutoSaveFilePath', Level.arcname)
+        setSetting('AutoSaveFilePath', self.fileSavePath)
         setSetting('AutoSaveFileData', QtCore.QByteArray(data))
         AutoSaveDirty = False
 
@@ -16387,7 +18126,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Catches systemwide clipboard updates
         """
-        if Initialising: return
+        if Initializing: return
         clip = self.systemClipboard.text()
         if clip is not None and clip != '':
             clip = str(clip).strip()
@@ -16430,7 +18169,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Sets the window title accordingly
         """
         # ' - Reggie Next' is added automatically by Qt (see QApplication.setApplicationDisplayName()).
-        self.setWindowTitle('%s%s' % (Level.filename, (' ' + trans.string('MainWindow', 0)) if Dirty else ''))
+        self.setWindowTitle('%s%s' % (mainWindow.fileTitle, (' ' + trans.string('MainWindow', 0)) if Dirty else ''))
 
     def CheckDirty(self):
         """
@@ -16672,25 +18411,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         AboutDialog().exec_()
 
-    @QtCore.pyqtSlot()
-    def HandlePaths(self):
-        """
-        Creates the Path Editing mode
-        """
-
-        # Step 1: Freeze all scene items
-        # Step 2: Gray out the scene
-        # Step 3: Exchange the palette dock with a path palette
-        # Step 4: Allow the creation of path nodes on scene through right-clicking
-        # Step 5: Floating Palette to allow editing of the numerical values manually
-        # Step 6: Chain path nodes together in order
-        # Step 7: Smart handling of node creation and deletion
-        # Step 8: UI intuitive visualization of accel/speed
-        # Step 9: Mouse controls for the above
-        # Step 10: Attaching an instance of the path to all sprites which refer to it
-
-        return
-
 
     @QtCore.pyqtSlot()
     def HandleInfo(self):
@@ -16724,7 +18444,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def TipBox(self):
         """
-        Reggie Tips and Commands
+        Reggie Next Tips and Commands
         """
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(os.path.join(module_path(), 'reggiedata', 'help', 'tips.html')))
 
@@ -17218,11 +18938,14 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if self.CheckDirty():
             return
 
-        if not Level.addArea(): return
+        try:
+            newA = Level.addArea()
+        except: return
+
         newID = len(Level.areas)
 
         if not self.HandleSave(): return
-        self.LoadLevel(Level.arcname, True, newID)
+        self.LoadLevel(None, self.fileSavePath, True, newID)
 
 
     @QtCore.pyqtSlot()
@@ -17238,8 +18961,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
             return
 
         filetypes = ''
-        filetypes += trans.string('FileDlgs', 1) + ' (*.arc);;' # *.arc
-        filetypes += trans.string('FileDlgs', 5) + ' (*.arc.lh);;' # *.arc.LH
+        filetypes += trans.string('FileDlgs', 1) + ' (*' + FileExtensions[CurrentGame] + ');;' # *.arc
+        filetypes += trans.string('FileDlgs', 5) + ' (*' + FileExtensions[CurrentGame] + '.lh);;' # *.arc.LH
         filetypes += trans.string('FileDlgs', 2) + ' (*)' # *
         fn = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return
@@ -17249,7 +18972,11 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if LHTool.isLHCompressed(arcdata):
             arcdata = LHTool.decompressLH(arcdata)
 
-        arc = archive.U8.load(arcdata)
+        if CurrentGame == NewSuperMarioBrosWii:
+            arc = archive.U8.load(arcdata)
+        elif CurrentGame == NewSuperMarioBros2:
+            arc = SarcLib.SARC_Archive()
+            arc.load(arcdata)
 
         # get the area count
         areacount = 0
@@ -17294,10 +19021,12 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         # add them to our level
         newID = len(Level.areas) + 1
-        Level.addArea(course, L0, L1, L2)
+
+        newA = Level.addArea()
+        newA.load(course, L0, L1, L2)
 
         if not self.HandleSave(): return
-        self.LoadLevel(Level.arcname, True, newID)
+        self.LoadLevel(None, self.fileSavePath, True, newID)
 
 
     @QtCore.pyqtSlot()
@@ -17313,11 +19042,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Level.deleteArea(Area.areanum)
 
         # no error checking. if it saved last time, it will probably work now
-
-        f = open(Level.arcname, 'wb')
-        f.write(Level.save())
-        f.close()
-        self.LoadLevel(Level.arcname, True, 1)
+        with open(self.fileSavePath, 'wb') as f:
+            f.write(Level.save())
+        self.LoadLevel(None, self.fileSavePath, True, 1)
 
 
     @QtCore.pyqtSlot()
@@ -17341,7 +19068,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 SetGamePath(path)
                 break
 
-        if not auto: self.LoadLevel('01-01', False, 1)
+        if not auto: self.LoadLevel(None, FirstLevels[CurrentGame], False, 1)
         return True
 
 
@@ -17401,7 +19128,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         Create a new level
         """
         if self.CheckDirty(): return
-        self.LoadLevel(None, False, 1)
+        self.LoadLevel(None, None, False, 1)
 
 
     @QtCore.pyqtSlot()
@@ -17414,7 +19141,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         LoadLevelNames()
         dlg = ChooseLevelNameDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
-            self.LoadLevel(dlg.currentlevel, False, 1)
+            self.LoadLevel(None, dlg.currentlevel, False, 1)
 
 
     @QtCore.pyqtSlot()
@@ -17425,12 +19152,12 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if self.CheckDirty(): return
 
         filetypes = ''
-        filetypes += trans.string('FileDlgs', 1) + ' (*.arc);;' # *.arc
-        filetypes += trans.string('FileDlgs', 5) + ' (*.arc.lh);;' # *.arc.LH
+        filetypes += trans.string('FileDlgs', 1) + ' (*' + FileExtensions[CurrentGame] + ');;' # *.arc
+        filetypes += trans.string('FileDlgs', 5) + ' (*' + FileExtensions[CurrentGame] + '.lh);;' # *.arc.LH
         filetypes += trans.string('FileDlgs', 2) + ' (*)' # *
         fn = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return
-        self.LoadLevel(str(fn), True, 1)
+        self.LoadLevel(None, str(fn), True, 1)
 
 
     @QtCore.pyqtSlot()
@@ -17438,16 +19165,15 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Save a level back to the archive
         """
-        if not Level.hasName:
+        if not self.fileSavePath:
             self.HandleSaveAs()
             return
 
         global Dirty, AutoSaveDirty
         data = Level.save()
         try:
-            f = open(Level.arcname, 'wb')
-            f.write(data)
-            f.close()
+            with open(self.fileSavePath, 'wb') as f:
+                f.write(data)
         except IOError as e:
             QtWidgets.QMessageBox.warning(None, trans.string('Err_Save', 0), trans.string('Err_Save', 1, '[err1]', e.args[0], '[err2]', e.args[1]))
             return False
@@ -17456,7 +19182,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         AutoSaveDirty = False
         self.UpdateTitle()
 
-        setSetting('AutoSaveFilePath', Level.arcname)
+        setSetting('AutoSaveFilePath', self.fileSavePath)
         setSetting('AutoSaveFileData', 'x')
         return True
 
@@ -17466,43 +19192,41 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Save a level back to the archive, with a new filename
         """
-        fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', trans.string('FileDlgs', 1) + ' (*.arc);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
+        fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', trans.string('FileDlgs', 1) + ' (*' + FileExtensions[CurrentGame] +');;' + trans.string('FileDlgs', 2) + ' (*)')[0]
         if fn == '': return
-        fn = str(fn)
 
         global Dirty, AutoSaveDirty
         Dirty = False
         AutoSaveDirty = False
         Dirty = False
 
-        Level.arcname = fn
-        Level.filename = os.path.basename(fn)
-        Level.hasName = True
+        self.fileSavePath = fn
+        self.fileTitle = os.path.basename(fn)
 
         data = Level.save()
-        f = open(fn, 'wb')
-        f.write(data)
-        f.close()
+        with open(fn, 'wb') as f:
+            f.write(data)
+
         setSetting('AutoSaveFilePath', fn)
         setSetting('AutoSaveFileData', 'x')
 
         self.UpdateTitle()
 
-        self.RecentFilesMgr.addPath(Level.arcname)
+        self.RecentFilesMgr.addPath(self.fileSavePath)
+
 
     @QtCore.pyqtSlot()
     def HandleSaveCopyAs(self):
         """
         Save a level back to the archive, with a new filename, but does not store this filename
         """
-        fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', trans.string('FileDlgs', 1) + ' (*.arc);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
+        fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', trans.string('FileDlgs', 1) + ' (*' + FileExtensions[CurrentGame] + ');;' + trans.string('FileDlgs', 2) + ' (*)')[0]
         if fn == '': return
-        fn = str(fn)
 
         data = Level.save()
-        f = open(fn, 'wb')
-        f.write(data)
-        f.close()
+        with open(fn, 'wb') as f:
+            f.write(data)
+
 
     @QtCore.pyqtSlot()
     def HandleExit(self):
@@ -17521,8 +19245,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
             self.areaComboBox.setCurrentIndex(Area.areanum)
             return
 
-        if Area.areanum != idx+1:
-            self.LoadLevel(Level.arcname, True, idx+1)
+        if Area.areanum != idx + 1:
+            self.LoadLevel(self.fileSavePath, True, idx + 1)
 
 
     @QtCore.pyqtSlot(bool)
@@ -17597,6 +19321,19 @@ class ReggieWindow(QtWidgets.QMainWindow):
         CollisionsShown = checked
 
         setSetting('ShowCollisions', CollisionsShown)
+        self.scene.update()
+
+
+    @QtCore.pyqtSlot(bool)
+    def HandleDepthToggle(self, checked):
+        """
+        Handle toggling of tileset depth highlighting viewing
+        """
+        global DepthShown
+
+        DepthShown = checked
+
+        setSetting('ShowDepth', DepthShown)
         self.scene.update()
 
 
@@ -17777,7 +19514,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(bool)
     def HandlePathsFreeze(self, checked):
         """
-        Handle toggling of entrances being frozen
+        Handle toggling of path nodes being frozen
         """
         global PathsFrozen
 
@@ -17791,6 +19528,26 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 node.setFlag(flag2, not PathsFrozen)
 
         setSetting('FreezePaths', PathsFrozen)
+        self.scene.update()
+
+
+    @QtCore.pyqtSlot(bool)
+    def HandleProgressPathsFreeze(self, checked):
+        """
+        Handle toggling of progress paths being frozen
+        """
+        global ProgressPathsFrozen
+
+        ProgressPathsFrozen = checked
+        flag1 = QtWidgets.QGraphicsItem.ItemIsSelectable
+        flag2 = QtWidgets.QGraphicsItem.ItemIsMovable
+
+        if Area is not None:
+            for node in Area.progpaths:
+                node.setFlag(flag1, not ProgressPathsFrozen)
+                node.setFlag(flag2, not ProgressPathsFrozen)
+
+        setSetting('FreezeProgressPaths', ProgressPathsFrozen)
         self.scene.update()
 
 
@@ -17954,6 +19711,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             self.spriteEditorDock.setVisible(False)
             self.entranceEditorDock.setVisible(False)
             self.pathEditorDock.setVisible(False)
+            self.progPathEditorDock.setVisible(False)
             self.locationEditorDock.setVisible(False)
             self.defaultPropDock.setVisible(False)
 
@@ -17968,7 +19726,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             if hasattr(self, 'TipsBoxInstance'):
                 self.TipsBoxInstance.close()
 
-            gamedef.SetLastLevel(str(Level.arcname))
+            gamedef.SetLastLevel(str(self.fileSavePath))
 
             setSetting('AutoSaveFilePath', 'none')
             setSetting('AutoSaveFileData', 'x')
@@ -17976,78 +19734,211 @@ class ReggieWindow(QtWidgets.QMainWindow):
             event.accept()
 
 
-    def LoadLevel(self, name, fullpath, area):
+    def LoadLevel(self, game, name, isFullPath, areaNum):
         """
-        Load a level into the editor
+        Load a level from any game into the editor
         """
+        global levName, CurrentGame
 
-        app.splashScreen = ReggieSplashScreen()
-        app.splashScreen.setProgressLimit(9)
-        app.splashScreen.show()
+        levName = os.path.basename(name)
 
+        if game is None:
+            game = CurrentGame
+
+        # Get the file path, if possible
         if name is not None:
-            if fullpath:
+            if isFullPath:
                 checkname = name
             else:
-                checkname = os.path.join(gamedef.GetGamePath(), name+'.arc')
+                checkname = os.path.join(gamedef.GetGamePath(), name + FileExtensions[game])
 
-            if not os.path.isfile(checkname):
-                QtWidgets.QMessageBox.warning(self, 'Reggie', trans.string('Err_CantFindLevel', 0, '[name]', checkname), QtWidgets.QMessageBox.Ok)
+            found = os.path.isfile(checkname)
+            if not found:
+                QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('Err_CantFindLevel', 0, '[name]', checkname), QtWidgets.QMessageBox.Ok)
                 return False
             if not IsNSMBLevel(checkname):
-                QtWidgets.QMessageBox.warning(self, 'Reggie', trans.string('Err_InvalidLevel', 0), QtWidgets.QMessageBox.Ok)
+                QtWidgets.QMessageBox.warning(self, 'Reggie!', trans.string('Err_InvalidLevel', 0), QtWidgets.QMessageBox.Ok)
                 return False
 
+        name = checkname
+
+        # Get the data
+        global RestoredFromAutoSave
+        if not RestoredFromAutoSave:
+
+            # Check if there is a file by this name
+            if not os.path.isfile(name):
+                QtWidgets.QMessageBox.warning(None, trans.string('Err_MissingLevel', 0), trans.string('Err_MissingLevel', 1, '[file]', name))
+                return False
+
+            # Set the filepath variables
+            self.fileSavePath = name
+            self.fileTitle = os.path.basename(self.fileSavePath)
+
+            # Open the file
+            with open(self.fileSavePath, 'rb') as fileobj:
+                levelData = fileobj.read()
+
+            # Decompress, if needed
+            if LHTool.isLHCompressed(levelData):
+                levelData = LHTool.decompressLH(levelData)
+
+        else:
+            # Auto-saved level. Check if there's a path associated with it:
+
+            if AutoSavePath == 'None':
+                self.fileSavePath = None
+                self.fileTitle = trans.string('WindowTitle', 0)
+            else:
+                self.fileSavePath = AutoSavePath
+                self.fileTitle = os.path.basename(name)
+
+            # Get the level data
+            levelData = AutoSaveData
+            SetDirty(noautosave=True)
+
+            # Turn off the autosave flag
+            RestoredFromAutoSave = False
+
+        # Turn the dirty flag off, and keep it that way
         global Dirty, DirtyOverride
         Dirty = False
         DirtyOverride += 1
 
-        # first clear out what we have
+        # Show the splash screen
+        app.splashScreen = ReggieSplashScreen()
+        app.splashScreen.setProgressLimit(9)
+        app.splashScreen.show()
+
+        # Here's how progress is tracked. (After the major refactor, it may be a bit messed up now.)
+        # - 0: Loading level data
+        # [Area.__init__ is entered here]
+        # - 1: Loading tilesets [1/2/3/4 allocated for each tileset]
+        # - 5: Loading layers
+        # [Control is returned to LoadLevel_NSMB2]
+        # - 6: Loading objects
+        # - 7: Preparing editor
+
+        # First, clear out the existing level.
         self.scene.clearSelection()
         self.CurrentSelection = []
         self.scene.clear()
 
-        # reset these here, because if the showlayer variables are set
-        # after creating the objects, it uses the old values
+        # Clear out all level-thing lists
+        for thingList in (self.spriteList, self.entranceList, self.locationList, self.pathList, self.progPathList, self.commentList):
+            thingList.clear()
+            thingList.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
+
+        # Reset these here, because if they are set after
+        # creating the objects, they use the old values.
         global CurrentLayer, Layer0Shown, Layer1Shown, Layer2Shown
         CurrentLayer = 1
         Layer0Shown = True
         Layer1Shown = True
         Layer2Shown = True
 
-        # this tracks progress
-        # current stages:
-        # - 0: Loading level data
-        # [AreaUnit.__init__ is entered here]
-        # - 1: Loading tilesets [1/2/3/4 allocated for each tileset]
-        # - 5: Loading layers
-        # [Control is returned to LoadLevel]
-        # - 6: Loading objects
-        # - 7: Preparing editor
-
-        # stop it from snapping when created...
+        # Prevent things from snapping when they're created
         global OverrideSnapping
         OverrideSnapping = True
 
         app.splashScreen.setProgress(trans.string('Splash', 2), 0)
 
-        global Level, Area
-        Level = LevelUnit()
+        # Load the actual level for this specific game
+        if game is NewSuperMarioBros:
+            # This game is not supported... YET
+            raise NotImplementedError
+        elif game is NewSuperMarioBrosWii:
+            self.LoadLevel_NSMBW(levelData, areaNum)
+        elif game is NewSuperMarioBros2:
+            self.LoadLevel_NSMB2(levelData, areaNum)
+        elif game is NewSuperMarioBrosU:
+            # This game is not supported... YET
+            raise NotImplementedError
+        elif game is NewSuperLuigiU:
+            # This game is not supported... YET
+            raise NotImplementedError
 
-        if name is None:
-            Level.newLevel()
-            Level.setAreaGlobal(area)
+        # Set the level overview settings
+        mainWindow.levelOverview.maxX = 100
+        mainWindow.levelOverview.maxY = 40
+
+        # Fill up the area list
+        if UseRibbon:
+            self.ribbon.updateAreaComboBox(len(Level.areas), area)
         else:
-            global RestoredFromAutoSave
-            if RestoredFromAutoSave:
-                RestoredFromAutoSave = False
-                Level.loadLevel('AUTO_FLAG', True, 1)
-            else:
-                Level.loadLevel(name, fullpath, area)
+            self.areaComboBox.clear()
+            for i in range(1, len(Level.areas) + 1):
+                self.areaComboBox.addItem(trans.string('AreaCombobox', 0, '[num]', i))
+            self.areaComboBox.setCurrentIndex(areaNum - 1)
 
+        self.levelOverview.update()
+
+        # Scroll to the initial entrance
+        startEntID = Area.startEntrance
+        startEnt = None
+        for ent in Area.entrances:
+            if ent.entid == startEntID: startEnt = ent
+
+        self.view.centerOn(0, 0)
+        if startEnt is not None: self.view.centerOn(startEnt.objx * 1.5, startEnt.objy * 1.5)
+        self.ZoomTo(100.0)
+
+        # Reset some editor things
+        if UseRibbon:
+            self.ribbon.setBtnEnabled('addarea', len(Level.areas) < 4)
+            self.ribbon.setBtnEnabled('imarea', len(Level.areas) < 4)
+            self.ribbon.setBtnEnabled('delarea', len(Level.areas) > 1)
+        else:
+            self.actions['showlay0'].setChecked(True)
+            self.actions['showlay1'].setChecked(True)
+            self.actions['showlay2'].setChecked(True)
+            self.actions['addarea'].setEnabled(len(Level.areas) < 4)
+            self.actions['importarea'].setEnabled(len(Level.areas) < 4)
+            self.actions['deletearea'].setEnabled(len(Level.areas) > 1)
+
+        # Turn snapping back on
         OverrideSnapping = False
 
-        # prepare the object picker
+        # Turn the dirty flag off
+        DirtyOverride -= 1
+        self.UpdateTitle()
+
+        # Update UI things
+        self.scene.update()
+
+        self.levelOverview.Reset()
+        self.levelOverview.update()
+        QtCore.QTimer.singleShot(20, self.levelOverview.update)
+
+        # Remove the splashscreen
+        app.splashScreen.hide()
+        del app.splashScreen
+
+        # Add the path to Recent Files
+        self.RecentFilesMgr.addPath(mainWindow.fileSavePath)
+
+        # Set the Current Game setting
+        CurrentGame = game
+        setSetting('CurrentGame', CurrentGame)
+
+        # If we got this far, everything worked! Return True.
+        return True
+
+
+    def LoadLevel_NSMBW(self, levelData, areaNum):
+        """
+        Performs all level-loading tasks specific to New Super Mario Bros. Wii levels.
+        Do not call this directly - use LoadLevel(NewSuperMarioBrosWii, ...) instead!
+        """
+        # Create the new level object
+        global Level
+        Level = Level_NSMBW()
+
+        # Load it
+        if not Level.load(levelData, areaNum):
+            raise Exception
+
+        # Prepare the object picker
         app.splashScreen.setProgress(trans.string('Splash', 4), 7)
 
         self.objUseLayer1.setChecked(True)
@@ -18060,141 +19951,181 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
         self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
 
-        # add all the objects to the scene
+        # Add all things to scene
         app.splashScreen.setProgress(trans.string('Splash', 5), 8)
 
-        scene = self.scene
-        scene.clear()
-
-        sprlist = self.spriteList
-        sprlist.clear()
-        sprlist.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
-
-        entlist = self.entranceList
-        entlist.clear()
-        entlist.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
-
-        loclist = self.locationList
-        loclist.clear()
-        loclist.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
-
-        pathlist = self.pathList
-        pathlist.clear()
-        pathlist.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
-
+        # Load events
         self.LoadEventTabFromLevel()
 
-        comlist = self.commentList
-        comlist.clear()
-        comlist.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
-
-        addItem = scene.addItem
-
+        # Add all things to the scene
         pcEvent = self.HandleObjPosChange
         for layer in reversed(Area.layers):
             for obj in layer:
                 obj.positionChanged = pcEvent
-                addItem(obj)
+                self.scene.addItem(obj)
 
         pcEvent = self.HandleSprPosChange
         for spr in Area.sprites:
             spr.positionChanged = pcEvent
-            spr.listitem = QtWidgets.QListWidgetItem()
-            sprlist.addItem(spr.listitem)
-            addItem(spr)
+            spr.listitem = ListWidgetItem_SortsByOther(spr)
+            self.spriteList.addItem(spr.listitem)
+            self.scene.addItem(spr)
             spr.UpdateListItem()
 
         pcEvent = self.HandleEntPosChange
         for ent in Area.entrances:
             ent.positionChanged = pcEvent
-            ent.listitem = QtWidgets.QListWidgetItem()
-            entlist.addItem(ent.listitem)
-            addItem(ent)
+            ent.listitem = ListWidgetItem_SortsByOther(ent)
+            ent.listitem.entid = ent.entid
+            self.entranceList.addItem(ent.listitem)
+            self.scene.addItem(ent)
             ent.UpdateListItem()
 
         for zone in Area.zones:
-            addItem(zone)
+            self.scene.addItem(zone)
 
         pcEvent = self.HandleLocPosChange
         scEvent = self.HandleLocSizeChange
         for location in Area.locations:
             location.positionChanged = pcEvent
             location.sizeChanged = scEvent
-            location.listitem = QtWidgets.QListWidgetItem()
-            loclist.addItem(location.listitem)
-            addItem(location)
+            location.listitem = ListWidgetItem_SortsByOther(location)
+            self.locationList.addItem(location.listitem)
+            self.scene.addItem(location)
             location.UpdateListItem()
 
         for path in Area.paths:
             path.positionChanged = self.HandlePathPosChange
-            path.listitem = QtWidgets.QListWidgetItem()
-            pathlist.addItem(path.listitem)
-            addItem(path)
+            path.listitem = ListWidgetItem_SortsByOther(path)
+            self.pathList.addItem(path.listitem)
+            self.scene.addItem(path)
             path.UpdateListItem()
 
         for path in Area.pathdata:
             peline = PathEditorLineItem(path['nodes'])
             path['peline'] = peline
-            addItem(peline)
+            self.scene.addItem(peline)
             peline.loops = path['loops']
+
+        for path in Area.paths:
+            path.UpdateListItem()
 
         for com in Area.comments:
             com.positionChanged = self.HandleComPosChange
             com.textChanged = self.HandleComTxtChange
             com.listitem = QtWidgets.QListWidgetItem()
-            comlist.addItem(com.listitem)
-            addItem(com)
+            self.commentList.addItem(com.listitem)
+            self.scene.addItem(com)
             com.UpdateListItem()
 
+    def LoadLevel_NSMB2(self, levelData, areaNum):
+        """
+        Performs all level-loading tasks specific to New Super Mario Bros. 2 levels.
+        Do not call this directly - use LoadLevel(NewSuperMarioBros2, ...) instead!
+        """
 
-        # fill up the area list
-        if UseRibbon:
-            self.ribbon.updateAreaComboBox(len(Level.areas), area)
-        else:
-            self.areaComboBox.clear()
-            for i in range(1, len(Level.areas) + 1):
-                self.areaComboBox.addItem(trans.string('AreaCombobox', 0, '[num]', i))
-            self.areaComboBox.setCurrentIndex(area-1)
+        # Create the new level object
+        global Level
+        Level = Level_NSMB2()
 
-        self.levelOverview.update()
+        # Load it
+        if not Level.load(levelData, areaNum):
+            raise Exception
 
-        # scroll to the initial entrance
-        startEntID = Area.startEntrance
-        startEnt = None
+        # Prepare the object picker
+        app.splashScreen.setProgress(trans.string('Splash', 4), 7)
+
+        self.objUseLayer1.setChecked(True)
+
+        self.objPicker.LoadFromTilesets()
+
+        self.objAllTab.setCurrentIndex(0)
+        self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
+        self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
+        self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
+        self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
+
+        # Add all things to scene
+        app.splashScreen.setProgress(trans.string('Splash', 5), 8)
+
+        # Load events
+        self.LoadEventTabFromLevel()
+
+        # Add all things to the scene
+        pcEvent = self.HandleObjPosChange
+        for layer in reversed(Area.layers):
+            for obj in layer:
+                obj.positionChanged = pcEvent
+                self.scene.addItem(obj)
+
+        pcEvent = self.HandleSprPosChange
+        for spr in Area.sprites:
+            spr.positionChanged = pcEvent
+            spr.listitem = ListWidgetItem_SortsByOther(spr)
+            self.spriteList.addItem(spr.listitem)
+            self.scene.addItem(spr)
+            spr.UpdateListItem()
+
+        pcEvent = self.HandleEntPosChange
         for ent in Area.entrances:
-            if ent.entid == startEntID: startEnt = ent
+            ent.positionChanged = pcEvent
+            ent.listitem = ListWidgetItem_SortsByOther(ent)
+            ent.listitem.entid = ent.entid
+            self.entranceList.addItem(ent.listitem)
+            self.scene.addItem(ent)
+            ent.UpdateListItem()
 
-        self.view.centerOn(0,0)
-        if startEnt is not None: self.view.centerOn(startEnt.objx*1.5, startEnt.objy*1.5)
-        self.ZoomTo(100.0)
+        for zone in Area.zones:
+            self.scene.addItem(zone)
 
-        # reset some editor things
-        if UseRibbon:
-            self.ribbon.setBtnEnabled('addarea', len(Level.areas) < 4)
-            self.ribbon.setBtnEnabled('imarea', len(Level.areas) < 4)
-            self.ribbon.setBtnEnabled('delarea', len(Level.areas) > 1)
-        else:
-            self.actions['showlay0'].setChecked(True)
-            self.actions['showlay1'].setChecked(True)
-            self.actions['showlay2'].setChecked(True)
-            self.actions['addarea'].setEnabled(len(Level.areas) < 4)
-            self.actions['importarea'].setEnabled(len(Level.areas) < 4)
-            self.actions['deletearea'].setEnabled(len(Level.areas) > 1)
-        DirtyOverride -= 1
-        self.UpdateTitle()
+        pcEvent = self.HandleLocPosChange
+        scEvent = self.HandleLocSizeChange
+        for location in Area.locations:
+            location.positionChanged = pcEvent
+            location.sizeChanged = scEvent
+            location.listitem = ListWidgetItem_SortsByOther(location)
+            self.locationList.addItem(location.listitem)
+            self.scene.addItem(location)
+            location.UpdateListItem()
 
-        self.scene.update()
+        for path in Area.paths:
+            path.positionChanged = self.HandlePathPosChange
+            path.listitem = ListWidgetItem_SortsByOther(path)
+            self.pathList.addItem(path.listitem)
+            self.scene.addItem(path)
+            path.UpdateListItem()
 
-        self.levelOverview.Reset()
-        self.levelOverview.update()
-        QtCore.QTimer.singleShot(20, self.levelOverview.update)
+        for path in Area.pathdata:
+            peline = PathEditorLineItem(path['nodes'])
+            path['peline'] = peline
+            self.scene.addItem(peline)
+            peline.loops = path['loops']
 
-        self.RecentFilesMgr.addPath(Level.arcname)
+        for path in Area.paths:
+            path.UpdateListItem()
 
-        app.splashScreen.hide()
-        del app.splashScreen
+        for progPath in Area.progpaths:
+            progPath.positionChanged = self.HandleProgressPathPosChange
+            progPath.listitem = ListWidgetItem_SortsByOther(progPath)
+            self.progPathList.addItem(progPath.listitem)
+            self.scene.addItem(progPath)
+            progPath.UpdateListItem()
 
-        return True
+        for progPath in Area.progpathdata:
+            peline = ProgressPathEditorLineItem(progPath['nodes'])
+            progPath['peline'] = peline
+            self.scene.addItem(peline)
+
+        for progPath in Area.progpaths:
+            progPath.UpdateListItem()
+
+        for com in Area.comments:
+            com.positionChanged = self.HandleComPosChange
+            com.textChanged = self.HandleComTxtChange
+            com.listitem = QtWidgets.QListWidgetItem()
+            self.commentList.addItem(com.listitem)
+            self.scene.addItem(com)
+            com.UpdateListItem()
 
 
     @QtCore.pyqtSlot()
@@ -18243,6 +20174,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         showEntrancePanel = False
         showLocationPanel = False
         showPathPanel = False
+        showProgPathPanel = False
         updateModeInfo = False
 
         # clear our variables
@@ -18253,6 +20185,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.entranceList.setCurrentItem(None)
         self.locationList.setCurrentItem(None)
         self.pathList.setCurrentItem(None)
+        self.progPathList.setCurrentItem(None)
         self.commentList.setCurrentItem(None)
         
         # possibly a small optimization
@@ -18262,6 +20195,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         type_ent = EntranceItem
         type_loc = LocationItem
         type_path = PathItem
+        type_progpath = ProgressPathItem
         type_com = CommentItem
 
         if len(selitems) == 0:
@@ -18316,8 +20250,15 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 self.UpdateFlag = False
                 showPathPanel = True
                 updateModeInfo = True
+            elif func_ii(item, type_progpath):
+                self.creationTabs.setCurrentIndex(5)
+                self.UpdateFlag = True
+                self.progPathList.setCurrentItem(item.listitem)
+                self.UpdateFlag = False
+                showProgPathPanel = True
+                updateModeInfo = True
             elif func_ii(item, type_com):
-                self.creationTabs.setCurrentIndex(7)
+                self.creationTabs.setCurrentIndex(8)
                 self.UpdateFlag = True
                 self.commentList.setCurrentItem(item.listitem)
                 self.UpdateFlag = False
@@ -18367,33 +20308,37 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if len(selitems) > 0:
             singleitem = len(selitems) == 1
             if singleitem:
-                if   obj  == 1: text = trans.string('Statusbar', 0)  # 1 object selected
-                elif spr  == 1: text = trans.string('Statusbar', 1)  # 1 sprite selected
-                elif ent  == 1: text = trans.string('Statusbar', 2)  # 1 entrance selected
-                elif loc  == 1: text = trans.string('Statusbar', 3)  # 1 location selected
-                elif path == 1: text = trans.string('Statusbar', 4)  # 1 path node selected
-                elif com == 1: text = trans.string('Statusbar', 29) # 1 comment selected
+                if obj: text = trans.string('Statusbar', 0)  # 1 object selected
+                elif spr: text = trans.string('Statusbar', 1)  # 1 sprite selected
+                elif ent: text = trans.string('Statusbar', 2)  # 1 entrance selected
+                elif loc: text = trans.string('Statusbar', 3)  # 1 location selected
+                elif path: text = trans.string('Statusbar', 4)  # 1 path node selected
+                elif progpath: text = trans.string('Statusbar', 34)  # 1 progress path node selected
+                else: text = trans.string('Statusbar', 29) # 1 comment selected
             else: # multiple things selected; see if they're all the same type
-                if   (spr, ent, loc, path, com) == (0, 0, 0, 0, 0):
+                if not any((spr, ent, loc, path, progpath, com)):
                     text = trans.string('Statusbar', 5, '[x]', obj) # x objects selected
-                elif (obj, ent, loc, path, com) == (0, 0, 0, 0, 0):
+                elif not any((obj, ent, loc, path, progpath, com)):
                     text = trans.string('Statusbar', 6, '[x]', spr) # x sprites selected
-                elif (obj, spr, loc, path, com) == (0, 0, 0, 0, 0):
+                elif not any((obj, spr, loc, path, progpath, com)):
                     text = trans.string('Statusbar', 7, '[x]', ent) # x entrances selected
-                elif (obj, spr, ent, path, com) == (0, 0, 0, 0, 0):
+                elif not any((obj, spr, ent, path, progpath, com)):
                     text = trans.string('Statusbar', 8, '[x]', loc) # x locations selected
-                elif (obj, spr, ent, loc, com) == (0, 0, 0, 0, 0):
-                    text = trans.string('Statusbar', 9, '[x]', path) # x paths selected
-                elif (obj, spr, ent, loc, path) == (0, 0, 0, 0, 0):
+                elif not any((obj, spr, ent, loc, progpath, com)):
+                    text = trans.string('Statusbar', 9, '[x]', path) # x path nodes selected
+                elif not any((obj, spr, ent, loc, path, com)):
+                    text = trans.string('Statusbar', 35, '[x]', progpath) # x progress path nodes selected
+                elif not any((obj, spr, ent, loc, path, progpath)):
                     text = trans.string('Statusbar', 30, '[x]', com) # x comments selected
                 else: # different types
                     text = trans.string('Statusbar', 10, '[x]', len(selitems)) # x items selected
                     types = (
-                        (obj, 12, 13), # variable, trans.string() code if var == 1, trans.string() code if var > 1
+                        (obj, 12, 13), # variable, translation string ID if var == 1, translation string ID if var > 1
                         (spr, 14, 15),
                         (ent, 16, 17),
                         (loc, 18, 19),
                         (path, 20, 21),
+                        (progpath, 36, 37),
                         (com, 31, 32),
                         )
                     first = True
@@ -18417,9 +20362,9 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         self.spriteEditorDock.setVisible(showSpritePanel)
         self.entranceEditorDock.setVisible(showEntrancePanel)
-
         self.locationEditorDock.setVisible(showLocationPanel)
         self.pathEditorDock.setVisible(showPathPanel)
+        self.progPathEditorDock.setVisible(showProgPathPanel)
 
         if len(self.CurrentSelection) > 0:
             if UseRibbon: self.ribbon.setBtnEnabled('desel', True)
@@ -18446,18 +20391,20 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         Handles the selected palette tab changing
         """
-        CPT = 0
-        if   self.creationTabs.currentIndex() == 0: # objects
+        idx = self.creationTabs.currentIndex()
+        CPT = -1
+        if idx == 0: # objects
             CPT = self.objAllTab.currentIndex()
-        elif self.creationTabs.currentIndex() == 1: # sprites
+        elif idx == 1: # sprites
             CPT = 4
             if self.sprAllTab.currentIndex() == 1: CPT = -1
-        elif self.creationTabs.currentIndex() == 2: CPT = 5 # entrances
-        elif self.creationTabs.currentIndex() == 3: CPT = 7 # locations
-        elif self.creationTabs.currentIndex() == 4: CPT = 6 # paths
-        elif self.creationTabs.currentIndex() == 5: CPT = -1 # events
-        elif self.creationTabs.currentIndex() == 6: CPT = 8 # stamp pad
-        elif self.creationTabs.currentIndex() == 7: CPT = 9 # comment
+        elif idx == 2: CPT = 5 # entrances
+        elif idx == 3: CPT = 7 # locations
+        elif idx == 4: CPT = 6 # paths
+        elif idx == 5: CPT = 10 # progress paths
+        elif idx == 6: CPT = -1 # events
+        elif idx == 7: CPT = 8 # stamp pad
+        elif idx == 8: CPT = 9 # comment
 
         global CurrentPaintType
         CurrentPaintType = CPT
@@ -18688,6 +20635,18 @@ class ReggieWindow(QtWidgets.QMainWindow):
             SetDirty()
 
 
+    def HandleProgressPathPosChange(self, obj, oldx, oldy, x, y):
+        """
+        Handle the progress path being dragged
+        """
+        if oldx == x and oldy == y: return
+        obj.updatePos()
+        obj.progpathinfo['peline'].nodePosChanged()
+        obj.UpdateListItem()
+        if obj == self.selObj:
+            SetDirty()
+
+
     def HandleComPosChange(self, obj, oldx, oldy, x, y):
         """
         Handle the comment being dragged
@@ -18718,8 +20677,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         if self.UpdateFlag: return
 
-        # can't really think of any other way to do this
-        #item = self.entranceList.item(row)
         ent = None
         for check in Area.entrances:
             if check.listitem == item:
@@ -18730,6 +20687,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         ent.ensureVisible(QtCore.QRectF(), 192, 192)
         self.scene.clearSelection()
         ent.setSelected(True)
+
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleEntranceToolTipAboutToShow(self, item):
@@ -18745,6 +20703,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         ent.UpdateListItem(True)
 
+
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleLocationSelectByList(self, item):
         """
@@ -18752,8 +20711,6 @@ class ReggieWindow(QtWidgets.QMainWindow):
         """
         if self.UpdateFlag: return
 
-        # can't really think of any other way to do this
-        #item = self.locationList.item(row)
         loc = None
         for check in Area.locations:
             if check.listitem == item:
@@ -18764,6 +20721,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         loc.ensureVisible(QtCore.QRectF(), 192, 192)
         self.scene.clearSelection()
         loc.setSelected(True)
+
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleLocationToolTipAboutToShow(self, item):
@@ -18779,15 +20737,12 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         loc.UpdateListItem(True)
 
+
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleSpriteSelectByList(self, item):
         """
         Handle a sprite being selected from the list
         """
-        if self.UpdateFlag: return
-
-        # can't really think of any other way to do this
-        #item = self.spriteList.item(row)
         spr = None
         for check in Area.sprites:
             if check.listitem == item:
@@ -18798,6 +20753,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         spr.ensureVisible(QtCore.QRectF(), 192, 192)
         self.scene.clearSelection()
         spr.setSelected(True)
+
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleSpriteToolTipAboutToShow(self, item):
@@ -18813,15 +20769,12 @@ class ReggieWindow(QtWidgets.QMainWindow):
 
         spr.UpdateListItem(True)
 
+
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandlePathSelectByList(self, item):
         """
         Handle a path node being selected
         """
-        #if self.UpdateFlag: return
-
-        #can't really think of any other way to do this
-        #item = self.pathlist.item(row)
         path = None
         for check in Area.paths:
            if check.listitem == item:
@@ -18832,6 +20785,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         path.ensureVisible(QtCore.QRectF(), 192, 192)
         self.scene.clearSelection()
         path.setSelected(True)
+
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandlePathToolTipAboutToShow(self, item):
@@ -18846,6 +20800,39 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if path is None: return
 
         path.UpdateListItem(True)
+
+
+    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
+    def HandleProgressPathSelectByList(self, item):
+        """
+        Handle a progress path node being selected
+        """
+        progpath = None
+        for check in Area.progpaths:
+           if check.listitem == item:
+                progpath = check
+                break
+        if progpath is None: return
+
+        progpath.ensureVisible(QtCore.QRectF(), 192, 192)
+        self.scene.clearSelection()
+        progpath.setSelected(True)
+
+
+    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
+    def HandleProgressPathToolTipAboutToShow(self, item):
+        """
+        Handle a progress path node being hovered in the list
+        """
+        progpath = None
+        for check in Area.progpaths:
+           if check.listitem == item:
+                progpath = check
+                break
+        if progpath is None: return
+
+        progpath.UpdateListItem(True)
+
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleCommentSelectByList(self, item):
@@ -18876,6 +20863,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         if comment is None: return
 
         comment.UpdateListItem(True)
+
 
     def HandleLocPosChange(self, loc, oldx, oldy, x, y):
         """
@@ -18915,6 +20903,8 @@ class ReggieWindow(QtWidgets.QMainWindow):
             self.entranceEditor.setEntrance(self.selObj)
         elif self.pathEditorDock.isVisible():
             self.pathEditor.setPath(self.selObj)
+        elif self.progPathEditorDock.isVisible():
+            self.progPathEditor.setProgPath(self.selObj)
         elif self.locationEditorDock.isVisible():
             self.locationEditor.setLocation(self.selObj)
 
@@ -18931,9 +20921,10 @@ class ReggieWindow(QtWidgets.QMainWindow):
         hovered = None
         type_zone = ZoneItem
         type_peline = PathEditorLineItem
+        type_ppeline = ProgressPathEditorLineItem
         for item in hovereditems:
             hover = item.hover if hasattr(item, 'hover') else True
-            if (not isinstance(item, type_zone)) and (not isinstance(item, type_peline)) and hover:
+            if (not isinstance(item, type_zone)) and (not isinstance(item, type_peline)) and (not isinstance(item, type_ppeline)) and hover:
                 hovered = item
                 break
 
@@ -18950,6 +20941,11 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 info = trans.string('Statusbar', 26, '[id]', int(hovered.id), '[xpos]', int(hovered.objx), '[ypos]', int(hovered.objy), '[width]', int(hovered.width), '[height]', int(hovered.height))
             elif isinstance(hovered, PathItem): # Path
                 info = trans.string('Statusbar', 27, '[path]', hovered.pathid, '[node]', hovered.nodeid, '[xpos]', hovered.objx, '[ypos]', hovered.objy)
+            elif isinstance(hovered, ProgressPathItem): # Progress Path
+                if not hovered.progpathinfo['altpath']:
+                    info = trans.string('Statusbar', 38, '[path]', hovered.progpathid, '[node]', hovered.nodeid, '[xpos]', hovered.objx, '[ypos]', hovered.objy)
+                else:
+                    info = trans.string('Statusbar', 39, '[path]', hovered.progpathid, '[node]', hovered.nodeid, '[xpos]', hovered.objx, '[ypos]', hovered.objy)
             elif isinstance(hovered, CommentItem): # Comment
                 info = trans.string('Statusbar', 33, '[xpos]', hovered.objx, '[ypos]', hovered.objy, '[text]', hovered.OneLineText())
 
@@ -19391,37 +21387,37 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 maxX = maxY = 0
                 minX = minY = 0x0ddba11
                 for z in Area.zones:
-                    if maxX < ((z.objx*1.5) + (z.width*1.5)):
-                        maxX = ((z.objx*1.5) + (z.width*1.5))
-                    if maxY < ((z.objy*1.5) + (z.height*1.5)):
-                        maxY = ((z.objy*1.5) + (z.height*1.5))
-                    if minX > z.objx*1.5:
-                        minX = z.objx*1.5
-                    if minY > z.objy*1.5:
-                        minY = z.objy*1.5
-                maxX = (1024*24 if 1024*24 < maxX+40 else maxX+40)
-                maxY = (512*24 if 512*24 < maxY+40 else maxY+40)
-                minX = (0 if 40 > minX else minX-40)
-                minY = (40 if 40 > minY else minY-40)
+                    if maxX < ((z.objx * 1.5) + (z.width * 1.5)):
+                        maxX = ((z.objx * 1.5) + (z.width * 1.5))
+                    if maxY < ((z.objy * 1.5) + (z.height * 1.5)):
+                        maxY = ((z.objy * 1.5) + (z.height * 1.5))
+                    if minX > z.objx * 1.5:
+                        minX = z.objx * 1.5
+                    if minY > z.objy * 1.5:
+                        minY = z.objy * 1.5
+                maxX = (1024 * 24 if 1024 * 24 < maxX + 40 else maxX + 40)
+                maxY = (512 * 24 if 512 * 24 < maxY + 40 else maxY + 40)
+                minX = (0 if 40 > minX else minX - 40)
+                minY = (40 if 40 > minY else minY - 40)
 
                 ScreenshotImage = QtGui.QImage(int(maxX - minX), int(maxY - minY), QtGui.QImage.Format_ARGB32)
                 ScreenshotImage.fill(Qt.transparent)
 
                 RenderPainter = QtGui.QPainter(ScreenshotImage)
-                mainWindow.scene.render(RenderPainter, QtCore.QRectF(0,0,int(maxX - minX) ,int(maxY - minY)), QtCore.QRectF(int(minX), int(minY), int(maxX - minX), int(maxY - minY)))
+                mainWindow.scene.render(RenderPainter, QtCore.QRectF(0, 0, int(maxX - minX), int(maxY - minY)), QtCore.QRectF(int(minX), int(minY), int(maxX - minX), int(maxY - minY)))
                 RenderPainter.end()
-
 
             else:
                 i = dlg.zoneCombo.currentIndex() - 2
-                ScreenshotImage = QtGui.QImage(Area.zones[i].width*1.5, Area.zones[i].height*1.5, QtGui.QImage.Format_ARGB32)
+                ScreenshotImage = QtGui.QImage(Area.zones[i].width * 1.5, Area.zones[i].height * 1.5, QtGui.QImage.Format_ARGB32)
                 ScreenshotImage.fill(Qt.transparent)
 
                 RenderPainter = QtGui.QPainter(ScreenshotImage)
-                mainWindow.scene.render(RenderPainter, QtCore.QRectF(0,0,Area.zones[i].width*1.5, Area.zones[i].height*1.5), QtCore.QRectF(int(Area.zones[i].objx)*1.5, int(Area.zones[i].objy)*1.5, Area.zones[i].width*1.5, Area.zones[i].height*1.5))
+                mainWindow.scene.render(RenderPainter, QtCore.QRectF(0,0,Area.zones[i].width * 1.5, Area.zones[i].height * 1.5), QtCore.QRectF(int(Area.zones[i].objx) * 1.5, int(Area.zones[i].objy) * 1.5, Area.zones[i].width * 1.5, Area.zones[i].height * 1.5))
                 RenderPainter.end()
 
             ScreenshotImage.save(fn, 'PNG', 50)
+
 
     def HandleDiagnostics(self):
         """
@@ -19436,30 +21432,40 @@ def main():
     Main startup function for Reggie
     """
 
-    global app, mainWindow, settings, ReggieVersion
+    global app, mainWindow, settings, ReggieVersion, CurrentGame
 
-    # create an application
+    # Current game setup
+    global CurrentGame
+    CurrentGame = NewSuperMarioBrosWii
+    with open('mode.txt', 'r') as f:
+        firstChar = f.read()[0]
+        if firstChar == '2':
+            CurrentGame = NewSuperMarioBros2
+    SLib.CurrentGame = CurrentGame
+    SLib.GameDataFolders = GameDataFolders
+
+    # Create an application
     app = QtWidgets.QApplication(sys.argv)
 
-    # load the settings
+    # Load the settings
     settings = QtCore.QSettings('Reggie', ReggieVersion)
 
-    # load the translation (needs to happen first)
+    # Load the translation (needs to happen first)
     LoadTranslation()
 
-    # load the style
+    # Load the style
     GetDefaultStyle()
 
-    # go to the script path
+    # Go to the script path
     path = module_path()
     if path is not None:
         os.chdir(module_path())
 
-    # check if required files are missing
+    # Check if required files are missing
     if FilesAreMissing():
         sys.exit(1)
 
-    # load required stuff
+    # Load required stuff
     global UseRibbon
     global Sprites
     global SpriteListData
@@ -19482,13 +21488,14 @@ def main():
     LoadOverrides()
     SLib.OutlineColor = theme.color('smi')
     SLib.main()
+    SpriteModules[CurrentGame].LoadBasics()
 
     # Set the default window icon (used for random popups and stuff)
     app.setWindowIcon(GetIcon('reggie'))
     app.setApplicationDisplayName('Reggie Next')
 
-    global EnableAlpha, GridType, CollisionsShown, RealViewEnabled
-    global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, CommentsFrozen
+    global EnableAlpha, GridType, CollisionsShown, DepthShown, RealViewEnabled
+    global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, ProgressPathsFrozen, CommentsFrozen
     global SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown, DrawEntIndicators
 
     gt = setting('GridType')
@@ -19496,12 +21503,14 @@ def main():
     elif gt == 'grid': GridType = 'grid'
     else: GridType = None
     CollisionsShown = setting('ShowCollisions', False)
+    DepthShown = setting('ShowDepth', False)
     RealViewEnabled = setting('RealViewEnabled', False)
     ObjectsFrozen = setting('FreezeObjects', False)
     SpritesFrozen = setting('FreezeSprites', False)
     EntrancesFrozen = setting('FreezeEntrances', False)
     LocationsFrozen = setting('FreezeLocations', False)
     PathsFrozen = setting('FreezePaths', False)
+    ProgressPathsFrozen = setting('FreezeProgressPaths', False)
     CommentsFrozen = setting('FreezeComments', False)
     SpritesShown = setting('ShowSprites', True)
     SpriteImagesShown = setting('ShowSpriteImages', True)
@@ -19510,8 +21519,8 @@ def main():
     DrawEntIndicators = setting('ZoneEntIndicators', False)
     SLib.RealViewEnabled = RealViewEnabled
 
-    # choose a folder for the game
-    # let the user pick a folder without restarting the editor if they fail
+    # Choose a folder for the game
+    # Let the user pick a folder without restarting the editor if they fail
     while not isValidGamePath():
         path = QtWidgets.QFileDialog.getExistingDirectory(None, trans.string('ChangeGamePath', 0, '[game]', gamedef.name))
         if path == '':
@@ -19521,7 +21530,7 @@ def main():
         if not isValidGamePath():
             QtWidgets.QMessageBox.information(None, trans.string('ChangeGamePath', 1),  trans.string('ChangeGamePath', 3))
         else:
-            setSetting('GamePath', path)
+            setSetting('GamePath%d' % CurrentGame, path)
             break
 
     # Check to see if we have anything saved
@@ -19533,7 +21542,7 @@ def main():
             global RestoredFromAutoSave, AutoSavePath, AutoSaveData
             RestoredFromAutoSave = True
             AutoSavePath = autofile
-            AutoSaveData = autofiledata
+            AutoSaveData = bytes(autofiledata, 'latin-1')
         else:
             setSetting('AutoSaveFilePath', 'none')
             setSetting('AutoSaveFileData', 'x')

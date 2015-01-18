@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<views>
+    <view name="Sorted By Number">
+        <category name="0-99">
+            <attach sprite="0-99"/>
+        </category>
+        <category name="100-199">
+            <attach sprite="100-199"/>
+        </category>
+        <category name="200-299">
+            <attach sprite="200-299"/>
+        </category>
+        <category name="300-325">
+            <attach sprite="300-325"/>
+        </category>
+    </view>
+</views>
