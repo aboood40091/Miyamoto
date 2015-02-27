@@ -87,7 +87,7 @@ class SpriteImage_BobOmb(SLib.SpriteImage_Static): # 29
 
     @staticmethod
     def loadImages():
-        loadIfNotInImageCache('BobOmb', 'bob-omb.png')
+        SLib.loadIfNotInImageCache('BobOmb', 'bob-omb.png')
 
 
 class SpriteImage_Coin(SLib.SpriteImage_Static): # 55
@@ -109,7 +109,7 @@ class SpriteImage_FireballPipeJunction(SLib.SpriteImage_Static): # 81
 
     @staticmethod
     def loadImages():
-        loadIfNotInImageCache('FireballPipeJunction', 'block_fireball_pipe.png')
+        SLib.loadIfNotInImageCache('FireballPipeJunction', 'block_fireball_pipe.png')
 
 
 class SpriteImage_StarCoin(SLib.SpriteImage_Static): # 219

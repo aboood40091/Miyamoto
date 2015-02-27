@@ -83,7 +83,7 @@ Translators: (in alphabetical order, by language)
  * Turkish: nlgzrgn
 
 Other Testers and Contributors:
- * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl, ant888, gamesquest1
+ * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl, ant888, gamesquest1, iZackefx
  * Tobias Amaranth and Valeth - Text Tileset Addon
  * LifeMushroom (Mario64) - run-python34.bat
 

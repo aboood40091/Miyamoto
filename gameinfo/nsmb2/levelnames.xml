@@ -1,177 +1,309 @@
 <?xml version="1.0"?>
 <levels>
 
-   <category name="World 1 (Field/Grassland)">
-      <level file="1-29" name="World 1-Rainbow" />
-      <level file="1-1" name="World 1-1" />
-      <level file="1-2" name="World 1-2" />
-      <level file="1-19" name="World 1-Item Toad House" />
-      <level file="1-3" name="World 1-3" />
-      <level file="1-18" name="World 1-Extra Life Toad House" />
-      <level file="1-14" name="World 1-Tower" />
-      <level file="1-4" name="World 1-4" />
-      <level file="1-21" name="World 1-Extra Life Toad House 2" />
-      <level file="1-5" name="World 1-5" />
-      <level file="1-24" name="World 1-Cannon" />
-      <level file="1-8" name="World 1-A" />
-      <level file="1-20" name="World 1-Item Toad House 2" />
-      <level file="1-16" name="World 1-Castle" />
-      <level file="1-6" name="1-6 Course Placeholder" />
-      <level file="1-7" name="1-7 Course Placeholder" />
-      <level file="1-9" name="1-9 Course Placeholder" />
-      <level file="1-10" name="1-10 Course Placeholder" />
-      <level file="1-12" name="1-12 World 1-Castle (Early)" />  
-      <level file="1-22" name="1-22 Course Placeholder" />
-      <level file="1-23" name="1-23 Course Placeholder" />
-   </category>
+    <category name="World 1">
+        <!-- 1-12: In "Unused" category -->
+        <level file="1-29" name="World 1-Rainbow" />
+        <level file="1-1" name="World 1-1" />
+        <level file="1-2" name="World 1-2" />
+        <level file="1-3" name="World 1-3" />
+        <level file="1-14" name="World 1-Tower" />
+        <level file="1-24" name="World 1-Cannon" />
+        <level file="1-4" name="World 1-4" />
+        <level file="1-5" name="World 1-5" />
+        <level file="1-8" name="World 1-A" />
+        <level file="1-16" name="World 1-Castle" />
+        <level file="1-19" name="Power-Up Toad House 1" />
+        <level file="1-20" name="Power-Up Toad House 2" />
+        <level file="1-18" name="1-UP Toad House 1" />
+        <level file="1-21" name="1-UP Toad House 2" />
+        <category name="Placeholders">
+            <level file="1-6" name="World 1-6 Placeholder" />
+            <level file="1-7" name="World 1-7 Placeholder" />
+            <level file="1-9" name="World 1-B Placeholder" />
+            <level file="1-10" name="World 1-C Placeholder" />
+            <level file="1-22" name="Toad House Placeholder 1" />
+            <level file="1-23" name="Toad House Placeholder 2" />
+        </category>
+    </category>
 
-   <category name="World 2 (Desert)">
-      <level file="2-1" name="World 2-1" />
-      <level file="2-2" name="World 2-2" />
-      <level file="2-3" name="World 2-3" />
-      <level file="2-8" name="World 2-A" />
-      <level file="2-14" name="World 2-Tower" />
-      <level file="2-12" name="World 2-Ghost House" />
-      <level file="2-9" name="World 2-B" />
-      <level file="2-4" name="World 2-4" />
-      <level file="2-5" name="World 2-5" />
-      <level file="2-9" name="World 2-B" />
-      <level file="2-16" name="World 2-Castle" />
-      <level file="2-6" name="2-6 Placeholder Level" />
-      <level file="2-7" name="2-7 Placeholder Level" />
-      <level file="2-10" name="2-10 Placeholder Level" />
-   </category>
+    <category name="World 2">
+        <level file="2-29" name="World 2-Rainbow" />
+        <level file="2-1" name="World 2-1" />
+        <level file="2-2" name="World 2-2" />
+        <level file="2-3" name="World 2-3" />
+        <level file="2-8" name="World 2-A" />
+        <level file="2-14" name="World 2-Tower" />
+        <level file="2-12" name="World 2-Ghost House" />
+        <level file="2-4" name="World 2-4" />
+        <level file="2-5" name="World 2-5" />
+        <level file="2-9" name="World 2-B" />
+        <level file="2-16" name="World 2-Castle" />
+        <level file="2-18" name="Power-Up Toad House 1" />
+        <level file="2-20" name="Power-Up Toad House 2" />
+        <level file="2-19" name="1-UP Toad House" />
+        <level file="2-21" name="Star Toad House" />
+        <category name="Placeholders">
+            <level file="2-6" name="World 2-6 Placeholder" />
+            <level file="2-7" name="World 2-7 Placeholder" />
+            <level file="2-10" name="World 2-C Placeholder" />
+            <level file="2-24" name="World 2-Cannon Placeholder" />
+            <level file="2-22" name="Toad House Placeholder 1" />
+            <level file="2-23" name="Toad House Placeholder 2" />
+        </category>
+    </category>
 
-   <category name="World 3 (Beach, Jungle)">
-      <level file="3-29" name="World 3-Rainbow" />
-      <level file="3-1" name="World 3-1 (Jumping Cheep Beach)" />
-      <level file="3-2" name="World 3-2" />
-      <level file="3-3" name="World 3-3 (Spiderweb-Climb Jungle)" />
-      <level file="3-8" name="3-A (Rapid Water)" />
-      <level file="3-14" name="World 3-Tower (Water Tower)" />
-      <level file="3-4" name="World 3-4 (Floating Boxes)" />
-      <level file="3-9" name="World 3-B (Mini Mario Water-Walking Level)" />
-      <level file="3-12" name="World 3-Ghost House" />
-      <level file="3-5" name="World 3-5 (Boulders Underwater)" />
-      <level file="3-16" name="World 3-Castle" />
-      <level file="3-6" name="3-6 Placeholder Level" />
-      <level file="3-7" name="3-7 Placeholder Level" />
-   </category>
+    <category name="World Mushroom">
+        <!-- 7-4: In "Unused" category -->
+        <!-- 7-5: In "Unused" category -->
+        <level file="7-29" name="World Mushroom-Rainbow" />
+        <level file="7-1" name="World Mushroom-1" />
+        <level file="7-2" name="World Mushroom-2" />
+        <level file="7-12" name="World Mushroom-Ghost House" />
+        <level file="7-8" name="World Mushroom-A" />
+        <level file="7-3" name="World Mushroom-3" />
+        <level file="7-24" name="World Mushroom-Cannon" />
+        <level file="7-9" name="World Mushroom-B" />
+        <level file="7-16" name="World Mushroom-Castle" />
+        <level file="7-19" name="Power-Up Toad House" />
+        <level file="7-18" name="1-UP Toad House" />
+        <level file="7-20" name="Star Toad House" />
+        <category name="Placeholders">
+            <level file="7-6" name="World Mushroom-6 Placeholder" />
+            <level file="7-7" name="World Mushroom-7 Placeholder" />
+            <level file="7-10" name="World Mushroom-C Placeholder" />
+            <level file="7-14" name="World Mushroom-Tower Placeholder" />
+            <level file="7-21" name="Toad House Placeholder 1" />
+            <level file="7-22" name="Toad House Placeholder 2" />
+            <level file="7-23" name="Toad House Placeholder 3" />
+        </category>
+    </category>
 
-   <category name="World 4 (Snow/Ice)">
-      <level file="4-29" name="World 4-Rainbow" />
-      <level file="4-1" name="World 4-1" />
-      <level file="4-14" name="World 4-Tower" />
-      <level file="4-8" name="World 4-B" />
-      <level file="4-16" name="World 4-Castle" />
-   </category>
+    <category name="World 3">
+        <level file="3-29" name="World 3-Rainbow" />
+        <level file="3-1" name="World 3-1" />
+        <level file="3-2" name="World 3-2" />
+        <level file="3-3" name="World 3-3" />
+        <level file="3-8" name="World 3-A" />
+        <level file="3-14" name="World 3-Tower" />
+        <level file="3-24" name="World 3-Cannon" />
+        <level file="3-4" name="World 3-4" />
+        <level file="3-12" name="World 3-Ghost House" />
+        <level file="3-5" name="World 3-5" />
+        <level file="3-9" name="World 3-B" />
+        <level file="3-16" name="World 3-Castle" />
+        <level file="3-18" name="Power-Up Toad House 1" />
+        <level file="3-19" name="Power-Up Toad House 2" />
+        <level file="3-20" name="Star Toad House 1" />
+        <level file="3-21" name="Star Toad House 2" />
+        <category name="Placeholders">
+            <level file="3-6" name="World 3-6 Placeholder" />
+            <level file="3-7" name="World 3-7 Placeholder" />
+            <level file="3-10" name="World 3-C Placeholder" />
+            <level file="3-22" name="Toad House Placeholder 1" />
+            <level file="3-23" name="Toad House Placeholder 2" />
+        </category>
+    </category>
 
-   <category name="World Flower (8)">
-      <level file="8-1" name="World Flower-1 (Sunset)" />
-      <level file="8-2" name="World Flower-2 (Horizontal Jungle)" />
-      <level file="8-16" name="World Flower-Castle (Conveyors)" />
-      <level file="8-6" name="8-6 Placeholder Level" />
-      <level file="8-14" name="8-14 Placeholder Level" />
-   </category>
+    <category name="World 4">
+        <level file="4-29" name="World 4-Rainbow" />
+        <level file="4-1" name="World 4-1" />
+        <level file="4-12" name="World 4-Ghost House" />
+        <level file="4-2" name="World 4-2" />
+        <level file="4-8" name="World 4-A" />
+        <level file="4-14" name="World 4-Tower" />
+        <level file="4-3" name="World 4-3" />
+        <level file="4-4" name="World 4-4" />
+        <level file="4-10" name="World 4-C" />
+        <level file="4-5" name="World 4-5" />
+        <level file="4-9" name="World 4-B" />
+        <level file="4-16" name="World 4-Castle" />
+        <level file="4-18" name="1-UP Toad House 1" />
+        <level file="4-20" name="1-UP Toad House 2" />
+        <level file="4-19" name="Power-Up Toad House 1" />
+        <level file="4-22" name="Power-Up Toad House 2" />
+        <level file="4-21" name="Star Toad House" />
+        <category name="Placeholders">
+            <level file="4-24" name="World 4-Cannon Placeholder" />
+            <level file="4-6" name="World 4-6 Placeholder" />
+            <level file="4-7" name="World 4-7 Placeholder" />
+            <level file="4-23" name="Toad House Placeholder" />
+        </category>
+    </category>
 
-   <category name="World 5 (Sky, Mountain)">
-      <level file="5-29" name="World 5-Rainbow" />
-      <level file="5-1" name="World 5-1" />
-      <level file="5-2" name="World 5-2" />
-      <level file="5-14" name="World 5-Tower" />
-      <level file="5-4" name="World 5-4" />
-      <level file="5-8" name="World 5-A (Flying Ship)" />
-      <level file="5-6" name="World 5-6" />
-      <level file="5-7" name="5-7 Placeholder Level" />
-      <level file="5-22" name="5-22 Unused Extra Life Toad House" />
-   </category>
+    <category name="World Flower">
+        <!-- 8-4: In "Unused" category -->
+        <level file="8-29" name="World Flower-Rainbow" />
+        <level file="8-1" name="World Flower-1" />
+        <level file="8-8" name="World Flower-A" />
+        <level file="8-24" name="World Flower-Cannon" />
+        <level file="8-12" name="World Flower-Ghost House" />
+        <level file="8-2" name="World Flower-2" />
+        <level file="8-3" name="World Flower-3" />
+        <level file="8-9" name="World Flower-B" />
+        <level file="8-16" name="World Flower-Castle" />
+        <level file="8-18" name="Power-Up Toad House 1" />
+        <level file="8-19" name="Power-Up Toad House 2" />
+        <level file="8-20" name="1-UP Toad House" />
+        <category name="Placeholders">
+            <level file="8-5" name="World Flower-5 Placeholder" />
+            <level file="8-6" name="World Flower-6 Placeholder" />
+            <level file="8-7" name="World Flower-7 Placeholder" />
+            <level file="8-10" name="World Flower-C Placeholder" />
+            <level file="8-14" name="World Flower-Tower Placeholder" />
+            <level file="8-21" name="Toad House Placeholder 1" />
+            <level file="8-22" name="Toad House Placeholder 2" />
+            <level file="8-23" name="Toad House Placeholder 3" />
+        </category>
+    </category>
 
-   <category name="World 6 (Lava, Ghost)">
-      <level file="6-29" name="World 6-Rainbow" />
-      <level file="6-1" name="World 6-1 (Volcano Eruption)" />
-      <level file="6-5" name="World 6-5" />
-      <level file="6-14" name="World 6-Tower" />
-      <level file="6-8" name="World 6-A" />
-      <level file="6-27" name="World 6-Playable Ending" />
-      <level file="6-6" name="6-6 Placeholder Level" />
-      <level file="6-7" name="6-7 Placeholder Level" />
-   </category>
+    <category name="World 5">
+        <!-- 5-9: In "Unused" category -->
+        <!-- 5-22: In "Unused" category -->
+        <level file="5-29" name="World 5-Rainbow" />
+        <level file="5-1" name="World 5-1" />
+        <level file="5-2" name="World 5-2" />
+        <level file="5-12" name="World 5-Ghost House" />
+        <level file="5-3" name="World 5-3" />
+        <level file="5-14" name="World 5-Tower" />
+        <level file="5-4" name="World 5-4" />
+        <level file="5-8" name="World 5-A" />
+        <level file="5-5" name="World 5-5" />
+        <level file="5-6" name="World 5-6" />
+        <level file="5-16" name="World 5-Castle" />
+        <level file="5-18" name="Power-Up Toad House 1" />
+        <level file="5-19" name="Power-Up Toad House 2" />
+        <level file="5-20" name="1-UP Toad House 1" />
+        <level file="5-21" name="1-UP Toad House 2" />
+        <category name="Placeholders">
+            <level file="5-7" name="World 5-7 Placeholder" />
+            <level file="5-10" name="World 5-C Placeholder" />
+            <level file="5-24" name="World 5-Cannon Placeholder" />
+            <level file="5-23" name="Toad House Placeholder" />
+        </category>
+    </category>
 
-   <category name="World Mushroom (7)">
-      <level file="7-1" name="World Mushroom-1" />
-      <level file="7-3" name="World Mushroom-3" />
-      <level file="7-12" name="World Mushroom-Ghost House" />
-      <level file="7-16" name="World Mushroom-Castle" />
-      <level file="7-4" name="World Star-5 (Early)" />
-   </category>
+    <category name="World 6">
+        <!-- 6-10: In "Unused" category -->
+        <level file="6-29" name="World 6-Rainbow" />
+        <level file="6-1" name="World 6-1" />
+        <level file="6-12" name="World 6-Ghost House" />
+        <level file="6-2" name="World 6-2" />
+        <level file="6-9" name="World 6-B" />
+        <level file="6-3" name="World 6-3" />
+        <level file="6-8" name="World 6-A" />
+        <level file="6-14" name="World 6-Tower" />
+        <level file="6-4" name="World 6-4" />
+        <level file="6-5" name="World 6-5" />
+        <level file="6-16" name="World 6-Castle" />
+        <level file="6-18" name="Power-Up Toad House" />
+        <level file="6-20" name="1-UP Toad House 1" />
+        <level file="6-21" name="1-UP Toad House 2" />
+        <level file="6-19" name="Star Toad House" />
+        <category name="Placeholders">
+            <level file="6-6" name="World 6-6 Placeholder" />
+            <level file="6-7" name="World 6-7 Placeholder" />
+            <level file="6-24" name="World 6-Cannon Placeholder" />
+            <level file="6-22" name="Toad House Placeholder 1" />
+            <level file="6-23" name="Toad House Placeholder 2" />
+            </category>
+    </category>
 
-   <category name="World Fire Flower (8)">
-   </category>
+    <category name="World Star">
+        <!-- 9-8: In "Unused" category -->
+        <!-- 9-9: In "Unused" category -->
+        <!-- 9-10: In "Unused" category -->
+        <level file="9-29" name="World Star-Rainbow" />
+        <level file="9-1" name="World Star-1" />
+        <level file="9-2" name="World Star-2" />
+        <level file="9-3" name="World Star-3" />
+        <level file="9-4" name="World Star-4" />
+        <level file="9-5" name="World Star-5" />
+        <level file="9-6" name="World Star-6" />
+        <level file="9-7" name="World Star-7" />
+        <level file="9-16" name="World Star-Castle" />
+        <level file="9-18" name="Star Toad House" />
+    </category>
 
-   <category name="World Star (9)">
-      <level file="9-29" name="World Star-Rainbow" />
-      <level file="9-1" name="World Star-1 (Night)" />
-      <level file="9-4" name="World Star-4 (Mini Mario Platform Level)" />
-   </category>
+    <category name="Other">
+        <level file="6-27" name="Credits" />
+    </category>
 
-   <category name="Gold Rush Pack (10)">
-      <level file="10-1" name="Course 1 (Sky Building)" />
-      <level file="10-2" name="Course 2 (Boat)" />
-      <level file="10-3" name="Course 3 (Tower)" />
-   </category>
+    <category name="Downloadable Content (DLC)">
 
-   <category name="Coin Challenge Pack A (11)">
-      <level file="11-1" name="Course 1 (Colourful Blocks)" />
-      <level file="11-2" name="Course 2 (Up-Down Weight Platforms)" />
-      <level file="11-3" name="Course 3 (Inside Volcano Castle)" />
-   </category>
+        <category name="Gold Rush Pack">
+            <level file="10-1" name="Course 1" />
+            <level file="10-2" name="Course 2" />
+            <level file="10-3" name="Course 3" />
+        </category>
 
-   <category name="Nerve-Wrack Pack (12)">
-      <level file="12-1" name="Course 1 (P Switch Run)" />
-      <level file="12-2" name="Course 2 (Paratroopa Jumping)" />
-      <level file="12-3" name="Course 3 (Bullet Bill Warp Cannon)" />
-   </category>
+        <category name="Coin Challenge Pack A">
+            <level file="11-1" name="Course 1" />
+            <level file="11-2" name="Course 2" />
+            <level file="11-3" name="Course 3" />
+        </category>
 
-   <category name="Gold Mushroom Pack (13)">
-      <level file="13-1" name="Course 1 (Treetops)" />
-      <level file="13-2" name="Course 2 (Icy Mountain)" />
-      <level file="13-3" name="Course 3 (Up-down Mushroom Cave)" />
-   </category>
+        <category name="Nerve-Wrack Pack">
+            <level file="12-1" name="Course 1" />
+            <level file="12-2" name="Course 2" />
+            <level file="12-3" name="Course 3" />
+        </category>
 
-   <category name="Coin Challenge Pack B (14)">
-      <level file="14-1" name="Course 1 (Beat Block Ghost House)" />
-      <level file="14-2" name="Course 2 (Tightrope Mountain)" />
-      <level file="14-3" name="Course 3 (Outside Lava Castle)" />
-   </category>
+        <category name="Gold Mushroom Pack">
+            <level file="13-1" name="Course 1" />
+            <level file="13-2" name="Course 2" />
+            <level file="13-3" name="Course 3" />
+        </category>
 
-   <category name="Gold Classics Pack (15)">
-      <level file="15-1" name="SMB 1-1, 1-2" />
-      <level file="15-2" name="SMB3 1-1, 1-5, Mario Bros." />
-      <level file="15-3" name="SMB 1-4, NSMB2 1-1" />
-   </category>
+        <category name="Coin Challenge Pack B">
+            <level file="14-1" name="Course 1" />
+            <level file="14-2" name="Course 2" />
+            <level file="14-3" name="Course 3" />
+        </category>
 
-   <category name="Coin Challenge Pack C (16)">
-      <level file="16-1" name="Powerup Test" />
-      <level file="16-2" name="Multi-Path Maze" />
-      <level file="16-3" name="Bonecoaster Rise" />
-   </category>
+        <category name="Gold Classics Pack">
+            <level file="15-1" name="Course 1" />
+            <level file="15-2" name="Course 2" />
+            <level file="15-3" name="Course 3" />
+        </category>
 
-   <category name="Platform Panic Pack (17)">
-      <level file="17-1" name="Peepa Platforms" />
-      <level file="17-2" name="Lots of Snake Blocks" />
-      <level file="17-3" name="Cave Bonecoaster" />
-   </category>
+        <category name="Coin Challenge Pack C">
+            <level file="16-1" name="Course 1" />
+            <level file="16-2" name="Course 2" />
+            <level file="16-3" name="Course 3" />
+        </category>
 
-   <category name="Mystery Adventures Pack (18)">
-      <level file="18-1" name="Bro. Enemy Pyramid" />
-      <level file="18-2" name="Flying Question Block Ride" />
-      <level file="18-3" name="Factory-themed Maze" />
-   </category>
+        <category name="Platform Panic Pack">
+            <level file="17-1" name="Course 1" />
+            <level file="17-2" name="Course 2" />
+            <level file="17-3" name="Course 3" />
+        </category>
 
-   <category name="Impossible Pack (19)">
-      <level file="19-1" name="Beach" />
-      <level file="19-2" name="Fire Tower" />
-      <level file="19-3" name="Poison Water Castle" />
-   </category>
+        <category name="Mystery Adventures Pack">
+            <level file="18-1" name="Course 1" />
+            <level file="18-2" name="Course 2" />
+            <level file="18-3" name="Course 3" />
+        </category>
+
+        <category name="Impossible Pack">
+            <level file="19-1" name="Course 1" />
+            <level file="19-2" name="Course 2" />
+            <level file="19-3" name="Course 3" />
+        </category>
+
+    </category>
+
+    <category name="Unused">
+        <level file="1-12" name="World 1-Castle (Beta)" />
+        <level file="5-9" name="World Flower-B (Beta)" />
+        <level file="5-22" name="World 5-Extra Life Toad House (Unused)" />
+        <level file="6-10" name="World 6-Castle (Beta 1)" />
+        <level file="9-10" name="World 6-Castle (Beta 2)" />
+        <level file="7-4" name="World Star-5 (Beta)" />
+        <level file="9-8" name="World Star-6 (Beta)" />
+        <level file="9-9" name="World Star-7 (Beta)" />
+        <level file="7-5" name="Beta Ice Level" />
+        <level file="8-4" name="Beta Underwater Level" />
+    </category>
 
 </levels>

@@ -3511,7 +3511,6 @@ class Area_NSMB2(AbstractParsedArea):
         entrances = []
         for i in range(entcount):
             data = entstruct.unpack_from(entdata,offset)
-            #def __init__(self, x, y, id, destarea, destentrance, type, zone, layer, path, settings, cpd):
             entrances.append(EntranceItem(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10]))
             offset += 24
         self.entrances = entrances
@@ -11621,7 +11620,7 @@ class ReggieTranslation():
                 48: 'Upper Bounds:',
                 49: '[b]Upper Bounds:[/b][br] - Positive Values: Easier to scroll upwards (110 is centered)[br] - Negative Values: Harder to scroll upwards (30 is the top edge of the screen)[br][br]Values higher than 240 can cause instant death upon screen scrolling',
                 50: 'Lower Bounds:',
-                51: '[b]Lower Bounds:[/b][br] - Positive Values: Harder to scroll downwards (65 is the bottom edge of the screen)[br] - Negative Values: Easier to scroll downwards (95 is centered)[br][br]Values higher than 100 will prevent the scene from scrolling until Mario is offscreen',
+                51: '[b]Lower Bounds:[/b][br] - Positive Values: Harder to scroll downwards (65 is the bottom edge of the screen)[br] - Negative Values: Easier to scroll downwards (95 is centered)[br][br]Values higher than 100 will prevent the screen from scrolling until Mario is offscreen',
                 52: 'Audio',
                 53: 'Background Music:',
                 54: '[b]Background Music:[/b][br]Changes the background music',
@@ -13769,11 +13768,8 @@ class ZonesDialog(QtWidgets.QDialog):
             if result == QtWidgets.QMessageBox.No:
                 return
 
-        a = []
-        b = []
-
-        a.append([0, 0, 0, 0, 0, 0])
-        b.append([0, 0, 0, 0, 0, 10, 10, 10, 0])
+        a = [0, 0, 0, 0, 0, 0]
+        b = [0, 0, 0, 0, 0, 10, 10, 10, 0]
         id = len(self.zoneTabs)
         z = ZoneItem(256, 256, 448, 224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, a, b, b, id)
         ZoneTabName = trans.string('ZonesDlg', 3, '[num]', id + 1)
@@ -19249,7 +19245,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             return
 
         if Area.areanum != idx + 1:
-            self.LoadLevel(self.fileSavePath, True, idx + 1)
+            self.LoadLevel(None, self.fileSavePath, True, idx + 1)
 
 
     @QtCore.pyqtSlot(bool)
@@ -20293,6 +20289,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         obj = 0
         loc = 0
         path = 0
+        progpath = 0
         com = 0
         for item in selitems:
             if func_ii(item, type_spr): spr += 1
@@ -20300,6 +20297,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
             if func_ii(item, type_obj): obj += 1
             if func_ii(item, type_loc): loc += 1
             if func_ii(item, type_path): path += 1
+            if func_ii(item, type_progpath): progpath += 1
             if func_ii(item, type_com): com += 1
 
         if loc > 2:
