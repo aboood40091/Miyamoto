@@ -4,8 +4,8 @@
 
 ----------------------------------------------------------------
 
-Homepage:  http://rvlution.net/reggie/  
-Support:   http://rvlution.net/forums/  
+DevBoard: http://reggienext.nsmbwii.com/
+Additional Support:   http://rvlution.net/forums/  
 On GitHub: https://github.com/RoadrunnerWMC/Reggie-Next
 
 ----------------------------------------------------------------
@@ -70,7 +70,7 @@ Developers:
  * Grop - Sprite Data (NSMBW, NSMB2), Tileset Names (NSMB2)
  * Hiccup - Sprite Data (NSMB2), Sprite Images (NSMB2)
  * SnakeBlock (lolBoo) - Sprite Data (NSMBW), Sprite Images (NSMB2)
- * LifeMushroom (Mario64) - run-python34.bat
+ * LifeMushroom - run-python34.bat
  * RenolY2 - yaz0.py
  * Yoshi2 - yaz0.py
 
@@ -85,7 +85,7 @@ Translators: (in alphabetical order, by language)
 Other Testers and Contributors:
  * BulletBillTime, Dirbaio, EdgarAllen, FirePhoenix, GrandMasterJimmy, Mooseknuckle2000, MotherBrainsBrain, RainbowIE, Skawo, Sonicandtails, Tanks, Vibestar, angelsl, ant888, gamesquest1, iZackefx
  * Tobias Amaranth and Valeth - Text Tileset Addon
- * LifeMushroom (Mario64) - run-python34.bat
+ * LifeMushroom - run-python34.bat
 
 
 ### Dependencies/Libraries/Resources
