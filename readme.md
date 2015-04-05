@@ -4,9 +4,9 @@
 
 ----------------------------------------------------------------
 
-DevBoard: http://reggienext.nsmbwii.com/
-Additional Support:   http://rvlution.net/forums/  
-On GitHub: https://github.com/RoadrunnerWMC/Reggie-Next
+DevBoard: http://reggienext.nsmbwii.com/  
+Additional Support:   http://rvlution.net/forums/   
+On GitHub: https://github.com/RoadrunnerWMC/Reggie-Next  
 
 ----------------------------------------------------------------
 
