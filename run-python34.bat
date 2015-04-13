@@ -15,3 +15,4 @@ REM
 @echo ON
 
 C:/Python34/python.exe reggie.py
+pause
