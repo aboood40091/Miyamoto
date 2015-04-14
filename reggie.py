@@ -3842,7 +3842,7 @@ class Area_NSMB2(AbstractParsedArea):
         nodeindex = 0
         offset = 0
         buffer = bytearray(len(self.pathdata) * 12)
-        
+
         for path in self.pathdata:
             if(len(path['nodes']) < 1): continue
             self.WritePathNodes(nodebuffer, nodeoffset, path['nodes'])
@@ -3861,7 +3861,7 @@ class Area_NSMB2(AbstractParsedArea):
         Writes the pathnode data to the block 14 bytearray
         """
         offset = int(offst)
-        
+
         nodestruct = struct.Struct('<HHffhxxxxxx')
         for node in nodes:
             nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), float(node['speed']), float(node['accel']), int(node['delay']))
@@ -3881,7 +3881,7 @@ class Area_NSMB2(AbstractParsedArea):
         nodeindex = 0
         offset = 0
         buffer = bytearray(len(self.progpathdata) * 12)
-        
+
         for path in self.progpathdata:
             if(len(path['nodes']) < 1): continue
             self.WriteProgPathNodes(nodebuffer, nodeoffset, path['nodes'])
@@ -3900,7 +3900,7 @@ class Area_NSMB2(AbstractParsedArea):
         Writes the progpathnode data to the block 17 bytearray
         """
         offset = int(offst)
-        
+
         nodestruct = struct.Struct('<hh16x')
         for node in nodes:
             nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']))
@@ -5254,7 +5254,7 @@ class Background_NSMB2(AbstractBackground):
         self.unk1 = bgvalues[6]
 
         return id
-    
+
     def save(idnum=0):
         bgstruct = struct.struct('<Hbbbbxx15sbxxxx')
         return # not yet implemented properly; ignore the stuff below
@@ -6084,7 +6084,7 @@ class SpriteItem(LevelEditorItem):
         auxiliary objects.
         """
         self.UpdateRects()
-            
+
         br = self.BoundingRect.translated(
             self.x(),
             self.y(),
@@ -6604,7 +6604,7 @@ class EntranceItem(LevelEditorItem):
         Returns a rectangle that contains the entrance and any
         auxiliary objects.
         """
-            
+
         br = self.BoundingRect.translated(
             self.x(),
             self.y(),
@@ -8037,8 +8037,9 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
                         snode.setData(0, Qt.UserRole, -2)
                         self.NoSpritesFound = snode
                     else:
-                        sname = Sprites[id]
-                        if sname is None: sname = 'ERROR'
+                        sdef = Sprites[id]
+                        if sdef is None: sname = 'ERROR'
+                        else: sname = sdef.name
                         snode.setText(0, trans.string('Sprites', 18, '[id]', id, '[name]', sname))
                         snode.setData(0, Qt.UserRole, id)
 
@@ -9696,7 +9697,7 @@ def LoadTheme():
         path = os.path.join('reggiedata', 'themes', id)
         with open(path, 'rb') as f:
             theme = ReggieTheme(f)
-        
+
     else: theme = ReggieTheme()
 
 
@@ -9813,7 +9814,7 @@ class ReggieTheme():
                 try:
                     self.loadColorsXml(zipf.open(node.attrib['file']))
                 except Exception: continue
-                
+
             elif node.tag.lower() == 'stylesheet':
                 if 'file' not in node.attrib: continue
 
@@ -9821,7 +9822,7 @@ class ReggieTheme():
                 try:
                     self.loadStylesheet(zipf.open(node.attrib['file']))
                 except Exception: continue
-                
+
             elif node.tag.lower() == 'icons':
                 if not all(thing in node.attrib for thing in ['size', 'folder']): continue
 
@@ -9844,7 +9845,7 @@ class ReggieTheme():
                     ico = QtGui.QIcon(pix)
 
                     cache[iconname] = ico
-        
+
 ##        # Add some overview colors if they weren't specified
 ##        fallbacks = {
 ##            'overview_entrance': 'entrance_fill',
@@ -9899,7 +9900,7 @@ class ReggieTheme():
         """
         try: tree = etree.parse(file)
         except Exception: return
-        
+
         root = tree.getroot()
         if root.tag.lower() != 'colors': return False
 
@@ -12603,10 +12604,10 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         obj.objy = clickedy
                         obj.setPos(int(clickedx * 1.5), int(clickedy * 1.5))
             event.accept()
-            
+
         elif event.buttons() == Qt.RightButton and self.currentobj is not None and self.dragstamp:
             # The user is dragging a stamp - many objects.
-            
+
             # possibly a small optimization
             type_obj = ObjectItem
             type_spr = SpriteItem
@@ -12622,7 +12623,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 clicked = mainWindow.view.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
-                    
+
                 changex = clicked.x() - (self.dragstartx * 1.5)
                 changey = clicked.y() - (self.dragstarty * 1.5)
                 changexobj = int(changex / 24)
@@ -12636,14 +12637,14 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     newy = int(obj.dragstarty + changeyobj)
 
                     if obj.objx != newx or obj.objy != newy:
-                        
+
                         obj.objx = newx
                         obj.objy = newy
                         obj.setPos(newx * 24, newy * 24)
 
                 elif isinstance(obj, type_spr):
                     # move the created sprite
-                    
+
                     newx = int(obj.dragstartx + changexspr)
                     newy = int(obj.dragstarty + changeyspr)
 
@@ -12653,7 +12654,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         obj.setPos(int((newx + obj.ImageObj.xOffset) * 1.5), int((newy + obj.ImageObj.yOffset) * 1.5))
 
             self.scene().update()
-            
+
         else:
             QtWidgets.QGraphicsView.mouseMoveEvent(self, event)
 
@@ -16671,11 +16672,11 @@ class PreferencesDialog(QtWidgets.QDialog):
                 for name, themeObj in self.themes:
                     displayname = name
                     if displayname.lower().endswith('.rt'): displayname = displayname[:-3]
-                    
+
                     btn = QtWidgets.QRadioButton(displayname)
                     if name == str(setting('Theme')): btn.setChecked(True)
                     btn.clicked.connect(self.UpdatePreview)
-                    
+
                     self.btns.append(btn)
                     self.btnvals[btn] = (name, themeObj)
 
@@ -16764,7 +16765,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 px = QtGui.QPixmap(350, 185)
                 px.fill(theme.color('bg'))
                 return px
-                
+
 
                 paint = QtGui.QPainter(px)
 
@@ -17036,7 +17037,7 @@ class ListWidgetWithToolTipSignal(QtWidgets.QListWidget):
         """
         if e.type() == e.ToolTip:
             self.toolTipAboutToShow.emit(self.itemFromIndex(self.indexAt(e.pos())))
-            
+
         return super().viewportEvent(e)
 
 
@@ -18346,7 +18347,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 stamps.append(Stamp(rc, name))
 
         for stamp in stamps: self.stampChooser.addStamp(stamp)
-            
+
 
     def handleStampsSave(self):
         """
@@ -18641,7 +18642,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
                 self.scene.addItem(obj)
 
         layer0, layer1, layer2 = layers
-                
+
         if len(layer0) > 0:
             AreaLayer = Area.layers[0]
             if len(AreaLayer) > 0:
@@ -20186,7 +20187,7 @@ class ReggieWindow(QtWidgets.QMainWindow):
         self.pathList.setCurrentItem(None)
         self.progPathList.setCurrentItem(None)
         self.commentList.setCurrentItem(None)
-        
+
         # possibly a small optimization
         func_ii = isinstance
         type_obj = ObjectItem
