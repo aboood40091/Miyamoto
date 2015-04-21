@@ -14908,19 +14908,19 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
         problem = False
         for sprite in Area.sprites:
             # ask somebody about 153 for clarification, the add it to the fixers
-            if sprite.type == 166 and (ord(sprite.spritedata[2]) & 0xF0) >> 4 == 4: problem = True
+            if sprite.type == 166 and (sprite.spritedata[2] & 0xF0) >> 4 == 4: problem = True
             #           also double-check nyb10, then add it to the fixers
-            if sprite.type == 171 and ord(sprite.spritedata[4]) & 0xF != 1: problem = True
-            if sprite.type == 203 and ord(sprite.spritedata[4]) & 0xF == 1:
+            if sprite.type == 171 and sprite.spritedata[4] & 0xF != 1: problem = True
+            if sprite.type == 203 and sprite.spritedata[4] & 0xF == 1:
                 if [454, 432] not in checkfor: checkfor.append([454, 432])
-            if sprite.type == 247 and ord(sprite.spritedata[5]) & 0xF == 1: problem = True
+            if sprite.type == 247 and sprite.spritedata[5] & 0xF == 1: problem = True
             if sprite.type == 323:
-                if ord(sprite.spritedata[4]) & 0xF == 4: problem = True
-                if ord(sprite.spritedata[2]) & 0xF < (ord(sprite.spritedata[3]) & 0xF0) >> 4: problem = True
-            if sprite.type == 449 and (ord(sprite.spritedata[5]) & 0xF0) >> 4 == 1: problem = True
-            if sprite.type == 479 and ord(sprite.spritedata[4]) & 0xF == 1: problem = True
+                if sprite.spritedata[4] & 0xF == 4: problem = True
+                if sprite.spritedata[2] & 0xF < (sprite.spritedata[3] & 0xF0) >> 4: problem = True
+            if sprite.type == 449 and (sprite.spritedata[5] & 0xF0) >> 4 == 1: problem = True
+            if sprite.type == 479 and sprite.spritedata[4] & 0xF == 1: problem = True
             if sprite.type == 481:
-                if ord(sprite.spritedata[5]) & 0xF > 2: problem = True
+                if sprite.spritedata[5] & 0xF > 2: problem = True
                 if [419] not in checkfor: checkfor.append([419])
 
         # check for sprites which are depended on by other sprites
@@ -14938,22 +14938,22 @@ class DiagnosticToolDialog(QtWidgets.QDialog):
             addsprites = []
             for sprite in Area.sprites:
                 # :(
-                if sprite.type == 166 and (ord(sprite.spritedata[2]) & 0xF0) >> 4 == 4: sprite.spritedata = sprite.spritedata[0:2]+' '+sprite.spritedata[3:]
-                if sprite.type == 171 and ord(sprite.spritedata[4]) & 0xF != 1: sprite.spritedata = sprite.spritedata[0:4]+chr(1)+sprite.spritedata[5:]
-                if sprite.type == 203 and ord(sprite.spritedata[4]) & 0xF == 1:
+                if sprite.type == 166 and (sprite.spritedata[2] & 0xF0) >> 4 == 4: sprite.spritedata = sprite.spritedata[0:2]+' '+sprite.spritedata[3:]
+                if sprite.type == 171 and sprite.spritedata[4] & 0xF != 1: sprite.spritedata = sprite.spritedata[0:4]+chr(1)+sprite.spritedata[5:]
+                if sprite.type == 203 and sprite.spritedata[4] & 0xF == 1:
                     if [454, 432] in checkfor:
                         addsprites.append((454, sprite.objx-128, sprite.objy-128))
-                if sprite.type == 247 and ord(sprite.spritedata[5]) & 0xF == 1: sprite.spritedata = sprite.spritedata[0:5]+chr(0)+sprite.spritedata[6:]
+                if sprite.type == 247 and sprite.spritedata[5] & 0xF == 1: sprite.spritedata = sprite.spritedata[0:5]+chr(0)+sprite.spritedata[6:]
                 if sprite.type == 323:
-                    if ord(sprite.spritedata[4]) & 0xF == 4: sprite.spritedata = sprite.spritedata[0:4]+chr(1)+sprite.spritedata[5:]
-                    if ord(sprite.spritedata[2]) & 0xF < (ord(sprite.spritedata[3]) & 0xF0) >> 4:
-                        sprite.spritedata = sprite.spritedata[0:2] + chr((ord(sprite.spritedata[3]) & 0xF0) >> 4)+sprite.spritedata[3:]
-                if sprite.type == 449 and (ord(sprite.spritedata[5]) & 0xF0) >> 4 == 1: sprite.spritedata = sprite.spritedata[0:5]+chr(0)+sprite.spritedata[6:]
-                if sprite.type == 479 and ord(sprite.spritedata[4]) & 0xF == 1:
-                    if (ord(sprite.spritedata[4]) & 0xF0) >> 4 == 1: sprite.spritedata = sprite.spritedata[0:4]+chr(0x10)+sprite.spritedata[5:]
+                    if sprite.spritedata[4] & 0xF == 4: sprite.spritedata = sprite.spritedata[0:4]+chr(1)+sprite.spritedata[5:]
+                    if sprite.spritedata[2] & 0xF < (sprite.spritedata[3] & 0xF0) >> 4:
+                        sprite.spritedata = sprite.spritedata[0:2] + chr((sprite.spritedata[3] & 0xF0) >> 4)+sprite.spritedata[3:]
+                if sprite.type == 449 and (sprite.spritedata[5] & 0xF0) >> 4 == 1: sprite.spritedata = sprite.spritedata[0:5]+chr(0)+sprite.spritedata[6:]
+                if sprite.type == 479 and sprite.spritedata[4] & 0xF == 1:
+                    if (sprite.spritedata[4] & 0xF0) >> 4 == 1: sprite.spritedata = sprite.spritedata[0:4]+chr(0x10)+sprite.spritedata[5:]
                     else: sprite.spritedata = sprite.spritedata[0:4]+chr(0)+sprite.spritedata[5:]
                 if sprite.type == 481:
-                    if ord(sprite.spritedata[5]) & 0xF > 2: sprite.spritedata = sprite.spritdata[0:5]+chr(2)+sprite.spritedata[6:]
+                    if sprite.spritedata[5] & 0xF > 2: sprite.spritedata = sprite.spritdata[0:5]+chr(2)+sprite.spritedata[6:]
                     addsprites.append((419, sprite.objx-128, sprite.objy-128))
 
             for id, x, y in addsprites:
@@ -21436,6 +21436,11 @@ def main():
 
     global app, mainWindow, settings, ReggieVersion, CurrentGame
 
+    # Go to the script path
+    path = module_path()
+    if path is not None:
+        os.chdir(module_path())
+
     # Current game setup
     global CurrentGame
     CurrentGame = NewSuperMarioBrosWii
@@ -21457,11 +21462,6 @@ def main():
 
     # Load the style
     GetDefaultStyle()
-
-    # Go to the script path
-    path = module_path()
-    if path is not None:
-        os.chdir(module_path())
 
     # Check if required files are missing
     if FilesAreMissing():
