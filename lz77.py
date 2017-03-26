@@ -1,35 +1,31 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
 
-# Reggie Next - New Super Mario Bros. Wii / New Super Mario Bros 2 Level Editor
-# Milestone 2 Alpha 4
-# Copyright (C) 2009-2014 Treeki, Tempus, angelsl, JasonP27, Kamek64,
-# MalStar1000, RoadrunnerWMC
+# Miyamoto! Next - New Super Mario Bros. U Level Editor
+# Version v0.6
+# Copyright (C) 2009-2016 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop
 
-# This file is part of Reggie Next.
+# This file is part of Miyamoto! Next.
 
-# Reggie Next is free software: you can redistribute it and/or modify
+# Miyamoto! is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Reggie Next is distributed in the hope that it will be useful,
+# Miyamoto! is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Reggie Next.  If not, see <http://www.gnu.org/licenses/>.
-
+# along with Miyamoto!. If not, see <http://www.gnu.org/licenses/>.
 
 # lz77.py
-# API for decompressing LZ77-compressed data.
-
+# Decompresses lz77 compressed files.
 
 ################################################################
 ################################################################
-
-
 import struct
 
 class LZS11(object):
@@ -39,13 +35,12 @@ class LZS11(object):
 		self.curr_size = 0
 		self.compressed = True
 		self.outdata = []
-	def Decompress11LZS( self , filein ):
+
+	def Decompress11LZS(self , filein):
 		offset = 0
 		# check that file is < 2GB
-		#print "length of file: 0x%x" % len(filein)
 		assert len(filein) < ( 0x4000 * 0x4000 * 2 )
 		self.magic = struct.unpack('<B', filein[0:1])[0]
-		#print "magic = 0x%x" % self.magic
 		assert self.magic == 0x11
 		self.decomp_size = struct.unpack('<I', filein[offset:offset+4])[0] >> 8
 		offset += 4
@@ -54,8 +49,6 @@ class LZS11(object):
 			self.decomp_size = struct.unpack('<I', filein[offset:offset+4])[0]
 			offset += 4
 		assert self.decomp_size <= 0x200000 << 8
-
-		#print "Decompressing 0x%x. (outsize: 0x%x)" % (len(filein), self.decomp_size)
 		self.outdata = [0 for x in range(self.decomp_size)]
 
 		while self.curr_size < self.decomp_size and offset < len(filein):

@@ -1,29 +1,30 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
 
-# Reggie Next - New Super Mario Bros. Wii / New Super Mario Bros 2 Level Editor
-# Milestone 2 Alpha 4
-# Copyright (C) 2009-2014 Treeki, Tempus, angelsl, JasonP27, Kamek64,
-# MalStar1000, RoadrunnerWMC
+# Miyamoto! Next - New Super Mario Bros. U Level Editor
+# Version v0.6
+# Copyright (C) 2009-2016 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop
 
-# This file is part of Reggie Next.
+# This file is part of Miyamoto! Next.
 
-# Reggie Next is free software: you can redistribute it and/or modify
+# Miyamoto! is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Reggie Next is distributed in the hope that it will be useful,
+# Miyamoto! is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Reggie Next.  If not, see <http://www.gnu.org/licenses/>.
+# along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
+
 
 
 # spritelib.py
-# Contains general code to render sprite images in the editor UI
+# Contains general code to render sprite images
 
 
 ################################################################
@@ -40,12 +41,12 @@ OutlinePen = None
 OutlineBrush = None
 ImageCache = {}
 Tiles = {}
+TileWidth = 60
 SpriteImagesLoaded = set()
 
 SpritesFolders = []
 RealViewEnabled = False
 Area = None
-MapPositionToZoneID = None
 
 
 ################################################################
@@ -68,6 +69,7 @@ def main():
     # won't receive it, which causes bugs.
     ImageCache.clear()
     SpriteImagesLoaded.clear()
+    LoadBasicSuite()
 
     SpritesFolders = []
 
@@ -79,10 +81,10 @@ def GetImg(imgname, image=False):
     imgname = str(imgname)
 
     # Try to find the best path
-    path = os.path.join(GameDataFolders[CurrentGame], 'sprites', imgname)
+    path = 'miyamotodata/sprites/' + imgname
 
     for folder in reversed(SpritesFolders): # find the most recent copy
-        tryPath = os.path.join(folder, imgname)
+        tryPath = folder + '/' + imgname
         if os.path.isfile(tryPath):
             path = tryPath
             break
@@ -102,23 +104,44 @@ def loadIfNotInImageCache(name, filename):
         ImageCache[name] = GetImg(filename)
 
 
+def LoadBasicSuite():
 
+    # Load some coins, because coins are in almost every Mario level ever
+    ImageCache['Coin'] = GetImg('coin.png')
+    #ImageCache['SpecialCoin'] = GetImg('special_coin.png')
+    #ImageCache['PCoin'] = GetImg('p_coin.png')
+    #ImageCache['RedCoin'] = GetImg('redcoin.png')
+    #ImageCache['StarCoin'] = GetImg('star_coin.png')
 
-def getNearestZoneTo(objx, objy):
-    """
-    Returns the nearest zone to the given position
-    """
-    print('getNearestZoneTo(%d, %d):' % (objx, objy))
-    if not hasattr(Area, 'zones'):
-        print('    not hasattr; bye bye')
-        return None
+    # Load contents of blocks
+    ItemImage = GetImg('block_contents.png')
+    Items = []
+    for y in range(ItemImage.height() // TileWidth):
+        for x in range(ItemImage.width() // TileWidth):
+            Items.append(ItemImage.copy(x * TileWidth, y * TileWidth, TileWidth, TileWidth))
+    ImageCache['Items'] = Items
+    ImageCache['InvisiBlock'] = GetImg('block_invisible.png')
 
-    id = MapPositionToZoneID(Area.zones, objx, objy, True)
-    for z in Area.zones:
-        if z.id == id:
-            print(('    Found something for id %d; returning ' % id) + str(z))
-            return z
-    print('    Found nothing for id %d; bye bye' % id)
+    # Load the overrides
+    Overrides = QtGui.QPixmap('miyamotodata/overrides.png')
+    Blocks = []
+    x = Overrides.width() // TileWidth
+    y = Overrides.height() // TileWidth
+    for i in range(y):
+        for j in range(x):
+            Blocks.append(Overrides.copy(j * TileWidth, i * TileWidth, TileWidth, TileWidth))
+    ImageCache['Overrides'] = Blocks
+
+    # Load the characters
+    #for num in range(4):
+    #    for direction in 'lr':
+    #        ImageCache['Character%d%s' % (num + 1, direction.upper())] = \
+    #            GetImg('character_%d_%s.png' % (num + 1, direction))
+
+    # Load vines, because these are used by entrances
+    loadIfNotInImageCache('VineTop', 'vine_top.png')
+    loadIfNotInImageCache('VineMid', 'vine_mid.png')
+    loadIfNotInImageCache('VineBtm', 'vine_btm.png')
 
 
 
@@ -131,16 +154,16 @@ class SpriteImage():
     """
     Class that contains information about a sprite image
     """
-    def __init__(self, parent, scale=1.5):
+    def __init__(self, parent, scale=None):
         """
         Intializes the sprite image
         """
         self.parent = parent
 
+        if scale is None: scale = TileWidth / 16
+
         self.alpha = 1.0
         self.image = None
-        if not isinstance(scale, float):
-            print('Tell RoadrunnerWMC that he missed the __init__ API change for NSMBW sprite %d.' % self.parent.type)
         self.spritebox = Spritebox(scale)
         self.dimensions = 0, 0, 16, 16
         self.scale = scale
@@ -213,7 +236,7 @@ class SpriteImage_Static(SpriteImage):
     """
     A simple class for drawing a static sprite image
     """
-    def __init__(self, parent, scale=1.5, image=None, offset=None):
+    def __init__(self, parent, scale=3.75, image=None, offset=None):
         super().__init__(parent, scale)
         self.image = image
         self.spritebox.shown = False
@@ -242,7 +265,7 @@ class SpriteImage_Static(SpriteImage):
         if self.image is None: return
         painter.save()
         painter.setOpacity(self.alpha)
-        painter.scale(1.5 / self.scale, 1.5 / self.scale) # rescale images not based on a 24x24 block size
+        painter.scale(16 * self.scale / TileWidth, 16 * self.scale / TileWidth) # rescale images not based on a 60x60 block size
         painter.setRenderHint(painter.SmoothPixmapTransform)
         painter.drawPixmap(0, 0, self.image)
         painter.restore()
@@ -312,26 +335,27 @@ class Spritebox():
         'Convenience property that provides access to self.xOffset, self.yOffset, self.width and self.height in one tuple',
         )
 
-    # RoundedRect property
+    # Rect property
     def getRR(self):
         return QtCore.QRectF(
-            (self.xOffset * self.scale) + 1,
-            (self.yOffset * self.scale) + 1,
-            (self.width * self.scale) - 2,
-            (self.height * self.scale) - 2,
+            self.xOffset * self.scale,
+            self.yOffset * self.scale,
+            self.width * self.scale,
+            self.height * self.scale,
             )
     def setRR(self, new):
         self.dimensions = (
-            (new.x() / self.scale) - 1,
-            (new.y() / self.scale) - 1,
-            (new.width() / self.scale) + 2,
-            (new.height() / self.scale) + 2,
+            new.x() * self.scale,
+            new.y() * self.scale,
+            new.width() * self.scale,
+            new.height() * self.scale,
             )
     def delRR(self):
         self.dimensions = 0, 0, 16, 16
+
     RoundedRect = property(
         getRR, setRR, delRR,
-        'Property that contains the rounded rect for the spritebox',
+        'Property that contains the rect for the spritebox',
         )
 
     # BoundingRect property
@@ -360,7 +384,7 @@ class Spritebox():
 ################################################################
 ################################################################
 ################################################################
-#################### AuxiliarySpriteItem Classes #####################
+################# AuxiliarySpriteItem Classes ##################
 
 
 class AuxiliaryItem():
@@ -425,7 +449,7 @@ class AuxiliaryTrackObject(AuxiliarySpriteItem):
 
     def setSize(self, width, height):
         self.prepareGeometryChange()
-        self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, height * 1.5)
+        self.BoundingRect = QtCore.QRectF(0, 0, width * 3.75, height * 3.75)
         self.width = width
         self.height = height
 
@@ -803,3 +827,4 @@ class AuxiliaryLocationItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         Required for Qt
         """
         return self.BoundingRect
+

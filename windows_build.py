@@ -1,33 +1,34 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
 
-# Reggie Next - New Super Mario Bros. Wii / New Super Mario Bros 2 Level Editor
-# Milestone 2 Alpha 4
-# Copyright (C) 2009-2014 Treeki, Tempus, angelsl, JasonP27, Kamek64,
-# MalStar1000, RoadrunnerWMC
+# Miyamoto! Next - New Super Mario Bros. U Level Editor
+# Version v0.6
+# Copyright (C) 2009-2016 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop
 
-# This file is part of Reggie Next.
+# This file is part of Miyamoto! Next.
 
-# Reggie Next is free software: you can redistribute it and/or modify
+# Miyamoto! is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Reggie Next is distributed in the hope that it will be useful,
+# Miyamoto! is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Reggie Next.  If not, see <http://www.gnu.org/licenses/>.
+# along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
+
 
 
 # windows_build.py
-# Builds Reggie! to a Windows binary (*.exe)
+# Builds Miyamoto! to a Windows binary (*.exe)
 # Use the values below to configure the release:
 
-PackageName = 'reggie_next_m2a4_win32'
-Version = '0.14' # This must be a valid float in string format
+PackageName = 'miyamoto_nsmbu_06'
+Version = '0.6' # This must be a valid float in string format
 
 
 ################################################################
@@ -65,7 +66,7 @@ dir_ = 'distrib/' + PackageName
 printv('>> Build directory will be ' + dir_)
 
 # Print some stuff
-print('[[ Freezing Reggie! Next ]]')
+print('[[ Freezing Miyamoto! NSMBU ]]')
 print('>> Destination directory: %s' % dir_)
 
 # Add the "build" parameter to the system argument list
@@ -88,21 +89,21 @@ excludes = ['doctest', 'pdb', 'unittest', 'difflib', 'inspect',
 printv('>> Running build functions...')
 base = 'Win32GUI' if sys.platform == 'win32' else None
 setup(
-    name = 'Reggie! Level Editor Next',
+    name = 'Miyamoto! NSMBU',
     version = Version,
-    description = 'Reggie! Level Editor Next',
+    description = 'Miyamoto! NSMBU',
     options={
         'build_exe': {
             'excludes': excludes,
             'packages': ['sip', 'encodings', 'encodings.hex_codec', 'encodings.utf_8'],
             'compressed': 1,
             'build_exe': dir_,
-            'icon': 'reggiedata/win_icon.ico',
+            'icon': 'miyamotodata/win_icon.ico',
             },
         },
     executables = [
         Executable(
-            'reggie.py',
+            'miyamoto.py',
             base = base,
             ),
         ],
@@ -132,18 +133,23 @@ if upxFlag:
         print('>> Compression complete.')
     else:
         print('>> UPX not found, binaries can\'t be compressed.')
-        print('>> In order to build Reggie! with UPX, place the upx.exe file into '
+        print('>> In order to build Miyamoto! with UPX, place the upx.exe file into '
               'a subdirectory named "upx".')
 else:
     print('>> No \'-upx\' flag specified, so UPX compression will not be attempted.')
 
 print('>> Attempting to copy required files...')
-if os.path.isdir(dir_ + '/reggiedata'): shutil.rmtree(dir_ + '/reggiedata') 
-if os.path.isdir(dir_ + '/reggieextras'): shutil.rmtree(dir_ + '/reggieextras') 
-shutil.copytree('reggiedata', dir_ + '/reggiedata') 
-shutil.copytree('reggieextras', dir_ + '/reggieextras') 
+if os.path.isdir(dir_ + '/miyamotodata'): shutil.rmtree(dir_ + '/miyamotodata') 
+if os.path.isdir(dir_ + '/miyamotoextras'): shutil.rmtree(dir_ + '/miyamotoextras')
+if os.path.isdir(dir_ + '/tex'): shutil.rmtree(dir_ + '/tex') 
+shutil.copytree('miyamotodata', dir_ + '/miyamotodata') 
+shutil.copytree('miyamotoextras', dir_ + '/miyamotoextras')
+shutil.copytree('tex', dir_ + '/tex') 
+shutil.copy('gfd.dll', dir_)
 shutil.copy('license.txt', dir_)
 shutil.copy('readme.md', dir_)
+shutil.copy('TexConv2.exe', dir_)
+shutil.copy('texUtils.dll', dir_)
 if not os.path.isfile(dir_ + '/libEGL.dll'):
     shutil.copy('libEGL.dll', dir_)
 print('>> Files copied!')
@@ -165,4 +171,4 @@ else:
     print('>> In order to automatically include the runtimes, place the '
           'Microsoft.VC90.CRT folder into this folder.')
 
-print('>> Reggie has been frozen to %s !' % dir_)
+print('>> Miyamoto has been frozen to %s !' % dir_)
