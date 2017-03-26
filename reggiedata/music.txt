@@ -1,0 +1,29 @@
+0:Unused except for an accidental zone in 5-1 A2
+1:Overworld
+2:Underground
+3:Underwater
+4:Athletic
+5:Ghost House
+6:Desert
+7:Snow Overworld
+8:Lava/Volcano
+9:Tower
+10:Castle
+11:Airship
+12:Bonus Room
+13:Bowser Boss Room
+14:Tower Boss Room
+15:Castle Boss Room
+16:Toad House
+17:Bowser Jr. Battle
+18:Forest/Jungle
+19:Ambush
+20:Beach
+21:Lava/Volcano Cave
+22:Purple Toad House
+23:Credits
+24:Pre-Castle Boss Area
+25:UNUSED
+26:Big Bowser Boss Room
+27:Princess Peach's Room
+28:Final Castle

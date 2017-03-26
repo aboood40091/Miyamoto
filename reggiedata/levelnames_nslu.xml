@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<levels>
+
+    <!-- New Super Luigi U -->
+    <!-- Complete Level Names XML -->
+    <!-- Overrides the New Super Mario Bros. U Level Names XML -->
+
+    <category name="W1: Acorn Plains">
+        <level file="1-1" name="Acorn Plains-1: Waddlewing Warning!" />
+        <level file="1-2" name="Acorn Plains-2: Crooked Cavern" />
+        <level file="1-21" name="Acorn Plains-Tower: Flame-Gear Tower" />
+        <level file="1-3" name="Acorn Plains-3: Rolling Yoshi Hills" />
+        <level file="1-4" name="Acorn Plains-4: Piranha Heights" />
+        <level file="1-5" name="Acorn Plains-5: Piranha Gardens" />
+        <level file="1-23" name="Acorn Plains-Castle: Lemmy's Lights-Out Castle" />
+        <level file="1-13" name="Acorn Plains-Cheep Cheep: Cheep Chomp Chase" />
+    </category>
+
+    <category name="W2: Layer-Cake Desert">
+        <level file="2-1" name="Layer-Cake Desert-1: Spike's Tumbling Desert" />
+        <level file="2-2" name="Layer-Cake Desert-2: Underground Grrrols" />
+        <level file="2-3" name="Layer-Cake Desert-3: Piranhas in the Dark" />
+        <level file="2-21" name="Layer-Cake Desert-Tower: Wind-Up Tower" />
+        <level file="2-4" name="Layer-Cake Desert-4: The Walls Have Eyes" />
+        <level file="2-5" name="Layer-Cake Desert-5: Stone Spike Conveyors" />
+        <level file="2-6" name="Layer-Cake Desert-6: Spinning Sandstones" />
+        <level file="2-23" name="Layer-Cake Desert-Castle: Morton's Lava Block Castle" />
+        <level file="2-14" name="Layer-Cake Desert-Piranha Plant: Slippery Rope Ladders" />
+    </category>
+
+    <category name="W3: Sparkling Waters">
+        <level file="3-1" name="Sparkling Waters-1: Huckit Beach Resort" />
+        <level file="3-2" name="Sparkling Waters-2: Urchin Reef Romp" />
+        <level file="3-21" name="Sparkling Waters-Tower: Shish-Kebab Tower" />
+        <level file="3-20" name="Sparkling Waters-Ghost House: Haunted Cargo Hold" />
+        <level file="3-3" name="Sparkling Waters-3: Waterspout Sprint" />
+        <level file="3-4" name="Sparkling Waters-4: The Great Geysers" />
+        <level file="3-5" name="Sparkling Waters-5: Dragoneel Depths" />
+        <level file="3-23" name="Sparkling Waters-Castle: Larry's Trigger-Happy Castle" />
+        <level file="3-15" name="Sparkling Waters-Leaf: Beanstalk Jungle" />
+    </category>
+
+    <category name="W4: Frosted Glacier">
+        <level file="4-1" name="Frosted Glacier-1: Broozers and Barrels" />
+        <level file="4-2" name="Frosted Glacier-2: Cooligan Shrooms" />
+        <level file="4-21" name="Frosted Glacier-Tower: Icicle Tower" />
+        <level file="4-3" name="Frosted Glacier-3: Fire and Ice" />
+        <level file="4-4" name="Frosted Glacier-4: Weighty Waddlewings" />
+        <level file="4-5" name="Frosted Glacier-5: Ice Slide Expressway" />
+        <level file="4-20" name="Frosted Glacier-Ghost House: Peek-a-Boo Ghost House" />
+        <level file="4-23" name="Frosted Glacier-Castle: Wendy's Thwomp Castle" />
+        <level file="4-16" name="Frosted Glacier-Fliprus: Fliprus Floes" />
+    </category>
+
+    <category name="W5: Soda Jungle">
+        <level file="5-37" name="Soda Jungle-Ship: All Aboard!" />
+        <level file="5-1" name="Soda Jungle-1: Giant Swing-Along" />
+        <level file="5-2" name="Soda Jungle-2: Dancing Blocks, Poison Swamp" />
+        <level file="5-3" name="Soda Jungle-3: Heart of Bramball Woods" />
+        <level file="5-21" name="Soda Jungle-Tower: Stone-Snake Tower" />
+        <level file="5-20" name="Soda Jungle-Ghost House: Boo's Favorite Haunt" />
+        <level file="5-4" name="Soda Jungle-4: Painted Pipeworks" />
+        <level file="5-5" name="Soda Jungle-5: Deepsea Stone-Eyes" />
+        <level file="5-6" name="Soda Jungle-6: Sumo Bro Bridge" />
+        <level file="5-7" name="Soda Jungle-7: Wiggler Floodlands" />
+        <level file="5-23" name="Soda Jungle-Castle: Iggy's Swinging-Chains Castle" />
+        <level file="5-17" name="Soda Jungle-Para-Beetle: Para-Beetle Parade" />
+    </category>
+
+    <category name="W6: Rock-Candy Mines">
+        <level file="6-1" name="Rock-Candy Mines-1: Mount Fuzzy" />
+        <level file="6-2" name="Rock-Candy Mines-2: Porcu-Puffer Cavern" />
+        <level file="6-21" name="Rock-Candy Mines-Tower-1: Smashing-Stone Tower" />
+        <level file="6-3" name="Rock-Candy Mines-3: Spike's Seesaws" />
+        <level file="6-4" name="Rock-Candy Mines-4: Light-Up-Lift Tower" />
+        <level file="6-5" name="Rock-Candy Mines-5: Rising Piranhas" />
+        <level file="6-6" name="Rock-Candy Mines-6: Spine Coaster Stowaways" />
+        <level file="6-22" name="Rock-Candy Mines-Tower-2: Sumo Bro's Spinning Tower" />
+        <level file="6-7" name="Rock-Candy Mines-7: Switch-Lift Express" />
+        <level file="6-23" name="Rock-Candy Mines-Castle: Roy's Ironclad Castle" />
+    </category>
+
+    <category name="W7: Meringue Clouds">
+        <level file="7-1" name="Meringue Clouds-1: Frozen Fuzzies" />
+        <level file="7-2" name="Meringue Clouds-2: Wiggler Rodeo" />
+        <level file="7-3" name="Meringue Clouds-3: Rainbow Skywalk" />
+        <level file="7-21" name="Meringue Clouds-Tower: Stonecrush Tower" />
+        <level file="7-20" name="Meringue Clouds-Ghost House: Vanishing Ghost House" />
+        <level file="7-4" name="Meringue Clouds-4: Above the Bouncy Clouds" />
+        <level file="7-5" name="Meringue Clouds-5: Flame Chomp Ferris Wheel" />
+        <level file="7-6" name="Meringue Clouds-6: Three-Headed Snake Block" />
+        <level file="7-23" name="Meringue Clouds-Castle: Ludwig's Block-Press Castle" />
+        <level file="7-37" name="Meringue Clouds-Ship: Bowser Jr. Showdown" />
+    </category>
+
+    <category name="W8: Peach's Castle">
+        <level file="8-1" name="Peach's Castle-1: Magma Moat" />
+        <level file="8-2" name="Peach's Castle-2: Magmaw River Cruise" />
+        <level file="8-3" name="Peach's Castle-3: Hot Cogs" />
+        <level file="8-4" name="Peach's Castle-4: Firefall Rising" />
+        <level file="8-42" name="Peach's Castle-Castle 1: Current Event" />
+        <!-- The Final Battle has the same name so we don't need to redefine it -->
+    </category>
+
+    <category name="W9: Superstar Road">
+        <level file="9-1" name="Superstar Road-1: Spine Coaster Connections" />
+        <level file="9-2" name="Superstar Road-2: P Switch Peril" />
+        <level file="9-3" name="Superstar Road-3: Star Coin Deep Dive" />
+        <level file="9-4" name="Superstar Road-4: Hammerswing Hangout" />
+        <level file="9-5" name="Superstar Road-5: Under Construction" />
+        <level file="9-6" name="Superstar Road-6: Fire Bar Sprint" />
+        <level file="9-7" name="Superstar Road-7: Cloudy Capers" />
+        <level file="9-8" name="Superstar Road-8: Impossible Pendulums" />
+        <level file="9-9" name="Superstar Road-9: Flying Squirrel Ovation" />
+    </category>
+
+</levels>

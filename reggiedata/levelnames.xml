@@ -1,0 +1,293 @@
+<?xml version="1.0"?>
+<levels>
+
+    <!-- New Super Mario Bros. U -->
+    <!-- Complete Level Names XML -->
+
+    <category name="W1: Acorn Plains">
+        <level file="1-1" name="Acorn Plains-1: Acorn Plains Way" />
+        <level file="1-2" name="Acorn Plains-2: Tilted Tunnel" />
+        <level file="1-21" name="Acorn Plains-Tower: Crushing-Cogs Tower" />
+        <level file="1-3" name="Acorn Plains-3: Yoshi Hill" />
+        <level file="1-4" name="Acorn Plains-4: Mushroom Heights" />
+        <level file="1-5" name="Acorn Plains-5: Rise of the Piranha Plants" />
+        <level file="1-23" name="Acorn Plains-Castle: Lemmy's Swingback Castle" />
+        <level file="1-13" name="Acorn Plains-Blooper: Blooper's Secret Lair" />
+        <level file="1-32" name="Piranha Plant Ambush" />
+        <level file="1-33" name="Piranha Plant Ambush" />
+        <level file="1-34" name="Piranha Plant Ambush" />
+        <level file="1-55" name="Piranha Plant Ambush?" />
+    </category>
+
+    <category name="W2: Layer-Cake Desert">
+        <level file="2-1" name="Layer-Cake Desert-1: Stone-Eye Zone" />
+        <level file="2-2" name="Layer-Cake Desert-2: Perilous Pokey Cave" />
+        <level file="2-3" name="Layer-Cake Desert-3: Fire Snake Cavern" />
+        <level file="2-21" name="Layer-Cake Desert-Tower: Stoneslide Tower" />
+        <level file="2-4" name="Layer-Cake Desert-4: Spike's Spouting Sands" />
+        <level file="2-5" name="Layer-Cake Desert-5: Dry Desert Mushrooms" />
+        <level file="2-6" name="Layer-Cake Desert-6: Blooming Lakitus" />
+        <level file="2-23" name="Layer-Cake Desert-Castle: Morton's Compactor Castle" />
+        <level file="2-14" name="Layer-Cake Desert-Ice: Piranha Plants on Ice" />
+        <level file="2-32" name="Goomba Ambush" />
+        <level file="2-33" name="Goomba Ambush" />
+        <level file="2-34" name="Goomba + Fire Bro Ambush?" />
+        <level file="2-55" name="Fire Bro Ambush?" />
+        <level file="2-56" name="Fire Bro Ambush?" />
+        <level file="2-57" name="Fire Bro Ambush?" />
+    </category>
+
+    <category name="W3: Sparkling Waters">
+        <level file="3-1" name="Sparkling Waters-1: Waterspout Beach" />
+        <level file="3-2" name="Sparkling Waters-2: Tropical Refresher" />
+        <level file="3-21" name="Sparkling Waters-Tower: Giant Skewer Tower" />
+        <level file="3-20" name="Sparkling Waters-Ghost House: Haunted Shipwreck" />
+        <level file="3-3" name="Sparkling Waters-3: Above the Cheep Cheep Seas" />
+        <level file="3-4" name="Sparkling Waters-4: Urchin Shoals" />
+        <level file="3-5" name="Sparkling Waters-5: Dragoneel's Undersea Grotto" />
+        <level file="3-23" name="Sparkling Waters-Castle: Larry's Torpedo Castle" />
+        <level file="3-15" name="Sparkling Waters-Leaf: Skyward Stalk" />
+        <level file="3-32" name="Porcupuffer Ambush" />
+        <level file="3-33" name="Porcupuffer Ambush" />
+        <level file="3-34" name="Porcupuffer Ambush" />
+        <level file="3-55" name="Porcupuffer Ambush?" />
+    </category>
+
+    <category name="W4: Frosted Glacier">
+        <level file="4-1" name="Frosted Glacier-1: Spinning-Star Sky" />
+        <level file="4-2" name="Frosted Glacier-2: Cooligan Fields" />
+        <level file="4-21" name="Frosted Glacier-Tower: Freezing-Rain Tower" />
+        <level file="4-3" name="Frosted Glacier-3: Prickly Goombas!" />
+        <level file="4-4" name="Frosted Glacier-4: Scaling the Mountainside" />
+        <level file="4-5" name="Frosted Glacier-5: Icicle Caverns" />
+        <level file="4-20" name="Frosted Glacier-Ghost House: Swaying Ghost House" />
+        <level file="4-23" name="Frosted Glacier-Castle: Wendy's Shifting Castle" />
+        <level file="4-16" name="Frosted Glacier-Fliprus: Fliprus Lake" />
+        <level file="4-32" name="Cooligan Ambush" />
+        <level file="4-33" name="Cooligan Ambush" />
+        <level file="4-34" name="Cooligan Ambush" />
+        <level file="4-55" name="Cooligan Ambush?" />
+        <level file="4-56" name="Cooligan Ambush?" />
+        <level file="4-57" name="Cooligan Ambush?" />
+    </category>
+
+    <category name="W5: Soda Jungle">
+        <level file="5-37" name="Soda Jungle-Ship: The Mighty Cannonship" />
+        <level file="5-1" name="Soda Jungle-1: Jungle of the Giants" />
+        <level file="5-2" name="Soda Jungle-2: Bridge over Poisoned Waters" />
+        <level file="5-3" name="Soda Jungle-3: Bramball Woods" />
+        <level file="5-21" name="Soda Jungle-Tower: Snake Block Tower" />
+        <level file="5-20" name="Soda Jungle-Ghost House: Which-Way Labyrinth" />
+        <level file="5-4" name="Soda Jungle-4: Painted Swampland" />
+        <level file="5-5" name="Soda Jungle-5: Deepsea Ruins" />
+        <level file="5-6" name="Soda Jungle-6: Seesaw Bridge" />
+        <level file="5-7" name="Soda Jungle-7: Wiggler Stampede" />
+        <level file="5-23" name="Soda Jungle-Castle: Iggy's Volcanic Castle" />
+        <level file="5-17" name="Soda Jungle-Para-Beetle: Flight of the Para-Beetles" />
+        <level file="5-32" name="Boo Ambush" />
+        <level file="5-33" name="Boo Ambush" />
+        <level file="5-34" name="Boo Ambush" />
+        <level file="5-55" name="Boo Ambush?" />
+        <level file="5-56" name="Boo Ambush?" />
+    </category>
+
+    <category name="W6: Rock-Candy Mines">
+        <level file="6-1" name="Rock-Candy Mines-1: Fuzzy Clifftop" />
+        <level file="6-2" name="Rock-Candy Mines-2: Porcupuffer Falls" />
+        <level file="6-21" name="Rock-Candy Mines-Tower-1: Grinding-Stone Tower" />
+        <level file="6-3" name="Rock-Candy Mines-3: Waddlewing's Nest" />
+        <level file="6-4" name="Rock-Candy Mines-4: Light Blocks, Dark Tower" />
+        <level file="6-5" name="Rock-Candy Mines-5: Walking Piranha Plants!" />
+        <level file="6-6" name="Rock-Candy Mines-6: Thrilling Spine Coaster" />
+        <level file="6-22" name="Rock-Candy Mines-Tower-2: Screwtop Tower" />
+        <level file="6-7" name="Rock-Candy Mines-7: Shifting-Floor Cave" />
+        <level file="6-23" name="Rock-Candy Mines-Castle: Roy's Conveyor Castle" />
+    </category>
+
+    <category name="W7: Meringue Clouds">
+        <level file="7-1" name="Meringue Clouds-1: Land of Flying Blocks" />
+        <level file="7-2" name="Meringue Clouds-2: Seesaw Shrooms" />
+        <level file="7-3" name="Meringue Clouds-3: Switchback Hill" />
+        <level file="7-21" name="Meringue Clouds-Tower: Slide Lift Tower" />
+        <level file="7-20" name="Meringue Clouds-Ghost House: Spinning Spirit House" />
+        <level file="7-4" name="Meringue Clouds-4: Bouncy Cloud Boomerangs" />
+        <level file="7-5" name="Meringue Clouds-5: A Quick Dip in the Sky" />
+        <level file="7-6" name="Meringue Clouds-6: Snaking above Mist Valley" />
+        <level file="7-23" name="Meringue Clouds-Castle: Ludwig's Clockwork Castle" />
+        <level file="7-37" name="Meringue Clouds-Ship: Boarding the Airship" />
+        <level file="7-32" name="Fuzzy Ambush" />
+        <level file="7-33" name="Fuzzy Ambush" />
+        <level file="7-34" name="Fuzzy Ambush" />
+        <level file="7-55" name="Fuzzy Ambush?" />
+    </category>
+
+    <category name="W8: Peach's Castle">
+        <level file="8-1" name="Peach's Castle-1: Meteor Moat" />
+        <level file="8-2" name="Peach's Castle-2: Magma-River Cruise" />
+        <level file="8-3" name="Peach's Castle-3: Rising Tides of Lava" />
+        <level file="8-4" name="Peach's Castle-4: Firefall Cliffs" />
+        <level file="8-42" name="Peach's Castle-Castle 1: Red-Hot Elevator Ride" />
+        <level file="8-43" name="Peach's Castle-Castle 2: The Final Battle" />
+    </category>
+
+    <category name="W9: Superstar Road">
+        <level file="9-1" name="Superstar Road-1: Spine-Tingling Spine Coaster" />
+        <level file="9-2" name="Superstar Road-2: Run for It" />
+        <level file="9-3" name="Superstar Road-3: Swim for Your Life!" />
+        <level file="9-4" name="Superstar Road-4: Hammerswing Caverns" />
+        <level file="9-5" name="Superstar Road-5: Spinning Platforms of Doom" />
+        <level file="9-6" name="Superstar Road-6: Fire Bar Cliffs" />
+        <level file="9-7" name="Superstar Road-7: Lakitu! Lakitu! Lakitu!" />
+        <level file="9-8" name="Superstar Road-8: Pendulum Castle" />
+        <level file="9-9" name="Superstar Road-9: Follow That Shell!" />
+    </category>
+
+    <category name="Secret Island">
+        <level file="1-58" name="Records Toad House" />
+    </category>
+
+    <category name="Toad Houses">
+        <level file="1-25" name="Power-Up Panels Toad House" />
+        <level file="1-26" name="Power-Up Panels Toad House" />
+        <level file="1-27" name="Power-Up Panels Toad House" />
+        <level file="1-28" name="Power-Up Panels Toad House" />
+        <level file="1-29" name="Power-Up Panels Toad House" />
+        <level file="1-30" name="Power-Up Panels Toad House" />
+        <level file="1-31" name="Power-Up Panels Toad House" />
+        <level file="1-47" name="Power-Up Panels Toad House" />
+        <level file="1-48" name="Power-Up Panels Toad House" />
+        <level file="1-49" name="Power-Up Panels Toad House" />
+        <level file="2-25" name="Baby Yoshi Toad House" />
+        <level file="2-26" name="Baby Yoshi Toad House" />
+        <level file="2-27" name="Baby Yoshi Toad House" />
+        <level file="2-28" name="Baby Yoshi Toad House" />
+        <level file="3-25" name="1-Up Blast Toad House" />
+    </category>
+
+    <category name="Coin Battle">
+        <level file="11-1" name="Coin-1" />
+        <level file="11-2" name="Coin-2" />
+        <level file="11-3" name="Coin-3" />
+        <level file="11-4" name="Coin-4" />
+        <level file="11-5" name="Coin-5" />
+        <level file="11-6" name="Coin-6" />
+        <level file="11-7" name="Coin-7" />
+        <level file="11-8" name="Coin-8" />
+    </category>
+
+    <category name="Other">
+        <level file="1-39" name="Title Screen" />
+        <level file="1-41" name="Credits" />
+    </category>
+
+    <category name="Challenge Mode">
+
+        <category name="Time Attack">
+            <level file="12-4" name="Time Attack Trial" />
+            <level file="1-1" name="Acorn Plains Speed Run [Alias]" />
+            <level file="12-2" name="Full Speed Ahead" />
+            <level file="2-1" name="Stone-Eye Desert Dash [Alias]" />
+            <level file="12-1" name="The Boo Ballet [Alias]" />
+            <level file="12-1" name="The Boo Ballet Encore [Alias]" />
+            <level file="4-5" name="Icicle Skating [Alias]" />
+            <level file="3-1" name="Huckit Hustle [Alias]" />
+            <level file="12-3" name="Mini Mountaineer" />
+            <level file="3-4" name="Lurchin' Urchins [Alias]" />
+            <level file="3-23" name="Penguin vs. Torpedo [Alias]" />
+            <level file="4-4" name="Slick Slopes and Bullet Bills [Alias]" />
+            <level file="13-6" name="The Haunted Propeller" />
+            <level file="4-16" name="Fliprus Crossing [Alias]" />
+            <level file="7-2" name="Rickety Sprint [Alias]" />
+            <level file="2-4" name="No-Cash Dash [Alias]" />
+            <level file="5-2" name="Poison-Swamp Scramble [Alias]" />
+            <level file="6-5" name="Swing Into Action [Alias]" />
+            <level file="2-21" name="Stoneslide Tower Climb [Alias]" />
+            <level file="6-22" name="Screwtop It Up [Alias]" />
+        </category>
+
+        <category name="Coin Collection">
+            <level file="13-1" name="Triple Jump for Coins" />
+            <level file="2-1" name="Hot Hidden-Coin Hunt [Alias]" />
+            <level file="1-5" name="Stingy Big Piranha Plants [Alias]" />
+            <level file="13-5" name="Lakitu's Cloud Heist" />
+            <level file="13-8" name="Hot-Air Yoshi Ride" />
+            <level file="4-20" name="Ghost House Coin Curse [Alias]" />
+            <level file="7-3" name="Perilous Coin Dodge [Alias]" />
+            <level file="1-1" name="Waddlewing Wipeout [Alias]" />
+            <level file="4-3" name="Prickly Goomba's Coinless Run [Alias]" />
+            <level file="13-3" name="200 Clifftop Coins" />
+            <level file="6-6" name="Dark Dark Coaster [Alias]" />
+            <level file="7-1" name="Cloud-Top Coin Evasion [Alias]" />
+            <level file="15-6" name="Attack of the Bob-Ombs" />
+            <level file="9-1" name="Spine Coaster Coin Cruise [Alias]" />
+            <level file="1-23" name="Castle Coin Bypass [Alias]" />
+            <level file="9-7" name="Don't. Touch. Anything. [Alias]" />
+        </category>
+
+        <category name="1-Up Rally">
+            <level file="14-5" name="The Goombrat Stomp" />
+            <level file="14-1" name="Stone-Eye Koopas" />
+            <level file="14-7" name="Goomba Bounce Bash" />
+            <level file="14-6" name="Penguin Bowling" />
+            <level file="14-8" name="Three Dry Bones" />
+            <level file="18-2" name="Bullet Bill 1-Up Bounce" />
+            <level file="14-2" name="Star Connection" />
+            <level file="17-5" name="Big Goomba Bounce Bash" />
+            <level file="5-37" name="Airship 1-Up Rally [Alias]" />
+            <level file="14-4" name="Paratroopa Panic" />
+        </category>
+
+        <category name="Special">
+            <level file="18-5" name="Fire, Bro!" />
+            <level file="18-4" name="Graceful Glide" />
+            <level file="18-6" name="Mole to Goal" />
+            <level file="17-6" name="Marathon Glide" />
+            <level file="15-7" name="Bubble Up" />
+            <level file="18-3" name="Nonstop Flight" />
+            <level file="5-1" name="Be Gentle to Giants [Alias]" />
+            <level file="7-6" name="Big Air at Sundown [Alias]" />
+            <level file="15-4" name="Balancing Act" />
+            <level file="5-37" name="Bowser's Airship Sneak [Alias]" />
+            <level file="3-23" name="Larry's Groundless Battle [Alias]" />
+            <level file="8-4" name="No Climbing Allowed [Alias]" />
+            <level file="17-4" name="The Trial of Bullet Bill Hill" />
+            <level file="15-3" name="Spin Jump, Get Dizzy" />
+            <level file="15-1" name="Mole to Goal Returns" />
+            <level file="15-5" name="Wobble and Rock" />
+            <level file="15-2" name="Seriously! Fire, Bro!" />
+            <level file="8-42" name="Elevator Out of Service [Alias]" />
+            <level file="9-8" name="Castle Crawl [Alias]" />
+            <level file="8-42" name="Express Elevator [Alias]" />
+            <level file="9-8" name="Cashless Castle Crawl [Alias]" />
+        </category>
+
+        <category name="Boost Mode">
+            <level file="18-8" name="Piranha Plant Hideaway" />
+            <level file="18-7" name="Coins in the Forecast" />
+            <level file="16-7" name="When Waddlewings Attack" />
+            <level file="17-3" name="The Perpetual Shell" />
+            <level file="3-15" name="Boost Block Coin Stalk [Alias]" />
+            <level file="16-6" name="Icicle Falls" />
+            <level file="16-3" name="Fuzzy Alert!" />
+            <level file="6-7" name="The High Road [Alias]" />
+            <level file="17-1" name="Three-Legged Lava Race" />
+            <level file="17-2" name="Fuzzy Cliff Climb" />
+            <level file="16-4" name="Thwomp Castle Cash Flow" />
+            <level file="16-5" name="Cloudy with a Chance of Fire" />
+            <level file="16-8" name="Ultimate Boost Blast" />
+        </category>
+
+    </category>
+
+    <category name="Unused Levels">
+        <level file="1-46" name="Mostly Empty Credits-Like Stage" />
+        <level file="4-25" name="Toad House Type 4" />
+        <level file="13-2" name="A W1 climbing level with corrupted tilesets" />
+        <level file="13-4" name="An underground forest level with a long coin-filled path for a shell" />
+        <level file="13-7" name="A level with colored blocks, paragoombas and line-following platforms" />
+        <level file="16-1" name="A nearly-empty level with nothing but four bricks, a Koopa, and some other sprites" />
+        <level file="16-2" name="Beta &quot;Fuzzy Cliff Climb&quot;" />
+        <level file="18-1" name="Beta Desert Challenge Mode Stage" />
+    </category>
+
+</levels>
