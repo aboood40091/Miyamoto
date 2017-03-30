@@ -1,4 +1,4 @@
-#NOTICE!!!
+# NOTICE!!!
 Since I'm a tool with Github, the releases will contain the acutal source code. So git clone will bring you something that will never work. Just unzip the source folder for each release.
 
 # MiyamotoNext-NSMBU
