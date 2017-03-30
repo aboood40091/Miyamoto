@@ -1,3 +1,6 @@
+#NOTICE!!!
+Since I'm a tool with Github, the releases will contain the acutal source code. So git clone will bring you something that will never work. Just unzip the source folder for each release.
+
 # MiyamotoNext-NSMBU
 A level editor for NSMBU and NSLU, based on Reggie! Next by RoadrunnerWMC, which is based on Reggie by Treeki, Tempus et al. Uses PyQt5, Python 3, TPLLib, and other libs.
 
