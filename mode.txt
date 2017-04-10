@@ -1,5 +1,0 @@
-2
-
-This file tells Reggie Next what mode to boot into - NSMBW or NSMB2.
-The first character needs to be either W or 2.
-This is only a temporary solution. Eventually, there will be an option to switch games without even closing Reggie.

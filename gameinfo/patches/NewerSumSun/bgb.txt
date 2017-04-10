@@ -1,7 +1,0 @@
-0602=Night Child Forest
-0612=Child Forest
-1002=Red Islands
-10A2=Red Islands (Adjusted)
-5202=Golden Clouds
-9167=Golden Cavern
-9198=Night Sky

@@ -1,8 +1,0 @@
-52:4x Self-Rotating Dock Platforms
-55:Rising Tilt Dock Platform
-87:Trampoline Dock Wall
-102:Chargin' Chuck
-132:Unused Test Path Controlled Platform
-160:Unused Test Path Controlled Platform
-229:Water Pillar
-286:Spinning Coin Platform
