@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		
+		<title>Translations</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="style/stylesBlack.css"  />
+		<link rel="stylesheet" type="text/css" media="screen" href="style/black.css" />
+	</head>
+	
+<body>
+<div id="container"><!-- Start container -->
+
+	<div class="top">&nbsp;</div>
+	
+	<div id="pageHeader"><!-- Start page header -->
+		<a href="index.html"><img src="style/images/button_main.png" align="right" hspace="12" onMouseOver="this.src='style/images/button_main_hl.png'" onMouseOut="this.src='style/images/button_main.png'"></a>
+		<h1>Reggie! Developers' Documentation</h1>
+		<h2>The New Super Mario Bros. Wii Editor program</h2>
+	</div><!-- End page header -->
+
+	<div id="navcontainer"><!-- Start Navigation -->
+        <ul>
+            <li><a href="dev_index.html" rel="self">Index</a></li>
+            <li><a href="dev_themes.html" rel="self">Themes</a></li>
+            <li><a href="dev_translations.html" rel="self" id="current">Translations</a></li>
+            <li><a href="dev_gamepatches.html" rel="self">Game Patches</a></li>
+			<li><a href="dev_spriteimgs.html" rel="self">Sprite Images</a></li>
+        </ul>
+	</div><!-- End navigation -->
+	
+	<div id="contentContainer"><!-- Start main content wrapper -->
+		<div id="content"><!-- Start content -->
+
+			<!-- Main info -->
+            <h1><b>Reggie! Translations</b></h1>
+                <p>This page will explain how to create Reggie! Translations plug-ins. Each translation consists of multiple files containing text which the editor uses instead of the default versions.</p>
+				
+			<!-- Index -->
+			<h2><b>Index</b></h2>
+				<p>Use the following links to navigate this page:<br>
+				<a href="#HowHardWillItBe">How Hard will it Be?</a><br>
+				<a href="#CreatingMainXml">Getting Started: Creating main.xml</a><br>
+				<a href="#AddingFiles">Adding Files</a><br>
+				<a href="#ExplanationOfStrings">Explanation of Strings</a><br>
+				</p>
+				<p><br></p>
+            
+			<!-- How Hard will it Be? -->
+			<a name="HowHardWillItBe"></a>
+			<h2><b>How Hard will it Be?</b></h2>
+				<p>Translations are relatively easy to make because the file formats you will work with are fairly simple. However, these files are very large and it will take you several hours to translate the entire editor. Plan to spend a few days to a week, depending on how much time you can spend on it each day.</p>
+				<p>In addition, you need to know what XML files are and how to make them. If you're not familiar with that, Google it and then continue.</p>
+				
+			<!-- Getting Started: Creating main.xml -->
+			<a name="CreatingMainXml"></a>
+			<h2><b>Getting Started: Creating main.xml</b></h2>
+				<p>Each Reggie! translation is located within its own folder in <i>reggiedata/translations/</i>. The name of the folder doesn't matter, but make it something unique and descriptive.</p>
+				<p>Inside that folder, create a file named <i>main.xml</i>. Open it with a plain-text editor or XML editor and add the following code:</p>
+				<div class="code">
+					&lt;?xml version="1.0"?&gt;<br>
+					&lt;translation name="" version="1.0" translator=""&gt;<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&lt;strings path="strings.xml" /&gt;<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&lt;file name="bga" path="bga.txt" /&gt;<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&lt;file name="bgb" path="bgb.txt" /&gt;<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&lt;file name="entrancetypes" path="entrancetypes.txt" /&gt;<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&lt;file name="levelnames" path="levelnames.xml" /&gt;<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&lt;file name="spritecategories" path="spritecategories.xml" /&gt;<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&lt;file name="spritedata" path="spritedata.xml" /&gt;<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&lt;file name="tilesets" path="tilesets.xml" /&gt;<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&lt;file name="ts1_descriptions" path="ts1_descriptions.txt" /&gt;<br>
+					&lt;/translation&gt;
+				</div>
+				<p>Add the name of the language between the quotes of the <i>name</i> attribute in the <i>&lt;translation&gt;</i> tag and add your name between the quotes of the <i>translator</i> attribute.</p>
+				
+			<!-- Adding Files -->
+			<a name="AddingFiles"></a>
+			<h2><b>Adding Files</b></h2>
+				<p>The main.xml you've created instructs Reggie! to load various files from your translation's folder. Since those files don't exist there yet, you need to make copies there. Copy the following files to your game patch folder:</p>
+				<ul>
+					<li>reggiedata/translations/strings.xml</li>
+					<li>reggiedata/bga.txt</li>
+					<li>reggiedata/bgb.txt</li>
+					<li>reggiedata/entrancetypes.txt</li>
+					<li>reggiedata/levelnames.xml</li>
+					<li>reggiedata/spritecategories.xml</li>
+					<li>reggiedata/spritedata.xml</li>
+					<li>reggiedata/tilesets.xml</li>
+					<li>reggiedata/ts1_descriptions.txt</li>
+				</ul>
+				<p>After copying each of these to your translation's folder, translate them one by one. Each has a different format; open each one with a plain-text editor and see how it works. strings.xml and spritedata.xml are by far the largest files, so you may want to begin with those.</p>
+					
+			<!-- Explanation of Strings -->
+			<a name="ExplanationOfStrings"></a>
+			<h2><b>Explanation of Strings</b></h2>
+				<p>If you're not a programmer, you may have no idea what is meant by &quot;strings.&quot; &quot;String&quot; is the technical term for a chunk of text, which could be anything from a single letter to an entire paragraph. To change the rest of the text in Reggie!, you need to edit strings.xml. strings.xml contains all of the miscellaneous strings in the editor that don't fit anywhere else.</p>
+				
+			<div class="clearer"></div>
+
+		</div><!-- End content -->
+	</div><!-- End main content wrapper -->
+	
+   <div class="clearer"></div>
+   
+        <div id="footer"><!-- Start Footer -->
+        	<p>&copy; 2009 Treeki, Tempus, etc... &copy; 2013 RoadrunnerWMC</p>
+        </div><!-- End Footer -->
+        
+   <div class="bottom">&nbsp;</div>
+   
+</div><!-- End container -->
+</body>
+</html>

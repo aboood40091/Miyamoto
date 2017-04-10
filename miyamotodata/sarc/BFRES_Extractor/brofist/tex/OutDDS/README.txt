@@ -1,0 +1,1 @@
+Should probably use OutDDS_Lossless for texture hacking, some textures usually don't convert right here.

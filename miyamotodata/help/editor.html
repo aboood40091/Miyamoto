@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		
+		<title>Index Page</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="style/styles.css"  />
+		<link rel="stylesheet" type="text/css" media="screen" href="style/red.css" />
+	</head>
+	
+<body>
+<div id="container"><!-- Start container -->
+
+	<div class="top">&nbsp;</div>
+	
+	<div id="pageHeader"><!-- Start page header -->
+		<a href="dev_index.html"><img src="style/images/button_dev.png" align="right" hspace="12" onMouseOver="this.src='style/images/button_dev_hl.png'" onMouseOut="this.src='style/images/button_dev.png'"></a>
+		<h1>Reggie! Help Documentation</h1>
+		<h2>The New Super Mario Bros. Wii Editor program</h2>
+	</div><!-- End page header -->
+
+	<div id="navcontainer"><!-- Start Navigation -->
+        <ul>
+            <li><a href="index.html" rel="self">Index</a></li>
+            <li><a href="start.html" rel="self">Getting Started</a></li>
+            <li><a href="editor.html" rel="self" id="current">Editor Window</a></li>
+            <li><a href="screenshots.html" rel="self">Screenshots</a></li>
+            <li><a href="saving.html" rel="self">Saving</a></li>
+            <li><a href="zones.html" rel="self">Zones</a></li>
+            <li><a href="objects.html" rel="self">Objects</a></li>
+            <li><a href="sprites.html" rel="self">Sprites</a></li>
+            <li><a href="entrances.html" rel="self">Entrances</a></li>
+            <li><a href="area.html" rel="self">Areas</a></li>
+        </ul>
+	</div><!-- End navigation -->
+	
+	<div id="contentContainer"><!-- Start main content wrapper -->
+		<div id="content"><!-- Start content -->
+
+ 
+             <h1><b>Using the Editor Window</b></h1>
+                <p>The editor window is the mainstay of Reggie!, and what you'll probably be seeing for hours and hours and hours as you mindlessly create levels no one wants to play.</p>
+                <p>The editor window consists of a main window, called the canvas, a toolbar containing many handy shiny buttons, a minimap window, and a palette. Each of these interface elements is integral to you being very confused as to why you couldn't figure them out on your own - until you look up your grade two report card.</p>
+                <p><br></p>
+            
+            <h2><b>The Canvas</b></h2>
+                <p>The big large blue window is called the canvas. The canvas contains all the level elements that you'll see while playing a regular level in New Super Mario Bros. Wii. The elements you will see include a teal wire box frame, which represent a zone, graphical elements (a fancy word for pictures) that represent environment tiles (called objects or terrain), and small boxes with numbers or pictures that represent sprites and entrances. What are all these things? Click on a tab above to find out more about them, or just try it out.</p>
+                <p>The canvas allows quite a few types of interactions. Select an item by clicking on it. Zones can not be selected. Select a group of items by clicking and dragging across an area. Click and hold any selected items to drag them around the screen. Shift drag to drag them without snapping to the grid. Right click on the canvas to paint any selected item from palette. You may cut, copy, or paste any selected items - however the clipboard does not carry over between levels.</p>
+                <p>Passing over any spot on the canvas will show information about the mouse position and other present items in the status bar below. It will display X/Y tile, X/Y position, and object, sprite or entrance data.</p>
+                <p><br></p>
+                
+            <h2><b>The Minimap</b></h2>
+                <p>The small blue box in the upper right of the editor window is the minimap. The minimap always reflects your current level, and will automatically update itself to always be the best possible size for whatever you have in your level, and will zoom to fit any size you decide to make the window. In other words, it's fully automatic.</p>
+                <p>The minimap begins docked, but can be undocked by dragging the title bar. It can also be closed. And of course, it can be resized freely. It can also be redocked in various places, and even placed as a tab with the palette. Clicking on the minimap in any location will speed the canvas to that location. Press Ctrl/Cmd-M to hide or show the minimap.</p>
+                <p><br></p>
+                
+            <h2><b>The Toolbar</b></h2>
+                <p>The toolbar is an essential collection of things you can fiddle with without understanding properly. Every item in the toolbar has a keyboard shortcut, and a descriptive tooltip.</p>
+                <p>The first four items are <i>New File</i>, <i>Open by Name</i>, <i>Save</i>, and <i>Screenshot</i>. These are covered in other sections, and do what you think they might as long as you've used a computer before - and if you haven't, how are you reading this? The next three icons are <i>Cut</i>, <i>Copy</i>, and <i>Paste</i> shortcuts.</p>
+                <p>Now we're getting into useful features. The next three items in the toolbar change the zoom modes. You can zoom in on the canvas, zoom out, and reset it to the original zoom level. This is incredibly handy for getting a better perspective on large chunks of your level, or on adjusting sprites very delicately with alt-drag. After the zoom controls is the very, very handy grid feature. Clicking this will enable or disable the grid on the canvas. Go on, try it out.</p>
+                <p>The next three controls, labelled <i>Layer 0</i>, <i>Layer 1</i>, and <i>Layer 2</i>, control visibility. An explanation may be in order. NSMB Wii has three layers. Layer 0 is the foreground, and Mario's behaviour behind layer 0 will follow the behaviour specified in the zone camera mode. Specifically you may know it as the part which disappears when you walk behind it with a flashlight-like effect. Layer 1 is the collision layer. Objects on layer 1 can be walked upon, hit against, face planted into. Layer 2 is the background layer, though a special sprite can switch the collisions to this layer instead of layer 1. Selecting or deselecting these options will control which layers you can see on your canvas.</p>
+                <p>The last few toolbar options open the area dialog, the zone dialogue, the background dialog, and finally, allow you to switch between different areas of the level. These options are covered in their respective help sections - avail yourself of the snazzy tabs up top.</p>
+                <p><br></p>
+                <p></p>
+            
+            <p><a href="index.html">Back</a></p>
+ 
+			<div class="clearer"></div>
+
+		</div><!-- End content -->
+	</div><!-- End main content wrapper -->
+	
+   <div class="clearer"></div>
+   
+        <div id="footer"><!-- Start Footer -->
+        	<p>&copy; 2009 Treeki, Tempus, etc...</p>
+        </div><!-- End Footer -->
+        
+   <div class="bottom">&nbsp;</div>
+   
+</div><!-- End container -->
+</body>
+</html>

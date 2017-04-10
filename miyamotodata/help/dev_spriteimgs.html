@@ -1,0 +1,232 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+		<title>Sprite Images</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="style/stylesBlack.css"  />
+		<link rel="stylesheet" type="text/css" media="screen" href="style/black.css" />
+	</head>
+
+<body>
+<div id="container"><!-- Start container -->
+
+	<div class="top">&nbsp;</div>
+
+	<div id="pageHeader"><!-- Start page header -->
+		<a href="index.html"><img src="style/images/button_main.png" align="right" hspace="12" onMouseOver="this.src='style/images/button_main_hl.png'" onMouseOut="this.src='style/images/button_main.png'"></a>
+		<h1>Reggie! Developers' Documentation</h1>
+		<h2>The New Super Mario Bros. Wii Editor program</h2>
+	</div><!-- End page header -->
+
+	<div id="navcontainer"><!-- Start Navigation -->
+        <ul>
+            <li><a href="dev_index.html" rel="self">Index</a></li>
+            <li><a href="dev_themes.html" rel="self">Themes</a></li>
+            <li><a href="dev_translations.html" rel="self">Translations</a></li>
+            <li><a href="dev_gamepatches.html" rel="self">Game Patches</a></li>
+			<li><a href="dev_spriteimgs.html" rel="self" id="current">Sprite Images</a></li>
+        </ul>
+	</div><!-- End navigation -->
+
+	<div id="contentContainer"><!-- Start main content wrapper -->
+		<div id="content"><!-- Start content -->
+
+			<!-- Main info -->
+            <h1><b>Reggie! Sprite Images</b></h1>
+                <p>This page will explain how to create custom sprite images for use with game patches.</p>
+
+			<!-- Index -->
+			<h2><b>Index</b></h2>
+				<p>Use the following links to navigate this page:<br>
+				<a href="#HowHardWillItBe">How Hard will it Be?</a><br>
+				<a href="#TakingScreenshots">Getting Started: Taking Screenshots</a><br>
+				<a href="#EditingScreenshots">Editing Screenshots</a><br>
+				<a href="#ExpOfImpVarsAndFunctions">Explanations of Important Variables and Functions</a><br>
+				<a href="#CreatingBasicSrcCodeFile">Creating a Basic Source Code File</a><br>
+				<a href="#AddingBasicImages">Adding Basic Images</a><br>
+				<a href="#SpriteEditorItems">SpriteEditorItems</a><br>
+				<a href="#AdvancedImagesDynSizers">Advanced Images: Dynamic Sizers</a><br>
+				<a href="#AdvancedImagesCustomPainters">Advanced Images: Custom Painters</a><br>
+				<a href="#AdvancedImagesAuxImgs">Advanced Images: Auxiliary Images</a><br>
+				<a href="#AdvancedImagesOtherAuxItems">Advanced Images: Other Auxiliary Items</a><br>
+				<a href="#AdvancedImagesLiquidPainters">Advanced Images: Liquid Painters</a><br>
+				</p>
+				<p><br></p>
+
+			<!-- How Hard will it Be? -->
+			<a name="HowHardWillItBe"></a>
+			<h2><b>How Hard will it Be?</b></h2>
+				<p>Generally, individual sprite images take a relatively short amount of time to make once you learn how. If you've retextured a sprite, you don't need to know anything about programming - just read the next two sections on this page. If you've changed the 3D models sprites use or edited them using ASM, you'll need to know how to program in Python.</p>
+
+			<!-- Getting Started: Taking Screenshots -->
+			<a name="TakingScreenshots"></a>
+			<h2><b>Getting Started: Taking Screenshots</b></h2>
+				<p>In order to add images of sprites to Reggie!, you need to first have images of sprites. The best way to get images of sprites is by taking screenshots of them with Dolphin Emulator. Assuming you have a retail copy of NSMBW and a Wii, you can obtain an ISO by ripping it with a tool such as CleanRip. You can then add and replace files using WIT (Wiimms ISO Tools) or WiiScrubber (not recommended).</p>
+				<p>Once you have a disc image with your custom sprite on it, you need to make a level specifically for taking an image of it. You can copy-and-paste the below ReggieClip into Reggie! for an example of how one of those levels might look:
+				<div class="code">
+					ReggieClip|0:0:1:1:0:1:1:24|0:0:1:1:0:0:1:1|0:0:1:1:1:0:32:1|0:0:1:1:33:0:1:1|0:0:1:1:33:1:1:24|0:0:1:1:0:25:1:1|0:0:1:1:1:25:32:1|0:0:1:1:33:25:1:1|0:0:2:1:8:10:5:1|0:0:1:1:13:11:11:1|0:0:54:1:21:10:1:1|0:0:54:1:17:13:1:1|0:0:54:1:17:6:1:1|0:0:54:1:13:10:1:1|0:0:1:1:13:5:1:5|1:20:272:160:0:0:0:0:0:0:0|1:0:184:144:0:0:0:0:0:0:0|%
+				</div>
+				<p>The zone border should be placed at the border indicated by the invisible blocks. The "sprite 0" should be replaced with the main entrance. The Goomba should be replaced with the sprite you want an image of. The background for this zone should be set to None, the zone theme should be set to "Overworld", and the zone lighting should be set to "Normal/Overworld".</p>
+				<p>The dark stone blocks are used as reference points to determine the exact spot at which the sprite will appear. They are needed because the rest of the level is made of invisible tiles to simplify the background removal which will happen later. The dark stone blocks can be placed at any distance from the sprite, but they should line up with it when "Show Sprite Images" is turned off.</p>
+				<p>Once you have a level set up, set it as 01-02.arc in your disc image. Don't use 01-01.arc because World 1-1 has hardcoded backgrounds. Open Dolphin and set it to the highest quality settings possible, including full-screen mode. It will probably be extremely slow, but your images will look much better. Go to World 1-2 (play 1-1 first if you need to).</p>
+				<p>Now you need to decide when to take the screenshot. In many cases you can do this at the instant the sprite becomes visible. In other cases, the sprite will be in an unappealing or unrepresentative pose at that moment, and you may need to wait several frames before taking the screenshot. Dolphin has options that allow you to slow down or pause the emulation to find the perfect frame. When you're satisfied, take the screenshot by pressing the "PrtSc" (Print Screen) key on your keyboard.</p>
+				<p>Now the screenshot is in the Windows clipboard. Open an image editor such as Paint.NET, GIMP or Photoshop, paste the image there and save it.</p>
+
+			<!-- Editing Screenshots -->
+			<a name="EditingScreenshots"></a>
+			<h2><b>Editing Screenshots</b></h2>
+				<p>Once you have a screenshot, you need to crop away the background and resize it to match Reggie!'s 100% zoom level. You can do this with any modern image editor (MS Paint won't work) such as Paint.NET, GIMP or Photoshop. Crop the background out by selecting the black area with a Magic Wand-like tool, using the highest tolerance setting you can without cutting into the sprite. Then, crop the image borders as close as possible to the edges of the sprite. Save it as a PNG within your game definition's <i>sprites</i> folder.</p>
+				<p>Resizing the image is much trickier than cropping the background. If you just retextured an sprite that has an image already in Reggie!, just use the dimensions of the original image and disregard the rest of this. If you took a screenshot of a brand-new sprite or 3D model, read on. If you took a high-resolution screenshot, your sprite image is several times larger than it needs to be. The surest way to find the exact dimensions is to take a second screenshot of the sprite for this sole purpose. This time, add reference tiles behind the sprite, like this:</p>
+				<div class="code">
+					ReggieClip|0:0:51:2:0:0:12:12|0:0:54:2:5:2:1:1|0:0:54:2:2:5:1:1|0:0:54:2:8:5:1:1|0:0:54:2:5:7:1:1|0:0:1:1:3:6:5:1|1:20:80:80:0:0:0:0:0:0:0|%
+				</div>
+				<p>Add the stone blocks to Layer 2 of your screenshot level, and put it back into your disc image. Take another screenshot, but this time you don't need to use the highest quality settings. Try to capture the sprite at the same frame you took the first image, if possible. Count how many blocks high and wide the sprite is, and try to be as exact as possible. In Reggie!, each of those stone block tiles is exactly 24x24 pixels. Do some basic multiplication to find the final dimensions of your sprite image. Once you've done that, resize your image to those dimensions. Remember to save a backup copy of the high-resolution version!</p>
+
+			<!-- Explanations of Important Variables and Functions -->
+			<a name="ExpOfImpVarsAndFunctions"></a>
+			<h2><b>Explanations of Important Variables and Functions</b></h2>
+				<h2><b><i>NOTE: The sprite image system has been recently redesigned. As such, all of the text from here on is outdated. This page will be rewritten at some point in the future.</i></b></h2>
+				<p>If you already know how to program in Python, there are some important Reggie!-specific objects you need to know about.</p>
+				<ul>
+					<li>Reggie! uses the <b>PyQt</b> library extensively for UI and image management.</li>
+					<li><b>Initialiser functions</b> are functions that apply sprite image data to each sprite when they are created. There is generally one for every sprite type with images. Each one takes one argument, <i>sprite</i>, which is the <i>SpriteEditorItem</i> it acts upon.</li>
+					<li><b>ImageCache</b> is a global dictionary. It contains all sprite images that have been loaded by the editor thus far since launch. This speeds up the editor, because each PNG only needs to be loaded once, and can be reused many times. Each key is a string that is the name of the sprite, generally.</li>
+					<li><b>Initialisers</b> is a global dictionary. It contains every initialiser function, with each key being the sprite number as an integer. Reggie! uses this to find initialiser functions.</li>
+					<li><b>GetImg</b> is a function. It returns the QtGui.QPixmap data for any sprite image PNG file. Its only required argument is a string matching the filename of the PNG. A second, optional argument, if set to <i>True</i>, will force the function to return the data in the form of a QtGui.QImage rather than a QPixmap. <u>You must use this function rather than QtGui.QPixmap.open() because this function is compatible with cascading game patches, whereas QtGui.QPixmap.open() is not.</u></li>
+					<li><b>SpriteEditorItem</b>s are objects that represent individual sprites. Each time an initialiser function is called, it is given a SpriteEditorItem as an argument, and the initialiser function applies sprite image data to it.</li>
+					<li><b>Custom painters</b> are functions that repaint sprites when their sprite data changes. They take both a SpriteEditorItem and a QtGui.QPainter as arguments. The QPainter paints to the position on the canvas of the sprite, and the SpriteEditorItem gives you access to the current sprite data and settings of the sprite.</li>
+					<li><b>Dynamic sizers</b> are functions that resize sprite selection boundaries when sprite data changes. They take a SpriteEditorItem as an argument, and are very similar in use to custom painters.</li>
+				</ul>
+
+			<!-- Creating a Basic Source Code File -->
+			<a name="CreatingBasicSrcCodeFile"></a>
+			<h2><b>Creating a Basic Source Code File</b></h2>
+				<p>Sprite image source code files have a basic structure that keeps functions organized. The order is:</p>
+				<ol>
+					<li>Initialiser functions</li>
+					<li>The Initialisers dictionary</li>
+					<li>Dynamic sizers</li>
+					<li>Custom painters</li>
+				</ol>
+				<p>Within each of these sections, the functions/data are arranged by sprite number, from lowest to highest. Sprites which are not affected by your game patch are skipped.</p>
+				<p>To make a basic source code file, then, create a text file named <i>sprites.py</i> and put it into your game patch's folder. (Make sure to update main.xml to reflect this.) Add a few lines of comments at the beginning to specify your name and what game you're patching. Then add a basic Initialisers dictionary:</p>
+				<div class="code">
+					Initialisers = {<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+				</div>
+				<p>You will add to this dictionary as you add more sprite images.</p>
+
+			<!-- Adding Basic Images -->
+			<a name="AddingBasicImages"></a>
+			<h2><b>Adding Basic Images</b></h2>
+				<p>To make a basic image appear in Reggie!, start by adding the following code to the Initialisers portion of sprites.py:</p>
+				<div class="code">
+					def Init<i>SpriteName</i>(sprite): # <i>SpriteNumber</i><br>
+						&nbsp;&nbsp;&nbsp;&nbsp;global ImageCache<br>
+						&nbsp;&nbsp;&nbsp;&nbsp;if '<i>SpriteName</i>' not in ImageCache:<br>
+							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ImageCache['<i>SpriteName</i>'] = GetImg('<i>ImageFilename</i>')<br>
+						<br>
+						&nbsp;&nbsp;&nbsp;&nbsp;sprite.customPaint = True<br>
+						&nbsp;&nbsp;&nbsp;&nbsp;sprite.customPainter = PaintGenericObject<br>
+						&nbsp;&nbsp;&nbsp;&nbsp;sprite.image = ImageCache['<i>SpriteName</i>']<br>
+						&nbsp;&nbsp;&nbsp;&nbsp;return (<i>AdjustedImagePlacement</i>)<br>
+				</div>
+				<p>Hopefully you have some idea of what this code does. Of course, you need to make some changes to this in order for it to work. Replace every instance of <i>SpriteName</i> with the name of your sprite. Then, replace <i>SpriteNum</i> with the number of your sprite. Replace <i>ImageFilename</i> with the filename of your image (for example, &quot;goomba.png&quot;).<p>
+				<p>The <i>AdjustedImagePlacement</i> section is the hardest part. Ultimately, you should have 4 numbers separated by commas between the parentheses after <i>return</i>. The first 2 represent image position, and the second 2 represent image size. The two numbers for image size (width and height) are scaled by a factor of 2/3. Thus, if you had an image of actual size 100x200 pixels (width x height), you would choose 67 and 133 as your third and fourth numbers.</p>
+				<p>The first 2 numbers require trial and error to be found. They affect the position of the sprite image relative to the (invisible) blue sprite box. The first affects horizontal position and the second affects vertical position. You are allowed to use negative numbers, and you will use them for most sprite images. Pick something, and see how it looks in Reggie!. 0 is a good place to start. Change it by 10 and see how that affects the image. Adjust it until it matches the screenshot you took with the stone blocks on layer 2.</p>
+				<p>To clarify, the final line of your function should look something like this:</p>
+				<div class="code">
+					&nbsp;&nbsp;&nbsp;&nbsp;return (-1,-4,18,20)<br>
+				</div>
+				<p>but with different numbers. The first 2, affecting image position, can be positive or negative, but the second 2, affecting image size, should always be positive.</p>
+				<p>After adding the initialiser function, you need to add an entry to the Initialisers dictionary so Reggie! can find it. Between the braces, add a new line:</p>
+				<div class="code">
+					&nbsp;&nbsp;&nbsp;&nbsp;<i>SpriteNumber</i>: Init<i>SpriteName</i>,<br>
+				</div>
+				<p>Replace <i>SpriteNumber</i> with your sprite's number, and replace <i>SpriteName</i> with your sprite's name. If and when you add images for more sprites, arrange the contents of the Initialisers dictionary by sprite number, from lowest to highest.</p>
+
+			<!-- SpriteEditorItems -->
+			<a name="SpriteEditorItems"></a>
+			<h2><b>SpriteEditorItems</b></h2>
+				<p>SpriteEditorItems are objects that represent individual sprites. They contain sprite data, positions and image data. Most advanced sprite images alter SpriteEditorItems directly, so a section on their properties is needed.</p>
+				<p>SpriteEditorItems have the following relevant properties:</p>
+				<ul>
+					<li><i>SpriteEditorItem.</i><b>aux</b> sets this sprite's auxiliary item. Auxiliary items are described later on this page.</li>
+					<li><i>SpriteEditorItem.</i><b>customLocPaint</b> is a boolean value which determines if the sprite needs a custom painter function to paint to locations.</li>
+					<li><i>SpriteEditorItem.</i><b>customLocPainter</b> is a function (or <i>None</i>) that Reggie! will call with the relevant location and painter if customLocPaint == <i>True</i>.</li>
+					<li><i>SpriteEditorItem.</i><b>hasCrest</b> is a boolean value which determines if the sprite's liquid image should include a crest. Has no effect if neither isLocPaintableLiquid nor isZonePaintableLiquid is <i>True</i>.</li>
+					<li><i>SpriteEditorItem.</i><b>image</b> sets the QPixmap which will be drawn to the canvas inside the selection boundaries. If this is set to None, a blue sprite box of the size specified by the SpriteEditorItem's width and height properties will be drawn.</p>
+					<li><i>SpriteEditorItem.</i><b>isLocPaintableLiquid</b> is a boolean value which determines if the sprite should cause liquid to be automatically painted within a location. If this is set to <i>True</i>, Reggie! will use the sprite's LiquidPix and LiquidCrestPix to paint the liquid.</p>
+					<li><i>SpriteEditorItem.</i><b>isZonePaintableLiquid</b> is a boolean value which determines if the sprite should cause liquid to be painted within a zone. If this is set to <i>True</i>, Reggie! will use the sprite's LiquidPix and LiquidCrestPix to paint the liquid.</p>
+					<li><i>SpriteEditorItem.</i><b>LiquidPix</b> is a pixmap that Reggie! uses to paint the non-crest portion of a liquid if it needs to.</li>
+					<li><i>SpriteEditorItem.</i><b>LiquidCrestPix</b> is a pixmap that Reggie! uses to paint the crest of a liquid if it needs to.</li>
+					<li><i>SpriteEditorItem.</i><b>LiquidRisePix</b> is a pixmap that Reggie! uses to indicate that a liquid without a crest will rise or fall to a certain height.</li>
+					<li><i>SpriteEditorItem.</i><b>LiquidRiseCrestPix</b> is a pixmap that Reggie! uses to indicate that a liquid with a crest will rise or fall to a certain height.</li>
+					<li><i>SpriteEditorItem.</i><b>locIdAffected</b> is an integer which determines the location ID that the sprite will paint to.</li>
+					<li><i>SpriteEditorItem.</i><b>risingHeight</b> is an integer which determines how many pixels the sprite's liquid will rise or fall. 24px = 1 block.</li>
+					<li><i>SpriteEditorItem.</i><b>spritedata</b> is a 8-character string that contains the sprite data. Each byte is in the form of a character. You can access a byte by indexing it (1st character is index 0, remember) and calling ord() on the character to get an integer. Then, perform some bitwise operations such as >> 4 and & 0xF to access individual halves of the byte if you want.</li>
+					<li><i>SpriteEditorItem.</i><b>type</b> is an integer that determines the sprite's sprite number. Don't edit this value.</li>
+					<li><i>SpriteEditorItem.</i><b>xoffset</b> controls the image's X-position offset relative to the sprite position.</li>
+					<li><i>SpriteEditorItem.</i><b>yoffset</b> does the same thing in the Y dimension.</li>
+					<li><i>SpriteEditorItem.</i><b>xsize</b> controls the width of the image, with 16 being one block wide.</li>
+					<li><i>SpriteEditorItem.</i><b>ysize</b> does the same thing with height.</li>
+				</ul>
+
+			<!-- Advanced Images: Dynamic Sizers -->
+			<a name="AdvancedImagesDynSizers"></a>
+			<h2><b>Advanced Images: Dynamic Sizers</b></h2>
+				<p>One important component of advanced images is dynamic sizers. Most sprites having images that change based on sprite data use dynamic sizers to accomplish this. Some use custom painters as well.</p>
+				<p>A dynamic sizer is a function that takes one SpriteEditorItem as an argument. It does not return anything in particular. All dynamic sizers appear in numerical order just after the Initialisers dictionary. They can access sprite data via the SpriteEditorItem and change the SpriteEditorItem's image settings (xoffset, yoffset, xsize, ysize, image, aux) based on the spritedata (accessed via sprite.spritedata as described above).</p>
+
+			<!-- Advanced Images: Custom Painters -->
+			<a name="AdvancedImagesCustomPainters"></a>
+			<h2><b>Advanced Images: Custom Painters</b></h2>
+				<p>Custom painters are very similar to dynamic sizers. Custom painters can do anything dynamic sizers can do and vice-versa, but custom painters are intended for more complicated painting operations. Look at a reference guide of QPainter and QPixmap for a guide of how to use those, and they otherwise work similarly to dynamic sizers. The arguments are in the order <i>(sprite, painter)</i>.</p>
+
+			<!-- Advanced Images: Auxiliary Images -->
+			<a name="AdvancedImagesAuxImgs"></a>
+			<h2><b>Advanced Images: Auxiliary Images</b></h2>
+				<p>Auxiliary images are images that are attached to sprites, but are not necessarily included within the selection boundaries. A common example of this is the goal flagpole. The castle is an auxiliary image.</p>
+				<p>Auxiliary images are represented by Reggie!'s built in <i>AuxiliaryImage</i> class. To create one, perform an operation like this:</p>
+				<div class="code">
+					&nbsp;&nbsp;&nbsp;&nbsp;aux = AuxiliaryImage(sprite, 256, 256) # The image is 256x256<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;aux.image = ImageCache['SomeImage'] # Replace SomeImage with an actual key<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;sprite.aux = aux<br>
+				</div>
+				<p>In some cases, you may want to also set <i>aux.hover</i>. It's a boolean value defaulting to <i>True</i> that determines if Reggie! should display sprite information in the status bar when the mouse hovers over the image. In many cases, such as when auxiliary images are used to provide a "glow" effect, this is better set to <i>False</i>.</li>
+
+			<!-- Advanced Images: Other Auxiliary Items -->
+			<a name="AdvancedImagesOtherAuxItems"></a>
+			<h2><b>Advanced Images: Other Auxiliary Items</b></h2>
+				<p>In addition to auxiliary images, you can set <i>SpriteEditorItem</i>.aux to any of the following types:</p>
+				<ul>
+					<li><b>AuxiliaryTrackObject</b> creates a line with a stopper on each end. A well-known example of this is in horizontally-moving and vertically-moving platforms. It is created with <i>(sprite, width, height, direction)</i>. Direction can be either <i>1</i> or <i>2</i> for horizontal and vertical lines, respectively.</li>
+					<li><b>AuxiliaryCircleOutline</b> creates a circle. A well-known example of this is in Rolling Hills. It is created with <i>(sprite, width)</i>.</li>
+					<li><b>AuxiliaryRotationAreaOutline</b> creates a piece-of-pizza-shaped sector. A well-known example of this is in sprite 96, "Rotation Controller - Swaying." It is called with <i>(sprite, width)</i>. You can set the rotation angle by calling <i>AuxiliaryRotationOutline</i>.SetAngle(startAngle, spanAngle).</li>
+					<li><b>AuxiliaryRectOutline</b> creates a rectangle. A well-known example of this is in the Special Exit Controller. It is called with (sprite, width, height, <i>xoffset</i>, <i>yoffset</i>) as arguments. xoffset and yoffset are optional. You can set the rectangle size (and position) by calling <i>AuxiliaryRectOutline</i>.SetSize(width, height, <i>xoffset</i>, <i>yoffset</i>). xoffset and yoffset are optional.</li>
+					<li><b>AuxiliaryPainterPath</b> creates an arbitrary shape determined by a QtGui.QPainterPath. An example of this is in the King Bill. It is called with (sprite, painterpath, width, height). QPainterPaths let you define any shape you want, comprised of lines, arcs and polygons.</li>
+				</ul>
+				<p>Auxiliary items can be adjusted by dynamic sizers and custom painters.</p>
+
+			<!-- Advanced Images: Liquid Painters -->
+			<a name="AdvancedImagesLiquidPainters"></a>
+			<h2><b>Advanced Images: Liquid Painters</b></h2>
+				<p>By setting various properties of <i>SpriteEditorItem</i>, you can instruct Reggie! to paint a liquid in a zone or location. The relevant properties of <i>SpriteEditorItem</i> are described above in the section about them. Set the correct settings in a dynamic sizer if you would like to do this.</p>
+
+			<div class="clearer"></div>
+
+		</div><!-- End content -->
+	</div><!-- End main content wrapper -->
+
+   <div class="clearer"></div>
+
+        <div id="footer"><!-- Start Footer -->
+        	<p>&copy; 2009 Treeki, Tempus, etc... &copy; 2013 RoadrunnerWMC</p>
+        </div><!-- End Footer -->
+
+   <div class="bottom">&nbsp;</div>
+
+</div><!-- End container -->
+</body>
+</html>

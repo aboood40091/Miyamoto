@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<theme name="Volcano" version="1.0" creator="RoadrunnerWMC" description="This theme can help you visualize volcano levels.">
+    <color id="bg" r="20" g="10" b="0" />
+    <color id="entrance_fill" r="220" g="0" b="100" a="160" />
+    <color id="entrance_fill_s" r="220" g="0" b="120" a="240" />
+    <color id="grid" r="255" g="255" b="255" a="60" />
+    <color id="location_fill" r="110" g="45" b="100" a="80" />
+    <color id="location_fill_s" r="120" g="50" b="100" a="120" />
+    <color id="path_fill" r="6" g="249" b="20" a="145" />
+    <color id="path_fill_s" r="6" g="249" b="20" a="245" />
+
+    <color id="ribbon" r="225" g="195" b="185" />
+
+    <color id="spritebox_fill" r="200" g="0" b="0" a="180" />
+    <color id="spritebox_fill_s" r="200" g="0" b="0" a="240" />
+
+    <color id="ui" r="220" g="215" b="215" />
+
+    <color id="watermark" r="127" g="0" b="0" a="36" />
+
+    <color id="zone_lines" r="147" g="201" b="255" a="100" />
+    <color id="zone_text" r="255" g="255" b="255" />
+</theme>

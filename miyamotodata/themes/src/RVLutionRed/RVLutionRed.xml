@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<theme name="RVLution Red" version="1.0" creator="RoadrunnerWMC" description="Matches the default theme of RVLution.net.">
+
+    <color id="bg" r="96" g="96" b="96" />
+
+    <color id="grid" r="255" g="255" b="255" a="60" />
+	
+    <color id="location_fill" r="164" g="0" b="0" a="120" />
+    <color id="location_fill_s" r="164" g="0" b="0" a="160" />
+	
+	<color id="smi" r="255" g="150" b="150" a="80" />
+
+    <color id="spritebox_fill" r="260" g="229" b="229" a="120" />
+    <color id="spritebox_fill_s" r="260" g="229" b="229" a="240" />
+	<color id="spritebox_lines_s" r="0" g="0" b="0" a="255" />
+
+    <color id="ui" r="238" g="229" b="229" />
+
+</theme>

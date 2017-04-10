@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		
+		<title>Index Page</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="style/styles.css"  />
+		<link rel="stylesheet" type="text/css" media="screen" href="style/red.css" />
+	</head>
+	
+<body>
+<div id="container"><!-- Start container -->
+
+	<div class="top">&nbsp;</div>
+	
+	<div id="pageHeader"><!-- Start page header -->
+		<a href="dev_index.html"><img src="style/images/button_dev.png" align="right" hspace="12" onMouseOver="this.src='style/images/button_dev_hl.png'" onMouseOut="this.src='style/images/button_dev.png'"></a>
+		<h1>Reggie! Help Documentation</h1>
+		<h2>The New Super Mario Bros. Wii Editor program</h2>
+	</div><!-- End page header -->
+
+	<div id="navcontainer"><!-- Start Navigation -->
+        <ul>
+            <li><a href="index.html" rel="self">Index</a></li>
+            <li><a href="start.html" rel="self" id="current">Getting Started</a></li>
+            <li><a href="editor.html" rel="self">Editor Window</a></li>
+            <li><a href="screenshots.html" rel="self">Screenshots</a></li>
+            <li><a href="saving.html" rel="self">Saving</a></li>
+            <li><a href="zones.html" rel="self">Zones</a></li>
+            <li><a href="objects.html" rel="self">Objects</a></li>
+            <li><a href="sprites.html" rel="self">Sprites</a></li>
+            <li><a href="entrances.html" rel="self">Entrances</a></li>
+            <li><a href="area.html" rel="self">Areas</a></li>
+        </ul>
+	</div><!-- End navigation -->
+	
+	<div id="contentContainer"><!-- Start main content wrapper -->
+		<div id="content"><!-- Start content -->
+
+ 
+            <h1><b>Introduction</b></h1>
+                <p>Hello, and welcome to Reggie!</p>
+                <p>You are probably thinking - "I'm 12 years old and fail at life, and I can't figure out how to use such a simple editor as Reggie! Where can I go to ask people all of my stupid questions since I can't figure out jack squat myself?"</p>
+                <p>Fear not! You need not ask anyone, all your stupid, pathetic, worthless questions can be answered within this document. Continue to read and navigate through the red coloured links by clicking on them with the mouse pointer. If this proves too difficult, try operating <i>Reggie!</i> with your Mom.</p>
+                <p><br></p>
+            
+            <h2><b>Extracting an ISO</b></h2>
+                <p>To run Reggie, you'll need an ISO of the game. We use the extracted ISO files to display the level graphics, and for access to the game's original levels (giving you some starting examples).</p>
+                <p>The recommended method for obtaining an ISO is to use the superdump program. Other methods are available, but left to the user as an exercise.</p>
+                <p>Once you have an ISO, download <a href="http://gbatemp.net/index.php?showtopic=135884"><span class="s1">WiiScrubber</span></a>. Begin by running the included key.bin generator program, type in 42, and click OK. Now, open WiiScrubber and extract the necessary files by right-clicking on the last partition and select "Extract" from the "Unencrypted Partition" submenu. Following me so far? Save it somewhere handy.</p>
+                <p>If you're on a non-Windows system, WiiScrubber will likely not work for you. Regular users can run it in a VM or in wine. Power Users can grab the <a href="http://github.com/jjgod/wiiscrubber-ng"><span class="s1">wiiscrubber command line tool</span></a> or the <a href="http://github.com/icefire/Wii.py/"><span class="s1">Wii.py</span></a> python code and extract the files using those tools. Both the tools run under all 'nix systems and Mac OS X.</p>
+                <p><br></p>
+            
+            <h2><b>Starting Reggie!</b></h2>
+                <p>If you have a precompiled executable, simply double click. Precompiled executables should be available as a Windows exe, a Mac app, or a Linux application via cx_Freeze (built on Ubuntu 9.04).</p>
+                <p>For those who cannot run one of the available executable files, or who simply desire not to do so, there is a source distribution available. The source distribution requires the following packages:</p>
+                <ul>
+                    <li><span class="s2"><a href="http://www.python.org/download/"><span class="s3">Python 3.3</span></a></span> or higher</li>
+                    <li><a href="http://qt.nokia.com/downloads"><span class="s3">Qt 5.0</span></a><span class="s4"> or higher</span></li>
+                    <li><span class="s2"><a href="http://www.riverbankcomputing.co.uk/software/sip/download"><span class="s3">SIP 4.9</span></a></span> or higher</li>
+                    <li><a href="http://www.riverbankcomputing.co.uk/software/pyqt/download"><span class="s3">PyQt 5.3</span></a><span class="s4"> or higher</span></li>
+                </ul>
+                <p><b>Windows users</b> can get away with downloading the Windows binary installer for Python and the binary Installer for PyQt (first and last links), which will hold your hand and install Qt and SIP for you.</p>
+                <p><b>Mac OS X Snow Leopard users</b> will need to build SIP and PyQt for both architectures (i386 and x86_64). PyQt will also require a change to the configure.py file - the i386 line should specify x86_64 as well. If you have an older version of Qt, you will need to upgrade to the newest one, and it is strongly recommended you build with the development versions of SIP and PyQt.</p>
+                <p><b>Linux users</b> should note that at this time, some distributions may not have up-to-date packages for PyQt - Reggie! requires version 5.3. We have tested the editor on Ubuntu - but note that the packages for Ubuntu 9.04 (Jaunty) and lower will not be up to date. Try using 9.10 (Karmic) instead.</p>
+                <p>If you're on an older version of Ubuntu (or a distribution which doesn't provide the required PyQt) and you have the patience, you can build Qt, SIP and PyQt yourself. It's fairly straightforward - the normal configure/make/make install process will work for all three.</p>
+                <p>On all three systems, you can install the optional included NSMBLib package to speed up level loading. Extract the package, go into the directory and run <i>python setup.py install</i> - you will need an appropriate build setup (Visual Studio 2008 on Windows) in order for it to work.</p>
+                
+                <p><br></p>
+            
+            <h2><b>Creating New Levels</b></h2>
+                <p>Reggie! begins by opening Level 1-1 for you. To create a new level, simply select "New" from the file menu, or press the corresponding tab in the menu bar. A level must have at least one zone and one entrance (usually ID 0), otherwise the level will not work.</p>
+                <p><br></p>
+            
+            <h2><b>Opening Existing Files</b></h2>
+                <p>Reggie! has two options for opening files.</p>
+                <p>"Open Level by Name" produces a list of all levels in NSMB Wii, and allows you to choose from the list. This option is useful for getting a feel as to how to design your levels, and for looking up references.</p>
+                <p>"Open Level by File" allows you to select a file from your hard drive and open it. This option will be used to select your works in progress, or to check out the creations of others.</p>
+                <p><br></p>
+                <p></p>
+            
+            <p><a href="index.html">Back</a></p>
+     
+			<div class="clearer"></div>
+
+		</div><!-- End content -->
+	</div><!-- End main content wrapper -->
+	
+   <div class="clearer"></div>
+   
+        <div id="footer"><!-- Start Footer -->
+        	<p>&copy; 2009 Treeki, Tempus, etc...</p>
+        </div><!-- End Footer -->
+        
+   <div class="bottom">&nbsp;</div>
+   
+</div><!-- End container -->
+</body>
+</html>

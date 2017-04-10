@@ -1,0 +1,1 @@
+Oh yeah, this is where the editor stores temporary files for exporting the szs, and houses the compressor. I was wondering why I couldn't get the export to work on the exe version, and it turned out to be because it was attempting to write files to an exe, which is impossible in python? So it stores everything here.

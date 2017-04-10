@@ -1,0 +1,146 @@
+endian big
+
+idstring "FRES"
+
+goto 0x24
+savepos FILEJUMP
+get FILEOFFSET long
+math FILEOFFSET += FILEJUMP
+
+goto FILEOFFSET
+get HEADERSIZE long
+get FILETOTAL long
+get UNKNOWN long
+get UNKNOWN long
+get UNKNOWN long
+get UNKNOWN long
+
+for i = 0 < FILETOTAL
+
+get UNKNOWN long
+get UNKNOWN long
+savepos NAMEOFFSETPLUS
+get NAMEOFFSET long
+savepos FTEXOFFSETPLUS
+get FTEXOFFSET long
+math NAMEOFFSET += NAMEOFFSETPLUS
+math FTEXOFFSET += FTEXOFFSETPLUS
+
+savepos BACKTOLIST
+goto NAMEOFFSET
+get NAME string
+putarray 0 i NAME
+putarray 1 i FTEXOFFSET
+goto BACKTOLIST
+
+next i
+
+goto 0xD070
+
+for i = 0 < FILETOTAL
+
+get PATH basename
+string PATH += /
+getarray NAME 0 i
+getarray FTEXOFFSET 1 i
+string PATH += NAME
+goto FTEXOFFSET
+get FTEX long
+get VERSION long
+get WIDTH long
+get HEIGHT long
+get UNKNOWN long
+get UNKNOWN long
+get UNKNOWN short
+savepos WRITECHUNK
+get FORMAT1 byte
+get FORMAT2 byte
+
+if FORMAT2 == 0x31
+math FORMAT1 = 0
+endif
+
+if FORMAT2 == 0x33
+math FORMAT1 = 0
+endif
+
+get UNKNOWN long
+get UNKNOWN long
+get LENGTH long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+get GTXINFO long
+savepos DATAOFFSETPLUS
+get DATAOFFSET long
+math DATAOFFSET += DATAOFFSETPLUS
+get MIPOFFSET long
+get UNKNOWN long
+get UNKNOWN long
+
+log MEMORY_FILE 0 0
+
+set MEMORY_FILE binary "\x47\x66\x78\x32\x00\x00\x00\x20\x00\x00\x00\x07\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x42\x4C\x4B\x7B\x00\x00\x00\x20\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x0B\x00\x00\x00\x9C\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x00\x01\x00\x00\x00\x0A\x00\x00"
+
+append
+log MEMORY_FILE WRITECHUNK 0x86
+append
+
+set MEMORY_FILE2 binary "\x42\x4C\x4B\x7B\x00\x00\x00\x20\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x0C\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+
+append
+log MEMORY_FILE 0 0x20 MEMORY_FILE2
+append
+
+append
+log MEMORY_FILE DATAOFFSET LENGTH
+append
+
+set MEMORY_FILE3 binary "\x42\x4C\x4B\x7B\x00\x00\x00\x20\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+
+append
+log MEMORY_FILE 0 0x20 MEMORY_FILE3
+append
+
+putVarChr MEMORY_FILE 0x44 WIDTH long
+putVarChr MEMORY_FILE 0x48 HEIGHT long
+putVarChr MEMORY_FILE 0x50 0x00000001 long
+putVarChr MEMORY_FILE 0xF0 LENGTH long
+
+get SIZE asize MEMORY_FILE
+string PATH + .gtx
+log PATH 0 SIZE MEMORY_FILE
+
+next i
+
+endfunction

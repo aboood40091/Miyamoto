@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		
+		<title>Index Page</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="style/styles.css"  />
+		<link rel="stylesheet" type="text/css" media="screen" href="style/red.css" />
+	</head>
+	
+<body>
+<div id="container"><!-- Start container -->
+
+	<div class="top">&nbsp;</div>
+	
+	<div id="pageHeader"><!-- Start page header -->
+		<a href="dev_index.html"><img src="style/images/button_dev.png" align="right" hspace="12" onMouseOver="this.src='style/images/button_dev_hl.png'" onMouseOut="this.src='style/images/button_dev.png'"></a>
+		<h1>Reggie! Help Documentation</h1>
+		<h2>The New Super Mario Bros. Wii Editor program</h2>
+	</div><!-- End page header -->
+
+	<div id="navcontainer"><!-- Start Navigation -->
+        <ul>
+            <li><a href="index.html" rel="self">Index</a></li>
+            <li><a href="start.html" rel="self">Getting Started</a></li>
+            <li><a href="editor.html" rel="self">Editor Window</a></li>
+            <li><a href="screenshots" rel="self">Screenshots</a></li>
+            <li><a href="saving.html" rel="self">Saving</a></li>
+            <li><a href="zones.html" rel="self" id="current">Zones</a></li>
+            <li><a href="objects.html" rel="self">Objects</a></li>
+            <li><a href="sprites.html" rel="self">Sprites</a></li>
+            <li><a href="entrances.html" rel="self">Entrances</a></li>
+            <li><a href="area.html" rel="self">Areas</a></li>
+        </ul>
+	</div><!-- End navigation -->
+	
+	<div id="contentContainer"><!-- Start main content wrapper -->
+		<div id="content"><!-- Start content -->
+
+            <h1><b>Zones</b></h1>
+                <p>Zones are integral to playing your level. When Mario finds himself outside a zone, he dies. Thus, it is important that all entry and exit points are within a zone. Mario can not leave a zone from the sides or top. The bottom is far game - we call it a pit. The zones also determine the boundaries of the camera, the camera modes, the background music, the background graphics, the speed of background scrolling, and a few other knicknacks. You can have up to nine zones at any time within a level.</p>
+                <p><br></p>
+            
+            <h2><b>Creating and Modifying Zones</b></h2>
+                <p>Open the zone dialog by choosing it from the toolbar or the menu, or by enterring the proper keyboard shortcut. All items in the zone dialog have tooltips, so hold you mouse over something for more information.</p>
+                <p>Create and delete zones by clicking <i>New</i> and <i>Delete</i>. Each zone will occupy a tab. Everything is either self explanatory or needlessly complicated, but I'll run over them all anyway so that you can be in turn bored or confused.</p>
+                <p>Dimensions controls it's position in the level and on the canvas. Note that you MUST put the zone further than X: 16 and Y: 16, or there will be glitches. Camera controls offer a variety of options - many, many camera options are unused and glitchy. The best way to learn is to experiment. The bottom few options in the camera section control the way you see the levels below layer 0 - layer 0 can be static, have a spotlight effect, or be filled entirely with black. Bounding options control the point at which the screen begins to scroll. Music and sound effect modulation can be controlled from here as well.</p>
+                <p><br></p>
+
+            <h2><b>Changing Backgrounds</b></h2>
+                <p>Backgrounds are also zone specific, but didn't fit in the already huge zone dialog so have been moved to their own dialogue. Try and guess and see if you can figure out what it's called.</p>
+                <p>Backgrounds can be not be deleted or added, as every zone requires a background. However, it's easy enough to change the zoom, position, scroll rate, and type of bakground you have for each zone. I even made you previews. Some of them are very spiffy. Some of them are so amateurish as to make you wonder how they made it into a professional game.</p>
+                <p>Alignment can be set to screen, or zone. I strongly suggest aligning them to the screen, because it seems to flow smoother. However, try them out for yourself - you probably won't notice any difference unless you've got a significantly vertical level.</p>
+                <p><br></p>
+                <p></p>
+            
+            <p><a href="index.html">Back</a></p>
+ 
+			<div class="clearer"></div>
+
+		</div><!-- End content -->
+	</div><!-- End main content wrapper -->
+	
+   <div class="clearer"></div>
+   
+        <div id="footer"><!-- Start Footer -->
+        	<p>&copy; 2009 Treeki, Tempus, etc...</p>
+        </div><!-- End Footer -->
+        
+   <div class="bottom">&nbsp;</div>
+   
+</div><!-- End container -->
+</body>
+</html>

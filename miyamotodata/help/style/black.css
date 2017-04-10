@@ -1,0 +1,35 @@
+a:link, a:visited {
+	color: #0000CC;
+}
+
+a:hover, a:active {
+	color: #0000FF;
+}
+
+#pageHeader h2 {
+	color: #CC0000;
+}
+
+#navcontainer {
+	background: repeat-x url(images/navcontainer_bg_black.png);
+}
+
+#navcontainer #current {
+	background: no-repeat url(images/button_over_black.png);
+	color: #0000CC;
+}
+
+#navcontainer .currentAncestor {
+	background: no-repeat url(images/button_over_black.png);
+	color: #0000CC;
+}
+
+#navcontainer a {
+	background: no-repeat url(images/button_normal_black.png);
+	color: #7F7F7F;
+}
+
+#navcontainer a:hover {
+	background: no-repeat url(images/button_over_black.png);
+	color: #0000CC;
+}

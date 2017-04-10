@@ -1,0 +1,746 @@
+<?xml version="1.0"?>
+<strings>
+	<section id="AboutDlg">
+		<string id=0>About Reggie!</string>
+	</section>
+	<section id="AreaChoiceDlg">
+		<string id=0>Choose an Area</string>
+		<string id=1>Area [num]</string>
+		<string id=2>You have reached the maximum amount of areas in this level.[br]Due to the game's limitations, Reggie! only allows you to add up to 4 areas to a level.</string>
+	</section>
+	<section id="AreaCombobox">
+		<string id=0>Area [num]</string>
+	</section>
+	<section id="AreaDlg">
+		<string id=0>Area Options</string>
+		<string id=1>Tilesets</string>
+		<string id=2>Settings</string>
+		<string id=3>Timer:</string>
+		<string id=4>[b]Timer:[/b][br]Sets the countdown timer on load from the world map. It's possible to set different times for the midpoint area.</string>
+		<string id=5>Entrance ID:</string>
+		<string id=6>[b]Entrance ID:[/b][br]Sets the entrance ID to load into when loading from the World Map</string>
+		<string id=7>Wrap across Edges</string>
+		<string id=8>[b]Wrap across Edges:[/b][br]Makes the stage edges wrap[br]Warning: This option may cause the game to crash or behave weirdly. Wrapping only works correctly where the area is set up in the right way; see Coin Battle 1 for an example.</string>
+		<string id=9>Event [id]</string>
+		<string id=10>Default Events</string>
+		<string id=11>Standard Suite</string>
+		<string id=12>Stage Suite</string>
+		<string id=13>Background Suite</string>
+		<string id=14>Interactive Suite</string>
+		<string id=15>None</string>
+		<string id=16>[CUSTOM]</string>
+		<string id=17>[CUSTOM] [name]</string>
+		<string id=18>Custom filename... [name]</string>
+		<string id=19>[name] ([file])</string>
+		<string id=20>Enter a Filename</string>
+		<string id=21>Enter the name of a custom tileset file to use. It must be placed in the game's Stage\Texture folder in order for Reggie to recognize it. Do not add the '.arc' extension at the end of the filename.</string>
+		<string id=22>Unknown Value 1:</string>
+		<string id=23>Unknown Value 2:</string>
+		<string id=24>Unknown Value 3:</string>
+		<string id=25>[b]Unknown Value 1:[/b] We haven't managed to figure out what this does, or if it does anything.</string>
+		<string id=26>[b]Unknown Value 2:[/b] We haven't managed to figure out what this does, or if it does anything.</string>
+		<string id=27>[b]Unknown Value 3:[/b] We haven't managed to figure out what this does, or if it does anything.</string>
+		<string id=28>Name</string>
+		<string id=29>File</string>
+		<string id=30>(None)</string>
+		<string id=31>Tileset (Pa[slot]):</string>
+	</section>
+	<section id="AutoSaveDlg">
+		<string id=0>Auto-saved backup found</string>
+		<string id=1>Reggie! has found some level data which wasn't saved - possibly due to a crash within the editor or by your computer. Do you want to restore this level?[br][br]If you pick No, the autosaved level data will be deleted and will no longer be accessible.[br][br]Original file path: [path]</string>
+		<string id=2>The level has unsaved changes in it.</string>
+		<string id=3>Do you want to save them?</string>
+	</section>
+	<section id="BGDlg">
+		<string id=0>Backgrounds</string>
+		<stringlist id="1">
+			<entry>None</entry>
+			<entry>0.125x</entry>
+			<entry>0.25x</entry>
+			<entry>0.375x</entry>
+			<entry>0.5x</entry>
+			<entry>0.625x</entry>
+			<entry>0.75x</entry>
+			<entry>0.875x</entry>
+			<entry>1x</entry>
+			<entry>None</entry>
+			<entry>1.25x</entry>
+			<entry>1.5x</entry>
+			<entry>2x</entry>
+			<entry>4x</entry>
+		</stringlist>
+		<string id=2>Zone [num]</string>
+		<string id=3>Scenery</string>
+		<string id=4>Backdrop</string>
+		<string id=5>Position:</string>
+		<string id=6>X:</string>
+		<string id=7>[b]Position (X):[/b][br]Sets the horizontal offset of your background</string>
+		<string id=8>Y:</string>
+		<string id=9>[b]Position (Y):[/b][br]Sets the vertical offset of your background</string>
+		<string id=10>Scroll Rate:</string>
+		<string id=11>[b]Scroll Rate (X):[/b][br]Changes the rate that the background moves in[br]relation to Mario when he moves horizontally.[br]Values higher than 1x may be glitchy!</string>
+		<string id=12>[b]Scroll Rate (Y):[/b][br]Changes the rate that the background moves in[br]relation to Mario when he moves vertically.[br]Values higher than 1x may be glitchy!</string>
+		<string id=13>Zoom: </string>
+		<string id=14>[b]Zoom:[/b][br]Sets the zoom level of the background image</string>
+		<stringlist id="15">
+			<entry>100%</entry>
+			<entry>125%</entry>
+			<entry>150%</entry>
+			<entry>200%</entry>
+		</stringlist>
+		<string id=16>Preview</string>
+		<string id=17>[name] ([hex])</string>
+		<string id=18>(Custom)</string>
+		<string id=19>Background Types:</string>
+	</section>
+	<section id="ChangeGamePath">
+		<string id=0>Choose the Stage folder from [game]</string>
+		<string id=1>Error</string>
+		<string id=2>This folder doesn't have all of the files from the extracted NSMBWii Stage folder.</string>
+		<string id=3>This folder doesn't seem to have the required files. In order to use Reggie, you need the Stage folder from the game, including the Texture folder and the level files contained within it.</string>
+	</section>
+	<section id="DeleteArea">
+		<string id=0>Are you [b]sure[/b] you want to delete this area?[br][br]The level will automatically save afterwards - there is no way[br]you can undo the deletion or get it back afterwards!</string>
+	</section>
+	<section id="Diag">
+		<string id=0>Level Diagnostics Tool</string>
+		<string id=1>This level references tilesets not used in NSMBWii.</string>
+		<string id=2>Some objects in the level are not found in the tileset files.</string>
+		<string id=3>There are sprites in this area which are known to cause NSMBWii to crash.</string>
+		<string id=4>There are sprites in this area which have settings which are known to cause NSMBWii to crash.</string>
+		<string id=5>There are too many sprites in this area.</string>
+		<string id=6>There are entrances with duplicate IDs.</string>
+		<string id=7>There is no start entrance in this area.</string>
+		<string id=8>The start entrance is too close to the left edge of the zone.</string>
+		<string id=9>An entrance is outside of a zone.</string>
+		<string id=10>There are more than 8 zones in this area.</string>
+		<string id=11>There are no zones in this area.</string>
+		<string id=12>Some zones are positioned too close together.</string>
+		<string id=13>A zone is positioned too close to the edges of this area.</string>
+		<string id=14>Some zones do not have bias enabled.</string>
+		<string id=15>Some zones are too large.</string>
+		<string id=16>This level references backgrounds not used in NSMBWii.</string>
+		<string id=17>Problems found within this area:</string>
+		<string id=18>This level is:</string>
+		<string id=19>Good</string>
+		<string id=20>No problems were found in this area, and it should load[br]correctly in the game. If you're experiencing problems,[br]try running the diagnostic again in other areas.</string>
+		<string id=21>Probably Good</string>
+		<string id=22>There are some things in this area which may[br]cause the level to crash if you're not careful.[br]If you're experiencing problems, check[br]everything on this list, and try running this test[br]in other areas.</string>
+		<string id=23>Broken</string>
+		<string id=24>Problems have been found in this area which may cause[br]it to crash in-game. These problems are listed below.</string>
+		<string id=25>Fix Selected Items...</string>
+		<string id=26>You can select multiple items at once</string>
+		<string id=27>Are you sure?</string>
+		<string id=28>Are you sure you want fix these items? This [b]cannot[/b] be undone!</string>
+		<string id=29>Fixing issues...</string>
+	</section>
+	<section id="EntranceDataEditor">
+		<string id=0>ID:</string>
+		<string id=1>[b]ID:[/b][br]Must be different from all other IDs</string>
+		<string id=2>Type:</string>
+		<string id=3>[b]Type:[/b][br]Sets how the entrance behaves</string>
+		<string id=4>Dest. ID:</string>
+		<string id=5>[b]Dest. ID:[/b][br]If this entrance leads nowhere or the destination is in this area, set this to 0.</string>
+		<string id=6>Dest. Area:</string>
+		<string id=7>[b]Dest. Area:[/b][br]If this entrance leads nowhere, set this to 0.</string>
+		<string id=8>Enterable</string>
+		<string id=9>[b]Enterable:[/b][br]If this box is checked on a pipe or door entrance, Mario will be able to enter the pipe/door. If it's not checked, he won't be able to enter it. Behaviour on other types of entrances is unknown/undefined.</string>
+		<string id=10>Unknown Flag</string>
+		<string id=11>[b]Unknown Flag:[/b][br]This box is checked on a few entrances in the game, but we haven't managed to figure out what it does (or if it does anything).</string>
+		<string id=12>Connected Pipe</string>
+		<string id=13>[b]Connected Pipe:[/b][br]This box allows you to enable an unused/broken feature in the game. It allows the pipe to function like the pipes in SMB3 where Mario simply goes through the pipe. However, it doesn't work correctly.</string>
+		<string id=14>Connected Pipe Reverse</string>
+		<string id=15>[b]Connected Pipe:[/b][br]This box allows you to enable an unused/broken feature in the game. It allows the pipe to function like the pipes in SMB3 where Mario simply goes through the pipe. However, it doesn't work correctly.</string>
+		<string id=16>Path ID:</string>
+		<string id=17>[b]Path ID:[/b][br]Use this option to set the path number that the connected pipe will follow.</string>
+		<string id=18>Links to Forward Pipe</string>
+		<string id=19>[b]Links to Forward Pipe:[/b][br]If this option is set on a pipe, the destination entrance/area values will be ignored - Mario will pass through the pipe and then reappear several tiles ahead, coming out of a forward-facing pipe.</string>
+		<string id=20>Layer:</string>
+		<stringlist id="21">
+			<entry>Layer 1</entry>
+			<entry>Layer 2</entry>
+			<entry>Layer 0</entry>
+		</stringlist>
+		<string id=22>[b]Layer:[/b][br]Allows you to change the collision layer which this entrance is active on. This option is very glitchy and not used in the default levels - for almost all normal cases, you will want to use layer 1.</string>
+		<string id=23>[b]Entrance [id]:[/b]</string>
+		<string id=24>Modify Selected Entrance Properties</string>
+		<string id=25>CP Exit Direction:</string>
+		<string id=26>[b]CP Exit Direction:[/b][br]Set the direction the player will exit out of a connected pipe.</string>
+		<stringlist id="27">
+			<entry>Up</entry>
+			<entry>Down</entry>
+			<entry>Left</entry>
+			<entry>Right</entry>
+		</stringlist>
+	</section>
+	<section id="Entrances">
+		<string id=0>[b]Entrance [ent]:[/b][br]Type: [type][br][i][dest][/i]</string>
+		<string id=1>Unknown</string>
+		<string id=2>(cannot be entered)</string>
+		<string id=3>(arrives at entrance [id] in this area)</string>
+		<string id=4>(arrives at entrance [id] in area [area])</string>
+		<string id=5>[id]: [name] (cannot be entered) at [x], [y]</string>
+		<string id=6>[id]: [name] (enterable) at [x], [y]</string>
+	</section>
+	<section id="Err_BrokenSpriteData">
+		<string id=0>Warning</string>
+		<string id=1>The sprite data file didn't load correctly. The following sprites have incorrect and/or broken data in them, and may not be editable correctly in the editor: [sprites]</string>
+		<string id=2>Errors</string>
+	</section>
+	<section id="Err_CantFindLevel">
+		<string id=0>Could not find file:[br][name]</string>
+	</section>
+	<section id="Err_CorruptedTileset">
+		<string id=0>Error</string>
+		<string id=1>An error occurred while trying to load [file].arc. Check your Texture folder to make sure it is complete and not corrupted. The editor may run in a broken state or crash after this.</string>
+	</section>
+	<section id="Err_CorruptedTilesetData">
+		<string id=0>Error</string>
+		<string id=1>Cannot find the required texture within the tileset file [file].arc, so it will not be loaded. Keep in mind that the tileset file cannot be renamed without changing the names of the texture/object files within the archive as well!</string>
+	</section>
+	<section id="Err_InvalidLevel">
+		<string id=0>This file doesn't seem to be a valid level.</string>
+	</section>
+	<section id="Err_MissingFiles">
+		<string id=0>Error</string>
+		<string id=1>Sorry, you seem to be missing the required data files for Reggie! to work. Please redownload your copy of the editor.</string>
+		<string id=2>Sorry, you seem to be missing some of the required data files for Reggie! to work. Please redownload your copy of the editor. These are the files you are missing: [files]</string>
+	</section>
+	<section id="Err_MissingLevel">
+		<string id=0>Error</string>
+		<string id=1>Cannot find the required level file [file].arc. Check your Stage folder and make sure it exists.</string>
+	</section>
+	<section id="Err_MissingTileset">
+		<string id=0>Error</string>
+		<string id=1>Cannot find the required tileset file [file].arc. Check your Stage folder and make sure it exists.</string>
+	</section>
+	<section id="Err_Save">
+		<string id=0>Error</string>
+		<string id=1>Error while Reggie was trying to save the level:[br](#[err1]) [err2][br][br](Your work has not been saved! Try saving it under a different filename or in a different folder.)</string>
+	</section>
+	<section id="FileDlgs">
+		<string id=0>Choose a level archive</string>
+		<string id=1>Level Archives</string>
+		<string id=2>All Files</string>
+		<string id=3>Choose a new filename</string>
+		<string id=4>Portable Network Graphics</string>
+		<string id=5>Compressed Level Archives</string>
+	</section>
+	<section id="Gamedefs">
+		<string id=0>This game has custom sprite images</string>
+		<string id=1>Loading patch...</string>
+		<string id=2>New Game Patch</string>
+		<string id=3>It appears that this is your first time using the game patch for [game]. Please select its Stage folder so custom tilesets and levels can be loaded.</string>
+		<string id=4>Aborted Game Path Selection</string>
+		<string id=5>Since you did not select the stage folder for [game], stages and tilesets will not load correctly. You can try again by choosing Change Game Path while the [game] patch is loaded.</string>
+		<string id=6>New Game Patch</string>
+		<string id=7>You can change the game path for [game] at any time by choosing Change Game Path while the [game] patch is loaded.</string>
+		<string id=8>Loading sprite data...</string>
+		<string id=9>Loading background names...</string>
+		<string id=10>Reloading tilesets...</string>
+		<string id=11>Loading sprite image data...</string>
+		<string id=12>Applying sprite image data...</string>
+		<string id=13>New Super Mario Bros. Wii</string>
+		<string id=14>A new Mario adventure!<br>Published by Nintendo in November 2009.</string>
+		<string id=15>[i]No description[/i]</string>
+		<string id=16>Loading entrance names...</string>
+	</section>
+	<section id="InfoDlg">
+		<string id=0>Level Information</string>
+		<string id=1>Add/Change Password</string>
+		<string id=2>This level's information is locked.[br]Please enter the password below in order to modify it.</string>
+		<string id=3>Password:</string>
+		<string id=4>Title:</string>
+		<string id=5>Author:</string>
+		<string id=6>Group:</string>
+		<string id=7>Website:</string>
+		<string id=8>Created with [name]</string>
+		<string id=9>Change Password</string>
+		<string id=10>New Password:</string>
+		<string id=11>Verify Password:</string>
+		<string id=12>Level Information</string>
+		<string id=13>Password may be composed of any ASCII character,[br]and up to 64 characters long.[br]</string>
+		<string id=14>Sorry![br][br]You can only view or edit Level Information in Area 1.</string>
+	</section>
+	<section id="LocationDataEditor">
+		<string id=0>ID:</string>
+		<string id=1>[b]ID:[/b][br]Must be different from all other IDs</string>
+		<string id=2>X Pos:</string>
+		<string id=3>[b]X Pos:[/b][br]Specifies the X position of the location</string>
+		<string id=4>Y Pos:</string>
+		<string id=5>[b]Y Pos:[/b][br]Specifies the Y position of the location</string>
+		<string id=6>Width:</string>
+		<string id=7>[b]Width:[/b][br]Specifies the width of the location</string>
+		<string id=8>Height:</string>
+		<string id=9>[b]Height:[/b][br]Specifies the height of the location</string>
+		<string id=10>Snap to Grid</string>
+		<string id=11>[b]Location [id]:[/b]</string>
+		<string id=12>Modify Selected Location Properties</string>
+	</section>
+	<section id="Locations">
+		<string id=0>[id]</string>
+		<string id=1>Paint New Location</string>
+	</section>
+	<section id="MainWindow">
+		<string id=0>[unsaved]</string>
+		<string id=1>You're trying to paste over 300 items at once.[br]This may take a while (depending on your computer speed), are you sure you want to continue?</string>
+	</section>
+	<section id="MenuItems">
+		<string id=0>New Level</string>
+		<string id=1>Create a new, blank level</string>
+		<string id=2>Open Level by Name...</string>
+		<string id=3>Open a level based on its in-game world/number</string>
+		<string id=4>Open Level by File...</string>
+		<string id=5>Open a level based on its filename</string>
+		<string id=6>Recent Files</string>
+		<string id=7>Open a level from a list of recently opened levels</string>
+		<string id=8>Save Level</string>
+		<string id=9>Save the level back to the archive file</string>
+		<string id=10>Save Level As...</string>
+		<string id=11>Save a level with a new filename</string>
+		<string id=12>Level Information...</string>
+		<string id=13>Add title and author information to the level's metadata</string>
+		<string id=14>Level Screenshot...</string>
+		<string id=15>Take a full size screenshot of your level for you to share</string>
+		<string id=16>Change Game Path...</string>
+		<string id=17>Set a different folder to load the game files from</string>
+		<string id=18>Reggie! Preferences...</string>
+		<string id=19>Change important Reggie! settings</string>
+		<string id=20>Exit Reggie!</string>
+		<string id=21>Exit the editor</string>
+		<string id=22>Select All</string>
+		<string id=23>Select all items in this area</string>
+		<string id=24>Deselect</string>
+		<string id=25>Deselect all currently selected items</string>
+		<string id=26>Cut</string>
+		<string id=27>Cut out the current selection to the clipboard</string>
+		<string id=28>Copy</string>
+		<string id=29>Copy the current selection to the clipboard</string>
+		<string id=30>Paste</string>
+		<string id=31>Paste items from the clipboard</string>
+		<string id=32>Shift Items...</string>
+		<string id=33>Move all selected items by an offset</string>
+		<string id=34>Merge Locations</string>
+		<string id=35>Merge selected locations into a single large location</string>
+		<string id=36>Level Diagnostics Tool...</string>
+		<string id=37>Find and fix problems with the level</string>
+		<string id=38>Freeze Objects</string>
+		<string id=39>Make objects non-selectable</string>
+		<string id=40>Freeze Sprites</string>
+		<string id=41>Make sprites non-selectable</string>
+		<string id=42>Freeze Entrances</string>
+		<string id=43>Make entrances non-selectable</string>
+		<string id=44>Freeze Locations</string>
+		<string id=45>Make locations non-selectable</string>
+		<string id=46>Freeze Paths</string>
+		<string id=47>Make paths non-selectable</string>
+		<string id=48>Layer 0</string>
+		<string id=49>Toggle viewing of object layer 0</string>
+		<string id=50>Layer 1</string>
+		<string id=51>Toggle viewing of object layer 1</string>
+		<string id=52>Layer 2</string>
+		<string id=53>Toggle viewing of object layer 2</string>
+		<string id=54>Show Sprites</string>
+		<string id=55>Toggle viewing of sprites</string>
+		<string id=56>Show Sprite Images</string>
+		<string id=57>Toggle viewing of sprite images</string>
+		<string id=58>Show Locations</string>
+		<string id=59>Toggle viewing of locations</string>
+		<string id=60>Switch Grid</string>
+		<string id=61>Cycle through available grid views</string>
+		<string id=62>Zoom to Maximum</string>
+		<string id=63>Zoom in all the way</string>
+		<string id=64>Zoom In</string>
+		<string id=65>Zoom into the main level view</string>
+		<string id=66>Zoom 100%</string>
+		<string id=67>Show the level at the default zoom</string>
+		<string id=68>Zoom Out</string>
+		<string id=69>Zoom out of the main level view</string>
+		<string id=70>Zoom to Minimum</string>
+		<string id=71>Zoom out all the way</string>
+		<string id=72>Area Settings...</string>
+		<string id=73>Control tileset swapping, stage timer, entrance on load, and stage wrap</string>
+		<string id=74>Zone Settings...</string>
+		<string id=75>Zone creation, deletion, and preference editing</string>
+		<string id=76>Backgrounds...</string>
+		<string id=77>Apply backgrounds to individual zones in the current area</string>
+		<string id=78>Add New Area</string>
+		<string id=79>Add a new area (sublevel) to this level</string>
+		<string id=80>Import Area from Level...</string>
+		<string id=81>Import an area (sublevel) from another level file</string>
+		<string id=82>Delete Current Area...</string>
+		<string id=83>Delete the area (sublevel) currently open from the level</string>
+		<string id=84>Reload Tilesets</string>
+		<string id=85>Reload the tileset data files, including any changes made since the level was loaded</string>
+		<string id=86>About Reggie!</string>
+		<string id=87>Info about the program, and the team behind it</string>
+		<string id=88>Help Contents...</string>
+		<string id=89>Help documentation for the needy newbie</string>
+		<string id=90>Reggie! Tips...</string>
+		<string id=91>Tips and controls for beginners and power users</string>
+		<string id=92>About PyQt...</string>
+		<string id=93>About the Qt library Reggie! is based on</string>
+		<string id=94>Level Overview</string>
+		<string id=95>Show or hide the Level Overview window</string>
+		<string id=96>Palette</string>
+		<string id=97>Show or hide the Palette window</string>
+		<string id=98>Change Game</string>
+		<string id=99>Change the currently loaded Reggie! game patch</string>
+		<string id=100>Island Generator</string>
+		<string id=101>Show or hide the Island Generator window</string>
+		<string id=102>Stamp Pad</string>
+		<string id=103>Show or hide the Stamp Pad window</string>
+		<string id=104>Swap Objects' Tileset</string>
+		<string id=105>Swaps the tileset of objects using a certain tileset</string>
+		<string id=106>Swap Objects' Type</string>
+		<string id=107>Swaps the type of objects of a certain type</string>
+		<string id=108>Tileset Animations</string>
+		<string id=109>Play tileset animations if they exist (may cause a slowdown)</string>
+	</section>
+	<section id="Menubar">
+		<string id=0>&File</string>
+		<string id=1>&Edit</string>
+		<string id=2>&View</string>
+		<string id=3>&Settings</string>
+		<string id=4>&Help</string>
+		<string id=5>Editor Toolbar</string>
+	</section>
+	<section id="Objects">
+		<string id=0>Tileset [tileset], object [obj]</string>
+		<string id=1>Object [id]</string>
+		<string id=2>Object [id][br][i]This object is animated[/i]</string>
+		<string id=3>[b]Object [id]:[/b][br][desc]</string>
+		<string id=4>[b]Object [id]:[/b][br][desc][br][i]This object is animated[/i]</string>
+	</section>
+	<section id="OpenFromNameDlg">
+		<string id=0>Choose Level</string>
+	</section>
+	<section id="Palette">
+		<string id=0>Paint on Layer:</string>
+		<string id=1>[b]Layer 0:[/b][br]This layer is mostly used for the hidden Yoshi's Island-style caves, but can also be used to overlay tiles to create effects. The flashlight effect will occur if Mario walks behind a tile on layer 0 and the zone has it enabled.</string>
+		<string id=2>[b]Layer 1:[/b][br]All or most of your normal level objects should be placed on this layer. This is the only layer where tile interactions (solids, slopes, etc) will work.</string>
+		<string id=3>[b]Layer 2:[/b][br]Background/wall tiles (such as those in the hidden caves) should be placed on this layer. Tiles on layer 2 have no effect on collisions.</string>
+		<string id=4>View:</string>
+		<string id=5>Search:</string>
+		<string id=6>Set Default Properties</string>
+		<string id=7>Default Properties</string>
+		<string id=8>Entrances currently in this area:[br](Double-click one to jump to it instantly)</string>
+		<string id=9>Path nodes currently in this area:[br](Double-click one to jump to its first node instantly)[br]To delete a path, remove all its nodes one by one.[br]To add new paths, hit the button below and right click.</string>
+		<string id=10>Deselect (then right click for new path)</string>
+		<string id=11>Sprites currently in this area:[br](Double-click one to jump to it instantly)</string>
+	</section>
+	<section id="PathDataEditor">
+		<string id=0>Loops:</string>
+		<string id=1>[b]Loops:[/b][br]Anything following this path will wait for any delay set at the last node and then proceed back in a straight line to the first node, and continue.</string>
+		<string id=2>Speed:</string>
+		<string id=3>[b]Speed:[/b][br]Unknown unit. Mess around and report your findings!</string>
+		<string id=4>Accel:</string>
+		<string id=5>[b]Accel:[/b][br]Unknown unit. Mess around and report your findings!</string>
+		<string id=6>Delay:</string>
+		<string id=7>[b]Delay:[/b][br]Amount of time to stop here (at this node) before continuing to next node. Unit is 1/60 of a second (60 for 1 second)</string>
+		<string id=8>[b]Path [id][/b]</string>
+		<string id=9>[b]Node [id][/b]</string>
+		<string id=10>Modify Selected Path Node Properties</string>
+	</section>
+	<section id="Paths">
+		<string id=0>[b]Path ID: [path][/b][br]Node ID: [node]</string>
+		<string id=1>Path ID: [path], Node ID: [node]</string>
+	</section>
+	<section id="PrefsDlg">
+		<string id=0>Reggie! Preferences</string>
+		<string id=1>General</string>
+		<string id=2>Toolbar</string>
+		<string id=3>Themes</string>
+		<string id=4>[b]Reggie! Preferences[/b][br]Customize Reggie! by changing these settings.[br]Use the tabs below to view even more settings.[br]Reggie! must be restarted before certain changes can take effect.</string>
+		<string id=5>[b]Toolbar Preferences[/b][br]Choose menu items you would like to appear on the toolbar.[br]Reggie! must be restarted before the toolbar can be updated.[br]</string>
+		<string id=6>[b]Reggie! Themes[/b][br]Pick a theme below to change application colors and icons.[br]You can download more themes at [a href="rvlution.net"]rvlution.net[/a].[br]Reggie! must be restarted before the theme can be changed.</string>
+		<string id=7>Show the splash screen:</string>
+		<string id=8>If NSMBLib is not found (recommended)</string>
+		<string id=9>Always</string>
+		<string id=10>Never</string>
+		<string id=11>Menu format:</string>
+		<string id=12>Use the ribbon (experimental)</string>
+		<string id=13>Use the traditional menubar</string>
+		<string id=14>Language:</string>
+		<string id=15>Recent Files data:</string>
+		<string id=16>Clear All</string>
+		<string id=17>Clear All Recent Files Data</string>
+		<string id=18>Are you sure you want to delete all recent files data? This [b]cannot[/b] be undone!</string>
+		<string id=19>Current Area</string>
+		<string id=20>Reset</string>
+		<string id=21>Available Themes</string>
+		<string id=22>Preview</string>
+		<string id=23>Use Nonstandard Window Style</string>
+		<string id=24>[b]Use Nonstandard Window Style[/b][br]If this is checkable, the selected theme specifies a[br]window style other than the default. In most cases, you[br]should leave this checked. Uncheck this if you dislike[br]the style this theme uses.</string>
+		<string id=25>Options</string>
+		<string id=26>[b][name][/b][br]By [creator][br][description]</string>
+		<string id=27>Tilesets:</string>
+		<string id=28>Use Default Tileset Picker (recommended)</string>
+		<string id=29>Use Old Tileset Picker</string>
+	</section>
+	<section id="Ribbon">
+		<string id=0>&Home</string>
+		<string id=1>&Actions</string>
+		<string id=2>&View</string>
+		<string id=3>&Game</string>
+		<string id=4>H&elp</string>
+		<string id=5>Clipboard</string>
+		<string id=6>Freeze</string>
+		<string id=7>Level Information</string>
+		<string id=8>Area</string>
+		<string id=9>Selection</string>
+		<string id=10>Items</string>
+		<string id=11>Level Settings</string>
+		<string id=12>Areas</string>
+		<string id=13>Tilesets</string>
+		<string id=14>Layers</string>
+		<string id=15>Visibility</string>
+		<string id=16>Zoom</string>
+		<string id=17>Docks</string>
+		<string id=18>Reggie!</string>
+		<string id=19>Libraries</string>
+		<string id=20>([shortcut]) [description]</string>
+		<string id=21>, </string>
+		<string id=22>(None) [description]</string>
+	</section>
+	<section id="ScrShtDlg">
+		<string id=0>Choose a Screenshot source</string>
+		<string id=1>Current Screen</string>
+		<string id=2>All Zones</string>
+		<string id=3>Zone [zone]</string>
+	</section>
+	<section id="ShftItmDlg">
+		<string id=0>Shift Items</string>
+		<string id=1>Move objects by:</string>
+		<string id=2>Enter an offset in pixels - each block is 16 pixels wide/high. Note that normal objects can only be placed on 16x16 boundaries, so if the offset you enter isn't a multiple of 16, they won't be moved correctly.</string>
+		<string id=3>X:</string>
+		<string id=4>Y:</string>
+		<string id=5>Warning</string>
+		<string id=6>You are trying to move object(s) by an offset which isn't a multiple of 16. It will work, but the objects will not be able to move exactly the same amount as the sprites. Are you sure you want to do this?</string>
+	</section>
+	<section id="Splash">
+		<string id=0>[current] (Stage [stage])</string>
+		<string id=1>Loading layers...</string>
+		<string id=2>Loading level data...</string>
+		<string id=3>Loading tilesets...</string>
+		<string id=4>Loading objects...</string>
+		<string id=5>Preparing editor...</string>
+	</section>
+	<section id="SpriteDataEditor">
+		<string id=0>Modify Selected Sprite Properties</string>
+		<string id=1>[b][name][/b]: [note]</string>
+		<string id=2>[b]Sprite Notes:[/b] [notes]</string>
+		<string id=3>Modify Raw Data:</string>
+		<string id=4>Notes</string>
+		<string id=5>[b]Unidentified/Unknown Sprite ([id])[/b]</string>
+		<string id=6>[b]Sprite [id]:[br][name][/b]</string>
+	</section>
+	<section id="Sprites">
+		<string id=0>[b]Sprite [type]:[/b][br][name]</string>
+		<string id=1>[name] (at [x], [y]</string>
+		<string id=2>, triggered by event [event]</string>
+		<string id=3>, triggered by events [event1]+[event2]+[event3]+[event4]</string>
+		<string id=4>, triggered by event [event1], [event2], [event3], or [event4]</string>
+		<string id=5>, activates event [event]</string>
+		<string id=6>, activates events [event1] - [event2]</string>
+		<string id=7>, activates event [event1], [event2], [event3], or [event4]</string>
+		<string id=8>, Star Coin [num]</string>
+		<string id=9>, Star Coin 1</string>
+		<string id=10>, Coin/Set ID [id]</string>
+		<string id=11>, Movement/Coin ID [id]</string>
+		<string id=12>, Movement ID [id]</string>
+		<string id=13>, Rotation ID [id]</string>
+		<string id=14>, Location ID [id]</string>
+		<string id=15>)</string>
+		<string id=16>Search Results</string>
+		<string id=17>No sprites found</string>
+		<string id=18>[id]: [name]</string>
+		<string id=19>Search</string>
+	</section>
+	<section id="Statusbar">
+		<string id=0>- 1 object selected</string>
+		<string id=1>- 1 sprite selected</string>
+		<string id=2>- 1 entrance selected</string>
+		<string id=3>- 1 location selected</string>
+		<string id=4>- 1 path node selected</string>
+		<string id=5>- [x] objects selected</string>
+		<string id=6>- [x] sprites selected</string>
+		<string id=7>- [x] entrances selected</string>
+		<string id=8>- [x] locations selected</string>
+		<string id=9>- [x] path nodes selected</string>
+		<string id=10>- [x] items selected (</string>
+		<string id=11>, </string>
+		<string id=12>1 object</string>
+		<string id=13>[x] objects</string>
+		<string id=14>1 sprite</string>
+		<string id=15>[x] sprites</string>
+		<string id=16>1 entrance</string>
+		<string id=17>[x] entrances</string>
+		<string id=18>1 location</string>
+		<string id=19>[x] locations</string>
+		<string id=20>1 path node</string>
+		<string id=21>[x] path nodes</string>
+		<string id=22>)</string>
+		<string id=23>- Object under mouse: size [width]x[height] at [xpos], [ypos] on layer [layer] type [type] from tileset [tileset]</string>
+		<string id=24>- Sprite under mouse: [name] at [xpos], [ypos]</string>
+		<string id=25>- Entrance under mouse: [name] at [xpos], [ypos] [dest]</string>
+		<string id=26>- Location under mouse: Location ID [id] at [xpos], [ypos]; width [width], height [height]</string>
+		<string id=27>- Path node under mouse: Path [path], Node [node] at [xpos], [ypos]</string>
+		<string id=28>([objx], [objy]) - ([sprx], [spry])</string>
+	</section>
+	<section id="Themes">
+		<string id=0>Classic</string>
+		<string id=1>Treeki, Tempus</string>
+		<string id=2>The default Reggie! theme.</string>
+		<string id=3>[i](unknown)[/i]</string>
+		<string id=4>[i]No description[/i]</string>
+	</section>
+	<section id="WindowTitle">
+		<string id=0>Untitled</string>
+	</section>
+	<section id="Zones">
+		<string id=0>Zone [num]</string>
+	</section>
+	<section id="ZonesDlg">
+		<string id=0>Zones</string>
+		<stringlist id="1">
+			<entry>Overworld</entry>
+			<entry>Underground</entry>
+			<entry>Underwater</entry>
+			<entry>Lava/Volcano (reddish)</entry>
+			<entry>Desert</entry>
+			<entry>Beach*</entry>
+			<entry>Forest*</entry>
+			<entry>Snow Overworld*</entry>
+			<entry>Sky/Bonus*</entry>
+			<entry>Mountains*</entry>
+			<entry>Tower</entry>
+			<entry>Castle</entry>
+			<entry>Ghost House</entry>
+			<entry>River Cave</entry>
+			<entry>Ghost House Exit</entry>
+			<entry>Underwater Cave</entry>
+			<entry>Desert Cave</entry>
+			<entry>Icy Cave*</entry>
+			<entry>Lava/Volcano</entry>
+			<entry>Final Battle</entry>
+			<entry>World 8 Castle</entry>
+			<entry>World 8 Doomship*</entry>
+			<entry>Lit Tower</entry>
+		</stringlist>
+		<stringlist id="2">
+			<entry>Normal/Overworld</entry>
+			<entry>Underground</entry>
+			<entry>Underwater</entry>
+			<entry>Lava/Volcano</entry>
+		</stringlist>
+		<string id=3>Zone [num]</string>
+		<string id=4>New</string>
+		<string id=5>Delete</string>
+		<string id=6>Warning</string>
+		<string id=7>You are trying to add more than 8 zones to a level - keep in mind that without the proper fix to the game, this will cause your level to [b]crash[/b] or have other strange issues![br][br]Are you sure you want to do this?</string>
+		<string id=8>Dimensions</string>
+		<string id=9>X position:</string>
+		<string id=10>[b]X position:[/b][br]Sets the X Position of the upper left corner</string>
+		<string id=11>Y position:</string>
+		<string id=12>[b]Y position:[/b][br]Sets the Y Position of the upper left corner</string>
+		<string id=13>X size:</string>
+		<string id=14>[b]X size:[/b][br]Sets the width of the zone</string>
+		<string id=15>Y size:</string>
+		<string id=16>[b]Y size:[/b][br]Sets the height of the zone</string>
+		<string id=17>Preset:</string>
+		<string id=18>[b]Preset:[/b][br]Snaps the zone to common sizes.[br]The number before each entry specifies which zoom level works best with each size.</string>
+		<string id=19>Rendering and Camera</string>
+		<string id=20>Zone Theme:</string>
+		<string id=21>[b]Zone Theme:[/b][br]Changes the way models and parts of the background are rendered (for blurring, darkness, lava effects, and so on). Themes with * next to them are used in the game, but look the same as the overworld theme.</string>
+		<string id=22>Terrain Lighting:</string>
+		<string id=23>[b]Terrain Lighting:[/b][br]Changes the way the terrain is rendered. It also affects the parts of the background which the normal theme doesn't change.</string>
+		<string id=24>Normal</string>
+		<string id=25>[b]Visibility - Normal:[/b][br]Sets the visibility mode to normal.</string>
+		<string id=26>Layer 0 Spotlight</string>
+		<string id=27>[b]Visibility - Layer 0 Spotlight:[/b][br]Sets the visibility mode to spotlight. In Spotlight mode,[br]moving behind layer 0 objects enables a spotlight that[br]follows Mario around.</string>
+		<string id=28>Full Darkness</string>
+		<string id=29>[b]Visibility - Full Darkness:[/b][br]Sets the visibility mode to full darkness. In full dark mode,[br]the screen is completely black and visibility is only provided[br]by the available spotlight effect. Stars and some sprites[br]can enhance the default visibility.</string>
+		<string id=30>X Tracking:</string>
+		<string id=31>[b]X Tracking:[/b][br]Allows the camera to track Mario across the X dimension.[br]Turning off this option centers the screen horizontally in the view, producing a stationary camera mode.</string>
+		<string id=32>Y Tracking:</string>
+		<string id=33>[b]Y Tracking:[/b][br]Allows the camera to track Mario across the Y dimension.[br]Turning off this option centers the screen vertically in the view, producing very vertically limited stages.</string>
+		<string id=34>Zoom Level:</string>
+		<string id=35>[b]Zoom Level:[/b][br]Changes the camera zoom functionality[br] - Negative values: Zoom In[br] - Positive values: Zoom Out[br][br]Zoom Level 4 is rather glitchy</string>
+		<string id=36>Bias:</string>
+		<string id=37>[b]Bias:[/b][br]Sets the screen bias to the left edge on load, preventing initial scrollback.[br]Useful for pathed levels.[br]Note: Not all zoom/mode combinations support bias</string>
+		<stringlist id="38">
+			<entry>Left to Right</entry>
+			<entry>Right to Left</entry>
+			<entry>Top to Bottom</entry>
+			<entry>Bottom to Top</entry>
+		</stringlist>
+		<string id=39>Camera Tracking:</string>
+		<string id=40>[b]Camera Tracking:[/b][br]This setting makes changes to camera tracking during multiplayer mode.[br]If the camera doesn't move, choose Left to Right.[br]If you're unsure, choose Left to Right.</string>
+		<stringlist id="41">
+			<entry>Hidden</entry>
+			<entry>On Top</entry>
+		</stringlist>
+		<string id=42>[b]Visibility:[/b][br]Hidden - Mario is hidden when moving behind objects on Layer 0[br]On Top - Mario is displayed above Layer 0 at all times.[br][br]Note: Entities behind layer 0 other than Mario are never visible</string>
+		<stringlist id="43">
+			<entry>Small</entry>
+			<entry>Large</entry>
+			<entry>Full Screen</entry>
+		</stringlist>
+		<string id=44>[b]Visibility:[/b][br]Small - A small, centered spotlight affords visibility through layer 0.[br]Large - A large, centered spotlight affords visibility through layer 0[br]Full Screen - the entire screen is revealed whenever Mario walks behind layer 0</string>
+		<stringlist id="45">
+			<entry>Large Foglight</entry>
+			<entry>Lightbeam</entry>
+			<entry>Large Focus Light</entry>
+			<entry>Small Foglight</entry>
+			<entry>Small Focus Light</entry>
+			<entry>Absolute Black</entry>
+		</stringlist>
+		<string id=46>[b]Visibility:[/b][br]Large Foglight - A large, organic lightsource surrounds Mario[br]Lightbeam - Mario is able to aim a conical lightbeam through use of the Wiimote[br]Large Focus Light - A large spotlight which changes size based upon player movement[br]Small Foglight - A small, organic lightsource surrounds Mario[br]Small Focuslight - A small spotlight which changes size based on player movement[br]Absolute Black - Visibility is provided only by fireballs, stars, and certain sprites</string>
+		<string id=47>Bounds</string>
+		<string id=48>Upper Bounds:</string>
+		<string id=49>[b]Upper Bounds:[/b][br] - Positive Values: Easier to scroll upwards (110 is centered)[br] - Negative Values: Harder to scroll upwards (30 is the top edge of the screen)[br][br]Values higher than 240 can cause instant death upon screen scrolling</string>
+		<string id=50>Lower Bounds:</string>
+		<string id=51>[b]Lower Bounds:[/b][br] - Positive Values: Harder to scroll downwards (65 is the bottom edge of the screen)[br] - Negative Values: Easier to scroll downwards (95 is centered)[br][br]Values higher than 100 will prevent the sceen from scrolling while Mario until Mario is offscreen</string>
+		<string id=52>Audio</string>
+		<string id=53>Background Music:</string>
+		<string id=54>[b]Background Music:[/b][br]Changes the background music</string>
+		<string id=55>Sound Modulation:</string>
+		<string id=56>[b]Sound Modulation:[/b][br]Changes the sound effect modulation</string>
+		<stringlist id="57">
+			<entry>Normal</entry>
+			<entry>Wall Echo</entry>
+			<entry>Room Echo</entry>
+			<entry>Double Echo</entry>
+			<entry>Cave Echo</entry>
+			<entry>Underwater Echo</entry>
+			<entry>Triple Echo</entry>
+			<entry>High Pitch Echo</entry>
+			<entry>Tinny Echo</entry>
+			<entry>Flat</entry>
+			<entry>Dull</entry>
+			<entry>Hollow Echo</entry>
+			<entry>Rich</entry>
+			<entry>Triple Underwater</entry>
+			<entry>Ring Echo</entry>
+		</stringlist>
+		<string id=58>Boss Flag:</string>
+		<string id=59>[b]Boss Flag:[/b][br]Set for bosses to allow proper music switching by sprites</string>
+		<string id=60>(None)</string>
+		<string id=61>Error</string>
+		<string id=62>Zoom level -2 does not support bias modes.</string>
+		<string id=63>Zoom level -1 does not support bias modes.</string>
+		<string id=64>Zoom level -1 is not supported with these Tracking modes. Set to Zoom level 0.</string>
+		<string id=65>Zoom mode 4 can be glitchy with these settings.</string>
+		<string id=66>No tracking mode is consistently glitchy and does not support bias.</string>
+		<string id=67>No tracking mode is consistently glitchy.</string>
+		<string id=68>Background Music ID:</string>
+		<string id=69>[b]Background Music ID:[/b][br]This advanced option allows custom music tracks to be loaded if the proper ASM hacks are in place.</string>
+		<string id=70>Upper Bounds 2:</string>
+		<string id=71>[b]Upper Bounds 2:[/b][br]Unknown differences from the main upper bounds.</string>
+		<string id=72>Lower Bounds 2:</string>
+		<string id=73>[b]Lower Bounds 2:[/b][br]Unknown differences from the main lower bounds.</string>
+		<string id=74>Unknown Flag</string>
+		<string id=75>[b]Unknown Flag:[/b][br]Unknown purpose. Seems to be always checked.</string>
+	</section>
+</strings

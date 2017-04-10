@@ -1,0 +1,1 @@
+Should only really be using DDS's from here for texture hacking, OutDDS stuff usually doesn't convert everything

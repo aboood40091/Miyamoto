@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<colors>
+    <color id="bg"               value="#14143C"   />
+    <color id="grid"             value="#FFFFFF41" />
+    <color id="ribbon"           value="#1E1E50"   />
+    <color id="spritebox_fill"   value="#9A3AFF78" />
+    <color id="spritebox_fill_s" value="#9A3AFFF0" />
+    <color id="ui"               value="#323241"   />
+    <color id="watermark"        value="#FFFFFF30" />
+    <color id="zone_text"        value="#F5F5F5"   />
+</colors>
