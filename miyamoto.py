@@ -919,6 +919,20 @@ def LoadTilesetNames(reload_=False):
     global TilesetNames
     if (TilesetNames is not None) and (not reload_): return
 
+    """
+    #Load correct XML file.
+    levle = mainWindow.fileSavePath
+
+    levle = str(levle)
+
+    GEetNamme = ntpath.basename(levle)
+    tilesetLevle = os.path.splitext(GEetNamme)[0]
+    
+    tilePath = 'miyamotodata/tilesets/xml/'+tilesetLevle
+
+    print(tilePath)
+    """
+
     # Get paths
     paths = gamedef.recursiveFiles('tilesets')
     new = []
@@ -1870,8 +1884,9 @@ class MiyamotoRibbonFileMenu(QFileMenu):
         a = self.addButton(                gi('sarcextract', True), ts('MenuItems', 132),  mw.HandleExtractSarc,       qk.CompressNSLU,          ts('MenuItems', 133))
         b = self.addButton(                gi('zipsarc', True), ts('MenuItems', 505),  mw.HandleZipSarc,       qk.CompressNSLU,          ts('MenuItems', 506))
         c = self.addButton(                gi('decompressszs', True), ts('MenuItems', 503),  mw.HandleDecompressSzs,       qk.CompressNSLU,          ts('MenuItems', 504))
-        c = self.addButton(                gi('compressszs', True), ts('MenuItems', 507),  mw.HandleCompressSzs,       qk.CompressNSLU,          ts('MenuItems', 508))
-        self.btns['sarcextract'], self.btns['zipsarc'], self.btns['decompressszs'], self.btns['compressszs'] = a, b, c, d
+        d = self.addButton(                gi('compressszs', True), ts('MenuItems', 507),  mw.HandleCompressSzs,       qk.CompressNSLU,          ts('MenuItems', 508))
+        e = self.addButton(                gi('manager', True), ts('MenuItems', 509),  mw.HandleTilesetManager,       qk.CompressNSLU,          ts('MenuItems', 510))
+        self.btns['sarcextract'], self.btns['zipsarc'], self.btns['decompressszs'], self.btns['compressszs'], self.btns['manager'] = a, b, c, d, e
 
         self.addSeparator()
 
@@ -12492,6 +12507,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('zipsarc', self.HandleZipSarc, GetIcon('saveas'), trans.string('MenuItems', 505), trans.string('MenuItems', 506), QtGui.QKeySequence('Ctrl+Shift+Z'))
         self.CreateAction('decompressszs', self.HandleDecompressSzs, GetIcon('saveas'), trans.string('MenuItems', 503), trans.string('MenuItems', 504), QtGui.QKeySequence('Ctrl+Shift+D'))
         self.CreateAction('compressszs', self.HandleCompressSzs, GetIcon('saveas'), trans.string('MenuItems', 507), trans.string('MenuItems', 508), QtGui.QKeySequence('Ctrl+Shift+F'))
+        self.CreateAction('manager', self.HandleTilesetManager, GetIcon('animation'), trans.string('MenuItems', 509), trans.string('MenuItems', 510), QtGui.QKeySequence('Ctrl+Shift+M'))
         self.CreateAction('metainfo', self.HandleInfo, GetIcon('info'), trans.string('MenuItems', 12), trans.string('MenuItems', 13), QtGui.QKeySequence('Ctrl+Alt+I'))
         self.CreateAction('screenshot', self.HandleScreenshot, GetIcon('screenshot'), trans.string('MenuItems', 14), trans.string('MenuItems', 15), QtGui.QKeySequence('Ctrl+Alt+S'))
         self.CreateAction('changegamepath', self.HandleChangeGamePath, GetIcon('openfromfile'), trans.string('MenuItems', 16), trans.string('MenuItems', 17), QtGui.QKeySequence('Ctrl+Alt+G'))
@@ -12603,6 +12619,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addAction(self.actions['zipsarc'])
         fmenu.addAction(self.actions['decompressszs'])
         fmenu.addAction(self.actions['compressszs'])
+        fmenu.addAction(self.actions['manager'])
         fmenu.addSeparator()
         fmenu.addAction(self.actions['screenshot'])
         fmenu.addAction(self.actions['changegamepath'])
@@ -14882,6 +14899,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             # Show a message box
             QMessageBox.information(w, "Notice:", "Finished successfully! Enjoy :D")
+
+
+    @QtCore.pyqtSlot()
+    def HandleTilesetManager(self):
+
+        """
+        Launch Tileset Manager, and reload tilesets.
+        """
+        
+        #
+
+       
 
     @QtCore.pyqtSlot()
     def HandleExit(self):
