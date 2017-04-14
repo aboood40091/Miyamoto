@@ -1,9 +1,11 @@
-# Miyamoto! Next - New Super Mario Bros. U Level Editor
-# Version v0.6
-# Copyright (C) 2009-2016 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop
+#!/usr/bin/python
+# -*- coding: latin-1 -*-
 
-# This file is part of Miyamoto! Next.
+# Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
+# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7
+
+# This file is part of Miyamoto!.
 
 # Miyamoto! is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -38,30 +40,31 @@ if currentRunningVersion < minimum:
 import base64
 import importlib
 from math import floor as math_floor
-import os.path
-import shutil
+import os
 import pickle
 import struct
-import subprocess
+import sys
+from subprocess import Popen, PIPE
 import threading
 import time
 import urllib.request
 from xml.etree import ElementTree as etree
 import zipfile
-import platform
-import ntpath
-import zipfile
-
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox
 
 # PyQt5: import, and error msg if not installed
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets
-    from PyQt5 import *
 except (ImportError, NameError):
     errormsg = 'PyQt5 is not installed for this Python installation. Go online and download it.'
     raise Exception(errormsg) from None
 Qt = QtCore.Qt
+
+# Pillow:
+try:
+    from PIL import Image
+except (ImportError, NameError):
+    errormsg = 'Pillow/PIL is not installed for this Python installation. Go online and download it.'
+    raise Exception(errormsg) from None
 
 # PyQtRibbon: import, and error msg if not installed
 try:
@@ -79,16 +82,15 @@ import spritelib as SLib
 import sprites
 from strings import *
 import TPLLib
-import gtx_extract as gtx
-import yaz0
 
-MiyamotoID = 'Miyamoto! Level Editor Next by Treeki, Tempus, RoadrunnerWMC, MrRean, Gota7 and Grop'
+MiyamotoID = 'Miyamoto! Level Editor by Treeki, Tempus, RoadrunnerWMC, MrRean, Grop, AboodXD and Gota7'
 MiyamotoVersion = ''
 MiyamotoVersionShort = ""
-UpdateURL = 'http://rvlution.net/miyamoto/updates.xml'
+UpdateURL = ''
 
 TileWidth = 60
 
+miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
 
 if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
     # enables itemChange being called on QGraphicsItem
@@ -134,8 +136,6 @@ Layer2Shown = True
 SpritesShown = True
 SpriteImagesShown = True
 RealViewEnabled = False
-BackgroundShown = False
-CurrentBackground = 0
 LocationsShown = True
 CommentsShown = True
 ObjectsFrozen = False
@@ -153,10 +153,6 @@ AutoSavePath = ''
 AutoSaveData = b''
 AutoOpenScriptEnabled = False
 CurrentLevelNameForAutoOpenScript = 'AAAAAAAAAAAAAAAAAAAAAAAAAA'
-Waterlocationx = 0
-Waterlocationy = 0
-Waterlocationw = 1000
-Waterlocationh = 30
 
 # Game enums
 NewSuperMarioBrosU = 0
@@ -877,7 +873,6 @@ def LoadTheme():
     global theme
 
     id = setting('Theme')
-    id = 'Classic'
     if id is None: id = 'Classic'
     if id != 'Classic':
 
@@ -918,20 +913,6 @@ def LoadTilesetNames(reload_=False):
     """
     global TilesetNames
     if (TilesetNames is not None) and (not reload_): return
-
-    """
-    #Load correct XML file.
-    levle = mainWindow.fileSavePath
-
-    levle = str(levle)
-
-    GEetNamme = ntpath.basename(levle)
-    tilesetLevle = os.path.splitext(GEetNamme)[0]
-    
-    tilePath = 'miyamotodata/tilesets/xml/'+tilesetLevle
-
-    print(tilePath)
-    """
 
     # Get paths
     paths = gamedef.recursiveFiles('tilesets')
@@ -1396,7 +1377,6 @@ def LoadActionsLists():
         (trans.string('MenuItems', 6),  False, 'openrecent'),
         (trans.string('MenuItems', 8),  True,  'save'),
         (trans.string('MenuItems', 10), False, 'saveas'),
-        (trans.string('MenuItems', 12), False, 'metainfo'),
         (trans.string('MenuItems', 14), True,  'screenshot'),
         (trans.string('MenuItems', 16), False, 'changegamepath'),
         #(trans.string('MenuItems', 16), False, 'changesavepath'),
@@ -1424,9 +1404,7 @@ def LoadActionsLists():
         (trans.string('MenuItems', 54), True,  'showsprites'),
         (trans.string('MenuItems', 56), False, 'showspriteimages'),
         (trans.string('MenuItems', 58), True,  'showlocations'),
-        (trans.string('MenuItems', 61), True,  'grid'),
-        (trans.string('MenuItems', 500), True,  'background'),
-        (trans.string('MenuItems', 501), True,  'swapbackground'),
+        (trans.string('MenuItems', 60), True,  'grid'),
         (trans.string('MenuItems', 62), True,  'zoommax'),
         (trans.string('MenuItems', 64), True,  'zoomin'),
         (trans.string('MenuItems', 66), True,  'zoomactual'),
@@ -1774,9 +1752,7 @@ class MiyamotoRibbon(QRibbon):
         d = vSection.addSmallToggleButton(gi('comments'),   ts('MenuItems', 116), mw.HandleCommentsVisibility,  'Ctrl+0', ts('MenuItems', 117))
         e = vSection.addSmallToggleButton(gi('realview'),   ts('MenuItems', 118), mw.HandleRealViewToggle,  'Ctrl+9', ts('MenuItems', 119))
         f = vSection.addFullButton(       gi('grid', True), ts('MenuItems', 60),  mw.HandleSwitchGrid,          'Ctrl+G', ts('MenuItems', 61))
-        g = vSection.addSmallToggleButton(gi('background'),   ts('MenuItems', 500), mw.HandleBackgroundToggle,  'Ctrl+B+G', ts('MenuItems', 500))
-        h = vSection.addFullButton(gi('swapbackground', True),   ts('MenuItems', 501), mw.HandleBackgroundSwap,  'Ctrl+Shif+B', ts('MenuItems', 501))
-        self.btns['showsprites'], self.btns['showspriteimgs'], self.btns['showlocs'], self.btns['showcoms'], self.btns['realview'], self.btns['grid'], self.btns['background'], self.btns['swapbackground'] = a, b, c, d, e, f, g, h
+        self.btns['showsprites'], self.btns['showspriteimgs'], self.btns['showlocs'], self.btns['showcoms'], self.btns['realview'], self.btns['grid'] = a, b, c, d, e, f
 
         # Set the toggle buttons to their default start values
         self.btns['lay0'].setChecked(Layer0Shown)
@@ -1787,8 +1763,6 @@ class MiyamotoRibbon(QRibbon):
         self.btns['showlocs'].setChecked(LocationsShown)
         self.btns['showcoms'].setChecked(CommentsShown)
         self.btns['realview'].setChecked(RealViewEnabled)
-        self.btns['background'].setChecked(BackgroundShown)
-        self.btns['swapbackground'].setChecked(CurrentBackground)
 
         return
 
@@ -1878,18 +1852,7 @@ class MiyamotoRibbonFileMenu(QFileMenu):
         c = self.addButton(                gi('save', True),   ts('MenuItems', 8),   mw.HandleSave,         qk.Save,            ts('MenuItems', 9))
         d = self.addButton(                gi('saveas', True), ts('MenuItems', 10),  mw.HandleSaveAs,       qk.SaveAs,          ts('MenuItems', 11))
         self.btns['new'], self.btns['openname1'], self.btns['save'], self.btns['saveas'] = a, b, c, d
-
         self.addSeparator()
-
-        a = self.addButton(                gi('sarcextract', True), ts('MenuItems', 132),  mw.HandleExtractSarc,       qk.CompressNSLU,          ts('MenuItems', 133))
-        b = self.addButton(                gi('zipsarc', True), ts('MenuItems', 505),  mw.HandleZipSarc,       qk.CompressNSLU,          ts('MenuItems', 506))
-        c = self.addButton(                gi('decompressszs', True), ts('MenuItems', 503),  mw.HandleDecompressSzs,       qk.CompressNSLU,          ts('MenuItems', 504))
-        d = self.addButton(                gi('compressszs', True), ts('MenuItems', 507),  mw.HandleCompressSzs,       qk.CompressNSLU,          ts('MenuItems', 508))
-        e = self.addButton(                gi('manager', True), ts('MenuItems', 509),  mw.HandleTilesetManager,       qk.CompressNSLU,          ts('MenuItems', 510))
-        self.btns['sarcextract'], self.btns['zipsarc'], self.btns['decompressszs'], self.btns['compressszs'], self.btns['manager'] = a, b, c, d, e
-
-        self.addSeparator()
-
         a = self.addButton(gi('info', True),     trans.string('MenuItems', 12), mw.HandleInfo,        'Ctrl+Alt+I', trans.string('MenuItems', 13))
         b = self.addButton(gi('settings', True), trans.string('MenuItems', 18), mw.HandlePreferences, 'Ctrl+Alt+P', trans.string('MenuItems', 19))
         self.addSeparator()
@@ -2413,22 +2376,6 @@ def SetGamePath(newpath):
     # isValidGamePath crashes in os.path.join if QString is used..
     # so we must change it to a Python string manually
     gamedef.SetGamePath(str(newpath))
-
-def SetFakeYaz0PathNSMBU(NSMBUgamePath):
-    """
-    get the path to use with fake_yaz0.exe for NSMBU
-    """
-    global fakeyazPathNSMBU
-
-    fakeyaz0PathNSMBU.SetFakeYaz0PathNSMBU(str(NSMBUgamePath))
-
-def SetFakeYaz0PathNSLU(NSLUgamePath):
-    """
-    get the path to use with fake_yaz0.exe for NSLU
-    """
-    global fakeyazPathNSLU
-
-    fakeyaz0PathNSLU.SetFakeYaz0PathNSLU(str(NSLUgamePath))
 
 # USELESS
 def calculateBgAlignmentMode(idA, idB, idC):
@@ -3015,7 +2962,7 @@ def _LoadTileset(idx, name, reload=False):
             return False
 
         # load in the textures
-        img = gtx.writeFile(gtx.readGFD(comptiledata))
+        img = LoadTexture_NSMBU(comptiledata)
 
         # Divide it into individual tiles and
         # add collisions at the same time
@@ -3096,6 +3043,28 @@ def _LoadTileset(idx, name, reload=False):
     TilesetCache[name] = []
     for i in range(256):
         TilesetCache[name].append(Tiles[i + tileoffset])
+
+def LoadTexture_NSMBU(tiledata):
+    with open(miyamoto_path + '\Tools/texture.gtx', 'wb') as binfile:
+        binfile.write(tiledata)
+
+    process = Popen([miyamoto_path + '/Tools/gtx_extract.exe', miyamoto_path + '/Tools/texture.gtx',
+                     miyamoto_path + '/Tools/texture.bmp'], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+
+    img = QtGui.QImage(miyamoto_path + '/Tools/texture.bmp')
+
+    os.remove(miyamoto_path + '\Tools/texture.gtx')
+    os.remove(miyamoto_path + '\Tools/texture.bmp')
+
+    return img
+
+def DDStoPNG(in_fn,out_fn,w,h):
+    with open(in_fn,'rb') as f:
+        data = f.read()
+
+    img = Image.frombytes('RGBA',(w,h),data[0x80:])
+    img.save(out_fn)
 
 def CascadeTilesetNames_Category(lower, upper):
     """
@@ -3450,16 +3419,6 @@ def ProcessOverrides(idx, name):
                 t[i].setOverridden()
                 replace += 1
             
-            ## Brick
-            for i in range(16, 28):
-                t[i].main = t[offset + i].main
-                t[i].setOverridden()
-
-            ## ?
-            for i in range(32, 43):
-                t[i].main = t[offset + i].main
-                t[i].setOverridden()
-
             # Colisions
             ## Full block
             t[1].main = t[offset + 1].main
@@ -3853,6 +3812,9 @@ class Level_NSMBU(AbstractLevel):
         Save the level back to a file
         """
 
+        print("")
+        print("Saving level...")
+
         # Make a new archive
         newArchive = SarcLib.SARC_Archive()
 
@@ -3882,9 +3844,6 @@ class Level_NSMBU(AbstractLevel):
         # Add the innersarc to it
         outerArchive.addFile(SarcLib.File(innerfilename, innersarc))
 
-        # Make it easy for future Miyamotos to pick out the innersarc level name
-        outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
-
         # Add all the other stuff, too
         for szsThingName in szsData:
             try:
@@ -3896,7 +3855,12 @@ class Level_NSMBU(AbstractLevel):
             outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
 
         # Save the outer sarc and return it
-        #print([x.name for x in outerArchive.contents])
+        print("")
+        print('\n'.join(sorted([x.name for x in outerArchive.contents], key=str.lower)))
+        print("")
+        print("Saved!")
+        print("")
+        
         return outerArchive.save(0x2000)
 
 
@@ -7011,10 +6975,6 @@ class LevelOverviewWidget(QtWidgets.QWidget):
             if y+height > maxY:
                 maxY = y+height
 
-        """
-        Variables to paint water.
-        """
-
         self.maxX = maxX
         self.maxY = maxY
 
@@ -8426,121 +8386,6 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         mainWindow.scene.update()
         
 
-class ObjectDataEditorWidget(QtWidgets.QWidget):
-    """
-    Widget for editing object data
-    """
-    def __init__(self):
-        """
-        Constructor
-        """
-        QtWidgets.QWidget.__init__(self)
-        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
-
-        # create widgets
-        self.brick = QtWidgets.QCheckBox()
-        self.brick.setToolTip("Transforms this question block into a brick block")
-        self.brick.stateChanged.connect(self.HandleAppearanceChanged)
-
-        self.content = QtWidgets.QComboBox()
-        self.content.setToolTip("Set the content of the block")
-        self.content.addItems(("0: Bricks",
-                              #-- Brick block --#
-                              "1: One Coin Brick",
-                              "2: 10 Coins Brick",
-                              "3: Fire Flower Brick",
-                              "4: Invincibility Star Brick",
-                              "5: 1-UP Brick",
-                              "6: Vine Brick",
-                              "7: Probably mini mushroom Brick",
-                              "8: Probably proppeller Brick",
-                              "9: Probably penguin Brick",
-                              "10: Yoshi Brick",
-                              "11: Ice Flower Brick",
-                              "12: Probably acorn Brick",
-                              #---- ? block ----#
-                              "13: Coin QBlock",
-                              "14: Fire Flower QBlock",
-                              "15: Invincibility Star QBlock",
-                              "16: Continuous Star QBlock",
-                              "17: Vine QBlock",
-                              "18: Probably a spring QBlock",
-                              "19: Mini Mushroom QBlock",
-                              "20: Probably propeller QBlock",
-                              "21: Penguin Suit QBlock",
-                              "22: Yoshi QBlock",
-                              "23: Ice Flower QBlock",
-                              "24: Acorn Mushroom QBlock")
-                             )
-        self.content.currentIndexChanged.connect(self.HandleContentChanged)
-
-        # create a layout
-        layout = QtWidgets.QGridLayout()
-        self.setLayout(layout)
-
-        # add labels
-        #layout.addWidget(QtWidgets.QLabel("Brick"), 1, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel("Content"), 1, 0, 1, 1, Qt.AlignRight)
-
-        # add the widgets
-        #layout.addWidget(self.brick, 1, 1)     
-        layout.addWidget(self.content, 1, 1)
-
-        self.object = None
-        self.UpdateFlag = False
-
-    def setObject(self, object):
-        """
-        Change the object being edited by the editor, update all fields
-        """
-        # Set object
-        if self.object == object:
-            return
-        self.object = object
-        self.UpdateFlag = True
-        
-        # Get and set fields
-        self.brick.setChecked(object.data < 13)
-        self.content.setCurrentIndex(object.data)
-        self.UpdateFlag = False
-
-
-    @QtCore.pyqtSlot(int)
-    def HandleContentChanged(self, value):
-        """
-        Handle a content change
-        """
-        if self.UpdateFlag:
-            return
-        SetDirty()
-        if value < 13:
-            brick = True
-        else:
-            brick = False
-        self.appearancechangecausedbycontentchange = True
-        self.brick.setChecked(brick)
-        self.appearancechangecausedbycontentchange = False
-        self.object.data = value
-        mainWindow.scene.update()
-
-
-    @QtCore.pyqtSlot(int)
-    def HandleAppearanceChanged(self, value):
-        """
-        Handle an appearance change
-        """
-        if self.UpdateFlag:
-            return
-        SetDirty()
-        if (value == Qt.Checked):
-            result = self.content.currentIndex() - 12
-        else:
-            result = self.content.currentIndex() + 12
-
-        self.content.setCurrentIndex(result)
-        self.object.data = result
-        mainWindow.scene.update()
-        
 class LocationEditorWidget(QtWidgets.QWidget):
     """
     Widget for editing location properties
@@ -9819,17 +9664,6 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
             painter.drawTiledPixmap(rect, board, QtCore.QPointF(rect.x(), rect.y()))
 
-        """
-        Draw dem backgrounds.
-        """
-
-        p = QtGui.QPainter()
-
-        bg_soda_jungle = QtGui.QPixmap('miyamotodata/bgs/soda_jungle.png')
-
-        if BackgroundShown:
-            if CurrentBackground == 0: p.drawPixmap(0, 0, bg_soda_jungle)
-
 
 class InfoPreviewWidget(QtWidgets.QWidget):
     """
@@ -10091,8 +9925,8 @@ class AboutDialog(QtWidgets.QDialog):
         description += '.main {font-size: 12px}'
         description += '</style></head><body>'
         description += '<center><h1><i>Miyamoto!</i> Level Editor</h1><div class=\'main\'>'
-        description += '<i>Miyamoto! Level Editor</i> is an open-source global project started by Treeki in 2010 that aimed to bring New Super Mario Bros. Wii&trade; levels. Now in later years, brings you New Super Mario Bros. U&trade;!<br>'
-        description += 'Interested? Check out <a href=\'https://github.com/MrRean/MiyamotoNext-NSMBU\'>https://github.com/MrRean/MiyamotoNext-NSMBU</a> for updates and related downloads, or <a href=\'http://rhcafe.us.to\'>rhcafe.us.to</a> to get in touch with the developers.<br>'
+        description += '<i>Miyamoto! Level Editor</i> is a fork of Reggie! Level Editor, an open-source global project started by Treeki in 2010 that aimed to bring New Super Mario Bros. Wii&trade; levels. Now in later years, brings you New Super Mario Bros. U&trade;!<br>'
+        description += 'Interested? Check out <a href=\'https://github.com/aboood40091/Miyamoto\'>https://github.com/aboood40091/Miyamoto</a> for updates and related downloads, or <a href=\'https://discord.gg/c2ut8ky\'>our Discord group</a> to get in touch with the developers.<br>'
         description += '</div></center></body></html>'
 
         # Description label
@@ -12502,15 +12336,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('openrecent', None, GetIcon('recent'), trans.string('MenuItems', 6), trans.string('MenuItems', 7), None)
         self.CreateAction('save', self.HandleSave, GetIcon('save'), trans.string('MenuItems', 8), trans.string('MenuItems', 9), QtGui.QKeySequence.Save)
         self.CreateAction('saveas', self.HandleSaveAs, GetIcon('saveas'), trans.string('MenuItems', 10), trans.string('MenuItems', 11), QtGui.QKeySequence.SaveAs)
-        self.CreateAction('compress', self.HandleCompress, GetIcon('saveas'), trans.string('MenuItems', 130), trans.string('MenuItems', 131), QtGui.QKeySequence('Ctrl+Shift+C'))
-        self.CreateAction('sarcextract', self.HandleExtractSarc, GetIcon('saveas'), trans.string('MenuItems', 132), trans.string('MenuItems', 133), QtGui.QKeySequence('Ctrl+Shift+N'))
-        self.CreateAction('zipsarc', self.HandleZipSarc, GetIcon('saveas'), trans.string('MenuItems', 505), trans.string('MenuItems', 506), QtGui.QKeySequence('Ctrl+Shift+Z'))
-        self.CreateAction('decompressszs', self.HandleDecompressSzs, GetIcon('saveas'), trans.string('MenuItems', 503), trans.string('MenuItems', 504), QtGui.QKeySequence('Ctrl+Shift+D'))
-        self.CreateAction('compressszs', self.HandleCompressSzs, GetIcon('saveas'), trans.string('MenuItems', 507), trans.string('MenuItems', 508), QtGui.QKeySequence('Ctrl+Shift+F'))
-        self.CreateAction('manager', self.HandleTilesetManager, GetIcon('animation'), trans.string('MenuItems', 509), trans.string('MenuItems', 510), QtGui.QKeySequence('Ctrl+Shift+M'))
-        self.CreateAction('metainfo', self.HandleInfo, GetIcon('info'), trans.string('MenuItems', 12), trans.string('MenuItems', 13), QtGui.QKeySequence('Ctrl+Alt+I'))
         self.CreateAction('screenshot', self.HandleScreenshot, GetIcon('screenshot'), trans.string('MenuItems', 14), trans.string('MenuItems', 15), QtGui.QKeySequence('Ctrl+Alt+S'))
-        self.CreateAction('changegamepath', self.HandleChangeGamePath, GetIcon('openfromfile'), trans.string('MenuItems', 16), trans.string('MenuItems', 17), QtGui.QKeySequence('Ctrl+Alt+G'))
+        self.CreateAction('changegamepath', self.HandleChangeGamePath, GetIcon('folderpath'), trans.string('MenuItems', 16), trans.string('MenuItems', 17), QtGui.QKeySequence('Ctrl+Alt+G'))
         #self.CreateAction('changesavepath', self.HandleChangeSavePath, GetIcon('folderpath'), trans.string('MenuItems', 134), trans.string('MenuItems', 135), QtGui.QKeySequence('Ctrl+Alt+L'))
         self.CreateAction('preferences', self.HandlePreferences, GetIcon('settings'), trans.string('MenuItems', 18), trans.string('MenuItems', 19), QtGui.QKeySequence('Ctrl+Alt+P'))
         self.CreateAction('exit', self.HandleExit, GetIcon('delete'), trans.string('MenuItems', 20), trans.string('MenuItems', 21), QtGui.QKeySequence('Ctrl+Q'))
@@ -12546,8 +12373,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('showcomments', self.HandleCommentsVisibility, GetIcon('comments'), trans.string('MenuItems', 116), trans.string('MenuItems', 117), QtGui.QKeySequence('Ctrl+0'), True)
         self.CreateAction('fullscreen', self.HandleFullscreen, GetIcon('fullscreen'), trans.string('MenuItems', 126), trans.string('MenuItems', 127), QtGui.QKeySequence('Ctrl+U'), True)
         self.CreateAction('grid', self.HandleSwitchGrid, GetIcon('grid'), trans.string('MenuItems', 60), trans.string('MenuItems', 61), QtGui.QKeySequence('Ctrl+G'), False)
-        self.CreateAction('background', self.HandleBackgroundToggle, GetIcon('background'), trans.string('MenuItems', 500), trans.string('MenuItems', 500), QtGui.QKeySequence('Ctrl+B+G'), True)
-        self.CreateAction('swapbackground', self.HandleBackgroundSwap, GetIcon('background'), trans.string('MenuItems', 501), trans.string('MenuItems', 501), QtGui.QKeySequence('Ctrl+Shift+B'), False)
         self.CreateAction('zoommax', self.HandleZoomMax, GetIcon('zoommax'), trans.string('MenuItems', 62), trans.string('MenuItems', 63), QtGui.QKeySequence('Ctrl+PgDown'), False)
         self.CreateAction('zoomin', self.HandleZoomIn, GetIcon('zoomin'), trans.string('MenuItems', 64), trans.string('MenuItems', 65), QtGui.QKeySequence.ZoomIn, False)
         self.CreateAction('zoomactual', self.HandleZoomActual, GetIcon('zoomactual'), trans.string('MenuItems', 66), trans.string('MenuItems', 67), QtGui.QKeySequence('Ctrl+0'), False)
@@ -12577,7 +12402,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.actions['collisions'].setChecked(CollisionsShown)
         self.actions['depth'].setChecked(DepthShown)
         self.actions['realview'].setChecked(RealViewEnabled)
-        self.actions['background'].setChecked(BackgroundShown)
 
         self.actions['showsprites'].setChecked(SpritesShown)
         self.actions['showspriteimages'].setChecked(SpriteImagesShown)
@@ -12612,14 +12436,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addSeparator()
         fmenu.addAction(self.actions['save'])
         fmenu.addAction(self.actions['saveas'])
-        fmenu.addAction(self.actions['compress'])
-        fmenu.addAction(self.actions['metainfo'])
-        fmenu.addSeparator()
-        fmenu.addAction(self.actions['sarcextract'])
-        fmenu.addAction(self.actions['zipsarc'])
-        fmenu.addAction(self.actions['decompressszs'])
-        fmenu.addAction(self.actions['compressszs'])
-        fmenu.addAction(self.actions['manager'])
         fmenu.addSeparator()
         fmenu.addAction(self.actions['screenshot'])
         fmenu.addAction(self.actions['changegamepath'])
@@ -12664,8 +12480,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         vmenu.addSeparator()
         vmenu.addAction(self.actions['fullscreen'])
         vmenu.addAction(self.actions['grid'])
-        vmenu.addAction(self.actions['background'])
-        vmenu.addAction(self.actions['swapbackground'])
         vmenu.addSeparator()
         vmenu.addAction(self.actions['zoommax'])
         vmenu.addAction(self.actions['zoomin'])
@@ -12744,8 +12558,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'openrecent',
                 'save',
                 'saveas',
-                'compress',
-                'metainfo',
                 'screenshot',
                 'changegamepath',
                 #'changesavepath',
@@ -12775,8 +12587,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'zoommin',
             ), (
                 'grid',
-                'background',
-                'backgroundswap',
             ), (
                 'showlay0',
                 'showlay1',
@@ -12898,20 +12708,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.pathEditor = PathNodeEditorWidget()
         dock.setWidget(self.pathEditor)
         self.pathEditorDock = dock
-
-        self.addDockWidget(Qt.RightDockWidgetArea, dock)
-        dock.setFloating(True)
-
-        # create the object editor panel
-        dock = QtWidgets.QDockWidget("Object data editor", self)
-        dock.setVisible(False)
-        dock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable)
-        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-        dock.setObjectName('objectdataeditor') #needed for the state to save/restore correctly
-
-        self.objectEditor = ObjectDataEditorWidget()
-        dock.setWidget(self.objectEditor)
-        self.objectEditorDock = dock
 
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
         dock.setFloating(True)
@@ -14174,8 +13970,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if "-" not in name:
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
 
-        with open(self.fileSavePath, 'wb') as f:
-            f.write(Level.save(name))
+        if self.fileSavePath.endswith('.szs'):
+            course_name = os.path.splitext(self.fileSavePath)[0]
+            with open(course_name + '.tmp', 'wb') as f:
+                f.write(Level.save(name))
+
+            if os.path.isfile(self.fileSavePath):
+                os.remove(self.fileSavePath)
+            process = Popen([miyamoto_path + '\Tools\wszst.exe', 'COMPRESS', course_name + '.tmp',
+                             '--dest', self.fileSavePath], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+            os.remove(course_name + '.tmp')
+        else:
+            with open(self.fileSavePath, 'wb') as f:
+                f.write(Level.save(name))
         self.LoadLevel(None, self.fileSavePath, True, 1)
 
 
@@ -14325,39 +14133,38 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.HandleSaveAs()
             return
 
-        mode = "DIRECT"
+        name = self.getInnerSarcName()
+        if "-" not in name:
+            print('HEY THERE IS NO -, THIS WILL NOT WORK!')
 
-        if not mainWindow.fileSavePath.endswith('c'):
-
-            QMessageBox.information(QtWidgets.QWidget(), "Notice:", "Since you are trying to save an szs file, the editor needs to decompress and recompress the archive. This may take a while.")
-
-            mode = "REDIRECT"
-
-        if not mode == "REDIRECT":
-
-            name = self.getInnerSarcName()
-            if "-" not in name:
-                print('HEY THERE IS NO -, THIS WILL NOT WORK!')
-
-            global Dirty, AutoSaveDirty
-            data = Level.save(name)
-            try:
-                with open(self.fileSavePath, 'wb') as f:
+        global Dirty, AutoSaveDirty
+        data = Level.save(name)
+        try:
+            if mainWindow.fileSavePath.endswith('.szs'):
+                course_name = os.path.splitext(mainWindow.fileSavePath)[0]
+                with open(course_name + '.tmp', 'wb') as f:
                     f.write(data)
-            except IOError as e:
-                QtWidgets.QMessageBox.warning(None, trans.string('Err_Save', 0), trans.string('Err_Save', 1, '[err1]', e.args[0], '[err2]', e.args[1]))
-                return False
 
-            Dirty = False
-            AutoSaveDirty = False
-            self.UpdateTitle()
+                if os.path.isfile(self.fileSavePath):
+                    os.remove(self.fileSavePath)
+                process = Popen([miyamoto_path + '\Tools\wszst.exe', 'COMPRESS', course_name + '.tmp',
+                                 '--dest', mainWindow.fileSavePath], stdout=PIPE, stderr=PIPE)
+                stdout, stderr = process.communicate()
+                os.remove(course_name + '.tmp')
+            else:
+                with open(mainWindow.fileSavePath, 'wb') as f:
+                    f.write(data)
+        except IOError as e:
+            QtWidgets.QMessageBox.warning(None, trans.string('Err_Save', 0), trans.string('Err_Save', 1, '[err1]', e.args[0], '[err2]', e.args[1]))
+            return False
 
-            #setSetting('AutoSaveFilePath', self.fileSavePath)
-            #setSetting('AutoSaveFileData', 'x')
-            return True
+        Dirty = False
+        AutoSaveDirty = False
+        self.UpdateTitle()
 
-        if mode == "REDIRECT":
-            self.HandleRedirect()
+        #setSetting('AutoSaveFilePath', self.fileSavePath)
+        #setSetting('AutoSaveFileData', 'x')
+        return True
 
 
     @QtCore.pyqtSlot()
@@ -14365,7 +14172,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Save a level back to the archive, with a new filename
         """
-        fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', 'Uncompressed Level Archives (*.sarc);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
+        filetypes = ''
+        filetypes += trans.string('FileDlgs', 1) + ' (*.szs);;'
+        filetypes += 'Uncompressed Level Archives (*.sarc);;'
+        filetypes += trans.string('FileDlgs', 2) + ' (*)'
+        fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return
         fn = str(fn)
 
@@ -14389,8 +14200,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if failure == 0:
             data = Level.save(name)
-            with open(fn, 'wb') as f:
-                f.write(data)
+            if self.fileSavePath.endswith('.szs'):
+                course_name = os.path.splitext(self.fileSavePath)[0]
+                with open(course_name + '.tmp', 'wb') as f:
+                    f.write(data)
+
+                if os.path.isfile(self.fileSavePath):
+                    os.remove(self.fileSavePath)
+                process = Popen([miyamoto_path + '\Tools\wszst.exe', 'COMPRESS', course_name + '.tmp',
+                                 '--dest', self.fileSavePath], stdout=PIPE, stderr=PIPE)
+                stdout, stderr = process.communicate()
+                os.remove(course_name + '.tmp')
+            else:
+                with open(self.fileSavePath, 'wb') as f:
+                    f.write(data)
             self.UpdateTitle()
 
         # a quick way to save shit
@@ -14404,513 +14227,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
     def getInnerSarcName(self):
         return QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
             "Choose an internal filename for this level (do not add a .sarc extension) (example: 1-1):", QtWidgets.QLineEdit.Normal)[0]
-
-    @QtCore.pyqtSlot()
-    def HandleCompress(self):
-        """
-        Exports SARC to a .szs file
-        """
-
-        CurrentCD = os.getcwd()
-
-        pathMath = 'miyamotodata/export'
-
-        PATHvar = mainWindow.fileSavePath
-
-
-        runCompress = True
-
-        if not PATHvar.endswith('c'):
-            QMessageBox.information(QtWidgets.QWidget(), "Notice:", "You can't compress a .szs file! Cancelling.")
-            runCompress = False
-
-
-        """
-        Save a level back to the archive, with a new filename
-        """
-        if runCompress: 
-            fcc = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', 'Compressed Level Archives (*.szs);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
-
-            if fcc == '': runCompress = False
-
-            fcc = str(fcc)
-
-        YAZDir = pathMath+'/YAZ0COMP.exe'
-
-
-        if runCompress:
-
-            shutil.copyfile(PATHvar, pathMath+"/unp")
-
-            # Make YAZ0COMP run correctly
-            os.chdir('miyamotodata/export')
-
-            w = QtWidgets.QWidget()
-
-            # Show a message box
-            QMessageBox.information(w, "Notice:", "Now exporting .szs file. This may take a while.")
-
-            print("EXPORTING FILE TO SZS FORMAT")
-
-            if os.name == 'nt': pro = subprocess.Popen(["YAZ0COMP.exe"])
-            if os.name == 'nt': pro.wait()
-
-            os.system("wine YAZ0COMP.exe")
-            print("DONE! PLEASE RETRIEVE YOUR FILE, AND HAVE FUN PLAYING!")
-
-            #Fix directory
-            os.chdir(CurrentCD)
-
-            shutil.move(pathMath+"/!out", fcc)
-            os.remove(pathMath+"/unp")
-
-            # Show a message box
-            QMessageBox.information(w, "Notice:", "Finished successfully! Enjoy :D")
-        
-
-    @QtCore.pyqtSlot()
-    def HandleExtractSarc(self):
-
-        """
-        Exports SARC to a .szs file
-        """
-
-        CurrentCD = os.getcwd()
-
-        pathMath = 'miyamotodata/sarc'
-
-        #PATHvar = mainWindow.fileSavePath
-
-
-        runCompress = True
-
-        """
-        Open sarchive
-        """
-        PATHvar = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 8), '', 'SARC file/Sarchive (*.sarc);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
-
-
-        Packs = str(PATHvar)
-
-        DirNamey = ntpath.basename(Packs)
-        DirName = os.path.splitext(DirNamey)[0]
-
-        if PATHvar == '': runCompress = False
-        else: runcCompress = True
-
-
-        PATHvar = str(PATHvar)
-
-        def zip_dir(zipname, dir_to_zip):
-            dir_to_zip_len = len(dir_to_zip.rstrip(os.sep)) + 1
-            with zipfile.ZipFile(zipname, mode='w', compression=zipfile.ZIP_DEFLATED) as zf:
-                for dirname, subdirs, files in os.walk(dir_to_zip):
-                    for filename in files:
-                        path = os.path.join(dirname, filename)
-                        entry = path[dir_to_zip_len:]
-                        zf.write(path, entry)
-
-        YAZDir = pathMath+'/EXT.bat'
-
-
-        if runCompress:
-
-            fcc = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 9), '', 'Zip File (*.zip);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
-            fcc = str(fcc)
-
-            # Make YAZ0COMP run correctly
-            os.chdir('miyamotodata/sarc')
-
-            shutil.copyfile(PATHvar, DirNamey)
-
-            w = QtWidgets.QWidget()
-
-            # Show a message box
-            QMessageBox.information(w, "Notice:", "Now converting to .zip file. Time depends on file-size.")
-
-            print("SAVING FILE TO ZIP FORMAT")
-
-            text_file = open("EXT.bat", "w")
-            text_file.write("SARCExtract-0.3.exe "+DirNamey)
-            text_file.close()
-
-            if os.name == 'nt': pro = subprocess.Popen(["EXT.bat"])
-            if os.name == 'nt': pro.wait()
-
-            os.system("wine cmd /c EXT.bat")
-
-
-            zip_dir(DirName+'.zip', DirName)
-
-            os.remove(DirNamey)
-            shutil.rmtree(DirName)
-
-            shutil.move(DirName+'.zip', fcc)
-
-
-            print("DONE! PLEASE RETRIEVE YOUR ZIP FILE, AND HAVE A NICE DAY!")
-
-            #Fix directory
-            os.chdir(CurrentCD)
-
-            #shutil.move(pathMath+"/!out", fcc)
-
-            # Show a message box
-            QMessageBox.information(w, "Notice:", "Finished successfully! Enjoy :D")
-
-    @QtCore.pyqtSlot()
-    def HandleZipSarc(self):
-
-        """
-        Exports ZIP to a .sarc file
-        """
-
-        CurrentCD = os.getcwd()
-
-        pathMath = 'miyamotodata/sarc'
-
-        #PATHvar = mainWindow.fileSavePath
-
-
-        runCompress = True
-
-        """
-        Open zip
-        """
-        PATHvar = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 9), '', 'Zip File (*.zip);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
-
-
-        Packs = str(PATHvar)
-
-        DirNamey = ntpath.basename(Packs)
-        DirName = os.path.splitext(DirNamey)[0]
-
-        if PATHvar == '': runCompress = False
-        else: runcCompress = True
-
-
-        PATHvar = str(PATHvar)
-
-        def zip_dir(zipname, dir_to_zip):
-            dir_to_zip_len = len(dir_to_zip.rstrip(os.sep)) + 1
-            with zipfile.ZipFile(zipname, mode='w', compression=zipfile.ZIP_DEFLATED) as zf:
-                for dirname, subdirs, files in os.walk(dir_to_zip):
-                    for filename in files:
-                        path = os.path.join(dirname, filename)
-                        entry = path[dir_to_zip_len:]
-                        zf.write(path, entry)
-
-        YAZDir = pathMath+'/PAC.bat'
-
-
-        if runCompress:
-
-            fcc = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 8), '', 'SARC file/Sarchive (*.sarc);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
-
-            fcc = str(fcc)
-
-            # Make YAZ0COMP run correctly
-            os.chdir('miyamotodata/sarc')
-
-            if not os.path.exists(DirName):
-                os.mkdir(DirName)
-
-            #shutil.copyfile(PATHvar, DirName+'/'+DirNamey)
-            shutil.copyfile(PATHvar, DirNamey)
-
-
-            zip_ref = zipfile.ZipFile(DirNamey, 'r')
-            zip_ref.extractall(DirName)
-            zip_ref.close()
-
-            w = QtWidgets.QWidget()
-
-            # Show a message box
-            QMessageBox.information(w, "Notice:", "Now converting to .sarc file. Time depends on file-size.")
-
-            print("SAVING FILE TO SARC FORMAT")
-
-            text_file = open("PAC.bat", "w")
-            text_file.write("SARCPack-0.2.1.exe "+DirName)
-            text_file.close()
-
-            if os.name == 'nt': pro = subprocess.Popen(["PAC.bat"])
-            if os.name == 'nt': pro.wait()
-
-            os.system("wine cmd /c PAC.bat")
-
-
-            os.remove(DirNamey)
-            shutil.rmtree(DirName)
-
-            shutil.move(DirName+'.sarc', fcc)
-
-
-            print("DONE! PLEASE RETRIEVE YOUR SARC FILE, AND HAVE A NICE DAY!")
-
-            #Fix directory
-            os.chdir(CurrentCD)
-
-            #shutil.move(pathMath+"/!out", fcc)
-
-            # Show a message box
-            QMessageBox.information(w, "Notice:", "Finished successfully! Enjoy :D")
-
-    @QtCore.pyqtSlot()
-    def HandleDecompressSzs(self):
-
-        CurrentCD = os.getcwd()
-
-        pathMath = 'miyamotodata/sarc'
-
-        runCompress = True
-
-        PATHvar = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 10), '', 'SZS file (*.szs);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
-
-
-        Packs = str(PATHvar)
-
-        DirNamey = ntpath.basename(Packs)
-        DirName = os.path.splitext(DirNamey)[0]
-
-        if PATHvar == '': runCompress = False
-        else: runcCompress = True
-
-
-        PATHvar = str(PATHvar)
-
-        YAZDir = pathMath+'/DEC.bat'
-
-
-        if runCompress:
-
-            fcc = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 8), '', 'SARC file/Sarchive (*.sarc);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
-
-            fcc = str(fcc)
-
-            # Make YAZ0COMP run correctly
-            os.chdir('miyamotodata/sarc')
-
-            shutil.copyfile(PATHvar, DirNamey)
-
-            w = QtWidgets.QWidget()
-
-            # Show a message box
-            QMessageBox.information(w, "Notice:", "Now decompressing to .sarc file. Time depends on file-size.")
-
-            print("SAVING FILE TO SARC FORMAT")
-
-            text_file = open("DEC.bat", "w")
-            text_file.write("yaz0dec.exe "+DirNamey)
-            text_file.close()
-
-            if os.name == 'nt': pro = subprocess.Popen(["DEC.bat"])
-            if os.name == 'nt': pro.wait()
-
-            os.system("wine cmd /c DEC.bat")
-
-
-            os.remove(DirNamey)
-
-            shutil.move(DirName+'.szs 0.rarc', fcc)
-
-
-            print("DONE! PLEASE RETRIEVE YOUR SARC FILE, AND HAVE A NICE DAY!")
-
-            #Fix directory
-            os.chdir(CurrentCD)
-
-            #shutil.move(pathMath+"/!out", fcc)
-
-            # Show a message box
-            QMessageBox.information(w, "Notice:", "Finished successfully! Enjoy :D")
-        
-    @QtCore.pyqtSlot()
-    def HandleCompressSzs(self):
-
-        CurrentCD = os.getcwd()
-
-        pathMath = 'miyamotodata/export'
-
-        runCompress = True
-
-        PATHvar = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 8), '', 'SARC file/Sarchive (*.sarc);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
-
-
-        Packs = str(PATHvar)
-
-        #DirNamey = ntpath.basename(Packs)
-        #DirName = os.path.splitext(DirNamey)[0]
-
-        if PATHvar == '': runCompress = False
-        else: runcCompress = True
-
-
-        PATHvar = str(PATHvar)
-
-        YAZDir = pathMath+'/YAZCOMP.exe'
-
-
-        if runCompress:
-
-            fcc = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 10), '', 'SZS file (*.szs);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
-
-            fcc = str(fcc)
-
-            # Make YAZ0COMP run correctly
-            os.chdir('miyamotodata/export')
-
-            shutil.copyfile(PATHvar, 'unp')
-
-            w = QtWidgets.QWidget()
-
-            # Show a message box
-            QMessageBox.information(w, "Notice:", "Now compressing to .szs file. Time depends on file-size.")
-
-            print("SAVING FILE TO SARC FORMAT")
-
-
-            if os.name == 'nt': pro = subprocess.Popen(["YAZ0COMP.exe"])
-            if os.name == 'nt': pro.wait()
-
-            os.system("wine YAZ0COMP.exe")
-
-
-            os.remove('unp')
-
-            shutil.move('!out', fcc)
-
-
-            print("DONE! PLEASE RETRIEVE YOUR SARC FILE, AND HAVE A NICE DAY!")
-
-            #Fix directory
-            os.chdir(CurrentCD)
-
-            #shutil.move(pathMath+"/!out", fcc)
-
-            # Show a message box
-            QMessageBox.information(w, "Notice:", "Finished successfully! Enjoy :D")
-
-    @QtCore.pyqtSlot()
-    def HandleRedirect(self):
-
-        """
-        Save a level back to the archive, with a new filename
-        """
-        fn = 'miyamotodata/export/unp'
-
-        if fn == '': return
-        fn = str(fn)
-
-        global Dirty, AutoSaveDirty
-        Dirty = False
-        AutoSaveDirty = False
-        Dirty = False
-
-        #self.fileSavePath = fn
-        #self.fileTitle = os.path.basename(fn)
-
-        # we take the name of the level and make sure it's formatted right. if not, crashy
-        # this is one of the few ways, if there's no - it will certainly crash
-        failure = 0
-        name = self.getInnerSarcName()
-        # oh noes there's no - !!!
-        if "-" not in name:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning', 'The input name does not include a -, which is what retail levels use. \nThis may crash, because it does not fit the proper format.')
-            warningBox.exec_()
-            failure = 1
-
-        if failure == 0:
-            data = Level.save(name)
-            with open(fn, 'wb') as f:
-                f.write(data)
-            #self.UpdateTitle()
-
-        # a quick way to save shit
-
-        #setSetting('AutoSaveFilePath', fn)
-        #setSetting('AutoSaveFileData', 'x')
-
-        #self.RecentFilesMgr.addPath(self.fileSavePath)
-
-        """
-        Fix saving szs files
-        """
-
-        CurrentCD = os.getcwd()
-
-        pathMath = 'miyamotodata/export'
-
-        runCompress = True
-
-        PATHvar = mainWindow.fileSavePath
-
-
-        Packs = str(PATHvar)
-
-        #DirNamey = ntpath.basename(Packs)
-        #DirName = os.path.splitext(DirNamey)[0]
-
-        if PATHvar == '': runCompress = False
-        else: runCompress = True
-
-
-        PATHvar = str(PATHvar)
-
-        YAZDir = pathMath+'/YAZCOMP.exe'
-
-
-        if runCompress:
-
-            fcc = mainWindow.fileSavePath
-
-            fcc = str(fcc)
-
-            # Make YAZ0COMP run correctly
-            os.chdir('miyamotodata/export')
-
-            #shutil.copyfile(PATHvar, 'unp')
-
-            w = QtWidgets.QWidget()
-
-            # Show a message box
-            #QMessageBox.information(w, "Notice:", "Now compressing to .szs file. Time depends on file-size.")
-
-            print("SAVING FILE TO SZS FORMAT")
-
-
-            if os.name == 'nt': pro = subprocess.Popen(["YAZ0COMP.exe"])
-            if os.name == 'nt': pro.wait()
-
-            os.system("wine YAZ0COMP.exe")
-
-
-            os.remove('unp')
-
-            shutil.move('!out', fcc)
-
-
-            print("DONE! PLEASE RETRIEVE YOUR SARC FILE, AND HAVE A NICE DAY!")
-
-            #Fix directory
-            os.chdir(CurrentCD)
-
-            #shutil.move(pathMath+"/!out", fcc)
-
-            # Show a message box
-            QMessageBox.information(w, "Notice:", "Finished successfully! Enjoy :D")
-
-
-    @QtCore.pyqtSlot()
-    def HandleTilesetManager(self):
-
-        """
-        Launch Tileset Manager, and reload tilesets.
-        """
-        
-        #
-
-       
 
     @QtCore.pyqtSlot()
     def HandleExit(self):
@@ -15032,36 +14348,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         SLib.RealViewEnabled = RealViewEnabled
 
         setSetting('RealViewEnabled', RealViewEnabled)
-        self.scene.update()
-
-
-    @QtCore.pyqtSlot(bool)
-    def HandleBackgroundToggle(self, checked):
-        """
-        Handle toggling of Backgrounds
-        """
-        global BackgroundShown
-
-        BackgroundShown = checked
-        SLib.BackgroundShown = BackgroundShown
-
-        setSetting('BackgroundShown', BackgroundShown)
-        self.scene.update()
-
-
-    @QtCore.pyqtSlot()
-    def HandleBackgroundSwap(self):
-        """
-        Handle switching backgrounds
-        """
-        global CurrentBackground
-
-        if CurrentBackground <= 10: CurrentBackground += 1
-        else: CurrentBackground = 0
-
-        print(CurrentBackground)
-
-        setSetting('CurrentBackground', CurrentBackground)
         self.scene.update()
 
 
@@ -15513,7 +14799,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Decompress it (Yaz0)
         if levelData.startswith(b'Yaz0'):
             print('Beginning Yaz0 decompression...')
-            levelData = yaz0.decompress(levelData)
+            course_name = os.path.splitext(mainWindow.fileSavePath)[0]
+            process = Popen([miyamoto_path + '\Tools\wszst.exe', 'DECOMPRESS', mainWindow.fileSavePath,
+                             '--dest', course_name + '.tmp'], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+            with open(course_name + '.tmp', 'rb') as f:
+                levelData = f.read()
+            os.remove(course_name + '.tmp')
             print('Decompression finished.')
         else:
             print('Yaz0 decompression skipped.')
@@ -15528,8 +14820,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             return True
 
         possibilities = []
-        if exists('levelname'): # This code seems to not work for some reason?
-            possibilities.append(arc['levelname'].data.decode('utf-8'))
         possibilities.append(os.path.basename(name))
         possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
         possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
@@ -15541,7 +14831,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 break
         else:
             print('OH NO')
-            return False
+            sys.exit(1)
 
         # Sort the szs data
         global szsData
@@ -15981,7 +15271,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.spriteEditorDock.setVisible(showSpritePanel)
         self.entranceEditorDock.setVisible(showEntrancePanel)
-        self.objectEditorDock.setVisible(showObjPanel)
         self.locationEditorDock.setVisible(showLocationPanel)
         self.pathEditorDock.setVisible(showPathPanel)
 
@@ -16481,8 +15770,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.pathEditor.setPath(self.selObj)
         elif self.locationEditorDock.isVisible():
             self.locationEditor.setLocation(self.selObj)
-        elif self.objectEditorDock.isVisible():
-            self.objectEditor.setObject(self.selObj)
 
         self.UpdateFlag = False
 
@@ -17016,7 +16303,7 @@ def main():
 
     # Set the default window icon (used for random popups and stuff)
     app.setWindowIcon(GetIcon('miyamoto'))
-    app.setApplicationDisplayName('You Make Good Level Now!')
+    app.setApplicationDisplayName('You Make a Good Level Now!')
 
     # Load the splashscreen
     app.splashScreen = MiyamotoSplashScreen()

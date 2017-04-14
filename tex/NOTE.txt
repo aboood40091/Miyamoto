@@ -1,1 +1,0 @@
-Reggie will temporarily extract the textures here, and when it finishes using them they will be automatically deleted.

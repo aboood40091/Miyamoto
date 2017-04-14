@@ -1,1 +1,0 @@
-yaz0dec.exe 8-3.szs

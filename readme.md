@@ -1,4 +1,4 @@
-# MiyamotoNext-NSMBU
+# Miyamoto
 A level editor for NSMBU and NSLU, based on Reggie! Next by RoadrunnerWMC, which is based on Reggie by Treeki, Tempus et al. Uses PyQt5, Python 3, TPLLib, and other libs.
 
 # Credits
@@ -16,7 +16,6 @@ A level editor for NSMBU and NSLU, based on Reggie! Next by RoadrunnerWMC, which
 - Get Object Data figured out
 - Get unknown entrance fields figured out
 - Get unknown area fields figured out
-- Improve YAZ0 decompression
 - Sprite images / HD screenshots (a lot of them).
 
 # How To Use

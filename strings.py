@@ -30,6 +30,8 @@
 ################################################################
 ################################################################
 
+import os.path
+
 class MiyamotoTranslation():
     """
     A translation of all visible Miyamoto strings
