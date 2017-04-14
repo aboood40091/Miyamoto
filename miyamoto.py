@@ -112,11 +112,8 @@ SpriteCategories = None
 SpriteListData = None
 EntranceTypeNames = None
 Tiles = None # 0x200 tiles per tileset, plus 64 for each type of override
-TilesetFilesLoaded = [None, None, None, None]
 TilesetAnimTimer = None
-TilesetCache = {} # Tileset cache, to avoid reloading when possible
 TilesetCompletelyCached = {}
-TileThreads = [None, None, None, None] # holds tileset-rendering threads
 Overrides = None # 320 tiles, this is put into Tiles usually
 TileBehaviours = None
 ObjectDefinitions = None # 4 tilesets
@@ -2923,11 +2920,10 @@ def CreateTilesets():
     """
     Blank out the tileset arrays
     """
-    global Tiles, TilesetFilesLoaded, TilesetAnimTimer, TileBehaviours, ObjectDefinitions
+    global Tiles, TilesetAnimTimer, TileBehaviours, ObjectDefinitions
 
     Tiles = [None]*0x200*4
     Tiles += Overrides
-    TilesetFilesLoaded = [None, None, None, None]
     #TileBehaviours = [0]*1024
     TilesetAnimTimer = QtCore.QTimer()
     TilesetAnimTimer.timeout.connect(IncrementTilesetFrame)
@@ -2941,7 +2937,6 @@ def _LoadTileset(idx, name, reload=False):
     """
 
     # if this file's already loaded, return
-    if TilesetFilesLoaded[idx] == name and not reload: return
     if name not in szsData: return
 
     sarcdata = szsData[name]
@@ -2950,67 +2945,60 @@ def _LoadTileset(idx, name, reload=False):
 
     tileoffset = idx * 256
 
-    global Tiles, TilesetCache, TileThreads
-    # Load the tiles if they're not cached.
-    if name not in TilesetCache:
-        # Decompress the textures
-        try:
-            comptiledata = sarc['BG_tex/%s.gtx' % name].data
-            colldata = sarc['BG_chk/d_bgchk_%s.bin' % name].data
-        except KeyError:
-            QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
-            return False
+    global Tiles
+    # Decompress the textures
+    try:
+        comptiledata = sarc['BG_tex/%s.gtx' % name].data
+        colldata = sarc['BG_chk/d_bgchk_%s.bin' % name].data
+    except KeyError:
+        QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
+        return False
 
-        # load in the textures
-        img = LoadTexture_NSMBU(comptiledata)
+    # load in the textures
+    img = LoadTexture_NSMBU(comptiledata)
 
-        # Divide it into individual tiles and
-        # add collisions at the same time
-        def getTileFromImage(tilemap, xtilenum, ytilenum):
-            return tilemap.copy((xtilenum * 64) + 2, (ytilenum * 64) + 2, 60, 60)
+    # Divide it into individual tiles and
+    # add collisions at the same time
+    def getTileFromImage(tilemap, xtilenum, ytilenum):
+        return tilemap.copy((xtilenum * 64) + 2, (ytilenum * 64) + 2, 60, 60)
 
-        dest = QtGui.QPixmap.fromImage(img)
-        sourcex = 0
-        sourcey = 0
-        for i in range(tileoffset, tileoffset + 256):
-            T = TilesetTile(getTileFromImage(dest, sourcex, sourcey))
-            Tiles[i] = T
-            sourcex += 1
-            if sourcex >= 32:
-                sourcex = 0
-                sourcey += 1
+    dest = QtGui.QPixmap.fromImage(img)
+    sourcex = 0
+    sourcey = 0
+    for i in range(tileoffset, tileoffset + 256):
+        T = TilesetTile(getTileFromImage(dest, sourcex, sourcey))
+        Tiles[i] = T
+        sourcex += 1
+        if sourcex >= 32:
+            sourcex = 0
+            sourcey += 1
 
-        isAnimated = False
-        if isAnimated:
-            row = 0
-            col = 0
-            for i in range(tileoffset,tileoffset+441):
+    isAnimated = False
+    if isAnimated:
+        row = 0
+        col = 0
+        for i in range(tileoffset,tileoffset+441):
+            filenames = []
+            filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].lower(), hex(col)[2].lower()))
+            filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].upper(), hex(col)[2].upper()))
+            if filenames[0] == filenames[1]:
+                item = filenames[0]
                 filenames = []
-                filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].lower(), hex(col)[2].lower()))
-                filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].upper(), hex(col)[2].upper()))
-                if filenames[0] == filenames[1]:
-                    item = filenames[0]
-                    filenames = []
-                    filenames.append(item)
-                for fn in filenames:
-                    fn = 'BG_tex/' + fn
-                    found = False
-                    try:
-                        sarc[fn]
-                        found = True
-                    except KeyError:
-                        pass
-                    if found:
-                        Tiles[i].addAnimationData(arc[fn])
-                col += 1
-                if col == 16:
-                    col = 0
-                    row += 1
-
-    else:
-        # We already have tiles in the tileset cache; copy them over to Tiles
-        for i in range(256):
-            Tiles[i + tileoffset] = TilesetCache[name][i]
+                filenames.append(item)
+            for fn in filenames:
+                fn = 'BG_tex/' + fn
+                found = False
+                try:
+                    sarc[fn]
+                    found = True
+                except KeyError:
+                    pass
+                if found:
+                    Tiles[i].addAnimationData(arc[fn])
+            col += 1
+            if col == 16:
+                col = 0
+                row += 1
 
 
     # Load the object definitions
@@ -3033,16 +3021,8 @@ def _LoadTileset(idx, name, reload=False):
 
     ProcessOverrides(idx, name)
 
-    # Keep track of this filepath
-    TilesetFilesLoaded[idx] = name
-
     # Add Tiles to spritelib
     SLib.Tiles = Tiles
-
-    # Add Tiles to the cache
-    TilesetCache[name] = []
-    for i in range(256):
-        TilesetCache[name].append(Tiles[i + tileoffset])
 
 def LoadTexture_NSMBU(tiledata):
     with open(miyamoto_path + '\Tools/texture.gtx', 'wb') as binfile:
@@ -3148,7 +3128,6 @@ def UnloadTileset(idx):
         Tiles[i] = None
 
     ObjectDefinitions[idx] = None
-    TilesetFilesLoaded[idx] = None
 
 def CountTiles(row):
     """
@@ -15044,9 +15023,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Reloads all the tilesets. If soft is True, they will not be reloaded if the filepaths have not changed.
         """
-        global TilesetCache
         if not soft:
-            TilesetCache = {} # blank out the tileset cache; we're reloading them
             TilesetCompletelyCached = {}
 
         tilesets = [Area.tileset0, Area.tileset1, Area.tileset2, Area.tileset3]
