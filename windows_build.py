@@ -141,12 +141,9 @@ if os.path.isdir(dir_ + '/miyamotoextras'): shutil.rmtree(dir_ + '/miyamotoextra
 if os.path.isdir(dir_ + '/tex'): shutil.rmtree(dir_ + '/tex') 
 shutil.copytree('miyamotodata', dir_ + '/miyamotodata') 
 shutil.copytree('miyamotoextras', dir_ + '/miyamotoextras')
-shutil.copytree('tex', dir_ + '/tex') 
-shutil.copy('gfd.dll', dir_)
+shutil.copytree('Tools', dir_ + '/Tools')
 shutil.copy('license.txt', dir_)
-shutil.copy('readme.md', dir_)
-shutil.copy('TexConv2.exe', dir_)
-shutil.copy('texUtils.dll', dir_)
+shutil.copy('README.md', dir_)
 if not os.path.isfile(dir_ + '/libEGL.dll'):
     shutil.copy('libEGL.dll', dir_)
 print('>> Files copied!')
@@ -157,15 +154,5 @@ release.write('windows')
 release.close()
 del release
 print('>> release.txt written!')
-
-print('>> Attempting to copy VC++2008 libraries...')
-if os.path.isdir('Microsoft.VC90.CRT'):
-    shutil.copytree('Microsoft.VC90.CRT', dir_ + '/Microsoft.VC90.CRT')
-    print('>> Copied libraries!')
-else:
-    print('>> Libraries not found! The frozen executable will require the '
-          'Visual C++ 2008 runtimes to be installed in order to work.')
-    print('>> In order to automatically include the runtimes, place the '
-          'Microsoft.VC90.CRT folder into this folder.')
 
 print('>> Miyamoto has been frozen to %s !' % dir_)
