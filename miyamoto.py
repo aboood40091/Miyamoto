@@ -150,6 +150,10 @@ AutoSavePath = ''
 AutoSaveData = b''
 AutoOpenScriptEnabled = False
 CurrentLevelNameForAutoOpenScript = 'AAAAAAAAAAAAAAAAAAAAAAAAAA'
+Waterlocationx = 0		
+Waterlocationy = 0		
+Waterlocationw = 1000		
+Waterlocationh = 30
 
 # Game enums
 NewSuperMarioBrosU = 0
@@ -3822,6 +3826,9 @@ class Level_NSMBU(AbstractLevel):
 
         # Add the innersarc to it
         outerArchive.addFile(SarcLib.File(innerfilename, innersarc))
+
+        # Make it easy for future Miyamotos to pick out the innersarc level name		
+        outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
 
         # Add all the other stuff, too
         for szsThingName in szsData:
@@ -14798,19 +14805,24 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             except: return False
             return True
 
-        possibilities = []
-        possibilities.append(os.path.basename(name))
-        possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
-        possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
-        possibilities.append(possibilities[-1].split('.')[0])
-        possibilities.append(possibilities[-1].split('_')[0])
-        for fn in possibilities:
-            if exists(fn):
-                levelFileData = arc[fn].data
-                break
+        if exists('levelname'):
+            fn = str(arc['levelname'].data)[2:-1]
+            levelFileData = arc[fn].data
+
         else:
-            print('OH NO')
-            sys.exit(1)
+            possibilities = []
+            possibilities.append(os.path.basename(name))
+            possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
+            possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
+            possibilities.append(possibilities[-1].split('.')[0])
+            possibilities.append(possibilities[-1].split('_')[0])
+            for fn in possibilities:
+                if exists(fn):
+                    levelFileData = arc[fn].data
+                    break
+            else:
+                print('OH NO')
+                return False
 
         # Sort the szs data
         global szsData
