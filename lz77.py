@@ -1,12 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: latin-1 -*-
 
-# Miyamoto! Next - New Super Mario Bros. U Level Editor
-# Version v0.6
-# Copyright (C) 2009-2016 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop
+# Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
+# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7
 
-# This file is part of Miyamoto! Next.
+# This file is part of Miyamoto!.
 
 # Miyamoto! is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,7 +18,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Miyamoto!. If not, see <http://www.gnu.org/licenses/>.
+# along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
 
 # lz77.py
 # Decompresses lz77 compressed files.

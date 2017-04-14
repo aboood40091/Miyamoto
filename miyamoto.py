@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: latin-1 -*-
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
