@@ -113,7 +113,6 @@ SpriteListData = None
 EntranceTypeNames = None
 Tiles = None # 0x200 tiles per tileset, plus 64 for each type of override
 TilesetAnimTimer = None
-TilesetCompletelyCached = {}
 Overrides = None # 320 tiles, this is put into Tiles usually
 TileBehaviours = None
 ObjectDefinitions = None # 4 tilesets
@@ -1369,6 +1368,7 @@ def LoadActionsLists():
     global EditActions
     global ViewActions
     global SettingsActions
+    global TileActions
     global HelpActions
 
     FileActions = (
@@ -1421,6 +1421,12 @@ def LoadActionsLists():
         (trans.string('MenuItems', 82), False, 'deletearea'),
         (trans.string('MenuItems', 84), False, 'reloadgfx'),
         ("Testing string 1", False, 'reloaddata'),
+        )
+    TileActions = (
+        (trans.string('MenuItems', 136), False, 'editslot1'),
+        (trans.string('MenuItems', 138), False, 'editslot2'),
+        (trans.string('MenuItems', 140), False, 'editslot3'),
+        (trans.string('MenuItems', 142), False, 'editslot4'),
         )
     HelpActions = (
         (trans.string('MenuItems', 86), False, 'infobox'),
@@ -11061,6 +11067,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 global EditActions
                 global ViewActions
                 global SettingsActions
+                global TileActions
                 global HelpActions
 
                 QtWidgets.QWidget.__init__(self)
@@ -11069,7 +11076,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 if setting('ToolbarActs') in (None, 'None', 'none', '', 0):
                     # Get the default settings
                     toggled = {}
-                    for List in (FileActions, EditActions, ViewActions, SettingsActions, HelpActions):
+                    for List in (FileActions, EditActions, ViewActions, SettingsActions, TileActions, HelpActions):
                         for name, activated, key in List:
                             toggled[key] = activated
                 else: # Get the registry settings
@@ -11084,17 +11091,20 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.EditBoxes = []
                 self.ViewBoxes = []
                 self.SettingsBoxes = []
+                self.TileBoxes = []
                 self.HelpBoxes = []
                 FL = QtWidgets.QVBoxLayout()
                 EL = QtWidgets.QVBoxLayout()
                 VL = QtWidgets.QVBoxLayout()
                 SL = QtWidgets.QVBoxLayout()
+                TL = QtWidgets.QVBoxLayout()
                 HL = QtWidgets.QVBoxLayout()
                 FB = QtWidgets.QGroupBox(trans.string('Menubar', 0))
                 EB = QtWidgets.QGroupBox(trans.string('Menubar', 1))
                 VB = QtWidgets.QGroupBox(trans.string('Menubar', 2))
                 SB = QtWidgets.QGroupBox(trans.string('Menubar', 3))
-                HB = QtWidgets.QGroupBox(trans.string('Menubar', 4))
+                TB = QtWidgets.QGroupBox(trans.string('Menubar', 4))
+                HB = QtWidgets.QGroupBox(trans.string('Menubar', 5))
 
                 # Arrange this data so it can be iterated over
                 menuItems = (
@@ -11102,6 +11112,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                     (EditActions, self.EditBoxes, EL, EB),
                     (ViewActions, self.ViewBoxes, VL, VB),
                     (SettingsActions, self.SettingsBoxes, SL, SB),
+                    (TileActions, self.TileBoxes, TL, TB),
                     (HelpActions, self.HelpBoxes, HL, HB),
                 )
 
@@ -11133,8 +11144,9 @@ class PreferencesDialog(QtWidgets.QDialog):
                 L.addWidget(EB,          1, 1, 3, 1)
                 L.addWidget(VB,          1, 2, 3, 1)
                 L.addWidget(SB,          1, 3, 1, 1)
-                L.addWidget(HB,          2, 3, 1, 1)
-                L.addWidget(CurrentArea, 3, 3, 1, 1)
+                L.addWidget(TB,          2, 3, 1, 1)
+                L.addWidget(HB,          3, 3, 1, 1)
+                L.addWidget(CurrentArea, 4, 3, 1, 1)
                 self.setLayout(L)
 
             def reset(self):
@@ -11146,6 +11158,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                     (self.EditBoxes, EditActions),
                     (self.ViewBoxes, ViewActions),
                     (self.SettingsBoxes, SettingsActions),
+                    (self.TileBoxes, TileActions),
                     (self.HelpBoxes, HelpActions)
                 )
 
@@ -12376,6 +12389,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('reloadgfx', self.ReloadTilesets, GetIcon('reload'), trans.string('MenuItems', 84), trans.string('MenuItems', 85), QtGui.QKeySequence('Ctrl+Alt+R'))
         self.CreateAction('reloaddata', self.ReloadSpriteData, GetIcon('reload'), trans.string('MenuItems', 128), trans.string('MenuItems', 129), QtGui.QKeySequence('Ctrl+Shift+R'))
 
+        # Tilesets
+        self.CreateAction('editslot1', self.EditSlot1, GetIcon('animation'), trans.string('MenuItems', 136), trans.string('MenuItems', 137), None)
+        self.CreateAction('editslot2', self.EditSlot2, GetIcon('animation'), trans.string('MenuItems', 138), trans.string('MenuItems', 139), None)
+        self.CreateAction('editslot3', self.EditSlot3, GetIcon('animation'), trans.string('MenuItems', 140), trans.string('MenuItems', 141), None)
+        self.CreateAction('editslot4', self.EditSlot4, GetIcon('animation'), trans.string('MenuItems', 142), trans.string('MenuItems', 143), None)
+
         # Help actions are created later
 
         # Recent Files Menu
@@ -12489,11 +12508,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         lmenu.addAction(self.actions['reloadgfx'])
         lmenu.addAction(self.actions['reloaddata'])
 
-        hmenu = menubar.addMenu(trans.string('Menubar', 4))
+        tmenu = menubar.addMenu(trans.string('Menubar', 4))
+        tmenu.addAction(self.actions['editslot1'])
+        tmenu.addAction(self.actions['editslot2'])
+        tmenu.addAction(self.actions['editslot3'])
+        tmenu.addAction(self.actions['editslot4'])
+
+        hmenu = menubar.addMenu(trans.string('Menubar', 5))
         self.SetupHelpMenu(hmenu)
 
         # create a toolbar
-        self.toolbar = self.addToolBar(trans.string('Menubar', 5))
+        self.toolbar = self.addToolBar(trans.string('Menubar', 6))
         self.toolbar.setObjectName('MainToolbar')
 
         # Add buttons to the toolbar
@@ -12515,7 +12540,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('aboutqt', QtWidgets.qApp.aboutQt, GetIcon('qt'), trans.string('MenuItems', 92), trans.string('MenuItems', 93), QtGui.QKeySequence('Ctrl+Shift+Q'))
 
         if menu is None:
-            menu = QtWidgets.QMenu(trans.string('Menubar', 4))
+            menu = QtWidgets.QMenu(trans.string('Menubar', 5))
         menu.addAction(self.actions['infobox'])
         menu.addAction(self.actions['helpbox'])
         menu.addAction(self.actions['tipbox'])
@@ -12533,6 +12558,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         global EditActions
         global ViewActions
         global SettingsActions
+        global TileActions
         global HelpActions
 
         # First, define groups. Each group is isolated by separators.
@@ -12593,6 +12619,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'reloadgfx',
                 'reloaddata',
             ), (
+                'editslot1',
+                'editslot2',
+                'editslot3',
+                'editslot4',
+            ), (
                 'infobox',
                 'helpbox',
                 'tipbox',
@@ -12604,7 +12635,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if setting('ToolbarActs') in (None, 'None', 'none', '', 0):
             # Get the default settings
             toggled = {}
-            for List in (FileActions, EditActions, ViewActions, SettingsActions, HelpActions):
+            for List in (FileActions, EditActions, ViewActions, SettingsActions, TileActions, HelpActions):
                 for name, activated, key in List:
                     toggled[key] = activated
         else: # Get the registry settings
@@ -15035,9 +15066,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Reloads all the tilesets. If soft is True, they will not be reloaded if the filepaths have not changed.
         """
-        if not soft:
-            TilesetCompletelyCached = {}
-
         tilesets = [Area.tileset0, Area.tileset1, Area.tileset2, Area.tileset3]
         for idx, name in enumerate(tilesets):
             if (name is not None) and (name != ''):
@@ -16239,6 +16267,103 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 RenderPainter.end()
 
             ScreenshotImage.save(fn, 'PNG', 50)
+
+    # Handles setting the backgrounds
+    @QtCore.pyqtSlot()
+    def EditSlot1(self):
+        """
+        Edits Slot 1 tileset
+        """
+        Area = SLib.Area
+        tilesets = [Area.tileset0]
+        for idx, name in enumerate(tilesets):
+            if (name is not None) and (name != ''):
+                if name not in szsData: return
+                sarcdata = szsData[name]
+
+                with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+                    fn.write(sarcdata)
+
+                process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', name,
+                                 miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '0'], stdout=PIPE, stderr=PIPE)
+                stdout, stderr = process.communicate()
+
+                with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+                    szsData[name] = fn.read()
+                os.remove(miyamoto_path + '\Tools/tmp.tmp')
+                self.ReloadTilesets()
+
+    @QtCore.pyqtSlot()
+    def EditSlot2(self):
+        """
+        Edits Slot 2 tileset
+        """
+        Area = SLib.Area
+        tilesets = [Area.tileset1]
+        for idx, name in enumerate(tilesets):
+            if (name is not None) and (name != ''):
+                if name not in szsData: return
+                sarcdata = szsData[name]
+
+                with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+                    fn.write(sarcdata)
+
+                process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', name,
+                                 miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '1'], stdout=PIPE, stderr=PIPE)
+                stdout, stderr = process.communicate()
+
+                with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+                    szsData[name] = fn.read()
+                os.remove(miyamoto_path + '\Tools/tmp.tmp')
+                self.ReloadTilesets()
+
+    @QtCore.pyqtSlot()
+    def EditSlot3(self):
+        """
+        Edits Slot 3 tileset
+        """
+        Area = SLib.Area
+        tilesets = [Area.tileset2]
+        for idx, name in enumerate(tilesets):
+            if (name is not None) and (name != ''):
+                if name not in szsData: return
+                sarcdata = szsData[name]
+
+                with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+                    fn.write(sarcdata)
+
+                process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', name,
+                                 miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '2'], stdout=PIPE, stderr=PIPE)
+                stdout, stderr = process.communicate()
+
+                with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+                    szsData[name] = fn.read()
+                os.remove(miyamoto_path + '\Tools/tmp.tmp')
+                self.ReloadTilesets()
+
+    @QtCore.pyqtSlot()
+    def EditSlot4(self):
+        """
+        Edits Slot 4 tileset
+        """
+        Area = SLib.Area
+        tilesets = [Area.tileset3]
+        for idx, name in enumerate(tilesets):
+            if (name is not None) and (name != ''):
+                if name not in szsData: return
+                sarcdata = szsData[name]
+
+                with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+                    fn.write(sarcdata)
+
+                process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', name,
+                                 miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '3'], stdout=PIPE, stderr=PIPE)
+                stdout, stderr = process.communicate()
+
+                with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+                    szsData[name] = fn.read()
+                os.remove(miyamoto_path + '\Tools/tmp.tmp')
+                self.ReloadTilesets()
 
 def main():
     """
