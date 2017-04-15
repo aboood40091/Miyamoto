@@ -157,6 +157,7 @@ Waterlocationx = 0
 Waterlocationy = 0
 Waterlocationw = 1000
 Waterlocationh = 30
+miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
 
 # Game enums
 NewSuperMarioBrosU = 0
@@ -1387,6 +1388,7 @@ def LoadActionsLists():
     global EditActions
     global ViewActions
     global SettingsActions
+    global TileActions
     global HelpActions
 
     FileActions = (
@@ -1442,6 +1444,16 @@ def LoadActionsLists():
         (trans.string('MenuItems', 82), False, 'deletearea'),
         (trans.string('MenuItems', 84), False, 'reloadgfx'),
         ("Testing string 1", False, 'reloaddata'),
+        )
+    TileActions = (
+        (trans.string('MenuItems', 136), False, 'editslot1'),
+        (trans.string('MenuItems', 138), False, 'editslot2'),
+        (trans.string('MenuItems', 140), False, 'editslot3'),
+        (trans.string('MenuItems', 142), False, 'editslot4'),
+        (trans.string('MenuItems', 144), False, 'replaceslot1'),
+        (trans.string('MenuItems', 146), False, 'replaceslot2'),
+        (trans.string('MenuItems', 148), False, 'replaceslot3'),
+        (trans.string('MenuItems', 150), False, 'replaceslot4'),
         )
     HelpActions = (
         (trans.string('MenuItems', 86), False, 'infobox'),
@@ -1885,8 +1897,8 @@ class MiyamotoRibbonFileMenu(QFileMenu):
         b = self.addButton(                gi('zipsarc', True), ts('MenuItems', 505),  mw.HandleZipSarc,       qk.CompressNSLU,          ts('MenuItems', 506))
         c = self.addButton(                gi('decompressszs', True), ts('MenuItems', 503),  mw.HandleDecompressSzs,       qk.CompressNSLU,          ts('MenuItems', 504))
         d = self.addButton(                gi('compressszs', True), ts('MenuItems', 507),  mw.HandleCompressSzs,       qk.CompressNSLU,          ts('MenuItems', 508))
-        e = self.addButton(                gi('manager', True), ts('MenuItems', 509),  mw.HandleTilesetManager,       qk.CompressNSLU,          ts('MenuItems', 510))
-        self.btns['sarcextract'], self.btns['zipsarc'], self.btns['decompressszs'], self.btns['compressszs'], self.btns['manager'] = a, b, c, d, e
+        #e = self.addButton(                gi('manager', True), ts('MenuItems', 509),  mw.HandleTilesetManager,       qk.CompressNSLU,          ts('MenuItems', 510))
+        self.btns['sarcextract'], self.btns['zipsarc'], self.btns['decompressszs'], self.btns['compressszs'] = a, b, c, d, 
 
         self.addSeparator()
 
@@ -11241,6 +11253,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 global EditActions
                 global ViewActions
                 global SettingsActions
+                global TileActions
                 global HelpActions
 
                 QtWidgets.QWidget.__init__(self)
@@ -11249,7 +11262,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 if setting('ToolbarActs') in (None, 'None', 'none', '', 0):
                     # Get the default settings
                     toggled = {}
-                    for List in (FileActions, EditActions, ViewActions, SettingsActions, HelpActions):
+                    for List in (FileActions, EditActions, ViewActions, SettingsActions, TileActions, HelpActions):
                         for name, activated, key in List:
                             toggled[key] = activated
                 else: # Get the registry settings
@@ -11264,16 +11277,19 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.EditBoxes = []
                 self.ViewBoxes = []
                 self.SettingsBoxes = []
+                self.TileBoxes = []
                 self.HelpBoxes = []
                 FL = QtWidgets.QVBoxLayout()
                 EL = QtWidgets.QVBoxLayout()
                 VL = QtWidgets.QVBoxLayout()
                 SL = QtWidgets.QVBoxLayout()
+                TL = QtWidgets.QVBoxLayout()
                 HL = QtWidgets.QVBoxLayout()
                 FB = QtWidgets.QGroupBox(trans.string('Menubar', 0))
                 EB = QtWidgets.QGroupBox(trans.string('Menubar', 1))
                 VB = QtWidgets.QGroupBox(trans.string('Menubar', 2))
                 SB = QtWidgets.QGroupBox(trans.string('Menubar', 3))
+                TB = QtWidgets.QGroupBox(trans.string('Menubar', 6))
                 HB = QtWidgets.QGroupBox(trans.string('Menubar', 4))
 
                 # Arrange this data so it can be iterated over
@@ -11282,6 +11298,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                     (EditActions, self.EditBoxes, EL, EB),
                     (ViewActions, self.ViewBoxes, VL, VB),
                     (SettingsActions, self.SettingsBoxes, SL, SB),
+                    (TileActions, self.TileBoxes, TL, TB),
                     (HelpActions, self.HelpBoxes, HL, HB),
                 )
 
@@ -11326,6 +11343,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                     (self.EditBoxes, EditActions),
                     (self.ViewBoxes, ViewActions),
                     (self.SettingsBoxes, SettingsActions),
+                    (self.TileBoxes, TileActions),
                     (self.HelpBoxes, HelpActions)
                 )
 
@@ -12507,7 +12525,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('zipsarc', self.HandleZipSarc, GetIcon('saveas'), trans.string('MenuItems', 505), trans.string('MenuItems', 506), QtGui.QKeySequence('Ctrl+Shift+Z'))
         self.CreateAction('decompressszs', self.HandleDecompressSzs, GetIcon('saveas'), trans.string('MenuItems', 503), trans.string('MenuItems', 504), QtGui.QKeySequence('Ctrl+Shift+D'))
         self.CreateAction('compressszs', self.HandleCompressSzs, GetIcon('saveas'), trans.string('MenuItems', 507), trans.string('MenuItems', 508), QtGui.QKeySequence('Ctrl+Shift+F'))
-        self.CreateAction('manager', self.HandleTilesetManager, GetIcon('animation'), trans.string('MenuItems', 509), trans.string('MenuItems', 510), QtGui.QKeySequence('Ctrl+Shift+M'))
+        #self.CreateAction('manager', self.HandleTilesetManager, GetIcon('animation'), trans.string('MenuItems', 509), trans.string('MenuItems', 510), QtGui.QKeySequence('Ctrl+Shift+M'))
         self.CreateAction('metainfo', self.HandleInfo, GetIcon('info'), trans.string('MenuItems', 12), trans.string('MenuItems', 13), QtGui.QKeySequence('Ctrl+Alt+I'))
         self.CreateAction('screenshot', self.HandleScreenshot, GetIcon('screenshot'), trans.string('MenuItems', 14), trans.string('MenuItems', 15), QtGui.QKeySequence('Ctrl+Alt+S'))
         self.CreateAction('changegamepath', self.HandleChangeGamePath, GetIcon('openfromfile'), trans.string('MenuItems', 16), trans.string('MenuItems', 17), QtGui.QKeySequence('Ctrl+Alt+G'))
@@ -12565,6 +12583,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('reloadgfx', self.ReloadTilesets, GetIcon('reload'), trans.string('MenuItems', 84), trans.string('MenuItems', 85), QtGui.QKeySequence('Ctrl+Alt+R'))
         self.CreateAction('reloaddata', self.ReloadSpriteData, GetIcon('reload'), trans.string('MenuItems', 128), trans.string('MenuItems', 129), QtGui.QKeySequence('Ctrl+Shift+R'))
 
+        # Tilesets
+        #self.CreateAction('editslot1', self.EditSlot1, GetIcon('animation'), trans.string('MenuItems', 136), trans.string('MenuItems', 137), None)
+        #self.CreateAction('editslot2', self.EditSlot2, GetIcon('animation'), trans.string('MenuItems', 138), trans.string('MenuItems', 139), None)
+        #self.CreateAction('editslot3', self.EditSlot3, GetIcon('animation'), trans.string('MenuItems', 140), trans.string('MenuItems', 141), None)
+        #self.CreateAction('editslot4', self.EditSlot4, GetIcon('animation'), trans.string('MenuItems', 142), trans.string('MenuItems', 143), None)
+        self.CreateAction('replaceslot1', self.ReplaceSlot1, GetIcon('animation'), trans.string('MenuItems', 144), trans.string('MenuItems', 145), None)
+        self.CreateAction('replaceslot2', self.ReplaceSlot2, GetIcon('animation'), trans.string('MenuItems', 146), trans.string('MenuItems', 147), None)
+        self.CreateAction('replaceslot3', self.ReplaceSlot3, GetIcon('animation'), trans.string('MenuItems', 148), trans.string('MenuItems', 149), None)
+        self.CreateAction('replaceslot4', self.ReplaceSlot4, GetIcon('animation'), trans.string('MenuItems', 150), trans.string('MenuItems', 151), None)
+
         # Help actions are created later
 
         # Recent Files Menu
@@ -12619,7 +12647,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addAction(self.actions['zipsarc'])
         fmenu.addAction(self.actions['decompressszs'])
         fmenu.addAction(self.actions['compressszs'])
-        fmenu.addAction(self.actions['manager'])
+        #fmenu.addAction(self.actions['manager'])
         fmenu.addSeparator()
         fmenu.addAction(self.actions['screenshot'])
         fmenu.addAction(self.actions['changegamepath'])
@@ -12689,6 +12717,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         lmenu.addAction(self.actions['reloadgfx'])
         lmenu.addAction(self.actions['reloaddata'])
 
+        tmenu = menubar.addMenu(trans.string('Menubar', 6))
+        #tmenu.addAction(self.actions['editslot1'])
+        #tmenu.addAction(self.actions['editslot2'])
+        #tmenu.addAction(self.actions['editslot3'])
+        #tmenu.addAction(self.actions['editslot4'])
+        #tmenu.addSeparator()
+        tmenu.addAction(self.actions['replaceslot1'])
+        tmenu.addAction(self.actions['replaceslot2'])
+        tmenu.addAction(self.actions['replaceslot3'])
+        tmenu.addAction(self.actions['replaceslot4'])
+
         hmenu = menubar.addMenu(trans.string('Menubar', 4))
         self.SetupHelpMenu(hmenu)
 
@@ -12733,6 +12772,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         global EditActions
         global ViewActions
         global SettingsActions
+        global TileActions
         global HelpActions
 
         # First, define groups. Each group is isolated by separators.
@@ -12797,6 +12837,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'reloadgfx',
                 'reloaddata',
             ), (
+                'editslot1',
+                'editslot2',
+                'editslot3',
+                'editslot4',
+                'replaceslot1',
+                'replaceslot2',
+                'replaceslot3',
+                'replaceslot4',
+            ), (
                 'infobox',
                 'helpbox',
                 'tipbox',
@@ -12808,7 +12857,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if setting('ToolbarActs') in (None, 'None', 'none', '', 0):
             # Get the default settings
             toggled = {}
-            for List in (FileActions, EditActions, ViewActions, SettingsActions, HelpActions):
+            for List in (FileActions, EditActions, ViewActions, SettingsActions, TileActions, HelpActions):
                 for name, activated, key in List:
                     toggled[key] = activated
         else: # Get the registry settings
@@ -17074,6 +17123,541 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 RenderPainter.end()
 
             ScreenshotImage.save(fn, 'PNG', 50)
+
+    # Handles setting the backgrounds
+    @QtCore.pyqtSlot()
+    def EditSlot1(self):
+        """
+        Edits Slot 1 tileset
+        """
+        if (SLib.Area.tileset0 is not None) and (SLib.Area.tileset0 != ''):
+            if SLib.Area.tileset0 not in szsData: return
+            sarcdata = szsData[SLib.Area.tileset0]
+
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+                fn.write(sarcdata)
+
+            process = Popen(['python', miyamoto_path + '\puzzlehd.py', SLib.Area.tileset0,
+                             miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '0'], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+                szsData[SLib.Area.tileset0] = fn.read()
+            os.remove(miyamoto_path + '\Tools/tmp.tmp')
+            self.ReloadTilesets()
+
+    @QtCore.pyqtSlot()
+    def EditSlot2(self):
+        """
+        Edits Slot 2 tileset
+        """
+        if (SLib.Area.tileset1 is not None) and (SLib.Area.tileset1 != ''):
+            if SLib.Area.tileset1 not in szsData: return
+            sarcdata = szsData[SLib.Area.tileset1]
+
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+                fn.write(sarcdata)
+
+            process = Popen(['python', miyamoto_path + '\puzzlehd.py', SLib.Area.tileset1,
+                             miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '1'], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+                szsData[SLib.Area.tileset1] = fn.read()
+            os.remove(miyamoto_path + '\Tools/tmp.tmp')
+            self.ReloadTilesets()
+
+        elif SLib.Area.tileset1 == '':
+            SLib.Area.tileset1 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+            if SLib.Area.tileset1 == '': return
+            process = Popen(['python', miyamoto_path + '\puzzlehd.py', SLib.Area.tileset1,
+                             'None', miyamoto_path, '1'], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+
+    @QtCore.pyqtSlot()
+    def EditSlot3(self):
+        """
+        Edits Slot 3 tileset
+        """
+        if (SLib.Area.tileset2 is not None) and (SLib.Area.tileset2 != ''):
+            if SLib.Area.tileset2 not in szsData: return
+            sarcdata = szsData[SLib.Area.tileset2]
+
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+                fn.write(sarcdata)
+
+            process = Popen(['python', miyamoto_path + '\puzzlehd.py', SLib.Area.tileset2,
+                             miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '2'], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+                szsData[SLib.Area.tileset2] = fn.read()
+            os.remove(miyamoto_path + '\Tools/tmp.tmp')
+            self.ReloadTilesets()
+
+        elif SLib.Area.tileset2 == '':
+            SLib.Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+            if SLib.Area.tileset2 == '': return
+            process = Popen(['python', miyamoto_path + '\puzzlehd.py', SLib.Area.tileset2,
+                             'None', miyamoto_path, '2'], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+
+    @QtCore.pyqtSlot()
+    def EditSlot4(self):
+        """
+        Edits Slot 4 tileset
+        """
+        if (SLib.Area.tileset3 is not None) and (SLib.Area.tileset3 != ''):
+            if SLib.Area.tileset3 not in szsData: return
+            sarcdata = szsData[SLib.Area.tileset3]
+
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+                fn.write(sarcdata)
+
+            process = Popen(['python', miyamoto_path + '\puzzlehd.py', SLib.Area.tileset3,
+                             miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '3'], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+                szsData[SLib.Area.tileset3] = fn.read()
+            os.remove(miyamoto_path + '\Tools/tmp.tmp')
+            self.ReloadTilesets()
+
+        elif SLib.Area.tileset3 == '':
+            SLib.Area.tileset3 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+            if SLib.Area.tileset3 == '': return
+            process = Popen(['python', miyamoto_path + '\puzzlehd.py', SLib.Area.tileset3,
+                             'None', miyamoto_path, '3'], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+
+    # Handles setting the backgrounds
+    @QtCore.pyqtSlot()
+    def ReplaceSlot1(self):
+        """
+        Replaces Slot 1 tileset
+        """
+
+        CurrentCD = miyamoto_path
+
+        pathMath = 'miyamotodata/sarc'
+
+        PATHvar = mainWindow.fileSavePath
+
+        runCompress = True
+
+
+
+        Packs = str(PATHvar)
+
+        DirNamey = ntpath.basename(Packs)
+        DirName = os.path.splitext(DirNamey)[0]
+
+        if PATHvar == '': runCompress = False
+        elif not PATHvar.endswith('c'):
+            runCompress = False
+            QMessageBox.information(w, "Not So Fast:", "You can't edit SZS file tilesets! You must export the file to an SARC first.")
+        else: runCompress = True
+
+
+        PATHvar = str(PATHvar)
+
+        YAZDir = pathMath+'/EXT.bat'
+
+
+        if runCompress:
+
+            fcc = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 11), '', trans.string('FileDlgs', 2) + ' (*)')[0]
+            fcc = str(fcc)
+
+            fcc2 = str(fcc)
+
+            fccc = ntpath.basename(fcc2)
+            fcc2 = os.path.splitext(fccc)[0]
+
+
+            oldtile = SLib.Area.tileset0
+
+            SLib.Area.tileset0 = fcc2
+
+
+            name = self.getInnerSarcName()
+            data = Level.save(name)
+            with open(PATHvar, 'wb') as f:
+                f.write(data)
+            self.UpdateTitle()
+
+
+
+            # Make YAZ0COMP run correctly
+            os.chdir('miyamotodata/sarc')
+
+            shutil.copyfile(PATHvar, DirNamey)
+
+            w = QtWidgets.QWidget()
+
+            # Show a message box
+            #QMessageBox.information(w, "Notice:", "Now converting to .zip file. Time depends on file-size.")
+
+            #print("SAVING FILE TO ZIP FORMAT")
+
+            text_file = open("EXT.bat", "w")
+            text_file.write("SARCExtract-0.3.exe "+DirNamey)
+            text_file.close()
+
+            if os.name == 'nt': pro = subprocess.Popen(["EXT.bat"])
+            if os.name == 'nt': pro.wait()
+
+            os.system("wine cmd /c EXT.bat")
+
+            os.remove(DirNamey)
+
+            os.chdir(DirName)
+
+            if oldtile is not '': os.remove(str(oldtile))
+
+            shutil.copy(fcc, fcc2)
+
+            os.chdir(CurrentCD+"/miyamotodata/sarc")
+
+            text_file = open("PAC.bat", "w")
+            text_file.write("SARCPack-0.2.1.exe "+DirName)
+            text_file.close()
+
+            if os.name == 'nt': pro = subprocess.Popen(["PAC.bat"])
+            if os.name == 'nt': pro.wait()
+
+            os.system("wine cmd /c PAC.bat")
+
+            shutil.rmtree(DirName)
+
+            shutil.move(DirNamey, PATHvar)
+
+            #Fix directory
+            os.chdir(CurrentCD)
+
+            mainWindow.LoadLevel(None, PATHvar, True, 1)
+
+
+    @QtCore.pyqtSlot()
+    def ReplaceSlot2(self):
+        """
+        Replaces Slot 2 tileset
+        """
+
+        CurrentCD = miyamoto_path
+
+        pathMath = 'miyamotodata/sarc'
+
+        PATHvar = mainWindow.fileSavePath
+
+        runCompress = True
+
+
+
+        Packs = str(PATHvar)
+
+        DirNamey = ntpath.basename(Packs)
+        DirName = os.path.splitext(DirNamey)[0]
+
+        if PATHvar == '': runCompress = False
+        elif not PATHvar.endswith('c'):
+            runCompress = False
+            QMessageBox.information(w, "Not So Fast:", "You can't edit SZS file tilesets! You must export the file to an SARC first.")
+        else: runCompress = True
+
+
+        PATHvar = str(PATHvar)
+
+        YAZDir = pathMath+'/EXT.bat'
+
+
+        if runCompress:
+
+            fcc = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 11), '', trans.string('FileDlgs', 2) + ' (*)')[0]
+            fcc = str(fcc)
+
+            fcc2 = str(fcc)
+
+            fccc = ntpath.basename(fcc2)
+            fcc2 = os.path.splitext(fccc)[0]
+
+
+            oldtile = SLib.Area.tileset1
+
+            SLib.Area.tileset1 = fcc2
+
+
+            name = self.getInnerSarcName()
+            data = Level.save(name)
+            with open(PATHvar, 'wb') as f:
+                f.write(data)
+            self.UpdateTitle()
+
+
+
+            # Make YAZ0COMP run correctly
+            os.chdir('miyamotodata/sarc')
+
+            shutil.copyfile(PATHvar, DirNamey)
+
+            w = QtWidgets.QWidget()
+
+            # Show a message box
+            #QMessageBox.information(w, "Notice:", "Now converting to .zip file. Time depends on file-size.")
+
+            #print("SAVING FILE TO ZIP FORMAT")
+
+            text_file = open("EXT.bat", "w")
+            text_file.write("SARCExtract-0.3.exe "+DirNamey)
+            text_file.close()
+
+            if os.name == 'nt': pro = subprocess.Popen(["EXT.bat"])
+            if os.name == 'nt': pro.wait()
+
+            os.system("wine cmd /c EXT.bat")
+
+            os.remove(DirNamey)
+
+            os.chdir(DirName)
+
+            #if oldtile is not '': os.remove(str(oldtile))
+
+            shutil.copy(fcc, fcc2)
+
+            os.chdir(CurrentCD+"/miyamotodata/sarc")
+
+            text_file = open("PAC.bat", "w")
+            text_file.write("SARCPack-0.2.1.exe "+DirName)
+            text_file.close()
+
+            if os.name == 'nt': pro = subprocess.Popen(["PAC.bat"])
+            if os.name == 'nt': pro.wait()
+
+            os.system("wine cmd /c PAC.bat")
+
+            shutil.rmtree(DirName)
+
+            shutil.move(DirNamey, PATHvar)
+
+            #Fix directory
+            os.chdir(CurrentCD)
+
+            mainWindow.LoadLevel(None, PATHvar, True, 1)
+
+    @QtCore.pyqtSlot()
+    def ReplaceSlot3(self):
+        """
+        Replaces Slot 3 tileset
+        """
+
+        CurrentCD = miyamoto_path
+
+        pathMath = 'miyamotodata/sarc'
+
+        PATHvar = mainWindow.fileSavePath
+
+        runCompress = True
+
+
+
+        Packs = str(PATHvar)
+
+        DirNamey = ntpath.basename(Packs)
+        DirName = os.path.splitext(DirNamey)[0]
+
+        if PATHvar == '': runCompress = False
+        elif not PATHvar.endswith('c'):
+            runCompress = False
+            QMessageBox.information(w, "Not So Fast:", "You can't edit SZS file tilesets! You must export the file to an SARC first.")
+        else: runCompress = True
+
+
+        PATHvar = str(PATHvar)
+
+        YAZDir = pathMath+'/EXT.bat'
+
+
+        if runCompress:
+
+            fcc = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 11), '', trans.string('FileDlgs', 2) + ' (*)')[0]
+            fcc = str(fcc)
+
+            fcc2 = str(fcc)
+
+            fccc = ntpath.basename(fcc2)
+            fcc2 = os.path.splitext(fccc)[0]
+
+
+            oldtile = SLib.Area.tileset2
+
+            SLib.Area.tileset2 = fcc2
+
+
+            name = self.getInnerSarcName()
+            data = Level.save(name)
+            with open(PATHvar, 'wb') as f:
+                f.write(data)
+            self.UpdateTitle()
+
+
+
+            # Make YAZ0COMP run correctly
+            os.chdir('miyamotodata/sarc')
+
+            shutil.copyfile(PATHvar, DirNamey)
+
+            w = QtWidgets.QWidget()
+
+            # Show a message box
+            #QMessageBox.information(w, "Notice:", "Now converting to .zip file. Time depends on file-size.")
+
+            #print("SAVING FILE TO ZIP FORMAT")
+
+            text_file = open("EXT.bat", "w")
+            text_file.write("SARCExtract-0.3.exe "+DirNamey)
+            text_file.close()
+
+            if os.name == 'nt': pro = subprocess.Popen(["EXT.bat"])
+            if os.name == 'nt': pro.wait()
+
+            os.system("wine cmd /c EXT.bat")
+
+            os.remove(DirNamey)
+
+            os.chdir(DirName)
+
+            #if oldtile is not '': os.remove(str(oldtile))
+
+            shutil.copy(fcc, fcc2)
+
+            os.chdir(CurrentCD+"/miyamotodata/sarc")
+
+            text_file = open("PAC.bat", "w")
+            text_file.write("SARCPack-0.2.1.exe "+DirName)
+            text_file.close()
+
+            if os.name == 'nt': pro = subprocess.Popen(["PAC.bat"])
+            if os.name == 'nt': pro.wait()
+
+            os.system("wine cmd /c PAC.bat")
+
+            shutil.rmtree(DirName)
+
+            shutil.move(DirNamey, PATHvar)
+
+            #Fix directory
+            os.chdir(CurrentCD)
+
+            mainWindow.LoadLevel(None, PATHvar, True, 1)
+
+    @QtCore.pyqtSlot()
+    def ReplaceSlot4(self):
+        """
+        Replaces Slot 4 tileset
+        """
+
+        CurrentCD = miyamoto_path
+
+        pathMath = 'miyamotodata/sarc'
+
+        PATHvar = mainWindow.fileSavePath
+
+        runCompress = True
+
+
+
+        Packs = str(PATHvar)
+
+        DirNamey = ntpath.basename(Packs)
+        DirName = os.path.splitext(DirNamey)[0]
+
+        if PATHvar == '': runCompress = False
+        elif not PATHvar.endswith('c'):
+            runCompress = False
+            QMessageBox.information(w, "Not So Fast:", "You can't edit SZS file tilesets! You must export the file to an SARC first.")
+        else: runCompress = True
+
+
+        PATHvar = str(PATHvar)
+
+        YAZDir = pathMath+'/EXT.bat'
+
+
+        if runCompress:
+
+            fcc = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 11), '', trans.string('FileDlgs', 2) + ' (*)')[0]
+            fcc = str(fcc)
+
+            fcc2 = str(fcc)
+
+            fccc = ntpath.basename(fcc2)
+            fcc2 = os.path.splitext(fccc)[0]
+
+
+            oldtile = SLib.Area.tileset3
+
+            SLib.Area.tileset3 = fcc2
+
+
+            name = self.getInnerSarcName()
+            data = Level.save(name)
+            with open(PATHvar, 'wb') as f:
+                f.write(data)
+            self.UpdateTitle()
+
+
+
+            # Make YAZ0COMP run correctly
+            os.chdir('miyamotodata/sarc')
+
+            shutil.copyfile(PATHvar, DirNamey)
+
+            w = QtWidgets.QWidget()
+
+            # Show a message box
+            #QMessageBox.information(w, "Notice:", "Now converting to .zip file. Time depends on file-size.")
+
+            #print("SAVING FILE TO ZIP FORMAT")
+
+            text_file = open("EXT.bat", "w")
+            text_file.write("SARCExtract-0.3.exe "+DirNamey)
+            text_file.close()
+
+            if os.name == 'nt': pro = subprocess.Popen(["EXT.bat"])
+            if os.name == 'nt': pro.wait()
+
+            os.system("wine cmd /c EXT.bat")
+
+            os.remove(DirNamey)
+
+            os.chdir(DirName)
+
+            #if oldtile is not '': os.remove(str(oldtile))
+
+            shutil.copy(fcc, fcc2)
+
+            os.chdir(CurrentCD+"/miyamotodata/sarc")
+
+            text_file = open("PAC.bat", "w")
+            text_file.write("SARCPack-0.2.1.exe "+DirName)
+            text_file.close()
+
+            if os.name == 'nt': pro = subprocess.Popen(["PAC.bat"])
+            if os.name == 'nt': pro.wait()
+
+            os.system("wine cmd /c PAC.bat")
+
+            shutil.rmtree(DirName)
+
+            shutil.move(DirNamey, PATHvar)
+
+            #Fix directory
+            os.chdir(CurrentCD)
+
+            mainWindow.LoadLevel(None, PATHvar, True, 1)
 
 def main():
     """
