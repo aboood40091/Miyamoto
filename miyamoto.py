@@ -157,6 +157,7 @@ Waterlocationx = 0
 Waterlocationy = 0
 Waterlocationw = 1000
 Waterlocationh = 30
+#miyamoto_path = os.getcwd()
 
 # Game enums
 NewSuperMarioBrosU = 0
@@ -1885,8 +1886,8 @@ class MiyamotoRibbonFileMenu(QFileMenu):
         b = self.addButton(                gi('zipsarc', True), ts('MenuItems', 505),  mw.HandleZipSarc,       qk.CompressNSLU,          ts('MenuItems', 506))
         c = self.addButton(                gi('decompressszs', True), ts('MenuItems', 503),  mw.HandleDecompressSzs,       qk.CompressNSLU,          ts('MenuItems', 504))
         d = self.addButton(                gi('compressszs', True), ts('MenuItems', 507),  mw.HandleCompressSzs,       qk.CompressNSLU,          ts('MenuItems', 508))
-        e = self.addButton(                gi('manager', True), ts('MenuItems', 509),  mw.HandleTilesetManager,       qk.CompressNSLU,          ts('MenuItems', 510))
-        self.btns['sarcextract'], self.btns['zipsarc'], self.btns['decompressszs'], self.btns['compressszs'], self.btns['manager'] = a, b, c, d, e
+        #e = self.addButton(                gi('manager', True), ts('MenuItems', 509),  mw.HandleTilesetManager,       qk.CompressNSLU,          ts('MenuItems', 510))
+        self.btns['sarcextract'], self.btns['zipsarc'], self.btns['decompressszs'], self.btns['compressszs'] = a, b, c, d, 
 
         self.addSeparator()
 
@@ -2994,7 +2995,6 @@ def _LoadTileset(idx, name, reload=False):
     """
 
     # if this file's already loaded, return
-    if TilesetFilesLoaded[idx] == name and not reload: return
     if name not in szsData: return
 
     sarcdata = szsData[name]
@@ -3003,67 +3003,60 @@ def _LoadTileset(idx, name, reload=False):
 
     tileoffset = idx * 256
 
-    global Tiles, TilesetCache, TileThreads
-    # Load the tiles if they're not cached.
-    if name not in TilesetCache:
-        # Decompress the textures
-        try:
-            comptiledata = sarc['BG_tex/%s.gtx' % name].data
-            colldata = sarc['BG_chk/d_bgchk_%s.bin' % name].data
-        except KeyError:
-            QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
-            return False
+    global Tiles
+    # Decompress the textures
+    try:
+        comptiledata = sarc['BG_tex/%s.gtx' % name].data
+        colldata = sarc['BG_chk/d_bgchk_%s.bin' % name].data
+    except KeyError:
+        QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0), trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
+        return False
 
-        # load in the textures
-        img = gtx.writeFile(gtx.readGFD(comptiledata))
+    # load in the textures
+    img = LoadTexture_NSMBU(comptiledata)
 
-        # Divide it into individual tiles and
-        # add collisions at the same time
-        def getTileFromImage(tilemap, xtilenum, ytilenum):
-            return tilemap.copy((xtilenum * 64) + 2, (ytilenum * 64) + 2, 60, 60)
+    # Divide it into individual tiles and
+    # add collisions at the same time
+    def getTileFromImage(tilemap, xtilenum, ytilenum):
+        return tilemap.copy((xtilenum * 64) + 2, (ytilenum * 64) + 2, 60, 60)
 
-        dest = QtGui.QPixmap.fromImage(img)
-        sourcex = 0
-        sourcey = 0
-        for i in range(tileoffset, tileoffset + 256):
-            T = TilesetTile(getTileFromImage(dest, sourcex, sourcey))
-            Tiles[i] = T
-            sourcex += 1
-            if sourcex >= 32:
-                sourcex = 0
-                sourcey += 1
+    dest = QtGui.QPixmap.fromImage(img)
+    sourcex = 0
+    sourcey = 0
+    for i in range(tileoffset, tileoffset + 256):
+        T = TilesetTile(getTileFromImage(dest, sourcex, sourcey))
+        Tiles[i] = T
+        sourcex += 1
+        if sourcex >= 32:
+            sourcex = 0
+            sourcey += 1
 
-        isAnimated = False
-        if isAnimated:
-            row = 0
-            col = 0
-            for i in range(tileoffset,tileoffset+441):
+    isAnimated = False
+    if isAnimated:
+        row = 0
+        col = 0
+        for i in range(tileoffset,tileoffset+441):
+            filenames = []
+            filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].lower(), hex(col)[2].lower()))
+            filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].upper(), hex(col)[2].upper()))
+            if filenames[0] == filenames[1]:
+                item = filenames[0]
                 filenames = []
-                filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].lower(), hex(col)[2].lower()))
-                filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].upper(), hex(col)[2].upper()))
-                if filenames[0] == filenames[1]:
-                    item = filenames[0]
-                    filenames = []
-                    filenames.append(item)
-                for fn in filenames:
-                    fn = 'BG_tex/' + fn
-                    found = False
-                    try:
-                        sarc[fn]
-                        found = True
-                    except KeyError:
-                        pass
-                    if found:
-                        Tiles[i].addAnimationData(arc[fn])
-                col += 1
-                if col == 16:
-                    col = 0
-                    row += 1
-
-    else:
-        # We already have tiles in the tileset cache; copy them over to Tiles
-        for i in range(256):
-            Tiles[i + tileoffset] = TilesetCache[name][i]
+                filenames.append(item)
+            for fn in filenames:
+                fn = 'BG_tex/' + fn
+                found = False
+                try:
+                    sarc[fn]
+                    found = True
+                except KeyError:
+                    pass
+                if found:
+                    Tiles[i].addAnimationData(arc[fn])
+            col += 1
+            if col == 16:
+                col = 0
+                row += 1
 
 
     # Load the object definitions
@@ -3086,16 +3079,40 @@ def _LoadTileset(idx, name, reload=False):
 
     ProcessOverrides(idx, name)
 
-    # Keep track of this filepath
-    TilesetFilesLoaded[idx] = name
-
     # Add Tiles to spritelib
     SLib.Tiles = Tiles
 
-    # Add Tiles to the cache
-    TilesetCache[name] = []
-    for i in range(256):
-        TilesetCache[name].append(Tiles[i + tileoffset])
+def LoadTexture_NSMBU(tiledata):
+    miyamoto_path = os.getcwd() 
+    with open(miyamoto_path + '/miyamotodata/tools/texture.gtx', 'wb') as binfile:
+        binfile.write(tiledata)
+
+    #process = Popen([miyamoto_path + '/Tools/gtx_extract.exe', miyamoto_path + '/Tools/texture.gtx',
+                     #miyamoto_path + '/Tools/texture.bmp'], stdout=PIPE, stderr=PIPE)
+    #stdout, stderr = process.communicate()
+
+
+    os.chdir(miyamoto_path+"/miyamotodata/tools")
+
+    text_file = open("RUN.bat", "w")
+    text_file.write("gtx_extract.exe texture.gtx texture.bmp")
+    text_file.close()
+
+    os.chdir(miyamoto_path+"/miyamotodata/tools")
+
+    if os.name == 'nt': pro = subprocess.Popen(["RUN.bat"])
+    if os.name == 'nt': pro.wait()
+
+    os.system("wine cmd /c RUN.bat")
+
+    img = QtGui.QImage(miyamoto_path + '/miyamotodata/tools/texture.bmp')
+
+    #os.remove(miyamoto_path + '\Tools/texture.gtx')
+    #os.remove(miyamoto_path + '\Tools/texture.bmp')
+
+    os.chdir(miyamoto_path)
+
+    return img
 
 def CascadeTilesetNames_Category(lower, upper):
     """
@@ -12507,7 +12524,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('zipsarc', self.HandleZipSarc, GetIcon('saveas'), trans.string('MenuItems', 505), trans.string('MenuItems', 506), QtGui.QKeySequence('Ctrl+Shift+Z'))
         self.CreateAction('decompressszs', self.HandleDecompressSzs, GetIcon('saveas'), trans.string('MenuItems', 503), trans.string('MenuItems', 504), QtGui.QKeySequence('Ctrl+Shift+D'))
         self.CreateAction('compressszs', self.HandleCompressSzs, GetIcon('saveas'), trans.string('MenuItems', 507), trans.string('MenuItems', 508), QtGui.QKeySequence('Ctrl+Shift+F'))
-        self.CreateAction('manager', self.HandleTilesetManager, GetIcon('animation'), trans.string('MenuItems', 509), trans.string('MenuItems', 510), QtGui.QKeySequence('Ctrl+Shift+M'))
+        #self.CreateAction('manager', self.HandleTilesetManager, GetIcon('animation'), trans.string('MenuItems', 509), trans.string('MenuItems', 510), QtGui.QKeySequence('Ctrl+Shift+M'))
         self.CreateAction('metainfo', self.HandleInfo, GetIcon('info'), trans.string('MenuItems', 12), trans.string('MenuItems', 13), QtGui.QKeySequence('Ctrl+Alt+I'))
         self.CreateAction('screenshot', self.HandleScreenshot, GetIcon('screenshot'), trans.string('MenuItems', 14), trans.string('MenuItems', 15), QtGui.QKeySequence('Ctrl+Alt+S'))
         self.CreateAction('changegamepath', self.HandleChangeGamePath, GetIcon('openfromfile'), trans.string('MenuItems', 16), trans.string('MenuItems', 17), QtGui.QKeySequence('Ctrl+Alt+G'))
@@ -12619,7 +12636,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addAction(self.actions['zipsarc'])
         fmenu.addAction(self.actions['decompressszs'])
         fmenu.addAction(self.actions['compressszs'])
-        fmenu.addAction(self.actions['manager'])
+        #fmenu.addAction(self.actions['manager'])
         fmenu.addSeparator()
         fmenu.addAction(self.actions['screenshot'])
         fmenu.addAction(self.actions['changegamepath'])
@@ -14282,10 +14299,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Create a new level
         """
-        #if self.CheckDirty(): return
-        #self.LoadLevel(None, None, False, 1)
-        print('Not functional yet.')
 
+        fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 3), '', 'SARC/Sarchive (*.sarc);;' + trans.string('FileDlgs', 2) + ' (*)')[0]
+        if fn == '': return
+        fn = str(fn)
+
+        #chDir()
+        shutil.copyfile('miyamotodata/blankcourse.sarc', fn)
+        self.LoadLevel(None, fn, True, 1)
 
     @QtCore.pyqtSlot()
     def HandleOpenFromName(self):
@@ -14472,7 +14493,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
     def HandleExtractSarc(self):
 
         """
-        Exports SARC to a .szs file
+        Exports SARC to a .zip file
         """
 
         CurrentCD = os.getcwd()
@@ -14907,8 +14928,115 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Launch Tileset Manager, and reload tilesets.
         """
+
+        """
+        Make Directory
+        """
+
+        CurrentCD = os.getcwd()
+
+        pathMath = 'miyamotodata/sarc'
+
+        PATHvar = mainWindow.fileSavePath
+
+        runCompress = True
+
+        """
+        Open sarchive
+        """
+
+
+        Packs = str(PATHvar)
+
+        DirNamey = ntpath.basename(Packs)
+        DirName = os.path.splitext(DirNamey)[0]
+
+        if not Packs.endswith('c'): runCompress = False
+        else: runcCompress = True
+
+
+        PATHvar = str(PATHvar)
+
+        def zip_dir(zipname, dir_to_zip):
+            dir_to_zip_len = len(dir_to_zip.rstrip(os.sep)) + 1
+            with zipfile.ZipFile(zipname, mode='w', compression=zipfile.ZIP_DEFLATED) as zf:
+                for dirname, subdirs, files in os.walk(dir_to_zip):
+                    for filename in files:
+                        path = os.path.join(dirname, filename)
+                        entry = path[dir_to_zip_len:]
+                        zf.write(path, entry)
+
+        YAZDir = pathMath+'/EXT.bat'
+
+
+        if runCompress:
+
+            fcc = CurrentCD+'/miyamotodata/tilesets/'+DirName
+            fcc = str(fcc)
+
+            # Make YAZ0COMP run correctly
+            os.chdir('miyamotodata/sarc')
+
+            shutil.copyfile(PATHvar, DirNamey)
+
+            w = QtWidgets.QWidget()
+
+            # Show a message box
+            #QMessageBox.information(w, "Notice:", "Now converting to .zip file. Time depends on file-size.")
+
+            #print("SAVING FILE TO ZIP FORMAT")
+
+            text_file = open("EXT.bat", "w")
+            text_file.write("SARCExtract-0.3.exe "+DirNamey)
+            text_file.close()
+
+            if os.name == 'nt': pro = subprocess.Popen(["EXT.bat"])
+            if os.name == 'nt': pro.wait()
+
+            os.system("wine cmd /c EXT.bat")
+
+
+            #zip_dir(DirName+'.zip', DirName)
+
+            shutil.move(DirName, fcc)
+            #os.remove(DirNamey)
+            #shutil.rmtree(DirName)
+
+
+
+
+            #print("DONE! PLEASE RETRIEVE YOUR ZIP FILE, AND HAVE A NICE DAY!")
+
+            #Fix directory
+            os.chdir(CurrentCD)
+
+            #shutil.move(pathMath+"/!out", fcc)
+
+            # Show a message box
+            #QMessageBox.information(w, "Notice:", "Finished successfully! Enjoy :D")
+
+            #Generate dir.txt for Tileset Manager.
+            os.chdir('miyamotodata/tilesets/manager/data')
+            text_file = open("dir.txt", "w")
+            text_file.write(fcc + "\n")
+            text_file.write(CurrentCD+"/miyamotodata/tilesets/tilesets" + "\n")
+            text_file.write(CurrentCD+"/miyamotodata/tilesets/xml/"+DirName+".xml" + "\n")
+            text_file.close()
+
+            os.chdir(CurrentCD)
+
+            #Launch Miyamoto
+            os.chdir('miyamotodata/tilesets/manager')
+
+            if os.name == 'nt': pro = subprocess.Popen(["Tileset_Manager.exe"])
+            if os.name == 'nt': pro.wait()
+
+            os.system("wine Tileset_Manager.exe")
+
+            print(fcc, DirName, CurrentCD)
+
+            
         
-        #
 
        
 

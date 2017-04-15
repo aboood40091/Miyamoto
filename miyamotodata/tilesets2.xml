@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<tilesets>
+    <slot num="0" sorted="true">
+        <category name="Normal">
+            <tileset filename="J_Kihon" name="Overworld" />
+            <tileset filename="J_Chika" name="Underground" />
+            <tileset filename="J_Setsugen" name="Snow" />
+            <tileset filename="J_Suichu" name="Underwater" />
+            <tileset filename="J_Yougan" name="Lava" />
+            <tileset filename="J_Gold" name="Gold" />
+        </category>
+        <category name="BETA">
+            <tileset filename="J_Kihon_Test" name="Overworld (BETA)" />
+        </category>
+    </slot>
+
+    <slot num="1">
+        <tileset filename="M_Chika" name="Underground" />
+        <tileset filename="M_Gake" name="Mountains" />
+        <tileset filename="M_Gake_Setsugen" name="Snowy Mountains" />
+        <tileset filename="M_Jungle" name="Forest" />
+        <tileset filename="M_Kaigan" name="Beach" />
+        <tileset filename="M_Kaigan_Obake" name="Haunted Beach" />
+        <tileset filename="M_Kazan" name="Volcano" />
+        <tileset filename="M_Kinopio_Normal" name="Bonus House Ground" />
+        <tileset filename="M_Koopa" name="Final Castle" />
+        <tileset filename="M_Nohara" name="Overworld/Grassland" />
+        <tileset filename="M_Nohara_BigTree" name="Overworld/Grassland with Trees" />
+        <tileset filename="M_Nohara_Onpu" name="Overworld/Grassland with Note Block" />
+        <tileset filename="M_Nohara2" name="Sky" />
+        <tileset filename="M_Obake" name="Ghosthouse Interior" />
+        <tileset filename="M_Obake_Soto" name="Ghosthouse Exterior" />
+        <tileset filename="M_Rainbow" name="Rainbow Bonus" />
+        <tileset filename="M_Sabaku" name="Desert" />
+        <tileset filename="M_Sabaku_Chika" name="Desert Underground" />
+        <tileset filename="M_Setsugen" name="Snow/Winterlands" />
+        <tileset filename="M_Shiro" name="Castle" />
+        <tileset filename="M_Shiro_Boss" name="Castle (Bossfight)" />
+        <tileset filename="M_Shiro_Yogan" name="Castle (Lava)" />
+        <tileset filename="M_SkyTower" name="Sky (Building with grass on top)" />
+        <tileset filename="M_Sora" name="Bonus" />
+        <tileset filename="M_Suichu" name="Underwater" />
+        <tileset filename="M_Toride" name="Tower" />
+        <tileset filename="M_Toride_Blue" name="Tower (Underwater)" />
+        <tileset filename="M_Toride_Red" name="Tower (Lava)" />
+        <tileset filename="M_Totempole" name="Totem poles" />
+        <tileset filename="M_WarpZone" name="Cannon" />
+    </slot>
+    
+    <slot num="2">
+        <tileset filename="S1_Iseki" name="Desert decoration 2 (various other platforms)" />
+        <tileset filename="S1_Kanaami" name="Fences" />
+        <tileset filename="S1_Kinoko" name="Mushrooms (blocks, stems and platforms)" />
+        <tileset filename="S1_Kinoko_Snow" name="Snowy mushrooms (stems and platforms)" />
+        <tileset filename="S1_Kori" name="Ice" />
+        <tileset filename="S1_Obake_Room" name="Ghost house decoration" />
+        <tileset filename="S1_Rail_Black" name="Black rails" />
+        <tileset filename="S1_Rail_Gray" name="Grey rails" />
+        <tileset filename="S1_Rail_Gray_Mae" name="Grey rails" />
+        <tileset filename="S1_Rail_White" name="White rails" />
+        <tileset filename="S1_Sabaku" name="Desert decoration (stones and cacti)" />
+        <tileset filename="S1_SkyTower" name="Sky building decoration" />
+        <tileset filename="S1_Suichu" name="Underwater decoration" />
+        <tileset filename="S1_Toride" name="Castle wall and fence" />
+    </slot>
+    
+    <slot num="3">
+        <tileset filename="S2_Assist" name="Various decoration tiles" />
+        <tileset filename="S2_Kanaami" name="Fences" />
+        <tileset filename="S2_Kinoko_variation" name="Big and small mushrooms" />
+        <tileset filename="S2_Obake_Room" name="Ghost house decoration" />
+        <tileset filename="S2_Obake_Soto" name="Haunted garden" />
+        <tileset filename="S2_Rail_Black" name="Black rails" />
+        <tileset filename="S2_Rail_Gray" name="Grey rails" />
+        <tileset filename="S2_Rail_White" name="White rails" />
+        <tileset filename="S2_Sabaku" name="Desert decoration (stones and cacti)" />
+    </slot>
+</tilesets>

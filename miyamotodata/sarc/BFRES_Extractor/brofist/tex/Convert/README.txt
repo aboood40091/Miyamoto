@@ -1,1 +1,0 @@
-Exported GTX textures are extracted here

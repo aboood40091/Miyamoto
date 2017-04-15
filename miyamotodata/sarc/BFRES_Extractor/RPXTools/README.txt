@@ -1,1 +1,0 @@
-Made this to make it easier to get symbols from RPX/RPL files for reverse engineering/searching. Makes it super easy :) uses standard output, use "> file.txt" with 1 to store all names. Also look into https://github.com/Chadderz121/ghs-demangle for demangling symbol names (if you run into errors it's probably a cut off symbol name, can only go to 256 characters).

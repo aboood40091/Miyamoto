@@ -693,7 +693,7 @@ class SpriteImage_RedRing(SLib.SpriteImage_Static): # 44
             )
         
         self.yOffset = -14
-        self.xOffset = -7
+        self.xOffset = -7+8
 
     @staticmethod
     def loadImages():

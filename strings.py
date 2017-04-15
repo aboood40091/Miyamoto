@@ -502,7 +502,9 @@ class MiyamotoTranslation():
                 505: 'Convert ZIP Archive To SARC',
                 506: 'Convert To SARC/Sarchive',
                 507: 'Compress SARC to .szs File',
-                508: 'Compress'
+                508: 'Compress',
+                509: 'Open Tileset Manager',
+                510: 'Tileset Manager'
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
