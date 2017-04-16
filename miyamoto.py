@@ -16274,96 +16274,204 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Edits Slot 1 tileset
         """
-        Area = SLib.Area
-        tilesets = [Area.tileset0]
-        for idx, name in enumerate(tilesets):
-            if (name is not None) and (name != ''):
-                if name not in szsData: return
-                sarcdata = szsData[name]
+        if (SLib.Area.tileset0 is not None) and (SLib.Area.tileset0 != ''):
+            if SLib.Area.tileset0 not in szsData: return
+            sarcdata = szsData[SLib.Area.tileset0]
 
-                with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
-                    fn.write(sarcdata)
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+                fn.write(sarcdata)
 
-                process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', name,
-                                 miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '0'], stdout=PIPE, stderr=PIPE)
-                stdout, stderr = process.communicate()
+        else: return
 
-                with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
-                    szsData[name] = fn.read()
-                os.remove(miyamoto_path + '\Tools/tmp.tmp')
-                self.ReloadTilesets()
+        process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', SLib.Area.tileset0,
+                         miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '0'], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+
+        if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+                szsData[SLib.Area.tileset0] = fn.read()
+            os.remove(miyamoto_path + '\Tools/tmp.tmp')
+            self.ReloadTilesets()
 
     @QtCore.pyqtSlot()
     def EditSlot2(self):
         """
         Edits Slot 2 tileset
         """
-        Area = SLib.Area
-        tilesets = [Area.tileset1]
-        for idx, name in enumerate(tilesets):
-            if (name is not None) and (name != ''):
-                if name not in szsData: return
-                sarcdata = szsData[name]
+        con = False
 
-                with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
-                    fn.write(sarcdata)
+        if (SLib.Area.tileset1 is not None) and (SLib.Area.tileset1 != ''):
+            if SLib.Area.tileset1 not in szsData: return
+            sarcdata = szsData[SLib.Area.tileset1]
 
-                process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', name,
-                                 miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '1'], stdout=PIPE, stderr=PIPE)
-                stdout, stderr = process.communicate()
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+                fn.write(sarcdata)
+            sarcfile = miyamoto_path + '\Tools/tmp.tmp'
 
-                with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
-                    szsData[name] = fn.read()
-                os.remove(miyamoto_path + '\Tools/tmp.tmp')
-                self.ReloadTilesets()
+        elif SLib.Area.tileset1 == '':
+            con_msg = "This Tileset doesn't exist, do you want to create it?"
+            reply = QtWidgets.QMessageBox.question(self, 'Message', 
+                             con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if reply == QtWidgets.QMessageBox.Yes:
+                con = True
+                if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
+                    os.remove(miyamoto_path + '\Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+
+                SLib.Area.tileset1 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                    "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+                sarcfile = 'None'
+
+            else: return
+
+        if SLib.Area.tileset1 == '': return
+
+        process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', SLib.Area.tileset1,
+                         sarcfile, miyamoto_path, '1'], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+
+        if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+                szsData[SLib.Area.tileset1] = fn.read()
+            os.remove(miyamoto_path + '\Tools/tmp.tmp')
+
+            self.ReloadTilesets()
+            mainWindow.objPicker.LoadFromTilesets()
+            self.objAllTab.setCurrentIndex(0)
+            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
+            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
+            self.objAllTab.setTabEnabled(2, (Area.tileset1 != ''))
+            self.objAllTab.setTabEnabled(3, (Area.tileset1 != ''))
+
+            for layer in Area.layers:
+                for obj in layer:
+                    obj.updateObjCache()
+
+            self.scene.update()
+
+        else:
+            if con == True:
+                SLib.Area.tileset1 = ''
 
     @QtCore.pyqtSlot()
     def EditSlot3(self):
         """
         Edits Slot 3 tileset
         """
-        Area = SLib.Area
-        tilesets = [Area.tileset2]
-        for idx, name in enumerate(tilesets):
-            if (name is not None) and (name != ''):
-                if name not in szsData: return
-                sarcdata = szsData[name]
+        con = False
 
-                with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
-                    fn.write(sarcdata)
+        if (SLib.Area.tileset2 is not None) and (SLib.Area.tileset2 != ''):
+            if SLib.Area.tileset2 not in szsData: return
+            sarcdata = szsData[SLib.Area.tileset2]
 
-                process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', name,
-                                 miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '2'], stdout=PIPE, stderr=PIPE)
-                stdout, stderr = process.communicate()
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+                fn.write(sarcdata)
+            sarcfile = miyamoto_path + '\Tools/tmp.tmp'
 
-                with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
-                    szsData[name] = fn.read()
-                os.remove(miyamoto_path + '\Tools/tmp.tmp')
-                self.ReloadTilesets()
+        elif SLib.Area.tileset2 == '':
+            con_msg = "This Tileset doesn't exist, do you want to create it?"
+            reply = QtWidgets.QMessageBox.question(self, 'Message', 
+                             con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if reply == QtWidgets.QMessageBox.Yes:
+                con = True
+                if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
+                    os.remove(miyamoto_path + '\Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+
+                SLib.Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                    "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+                sarcfile = 'None'
+
+            else: return
+
+        if SLib.Area.tileset2 == '': return
+
+        process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', SLib.Area.tileset2,
+                         sarcfile, miyamoto_path, '2'], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+
+        if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+                szsData[SLib.Area.tileset2] = fn.read()
+            os.remove(miyamoto_path + '\Tools/tmp.tmp')
+
+            self.ReloadTilesets()
+            mainWindow.objPicker.LoadFromTilesets()
+            self.objAllTab.setCurrentIndex(0)
+            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
+            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
+            self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
+            self.objAllTab.setTabEnabled(3, (Area.tileset2 != ''))
+
+            for layer in Area.layers:
+                for obj in layer:
+                    obj.updateObjCache()
+
+            self.scene.update()
+
+        else:
+            if con == True:
+                SLib.Area.tileset2 = ''
 
     @QtCore.pyqtSlot()
     def EditSlot4(self):
         """
         Edits Slot 4 tileset
         """
-        Area = SLib.Area
-        tilesets = [Area.tileset3]
-        for idx, name in enumerate(tilesets):
-            if (name is not None) and (name != ''):
-                if name not in szsData: return
-                sarcdata = szsData[name]
+        con = False
 
-                with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
-                    fn.write(sarcdata)
+        if (SLib.Area.tileset3 is not None) and (SLib.Area.tileset3 != ''):
+            if SLib.Area.tileset3 not in szsData: return
+            sarcdata = szsData[SLib.Area.tileset3]
 
-                process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', name,
-                                 miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '3'], stdout=PIPE, stderr=PIPE)
-                stdout, stderr = process.communicate()
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+                fn.write(sarcdata)
+            sarcfile = miyamoto_path + '\Tools/tmp.tmp'
 
-                with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
-                    szsData[name] = fn.read()
-                os.remove(miyamoto_path + '\Tools/tmp.tmp')
-                self.ReloadTilesets()
+        elif SLib.Area.tileset3 == '':
+            con_msg = "This Tileset doesn't exist, do you want to create it?"
+            reply = QtWidgets.QMessageBox.question(self, 'Message', 
+                             con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if reply == QtWidgets.QMessageBox.Yes:
+                con = True
+                if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
+                    os.remove(miyamoto_path + '\Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+
+                SLib.Area.tileset3 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                    "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+                sarcfile = 'None'
+
+            else: return
+
+        if SLib.Area.tileset3 == '': return
+
+        process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', SLib.Area.tileset3,
+                         sarcfile, miyamoto_path, '3'], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+
+        if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
+            with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+                szsData[SLib.Area.tileset3] = fn.read()
+            os.remove(miyamoto_path + '\Tools/tmp.tmp')
+
+            self.ReloadTilesets()
+            mainWindow.objPicker.LoadFromTilesets()
+            self.objAllTab.setCurrentIndex(0)
+            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
+            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
+            self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
+            self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
+
+            for layer in Area.layers:
+                for obj in layer:
+                    obj.updateObjCache()
+
+            self.scene.update()
+
+        else:
+            if con == True:
+                SLib.Area.tileset3 = ''
 
 def main():
     """
