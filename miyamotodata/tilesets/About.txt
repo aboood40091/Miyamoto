@@ -1,1 +1,0 @@
-This is where the extracted sarc will be, and accessed by Tileset Manager.

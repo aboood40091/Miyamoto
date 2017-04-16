@@ -1,1 +1,0 @@
-To code the tileset changer, make the editor extract the sarc, copy the new tileset, and delete the old one when the user picks a tileset.
