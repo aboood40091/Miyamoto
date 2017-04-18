@@ -16309,7 +16309,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def HandleBG(self):
         """
-        Pops up the options for Area Dialogue
+        Pops up the Background settings Dialog
         """
         dlg = BGDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
