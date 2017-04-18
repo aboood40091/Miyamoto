@@ -24,8 +24,8 @@
 # Builds Miyamoto! to a Windows binary (*.exe)
 # Use the values below to configure the release:
 
-PackageName = 'miyamoto_nsmbu_06'
-Version = '0.6' # This must be a valid float in string format
+PackageName = 'miyamoto_v8'
+Version = '8.0' # This must be a valid float in string format
 
 
 ################################################################

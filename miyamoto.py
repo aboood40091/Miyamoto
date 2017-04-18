@@ -90,8 +90,6 @@ UpdateURL = ''
 
 TileWidth = 60
 
-miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
-
 if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
     # enables itemChange being called on QGraphicsItem
     QtWidgets.QGraphicsItem.ItemSendsGeometryChanges = QtWidgets.QGraphicsItem.GraphicsItemFlag(0x800)
@@ -153,6 +151,32 @@ Waterlocationx = 0
 Waterlocationy = 0		
 Waterlocationw = 1000		
 Waterlocationh = 30
+miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
+names_bg = ('Black', 'End_Isiyama', 'End_Iwaba', 'End_Kaigan',
+            'End_Kougen', 'End_Mori', 'End_Sabaku', 'End_Setugen',
+            'Hune', 'Hune_Boss', 'Hune_Boss_2', 'Isiyama_2',
+            'Isiyama_3', 'Iwaba', 'Iwaba_2', 'Iwaba_3', 'Kaigan',
+            'Kaigan_2', 'Kaigan_Ue', 'Kinopio', 'Kumonaka',
+            'Kumonaka_Arashi', 'Kumonaka_Isi', 'Kumonaka_Naname',
+            'Kumonaka_Sabaku', 'Kumonaka_Tate', 'Kumonaka_Yama',
+            'Kumonaka_Yama_2', 'KumoUe', 'KumoUe_Boss', 'KumoUe_Hikousen',
+            'KumoUe_Sabaku', 'KumoUe_Yama', 'KumoUe_Yama_2', 'Kuppa',
+            'Kuppa_Boss', 'Mori', 'Mori_2', 'Nohara', 'Obake',
+            'Obake_2', 'Obake_hune', 'Obake_hune_2', 'Obake_Soto',
+            'Obake_Soto_2', 'Obake_Soto_fune', 'Obake_Soto_hune',
+            'Obake_tate', 'Obake_tate_2', 'Picture', 'Picture_2',
+            'Sabaku', 'SabakuChika', 'Sabaku_2', 'Setugen', 'Setugen_2',
+            'Setugen_Naname', 'Shadow', 'Shiro', 'Short_Play', 'Siro',
+            'Siro_2', 'Siro_3', 'Siro_Boss', 'Siro_Boss_2', 'Siro_Boss_Iggy',
+            'Siro_Boss_Larry', 'Siro_Boss_Ludw', 'Siro_Boss_Roy',
+            'Siro_Boss_Wendy', 'Siro_Kougen', 'Siro_peach', 'Siro_Setugen',
+            'Siro_Tate', 'Staffroll', 'Suityu', 'Suityu_Tate', 'Tika',
+            'Tika_2', 'Tika_3', 'Tika_Kori', 'Tika_Kori_2', 'Tika_Picture',
+            'Tika_Picture_2', 'Tika_sabaku', 'Tika_tate_2', 'Toride',
+            'Toride_2', 'Toride_Boss', 'Toride_Boss_2', 'Toride_Boss_3',
+            'Toride_Boss_4', 'Toride_Boss_5', 'Toride_Iwaba', 'Toride_Sabaku',
+            'Toride_Setugen', 'Yougan', 'Yougan_2', 'Yougan_Goal',
+            'Yougan_Naname', 'Yougan_Ue')
 
 # Game enums
 NewSuperMarioBrosU = 0
@@ -165,6 +189,23 @@ FirstLevels = {
     NewSuperMarioBrosU: '1-1',
     NewSuperLuigiU: '1-1',
     }
+
+#####################################################################
+############################# WHATEVER ##############################
+#####################################################################
+
+def find_name(f, name_pos):
+    name = b""
+    char = f[name_pos:name_pos + 1]
+    i = 1
+
+    while char != b"\x00":
+        name += char
+        
+        char = f[name_pos + i:name_pos + i + 1]
+        i += 1
+
+    return(name.decode("utf-8"))
 
 #####################################################################
 ############################# UI-THINGS #############################
@@ -4267,16 +4308,21 @@ class Area_NSMBU(AbstractParsedArea):
 
         # Block 5 - Bg data
         bgData = self.blocks[4]
-        bgCount = len(bgData) // 28
+        self.bgCount = len(bgData) // 28
         bgStruct = struct.Struct('>HxBxxxx16sHxx')
         offset = 0
         bgs = {}
-        for i in range(bgCount):
+        self.bg_name = []
+        self.bg_unk1 = []
+        self.bg_unk2 = []
+        for i in range(self.bgCount):
             bg = bgStruct.unpack_from(bgData, offset)
+            self.bg_name.append(find_name(bg[2], 0))
+            self.bg_unk1.append(bg[1])
+            self.bg_unk2.append(bg[3])
             bgs[bg[0]] = bg
             offset += 28
         self.bgs = bgs
-        print(bgs)
 
         # Block 10 - zone data
         zonedata = self.blocks[9]
@@ -4602,17 +4648,14 @@ class Area_NSMBU(AbstractParsedArea):
         Saves blocks 10, 3, and 5; the zone data, boundings, and bg data respectively
         """
         bdngstruct = struct.Struct('>llllHHxxxxxxxx')
-        bgStruct = struct.Struct('>HxBxxxx16sHxx')
         zonestruct = struct.Struct('>HHHHxBxBBBBBxBBxBxBBxBxx')
         offset = 0
         i = 0
         zcount = len(Area.zones)
         buffer2 = bytearray(28 * zcount)
-        buffer4 = bytearray(28 * zcount)
         buffer9 = bytearray(28 * zcount)
         for z in Area.zones:
             bdngstruct.pack_into(buffer2, offset, z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, i, z.unknownbnf)
-            bgStruct.pack_into(buffer4, offset, i, z.background[1], z.background[2], z.background[3])
             zonestruct.pack_into(buffer9, offset,
                 z.objx, z.objy, z.width, z.height,
                 z.modeldark, z.unk1, z.id, i,
@@ -4622,7 +4665,6 @@ class Area_NSMBU(AbstractParsedArea):
             i += 1
 
         self.blocks[2] = bytes(buffer2)
-        self.blocks[4] = bytes(buffer4)
         self.blocks[9] = bytes(buffer9)
 
 
@@ -10801,6 +10843,64 @@ class ZoneTab(QtWidgets.QWidget):
         self.AutoChangingSize = False
 
 
+class BGDialog(QtWidgets.QDialog):
+    """
+    Dialog which lets you choose backgrounds
+    """
+    def __init__(self):
+        """
+        Creates and initializes the tab dialog
+        """
+        QtWidgets.QDialog.__init__(self)
+        self.setWindowTitle('Backgrounds')
+        self.setWindowIcon(GetIcon('background'))
+
+        self.tabWidget = QtWidgets.QTabWidget()
+        self.BGTabs = []
+        for i in range(SLib.Area.bgCount):
+            BGTabName = 'Background ' + str(i + 1)
+            tab = BGTab(i)
+            self.BGTabs.append(tab)
+            self.tabWidget.addTab(tab, BGTabName)
+
+        buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+        mainLayout = QtWidgets.QVBoxLayout()
+        mainLayout.addWidget(self.tabWidget)
+        mainLayout.addWidget(buttonBox)
+        self.setLayout(mainLayout)
+
+
+class BGTab(QtWidgets.QWidget):
+    def __init__(self, i):
+        QtWidgets.QWidget.__init__(self)
+
+        self.bg_name = QtWidgets.QComboBox()
+        self.bg_name.addItems(names_bg)
+        self.bg_name.setCurrentIndex(names_bg.index(SLib.Area.bg_name[i]))
+
+        self.unk1 = QtWidgets.QSpinBox()
+        self.unk1.setRange(0, 0xFF)
+        self.unk1.setValue(SLib.Area.bg_unk1[i])
+        
+        self.unk2 = QtWidgets.QSpinBox()
+        self.unk2.setRange(0, 0xFFFF)
+        self.unk2.setValue(SLib.Area.bg_unk2[i])
+        
+        settingsLayout = QtWidgets.QFormLayout()
+        settingsLayout.addRow('Background:', self.bg_name)
+        settingsLayout.addRow('Unknown Value 1:', self.unk1)
+        settingsLayout.addRow('Unknown Value 2:', self.unk2)
+
+        Layout = QtWidgets.QVBoxLayout()
+        Layout.addLayout(settingsLayout)
+        Layout.addStretch(1)
+        self.setLayout(Layout)
+
+
 class ScreenCapChoiceDialog(QtWidgets.QDialog):
     """
     Dialog which lets you choose which zone to take a pic of
@@ -16209,9 +16309,26 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def HandleBG(self):
         """
-        Pops up the Background settings Dialog
+        Pops up the options for Area Dialogue
         """
-        print('this doesn\'t work yet')
+        dlg = BGDialog()
+        if dlg.exec_() == QtWidgets.QDialog.Accepted:
+            SetDirty()
+
+            offset = 0
+            for i in range(SLib.Area.bgCount):
+                name = str(dlg.BGTabs[i].bg_name.currentText())
+                SLib.Area.bg_name[i] = name
+                unk1 = dlg.BGTabs[i].unk1.value()
+                SLib.Area.bg_unk1[i] = unk1
+                unk2 = dlg.BGTabs[i].unk2.value()
+                SLib.Area.bg_unk2[i] = unk2
+                block4 = bytearray(SLib.Area.blocks[4])
+                block4[0x08 + offset:0x18 + offset] = name.encode('utf-8') + (b'\x00' * (16 - len(name.encode('utf-8'))))
+                block4[0x03 + offset:0x04 + offset] = unk1.to_bytes(1, 'big')
+                block4[0x18 + offset:0x1A + offset] = unk2.to_bytes(2, 'big')
+                SLib.Area.blocks[4] = bytes(block4)
+                offset += 28
 
     @QtCore.pyqtSlot()
     def HandleScreenshot(self):
@@ -16338,10 +16455,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.ReloadTilesets()
             mainWindow.objPicker.LoadFromTilesets()
             self.objAllTab.setCurrentIndex(0)
-            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
-            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
-            self.objAllTab.setTabEnabled(2, (Area.tileset1 != ''))
-            self.objAllTab.setTabEnabled(3, (Area.tileset1 != ''))
+            self.objAllTab.setTabEnabled(0, (SLib.Area.tileset0 != ''))
+            self.objAllTab.setTabEnabled(1, (SLib.Area.tileset1 != ''))
+            self.objAllTab.setTabEnabled(2, (SLib.Area.tileset2 != ''))
+            self.objAllTab.setTabEnabled(3, (SLib.Area.tileset3 != ''))
 
             for layer in Area.layers:
                 for obj in layer:
@@ -16401,7 +16518,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
             self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
             self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
-            self.objAllTab.setTabEnabled(3, (Area.tileset2 != ''))
+            self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
 
             for layer in Area.layers:
                 for obj in layer:
