@@ -1,5 +1,5 @@
-#!/usr/bin/python3
-# -*- coding: latin-1 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
 # Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
@@ -38,16 +38,11 @@ if currentRunningVersion < minimum:
 
 # Stdlib imports
 import base64
-import importlib
-from math import floor as math_floor
 import os
+import platform
 import pickle
 import struct
 import sys
-from subprocess import Popen, PIPE
-import threading
-import time
-import urllib.request
 from xml.etree import ElementTree as etree
 import zipfile
 
@@ -59,13 +54,6 @@ except (ImportError, NameError):
     raise Exception(errormsg) from None
 Qt = QtCore.Qt
 
-# Pillow:
-try:
-    from PIL import Image
-except (ImportError, NameError):
-    errormsg = 'Pillow/PIL is not installed for this Python installation. Go online and download it.'
-    raise Exception(errormsg) from None
-
 # PyQtRibbon: import, and error msg if not installed
 try:
     from PyQtRibbon.FileMenu import QFileMenu, QFileMenuPanel
@@ -76,12 +64,10 @@ except (ImportError, NameError):
     raise Exception(errormsg)
 
 # Local imports
-import lz77
 import SARC as SarcLib
 import spritelib as SLib
 import sprites
 from strings import *
-import TPLLib
 
 MiyamotoID = 'Miyamoto! Level Editor by Treeki, Tempus, RoadrunnerWMC, MrRean, Grop, AboodXD and Gota7'
 MiyamotoVersion = ''
@@ -815,15 +801,9 @@ def IsNSMBLevel(filename):
     f.close()
     del f
 
-    if LHTool.isLHCompressed(data):
-        decomp = LHTool.decompressLH(data)
-        if checkContent(decomp):
-            compressed = True
-            return True
-    else:
-        if checkContent(data):
-            compressed = False
-            return True
+    if checkContent(data):
+        compressed = False
+        return True
 
 def SetDirty(noautosave=False):
     global Dirty, DirtyOverride, AutoSaveDirty
@@ -2459,22 +2439,13 @@ class TilesetTile():
         """
         self.main = main
 
-    def addAnimationData(self, data):
+    def addAnimationData(self):
         """
         Applies Newer-style animation data to the tile
         """
         animTiles = []
-        numberOfFrames = len(data) // 2048
-        for frame in range(numberOfFrames):
-            framedata = data[frame*2048: (frame*2048)+2048]
-            decoder = TPLLib.decoder(TPLLib.RGB4A3)
-            decoder = decoder(framedata, 32, 32)
-            newdata = decoder.run()
-            img = QtGui.QImage(newdata, 32, 32, 128, QtGui.QImage.Format_ARGB32)
-            pix = QtGui.QPixmap.fromImage(img.copy(0, 0, 31, 31).scaledToHeight(TileWidth, Qt.SmoothTransformation))
-            animTiles.append(pix)
         self.animTiles = animTiles
-        self.isAnimated = True
+        self.isAnimated = False
 
     def nextFrame(self):
         """
@@ -3045,7 +3016,7 @@ def _LoadTileset(idx, name, reload=False):
                 except KeyError:
                     pass
                 if found:
-                    Tiles[i].addAnimationData(arc[fn])
+                    Tiles[i].addAnimationData()
             col += 1
             if col == 16:
                 col = 0
@@ -3079,14 +3050,22 @@ def LoadTexture_NSMBU(tiledata):
     with open(miyamoto_path + '\Tools/texture.gtx', 'wb') as binfile:
         binfile.write(tiledata)
 
-    process = Popen([miyamoto_path + '/Tools/gtx_extract.exe', miyamoto_path + '/Tools/texture.gtx',
-                     miyamoto_path + '/Tools/texture.bmp'], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = process.communicate()
+    text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+    text_file.write('gtx_extract.exe texture.gtx texture.bmp')
+    text_file.close()
+    os.chdir(miyamoto_path + '/Tools')
+    if platform.system() == 'Windows':
+        os.system("RUN.bat")
+    else:
+        os.system("wine cmd /c RUN.bat")
+    os.chdir(miyamoto_path)
+    os.remove(miyamoto_path + '\Tools/RUN.bat')
 
     img = QtGui.QImage(miyamoto_path + '/Tools/texture.bmp')
 
     os.remove(miyamoto_path + '\Tools/texture.gtx')
     os.remove(miyamoto_path + '\Tools/texture.bmp')
+    
 
     return img
 
@@ -7117,24 +7096,16 @@ class ObjectPickerWidget(QtWidgets.QListView):
                 painter.fillRect(option.rect, option.palette.highlight())
 
             p = index.model().data(index, Qt.DecorationRole)
-            if p is not None:
-                # p might be None due to threading issues from progressive
-                # tileset loading.
-                painter.drawPixmap(option.rect.x()+2, option.rect.y()+2, p)
+            painter.drawPixmap(option.rect.x()+2, option.rect.y()+2, p)
             #painter.drawText(option.rect, str(index.row()))
 
         def sizeHint(self, option, index):
             """
             Returns the size for the object
             """
-            m = index.model()
-            if m is None:
-                # May occur due to a race condition with the
-                # progressive-tileset-loading thread. It will
-                # go away on its own, but we still need to handle
-                # this.
-                return QtCore.QSize(TileWidth, TileWidth)
-            return m.data(index, Qt.UserRole) or QtCore.QSize(TileWidth, TileWidth)
+            p = index.model().data(index, Qt.UserRole)
+            return p or QtCore.QSize(TileWidth, TileWidth)
+            #return QtCore.QSize(76,76)
 
 
     class ObjectListModel(QtCore.QAbstractListModel):
@@ -7189,7 +7160,6 @@ class ObjectPickerWidget(QtWidgets.QListView):
             Renders all the object previews for the model
             """
             if ObjectDefinitions[idx] is None: return
-            forcedTileWidth = 32
 
             self.beginResetModel()
 
@@ -7215,11 +7185,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
                     x = 0
                     for tile in row:
                         if tile != -1:
-                            if Tiles[tile].main is None:
-                                # This can and does happen because of the new
-                                # thread-based progressive tileset rendering.
-                                pass
-                            elif isinstance(Tiles[tile].main, QtGui.QImage):
+                            if isinstance(Tiles[tile].main, QtGui.QImage):
                                 p.drawImage(x, y, Tiles[tile].main)
                             else:
                                 p.drawPixmap(x, y, Tiles[tile].main)
@@ -7227,10 +7193,10 @@ class ObjectPickerWidget(QtWidgets.QListView):
                         x += TileWidth
                     y += TileWidth
                 p.end()
-                pm = pm.scaledToWidth(pm.width() * forcedTileWidth / TileWidth, Qt.SmoothTransformation) # force tile widths to 24x24
+                pm = pm.scaledToWidth(pm.width() * 24/TileWidth, Qt.SmoothTransformation)
 
                 self.ritems.append(pm)
-                self.itemsize.append(QtCore.QSize(defs[i].width * forcedTileWidth + 4, defs[i].height * forcedTileWidth + 4))
+                self.itemsize.append(QtCore.QSize(defs[i].width * 24 + 4, defs[i].height * 24 + 4))
                 if (idx == 0) and (i in ObjDesc) and isAnim:
                     self.tooltips.append(trans.string('Objects', 4, '[id]', i, '[desc]', ObjDesc[i]))
                 elif (idx == 0) and (i in ObjDesc):
@@ -11478,173 +11444,6 @@ class PreferencesDialog(QtWidgets.QDialog):
         return ThemesTab()
 
 
-class UpdateDialog(QtWidgets.QDialog):
-    """
-    Dialog to display any available updates
-    """
-    def __init__(self):
-        """
-        Init the dialog
-        """
-        QtWidgets.QDialog.__init__(self)
-        self.setWindowTitle(trans.string('Updates', 0))
-        self.setWindowIcon(GetIcon('download'))
-        self.setMinimumWidth(256)
-
-        # Create widgets
-        self.msgLabel = QtWidgets.QLabel()
-        self.dldBtn = QtWidgets.QPushButton(trans.string('Updates', 4))
-        self.dldBtn.clicked.connect(self.handleDldBtn)
-        self.dldBtn.hide()
-        self.progLabel = QtWidgets.QLabel()
-
-        # Create the buttonbox
-        buttonBox = QtWidgets.QDialogButtonBox()
-        buttonBox.addButton(QtWidgets.QDialogButtonBox.Ok)
-        buttonBox.accepted.connect(self.accept)
-        buttonBox.rejected.connect(self.reject)
-
-        self.PerformCheck()
-
-        # Create a main layout
-        L = QtWidgets.QVBoxLayout()
-        L.addWidget(self.msgLabel)
-        L.addWidget(self.dldBtn)
-        L.addWidget(self.progLabel)
-        L.addWidget(buttonBox)
-        self.setLayout(L)
-
-    def PerformCheck(self):
-        """
-        Performs the update check
-        """
-        # Attempt to download data
-        errors = False
-        try: data = self.getTxt()
-        except Exception: errors = True
-
-        if not errors:
-            try: releaseType = open('release.txt', 'r').read()
-            except Exception: releaseType = 'unknown'
-            releaseType = releaseType.replace('\n', '').replace('\r', '')
-
-            available = MiyamotoVersion in data and len(data[MiyamotoVersion].values()) > 0
-
-        # All right; now handle the results
-        if errors:
-            # Errors occurred
-            self.UpdateUi('error')
-        elif available:
-            # Update is available
-            name = list(data[MiyamotoVersion].keys())[0]
-            infourl = data[MiyamotoVersion][name]['InfoUrl']
-            url = data[MiyamotoVersion][name][releaseType]['url']
-            self.UpdateUi(True, name, infourl, url)
-        else:
-            # No update is available
-            self.UpdateUi(False)
-
-    def getTxt(self):
-        """
-        Returns the parsed data in the online text file
-        """
-        rawdata = urllib.request.urlopen(UpdateURL)
-        rawdata = rawdata.read(20000).decode('latin-1')
-
-        tree = etree.ElementTree(etree.fromstring(rawdata))
-        root = tree.getroot()
-
-        rootData = {}
-        for versionNode in root:
-            if versionNode.tag.lower() != 'version': continue
-            versionData = {}
-
-            for updateNode in versionNode:
-                if updateNode.tag.lower() != 'update': continue
-                updateData = {}
-
-                for releaseNode in updateNode:
-                    if releaseNode.tag.lower() != 'release': continue
-                    releaseData = {}
-                    releaseData['url'] = releaseNode.attrib['url']
-
-                    updateData[releaseNode.attrib['id']] = releaseData
-
-                versionData[updateNode.attrib['name']] = updateData
-                updateData['InfoUrl'] = updateNode.attrib['url']
-
-            rootData[versionNode.attrib['id']] = versionData
-
-        return rootData
-
-
-    def UpdateUi(self, available, name='', infourl='', url=''):
-        """
-        Updates the UI based on updateinfo
-        """
-        if available == 'error':
-            # Error while checking for update
-            self.msgLabel.setText(trans.string('Updates', 1))
-        elif not available:
-            # No updates
-            self.msgLabel.setText(trans.string('Updates', 2))
-        else:
-            # Updates!
-            self.msgLabel.setText(trans.string('Updates', 3, '[name]', name, '[info]', infourl))
-
-            self.dldBtn.show()
-            self.dldBtn.url = url # hacky method
-
-
-    def handleDldBtn(self):
-        """
-        Handles the user clicking the Download Now button
-        """
-        self.dldBtn.hide()
-        self.progLabel.show()
-        self.progLabel.setText(trans.string('Updates', 5))
-
-        downloader = self.downloader(self.dldBtn.url)
-        downloader.done.connect(self.handleDldDone)
-
-        thread = threading.Thread(None, downloader.run)
-        thread.start()
-
-    def handleDldDone(self):
-        """
-        The download finished
-        """
-        self.progLabel.setText(trans.string('Updates', 6))
-
-    class downloader(QtCore.QObject):
-        """
-        An object that downloads the update. Contains signals.
-        """
-        done = QtCore.pyqtSignal()
-        def __init__(self, url):
-            """
-            Initializes it
-            """
-            QtCore.QObject.__init__(self)
-            self.url = url
-        
-        def run(self):
-            """
-            Runs the download
-            """
-            local_filename, headers = urllib.request.urlretrieve(self.url)
-
-            if local_filename.startswith('\\'):
-                local_filename = local_filename[1:]
-            dest = os.path.dirname(sys.argv[0])
-
-            zipfile.ZipFile(local_filename).extractall(dest)
-
-            time.sleep(8)
-
-            self.done.emit()
-
-
 #####################################################################
 ############################### STAMP ###############################
 #####################################################################
@@ -12636,7 +12435,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('infobox', self.AboutBox, GetIcon('miyamoto'), trans.string('MenuItems', 86), trans.string('MenuItems', 87), QtGui.QKeySequence('Ctrl+Shift+I'))
         self.CreateAction('helpbox', self.HelpBox, GetIcon('contents'), trans.string('MenuItems', 88), trans.string('MenuItems', 89), QtGui.QKeySequence('Ctrl+Shift+H'))
         self.CreateAction('tipbox', self.TipBox, GetIcon('tips'), trans.string('MenuItems', 90), trans.string('MenuItems', 91), QtGui.QKeySequence('Ctrl+Shift+T'))
-        self.CreateAction('update', self.UpdateCheck, GetIcon('download'), trans.string('MenuItems', 120), trans.string('MenuItems', 121), QtGui.QKeySequence('Ctrl+Shift+U'))
         self.CreateAction('aboutqt', QtWidgets.qApp.aboutQt, GetIcon('qt'), trans.string('MenuItems', 92), trans.string('MenuItems', 93), QtGui.QKeySequence('Ctrl+Shift+Q'))
 
         if menu is None:
@@ -12644,8 +12442,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         menu.addAction(self.actions['infobox'])
         menu.addAction(self.actions['helpbox'])
         menu.addAction(self.actions['tipbox'])
-        menu.addSeparator()
-        menu.addAction(self.actions['update'])
         menu.addSeparator()
         menu.addAction(self.actions['aboutqt'])
         return menu
@@ -13506,13 +13302,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(os.path.join(module_path(), 'miyamotodata', 'help', 'tips.html')))
 
     @QtCore.pyqtSlot()
-    def UpdateCheck(self):
-        """
-        Checks for updates and displays an appropriate dialog
-        """
-        UpdateDialog().exec_()
-
-    @QtCore.pyqtSlot()
     def SelectAll(self):
         """
         Select all objects in the current area
@@ -14012,8 +13801,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         with open(str(fn), 'rb') as fileobj:
             arcdata = fileobj.read()
-        if LHTool.isLHCompressed(arcdata):
-            arcdata = LHTool.decompressLH(arcdata)
 
         arc = SarcLib.SARC_Archive()
         arc.load(arcdata)
@@ -14094,9 +13881,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if os.path.isfile(self.fileSavePath):
                 os.remove(self.fileSavePath)
-            process = Popen([miyamoto_path + '\Tools\wszst.exe', 'COMPRESS', course_name + '.tmp',
-                             '--dest', self.fileSavePath], stdout=PIPE, stderr=PIPE)
-            stdout, stderr = process.communicate()
+            text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+            text_file.write('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
+            text_file.close()
+            os.chdir(miyamoto_path + '/Tools')
+            if platform.system() == 'Windows':
+                os.system("RUN.bat")
+            else:
+                os.system("wine cmd /c RUN.bat")
+            os.chdir(miyamoto_path)
+            os.remove(miyamoto_path + '\Tools/RUN.bat')
             os.remove(course_name + '.tmp')
         else:
             with open(self.fileSavePath, 'wb') as f:
@@ -14264,9 +14058,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 if os.path.isfile(self.fileSavePath):
                     os.remove(self.fileSavePath)
-                process = Popen([miyamoto_path + '\Tools\wszst.exe', 'COMPRESS', course_name + '.tmp',
-                                 '--dest', mainWindow.fileSavePath], stdout=PIPE, stderr=PIPE)
-                stdout, stderr = process.communicate()
+                text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+                text_file.write('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
+                text_file.close()
+                os.chdir(miyamoto_path + '/Tools')
+                if platform.system() == 'Windows':
+                    os.system("RUN.bat")
+                else:
+                    os.system("wine cmd /c RUN.bat")
+                os.chdir(miyamoto_path)
+                os.remove(miyamoto_path + '\Tools/RUN.bat')
                 os.remove(course_name + '.tmp')
             else:
                 with open(mainWindow.fileSavePath, 'wb') as f:
@@ -14324,9 +14125,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 if os.path.isfile(self.fileSavePath):
                     os.remove(self.fileSavePath)
-                process = Popen([miyamoto_path + '\Tools\wszst.exe', 'COMPRESS', course_name + '.tmp',
-                                 '--dest', self.fileSavePath], stdout=PIPE, stderr=PIPE)
-                stdout, stderr = process.communicate()
+                text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+                text_file.write('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
+                text_file.close()
+                os.chdir(miyamoto_path + '/Tools')
+                if platform.system() == 'Windows':
+                    os.system("RUN.bat")
+                else:
+                    os.system("wine cmd /c RUN.bat")
+                os.chdir(miyamoto_path)
+                os.remove(miyamoto_path + '\Tools/RUN.bat')
                 os.remove(course_name + '.tmp')
             else:
                 with open(self.fileSavePath, 'wb') as f:
@@ -14917,9 +14725,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if levelData.startswith(b'Yaz0'):
             print('Beginning Yaz0 decompression...')
             course_name = os.path.splitext(mainWindow.fileSavePath)[0]
-            process = Popen([miyamoto_path + '\Tools\wszst.exe', 'DECOMPRESS', mainWindow.fileSavePath,
-                             '--dest', course_name + '.tmp'], stdout=PIPE, stderr=PIPE)
-            stdout, stderr = process.communicate()
+            text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+            text_file.write('wszst.exe DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
+            text_file.close()
+            os.chdir(miyamoto_path + '/Tools')
+            if platform.system() == 'Windows':
+                os.system("RUN.bat")
+            else:
+                os.system("wine cmd /c RUN.bat")
+            os.chdir(miyamoto_path)
+            os.remove(miyamoto_path + '\Tools/RUN.bat')
             with open(course_name + '.tmp', 'rb') as f:
                 levelData = f.read()
             os.remove(course_name + '.tmp')
@@ -16400,9 +16215,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         else: return
 
-        process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', SLib.Area.tileset0,
-                         miyamoto_path + '\Tools/tmp.tmp', miyamoto_path, '0'], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
+        text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+        text_file.write('puzzlehd.exe ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
+        text_file.close()
+        os.chdir(miyamoto_path + '/Tools')
+        if platform.system() == 'Windows':
+            os.system("RUN.bat")
+        else:
+            os.system("wine cmd /c RUN.bat")
+        os.chdir(miyamoto_path)
 
         if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
             with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
@@ -16423,7 +16244,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
-            sarcfile = miyamoto_path + '\Tools/tmp.tmp'
+            sarcfile = 'tmp.tmp'
 
         elif SLib.Area.tileset1 == '':
             con_msg = "This Tileset doesn't exist, do you want to create it?"
@@ -16443,9 +16264,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if SLib.Area.tileset1 == '': return
 
-        process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', SLib.Area.tileset1,
-                         sarcfile, miyamoto_path, '1'], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
+        text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+        text_file.write('puzzlehd.exe ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
+        text_file.close()
+        os.chdir(miyamoto_path + '/Tools')
+        if platform.system() == 'Windows':
+            os.system("RUN.bat")
+        else:
+            os.system("wine cmd /c RUN.bat")
+        os.chdir(miyamoto_path)
 
         if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
             with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
@@ -16503,9 +16330,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if SLib.Area.tileset2 == '': return
 
-        process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', SLib.Area.tileset2,
-                         sarcfile, miyamoto_path, '2'], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
+        text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+        text_file.write('puzzlehd.exe ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
+        text_file.close()
+        os.chdir(miyamoto_path + '/Tools')
+        if platform.system() == 'Windows':
+            os.system("RUN.bat")
+        else:
+            os.system("wine cmd /c RUN.bat")
+        os.chdir(miyamoto_path)
 
         if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
             with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
@@ -16515,10 +16348,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.ReloadTilesets()
             mainWindow.objPicker.LoadFromTilesets()
             self.objAllTab.setCurrentIndex(0)
-            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
-            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
-            self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
-            self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
+            self.objAllTab.setTabEnabled(0, (SLib.Area.tileset0 != ''))
+            self.objAllTab.setTabEnabled(1, (SLib.Area.tileset1 != ''))
+            self.objAllTab.setTabEnabled(2, (SLib.Area.tileset2 != ''))
+            self.objAllTab.setTabEnabled(3, (SLib.Area.tileset3 != ''))
 
             for layer in Area.layers:
                 for obj in layer:
@@ -16563,9 +16396,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if SLib.Area.tileset3 == '': return
 
-        process = Popen([miyamoto_path + '\Tools\puzzlehd.exe', SLib.Area.tileset3,
-                         sarcfile, miyamoto_path, '3'], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
+        text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+        text_file.write('puzzlehd.exe ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
+        text_file.close()
+        os.chdir(miyamoto_path + '/Tools')
+        if platform.system() == 'Windows':
+            os.system("RUN.bat")
+        else:
+            os.system("wine cmd /c RUN.bat")
+        os.chdir(miyamoto_path)
 
         if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
             with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
@@ -16575,10 +16414,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.ReloadTilesets()
             mainWindow.objPicker.LoadFromTilesets()
             self.objAllTab.setCurrentIndex(0)
-            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
-            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
-            self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
-            self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
+            self.objAllTab.setTabEnabled(0, (SLib.Area.tileset0 != ''))
+            self.objAllTab.setTabEnabled(1, (SLib.Area.tileset1 != ''))
+            self.objAllTab.setTabEnabled(2, (SLib.Area.tileset2 != ''))
+            self.objAllTab.setTabEnabled(3, (SLib.Area.tileset3 != ''))
 
             for layer in Area.layers:
                 for obj in layer:

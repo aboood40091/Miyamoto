@@ -1,5 +1,5 @@
-#!/usr/bin/python3
-# -*- coding: latin-1 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
 # Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
