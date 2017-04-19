@@ -21,7 +21,7 @@
 # along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
 
 # miyamoto.py
-# This is the main executable for Miyamoto!
+# This is the main executable for Miyamoto! Windows
 
 
 ################################################################
@@ -3047,24 +3047,21 @@ def _LoadTileset(idx, name, reload=False):
     SLib.Tiles = Tiles
 
 def LoadTexture_NSMBU(tiledata):
-    with open(miyamoto_path + '\Tools/texture.gtx', 'wb') as binfile:
+    with open(miyamoto_path + '/Tools/texture.gtx', 'wb') as binfile:
         binfile.write(tiledata)
 
-    text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+    text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
     text_file.write('gtx_extract.exe texture.gtx texture.bmp')
     text_file.close()
     os.chdir(miyamoto_path + '/Tools')
-    if platform.system() == 'Windows':
-        os.system("RUN.bat")
-    else:
-        os.system("wine cmd /c RUN.bat")
+    os.system("RUN.bat")
     os.chdir(miyamoto_path)
-    os.remove(miyamoto_path + '\Tools/RUN.bat')
+    os.remove(miyamoto_path + '/Tools/RUN.bat')
 
     img = QtGui.QImage(miyamoto_path + '/Tools/texture.bmp')
 
-    os.remove(miyamoto_path + '\Tools/texture.gtx')
-    os.remove(miyamoto_path + '\Tools/texture.bmp')
+    os.remove(miyamoto_path + '/Tools/texture.gtx')
+    os.remove(miyamoto_path + '/Tools/texture.bmp')
     
 
     return img
@@ -13881,16 +13878,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if os.path.isfile(self.fileSavePath):
                 os.remove(self.fileSavePath)
-            text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+            text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
             text_file.write('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
             text_file.close()
             os.chdir(miyamoto_path + '/Tools')
-            if platform.system() == 'Windows':
-                os.system("RUN.bat")
-            else:
-                os.system("wine cmd /c RUN.bat")
+            os.system("RUN.bat")
             os.chdir(miyamoto_path)
-            os.remove(miyamoto_path + '\Tools/RUN.bat')
+            os.remove(miyamoto_path + '/Tools/RUN.bat')
             os.remove(course_name + '.tmp')
         else:
             with open(self.fileSavePath, 'wb') as f:
@@ -14058,16 +14052,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 if os.path.isfile(self.fileSavePath):
                     os.remove(self.fileSavePath)
-                text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+                text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
                 text_file.write('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
                 text_file.close()
                 os.chdir(miyamoto_path + '/Tools')
-                if platform.system() == 'Windows':
-                    os.system("RUN.bat")
-                else:
-                    os.system("wine cmd /c RUN.bat")
+                os.system("RUN.bat")
                 os.chdir(miyamoto_path)
-                os.remove(miyamoto_path + '\Tools/RUN.bat')
+                os.remove(miyamoto_path + '/Tools/RUN.bat')
                 os.remove(course_name + '.tmp')
             else:
                 with open(mainWindow.fileSavePath, 'wb') as f:
@@ -14125,16 +14116,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 if os.path.isfile(self.fileSavePath):
                     os.remove(self.fileSavePath)
-                text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+                text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
                 text_file.write('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
                 text_file.close()
                 os.chdir(miyamoto_path + '/Tools')
-                if platform.system() == 'Windows':
-                    os.system("RUN.bat")
-                else:
-                    os.system("wine cmd /c RUN.bat")
+                os.system("RUN.bat")
                 os.chdir(miyamoto_path)
-                os.remove(miyamoto_path + '\Tools/RUN.bat')
+                os.remove(miyamoto_path + '/Tools/RUN.bat')
                 os.remove(course_name + '.tmp')
             else:
                 with open(self.fileSavePath, 'wb') as f:
@@ -14725,16 +14713,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if levelData.startswith(b'Yaz0'):
             print('Beginning Yaz0 decompression...')
             course_name = os.path.splitext(mainWindow.fileSavePath)[0]
-            text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+            text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
             text_file.write('wszst.exe DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
             text_file.close()
             os.chdir(miyamoto_path + '/Tools')
-            if platform.system() == 'Windows':
-                os.system("RUN.bat")
-            else:
-                os.system("wine cmd /c RUN.bat")
+            os.system("RUN.bat")
             os.chdir(miyamoto_path)
-            os.remove(miyamoto_path + '\Tools/RUN.bat')
+            os.remove(miyamoto_path + '/Tools/RUN.bat')
             with open(course_name + '.tmp', 'rb') as f:
                 levelData = f.read()
             os.remove(course_name + '.tmp')
@@ -16210,25 +16195,22 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if SLib.Area.tileset0 not in szsData: return
             sarcdata = szsData[SLib.Area.tileset0]
 
-            with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+            with open(miyamoto_path + '/Tools/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
 
         else: return
 
-        text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+        text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
         text_file.write('puzzlehd.exe ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
         text_file.close()
         os.chdir(miyamoto_path + '/Tools')
-        if platform.system() == 'Windows':
-            os.system("RUN.bat")
-        else:
-            os.system("wine cmd /c RUN.bat")
+        os.system("RUN.bat")
         os.chdir(miyamoto_path)
 
-        if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
-            with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+        if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
+            with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
                 szsData[SLib.Area.tileset0] = fn.read()
-            os.remove(miyamoto_path + '\Tools/tmp.tmp')
+            os.remove(miyamoto_path + '/Tools/tmp.tmp')
             self.ReloadTilesets()
 
     @QtCore.pyqtSlot()
@@ -16242,7 +16224,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if SLib.Area.tileset1 not in szsData: return
             sarcdata = szsData[SLib.Area.tileset1]
 
-            with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+            with open(miyamoto_path + '/Tools/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
             sarcfile = 'tmp.tmp'
 
@@ -16253,8 +16235,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if reply == QtWidgets.QMessageBox.Yes:
                 con = True
-                if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
-                    os.remove(miyamoto_path + '\Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+                if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
+                    os.remove(miyamoto_path + '/Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
                 SLib.Area.tileset1 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
@@ -16264,20 +16246,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if SLib.Area.tileset1 == '': return
 
-        text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+        text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
         text_file.write('puzzlehd.exe ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
         text_file.close()
         os.chdir(miyamoto_path + '/Tools')
-        if platform.system() == 'Windows':
-            os.system("RUN.bat")
-        else:
-            os.system("wine cmd /c RUN.bat")
+        os.system("RUN.bat")
         os.chdir(miyamoto_path)
 
-        if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
-            with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+        if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
+            with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
                 szsData[SLib.Area.tileset1] = fn.read()
-            os.remove(miyamoto_path + '\Tools/tmp.tmp')
+            os.remove(miyamoto_path + '/Tools/tmp.tmp')
 
             self.ReloadTilesets()
             mainWindow.objPicker.LoadFromTilesets()
@@ -16308,9 +16287,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if SLib.Area.tileset2 not in szsData: return
             sarcdata = szsData[SLib.Area.tileset2]
 
-            with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+            with open(miyamoto_path + '/Tools/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
-            sarcfile = miyamoto_path + '\Tools/tmp.tmp'
+            sarcfile = miyamoto_path + '/Tools/tmp.tmp'
 
         elif SLib.Area.tileset2 == '':
             con_msg = "This Tileset doesn't exist, do you want to create it?"
@@ -16319,8 +16298,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if reply == QtWidgets.QMessageBox.Yes:
                 con = True
-                if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
-                    os.remove(miyamoto_path + '\Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+                if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
+                    os.remove(miyamoto_path + '/Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
                 SLib.Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
@@ -16330,20 +16309,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if SLib.Area.tileset2 == '': return
 
-        text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+        text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
         text_file.write('puzzlehd.exe ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
         text_file.close()
         os.chdir(miyamoto_path + '/Tools')
-        if platform.system() == 'Windows':
-            os.system("RUN.bat")
-        else:
-            os.system("wine cmd /c RUN.bat")
+        os.system("RUN.bat")
         os.chdir(miyamoto_path)
 
-        if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
-            with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+        if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
+            with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
                 szsData[SLib.Area.tileset2] = fn.read()
-            os.remove(miyamoto_path + '\Tools/tmp.tmp')
+            os.remove(miyamoto_path + '/Tools/tmp.tmp')
 
             self.ReloadTilesets()
             mainWindow.objPicker.LoadFromTilesets()
@@ -16374,9 +16350,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if SLib.Area.tileset3 not in szsData: return
             sarcdata = szsData[SLib.Area.tileset3]
 
-            with open(miyamoto_path + '\Tools/tmp.tmp', 'wb') as fn:
+            with open(miyamoto_path + '/Tools/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
-            sarcfile = miyamoto_path + '\Tools/tmp.tmp'
+            sarcfile = miyamoto_path + '/Tools/tmp.tmp'
 
         elif SLib.Area.tileset3 == '':
             con_msg = "This Tileset doesn't exist, do you want to create it?"
@@ -16385,8 +16361,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if reply == QtWidgets.QMessageBox.Yes:
                 con = True
-                if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
-                    os.remove(miyamoto_path + '\Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+                if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
+                    os.remove(miyamoto_path + '/Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
                 SLib.Area.tileset3 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
@@ -16396,20 +16372,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if SLib.Area.tileset3 == '': return
 
-        text_file = open(miyamoto_path + '\Tools/RUN.bat', 'w')
+        text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
         text_file.write('puzzlehd.exe ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
         text_file.close()
         os.chdir(miyamoto_path + '/Tools')
-        if platform.system() == 'Windows':
-            os.system("RUN.bat")
-        else:
-            os.system("wine cmd /c RUN.bat")
+        os.system("RUN.bat")
         os.chdir(miyamoto_path)
 
-        if os.path.isfile(miyamoto_path + '\Tools/tmp.tmp'):
-            with open(miyamoto_path + '\Tools/tmp.tmp', 'rb') as fn:
+        if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
+            with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
                 szsData[SLib.Area.tileset3] = fn.read()
-            os.remove(miyamoto_path + '\Tools/tmp.tmp')
+            os.remove(miyamoto_path + '/Tools/tmp.tmp')
 
             self.ReloadTilesets()
             mainWindow.objPicker.LoadFromTilesets()
