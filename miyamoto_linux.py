@@ -13838,11 +13838,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 with open(course_name + '.tmp', 'wb') as f:
                     f.write(data)
 
-                if os.path.isfile(self.fileSavePath):
-                    os.remove(self.fileSavePath)
+                if os.path.isfile(mainWindow.fileSavePath):
+                    os.remove(mainWindow.fileSavePath)
                 os.chdir(miyamoto_path + '/linuxTools')
                 os.system('chmod +x ./wszst_linux.elf')
-                os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + main.fileSavePath + '"')
+                os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
                 os.chdir(miyamoto_path)
                 os.remove(course_name + '.tmp')
             else:
