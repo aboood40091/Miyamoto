@@ -1,12 +1,11 @@
-#!/usr/bin/python
-# -*- coding: latin-1 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-# Miyamoto! Next - New Super Mario Bros. U Level Editor
-# Version v0.6
-# Copyright (C) 2009-2016 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop
+# Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
+# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7
 
-# This file is part of Miyamoto! Next.
+# This file is part of Miyamoto!.
 
 # Miyamoto! is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,8 +19,6 @@
 
 # You should have received a copy of the GNU General Public License
 # along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
-
-
 
 # sprites.py
 # Contains code to render NSMBU sprite images
@@ -545,7 +542,7 @@ class SpriteImage_MidwayFlag(SLib.SpriteImage_StaticMultiple): # 25
             ImageCache['MidwayFlag'],
             )
         
-        self.yOffset = -41
+        self.yOffset = -44
 
     @staticmethod
     def loadImages():
@@ -693,7 +690,7 @@ class SpriteImage_RedRing(SLib.SpriteImage_Static): # 44
             )
         
         self.yOffset = -14
-        self.xOffset = -7+8
+        self.xOffset = -7
 
     @staticmethod
     def loadImages():

@@ -1,1 +1,0 @@
-SARCExtract-0.3.exe lol.sarc

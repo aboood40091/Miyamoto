@@ -1,1 +1,0 @@
-gtx_extract.exe texture.gtx texture.bmp

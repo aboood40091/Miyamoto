@@ -1,12 +1,11 @@
-#!/usr/bin/python
-# -*- coding: latin-1 -*-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-# Miyamoto! Next - New Super Mario Bros. U Level Editor
-# Version v0.6
-# Copyright (C) 2009-2016 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop
+# Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
+# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7
 
-# This file is part of Miyamoto! Next.
+# This file is part of Miyamoto!.
 
 # Miyamoto! is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,14 +20,14 @@
 # You should have received a copy of the GNU General Public License
 # along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
 # strings.py
 # Strings for labels, tooltips, and more
 
 
 ################################################################
 ################################################################
+
+import os.path
 
 class MiyamotoTranslation():
     """
@@ -286,7 +285,6 @@ class MiyamotoTranslation():
                 8: 'Choose a SARC file (Sarchive)',
                 9: 'Choose new zip filename',
                 10: 'Choose a SZS file',
-                11: 'Choose a tileset to import',
                 },
             'Gamedefs': {
                 0: 'This game has custom sprite images',
@@ -355,9 +353,9 @@ class MiyamotoTranslation():
                 1: '&Edit',
                 2: '&View',
                 3: '&Settings',
-                4: '&Help',
-                5: 'Editor Toolbar',
-                6: '&Tilesets',
+                4: '&Tilesets',
+                5: '&Help',
+                6: 'Editor Toolbar',
                 },
             'MenuItems': {
                 0: 'New Level',
@@ -504,14 +502,6 @@ class MiyamotoTranslation():
                 141: 'Edit Slot 3 Tileset',
                 142: 'Edit Slot 4 Tileset',
                 143: 'Edit Slot 4 Tileset',
-                144: 'Replace Slot 1 Tileset',
-                145: 'Replace Slot 1 Tileset',
-                146: 'Replace Slot 2 Tileset',
-                147: 'Replace Slot 2 Tileset',
-                148: 'Replace Slot 3 Tileset',
-                149: 'Replace Slot 3 Tileset',
-                150: 'Replace Slot 4 Tileset',
-                151: 'Replace Slot 4 Tileset',
                 500: 'Toggle Background',
                 501: 'Swap Current Background',
                 502: 'Liquid Options',
@@ -520,9 +510,7 @@ class MiyamotoTranslation():
                 505: 'Convert ZIP Archive To SARC',
                 506: 'Convert To SARC/Sarchive',
                 507: 'Compress SARC to .szs File',
-                508: 'Compress',
-                509: 'Open Tileset Manager',
-                510: 'Tileset Manager'
+                508: 'Compress'
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
