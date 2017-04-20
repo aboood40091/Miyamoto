@@ -13670,7 +13670,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if os.path.isfile(self.fileSavePath):
                 os.remove(self.fileSavePath)
             os.chdir(miyamoto_path + '/linuxTools')
-            os.system('wszst_linux COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
+            os.system('chmod +x ./wszst_linux.elf')
+            os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
             os.chdir(miyamoto_path)
             os.remove(course_name + '.tmp')
         else:
@@ -13840,7 +13841,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if os.path.isfile(self.fileSavePath):
                     os.remove(self.fileSavePath)
                 os.chdir(miyamoto_path + '/linuxTools')
-                os.system('wszst_linux COMPRESS "' + course_name + '.tmp" --dest "' + main.fileSavePath + '"')
+                os.system('chmod +x ./wszst_linux.elf')
+                os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + main.fileSavePath + '"')
                 os.chdir(miyamoto_path)
                 os.remove(course_name + '.tmp')
             else:
@@ -13900,7 +13902,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if os.path.isfile(self.fileSavePath):
                     os.remove(self.fileSavePath)
                 os.chdir(miyamoto_path + '/linuxTools')
-                os.system('wszst_linux COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
+                os.system('chmod +x ./wszst_linux.elf')
+                os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
                 os.chdir(miyamoto_path)
                 os.remove(course_name + '.tmp')
             else:
@@ -14491,7 +14494,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             print('Beginning Yaz0 decompression...')
             course_name = os.path.splitext(mainWindow.fileSavePath)[0]
             os.chdir(miyamoto_path + '/linuxTools')
-            os.system('wszst_linux DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
+            os.system('chmod +x ./wszst_linux.elf')
+            os.system('./wszst_linux.elf DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
             os.chdir(miyamoto_path)
             with open(course_name + '.tmp', 'rb') as f:
                 levelData = f.read()
@@ -15962,7 +15966,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else: return
 
         os.chdir(miyamoto_path + '/linuxTools')
-        os.system('python3 puzzlehd.py ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
+        os.system('chmod +x ./puzzlehd.elf')
+        os.system('./puzzlehd.elf ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
         os.chdir(miyamoto_path)
 
         if os.path.isfile(miyamoto_path + '/linuxTools/tmp.tmp'):
@@ -16005,7 +16010,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if SLib.Area.tileset1 == '': return
 
         os.chdir(miyamoto_path + '/linuxTools')
-        os.system('python3 puzzlehd.py ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
+        os.system('chmod +x ./puzzlehd.elf')
+        os.system('./puzzlehd.elf ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
         os.chdir(miyamoto_path)
 
         if os.path.isfile(miyamoto_path + '/linuxTools/tmp.tmp'):
@@ -16065,7 +16071,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if SLib.Area.tileset2 == '': return
 
         os.chdir(miyamoto_path + '/linuxTools')
-        os.system('python3 puzzlehd.py ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
+        os.system('chmod +x ./puzzlehd.elf')
+        os.system('./puzzlehd.elf ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
         os.chdir(miyamoto_path)
 
         if os.path.isfile(miyamoto_path + '/linuxTools/tmp.tmp'):
@@ -16125,7 +16132,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if SLib.Area.tileset3 == '': return
 
         os.chdir(miyamoto_path + '/linuxTools')
-        os.system('python3 puzzlehd.py ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
+        os.system('chmod +x ./puzzlehd.elf')
+        os.system('./puzzlehd.elf ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
         os.chdir(miyamoto_path)
 
         if os.path.isfile(miyamoto_path + '/linuxTools/tmp.tmp'):
