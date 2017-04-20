@@ -718,15 +718,8 @@ def LoadTheme():
     """
     global theme
 
-    id = setting('Theme')
-    if id is None: id = 'Classic'
-    if id != 'Classic':
-
-        path = str('miyamotodata\\themes\\'+id).replace('\\', '/')
-        with open(path, 'rb') as f:
-            theme = MiyamotoTheme(f)
-
-    else: theme = MiyamotoTheme()
+    id = 'Classic'
+    theme = MiyamotoTheme()
 
 def LoadLevelNames():
     """
@@ -13921,7 +13914,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
     def getInnerSarcName(self):
         return QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
-            "Choose an internal filename for this level (do not add a .sarc extension) (example: 1-1):", QtWidgets.QLineEdit.Normal)[0]
+            "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):", QtWidgets.QLineEdit.Normal)[0]
 
     @QtCore.pyqtSlot()
     def HandleExit(self):

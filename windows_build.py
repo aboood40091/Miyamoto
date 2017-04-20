@@ -24,8 +24,8 @@
 # Builds Miyamoto! to a Windows binary (*.exe)
 # Use the values below to configure the release:
 
-PackageName = 'miyamoto_v8.5'
-Version = '8.5' # This must be a valid float in string format
+PackageName = 'miyamoto_v9'
+Version = '9.0' # This must be a valid float in string format
 
 
 ################################################################
@@ -97,7 +97,6 @@ shutil.copytree('miyamotodata', dir_ + '/miyamotodata')
 shutil.copytree('miyamotoextras', dir_ + '/miyamotoextras')
 shutil.copytree('Tools', dir_ + '/Tools')
 shutil.copy('license.txt', dir_)
-shutil.copy('license_short.txt', dir_)
 shutil.copy('README.md', dir_)
 if not os.path.isfile(dir_ + '/libEGL.dll'):
     shutil.copy('libEGL.dll', dir_)
