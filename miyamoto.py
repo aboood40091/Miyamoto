@@ -16199,7 +16199,7 @@ def main():
 
     # Set the default window icon (used for random popups and stuff)
     app.setWindowIcon(GetIcon('miyamoto'))
-    app.setApplicationDisplayName('You Make a Good Level Now!')
+    app.setApplicationDisplayName('You Make Good Level Now!')
 
     global EnableAlpha, GridType, CollisionsShown, DepthShown, RealViewEnabled
     global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, CommentsFrozen
