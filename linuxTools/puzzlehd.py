@@ -8,7 +8,6 @@
 import SARC
 import os
 import os.path
-import platform
 import struct
 import sys
 
@@ -2466,7 +2465,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def saveTileset(self):
         outdata = self.saving(os.path.basename(self.name))
 
-        with open(self.miyamoto_path + '\Tools/tmp.tmp', 'wb') as f:
+        with open(self.miyamoto_path + '/linuxTools/tmp.tmp', 'wb') as f:
             f.write(outdata)
 
         self.close()
@@ -2597,27 +2596,24 @@ class MainWindow(QtWidgets.QMainWindow):
             # Convert mipmaps to DDS
 
             for i, tex in enumerate(mipmaps):
-                tex.save(self.miyamoto_path + '\Tools/mipmap%s_%d.png' % ('_nml' if normalmap else '', i))
-                text_file = open(self.miyamoto_path + '\Tools/RUN.bat', 'w')
+                tex.save(self.miyamoto_path + '/linuxTools/mipmap%s_%d.png' % ('_nml' if normalmap else '', i))
+                text_file = open(self.miyamoto_path + '/linuxTools/RUN.bat', 'w')
                 text = 'nvcompress.exe -bc3 -nomips "'
-                text += self.miyamoto_path + '/Tools/mipmap%s_%d.png" ' % ('_nml' if normalmap else '', i)
-                text += self.miyamoto_path + '/Tools/mipmap%s_%d.dds"' % ('_nml' if normalmap else '', i)
+                text += self.miyamoto_path + '/linuxTools/mipmap%s_%d.png" ' % ('_nml' if normalmap else '', i)
+                text += self.miyamoto_path + '/linuxTools/mipmap%s_%d.dds"' % ('_nml' if normalmap else '', i)
                 text_file.write(text)
                 text_file.close()
-                os.chdir(self.miyamoto_path + '/Tools')
-                if platform.system() == 'Windows':
-                    os.system("RUN.bat")
-                else:
-                    os.system("wine cmd /c RUN.bat")
+                os.chdir(self.miyamoto_path + '/linuxTools')
+                os.system("wine cmd /c RUN.bat")
                 os.chdir(self.miyamoto_path)
-                os.remove(self.miyamoto_path + '\Tools/RUN.bat')
+                os.remove(self.miyamoto_path + '/linuxTools/RUN.bat')
 
             ddsmipmaps = []
             for i in range(numMips):
-                with open(self.miyamoto_path + '\Tools/mipmap%s_%d.dds' % ('_nml' if normalmap else '', i), 'rb') as f:
+                with open(self.miyamoto_path + '/linuxTools/mipmap%s_%d.dds' % ('_nml' if normalmap else '', i), 'rb') as f:
                     ddsmipmaps.append(f.read())
-                os.remove(self.miyamoto_path + '/Tools/mipmap%s_%d.png' % ('_nml' if normalmap else '', i))
-                os.remove(self.miyamoto_path + '/Tools/mipmap%s_%d.dds' % ('_nml' if normalmap else '', i))
+                os.remove(self.miyamoto_path + '/linuxTools/mipmap%s_%d.png' % ('_nml' if normalmap else '', i))
+                os.remove(self.miyamoto_path + '/linuxTools/mipmap%s_%d.dds' % ('_nml' if normalmap else '', i))
 
             # Grab the textures from the DDSs
             texmipmaps = []
@@ -2969,24 +2965,21 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def LoadTexture_NSMBU(self, tiledata):
-        with open(self.miyamoto_path + '\Tools/texture.gtx', 'wb') as binfile:
+        with open(self.miyamoto_path + '/linuxTools/texture.gtx', 'wb') as binfile:
             binfile.write(tiledata)
 
-        text_file = open(self.miyamoto_path + '\Tools/RUN.bat', 'w')
+        text_file = open(self.miyamoto_path + '/linuxTools/RUN.bat', 'w')
         text_file.write('gtx_extract.exe texture.gtx texture.bmp')
         text_file.close()
-        os.chdir(self.miyamoto_path + '/Tools')
-        if platform.system() == 'Windows':
-            os.system("RUN.bat")
-        else:
-            os.system("wine cmd /c RUN.bat")
+        os.chdir(self.miyamoto_path + '/linuxTools')
+        os.system("wine cmd /c RUN.bat")
         os.chdir(self.miyamoto_path)
-        os.remove(self.miyamoto_path + '\Tools/RUN.bat')
+        os.remove(self.miyamoto_path + '/linuxTools/RUN.bat')
 
-        img = QtGui.QImage(self.miyamoto_path + '/Tools/texture.bmp')
+        img = QtGui.QImage(self.miyamoto_path + '/linuxTools/texture.bmp')
 
-        os.remove(self.miyamoto_path + '\Tools/texture.gtx')
-        os.remove(self.miyamoto_path + '\Tools/texture.bmp')
+        os.remove(self.miyamoto_path + '/linuxTools/texture.gtx')
+        os.remove(self.miyamoto_path + '/linuxTools/texture.bmp')
         
 
         return img
