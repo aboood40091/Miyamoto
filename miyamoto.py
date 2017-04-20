@@ -13832,8 +13832,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 with open(course_name + '.tmp', 'wb') as f:
                     f.write(data)
 
-                if os.path.isfile(self.fileSavePath):
-                    os.remove(self.fileSavePath)
+                if os.path.isfile(mainWindow.fileSavePath):
+                    os.remove(mainWindow.fileSavePath)
                 os.chdir(miyamoto_path + '/Tools')
                 os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
                 os.chdir(miyamoto_path)
