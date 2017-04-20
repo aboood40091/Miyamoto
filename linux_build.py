@@ -24,8 +24,8 @@
 # Builds Miyamoto! to a Linux binary
 # Use the values below to configure the release:
 
-PackageName = 'miyamoto_v8.5'
-Version = '8.5' # This must be a valid float in string format
+PackageName = 'miyamoto_v9.0'
+Version = '9.0' # This must be a valid float in string format
 
 
 ################################################################

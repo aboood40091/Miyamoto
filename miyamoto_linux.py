@@ -718,16 +718,8 @@ def LoadTheme():
     """
     global theme
 
-    id = setting('Theme')
-    id = setting('Classic')
-    if id is None: id = 'Classic'
-    if id != 'Classic':
-
-        path = str('miyamotodata\\themes\\'+id).replace('\\', '/')
-        with open(path, 'rb') as f:
-            theme = MiyamotoTheme(f)
-
-    else: theme = MiyamotoTheme()
+    id = 'Classic'
+    theme = MiyamotoTheme()
 
 def LoadLevelNames():
     """
@@ -10098,7 +10090,7 @@ class AreaOptionsDialog(QtWidgets.QDialog):
         self.tabWidget = QtWidgets.QTabWidget()
         self.LoadingTab = LoadingTab()
         self.TilesetsTab = TilesetsTab() if NewTilesetsTab else OldTilesetsTab()
-        #self.tabWidget.addTab(self.TilesetsTab, trans.string('AreaDlg', 1))
+        self.tabWidget.addTab(self.TilesetsTab, trans.string('AreaDlg', 1))
         self.tabWidget.addTab(self.LoadingTab, trans.string('AreaDlg', 2))
 
         buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
@@ -13839,11 +13831,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 with open(course_name + '.tmp', 'wb') as f:
                     f.write(data)
 
-                if os.path.isfile(self.fileSavePath):
-                    os.remove(self.fileSavePath)
+                if os.path.isfile(mainWindow.fileSavePath):
+                    os.remove(mainWindow.fileSavePath)
                 os.chdir(miyamoto_path + '/linuxTools')
                 os.system('chmod +x ./wszst_linux.elf')
-                os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + main.fileSavePath + '"')
+                os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
                 os.chdir(miyamoto_path)
                 os.remove(course_name + '.tmp')
             else:
@@ -13922,7 +13914,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
     def getInnerSarcName(self):
         return QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
-            "Choose an internal filename for this level (do not add a .sarc extension) (example: 1-1):", QtWidgets.QLineEdit.Normal)[0]
+            "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):", QtWidgets.QLineEdit.Normal)[0]
 
     @QtCore.pyqtSlot()
     def HandleExit(self):
