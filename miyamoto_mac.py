@@ -138,31 +138,11 @@ Waterlocationy = 0
 Waterlocationw = 1000		
 Waterlocationh = 30
 miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
-names_bg = ('Black', 'End_Isiyama', 'End_Iwaba', 'End_Kaigan',
-            'End_Kougen', 'End_Mori', 'End_Sabaku', 'End_Setugen',
-            'Hune', 'Hune_Boss', 'Hune_Boss_2', 'Isiyama_2',
-            'Isiyama_3', 'Iwaba', 'Iwaba_2', 'Iwaba_3', 'Kaigan',
-            'Kaigan_2', 'Kaigan_Ue', 'Kinopio', 'Kumonaka',
-            'Kumonaka_Arashi', 'Kumonaka_Isi', 'Kumonaka_Naname',
-            'Kumonaka_Sabaku', 'Kumonaka_Tate', 'Kumonaka_Yama',
-            'Kumonaka_Yama_2', 'KumoUe', 'KumoUe_Boss', 'KumoUe_Hikousen',
-            'KumoUe_Sabaku', 'KumoUe_Yama', 'KumoUe_Yama_2', 'Kuppa',
-            'Kuppa_Boss', 'Mori', 'Mori_2', 'Nohara', 'Obake',
-            'Obake_2', 'Obake_hune', 'Obake_hune_2', 'Obake_Soto',
-            'Obake_Soto_2', 'Obake_Soto_fune', 'Obake_Soto_hune',
-            'Obake_tate', 'Obake_tate_2', 'Picture', 'Picture_2',
-            'Sabaku', 'SabakuChika', 'Sabaku_2', 'Setugen', 'Setugen_2',
-            'Setugen_Naname', 'Shadow', 'Shiro', 'Short_Play', 'Siro',
-            'Siro_2', 'Siro_3', 'Siro_Boss', 'Siro_Boss_2', 'Siro_Boss_Iggy',
-            'Siro_Boss_Larry', 'Siro_Boss_Ludw', 'Siro_Boss_Roy',
-            'Siro_Boss_Wendy', 'Siro_Kougen', 'Siro_peach', 'Siro_Setugen',
-            'Siro_Tate', 'Staffroll', 'Suityu', 'Suityu_Tate', 'Tika',
-            'Tika_2', 'Tika_3', 'Tika_Kori', 'Tika_Kori_2', 'Tika_Picture',
-            'Tika_Picture_2', 'Tika_sabaku', 'Tika_tate_2', 'Toride',
-            'Toride_2', 'Toride_Boss', 'Toride_Boss_2', 'Toride_Boss_3',
-            'Toride_Boss_4', 'Toride_Boss_5', 'Toride_Iwaba', 'Toride_Sabaku',
-            'Toride_Setugen', 'Yougan', 'Yougan_2', 'Yougan_Goal',
-            'Yougan_Naname', 'Yougan_Ue')
+names_bg = []
+with open(miyamoto_path + '/miyamotodata/bg.txt', 'r') as txt:
+    for line in txt.readlines():
+        names_bg.append(line.rstrip())
+names_bg = tuple(names_bg)
 
 # Game enums
 NewSuperMarioBrosU = 0
@@ -196,161 +176,6 @@ def find_name(f, name_pos):
 #####################################################################
 ############################# UI-THINGS #############################
 #####################################################################
-
-class MiyamotoSplashScreen(QtWidgets.QSplashScreen):
-    """
-    Splash screen class for Miyamoto.
-    """
-    cfgData = {}
-    currentDesc = ''
-    currentPos = 0
-    posLimit = 0
-
-    def __init__(self):
-        """
-        Initializes the splash screen.
-        super().__init__(QPixmap) has to be called with the pixmap you want or
-        else transparency is messed up. self.setPixmap(QPixmap) doesn't seem to
-        work properly.
-        """
-        self.loadCfg()
-        self.loadResources()
-        super().__init__(self.basePix)
-
-    def loadCfg(self):
-        """
-        Loads the raw data from splash_config.txt
-        """
-        cfgData = {}
-        with open('miyamotodata/splash_config.txt', encoding='utf-8') as cfg:
-            for line in cfg:
-                lsplit = line.replace('\n', '').split(':')
-                key = lsplit[0].lower()
-                value = ':'.join(lsplit[1:])
-                if value.lower() in ('true', 'false'):
-                    value = value.lower() == 'true'
-                elif ',' in value:
-                    value = value.split(',')
-                    for i, entry in enumerate(value):
-                        try:
-                            value[i] = int(entry)
-                        except ValueError: pass
-                if isinstance(value, str):
-                    try:
-                        value = int(value)
-                    except ValueError: pass
-                cfgData[key] = value
-        self.cfgData = cfgData
-
-
-    def loadResources(self):
-        """
-        Reads the info from self.cfgData and loads stuff
-        """
-        self.basePix = QtGui.QPixmap(os.path.join('miyamotodata', self.cfgData['base_image']))
-
-        def loadFont(name):
-            fname = self.cfgData.get(name + '_font', 'sans-serif')
-            bold = self.cfgData.get(name + '_font_bold', False)
-            color = '#' + self.cfgData.get(name + '_font_color', '000000')
-            size = self.cfgData.get(name + '_font_size', 12)
-            weight = self.cfgData.get(name + '_font_weight', 12)
-            wLim = self.cfgData.get(name + '_wrap_limit', 1024)
-            position = self.cfgData.get(name + '_position', (0, 0))
-            centered = self.cfgData.get(name + '_centered', False)
-
-            font = QtGui.QFont()
-            font.setFamily(fname)
-            font.setBold(bold)
-            font.setPointSize(size)
-            font.setWeight(weight)
-            return font, position, color, centered, wLim
-
-        self.versionFontInfo = loadFont('version')
-        self.loadingFontInfo = loadFont('loading')
-        self.copyrightFontInfo = loadFont('copyright')
-
-        mNameL = self.cfgData.get('meter_left', '')
-        mNameM = self.cfgData.get('meter_mid', '')
-        mNameR = self.cfgData.get('meter_right', '')
-        self.meterPos = self.cfgData.get('meter_position', (0, 0))
-        self.meterWidth = self.cfgData.get('meter_width', 64)
-
-        self.meterL = QtGui.QPixmap(os.path.join('miyamotodata', mNameL))
-        self.meterM = QtGui.QPixmap(os.path.join('miyamotodata', mNameM))
-        self.meterR = QtGui.QPixmap(os.path.join('miyamotodata', mNameR))
-
-
-    def setProgressLimit(self, limit):
-        """
-        Sets the maximum progress, used to calculate the progress bar
-        """
-        self.posLimit = limit
-
-
-    def setProgress(self, desc, pos):
-        """
-        Sets the current progress
-        """
-        self.currentDesc = desc
-        self.currentPos = pos
-        self.repaint()
-        app.processEvents()
-
-
-    def drawContents(self, painter):
-        """
-        Draws the contents of the splash screen
-        """
-        painter.setRenderHint(painter.Antialiasing)
-
-        totalWidthSoFar = self.meterWidth * (self.currentPos / self.posLimit)
-        painter.drawPixmap(
-            self.meterPos[0],
-            self.meterPos[1],
-            min(self.meterL.width(), self.meterWidth * (self.currentPos / self.posLimit)),
-            self.meterL.height(),
-            self.meterL,
-            )
-        painter.drawTiledPixmap(
-            self.meterPos[0] + self.meterL.width(),
-            self.meterPos[1],
-            min(self.meterWidth - self.meterL.width() - self.meterR.width(), totalWidthSoFar - self.meterL.width()),
-            self.meterM.height(),
-            self.meterM,
-            )
-        painter.drawTiledPixmap(
-            self.meterPos[0] + self.meterWidth - self.meterR.width(),
-            self.meterPos[1],
-            totalWidthSoFar - self.meterWidth + self.meterR.width(),
-            self.meterR.height(),
-            self.meterR,
-            )
-
-        def drawText(text, font, position, color, centered, wLim):
-            """
-            Draws some text
-            """
-            rect = QtCore.QRectF(
-                position[0] - (wLim / 2 if centered else 0),
-                position[1],
-                wLim,
-                512,
-                )
-            flags = (Qt.AlignHCenter if centered else Qt.AlignLeft) | Qt.AlignTop | Qt.TextWordWrap
-
-            painter.save()
-            painter.setFont(font)
-            r, g, b = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
-            painter.setPen(QtGui.QPen(QtGui.QColor(r, g, b)))
-            painter.drawText(rect, flags, text)
-            painter.restore()
-
-        drawText(MiyamotoVersionShort, *self.versionFontInfo)
-        drawText(self.currentDesc, *self.loadingFontInfo)
-        with open('license_short.txt', 'r') as copyFile:
-            drawText(copyFile.read(), *self.copyrightFontInfo)
-
 
 class ChooseLevelNameDialog(QtWidgets.QDialog):
     """
@@ -3047,31 +2872,23 @@ def _LoadTileset(idx, name, reload=False):
     SLib.Tiles = Tiles
 
 def LoadTexture_NSMBU(tiledata):
-    with open(miyamoto_path + '/Tools/texture.gtx', 'wb') as binfile:
+    with open(miyamoto_path + '/macTools/texture.gtx', 'wb') as binfile:
         binfile.write(tiledata)
 
-    text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
+    text_file = open(miyamoto_path + '/macTools/RUN.bat', 'w')
     text_file.write('gtx_extract.exe texture.gtx texture.bmp')
     text_file.close()
-    os.chdir(miyamoto_path + '/Tools')
+    os.chdir(miyamoto_path + '/macTools')
     os.system("wine cmd /c RUN.bat")
     os.chdir(miyamoto_path)
-    os.remove(miyamoto_path + '/Tools/RUN.bat')
+    os.remove(miyamoto_path + '/macTools/RUN.bat')
 
-    img = QtGui.QImage(miyamoto_path + '/Tools/texture.bmp')
+    img = QtGui.QImage(miyamoto_path + '/macTools/texture.bmp')
 
-    os.remove(miyamoto_path + '/Tools/texture.gtx')
-    os.remove(miyamoto_path + '/Tools/texture.bmp')
-    
+    os.remove(miyamoto_path + '/macTools/texture.gtx')
+    os.remove(miyamoto_path + '/macTools/texture.bmp')
 
     return img
-
-def DDStoPNG(in_fn,out_fn,w,h):
-    with open(in_fn,'rb') as f:
-        data = f.read()
-
-    img = Image.frombytes('RGBA',(w,h),data[0x80:])
-    img.save(out_fn)
 
 def CascadeTilesetNames_Category(lower, upper):
     """
@@ -3457,7 +3274,7 @@ def ProcessOverrides(idx, name):
             ## Conveyor belts
             ### Left
             #### Fast
-            replace = offset + 114
+            replace = offset + 115
             for i in range(163, 166):
                 t[i].main = t[replace].main
                 t[i].setOverridden()
@@ -4004,46 +3821,20 @@ class AbstractParsedArea(AbstractArea):
         # Now, load the comments
         self.LoadComments()
 
-        # Load the tilesets
-        try: # Crashes when changing area's
-            app.splashScreen.setProgress(trans.string('Splash', 3), 1)
-        except:
-            pass
-
         CreateTilesets()
-        try: # Crashes when changing area's
-            app.splashScreen.setProgress(trans.string('Splash', 3), 2)
-        except:
-            pass
         
         if self.tileset0 != '':
             LoadTileset(0, self.tileset0)
-        try: # Crashes when changing area's
-            app.splashScreen.setProgress(trans.string('Splash', 3), 3)
-        except:
-            pass
-
+        
         if self.tileset1 != '':
             LoadTileset(1, self.tileset1)
-        try: # Crashes when changing area's
-            app.splashScreen.setProgress(trans.string('Splash', 3), 4)
-        except:
-            pass
-
+        
         if self.tileset2 != '':
             LoadTileset(2, self.tileset2)
-        try: # Crashes when changing area's
-            app.splashScreen.setProgress(trans.string('Splash', 3), 5)
-        except:
-            pass
-
+        
         if self.tileset3 != '':
             LoadTileset(3, self.tileset3)
-        try: # Crashes when changing area's
-            app.splashScreen.setProgress(trans.string('Splash', 3), 6)
-        except:
-            pass
-
+        
         # Load the object layers
         self.layers = [[], [], []]
 
@@ -13878,13 +13669,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if os.path.isfile(self.fileSavePath):
                 os.remove(self.fileSavePath)
-            text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
-            text_file.write('wszst_mac COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-            text_file.close()
-            os.chdir(miyamoto_path + '/Tools')
-            os.system("RUN.bat")
+            os.chdir(miyamoto_path + '/macTools')
+            os.system('wszst_mac COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
             os.chdir(miyamoto_path)
-            os.remove(miyamoto_path + '/Tools/RUN.bat')
             os.remove(course_name + '.tmp')
         else:
             with open(self.fileSavePath, 'wb') as f:
@@ -14052,13 +13839,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 if os.path.isfile(self.fileSavePath):
                     os.remove(self.fileSavePath)
-                text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
-                text_file.write('wszst_mac COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
-                text_file.close()
-                os.chdir(miyamoto_path + '/Tools')
-                os.system("RUN.bat")
+                os.chdir(miyamoto_path + '/macTools')
+                os.system('wszst_mac COMPRESS "' + course_name + '.tmp" --dest "' + main.fileSavePath + '"')
                 os.chdir(miyamoto_path)
-                os.remove(miyamoto_path + '/Tools/RUN.bat')
                 os.remove(course_name + '.tmp')
             else:
                 with open(mainWindow.fileSavePath, 'wb') as f:
@@ -14116,13 +13899,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 if os.path.isfile(self.fileSavePath):
                     os.remove(self.fileSavePath)
-                text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
-                text_file.write('wszst_mac COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-                text_file.close()
-                os.chdir(miyamoto_path + '/Tools')
-                os.system("RUN.bat")
+                os.chdir(miyamoto_path + '/macTools')
+                os.system('wszst_mac COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
                 os.chdir(miyamoto_path)
-                os.remove(miyamoto_path + '/Tools/RUN.bat')
                 os.remove(course_name + '.tmp')
             else:
                 with open(self.fileSavePath, 'wb') as f:
@@ -14668,8 +14447,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         name = checkname
 
-        if not (name.endswith('.szs') or name.endswith('.sarc')): return False # keep it from crashing by loading things it shouldn't
-
         # Get the data
         global RestoredFromAutoSave
         if not RestoredFromAutoSave:
@@ -14713,19 +14490,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if levelData.startswith(b'Yaz0'):
             print('Beginning Yaz0 decompression...')
             course_name = os.path.splitext(mainWindow.fileSavePath)[0]
-            text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
-            text_file.write('wszst_mac DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
-            text_file.close()
-            os.chdir(miyamoto_path + '/Tools')
-            os.system("RUN.bat")
+            os.chdir(miyamoto_path + '/macTools')
+            os.system('wszst_mac DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
             os.chdir(miyamoto_path)
-            os.remove(miyamoto_path + '/Tools/RUN.bat')
             with open(course_name + '.tmp', 'rb') as f:
                 levelData = f.read()
             os.remove(course_name + '.tmp')
             print('Decompression finished.')
-        else:
+        elif levelData.startswith(b'SARC'):
             print('Yaz0 decompression skipped.')
+        else: return False # keep it from crashing by loading things it shouldn't
 
         arc = SarcLib.SARC_Archive()
         arc.load(levelData)
@@ -14795,7 +14569,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         OverrideSnapping = True
 
         # Update progress
-        #app.splashScreen.setProgress(trans.string('Splash', 2), 0) <- This line crashes Miyamoto when changing area's inside a level
         self.LoadLevel_NSMBU(levelData, areaNum)
 
         # Set the level overview settings
@@ -14874,12 +14647,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if not Level.load(levelData, areaNum):
             raise Exception
 
-        # Prepare the object picker
-        try: # Crashes when changing Areas
-            app.splashScreen.setProgress(trans.string('Splash', 4), 7)
-        except:
-            pass
-
         self.objUseLayer1.setChecked(True)
 
         self.objPicker.LoadFromTilesets()
@@ -14889,12 +14656,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
         self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
         self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
-
-        # Add all things to scene
-        try: # Crashes when changing Areas
-            app.splashScreen.setProgress(trans.string('Splash', 5), 8)
-        except:
-            pass
 
         # Load events
         self.LoadEventTabFromLevel()
@@ -16195,22 +15956,19 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if SLib.Area.tileset0 not in szsData: return
             sarcdata = szsData[SLib.Area.tileset0]
 
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'wb') as fn:
+            with open(miyamoto_path + '/macTools/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
 
         else: return
 
-        text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
-        text_file.write('puzzlehd.exe ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
-        text_file.close()
-        os.chdir(miyamoto_path + '/Tools')
-        os.system("wine cmd /c RUN.bat")
+        os.chdir(miyamoto_path + '/macTools')
+        os.system('python3 puzzlehd.py ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
         os.chdir(miyamoto_path)
 
-        if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
+        if os.path.isfile(miyamoto_path + '/macTools/tmp.tmp'):
+            with open(miyamoto_path + '/macTools/tmp.tmp', 'rb') as fn:
                 szsData[SLib.Area.tileset0] = fn.read()
-            os.remove(miyamoto_path + '/Tools/tmp.tmp')
+            os.remove(miyamoto_path + '/macTools/tmp.tmp')
             self.ReloadTilesets()
 
     @QtCore.pyqtSlot()
@@ -16224,7 +15982,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if SLib.Area.tileset1 not in szsData: return
             sarcdata = szsData[SLib.Area.tileset1]
 
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'wb') as fn:
+            with open(miyamoto_path + '/macTools/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
             sarcfile = 'tmp.tmp'
 
@@ -16235,8 +15993,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if reply == QtWidgets.QMessageBox.Yes:
                 con = True
-                if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-                    os.remove(miyamoto_path + '/Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+                if os.path.isfile(miyamoto_path + '/macTools/tmp.tmp'):
+                    os.remove(miyamoto_path + '/macTools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
                 SLib.Area.tileset1 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
@@ -16246,17 +16004,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if SLib.Area.tileset1 == '': return
 
-        text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
-        text_file.write('puzzlehd.exe ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
-        text_file.close()
-        os.chdir(miyamoto_path + '/Tools')
-        os.system("wine cmd /c RUN.bat")
+        os.chdir(miyamoto_path + '/macTools')
+        os.system('python3 puzzlehd.py ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
         os.chdir(miyamoto_path)
 
-        if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
+        if os.path.isfile(miyamoto_path + '/macTools/tmp.tmp'):
+            with open(miyamoto_path + '/macTools/tmp.tmp', 'rb') as fn:
                 szsData[SLib.Area.tileset1] = fn.read()
-            os.remove(miyamoto_path + '/Tools/tmp.tmp')
+            os.remove(miyamoto_path + '/macTools/tmp.tmp')
 
             self.ReloadTilesets()
             mainWindow.objPicker.LoadFromTilesets()
@@ -16287,9 +16042,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if SLib.Area.tileset2 not in szsData: return
             sarcdata = szsData[SLib.Area.tileset2]
 
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'wb') as fn:
+            with open(miyamoto_path + '/macTools/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
-            sarcfile = miyamoto_path + '/Tools/tmp.tmp'
+            sarcfile = miyamoto_path + '/macTools/tmp.tmp'
 
         elif SLib.Area.tileset2 == '':
             con_msg = "This Tileset doesn't exist, do you want to create it?"
@@ -16298,8 +16053,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if reply == QtWidgets.QMessageBox.Yes:
                 con = True
-                if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-                    os.remove(miyamoto_path + '/Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+                if os.path.isfile(miyamoto_path + '/macTools/tmp.tmp'):
+                    os.remove(miyamoto_path + '/macTools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
                 SLib.Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
@@ -16309,17 +16064,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if SLib.Area.tileset2 == '': return
 
-        text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
-        text_file.write('puzzlehd.exe ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
-        text_file.close()
-        os.chdir(miyamoto_path + '/Tools')
-        os.system("wine cmd /c RUN.bat")
+        os.chdir(miyamoto_path + '/macTools')
+        os.system('python3 puzzlehd.py ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
         os.chdir(miyamoto_path)
 
-        if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
+        if os.path.isfile(miyamoto_path + '/macTools/tmp.tmp'):
+            with open(miyamoto_path + '/macTools/tmp.tmp', 'rb') as fn:
                 szsData[SLib.Area.tileset2] = fn.read()
-            os.remove(miyamoto_path + '/Tools/tmp.tmp')
+            os.remove(miyamoto_path + '/macTools/tmp.tmp')
 
             self.ReloadTilesets()
             mainWindow.objPicker.LoadFromTilesets()
@@ -16350,9 +16102,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if SLib.Area.tileset3 not in szsData: return
             sarcdata = szsData[SLib.Area.tileset3]
 
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'wb') as fn:
+            with open(miyamoto_path + '/macTools/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
-            sarcfile = miyamoto_path + '/Tools/tmp.tmp'
+            sarcfile = miyamoto_path + '/macTools/tmp.tmp'
 
         elif SLib.Area.tileset3 == '':
             con_msg = "This Tileset doesn't exist, do you want to create it?"
@@ -16361,8 +16113,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if reply == QtWidgets.QMessageBox.Yes:
                 con = True
-                if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-                    os.remove(miyamoto_path + '/Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+                if os.path.isfile(miyamoto_path + '/macTools/tmp.tmp'):
+                    os.remove(miyamoto_path + '/macTools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
                 SLib.Area.tileset3 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
@@ -16372,17 +16124,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if SLib.Area.tileset3 == '': return
 
-        text_file = open(miyamoto_path + '/Tools/RUN.bat', 'w')
-        text_file.write('puzzlehd.exe ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
-        text_file.close()
-        os.chdir(miyamoto_path + '/Tools')
-        os.system("wine cmd /c RUN.bat")
+        os.chdir(miyamoto_path + '/macTools')
+        os.system('python3 puzzlehd.py ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
         os.chdir(miyamoto_path)
 
-        if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
+        if os.path.isfile(miyamoto_path + '/macTools/tmp.tmp'):
+            with open(miyamoto_path + '/macTools/tmp.tmp', 'rb') as fn:
                 szsData[SLib.Area.tileset3] = fn.read()
-            os.remove(miyamoto_path + '/Tools/tmp.tmp')
+            os.remove(miyamoto_path + '/macTools/tmp.tmp')
 
             self.ReloadTilesets()
             mainWindow.objPicker.LoadFromTilesets()
@@ -16456,11 +16205,6 @@ def main():
     app.setWindowIcon(GetIcon('miyamoto'))
     app.setApplicationDisplayName('You Make a Good Level Now!')
 
-    # Load the splashscreen
-    app.splashScreen = MiyamotoSplashScreen()
-    app.splashScreen.setProgressLimit(9)
-    app.splashScreen.show()
-
     global EnableAlpha, GridType, CollisionsShown, DepthShown, RealViewEnabled
     global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, CommentsFrozen
     global SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown
@@ -16502,8 +16246,6 @@ def main():
     mainWindow = MiyamotoWindow()
     mainWindow.__init2__() # fixes bugs
     mainWindow.show()
-    app.splashScreen.hide()
-    del app.splashScreen
     exitcodesys = app.exec_()
     app.deleteLater()
     sys.exit(exitcodesys)

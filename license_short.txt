@@ -1,3 +1,0 @@
-Miyamoto is based on: Reggie! Next NSMBU - a supercharged fork of the modern level editor 
-
-Copyright (C) 2016 Treeki, Tempus, angelsl, JasonP27, Kinnay, MalStar1000, RoadrunnerWMC, MrRean, Grop, and Copyright (C) 2017 Gota7, Sierra, and AboodXD.

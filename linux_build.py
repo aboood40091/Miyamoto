@@ -85,22 +85,15 @@ print('>> Built frozen executable!')
 # Now that it's built, configure everything
 
 
-# Remove a useless file we don't need
-try: os.unlink(dir_ + '/w9xpopen.exe')
-except: pass
-
 print('>> Attempting to copy required files...')
 if os.path.isdir(dir_ + '/miyamotodata'): shutil.rmtree(dir_ + '/miyamotodata') 
 if os.path.isdir(dir_ + '/miyamotoextras'): shutil.rmtree(dir_ + '/miyamotoextras')
-if os.path.isdir(dir_ + '/Tools'): shutil.rmtree(dir_ + '/Tools') 
+if os.path.isdir(dir_ + '/linuxTools'): shutil.rmtree(dir_ + '/linuxTools') 
 shutil.copytree('miyamotodata', dir_ + '/miyamotodata') 
 shutil.copytree('miyamotoextras', dir_ + '/miyamotoextras')
-shutil.copytree('Tools', dir_ + '/Tools')
+shutil.copytree('linuxTools', dir_ + '/linuxTools')
 shutil.copy('license.txt', dir_)
-shutil.copy('license_short.txt', dir_)
 shutil.copy('README.md', dir_)
-if not os.path.isfile(dir_ + '/libEGL.dll'):
-    shutil.copy('libEGL.dll', dir_)
 print('>> Files copied!')
 
 print('>> Miyamoto has been frozen to %s !' % dir_)
