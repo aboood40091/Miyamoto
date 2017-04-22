@@ -2548,6 +2548,33 @@ class SpriteImage_Parabeetle(SLib.SpriteImage_Static): # 261
     def loadImages():
         SLib.loadIfNotInImageCache('Parabeetle', 'parabeetle.png')
 
+class SpriteImage_RollingHill(SLib.SpriteImage): # 265
+    RollingHillSizes = [2*40, 18*40, 32*40, 50*40, 64*40]
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+
+        size = (self.parent.spritedata[3] >> 4) & 0xF
+        if size == 0:
+            increase = self.parent.spritedata[4] & 0xF
+            realSize = self.RollingHillSizes[size] * (increase + 1)
+        else:
+            realSize = self.RollingHillSizes[size]
+
+        self.aux.append(SLib.AuxiliaryCircleOutline(parent, realSize))
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        size = (self.parent.spritedata[3] >> 4) & 0xF
+        if size == 0:
+            increase = self.parent.spritedata[4] & 0xF
+            realSize = self.RollingHillSizes[size] * (increase + 1)
+        else:
+            realSize = self.RollingHillSizes[size]
+
+        self.aux[0].setSize(realSize)
+        self.aux[0].update()
+
 class SpriteImage_TowerCog(SLib.SpriteImage_StaticMultiple): # 269
     def __init__(self, parent):
         super().__init__(
@@ -4185,6 +4212,7 @@ ImageClasses = {
     256: SpriteImage_CrashMushroom,
     259: SpriteImage_Muncher,
     261: SpriteImage_Parabeetle,
+    265: SpriteImage_RollingHill,
     269: SpriteImage_TowerCog,
     282: SpriteImage_KingBill,
     295: SpriteImage_NoteBlock,
