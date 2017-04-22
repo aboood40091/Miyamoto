@@ -1,107 +1,107 @@
-Black; (No BG)
-End_Isiyama; (Before Boss, Overworld)
-End_Iwaba; (Before Boss, Mountain)
-End_Kaigan; (Before Boss, Beach)
-End_Kougen; (Before Boss, World 7)
-End_Mori; (Before Boss, Jungle)
-End_Sabaku; (Before Boss, Desert)
-End_Setugen; (Before Boss, Snow)
-Hune; (Airship)
-Hune_Boss; (Airship Boss)
-Hune_Boss_2; (Airship Boss 2)
-Isiyama_2; (Overworld 2)
-Isiyama_3; (Overworld)
-Iwaba; (Mountain)
-Iwaba_2; (Mountain 2)
-Iwaba_3; (Mountain 3)
-Kaigan; (Beach)
-Kaigan_2; (Beach 2)
-Kaigan_Ue; (Beach, Back)
-Kinopio; (Mushroom House)
-Kumonaka; (Clouds)
-Kumonaka_Arashi; (Stormy Clouds)
-Kumonaka_Isi; (Overworld Clouds)
-Kumonaka_Naname; (Slanted Clouds)
-Kumonaka_Sabaku; (Desert Clouds)
-Kumonaka_Tate; (Clouds, Small)
-Kumonaka_Yama; (Mountain Clouds)
-Kumonaka_Yama_2; (Mountain Clouds 2)
-KumoUe; (Clouds, Back)
-KumoUe_Boss; (Boss Clouds, Back)
-KumoUe_Hikousen; (Aiship Clouds, Back)
-KumoUe_Sabaku; (Desert Clouds, Back)
-KumoUe_Yama; (Mountain Clouds, Back)
-KumoUe_Yama_2; (Mountain Clouds 2, Back)
-Kuppa; (Bowser)
-Kuppa_Boss; (Bowser Boss)
-Mori; (Forest)
-Mori_2; (Forest 2)
-Nohara; (Unused, NSMBW Overworld)
-Obake; (Ghost House)
-Obake_2; (Ghost House 2)
-Obake_hune; (Ghost Ship)
-Obake_hune_2; (Ghost Ship 2)
-Obake_Soto; (Ghost House, Outside)
-Obake_Soto_2; (Ghost House 2, Outside)
-Obake_Soto_fune; (Ghost Ship 2, Outside)
-Obake_Soto_hune; (Ghost Ship, Outside)
-Obake_tate; (Ghost House, Small)
-Obake_tate_2; (Ghost House 2, Small)
-Picture; (Painting)
-Picture_2; (Painting 2)
-R_Kumo_Luigi; (Update, Luigi Clouds)
-R_Obake_hune; (Update, Ghost Ship)
-R_Picture_2; (Update, Painting 2)
-R_Setugen; (Update, Snow)
-R_Siro_Yoko; (Update, Castle, Small 2)
-R_Suityu; (Update, Underwater)
-Sabaku; (Desert)
-SabakuChika; (Unused, Underground Desert)
-Sabaku_2; (Desert 2)
-Setugen; (Snow)
-Setugen_2; (Snow 2)
-Setugen_Naname; (Slanted Snow)
-Shadow; (Nabbit)
-Shiro; (Unused, Castle)
-Short_Play; (Minigame Cutscene)
-Siro; (Castle)
-Siro_2; (Castle 2)
-Siro_3; (Castle 3)
-Siro_Boss; (Castle Boss Lemmy?)
-Siro_Boss_2; (Castle Boss Morton?)
-Siro_Boss_Iggy; (Castle Boss Iggy)
-Siro_Boss_Larry; (Castle Boss Larry)
-Siro_Boss_Ludw; (Castle Boss Ludwig)
-Siro_Boss_Roy; (Castle Boss Roy)
-Siro_Boss_Wendy; (Castle Boss Wendy)
-Siro_Kougen; (World 7 Castle)
-Siro_peach; (Peach's Castle)
-Siro_Setugen; (Snow Castle)
-Siro_Tate; (Castle, Small)
-Staffroll; (Credits)
-Suityu; (Underwater)
-Suityu_Tate; (Underwater, Small)
-Tika; (Underground)
-Tika_2; (Underground 2)
-Tika_3; (Underground 3)
-Tika_Kori; (Snow Underground)
-Tika_Kori_2; (Snow Underground 2)
-Tika_Picture; (Underground Painting)
-Tika_Picture_2; (Underground Painting 2)
-Tika_sabaku; (Underground Desert)
-Tika_tate_2; (Ungerground, Small)
-Toride; (Tower)
-Toride_2; (Tower 2)
-Toride_Boss; (Tower Boss)
-Toride_Boss_2; (Tower Boss 2)
-Toride_Boss_3; (Tower Boss 3)
-Toride_Boss_4; (Tower Boss 4)
-Toride_Boss_5; (Tower Boss 5)
-Toride_Iwaba; (Mountain Tower)
-Toride_Sabaku; (Desert Tower)
-Toride_Setugen; (Snow Tower)
-Yougan; (Lava)
-Yougan_2; (Lava 2)
-Yougan_Goal; (Lava Goal)
-Yougan_Naname; (Slanted Lava)
-Yougan_Ue; (Lava, Back)
+None
+Before Boss (Overworld)
+Before Boss (Mountain)
+Before Boss (Beach)
+Before Boss (World 7)
+Before Boss (Jungle)
+Before Boss (Desert)
+Before Boss (Snow)
+Airship
+Airship Boss
+Airship Boss 2
+Overworld 2
+Overworld
+Mountain
+Mountain 2
+Mountain 3
+Beach
+Beach 2
+Beach, Secondary
+Toad House
+Clouds
+Stormy Clouds
+Overworld Clouds
+Slanted Clouds
+Desert Clouds
+Clouds (Small)
+Mountain Clouds
+Mountain Clouds 2
+Clouds (Secondary)
+Boss Clouds (Secondary) (Unused)
+Aiship Clouds (Secondary)
+Desert Clouds (Secondary)
+Mountain Clouds (Secondary)
+Mountain Clouds 2 (Secondary)
+Bowser
+Bowser Boss
+Forest
+Forest 2
+NSMBW Overworld (Unused)
+Ghost House
+Ghost House 2
+Ghost Ship
+Ghost Ship 2
+Ghost House (Outside)
+Ghost House 2 (Outside)
+Ghost Ship 2 (Outside)
+Ghost Ship (Outside)
+Ghost House (Small)
+Ghost House 2 (Small)
+Painted
+Painted 2
+Luigi Clouds (Update)
+Ghost Ship (Update)
+Painted 2 (Update)
+Snow (Update)
+Castle 2 (Small) (Update)
+Underwater (Update)
+Desert
+Desert Underground (Unused)
+Desert 2
+Snow
+Snow 2
+Slanted Snow
+Nabbit
+Castle (Unused)
+Fanfare Cutscene
+Castle
+Castle 2
+Castle 3
+Castle Boss (Lemmy?)
+Castle Boss (Morton?)
+Castle Boss (Iggy)
+Castle Boss (Larry)
+Castle Boss (Ludwig)
+Castle Boss (Roy)
+Castle Boss (Wendy)
+World 7 Castle
+Peach's Castle
+Snow Castle
+Castle (Small)
+Credits
+Underwater
+Underwater (Small)
+Underground
+Underground 2
+Underground 3
+Snow Underground
+Snow Underground 2
+Underground Painted
+Underground Painted 2
+Underground Desert
+Ungerground (Small)
+Tower
+Tower 2
+Tower Boss
+Tower Boss 2
+Tower Boss 3
+Tower Boss 4
+Tower Boss 5
+Mountain Tower
+Desert Tower
+Snow Tower
+Lava
+Lava 2
+Lava Goal
+Slanted Lava
+Lava (Secondary)
