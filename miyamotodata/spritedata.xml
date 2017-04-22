@@ -1,4 +1,4 @@
-﻿<?xml version="1.0"?>
+<?xml version="1.0"?>
 <sprites>
   <sprite id="0" name="Goomba">
     <list nybble="6" title="Spawned Child Direction (No ground pound)" comment="Controls the direction (and z order) of the Goombas spawned by a Medium Goomba, without ground pound. Higher values cause an overflow with probably unexpected results.">
@@ -2602,11 +2602,17 @@
   <sprite id="265" name="Rolling Hill" notes="Actor: 0x02e">
     <value nybble="6" title="Unknown Value 6"/>
     <list nybble="7" title="Size">
-      <entry value="0">2 Blocks (Overworld)</entry>
-      <entry value="1">18 Blocks (Overworld)</entry>
+      <entry value="0">2 Blocks</entry>
+      <entry value="1">18 Blocks</entry>
       <entry value="2">32 Blocks</entry>
-      <entry value="3">50 Blocks (Overworld)</entry>
-      <entry value="4">64 Blocks (Underground) (Overworld)</entry>
+      <entry value="3">50 Blocks</entry>
+      <entry value="4">64 Blocks</entry>
+      <entry value="5">Unknown</entry>
+      <entry value="6">Unknown</entry>
+      <entry value="7">Unknown</entry>
+      <entry value="8">18 Blocks</entry>
+      <entry value="9">Unknown</entry>
+      <entry value="10">32 Blocks</entry>
     </list>
     <value nybble="8" title="Unknown Value 8"/>
     <value nybble="9-10" title="Size Increase" comment="Only works if the size is 0."/>

@@ -24,8 +24,8 @@
 # Builds Miyamoto! to a MacOS binary
 # Use the values below to configure the release:
 
-PackageName = 'miyamoto_v9.5'
-Version = '9.5' # This must be a valid float in string format
+PackageName = 'miyamoto_v10.0'
+Version = '1.0.0' # This must be a valid float in string format
 
 
 ################################################################
