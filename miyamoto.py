@@ -15876,20 +15876,22 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
 
-            offset = 0
+            block4 = b''
             for i in range(SLib.Area.bgCount):
-                name = str(dlg.BGTabs[i].bg_name.currentText()).split(';')[0]
+                name = names_bg[names_bgTrans.index(str(dlg.BGTabs[i].bg_name.currentText()))]
                 SLib.Area.bg_name[i] = name
                 unk1 = dlg.BGTabs[i].unk1.value()
                 SLib.Area.bg_unk1[i] = unk1
                 unk2 = dlg.BGTabs[i].unk2.value()
                 SLib.Area.bg_unk2[i] = unk2
-                block4 = bytearray(SLib.Area.blocks[4])
-                block4[0x08 + offset:0x18 + offset] = name.encode('utf-8') + (b'\x00' * (16 - len(name.encode('utf-8'))))
-                block4[0x03 + offset:0x04 + offset] = unk1.to_bytes(1, 'big')
-                block4[0x18 + offset:0x1A + offset] = unk2.to_bytes(2, 'big')
-                SLib.Area.blocks[4] = bytes(block4)
-                offset += 28
+                block4 += i.to_bytes(2, 'big')
+                block4 += 0 .to_bytes(1, 'big')
+                block4 += unk1.to_bytes(1, 'big')
+                block4 += 0 .to_bytes(4, 'big')
+                block4 += name.encode('utf-8') + (b'\x00' * (16 - len(name.encode('utf-8'))))
+                block4 += unk2.to_bytes(2, 'big')
+                block4 += 0 .to_bytes(2, 'big')
+            SLib.Area.blocks[4] = block4
 
     @QtCore.pyqtSlot()
     def HandleScreenshot(self):
