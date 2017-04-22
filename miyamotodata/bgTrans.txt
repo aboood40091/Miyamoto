@@ -16,7 +16,7 @@ Mountain 2
 Mountain 3
 Beach
 Beach 2
-Beach, Secondary
+Beach (Secondary)
 Toad House
 Clouds
 Stormy Clouds
