@@ -139,11 +139,18 @@ Waterlocationw = 1000
 Waterlocationh = 30
 miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
 names_bg = []
+names_bgTrans = []
+
 with open(miyamoto_path + '/miyamotodata/bg.txt', 'r') as txt:
     for line in txt.readlines():
         names_bg.append(line.rstrip())
 names_bg = tuple(names_bg)
 names_bgTrans = []
+with open(miyamoto_path + '/miyamotodata/bgTrans.txt', 'r') as txt:
+    for line in txt.readlines():
+        names_bgTrans.append(line.rstrip())
+names_bgTrans = tuple(names_bgTrans)
+
 with open(miyamoto_path + '/miyamotodata/bgTrans.txt', 'r') as txt:
     for line in txt.readlines():
         names_bgTrans.append(line.rstrip())

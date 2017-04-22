@@ -897,7 +897,7 @@ class MiyamotoTranslation():
                 72: 'Lower Bounds 2:',
                 73: '[b]Lower Bounds 2:[/b][br]Unknown differences from the main lower bounds.',
                 74: 'Unknown Flag',
-                75: '[b]Unknown Flag:[/b][br]Unknown purpose. Seems to be always checked.',
+                75: '[b]Unknown Flag:[/b][br]Something zoom related. Check if you have problems with zooming. Seems to be always checked.',
                 76: 'some unknown thing',
                 },
             'Zones': {
