@@ -3630,7 +3630,7 @@ class Level_NSMBU(AbstractLevel):
 
         return True
 
-    def save(self, innerfilename, choice):
+    def save(self, innerfilename):
         """
         Save the level back to a file
         """
@@ -3671,38 +3671,14 @@ class Level_NSMBU(AbstractLevel):
         outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
 
         # Add all the other stuff, too
-        has_data_files = False
-        if choice == QtWidgets.QMessageBox.Yes:
-            if os.path.isdir(miyamoto_path + '/data'):
-                has_data_files = True
-                for dirpath, dirnames, files in os.walk(miyamoto_path + '/data'):
-                    if not files:
-                        has_data_files = False
-
-        if has_data_files:
-            for file in os.listdir(miyamoto_path + '/data'):
-                with open(os.path.join(miyamoto_path + '/data', file), 'rb') as f:
-                    outerArchive.addFile(SarcLib.File(os.path.basename(file), f.read()))
-            for szsThingName in szsData:
-                try:
-                    spl = szsThingName.split('-')
-                    int(spl[0])
-                    int(spl[1])
-                    continue
-                except: pass
-                if szsThingName in (file for file in outerArchive.contents):
-                    pass
-                else:
-                    outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
-        else:
-            for szsThingName in szsData:
-                try:
-                    spl = szsThingName.split('-')
-                    int(spl[0])
-                    int(spl[1])
-                    continue
-                except: pass
-                outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
+        for szsThingName in szsData:
+            try:
+                spl = szsThingName.split('-')
+                int(spl[0])
+                int(spl[1])
+                continue
+            except: pass
+            outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
 
         # Save the outer sarc and return it
         print("")
@@ -12791,11 +12767,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if not AutoSaveDirty: return
 
         name = self.getInnerSarcName()
-        choice = self.getChoice()
         if "-" not in name:
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
 
-        data = Level.save(name, choice)
+        data = Level.save(name)
         setSetting('AutoSaveFilePath', self.fileSavePath)
         setSetting('AutoSaveFileData', QtCore.QByteArray(data))
         AutoSaveDirty = False
@@ -13687,25 +13662,23 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # no error checking. if it saved last time, it will probably work now
 
         name = self.getInnerSarcName()
-        choice = self.getChoice()
         if "-" not in name:
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
 
-        data = Level.save(name, choice)
         if self.fileSavePath.endswith('.szs'):
             course_name = os.path.splitext(self.fileSavePath)[0]
             with open(course_name + '.tmp', 'wb') as f:
-                f.write(data)
+                f.write(Level.save(name))
 
             if os.path.isfile(self.fileSavePath):
                 os.remove(self.fileSavePath)
             os.chdir(miyamoto_path + '/macTools')
-            os.system('wszst_mac COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '" --max-file-size=' + str(len(data)//(1024**2)+1))
+            os.system('wszst_mac COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
             os.chdir(miyamoto_path)
             os.remove(course_name + '.tmp')
         else:
             with open(self.fileSavePath, 'wb') as f:
-                f.write(data)
+                f.write(Level.save(name))
         self.LoadLevel(None, self.fileSavePath, True, 1)
 
 
@@ -13856,12 +13829,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             return
 
         name = self.getInnerSarcName()
-        choice = self.getChoice()
         if "-" not in name:
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
 
         global Dirty, AutoSaveDirty
-        data = Level.save(name, choice)
+        data = Level.save(name)
         try:
             if mainWindow.fileSavePath.endswith('.szs'):
                 course_name = os.path.splitext(mainWindow.fileSavePath)[0]
@@ -13871,7 +13843,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if os.path.isfile(mainWindow.fileSavePath):
                     os.remove(mainWindow.fileSavePath)
                 os.chdir(miyamoto_path + '/macTools')
-                os.system('wszst_mac COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '" --max-file-size=' + str(len(data)//(1024**2)+1))
+                os.system('wszst_mac COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
                 os.chdir(miyamoto_path)
                 os.remove(course_name + '.tmp')
             else:
@@ -13915,7 +13887,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # this is one of the few ways, if there's no - it will certainly crash
         failure = 0
         name = self.getInnerSarcName()
-        choice = self.getChoice()
         # oh noes there's no - !!!
         if "-" not in name:
             warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning', 'The input name does not include a -, which is what retail levels use. \nThis may crash, because it does not fit the proper format.')
@@ -13923,7 +13894,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             failure = 1
 
         if failure == 0:
-            data = Level.save(name, choice)
+            data = Level.save(name)
             if self.fileSavePath.endswith('.szs'):
                 course_name = os.path.splitext(self.fileSavePath)[0]
                 with open(course_name + '.tmp', 'wb') as f:
@@ -13932,7 +13903,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if os.path.isfile(self.fileSavePath):
                     os.remove(self.fileSavePath)
                 os.chdir(miyamoto_path + '/macTools')
-                os.system('wszst_mac COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '" --max-file-size=' + str(len(data)//(1024**2)+1))
+                os.system('wszst_mac COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
                 os.chdir(miyamoto_path)
                 os.remove(course_name + '.tmp')
             else:
@@ -13951,11 +13922,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
     def getInnerSarcName(self):
         return QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
             "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):", QtWidgets.QLineEdit.Normal)[0]
-
-    def getChoice(self):
-        return QtWidgets.QMessageBox.question(self, 'Miyamoto!',
-                                                "Do you want to include ALL the necessary files?\n(Might take a while to save)\n(Clicking No will only include the files that are already inside the .sarc/.szs)",
-                                                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
     @QtCore.pyqtSlot()
     def HandleExit(self):
@@ -15915,10 +15881,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             offset = 0
             for i in range(SLib.Area.bgCount):
-                name2 = str(dlg.BGTabs[i].bg_name.currentText())
-                name2 = name2.split(';')
-                name = name2[0]
-
+                name = str(dlg.BGTabs[i].bg_name.currentText()).split(';')[0]
                 SLib.Area.bg_name[i] = name
                 unk1 = dlg.BGTabs[i].unk1.value()
                 SLib.Area.bg_unk1[i] = unk1
