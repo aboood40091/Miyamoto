@@ -598,7 +598,7 @@ class SpriteImage_LimitD(SLib.SpriteImage_StaticMultiple): # 30
 
         super().dataChanged()
 
-class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple): # 334
+class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple): # 31
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -784,6 +784,9 @@ class SpriteImage_MontyMole(SLib.SpriteImage_Static): # 51
             3.75,
             ImageCache['MontyMole'],
             )
+        
+        self.xOffset = -6
+        self.yOffset = -2
 
     @staticmethod
     def loadImages():
@@ -920,6 +923,18 @@ class SpriteImage_ControllerSwaying(SLib.SpriteImage_Static): # 68
 #        func.translateImage()
 
 
+
+class SpriteImage_ControllerSpinning(SLib.SpriteImage_StaticMultiple): # 69
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['ControllerSpinning'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('ControllerSpinning', 'controller_spinning.png')
 
 class SpriteImage_TwoWay(SLib.SpriteImage_StaticMultiple): # 70
     def __init__(self, parent):
@@ -2549,7 +2564,7 @@ class SpriteImage_Parabeetle(SLib.SpriteImage_Static): # 261
         SLib.loadIfNotInImageCache('Parabeetle', 'parabeetle.png')
 
 class SpriteImage_RollingHill(SLib.SpriteImage): # 265
-    RollingHillSizes = [2*40, 18*40, 32*40, 50*40, 64*40]
+    RollingHillSizes = [2*40, 18*40, 32*40, 50*40, 64*40, 0, 0, 0, 18*40, 0, 32*40]
     def __init__(self, parent):
         super().__init__(parent, 3.75)
 
@@ -2557,6 +2572,8 @@ class SpriteImage_RollingHill(SLib.SpriteImage): # 265
         if size == 0:
             increase = self.parent.spritedata[4] & 0xF
             realSize = self.RollingHillSizes[size] * (increase + 1)
+        elif size > 10:
+            realSize = 0
         else:
             realSize = self.RollingHillSizes[size]
 
@@ -2569,6 +2586,8 @@ class SpriteImage_RollingHill(SLib.SpriteImage): # 265
         if size == 0:
             increase = self.parent.spritedata[4] & 0xF
             realSize = self.RollingHillSizes[size] * (increase + 1)
+        elif size > 10:
+            realSize = 0
         else:
             realSize = self.RollingHillSizes[size]
 
@@ -2601,6 +2620,21 @@ class SpriteImage_TowerCog(SLib.SpriteImage_StaticMultiple): # 269
             
         super().dataChanged()
         self.parent.setZValue(-50000)
+
+class SpriteImage_CoinBubble(SLib.SpriteImage_Static): # 281
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['CoinBubble'],
+            )
+        
+        self.yOffset = -4
+        self.xOffset = -4
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('CoinBubble', 'coin_bubble.png')
 
 class SpriteImage_KingBill(SLib.SpriteImage_StaticMultiple): # 282
     def __init__(self, parent):
@@ -4150,6 +4184,7 @@ ImageClasses = {
     66: SpriteImage_Coin,
     67: SpriteImage_Swooper,
     68: SpriteImage_ControllerSwaying,
+    69: SpriteImage_ControllerSpinning,
     70: SpriteImage_TwoWay,
     72: SpriteImage_MovingLandBlock,
     73: SpriteImage_CoinSpawner,
@@ -4185,6 +4220,7 @@ ImageClasses = {
 #    161: SpriteImage_ExpandingPipeUp,
 #    162: SpriteImage_ExpandingPipeDown, --Glitches with pipe length area thing.
     163: SpriteImage_WaterGeyserLocation,
+    166: SpriteImage_CoinOutline,
     167: SpriteImage_CoinBlue,
     168: SpriteImage_ClapCoin,
     169: SpriteImage_ControllerIf,
@@ -4214,6 +4250,7 @@ ImageClasses = {
     261: SpriteImage_Parabeetle,
     265: SpriteImage_RollingHill,
     269: SpriteImage_TowerCog,
+    281: SpriteImage_CoinBubble,
     282: SpriteImage_KingBill,
     295: SpriteImage_NoteBlock,
     306: SpriteImage_CrashOne,
@@ -4294,5 +4331,7 @@ ImageClasses = {
     595: SpriteImage_Goombrat,
     600: SpriteImage_MoonBlock,
     612: SpriteImage_PacornBlock,
+    630: SpriteImage_Flagpole,
+    631: SpriteImage_PaintGoal,
     662: SpriteImage_BlueRing,
 }
