@@ -1,16 +1,16 @@
 # Miyamoto
-A level editor for NSMBU and NSLU, based on Reggie! Next by RoadrunnerWMC, which is based on Reggie by Treeki, Tempus et al. Uses PyQt5, Python 3, TPLLib, and other libs.
+A level editor for NSMBU and NSLU, based on Reggie! Next by RoadrunnerWMC, which is based on Reggie by Treeki, Tempus et al. Uses Python 3, PyQt5, and other libs.
 
 # Credits
-- MrRean -- Coding, Spritedata, Categories, Graphics
-- RoadrunnerWMC -- Coding, Spritedata, Graphics
+- AboodXD -- Coding, Spritedata, Graphics
 - Gota7 -- Coding, Spritedata, Graphics
 - Grop -- Coding, Spritedata, Graphics
-- Treeki -- Original creator, Coding
-- AboodXD -- Coding, Graphics
-- Sierra -- Spritedata, Graphics
-- Kinnay -- Spritedata
 - Hiccup -- Spritedata
+- Kinnay -- Spritedata
+- MrRean -- Coding, Spritedata, Categories, Graphics
+- RoadrunnerWMC -- Coding, Spritedata, Graphics
+- Sierra -- Spritedata, Graphics
+- Treeki -- Original creator, Coding
 
 # TODO
 - Get Object Data figured out
