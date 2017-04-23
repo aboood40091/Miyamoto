@@ -40,6 +40,7 @@ if currentRunningVersion < minimum:
 import base64
 import os
 import pickle
+import platform
 import struct
 import sys
 from xml.etree import ElementTree as etree
@@ -2270,9 +2271,22 @@ def LoadTexture_NSMBU(tiledata):
     with open(miyamoto_path + '/Tools/texture.gtx', 'wb') as binfile:
         binfile.write(tiledata)
 
-    os.chdir(miyamoto_path + '/Tools')
-    os.system('gtx_extract.exe texture.gtx texture.bmp')
-    os.chdir(miyamoto_path)
+    if platform.system() == 'Windows':
+        os.chdir(miyamoto_path + '/Tools')
+        os.system('gtx_extract.exe texture.gtx texture.bmp')
+        os.chdir(miyamoto_path)
+    elif platform.system() == 'Linux':
+        text_file = open(miyamoto_path + '/linuxTools/RUN.bat', 'w')
+        text_file.write('gtx_extract.exe texture.gtx texture.bmp')
+        text_file.close()
+        os.chdir(miyamoto_path + '/linuxTools')
+        os.system("wine cmd /c RUN.bat")
+        os.chdir(miyamoto_path)
+        os.remove(miyamoto_path + '/linuxTools/RUN.bat')
+    elif platform.system() == 'Darwin':
+        os.system('/opt/local/bin/wine "' + miyamoto_path + '/macTools/gtx_extract.exe" "' + miyamoto_path + '/macTools/texture.gtx" "' + miyamoto_path + '/macTools/texture.bmp"')
+    else:
+        print("Not a supported platform, sadly...")
 
     img = QtGui.QImage(miyamoto_path + '/Tools/texture.bmp')
 
@@ -12780,9 +12794,19 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if os.path.isfile(self.fileSavePath):
                 os.remove(self.fileSavePath)
-            os.chdir(miyamoto_path + '/Tools')
-            os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-            os.chdir(miyamoto_path)
+            if platform.system() == 'Windows':
+                os.chdir(miyamoto_path + '/Tools')
+                os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
+                os.chdir(miyamoto_path)
+            elif platform.system() == 'Linux':
+                os.chdir(miyamoto_path + '/linuxTools')
+                os.system('chmod +x ./wszst_linux.elf')
+                os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
+                os.chdir(miyamoto_path)
+            elif platform.system() == 'Darwin':
+                os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
+            else:
+                print("Not a supported platform, sadly...")
             os.remove(course_name + '.tmp')
         else:
             with open(self.fileSavePath, 'wb') as f:
@@ -12940,9 +12964,19 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 if os.path.isfile(mainWindow.fileSavePath):
                     os.remove(mainWindow.fileSavePath)
-                os.chdir(miyamoto_path + '/Tools')
-                os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
-                os.chdir(miyamoto_path)
+                if platform.system() == 'Windows':
+                    os.chdir(miyamoto_path + '/Tools')
+                    os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
+                    os.chdir(miyamoto_path)
+                elif platform.system() == 'Linux':
+                    os.chdir(miyamoto_path + '/linuxTools')
+                    os.system('chmod +x ./wszst_linux.elf')
+                    os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
+                    os.chdir(miyamoto_path)
+                elif platform.system() == 'Darwin':
+                    os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
+                else:
+                    print("Not a supported platform, sadly...")
                 os.remove(course_name + '.tmp')
             else:
                 with open(mainWindow.fileSavePath, 'wb') as f:
@@ -13000,9 +13034,19 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 if os.path.isfile(self.fileSavePath):
                     os.remove(self.fileSavePath)
-                os.chdir(miyamoto_path + '/Tools')
-                os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-                os.chdir(miyamoto_path)
+                if platform.system() == 'Windows':
+                    os.chdir(miyamoto_path + '/Tools')
+                    os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
+                    os.chdir(miyamoto_path)
+                elif platform.system() == 'Linux':
+                    os.chdir(miyamoto_path + '/linuxTools')
+                    os.system('chmod +x ./wszst_linux.elf')
+                    os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
+                    os.chdir(miyamoto_path)
+                elif platform.system() == 'Darwin':
+                    os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
+                else:
+                    print("Not a supported platform, sadly...")
                 os.remove(course_name + '.tmp')
             else:
                 with open(self.fileSavePath, 'wb') as f:
@@ -13581,8 +13625,19 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if levelData.startswith(b'Yaz0'):
             print('Beginning Yaz0 decompression...')
             course_name = os.path.splitext(mainWindow.fileSavePath)[0]
-            os.chdir(miyamoto_path + '/Tools')
-            os.system('wszst.exe DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
+            if platform.system() == 'Windows':
+                os.chdir(miyamoto_path + '/Tools')
+                os.system('wszst.exe DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
+                os.chdir(miyamoto_path)
+            elif platform.system() == 'Linux':
+                os.chdir(miyamoto_path + '/linuxTools')
+                os.system('chmod +x ./wszst_linux.elf')
+                os.system('./wszst_linux.elf DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
+                os.chdir(miyamoto_path)
+            elif platform.system() == 'Darwin':
+                os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
+            else:
+                print("Not a supported platform, sadly...")
             os.chdir(miyamoto_path)
             with open(course_name + '.tmp', 'rb') as f:
                 levelData = f.read()
@@ -15022,9 +15077,21 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         else: return
 
-        os.chdir(miyamoto_path + '/Tools')
-        os.system('puzzlehd.exe ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
-        os.chdir(miyamoto_path)
+        if platform.system() == 'Windows':
+            os.chdir(miyamoto_path + '/Tools')
+            os.system('puzzlehd.exe ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
+            os.chdir(miyamoto_path)
+        elif platform.system() == 'Linux':
+            os.chdir(miyamoto_path + '/linuxTools')
+            os.system('chmod +x ./puzzlehd.elf')
+            os.system('./puzzlehd.elf ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
+            os.chdir(miyamoto_path)
+        elif platform.system() == 'Darwin':
+            os.chdir(miyamoto_path + '/macTools')
+            os.system('python3 puzzlehd.py ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
+            os.chdir(miyamoto_path)
+        else:
+            print("Not a supported platform, sadly...")
 
         if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
             with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
@@ -15066,9 +15133,21 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if SLib.Area.tileset1 == '': return
 
-        os.chdir(miyamoto_path + '/Tools')
-        os.system('puzzlehd.exe ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
-        os.chdir(miyamoto_path)
+        if platform.system() == 'Windows':
+            os.chdir(miyamoto_path + '/Tools')
+            os.system('puzzlehd.exe ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
+            os.chdir(miyamoto_path)
+        elif platform.system() == 'Linux':
+            os.chdir(miyamoto_path + '/linuxTools')
+            os.system('chmod +x ./puzzlehd.elf')
+            os.system('./puzzlehd.elf ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
+            os.chdir(miyamoto_path)
+        elif platform.system() == 'Darwin':
+            os.chdir(miyamoto_path + '/macTools')
+            os.system('python3 puzzlehd.py ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
+            os.chdir(miyamoto_path)
+        else:
+            print("Not a supported platform, sadly...")
 
         if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
             with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
@@ -15127,9 +15206,21 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if SLib.Area.tileset2 == '': return
 
-        os.chdir(miyamoto_path + '/Tools')
-        os.system('puzzlehd.exe ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
-        os.chdir(miyamoto_path)
+        if platform.system() == 'Windows':
+            os.chdir(miyamoto_path + '/Tools')
+            os.system('puzzlehd.exe ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
+            os.chdir(miyamoto_path)
+        elif platform.system() == 'Linux':
+            os.chdir(miyamoto_path + '/linuxTools')
+            os.system('chmod +x ./puzzlehd.elf')
+            os.system('./puzzlehd.elf ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
+            os.chdir(miyamoto_path)
+        elif platform.system() == 'Darwin':
+            os.chdir(miyamoto_path + '/macTools')
+            os.system('python3 puzzlehd.py ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
+            os.chdir(miyamoto_path)
+        else:
+            print("Not a supported platform, sadly...")
 
         if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
             with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
@@ -15188,9 +15279,21 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if SLib.Area.tileset3 == '': return
 
-        os.chdir(miyamoto_path + '/Tools')
-        os.system('puzzlehd.exe ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
-        os.chdir(miyamoto_path)
+        if platform.system() == 'Windows':
+            os.chdir(miyamoto_path + '/Tools')
+            os.system('puzzlehd.exe ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
+            os.chdir(miyamoto_path)
+        elif platform.system() == 'Linux':
+            os.chdir(miyamoto_path + '/linuxTools')
+            os.system('chmod +x ./puzzlehd.elf')
+            os.system('./puzzlehd.elf ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
+            os.chdir(miyamoto_path)
+        elif platform.system() == 'Darwin':
+            os.chdir(miyamoto_path + '/macTools')
+            os.system('python3 puzzlehd.py ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
+            os.chdir(miyamoto_path)
+        else:
+            print("Not a supported platform, sadly...")
 
         if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
             with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
