@@ -2191,6 +2191,18 @@ class SpriteImage_GiantIcicle(SLib.SpriteImage_Static): # 184
     def loadImages():
         SLib.loadIfNotInImageCache('GiantIcicle', 'giant_icicle.png')
 
+class SpriteImage_MovQBlock(SLib.SpriteImage_StaticMultiple): # 190
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['MovQBlock'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('MovQBlock', 'mov_qblock.png')
+
 class SpriteImage_RouletteBlock(SLib.SpriteImage_StaticMultiple): # 195
     def __init__(self, parent):
         super().__init__(
@@ -2205,6 +2217,7 @@ class SpriteImage_RouletteBlock(SLib.SpriteImage_StaticMultiple): # 195
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('RouletteBlock', 'block_roulette.png') 
+
 
 class SpriteImage_MushroomPlatform(SLib.SpriteImage): # 200
     def __init__(self, parent):
@@ -2518,7 +2531,19 @@ class SpriteImage_Wiggler(SLib.SpriteImage_StaticMultiple): # 249
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('Wiggler', 'wiggler.png')    
+        SLib.loadIfNotInImageCache('Wiggler', 'wiggler.png') 
+
+class SpriteImage_MicroGoomba(SLib.SpriteImage_Static): # 255
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['MicroGoomba'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('MicroGoomba', 'micro_goomba.png')    
 
 class SpriteImage_CrashMushroom(SLib.SpriteImage_Static): # 256
     def __init__(self, parent):
@@ -3538,7 +3563,7 @@ class SpriteImage_MovingGrassPlatform(SLib.SpriteImage): # 499
     def __init__(self, parent):
         super().__init__(parent, 3.75)
         #self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
-
+        self.parent.setZValue(24999)
         self.spritebox.shown = False
 
     @staticmethod
@@ -3549,18 +3574,35 @@ class SpriteImage_MovingGrassPlatform(SLib.SpriteImage): # 499
         ImageCache['MovGMiddleL'] = SLib.GetImg('mov_grass_middle_l.png')
         ImageCache['MovGMiddleM'] = SLib.GetImg('mov_grass_middle_m.png')
         ImageCache['MovGMiddleR'] = SLib.GetImg('mov_grass_middle_r.png')
-        ImageCache['MovGBottomL'] = SLib.GetImg('mov_grass_bottom_l.png')
-        ImageCache['MovGBottomM'] = SLib.GetImg('mov_grass_bottom_m.png')
-        ImageCache['MovGBottomR'] = SLib.GetImg('mov_grass_bottom_r.png')
+        ImageCache['MovGMiddle2L'] = SLib.GetImg('mov_grass_middle2_l.png')
+        ImageCache['MovGMiddle2M'] = SLib.GetImg('mov_grass_middle2_m.png')
+        ImageCache['MovGMiddle2R'] = SLib.GetImg('mov_grass_middle2_r.png')
+        ImageCache['MovGMiddle3L'] = SLib.GetImg('mov_grass_middle3_l.png')
+        ImageCache['MovGMiddle3M'] = SLib.GetImg('mov_grass_middle3_m.png')
+        ImageCache['MovGMiddle3R'] = SLib.GetImg('mov_grass_middle3_r.png')
+        ImageCache['MovGMiddle4L'] = SLib.GetImg('mov_grass_middle4_l.png')
+        ImageCache['MovGMiddle4R'] = SLib.GetImg('mov_grass_middle4_r.png')
+        ImageCache['MovGMiddle5L'] = SLib.GetImg('mov_grass_middle5_l.png')
+        ImageCache['MovGMiddle5R'] = SLib.GetImg('mov_grass_middle5_r.png')
+        ImageCache['MovGMiddle6L'] = SLib.GetImg('mov_grass_middle6_l.png')
+        ImageCache['MovGMiddle6R'] = SLib.GetImg('mov_grass_middle6_r.png')
+        ImageCache['MovGMiddle7L'] = SLib.GetImg('mov_grass_middle7_l.png')
+        ImageCache['MovGMiddle7R'] = SLib.GetImg('mov_grass_middle7_r.png')
+        ImageCache['MovGMiddle8L'] = SLib.GetImg('mov_grass_middle8_l.png')
+        ImageCache['MovGMiddle8R'] = SLib.GetImg('mov_grass_middle8_r.png')
+        ImageCache['MovGMiddle9L'] = SLib.GetImg('mov_grass_middle9_l.png')
+        ImageCache['MovGMiddle9R'] = SLib.GetImg('mov_grass_middle9_r.png')
 
     def dataChanged(self):
         super().dataChanged()
 
-        self.width = ((self.parent.spritedata[8] & 0xF) + 1)*16
-        self.height = ((self.parent.spritedata[8] & 0xF) + 1)*16
-        if self.width/16 == 0: self.width = 1
-        if self.height/16 == 0: self.height = 1
+        self.width = (self.parent.spritedata[8] & 0xF)*16+16
+        self.height = (self.parent.spritedata[9] & 0xF)*16+16
 
+       # if self.width/16 == 1 and self.height/16 == 1:
+            #self.aux[0].setSize(0,0)
+            #return
+        #self.aux[0].setSize(self.width/16*60, self.height/16*60)
 
     def paint(self, painter):
         super().paint(painter)
@@ -3568,71 +3610,112 @@ class SpriteImage_MovingGrassPlatform(SLib.SpriteImage): # 499
         #Time to code this lazily.
 
         #Top of sprite.
-        if self.width/16 == 0:
-            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopM'])
-        elif self.width/16 == 1:
+        if self.width/16 == 1:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopM'])
         elif self.width/16 == 2:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopL'])
             painter.drawPixmap(60, 0, 60, 60, ImageCache['MovGTopR'])
         elif self.width/16 == 3:
-            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopL'
-])
+            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopL'])
             painter.drawPixmap(60, 0, 60, 60, ImageCache['MovGTopM'])
             painter.drawPixmap(120, 0, 60, 60, ImageCache['MovGTopR'])
         else:
-            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopL'
-])
+            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopL'])
             painter.drawTiledPixmap(60, 0, (self.width/16-2)*60, 60, ImageCache['MovGTopM'])
             painter.drawPixmap(60+((self.width/16-2)*60), 0, 60, 60, ImageCache['MovGTopR'])
 
 
-        #Bottom
-        if self.height/16 > 1:
-            if self.width/16 == 0:
-                painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGBottomM'])
-            elif self.width/16 == 1:
-                painter.drawPixmap(0, (self.height/16)*60-60, 60, 60, ImageCache['MovGBottomM'])
-            elif self.width/16 == 2:
-                painter.drawPixmap(0, (self.height/16)*60-60, 60, 60, ImageCache['MovGBottomL'])
-                painter.drawPixmap(60, (self.height/16)*60-60, 60, 60, ImageCache['MovGBottomR'])
-            elif self.width/16 == 3:
-                painter.drawPixmap(0, (self.height/16)*60-60, 60, 60, ImageCache['MovGBottomL'
-])
-                painter.drawPixmap(60, (self.height/16)*60-60, 60, 60, ImageCache['MovGBottomM'])
-                painter.drawPixmap(120, (self.height/16)*60-60, 60, 60, ImageCache['MovGBottomR'])
-            else:
-                painter.drawPixmap(0, (self.height/16)*60-60, 60, 60, ImageCache['MovGBottomL'
-])
-                painter.drawTiledPixmap(60, (self.height/16)*60-60, (self.width/16-2)*60, 60, ImageCache['MovGBottomM'])
-                painter.drawPixmap(60+((self.width/16-2)*60), (self.height/16)*60-60, 60, 60, ImageCache['MovGBottomR'])
-
-        #Left
-        if self.height/16 == 3:
-            painter.drawPixmap(0, 60, 60, 60, ImageCache['MovGMiddleL'])
-        elif self.height/16 > 3:
-            painter.drawPixmap(0, 60, 60, 60, ImageCache['MovGMiddleL'])
-            painter.drawTiledPixmap(0, 120, 60, (self.height/16-3)*60, ImageCache['MovGMiddleL'])
-
-        #Right
-        if self.height/16 == 3:
-            painter.drawPixmap((self.width/16*60)-60, 60, 60, 60, ImageCache['MovGMiddleR'])
-        elif self.height/16 > 3:
-            painter.drawPixmap((self.width/16*60)-60, 60, 60, 60, ImageCache['MovGMiddleR'])
-            painter.drawTiledPixmap((self.width/16*60)-60, 120, 60, (self.height/16-3)*60, ImageCache['MovGMiddleR'])
 
         #Middle
-        if self.width/16 > 2:
+        if self.width/16 > 1:
+            if self.height/16 > 0:
+                painter.drawTiledPixmap(60, 60, ((self.width/16)-2)*60, ((self.height/16)-1)*60, ImageCache['MovGMiddleM'])
+
+        #Panic for insufficiant width
+        if self.height/16 > 1:
+            if self.width/16 > 1:
+                if self.width/16 < 6:
+                    painter.drawTiledPixmap(0, 60, 60, ((self.height/16)-1)*60, ImageCache['MovGMiddleL'])
+                    painter.drawTiledPixmap((self.width/16*60)-60, 60, 60, ((self.height/16)-1)*60, ImageCache['MovGMiddleR'])
+
+        #Middle decoration
+        if self.height/16 > 0:
+            if self.width/16 > 8:
+                painter.drawTiledPixmap(240, 60, 120, 60, ImageCache['MovGMiddle2M'])
+
+            if self.width/16 > 14:
+                painter.drawTiledPixmap(660, 60, 60, 60, ImageCache['MovGMiddle3M'])
+
+
+        #Layers - (Are like onions)
+        if self.width/16 > 5:
+            if self.height/16 > 1:
+                painter.drawTiledPixmap(0, 60, 60, 60, ImageCache['MovGMiddleL'])
+                painter.drawTiledPixmap((self.width/16*60)-60, 60, 60, 60, ImageCache['MovGMiddleR'])
+
             if self.height/16 > 2:
-                painter.drawTiledPixmap(60, 60, ((self.width/16)-2)*60, ((self.height/16)-2)*60, ImageCache['MovGMiddleM'])
+                painter.drawTiledPixmap(0, 120, 180, 60, ImageCache['MovGMiddle2L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 120, 180, 60, ImageCache['MovGMiddle2R'])
+
+            if self.height/16 > 3:
+                painter.drawTiledPixmap(0, 180, 180, 60, ImageCache['MovGMiddle3L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 180, 180, 60, ImageCache['MovGMiddle3R'])
+
+            if self.height/16 > 4:
+                painter.drawTiledPixmap(0, 240, 180, 60, ImageCache['MovGMiddle4L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 240, 180, 60, ImageCache['MovGMiddle4R'])
+
+            if self.height/16 > 5:
+                painter.drawTiledPixmap(0, 300, 180, 60, ImageCache['MovGMiddle5L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 300, 180, 60, ImageCache['MovGMiddle5R'])
+
+            if self.height/16 > 6:
+                painter.drawTiledPixmap(0, 360, 180, 60, ImageCache['MovGMiddle6L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 360, 180, 60, ImageCache['MovGMiddle6R'])
+
+            if self.height/16 > 7:
+                painter.drawTiledPixmap(0, 420, 180, 60, ImageCache['MovGMiddle7L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 420, 180, 60, ImageCache['MovGMiddle7R'])
+
+            if self.height/16 > 8:
+                painter.drawTiledPixmap(0, 480, 180, 60, ImageCache['MovGMiddle8L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 480, 180, 60, ImageCache['MovGMiddle8R'])
+
+            if self.height/16 > 9:
+                painter.drawTiledPixmap(0, 540, 180, 60, ImageCache['MovGMiddle9L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 540, 180, 60, ImageCache['MovGMiddle9R'])
+
+            if self.height/16 > 10:
+                painter.drawTiledPixmap(0, 600, 180, 60, ImageCache['MovGMiddle2L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 600, 180, 60, ImageCache['MovGMiddle2R'])
+
+            if self.height/16 > 11:
+                painter.drawTiledPixmap(0, 660, 180, 60, ImageCache['MovGMiddle3L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 660, 180, 60, ImageCache['MovGMiddle3R'])
+
+            if self.height/16 > 12:
+                painter.drawTiledPixmap(0, 720, 180, 60, ImageCache['MovGMiddle4L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 720, 180, 60, ImageCache['MovGMiddle4R'])
+
+            if self.height/16 > 13:
+                painter.drawTiledPixmap(0, 780, 180, 60, ImageCache['MovGMiddle5L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 780, 180, 60, ImageCache['MovGMiddle5R'])
+
+            if self.height/16 > 14:
+                painter.drawTiledPixmap(0, 840, 180, 60, ImageCache['MovGMiddle6L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 840, 180, 60, ImageCache['MovGMiddle6R'])
+
+            if self.height/16 > 15:
+                painter.drawTiledPixmap(0, 900, 180, 60, ImageCache['MovGMiddle7L'])
+                painter.drawTiledPixmap((self.width/16*60)-180, 900, 180, 60, ImageCache['MovGMiddle7R'])
+
+
+
 
         #1 Glitch
-        if self.width/16 < 2:
+        if self.width/16 < 1:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopM'])
-            painter.drawTiledPixmap(0, 60, 60, ((self.height/16)-2)*60, ImageCache['MovGMiddleM'])
-            if self.height > 1:
-                painter.drawPixmap(0, (self.height/16)*60-60, 60, 60, ImageCache['MovGBottomM'])
-            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopM'])
+            painter.drawTiledPixmap(0, 60, 60, ((self.height/16)-1)*60, ImageCache['MovGMiddleM'])
 
 
 
@@ -4231,6 +4314,7 @@ ImageClasses = {
     178: SpriteImage_CrashBatteryS,
     183: SpriteImage_FallingIcicle,
     184: SpriteImage_GiantIcicle,
+    190: SpriteImage_MovQBlock,
     195: SpriteImage_RouletteBlock,
     200: SpriteImage_MushroomPlatform,
     203: SpriteImage_IceBlock,
@@ -4245,6 +4329,7 @@ ImageClasses = {
     243: SpriteImage_BubbleYoshi,
     247: SpriteImage_PricklyGoomba,
     249: SpriteImage_Wiggler,
+    255: SpriteImage_MicroGoomba,
     256: SpriteImage_CrashMushroom,
     259: SpriteImage_Muncher,
     261: SpriteImage_Parabeetle,
