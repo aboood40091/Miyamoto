@@ -9097,7 +9097,7 @@ class AboutDialog(QtWidgets.QDialog):
 
         # Set the palette to the default
         # defaultPalette is a global
-        self.setPalette(QtGui.QPalette(defaultPalette))
+        self.setPalette(QtGui.QPalette(app.palette()))
 
         # Open the readme file
         f = open('readme.md', 'r')
