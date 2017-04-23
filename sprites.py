@@ -3616,13 +3616,11 @@ class SpriteImage_MovingGrassPlatform(SLib.SpriteImage): # 499
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopL'])
             painter.drawPixmap(60, 0, 60, 60, ImageCache['MovGTopR'])
         elif self.width/16 == 3:
-            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopL'
-])
+            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopL'])
             painter.drawPixmap(60, 0, 60, 60, ImageCache['MovGTopM'])
             painter.drawPixmap(120, 0, 60, 60, ImageCache['MovGTopR'])
         else:
-            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopL'
-])
+            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopL'])
             painter.drawTiledPixmap(60, 0, (self.width/16-2)*60, 60, ImageCache['MovGTopM'])
             painter.drawPixmap(60+((self.width/16-2)*60), 0, 60, 60, ImageCache['MovGTopR'])
 

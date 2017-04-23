@@ -39,7 +39,6 @@ if currentRunningVersion < minimum:
 # Stdlib imports
 import base64
 import os
-import platform
 import pickle
 import struct
 import sys
@@ -47,21 +46,8 @@ from xml.etree import ElementTree as etree
 import zipfile
 
 # PyQt5: import, and error msg if not installed
-try:
-    from PyQt5 import QtCore, QtGui, QtWidgets
-except (ImportError, NameError):
-    errormsg = 'PyQt5 is not installed for this Python installation. Go online and download it.'
-    raise Exception(errormsg) from None
+from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
-
-# PyQtRibbon: import, and error msg if not installed
-try:
-    from PyQtRibbon.FileMenu import QFileMenu, QFileMenuPanel
-    from PyQtRibbon.RecentFilesManager import QRecentFilesManager
-    from PyQtRibbon.Ribbon import QRibbon, QRibbonTab, QRibbonSection
-except (ImportError, NameError):
-    errormsg = 'You haven\'t installed PyQtRibbon, or your installation of it is broken. Please download or fix it.'
-    raise Exception(errormsg)
 
 # Local imports
 import SARC as SarcLib
@@ -86,8 +72,7 @@ generateStringsXML = False
 app = None
 mainWindow = None
 settings = None
-defaultStyle = None
-defaultPalette = None
+theme = None
 compressed = False
 LevelNames = None
 TilesetNames = None
@@ -96,7 +81,6 @@ SpriteCategories = None
 SpriteListData = None
 EntranceTypeNames = None
 Tiles = None # 0x200 tiles per tileset, plus 64 for each type of override
-TilesetAnimTimer = None
 Overrides = None # 320 tiles, this is put into Tiles usually
 TileBehaviours = None
 ObjectDefinitions = None # 4 tilesets
@@ -284,7 +268,6 @@ class MiyamotoTheme():
         Initializes the theme
         """
         self.initAsClassic()
-        if file is not None: self.initFromFile(file)
 
 
     def initAsClassic(self):
@@ -294,9 +277,6 @@ class MiyamotoTheme():
         self.fileName = 'Classic'
         self.formatver = 1.0
         self.version = 1.0
-        self.themeName = trans.string('Themes', 0)
-        self.creator = trans.string('Themes', 1)
-        self.description = trans.string('Themes', 2)
         self.iconCacheSm = {}
         self.iconCacheLg = {}
         self.style = None
@@ -348,160 +328,6 @@ class MiyamotoTheme():
             'zone_text':               QtGui.QColor(44,64,84),        # Zone text
             }
 
-    def initFromFile(self, file):
-        """
-        Initializes the theme from the file
-        """
-        try:
-            zipf = zipfile.ZipFile(file, 'r')
-            zipfList = zipf.namelist()
-        except Exception:
-            # Can't load the data for some reason
-            return
-        try:
-            mainxmlfile = zipf.open('main.xml')
-        except KeyError:
-            # There's no main.xml in the file
-            return
-
-        # Create a XML ElementTree
-        try: maintree = etree.parse(mainxmlfile)
-        except Exception: return
-        root = maintree.getroot()
-
-        # Parse the attributes of the <theme> tag
-        if not self.parseMainXMLHead(root):
-            # The attributes are messed up
-            return
-
-        # Parse the other nodes
-        for node in root:
-            if node.tag.lower() == 'colors':
-                if 'file' not in node.attrib: continue
-
-                # Load the colors XML
-                try:
-                    self.loadColorsXml(zipf.open(node.attrib['file']))
-                except Exception: continue
-
-            elif node.tag.lower() == 'stylesheet':
-                if 'file' not in node.attrib: continue
-
-                # Load the stylesheet
-                try:
-                    self.loadStylesheet(zipf.open(node.attrib['file']))
-                except Exception: continue
-
-            elif node.tag.lower() == 'icons':
-                if not all(thing in node.attrib for thing in ['size', 'folder']): continue
-
-                foldername = node.attrib['folder']
-                big = node.attrib['size'].lower()[:2] == 'lg'
-                cache = self.iconCacheLg if big else self.iconCacheSm
-
-                # Load the icons
-                for iconfilename in zipfList:
-                    iconname = iconfilename
-                    if not iconname.startswith(foldername + '/'): continue
-                    iconname = iconname[len(foldername)+1:]
-                    if len(iconname) <= len('icon-.png'): continue
-                    if not iconname.startswith('icon-') or not iconname.endswith('.png'): continue
-                    iconname = iconname[len('icon-'): -len('.png')]
-
-                    icodata = zipf.open(iconfilename).read()
-                    pix = QtGui.QPixmap()
-                    if not pix.loadFromData(icodata): continue
-                    ico = QtGui.QIcon(pix)
-
-                    cache[iconname] = ico
-
-    def parseMainXMLHead(self, root):
-        """
-        Parses the main attributes of main.xml
-        """
-        MaxSupportedXMLVersion = 1.0
-
-        # Check for required attributes
-        if root.tag.lower() != 'theme': return False
-        if 'format' in root.attrib:
-            formatver = root.attrib['format']
-            try: self.formatver = float(formatver)
-            except ValueError: return False
-        else: return False
-
-        if self.formatver > MaxSupportedXMLVersion: return False
-        if 'name' in root.attrib: self.themeName = root.attrib['name']
-        else: return False
-
-        # Check for optional attributes
-        self.creator = trans.string('Themes', 3)
-        self.description = trans.string('Themes', 4)
-        self.style = None
-        self.version = 1.0
-        if 'creator'     in root.attrib: self.creator = root.attrib['creator']
-        if 'description' in root.attrib: self.description = root.attrib['description']
-        if 'style'       in root.attrib: self.style = root.attrib['style']
-        if 'version'     in root.attrib:
-            try: self.version = float(root.attrib['style'])
-            except ValueError: pass
-
-        return True
-
-    def loadColorsXml(self, file):
-        """
-        Loads a colors.xml file
-        """
-        try: tree = etree.parse(file)
-        except Exception: return
-
-        root = tree.getroot()
-        if root.tag.lower() != 'colors': return False
-
-        colorDict = {}
-        for colorNode in root:
-            if colorNode.tag.lower() != 'color': continue
-            if not all(thing in colorNode.attrib for thing in ['id', 'value']): continue
-
-            colorval = colorNode.attrib['value']
-            if colorval.startswith('#'): colorval = colorval[1:]
-            a = 255
-            try:
-                if len(colorval) == 3:
-                    # RGB
-                    r = int(colorval[0], 16)
-                    g = int(colorval[1], 16)
-                    b = int(colorval[2], 16)
-                elif len(colorval) == 4:
-                    # RGBA
-                    r = int(colorval[0], 16)
-                    g = int(colorval[1], 16)
-                    b = int(colorval[2], 16)
-                    a = int(colorval[3], 16)
-                elif len(colorval) == 6:
-                    # RRGGBB
-                    r = int(colorval[0:2], 16)
-                    g = int(colorval[2:4], 16)
-                    b = int(colorval[4:6], 16)
-                elif len(colorval) == 8:
-                    # RRGGBBAA
-                    r = int(colorval[0:2], 16)
-                    g = int(colorval[2:4], 16)
-                    b = int(colorval[4:6], 16)
-                    a = int(colorval[6:8], 16)
-            except ValueError: continue
-            colorobj = QtGui.QColor(r, g, b, a)
-            colorDict[colorNode.attrib['id']] = colorobj
-
-        # Merge dictionaries
-        self.colors.update(colorDict)
-
-
-    def loadStylesheet(self, file):
-        """
-        Loads a stylesheet
-        """
-        print(file)
-
     def color(self, name):
         """
         Returns a color
@@ -522,12 +348,6 @@ class MiyamotoTheme():
 
         return cache[name]
 
-    def ui(self):
-        """
-        Returns the UI style
-        """
-        return self.uiStyle
-
 def toQColor(*args):
     """
     Usage: toQColor(r, g, b[, a]) OR toQColor((r, g, b[, a]))
@@ -538,21 +358,6 @@ def toQColor(*args):
     b = args[2]
     a = args[3] if len(args) == 4 else 255
     return QtGui.QColor(r, g, b, a)
-
-def SetAppStyle():
-    """
-    Set the application window color
-    """
-    global app
-    global theme
-
-    # Change the color if applicable
-    #if theme.color('ui') is not None: app.setPalette(QtGui.QPalette(theme.color('ui')))
-
-    # Change the style
-    styleKey = setting('uiStyle')
-    style = QtWidgets.QStyleFactory.create(styleKey)
-    app.setStyle(style)
 
 def createHorzLine():
     f = QtWidgets.QFrame()
@@ -580,23 +385,6 @@ def LoadNumberFont():
         NumberFont = QtGui.QFont('Lucida Grande', (9/24) * TileWidth)
     else:
         NumberFont = QtGui.QFont('Sans', (8/24) * TileWidth)
-
-def GetUseRibbon():
-    """
-    This tells us if we're using the Ribbon
-    """
-    global UseRibbon
-    if str(setting('Menu')) == 'Ribbon': UseRibbon = True
-    else: UseRibbon = False
-
-def GetDefaultStyle():
-    """
-    Stores a copy of the default app style upon launch, which can then be accessed later
-    """
-    global defaultStyle, defaultPalette, app
-    if (defaultStyle, defaultPalette) != (None, None): return
-    defaultStyle = app.style()
-    defaultPalette = QtGui.QPalette(app.palette())
 
 def GetIcon(name, big=False):
     """
@@ -717,15 +505,6 @@ def isValidGamePath(check='ug'):
 #####################################################################
 ############################## LOADING ##############################
 #####################################################################
-
-def LoadTheme():
-    """
-    Loads the theme
-    """
-    global theme
-
-    id = 'Classic'
-    theme = MiyamotoTheme()
 
 def LoadLevelNames():
     """
@@ -1220,7 +999,6 @@ def LoadActionsLists():
         (trans.string('MenuItems', 0),  True,  'newlevel'),
         (trans.string('MenuItems', 2),  True,  'openfromname'),
         (trans.string('MenuItems', 4),  False, 'openfromfile'),
-        (trans.string('MenuItems', 6),  False, 'openrecent'),
         (trans.string('MenuItems', 8),  True,  'save'),
         (trans.string('MenuItems', 10), False, 'saveas'),
         (trans.string('MenuItems', 14), True,  'screenshot'),
@@ -1484,385 +1262,6 @@ class HexSpinBox(QtWidgets.QSpinBox):
 
     def valueFromText(self, value):
         return int(str(value), 16)
-
-class MiyamotoRibbon(QRibbon):
-    """
-    Class that represents Miyamoto's ribbon
-    """
-    def __init__(self):
-        """
-        Creates and initializes the Miyamoto Ribbon
-        """
-        QRibbon.__init__(self)
-
-        # Set up the file menu
-        self.fileMenu = MiyamotoRibbonFileMenu()
-        self.setFileMenu(self.fileMenu)
-        self.setFileTitle(trans.string('Ribbon', 23))
-
-        # Add tabs
-        self.btns = {}
-        self.addHomeTab()
-        self.addActionsTab()
-        self.addViewTab()
-
-        # Add the Help Menu
-        m = mainWindow.SetupHelpMenu()
-        self.setHelpMenu(m)
-        self.setHelpIcon(GetIcon('help'))
-
-        # Stylize on Windows
-        self.stylizeOnWindows(mainWindow)
-
-        global theme
-
-
-    def addHomeTab(self):
-        """
-        Adds the Home Tab
-        """
-        tab = self.addTab(trans.string('Ribbon', 0)) # "Home"
-        self.homeTab = tab
-
-        gi, ts, mw, qk = GetIcon, trans.string, mainWindow, QtGui.QKeySequence
-
-        # Clipboard Section
-        cSection = tab.addSection(ts('Ribbon', 5)) # "Clipboard"
-        a = cSection.addFullButton(gi('paste', True), ts('MenuItems', 30), mw.Paste, qk.Paste, ts('MenuItems', 31))
-        b = cSection.addSmallButton(gi('cut'),   ts('MenuItems', 26), mw.Cut,   qk.Cut,   ts('MenuItems', 27))
-        c = cSection.addSmallButton(gi('copy'),  ts('MenuItems', 28), mw.Copy,  qk.Copy,  ts('MenuItems', 29))
-        self.btns['paste'], self.btns['cut'], self.btns['copy'] = a, b, c
-        self.btns['cut'].setEnabled(False)
-        self.btns['copy'].setEnabled(False)
-
-        # Freeze Section
-        fSection = tab.addSection(ts('Ribbon', 6)) # "Freeze"
-        a = fSection.addSmallToggleButton(gi('objectsfreeze'),   None, mw.HandleObjectsFreeze,   'Ctrl+Shift+1', ts('MenuItems', 39))
-        b = fSection.addSmallToggleButton(gi('spritesfreeze'),   None, mw.HandleSpritesFreeze,   'Ctrl+Shift+2', ts('MenuItems', 41))
-        c = fSection.addSmallToggleButton(gi('entrancesfreeze'), None, mw.HandleEntrancesFreeze, 'Ctrl+Shift+3', ts('MenuItems', 43))
-        d = fSection.addSmallToggleButton(gi('locationsfreeze'), None, mw.HandleLocationsFreeze, 'Ctrl+Shift+4', ts('MenuItems', 45))
-        e = fSection.addSmallToggleButton(gi('pathsfreeze'),     None, mw.HandlePathsFreeze,     'Ctrl+Shift+5', ts('MenuItems', 47))
-        f = fSection.addSmallToggleButton(gi('commentsfreeze'),  None, mw.HandleCommentsFreeze,  'Ctrl+Shift+9', ts('MenuItems', 115))
-        self.btns['objfrz'], self.btns['sprfrz'], self.btns['entfrz'], self.btns['locfrz'], self.btns['pthfrz'], self.btns['comfrz'] = a, b, c, d, e, f
-
-        # Area Section
-        aSection = tab.addSection(ts('Ribbon', 8)) # "Area"
-        #a = aSection.addCustomWidget(self.AreaMenuButton())
-        b = aSection.addFullButton(gi('area', True), ts('MenuItems', 72), mw.HandleAreaOptions, 'Ctrl+Alt+A', ts('MenuItems', 73))
-        #self.btns['areasel'], self.btns['areaset'] = a, b
-            ##        LGroup.addButton(mainWindow.HandleAreaOptions, 'Ctrl+Alt+A', trans.string('MenuItems', 73), True, 'area', trans.string('MenuItems', 72))
-
-        # Set the toggle buttons to their default positions
-        self.btns['objfrz'].setChecked(ObjectsFrozen)
-        self.btns['sprfrz'].setChecked(SpritesFrozen)
-        self.btns['entfrz'].setChecked(EntrancesFrozen)
-        self.btns['locfrz'].setChecked(LocationsFrozen)
-        self.btns['pthfrz'].setChecked(PathsFrozen)
-        self.btns['comfrz'].setChecked(CommentsFrozen)
-
-        return
-
-
-    def addActionsTab(self):
-        """
-        Adds the Actions Tab
-        """
-        tab = self.addTab(trans.string('Ribbon', 1)) # "Actions"
-        self.actionsTab = tab
-
-        gi, ts, mw, qk = GetIcon, trans.string, mainWindow, QtGui.QKeySequence
-
-        return
-
-    def addViewTab(self):
-        """
-        Adds the View Tab
-        """
-        tab = self.addTab(trans.string('Ribbon', 2)) # "View"
-        self.viewTab = tab
-
-        gi, ts, mw, qk = GetIcon, trans.string, mainWindow, QtGui.QKeySequence
-
-        # Layers
-        LSection = tab.addSection(ts('Ribbon', 14)) # "Layers"
-        a = LSection.addFullToggleButton(gi('layer0', True), ts('MenuItems', 48), mw.HandleUpdateLayer0, 'Ctrl+1', ts('MenuItems', 49))
-        b = LSection.addFullToggleButton(gi('layer1', True), ts('MenuItems', 50), mw.HandleUpdateLayer1, 'Ctrl+2', ts('MenuItems', 51))
-        c = LSection.addFullToggleButton(gi('layer2', True), ts('MenuItems', 52), mw.HandleUpdateLayer2, 'Ctrl+3', ts('MenuItems', 53))
-        self.btns['lay0'], self.btns['lay1'], self.btns['lay2'] = a, b, c
-
-        # Tilesets
-        tSection = tab.addSection(ts('Ribbon', 13)) # "Tilesets"
-        a = tSection.addSmallToggleButton(gi('animation'),  ts('MenuItems', 108), mw.HandleTilesetAnimToggle, 'Ctrl+7', ts('MenuItems', 109))
-        b = tSection.addSmallToggleButton(gi('collisions'), ts('MenuItems', 110), mw.HandleCollisionsToggle,  'Ctrl+8', ts('MenuItems', 111))
-        self.btns['anim'], self.btns['colls'] = a, b
-
-        # Visibility
-        vSection = tab.addSection(ts('Ribbon', 15)) # "Visibility"
-        a = vSection.addSmallToggleButton(gi('sprites'),    ts('MenuItems', 54),  mw.HandleSpritesVisibility,   'Ctrl+4', ts('MenuItems', 55))
-        b = vSection.addSmallToggleButton(gi('sprites'),    ts('MenuItems', 56),  mw.HandleSpriteImages,        'Ctrl+6', ts('MenuItems', 57))
-        c = vSection.addSmallToggleButton(gi('locations'),  ts('MenuItems', 58),  mw.HandleLocationsVisibility, 'Ctrl+5', ts('MenuItems', 59))
-        d = vSection.addSmallToggleButton(gi('comments'),   ts('MenuItems', 116), mw.HandleCommentsVisibility,  'Ctrl+0', ts('MenuItems', 117))
-        e = vSection.addSmallToggleButton(gi('realview'),   ts('MenuItems', 118), mw.HandleRealViewToggle,  'Ctrl+9', ts('MenuItems', 119))
-        f = vSection.addFullButton(       gi('grid', True), ts('MenuItems', 60),  mw.HandleSwitchGrid,          'Ctrl+G', ts('MenuItems', 61))
-        self.btns['showsprites'], self.btns['showspriteimgs'], self.btns['showlocs'], self.btns['showcoms'], self.btns['realview'], self.btns['grid'] = a, b, c, d, e, f
-
-        # Set the toggle buttons to their default start values
-        self.btns['lay0'].setChecked(Layer0Shown)
-        self.btns['lay1'].setChecked(Layer1Shown)
-        self.btns['lay2'].setChecked(Layer2Shown)
-        self.btns['showsprites'].setChecked(SpritesShown)
-        self.btns['showspriteimgs'].setChecked(SpriteImagesShown)
-        self.btns['showlocs'].setChecked(LocationsShown)
-        self.btns['showcoms'].setChecked(CommentsShown)
-        self.btns['realview'].setChecked(RealViewEnabled)
-
-        return
-
-    def addOverview(self, dock, act):
-        """
-        Adds the Show/Hide Overview action to the ribbon
-        """
-        return
-        self.oDock = dock
-        self.dockGroup = RibbonGroup(trans.string('Ribbon', 17))
-        self.overBtn = self.dockGroup.addButton(self.HandleOverviewClick, act.shortcut(), trans.string('MenuItems', 95), True, 'overview', trans.string('MenuItems', 94), True, True)
-
-    def addPalette(self, dock, act):
-        """
-        Adds the Show/Hide Palette action to the ribbon
-        """
-        return
-        self.pDock = dock
-        self.palBtn = self.dockGroup.addButton(self.HandlePaletteClick, act.shortcut(), trans.string('MenuItems', 97), True, 'palette', trans.string('MenuItems', 96), True, True)
-        
-    @QtCore.pyqtSlot(bool)
-    def HandleOverviewClick(self, checked = None):
-        """
-        Updates the overview btn
-        """
-        return
-        visible = checked if checked is not None else not self.oDock.isVisible()
-        self.oDock.setVisible(visible)
-        if checked is None: self.overBtn.setChecked(visible)
-
-    @QtCore.pyqtSlot(bool)
-    def HandlePaletteClick(self, checked = None):
-        """
-        Updates the palette btn
-        """
-        return
-        visible = checked if checked is not None else not self.pDock.isVisible()
-        self.pDock.setVisible(visible)
-        if checked is None: self.palBtn.setChecked(visible)
-        
-    def updateAreaComboBox(self, areas, area):
-        """
-        Updates the Area Combo Box
-        """
-        return
-        self.homeTab.areaComboBox.clear()
-        for i in range(1, len(Level.areas) + 1):
-            self.homeTab.areaComboBox.addItem(trans.string('AreaCombobox', 0, '[num]', i))
-        self.homeTab.areaComboBox.setCurrentIndex(area-1)
-
-    def setBtnEnabled(self, btn, enabled):
-        """
-        Enables or disables a button
-        """
-        try: self.btns[btn].setEnabled(enabled)
-        except Exception: print('Ribbon enabling error: ' + btn + ', ' + str(enabled))
-
-class MiyamotoRibbonFileMenu(QFileMenu):
-    """
-    Widget that represents the file menu for the ribbon
-    """
-    def __init__(self):
-        """
-        Creates and initializes the menu
-        """
-        QFileMenu.__init__(self)
-        self.setRecentFilesText('Recent levels')
-        self.btns = {}
-
-        # Add a recent files manager
-        self.recentFilesMgr = QRecentFilesManager(setting('RecentFiles'))
-        self.setRecentFilesManager(self.recentFilesMgr)
-        self.recentFileClicked.connect(self.handleRecentFileClicked)
-
-        # Get ready to add buttons
-        gi, ts, mw, qk = GetIcon, trans.string, mainWindow, QtGui.QKeySequence
-
-        # Create right-side panels
-        openPanel = QFileMenuPanel('Open an existing level')
-        a = openPanel.addButton(gi('open',         True), ts('MenuItems', 2),  mw.HandleOpenFromName, qk.Open,        ts('MenuItems', 3))
-        b = openPanel.addButton(gi('openfromfile', True), ts('MenuItems', 4),  mw.HandleOpenFromFile, 'Ctrl+Shift+O', ts('MenuItems', 5))
-        self.btns['openname2'], self.btns['openfile'] = a, b
-
-        # Add left-side buttons
-        a = self.addButton(                gi('new', True),    ts('MenuItems', 0),   mw.HandleNewLevel,     qk.New,             ts('MenuItems', 1))
-        b = self.addArrowButton(openPanel, gi('open', True),   ts('MenuItems', 112), mw.HandleOpenFromName, None,               ts('MenuItems', 3))
-        c = self.addButton(                gi('save', True),   ts('MenuItems', 8),   mw.HandleSave,         qk.Save,            ts('MenuItems', 9))
-        d = self.addButton(                gi('saveas', True), ts('MenuItems', 10),  mw.HandleSaveAs,       qk.SaveAs,          ts('MenuItems', 11))
-        self.btns['new'], self.btns['openname1'], self.btns['save'], self.btns['saveas'] = a, b, c, d
-        self.addSeparator()
-        a = self.addButton(gi('info', True),     trans.string('MenuItems', 12), mw.HandleInfo,        'Ctrl+Alt+I', trans.string('MenuItems', 13))
-        b = self.addButton(gi('settings', True), trans.string('MenuItems', 18), mw.HandlePreferences, 'Ctrl+Alt+P', trans.string('MenuItems', 19))
-        self.addSeparator()
-        c = self.addButton(gi('delete', True), trans.string('MenuItems', 20), mw.HandleExit, qk.Quit, trans.string('MenuItems', 21))
-        self.btns['lvlinfo'], self.btns['prefs'], self.btns['exit'] = a, b, c
-
-    def handleRecentFileClicked(self, path):
-        """
-        Handles recent files being clicked
-        """
-        mainWindow.LoadLevel(None, str(path), True, 1)
-
-class RecentFilesMenu(QtWidgets.QMenu):
-    """
-    A menu which displays recently opened files
-    """
-    def __init__(self):
-        """
-        Creates and initializes the menu
-        """
-        QtWidgets.QMenu.__init__(self)
-        self.setMinimumWidth(192)
-
-        # Here's how this works:
-        # - Upon startup, RecentFiles is obtained from QSettings and put into self.FileList
-        # - All modifications to the menu thereafter are then applied to self.FileList
-        # - The actions displayed in the menu are determined by whatever's in self.FileList
-        # - Whenever self.FileList is changed, self.writeSettings is called which writes
-        #      it all back to the QSettings
-
-        # Populate FileList upon startup
-        if settings.contains('RecentFiles'):
-            self.FileList = str(setting('RecentFiles')).split('|')
-        else:
-            self.FileList = ['']
-
-        # This fixes bugs
-        self.FileList = [path for path in self.FileList if path.lower() not in ('', 'none', 'false', 'true')]
-
-        self.updateActionList()
-
-
-    def writeSettings(self):
-        """
-        Writes FileList back to the Registry
-        """
-        setSetting('RecentFiles', str('|'.join(self.FileList)))
-
-    def updateActionList(self):
-        """
-        Updates the actions visible in the menu
-        """
-
-        self.clear() # removes any actions already in the menu
-        ico = GetIcon('new')
-        currentShortcut = 0
-
-        for i, filename in enumerate(self.FileList):
-            filename = filename.split('\\')[-1]
-            short = clipStr(filename, 72)
-            if short is not None: filename = short + '...'
-
-            act = QtWidgets.QAction(ico, filename, self)
-            if i <=9: act.setShortcut(QtGui.QKeySequence('Ctrl+Alt+'+str(i)))
-            act.setToolTip(str(self.FileList[i]))
-
-            # This is a TERRIBLE way to do this, but I can't think of anything simpler. :(
-            if i == 0:  handler = self.HandleOpenRecentFile0
-            if i == 1:  handler = self.HandleOpenRecentFile1
-            if i == 2:  handler = self.HandleOpenRecentFile2
-            if i == 3:  handler = self.HandleOpenRecentFile3
-            if i == 4:  handler = self.HandleOpenRecentFile4
-            if i == 5:  handler = self.HandleOpenRecentFile5
-            if i == 6:  handler = self.HandleOpenRecentFile6
-            if i == 7:  handler = self.HandleOpenRecentFile7
-            if i == 8:  handler = self.HandleOpenRecentFile8
-            if i == 9:  handler = self.HandleOpenRecentFile9
-            if i == 10: handler = self.HandleOpenRecentFile10
-            if i == 11: handler = self.HandleOpenRecentFile11
-            if i == 12: handler = self.HandleOpenRecentFile12
-            if i == 13: handler = self.HandleOpenRecentFile13
-            if i == 14: handler = self.HandleOpenRecentFile14
-            act.triggered.connect(handler)
-
-            self.addAction(act)
-
-    def AddToList(self, path):
-        """
-        Adds an entry to the list
-        """
-        MaxLength = 16
-
-        if path in ('None', 'True', 'False', None, True, False): return # fixes bugs
-        path = str(path).replace('/', '\\')
-
-        new = [path]
-        for filename in self.FileList:
-            if filename != path:
-                new.append(filename)
-        if len(new) > MaxLength: new = new[0:MaxLength]
-
-        self.FileList = new
-        self.writeSettings()
-        self.updateActionList()
-
-    def RemoveFromList(self, index):
-        """
-        Removes an entry from the list
-        """
-        del self.FileList[index]
-        self.writeSettings()
-        self.updateActionList()
-
-    def clearAll(self):
-        """
-        Clears all recent files from the list and the registry
-        """
-        self.FileList = []
-        self.writeSettings()
-        self.updateActionList()
-
-    def HandleOpenRecentFile0(self):
-        self.HandleOpenRecentFile(0)
-    def HandleOpenRecentFile1(self):
-        self.HandleOpenRecentFile(1)
-    def HandleOpenRecentFile2(self):
-        self.HandleOpenRecentFile(2)
-    def HandleOpenRecentFile3(self):
-        self.HandleOpenRecentFile(3)
-    def HandleOpenRecentFile4(self):
-        self.HandleOpenRecentFile(4)
-    def HandleOpenRecentFile5(self):
-        self.HandleOpenRecentFile(5)
-    def HandleOpenRecentFile6(self):
-        self.HandleOpenRecentFile(6)
-    def HandleOpenRecentFile7(self):
-        self.HandleOpenRecentFile(7)
-    def HandleOpenRecentFile8(self):
-        self.HandleOpenRecentFile(8)
-    def HandleOpenRecentFile9(self):
-        self.HandleOpenRecentFile(9)
-    def HandleOpenRecentFile10(self):
-        self.HandleOpenRecentFile(10)
-    def HandleOpenRecentFile11(self):
-        self.HandleOpenRecentFile(11)
-    def HandleOpenRecentFile12(self):
-        self.HandleOpenRecentFile(12)
-    def HandleOpenRecentFile13(self):
-        self.HandleOpenRecentFile(13)
-    def HandleOpenRecentFile14(self):
-        self.HandleOpenRecentFile(14)
-    def HandleOpenRecentFile(self, number):
-        """
-        Open a recently opened level picked from the main menu
-        """
-        if mainWindow.CheckDirty(): return
-
-        if not mainWindow.LoadLevel(None, self.FileList[number], True, 1): self.RemoveFromList(number)
 
 class SpriteDefinition():
     """
@@ -2766,14 +2165,11 @@ def CreateTilesets():
     """
     Blank out the tileset arrays
     """
-    global Tiles, TilesetAnimTimer, TileBehaviours, ObjectDefinitions
+    global Tiles, TileBehaviours, ObjectDefinitions
 
     Tiles = [None]*0x200*4
     Tiles += Overrides
     #TileBehaviours = [0]*1024
-    TilesetAnimTimer = QtCore.QTimer()
-    TilesetAnimTimer.timeout.connect(IncrementTilesetFrame)
-    TilesetAnimTimer.start(180)
     ObjectDefinitions = [None]*4
     SLib.Tiles = Tiles
 
@@ -3821,7 +3217,6 @@ class AbstractParsedArea(AbstractArea):
         self.LoadComments()
 
         CreateTilesets()
-        
         if self.tileset0 != '':
             LoadTileset(0, self.tileset0)
         
@@ -10633,9 +10028,6 @@ class BGTab(QtWidgets.QWidget):
 
         self.bg_name = QtWidgets.QComboBox()
         self.bg_name.addItems(names_bgTrans)
-
-        #self.factor = names_bg.index(SLib.Area.bg_name[i])
-
         self.bg_name.setCurrentIndex(names_bg.index(SLib.Area.bg_name[i]))
 
         self.unk1 = QtWidgets.QSpinBox()
@@ -10770,10 +10162,8 @@ class PreferencesDialog(QtWidgets.QDialog):
         self.infoLabel = QtWidgets.QLabel()
         self.generalTab = self.getGeneralTab()
         self.toolbarTab = self.getToolbarTab()
-        self.themesTab = self.getThemesTab()
         self.tabWidget.addTab(self.generalTab, trans.string('PrefsDlg', 1))
         self.tabWidget.addTab(self.toolbarTab, trans.string('PrefsDlg', 2))
-        self.tabWidget.addTab(self.themesTab, trans.string('PrefsDlg', 3))
 
         # Create the buttonbox
         buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
@@ -10801,7 +10191,7 @@ class PreferencesDialog(QtWidgets.QDialog):
         """
         Handles the menu-style option being changed
         """
-        self.tabWidget.setTabEnabled(1, self.generalTab.MenuM.isChecked())
+        self.tabWidget.setTabEnabled(1, True)
 
 
     def getGeneralTab(self):
@@ -10822,15 +10212,9 @@ class PreferencesDialog(QtWidgets.QDialog):
                 QtWidgets.QWidget.__init__(self)
 
                 # Add the Menu Format settings
-                self.MenuR = QtWidgets.QRadioButton(trans.string('PrefsDlg', 12))
-                self.MenuM = QtWidgets.QRadioButton(trans.string('PrefsDlg', 13))
                 self.MenuG = QtWidgets.QButtonGroup() # huge glitches if it's not assigned to self.something
                 self.MenuG.setExclusive(True)
-                self.MenuG.addButton(self.MenuR)
-                self.MenuG.addButton(self.MenuM)
                 MenuL = QtWidgets.QVBoxLayout()
-                MenuL.addWidget(self.MenuR)
-                MenuL.addWidget(self.MenuM)
                 self.MenuG.buttonClicked.connect(menuHandler)
 
                 # Add the Tileset Selection settings
@@ -10848,17 +10232,11 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.Trans = QtWidgets.QComboBox()
                 self.Trans.setMaximumWidth(256)
 
-                # Add the Clear Recent Files button
-                ClearRecentBtn = QtWidgets.QPushButton(trans.string('PrefsDlg', 16))
-                ClearRecentBtn.setMaximumWidth(ClearRecentBtn.minimumSizeHint().width())
-                ClearRecentBtn.clicked.connect(self.ClearRecent)
-
                 # Create the main layout
                 L = QtWidgets.QFormLayout()
                 L.addRow(trans.string('PrefsDlg', 11), MenuL)
                 L.addRow(trans.string('PrefsDlg', 27), TileL)
                 L.addRow(trans.string('PrefsDlg', 14), self.Trans)
-                L.addRow(trans.string('PrefsDlg', 15), ClearRecentBtn)
 
                 self.setLayout(L)
 
@@ -10869,9 +10247,6 @@ class PreferencesDialog(QtWidgets.QDialog):
                 """
                 Read the preferences and check the respective boxes
                 """
-                if str(setting('Menu')) == 'Ribbon': self.MenuR.setChecked(True)
-                else: self.MenuM.setChecked(True)
-
                 if str(setting('TilesetTab')) != 'Old': self.TileD.setChecked(True)
                 else: self.TileO.setChecked(True)
 
@@ -10892,14 +10267,6 @@ class PreferencesDialog(QtWidgets.QDialog):
                     if trans == str(setting('Translation')):
                         self.Trans.setCurrentIndex(i)
                     i += 1
-
-            def ClearRecent(self):
-                """
-                Handle the Clear Recent Files button being clicked
-                """
-                ans = QtWidgets.QMessageBox.question(None, trans.string('PrefsDlg', 17), trans.string('PrefsDlg', 18), QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-                if ans != QtWidgets.QMessageBox.Yes: return
-                self.RecentMenu.clearAll()
 
         return GeneralTab(self.menuSettingChanged)
 
@@ -11023,215 +10390,6 @@ class PreferencesDialog(QtWidgets.QDialog):
                         box.setChecked(default[1])
 
         return ToolbarTab()
-
-
-    def getThemesTab(self):
-        """
-        Returns the Themes Tab
-        """
-
-        class ThemesTab(QtWidgets.QWidget):
-            """
-            Themes Tab
-            """
-            info = trans.string('PrefsDlg', 6)
-
-            def __init__(self):
-                """
-                Initializes the Themes Tab
-                """
-                QtWidgets.QWidget.__init__(self)
-
-                # Get the current and available themes
-                self.themeID = theme.themeName
-                self.themes = self.getAvailableThemes()
-
-                # Create the radiobuttons
-                self.btns = []
-                self.btnvals = {}
-                for name, themeObj in self.themes:
-                    displayname = name
-                    if displayname.lower().endswith('.rt'): displayname = displayname[:-3]
-
-                    btn = QtWidgets.QRadioButton(displayname)
-                    if name == str(setting('Theme')): btn.setChecked(True)
-                    btn.clicked.connect(self.UpdatePreview)
-
-                    self.btns.append(btn)
-                    self.btnvals[btn] = (name, themeObj)
-
-                # Create the buttons group
-                btnG = QtWidgets.QButtonGroup()
-                btnG.setExclusive(True)
-                for btn in self.btns:
-                    btnG.addButton(btn)
-
-                # Create the buttons groupbox
-                L = QtWidgets.QGridLayout()
-                for idx, button in enumerate(self.btns):
-                    L.addWidget(btn, idx%12, int(idx/12))
-                btnGB = QtWidgets.QGroupBox(trans.string('PrefsDlg', 21))
-                btnGB.setLayout(L)
-
-                # Create the preview labels and groupbox
-                self.preview = QtWidgets.QLabel()
-                self.description = QtWidgets.QLabel()
-                L = QtWidgets.QVBoxLayout()
-                L.addWidget(self.preview)
-                L.addWidget(self.description)
-                L.addStretch(1)
-                previewGB = QtWidgets.QGroupBox(trans.string('PrefsDlg', 22))
-                previewGB.setLayout(L)
-
-                # Create the options box options
-                keys = QtWidgets.QStyleFactory().keys()
-                self.NonWinStyle = QtWidgets.QComboBox()
-                self.NonWinStyle.setToolTip(trans.string('PrefsDlg', 24))
-                self.NonWinStyle.addItems(keys)
-                uistyle = setting('uiStyle')
-                if uistyle is not None:
-                    self.NonWinStyle.setCurrentIndex(keys.index(setting('uiStyle')))
-
-                # Create the options groupbox
-                L = QtWidgets.QVBoxLayout()
-                L.addWidget(self.NonWinStyle)
-                optionsGB = QtWidgets.QGroupBox(trans.string('PrefsDlg', 25))
-                optionsGB.setLayout(L)
-
-                # Create a main layout
-                L = QtWidgets.QGridLayout()
-                L.addWidget(btnGB, 0, 0, 2, 1)
-                L.addWidget(optionsGB, 0, 1)
-                L.addWidget(previewGB, 1, 1)
-                L.setRowStretch(1, 1)
-                self.setLayout(L)
-
-                # Update the preview things
-                self.UpdatePreview()
-
-
-            def getAvailableThemes(self):
-                """Searches the Themes folder and returns a list of theme filepaths.
-                Automatically adds 'Classic' to the list."""
-                themes = os.listdir('miyamotodata/themes')
-                themeList = [('Classic', MiyamotoTheme())]
-                for themeName in themes:
-                    try:
-                        if themeName.split('.')[-1].lower() == 'rt':
-                            data = open('miyamotodata/themes/' + themeName, 'rb').read()
-                            theme = MiyamotoTheme(data)
-                            themeList.append((themeName, theme))
-                    except Exception: pass
-
-                return tuple(themeList)
-
-            def UpdatePreview(self):
-                """
-                Updates the preview
-                """
-                for btn in self.btns:
-                    if btn.isChecked():
-                        t = self.btnvals[btn][1]
-                        self.preview.setPixmap(self.drawPreview(t))
-                        text = trans.string('PrefsDlg', 26, '[name]', t.themeName, '[creator]', t.creator, '[description]', t.description)
-                        self.description.setText(text)
-
-            def drawPreview(self, theme):
-                """
-                Returns a preview pixmap for the given theme
-                """
-
-                # Set up some things
-                px = QtGui.QPixmap(350, 185)
-                px.fill(theme.color('bg'))
-                return px
-
-
-                paint = QtGui.QPainter(px)
-
-                UIColor = theme.color('ui')
-                if UIColor is None: UIColor = toQColor(240,240,240) # close enough
-
-                ice = QtGui.QPixmap('miyamotodata/sprites/ice_flow_7.png')
-
-                font = QtGui.QFont(NumberFont) # need to make a new instance to avoid changing global settings
-                font.setPointSize(6)
-                paint.setFont(font)
-
-                # Draw the spriteboxes
-                paint.setPen(QtGui.QPen(theme.color('spritebox_lines'), 1))
-                paint.setBrush(QtGui.QBrush(theme.color('spritebox_fill')))
-
-                paint.drawRoundedRect(176, 64, 16, 16, 5, 5)
-                paint.drawText(QtCore.QPointF(180, 75), '38')
-
-                paint.drawRoundedRect(16, 96, 16, 16, 5, 5)
-                paint.drawText(QtCore.QPointF(20, 107), '53')
-
-                # Draw the entrance
-                paint.setPen(QtGui.QPen(theme.color('entrance_lines'), 1))
-                paint.setBrush(QtGui.QBrush(theme.color('entrance_fill')))
-
-                paint.drawRoundedRect(208, 128, 16, 16, 5, 5)
-                paint.drawText(QtCore.QPointF(212, 138), '0')
-
-                # Draw the location
-                paint.setPen(QtGui.QPen(theme.color('location_lines'), 1))
-                paint.setBrush(QtGui.QBrush(theme.color('location_fill')))
-
-                paint.drawRect(16, 144, 96, 32)
-                paint.setPen(QtGui.QPen(theme.color('location_text'), 1))
-                paint.drawText(QtCore.QPointF(20, 154), '1')
-
-                # Draw the iceblock (can't easily draw a tileset obj)
-                paint.drawPixmap(160, 144, ice.scaled(ice.width()*2/3, ice.height()*2/3))
-
-                # Draw the zone
-                paint.setPen(QtGui.QPen(theme.color('zone_lines'), 3))
-                paint.setBrush(QtGui.QBrush(toQColor(0,0,0,0)))
-                paint.drawRect(136, 52, 256, 120)
-                paint.setPen(QtGui.QPen(theme.color('zone_corner'), 3))
-                paint.setBrush(QtGui.QBrush(theme.color('zone_corner'), 3))
-                paint.drawRect(135, 51, 2, 2)
-                paint.drawRect(135, 171, 2, 2)
-                paint.setPen(QtGui.QPen(theme.color('zone_text'), 1))
-                font = QtGui.QFont(NumberFont)
-                font.setPointSize(5)
-                paint.setFont(font)
-                paint.drawText(QtCore.QPointF(140, 62), 'Zone 1')
-
-                # Draw the grid
-                paint.setPen(QtGui.QPen(theme.color('grid'), 1, Qt.DotLine))
-                gridcoords = []
-                i=0
-                while i < 350:
-                    gridcoords.append(i)
-                    i=i+16
-                for i in gridcoords:
-                    paint.setPen(QtGui.QPen(theme.color('grid'), 0.75, Qt.DotLine))
-                    paint.drawLine(i, 0, i, 185)
-                    paint.drawLine(0, i, 350, i)
-                    if (i/16)%4 == 0:
-                        paint.setPen(QtGui.QPen(theme.color('grid'), 1.5, Qt.DotLine))
-                        paint.drawLine(i, 0, i, 185)
-                        paint.drawLine(0, i, 350, i)
-                    if (i/16)%8 == 0:
-                        paint.setPen(QtGui.QPen(theme.color('grid'), 2.25, Qt.DotLine))
-                        paint.drawLine(i, 0, i, 185)
-                        paint.drawLine(0, i, 350, i)
-
-                # Draw the UI
-                paint.setBrush(QtGui.QBrush(UIColor))
-                paint.setPen(toQColor(0,0,0,0))
-                paint.drawRect(0, 0, 350, 24)
-                paint.drawRect(300, 24, 50, 165)
-
-                # Delete the painter and return the pixmap
-                del paint
-                return px
-
-
-        return ThemesTab()
 
 
 #####################################################################
@@ -11875,10 +11033,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.ZoomLevels = [7.5, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 85.0, 90.0, 95.0, 100.0, 125.0, 150.0, 175.0, 200.0, 250.0, 300.0, 350.0, 400.0]
 
-        self.AutosaveTimer = QtCore.QTimer()
-        self.AutosaveTimer.timeout.connect(self.Autosave)
-        self.AutosaveTimer.start(20000)
-
         # required variables
         self.UpdateFlag = False
         self.SelectionUpdateFlag = False
@@ -11906,9 +11060,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.view.XScrollBar.valueChanged.connect(self.XScrollChange)
         self.view.YScrollBar.valueChanged.connect(self.YScrollChange)
         self.view.FrameSize.connect(self.HandleWindowSizeChange)
-
-        # make a 'ribbon' placeholder
-        self.ribbon = None
 
         # done creating the window!
         self.setCentralWidget(self.view)
@@ -11965,8 +11116,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             else:
                 self.LoadLevel(curgame, FirstLevels[curgame], False, 1)
 
-        QtCore.QTimer.singleShot(100, self.levelOverview.update)
-
         toggleHandlers = {
             self.HandleSpritesVisibility: SpritesShown,
             self.HandleSpriteImages: SpriteImagesShown,
@@ -11994,22 +11143,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Sets up Miyamoto's actions, menus and toolbars
         """
-        self.RecentMenu = RecentFilesMenu()
-
-        self.ribbon = None
-        if UseRibbon:
-            self.createRibbon()
-        else:
-            self.createMenubar()
-
-    def createRibbon(self):
-        """
-        Create a ribbon rather than a menubar/toolbar
-        """
-        self.ribbon = MiyamotoRibbon()
-        self.setMenuWidget(self.ribbon)
-        self.RecentFilesMgr = self.ribbon.fileMenu.recentFilesMgr
-        self.RecentFilesMgr.pathAdded.connect(self.handleRecentFilesPathAdded)
+        self.createMenubar()
 
     actions = {}
     def createMenubar(self):
@@ -12021,7 +11155,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('newlevel', self.HandleNewLevel, GetIcon('new'), trans.string('MenuItems', 0), trans.string('MenuItems', 1), QtGui.QKeySequence.New)
         self.CreateAction('openfromname', self.HandleOpenFromName, GetIcon('open'), trans.string('MenuItems', 2), trans.string('MenuItems', 3), QtGui.QKeySequence.Open)
         self.CreateAction('openfromfile', self.HandleOpenFromFile, GetIcon('openfromfile'), trans.string('MenuItems', 4), trans.string('MenuItems', 5), QtGui.QKeySequence('Ctrl+Shift+O'))
-        self.CreateAction('openrecent', None, GetIcon('recent'), trans.string('MenuItems', 6), trans.string('MenuItems', 7), None)
         self.CreateAction('save', self.HandleSave, GetIcon('save'), trans.string('MenuItems', 8), trans.string('MenuItems', 9), QtGui.QKeySequence.Save)
         self.CreateAction('saveas', self.HandleSaveAs, GetIcon('saveas'), trans.string('MenuItems', 10), trans.string('MenuItems', 11), QtGui.QKeySequence.SaveAs)
         self.CreateAction('screenshot', self.HandleScreenshot, GetIcon('screenshot'), trans.string('MenuItems', 14), trans.string('MenuItems', 15), QtGui.QKeySequence('Ctrl+Alt+S'))
@@ -12086,13 +11219,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # Help actions are created later
 
-        # Recent Files Menu
-        self.RecentFilesMgr = QRecentFilesManager()
-
 
         # Configure them
-        self.actions['openrecent'].setMenu(self.RecentMenu)
-
         self.actions['collisions'].setChecked(CollisionsShown)
         self.actions['depth'].setChecked(DepthShown)
         self.actions['realview'].setChecked(RealViewEnabled)
@@ -12126,7 +11254,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addAction(self.actions['newlevel'])
         fmenu.addAction(self.actions['openfromname'])
         fmenu.addAction(self.actions['openfromfile'])
-        fmenu.addAction(self.actions['openrecent'])
         fmenu.addSeparator()
         fmenu.addAction(self.actions['save'])
         fmenu.addAction(self.actions['saveas'])
@@ -12220,7 +11347,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
     def SetupHelpMenu(self, menu=None):
         """
-        Creates the help menu. This is separate because both the ribbon and the menubar use this
+        Creates the help menu. This is separate because both the menubar uses this
         """
         self.CreateAction('infobox', self.AboutBox, GetIcon('miyamoto'), trans.string('MenuItems', 86), trans.string('MenuItems', 87), QtGui.QKeySequence('Ctrl+Shift+I'))
         self.CreateAction('helpbox', self.HelpBox, GetIcon('contents'), trans.string('MenuItems', 88), trans.string('MenuItems', 89), QtGui.QKeySequence('Ctrl+Shift+H'))
@@ -12253,7 +11380,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'newlevel',
                 'openfromname',
                 'openfromfile',
-                'openrecent',
                 'save',
                 'saveas',
                 'screenshot',
@@ -12342,12 +11468,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if addedButtons:
                 self.toolbar.addSeparator()
 
-    def handleRecentFilesPathAdded(self, path):
-        """
-        Handles a file being added to self.RecentFilesMgr
-        """
-        setSetting('RecentFiles', self.RecentFilesMgr.data())
-
     def SetupDocksAndPanels(self):
         """
         Sets up the dock widgets and panels
@@ -12369,8 +11489,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         act.setShortcut(QtGui.QKeySequence('Ctrl+M'))
         act.setIcon(GetIcon('overview'))
         act.setStatusTip(trans.string('MenuItems', 95))
-        if UseRibbon: self.ribbon.addOverview(dock, act)
-        else: self.vmenu.addAction(act)
+        self.vmenu.addAction(act)
 
         # create the sprite editor panel
         dock = QtWidgets.QDockWidget(trans.string('SpriteDataEditor', 0), self)
@@ -12440,8 +11559,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         act.setShortcut(QtGui.QKeySequence('Ctrl+P'))
         act.setIcon(GetIcon('palette'))
         act.setStatusTip(trans.string('MenuItems', 97))
-        if UseRibbon: self.ribbon.addPalette(dock, act)
-        else: self.vmenu.addAction(act)
+        self.vmenu.addAction(act)
 
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
         dock.setVisible(True)
@@ -12787,12 +11905,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if clip.startswith('MiyamotoClip|') and clip.endswith('|%'):
                 self.clipboard = clip.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '')
 
-                if UseRibbon: self.ribbon.setBtnEnabled('Paste', True)
-                else: self.actions['paste'].setEnabled(True)
+                self.actions['paste'].setEnabled(True)
             else:
                 self.clipboard = None
-                if UseRibbon: self.ribbon.setBtnEnabled('Paste', False)
-                else: self.actions['paste'].setEnabled(False)
+                self.actions['paste'].setEnabled(False)
 
     @QtCore.pyqtSlot(int)
     def XScrollChange(self, pos):
@@ -13141,10 +12257,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if len(clipboard_o) > 0 or len(clipboard_s) > 0:
                 SetDirty()
-                if UseRibbon: self.ribbon.setBtnEnabled('Cut', False)
-                else: self.actions['cut'].setEnabled(False)
-                if UseRibbon: self.ribbon.setBtnEnabled('Paste', True)
-                else: self.actions['paste'].setEnabled(True)
+                self.actions['cut'].setEnabled(False)
+                self.actions['paste'].setEnabled(True)
                 self.clipboard = self.encodeObjects(clipboard_o, clipboard_s)
                 self.systemClipboard.setText(self.clipboard)
 
@@ -13172,8 +12286,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     clipboard_s.append(obj)
 
             if len(clipboard_o) > 0 or len(clipboard_s) > 0:
-                if UseRibbon: self.ribbon.setBtnEnabled('Paste', True)
-                else: self.actions['paste'].setEnabled(True)
+                self.actions['paste'].setEnabled(True)
                 self.clipboard = self.encodeObjects(clipboard_o, clipboard_s)
                 self.systemClipboard.setText(self.clipboard)
 
@@ -13744,11 +12857,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if dlg.exec_() == QtWidgets.QDialog.Rejected:
             return
 
-        # Get the Menubar/Ribbon setting
-        if dlg.generalTab.MenuR.isChecked():
-            setSetting('Menu', 'Ribbon')
-        else:
-            setSetting('Menu', 'Menubar')
+        # Get the Menubar setting
+        setSetting('Menu', 'Menubar')
 
         # Get the Tileset Tab setting
         if dlg.generalTab.TileD.isChecked():
@@ -13767,13 +12877,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             for box in boxList:
                 ToolbarSettings[box.InternalName] = box.isChecked()
         setSetting('ToolbarActs', ToolbarSettings)
-
-        # Get the theme settings
-        for btn in dlg.themesTab.btns:
-            if btn.isChecked():
-                setSetting('Theme', dlg.themesTab.btnvals[btn][0])
-                break
-        setSetting('uiStyle', dlg.themesTab.NonWinStyle.currentText())
 
         # Warn the user that they may need to restart
         QtWidgets.QMessageBox.warning(None, trans.string('PrefsDlg', 0), trans.string('PrefsDlg', 30))
@@ -13914,8 +13017,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         #setSetting('AutoSaveFilePath', fn)
         #setSetting('AutoSaveFileData', 'x')
-
-        #self.RecentFilesMgr.addPath(self.fileSavePath)
 
 
     def getInnerSarcName(self):
@@ -14328,19 +13429,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.levelOverview.mainWindowScale = zEffective / 100.0
 
         zi = self.ZoomLevels.index(z)
-        if UseRibbon:
-            # zoomMax and zoomMin are handled by the ribbon itself
-            self.ribbon.setBtnEnabled('zoommax', zi < len(self.ZoomLevels) - 1)
-            self.ribbon.setBtnEnabled('zoomin', zi < len(self.ZoomLevels) - 1)
-            self.ribbon.setBtnEnabled('zoom100', z != 100.0)
-            self.ribbon.setBtnEnabled('zoomout', zi > 0)
-            self.ribbon.setBtnEnabled('zoommin', zi > 0)
-        else:
-            self.actions['zoommax'].setEnabled(zi < len(self.ZoomLevels) - 1)
-            self.actions['zoomin'] .setEnabled(zi < len(self.ZoomLevels) - 1)
-            self.actions['zoomactual'].setEnabled(z != 100.0)
-            self.actions['zoomout'].setEnabled(zi > 0)
-            self.actions['zoommin'].setEnabled(zi > 0)
+        self.actions['zoommax'].setEnabled(zi < len(self.ZoomLevels) - 1)
+        self.actions['zoomin'] .setEnabled(zi < len(self.ZoomLevels) - 1)
+        self.actions['zoomactual'].setEnabled(z != 100.0)
+        self.actions['zoomout'].setEnabled(zi > 0)
+        self.actions['zoommin'].setEnabled(zi > 0)
 
         self.ZoomWidget.setZoomLevel(z)
         self.ZoomStatusWidget.setZoomLevel(z)
@@ -14578,13 +13671,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         mainWindow.levelOverview.maxY = 40
 
         # Fill up the area list
-        if UseRibbon:
-            self.ribbon.updateAreaComboBox(len(Level.areas), area)
-        else:
-            self.areaComboBox.clear()
-            for i in range(1, len(Level.areas) + 1):
-                self.areaComboBox.addItem(trans.string('AreaCombobox', 0, '[num]', i))
-            self.areaComboBox.setCurrentIndex(areaNum - 1)
+        self.areaComboBox.clear()
+        for i in range(1, len(Level.areas) + 1):
+            self.areaComboBox.addItem(trans.string('AreaCombobox', 0, '[num]', i))
+        self.areaComboBox.setCurrentIndex(areaNum - 1)
 
         self.levelOverview.update()
 
@@ -14599,17 +13689,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.ZoomTo(100.0)
 
         # Reset some editor things
-        if UseRibbon:
-            self.ribbon.setBtnEnabled('addarea', len(Level.areas) < 4)
-            self.ribbon.setBtnEnabled('imarea', len(Level.areas) < 4)
-            self.ribbon.setBtnEnabled('delarea', len(Level.areas) > 1)
-        else:
-            self.actions['showlay0'].setChecked(True)
-            self.actions['showlay1'].setChecked(True)
-            self.actions['showlay2'].setChecked(True)
-            self.actions['addarea'].setEnabled(len(Level.areas) < 4)
-            self.actions['importarea'].setEnabled(len(Level.areas) < 4)
-            self.actions['deletearea'].setEnabled(len(Level.areas) > 1)
+        self.actions['showlay0'].setChecked(True)
+        self.actions['showlay1'].setChecked(True)
+        self.actions['showlay2'].setChecked(True)
+        self.actions['addarea'].setEnabled(len(Level.areas) < 4)
+        self.actions['importarea'].setEnabled(len(Level.areas) < 4)
+        self.actions['deletearea'].setEnabled(len(Level.areas) > 1)
 
         # Turn snapping back on
         OverrideSnapping = False
@@ -14623,10 +13708,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.levelOverview.Reset()
         self.levelOverview.update()
-        QtCore.QTimer.singleShot(20, self.levelOverview.update)
-
-        # Add the path to Recent Files
-        self.RecentFilesMgr.addPath(mainWindow.fileSavePath)
 
         # Set the Current Game setting
         self.CurrentGame = game
@@ -14795,29 +13876,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if len(selitems) == 0:
             # nothing is selected
-            if UseRibbon:
-                self.ribbon.setBtnEnabled('cut', False)
-                self.ribbon.setBtnEnabled('copy', False)
-                self.ribbon.setBtnEnabled('shiftitems', False)
-                self.ribbon.setBtnEnabled('mergelocs', False)
-            else:
-                self.actions['cut'].setEnabled(False)
-                self.actions['copy'].setEnabled(False)
-                self.actions['shiftitems'].setEnabled(False)
-                self.actions['mergelocations'].setEnabled(False)
+            self.actions['cut'].setEnabled(False)
+            self.actions['copy'].setEnabled(False)
+            self.actions['shiftitems'].setEnabled(False)
+            self.actions['mergelocations'].setEnabled(False)
 
         elif len(selitems) == 1:
             # only one item, check the type
-            if UseRibbon:
-                self.ribbon.setBtnEnabled('cut', True)
-                self.ribbon.setBtnEnabled('copy', True)
-                self.ribbon.setBtnEnabled('shiftitems', True)
-                self.ribbon.setBtnEnabled('mergelocs', False)
-            else:
-                self.actions['cut'].setEnabled(True)
-                self.actions['copy'].setEnabled(True)
-                self.actions['shiftitems'].setEnabled(True)
-                self.actions['mergelocations'].setEnabled(False)
+            self.actions['cut'].setEnabled(True)
+            self.actions['copy'].setEnabled(True)
+            self.actions['shiftitems'].setEnabled(True)
+            self.actions['mergelocations'].setEnabled(False)
 
             item = selitems[0]
             self.selObj = item
@@ -14862,14 +13931,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             updateModeInfo = True
 
             # more than one item
-            if UseRibbon:
-                self.ribbon.setBtnEnabled('cut', True)
-                self.ribbon.setBtnEnabled('copy', True)
-                self.ribbon.setBtnEnabled('shiftitems', True)
-            else:
-                self.actions['cut'].setEnabled(True)
-                self.actions['copy'].setEnabled(True)
-                self.actions['shiftitems'].setEnabled(True)
+            self.actions['cut'].setEnabled(True)
+            self.actions['copy'].setEnabled(True)
+            self.actions['shiftitems'].setEnabled(True)
 
 
 
@@ -14893,8 +13957,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             elif func_ii(item, type_com): com += 1
 
         if loc > 2:
-            if UseRibbon: self.ribbon.setBtnEnabled('MergeLocations', True)
-            else: self.actions['mergelocations'].setEnabled(True)
+            self.actions['mergelocations'].setEnabled(True)
 
         # write the statusbar label text
         text = ''
@@ -14955,11 +14018,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.pathEditorDock.setVisible(showPathPanel)
 
         if len(self.CurrentSelection) > 0:
-            if UseRibbon: self.ribbon.setBtnEnabled('desel', True)
-            else: self.actions['deselect'].setEnabled(True)
+            self.actions['deselect'].setEnabled(True)
         else:
-            if UseRibbon: self.ribbon.setBtnEnabled('desel', False)
-            else: self.actions['deselect'].setEnabled(False)
+            self.actions['deselect'].setEnabled(False)
 
         if updateModeInfo: self.UpdateModeInfo()
 
@@ -16164,19 +15225,19 @@ def main():
     Main startup function for Miyamoto
     """
 
-    global app, mainWindow, settings, MiyamotoVersion
+    global app, mainWindow, settings, theme, MiyamotoVersion
 
     # create an application
     app = QtWidgets.QApplication(sys.argv)
+
+    # set the default theme, plus some other stuff too
+    theme = MiyamotoTheme()
 
     # load the settings
     settings = QtCore.QSettings('Miyamoto', MiyamotoVersion)
 
     # load the translation (needs to happen first)
     LoadTranslation()
-
-    # load the style
-    GetDefaultStyle()
 
     # go to the script path
     path = module_path()
@@ -16188,17 +15249,13 @@ def main():
         sys.exit(1)
 
     # load required stuff
-    global UseRibbon
     global Sprites
     global SpriteListData
     Sprites = None
     SpriteListData = None
     LoadGameDef()
-    LoadTheme()
     LoadActionsLists()
-    GetUseRibbon()
     LoadConstantLists()
-    SetAppStyle()
     LoadTilesetNames()
     LoadObjDescriptions()
     LoadSpriteData()
