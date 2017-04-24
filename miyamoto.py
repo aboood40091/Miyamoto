@@ -15084,11 +15084,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Edits Slot 1 tileset
         """
+        if platform.system() == 'Windows':
+            tile_path = miyamoto_path + '/Tools'
+        elif platform.system() == 'Linux':
+            tile_path = miyamoto_path + '/linuxTools'
+        elif platform.system() == 'Darwin':
+            tile_path = miyamoto_path + '/macTools'
+
         if (SLib.Area.tileset0 is not None) and (SLib.Area.tileset0 != ''):
             if SLib.Area.tileset0 not in szsData: return
             sarcdata = szsData[SLib.Area.tileset0]
 
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'wb') as fn:
+            with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
 
         else: return
@@ -15109,10 +15116,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             print("Not a supported platform, sadly...")
 
-        if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
+        if os.path.isfile(tile_path + '/tmp.tmp'):
+            with open(tile_path + '/tmp.tmp', 'rb') as fn:
                 szsData[SLib.Area.tileset0] = fn.read()
-            os.remove(miyamoto_path + '/Tools/tmp.tmp')
+            os.remove(tile_path + '/tmp.tmp')
             self.ReloadTilesets()
             SetDirty()
 
@@ -15123,11 +15130,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         con = False
 
+        if platform.system() == 'Windows':
+            tile_path = miyamoto_path + '/Tools'
+        elif platform.system() == 'Linux':
+            tile_path = miyamoto_path + '/linuxTools'
+        elif platform.system() == 'Darwin':
+            tile_path = miyamoto_path + '/macTools'
+
         if (SLib.Area.tileset1 is not None) and (SLib.Area.tileset1 != ''):
             if SLib.Area.tileset1 not in szsData: return
             sarcdata = szsData[SLib.Area.tileset1]
 
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'wb') as fn:
+            with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
             sarcfile = 'tmp.tmp'
 
@@ -15138,8 +15152,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if reply == QtWidgets.QMessageBox.Yes:
                 con = True
-                if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-                    os.remove(miyamoto_path + '/Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+                if os.path.isfile(tile_path + '/tmp.tmp'):
+                    os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
                 SLib.Area.tileset1 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
@@ -15165,10 +15179,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             print("Not a supported platform, sadly...")
 
-        if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
+        if os.path.isfile(tile_path + '/tmp.tmp'):
+            with open(tile_path + '/tmp.tmp', 'rb') as fn:
                 szsData[SLib.Area.tileset1] = fn.read()
-            os.remove(miyamoto_path + '/Tools/tmp.tmp')
+            os.remove(tile_path + '/tmp.tmp')
 
             self.ReloadTilesets()
             SetDirty()
@@ -15196,13 +15210,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         con = False
 
+        if platform.system() == 'Windows':
+            tile_path = miyamoto_path + '/Tools'
+        elif platform.system() == 'Linux':
+            tile_path = miyamoto_path + '/linuxTools'
+        elif platform.system() == 'Darwin':
+            tile_path = miyamoto_path + '/macTools'
+
         if (SLib.Area.tileset2 is not None) and (SLib.Area.tileset2 != ''):
             if SLib.Area.tileset2 not in szsData: return
             sarcdata = szsData[SLib.Area.tileset2]
 
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'wb') as fn:
+            with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
-            sarcfile = miyamoto_path + '/Tools/tmp.tmp'
+            sarcfile = tile_path + '/tmp.tmp'
 
         elif SLib.Area.tileset2 == '':
             con_msg = "This Tileset doesn't exist, do you want to create it?"
@@ -15211,8 +15232,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if reply == QtWidgets.QMessageBox.Yes:
                 con = True
-                if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-                    os.remove(miyamoto_path + '/Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+                if os.path.isfile(tile_path + '/tmp.tmp'):
+                    os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
                 SLib.Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
@@ -15238,10 +15259,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             print("Not a supported platform, sadly...")
 
-        if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
+        if os.path.isfile(tile_path + '/tmp.tmp'):
+            with open(tile_path + '/tmp.tmp', 'rb') as fn:
                 szsData[SLib.Area.tileset2] = fn.read()
-            os.remove(miyamoto_path + '/Tools/tmp.tmp')
+            os.remove(tile_path + '/tmp.tmp')
 
             self.ReloadTilesets()
             SetDirty()
@@ -15269,13 +15290,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         con = False
 
+        if platform.system() == 'Windows':
+            tile_path = miyamoto_path + '/Tools'
+        elif platform.system() == 'Linux':
+            tile_path = miyamoto_path + '/linuxTools'
+        elif platform.system() == 'Darwin':
+            tile_path = miyamoto_path + '/macTools'
+
         if (SLib.Area.tileset3 is not None) and (SLib.Area.tileset3 != ''):
             if SLib.Area.tileset3 not in szsData: return
             sarcdata = szsData[SLib.Area.tileset3]
 
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'wb') as fn:
+            with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
-            sarcfile = miyamoto_path + '/Tools/tmp.tmp'
+            sarcfile = tile_path + '/tmp.tmp'
 
         elif SLib.Area.tileset3 == '':
             con_msg = "This Tileset doesn't exist, do you want to create it?"
@@ -15284,8 +15312,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if reply == QtWidgets.QMessageBox.Yes:
                 con = True
-                if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-                    os.remove(miyamoto_path + '/Tools/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+                if os.path.isfile(tile_path + '/tmp.tmp'):
+                    os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
                 SLib.Area.tileset3 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
@@ -15311,10 +15339,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             print("Not a supported platform, sadly...")
 
-        if os.path.isfile(miyamoto_path + '/Tools/tmp.tmp'):
-            with open(miyamoto_path + '/Tools/tmp.tmp', 'rb') as fn:
+        if os.path.isfile(tile_path + '/tmp.tmp'):
+            with open(tile_path + '/tmp.tmp', 'rb') as fn:
                 szsData[SLib.Area.tileset3] = fn.read()
-            os.remove(miyamoto_path + '/Tools/tmp.tmp')
+            os.remove(tile_path + '/tmp.tmp')
 
             self.ReloadTilesets()
             SetDirty()
