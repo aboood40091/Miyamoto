@@ -1044,7 +1044,7 @@ def LoadActionsLists():
         (trans.string('MenuItems', 80), False, 'importarea'),
         (trans.string('MenuItems', 82), False, 'deletearea'),
         (trans.string('MenuItems', 84), False, 'reloadgfx'),
-        ("Testing string 1", False, 'reloaddata'),
+        (trans.string('MenuItems', 128), False, 'reloaddata'),
         )
     TileActions = (
         (trans.string('MenuItems', 136), False, 'editslot1'),
@@ -2269,21 +2269,20 @@ def _LoadTileset(idx, name, reload=False):
 
 def LoadTexture_NSMBU(tiledata):
     if platform.system() == 'Windows':
-        with open(miyamoto_path + '/Tools/texture.gtx', 'wb') as binfile:
-            binfile.write(tiledata)
+        tile_path = miyamoto_path + '/Tools'
+    elif platform.system() == 'Linux':
+        tile_path = miyamoto_path + '/linuxTools'
+    elif platform.system() == 'Darwin':
+        tile_path = miyamoto_path + '/macTools'
 
+    with open(tile_path + '/texture.gtx', 'wb') as binfile:
+        binfile.write(tiledata)
+
+    if platform.system() == 'Windows':
         os.chdir(miyamoto_path + '/Tools')
         os.system('gtx_extract.exe texture.gtx texture.bmp')
         os.chdir(miyamoto_path)
-
-        img = QtGui.QImage(miyamoto_path + '/Tools/texture.bmp')
-
-        os.remove(miyamoto_path + '/Tools/texture.gtx')
-        os.remove(miyamoto_path + '/Tools/texture.bmp')
     elif platform.system() == 'Linux':
-        with open(miyamoto_path + '/linuxTools/texture.gtx', 'wb') as binfile:
-            binfile.write(tiledata)
-
         text_file = open(miyamoto_path + '/linuxTools/RUN.bat', 'w')
         text_file.write('gtx_extract.exe texture.gtx texture.bmp')
         text_file.close()
@@ -2291,23 +2290,15 @@ def LoadTexture_NSMBU(tiledata):
         os.system("wine cmd /c RUN.bat")
         os.chdir(miyamoto_path)
         os.remove(miyamoto_path + '/linuxTools/RUN.bat')
-
-        img = QtGui.QImage(miyamoto_path + '/linuxTools/texture.bmp')
-
-        os.remove(miyamoto_path + '/linuxTools/texture.gtx')
-        os.remove(miyamoto_path + '/linuxTools/texture.bmp')
     elif platform.system() == 'Darwin':
-        with open(miyamoto_path + '/macTools/texture.gtx', 'wb') as binfile:
-            binfile.write(tiledata)
-
         os.system('/opt/local/bin/wine "' + miyamoto_path + '/macTools/gtx_extract.exe" "' + miyamoto_path + '/macTools/texture.gtx" "' + miyamoto_path + '/macTools/texture.bmp"')
-
-        img = QtGui.QImage(miyamoto_path + '/macTools/texture.bmp')
-
-        os.remove(miyamoto_path + '/macTools/texture.gtx')
-        os.remove(miyamoto_path + '/macTools/texture.bmp')
     else:
         print("Not a supported platform, sadly...")
+
+    img = QtGui.QImage(tile_path + '/texture.bmp')
+
+    os.remove(tile_path + '/texture.gtx')
+    os.remove(tile_path + '/texture.bmp')
 
     return img
 
@@ -11070,7 +11061,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # set up the window
         QtWidgets.QMainWindow.__init__(self, None)
-        self.setWindowTitle('Miyamoto! NSMBU Editor')
+        self.setWindowTitle('Miyamoto!')
         self.setWindowIcon(QtGui.QIcon('miyamotodata/icon.png'))
         self.setIconSize(QtCore.QSize(16, 16))
         self.setUnifiedTitleAndToolBarOnMac(True)
@@ -11962,7 +11953,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Sets the window title accordingly
         """
-        self.setWindowTitle('Miyamoto! NSMBU Editor - %s%s' % (self.fileTitle, (' ' + trans.string('MainWindow', 0)) if Dirty else ''))
+        self.setWindowTitle('You Make Good Level Now! - %s%s' % (self.fileTitle, (' ' + trans.string('MainWindow', 0)) if Dirty else ''))
 
     def CheckDirty(self):
         """
@@ -15411,7 +15402,7 @@ def main():
 
     # Set the default window icon (used for random popups and stuff)
     app.setWindowIcon(GetIcon('miyamoto'))
-    app.setApplicationDisplayName('You Make Good Level Now!')
+    app.setApplicationDisplayName('Miyamoto!')
 
     global EnableAlpha, GridType, CollisionsShown, DepthShown, RealViewEnabled
     global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, CommentsFrozen
