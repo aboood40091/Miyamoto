@@ -474,6 +474,57 @@ class SpriteImage_KoopaParatroopa(SLib.SpriteImage_StaticMultiple): # 20
             
         super().dataChanged()
 
+class SpriteImage_BuzzyBeetle(SLib.SpriteImage_StaticMultiple): # 22
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BuzzyL', 'buzzy_beetle.png')
+        SLib.loadIfNotInImageCache('BuzzyR', 'buzzy_beetle_right.png')
+        SLib.loadIfNotInImageCache('BuzzyDL', 'buzzy_beetle_down.png')
+        SLib.loadIfNotInImageCache('BuzzyDR', 'buzzy_beetle_down_right.png')
+        SLib.loadIfNotInImageCache('BuzzyS', 'buzzy_beetle_shell.png')
+        SLib.loadIfNotInImageCache('BuzzyDS', 'buzzy_beetle_down_shell.png')
+
+    def dataChanged(self):
+        
+        loldirection = self.parent.spritedata[4] & 0xF
+        mytype = self.parent.spritedata[5] & 0xF
+
+        direction = left
+
+        if loldirection == 1:
+            direction = right
+        else:
+            direction = left
+
+        if mytype == 0:
+            if direction == left:
+                self.image = ImageCache['BuzzyL']
+            else:
+                self.image = ImageCache['BuzzyR']
+
+        elif mytype == 1:
+            if direction == left:
+                self.image = ImageCache['BuzzyDL']
+            else:
+                self.image = ImageCache['BuzzyDR']
+
+        elif mytype == 2:
+            self.image = ImageCache['BuzzyS']
+
+        elif mytype == 3:
+            self.image = ImageCache['BuzzyDS']
+
+        else:
+            self.image = ImageCache['BuzzyL']
+
+        super().dataChanged()
+
 class SpriteImage_ArrowSignboard(SLib.SpriteImage_StaticMultiple): # 32
     def __init__(self, parent):
         super().__init__(
@@ -2936,9 +2987,10 @@ class SpriteImage_SuperGuide(SLib.SpriteImage_Static): # 348
     def loadImages():
         SLib.loadIfNotInImageCache('SuperGuide', 'guide_block.png')
 
-class SpriteImage_Pokey(SpriteImage_StackedSprite): # 351
-    def __init__(self, parent, scale=3.75):
-        super().__init__(parent, scale)
+class SpriteImage_Pokey(SLib.SpriteImage): # 351
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.spritebox.shown = False
 
     @staticmethod
     def loadImages():
@@ -2950,58 +3002,46 @@ class SpriteImage_Pokey(SpriteImage_StackedSprite): # 351
         ImageCache['PokeyBottomD'] = SLib.GetImg('pokey_bottom_d.png')
 
     def dataChanged(self):
-        super().dataChanged()
-        rawlength = (self.parent.spritedata[5] & 0x0F) + 1
-        rawtype = self.parent.spritedata[3] & 3
 
-        upsideDown = self.parent.spritedata[4]
+        self.rawlength = (self.parent.spritedata[5] & 0x0F) + 3
+        self.upsideDown = self.parent.spritedata[4]
 
-        pipeLength = rawlength
+        self.length = self.rawlength*60
 
-
-        if not upsideDown == 1:
-            self.pipeHeight = (pipeLength + 3) * 60
-            self.height = (self.pipeHeight/3.75)
-            self.pipeHeight = (pipeLength + 1) * 60
-        else:
-            self.pipeHeight = (pipeLength + 3) * 60
-            self.height = (self.pipeHeight/3.75)
-            self.pipeHeight = (pipeLength + 2) * 60
-
-
-        if upsideDown == 1: self.middle = ImageCache['PokeyMiddleD']
-        else: self.middle = ImageCache['PokeyMiddle']
-
-        if upsideDown == 1: self.top = ImageCache['PokeyBottomD']
-        else: self.top = ImageCache['PokeyTop']
-
-        self.pipeWidth = 100
-        self.width = 25
+        self.width = 27
+        self.xOffset = -5.33
         
-        if not upsideDown == 1:
-            self.yOffset = -64 + (-1*((rawlength-2)*16))
-            self.xOffset = -4
-        else:
-            self.yOffset = (-1*((rawlength-2)*16))
-            self.xOffset = -4
+        self.height = (self.rawlength-1)*16+25
+        self.yOffset = -1*(self.rawlength*16)+32-25+1.33
+
+        if self.upsideDown == 1:
+
+            self.length = self.rawlength*60
+
+            self.width = 27
+            self.xOffset = -5.33
+        
+            self.height = (self.rawlength-1)*16+25
+            self.yOffset = 0
+
+
+        super().dataChanged()
+
 
     def paint(self, painter):
         super().paint(painter)
 
-        upsideDown = self.parent.spritedata[2]
+        #Not upside-down:
+        if self.upsideDown is not 1:
+            painter.drawPixmap(0, 0+(self.length-120)+91, 100, 60, ImageCache['PokeyBottom'])
+            painter.drawTiledPixmap(0, 91, 100, (self.length-120), ImageCache['PokeyMiddle'])
+            painter.drawPixmap(0, 0, 100, 91, ImageCache['PokeyTop'])
 
-        if not upsideDown == 1:
-
-            painter.drawTiledPixmap(self.x, self.y+120, self.pipeWidth, self.pipeHeight, self.middle)
-            if self.hasTop:
-                painter.drawPixmap(self.topX, self.topY+30, self.top)
-
+        #Upside Down
         else:
-          
-            painter.drawTiledPixmap(self.x, self.y, self.pipeWidth, self.pipeHeight+60, self.middle)
-#            if self.hasTop:
-#                painter.drawPixmap(self.topX, self.topY+16, self.top)
-
+            painter.drawPixmap(0, 0+(self.length-120)+60, 100, 91, ImageCache['PokeyTopD'])
+            painter.drawTiledPixmap(0, 60, 100, (self.length-120), ImageCache['PokeyMiddleD'])
+            painter.drawPixmap(0, 0, 100, 60, ImageCache['PokeyBottomD'])
 
 class SpriteImage_CrashHill(SLib.SpriteImage_Static): # 355
     def __init__(self, parent):
@@ -4241,6 +4281,7 @@ ImageClasses = {
     6: SpriteImage_PipePiranhaUpFire,
     19: SpriteImage_KoopaTroopa,
     20: SpriteImage_KoopaParatroopa,
+    22: SpriteImage_BuzzyBeetle,
     23: SpriteImage_Spiny,
     25: SpriteImage_MidwayFlag,
     29: SpriteImage_LimitU,
