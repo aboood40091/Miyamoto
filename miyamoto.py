@@ -2268,14 +2268,22 @@ def _LoadTileset(idx, name, reload=False):
     SLib.Tiles = Tiles
 
 def LoadTexture_NSMBU(tiledata):
-    with open(miyamoto_path + '/Tools/texture.gtx', 'wb') as binfile:
-        binfile.write(tiledata)
-
     if platform.system() == 'Windows':
+        with open(miyamoto_path + '/Tools/texture.gtx', 'wb') as binfile:
+            binfile.write(tiledata)
+
         os.chdir(miyamoto_path + '/Tools')
         os.system('gtx_extract.exe texture.gtx texture.bmp')
         os.chdir(miyamoto_path)
+
+        img = QtGui.QImage(miyamoto_path + '/Tools/texture.bmp')
+
+        os.remove(miyamoto_path + '/Tools/texture.gtx')
+        os.remove(miyamoto_path + '/Tools/texture.bmp')
     elif platform.system() == 'Linux':
+        with open(miyamoto_path + '/linuxTools/texture.gtx', 'wb') as binfile:
+            binfile.write(tiledata)
+
         text_file = open(miyamoto_path + '/linuxTools/RUN.bat', 'w')
         text_file.write('gtx_extract.exe texture.gtx texture.bmp')
         text_file.close()
@@ -2283,15 +2291,23 @@ def LoadTexture_NSMBU(tiledata):
         os.system("wine cmd /c RUN.bat")
         os.chdir(miyamoto_path)
         os.remove(miyamoto_path + '/linuxTools/RUN.bat')
+
+        img = QtGui.QImage(miyamoto_path + '/linuxTools/texture.bmp')
+
+        os.remove(miyamoto_path + '/linuxTools/texture.gtx')
+        os.remove(miyamoto_path + '/linuxTools/texture.bmp')
     elif platform.system() == 'Darwin':
+        with open(miyamoto_path + '/macTools/texture.gtx', 'wb') as binfile:
+            binfile.write(tiledata)
+
         os.system('/opt/local/bin/wine "' + miyamoto_path + '/macTools/gtx_extract.exe" "' + miyamoto_path + '/macTools/texture.gtx" "' + miyamoto_path + '/macTools/texture.bmp"')
+
+        img = QtGui.QImage(miyamoto_path + '/macTools/texture.bmp')
+
+        os.remove(miyamoto_path + '/macTools/texture.gtx')
+        os.remove(miyamoto_path + '/macTools/texture.bmp')
     else:
         print("Not a supported platform, sadly...")
-
-    img = QtGui.QImage(miyamoto_path + '/Tools/texture.bmp')
-
-    os.remove(miyamoto_path + '/Tools/texture.gtx')
-    os.remove(miyamoto_path + '/Tools/texture.bmp')
 
     return img
 
