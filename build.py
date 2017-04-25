@@ -39,7 +39,7 @@ from cx_Freeze import setup, Executable
 dir_ = 'distrib/' + PackageName
 
 # Print some stuff
-print('[[ Freezing Miyamoto! NSMBU ]]')
+print('[[ Freezing Miyamoto! ]]')
 print('>> Destination directory: %s' % dir_)
 
 # Add the "build" parameter to the system argument list
@@ -59,9 +59,9 @@ excludes = ['doctest', 'pdb', 'unittest', 'difflib', 'inspect',
 # Set it up
 base = 'Win32GUI' if sys.platform == 'win32' else None
 setup(
-    name = 'Miyamoto! NSMBU',
+    name = 'Miyamoto!',
     version = Version,
-    description = 'Miyamoto! NSMBU',
+    description = 'Miyamoto!',
     options={
         'build_exe': {
             'excludes': excludes,
@@ -108,9 +108,9 @@ elif platform.system() == 'Darwin':
     if os.path.isdir(dir_ + '/macTools'): shutil.rmtree(dir_ + '/macTools') 
     shutil.copytree('macTools', dir_ + '/macTools')
 else:
-    print("Not a supported platform, sadly...")
+    raise TypeError("Not a supported platform, sadly...")
 shutil.copy('license.txt', dir_)
 shutil.copy('README.md', dir_)
 print('>> Files copied!')
 
-print('>> Miyamoto has been frozen to %s !' % dir_)
+print('>> Miyamoto! has been frozen to %s !' % dir_)

@@ -21,7 +21,7 @@
 # along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
 
 # miyamoto.py
-# This is the main executable for Miyamoto! Windows
+# This is the main executable for Miyamoto!
 
 
 ################################################################
