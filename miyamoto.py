@@ -13663,9 +13663,26 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             except: return False
             return True
 
+        hmm = False
         if exists('levelname'):
             fn = str(arc['levelname'].data)[2:-1]
-            levelFileData = arc[fn].data
+            if exists(fn):
+                levelFileData = arc[fn].data
+            else:
+                possibilities = []
+                possibilities.append(os.path.basename(name))
+                possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
+                possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
+                possibilities.append(possibilities[-1].split('.')[0])
+                possibilities.append(possibilities[-1].split('_')[0])
+                for fn in possibilities:
+                    if exists(fn):
+                        levelFileData = arc[fn].data
+                        hmm = True
+                        break
+                else:
+                    print('OH NO')
+                    return False
 
         else:
             possibilities = []
@@ -13770,6 +13787,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Set the Current Game setting
         self.CurrentGame = game
         setSetting('CurrentGame', self.CurrentGame)
+
+        if hmm:
+            SetDirty()
 
         # If we got this far, everything worked! Return True.
         return True
