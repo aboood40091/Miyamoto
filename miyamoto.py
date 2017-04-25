@@ -2291,7 +2291,7 @@ def LoadTexture_NSMBU(tiledata):
         os.chdir(miyamoto_path)
         os.remove(miyamoto_path + '/linuxTools/RUN.bat')
     elif platform.system() == 'Darwin':
-        os.system('/opt/local/bin/wine "' + miyamoto_path + '/macTools/gtx_extract.exe" "' + miyamoto_path + '/macTools/texture.gtx" "' + miyamoto_path + '/macTools/texture.bmp"')
+        os.system('wine "' + miyamoto_path + '/macTools/gtx_extract.exe" "' + miyamoto_path + '/macTools/texture.gtx" "' + miyamoto_path + '/macTools/texture.bmp"')
     else:
         print("Not a supported platform, sadly...")
 
