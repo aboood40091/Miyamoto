@@ -12917,9 +12917,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
 
         #chDir()
-        shutil.copyfile(miyamoto_path+'miyamotodata/blankcourse.szs', miyamoto_path+"tmp.tmp")
-        self.LoadLevel(None, miyamoto_path+"tmp.tmp", True, 1)
-        os.remove(miyamoto_path+"tmp.tmp")
+        shutil.copyfile(miyamoto_path+'/miyamotodata/blankcourse.szs', miyamoto_path+"/tmp.tmp")
+        self.LoadLevel(None, miyamoto_path+"/tmp.tmp", True, 1)
+        os.remove(miyamoto_path+"/tmp.tmp")
 
 
     @QtCore.pyqtSlot()
