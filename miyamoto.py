@@ -12916,53 +12916,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Create a new level
         """
 
-        filetypes = ''
-        filetypes += trans.string('FileDlgs', 1) + ' (*.szs);;'
-        filetypes += 'Uncompressed Level Archives (*.sarc);;'
-        filetypes += trans.string('FileDlgs', 2) + ' (*)'
-        fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 0), '', filetypes)[0]
-        if fn == '': return
-        fn = str(fn)
-
-        if fn.endswith('.szs'):
-
-            #chDir()
-            shutil.copyfile('miyamotodata/blankcourse.szs', fn)
-            self.LoadLevel(None, fn, True, 1)
-
-        else:
-
-            LOAD = True
-
-            if platform.system() == 'Windows':
-                shutil.copyfile(miyamoto_path+'/miyamotodata/blankcourse.szs', miyamoto_path+'/Tools/tmp.tmp')
-                os.chdir(miyamoto_path + '/Tools')
-                os.system('wszst.exe DECOMPRESS "' + 'tmp.tmp' + '" --dest "' + 'tmp.sarc"')
-                os.remove('tmp.tmp')
-                os.chdir(miyamoto_path)
-                shutil.move(miyamoto_path+'/Tools/tmp.sarc', fn)
-
-            elif platform.system() == 'Linux':
-                shutil.copyfile(miyamoto_path+'/miyamotodata/blankcourse.szs', miyamoto_path+'/linuxTools/tmp.tmp')
-                os.chdir(miyamoto_path + '/linuxTools')
-                os.system('chmod +x ./wszst_linux.elf')
-                os.system('./wszst_linux.elf DECOMPRESS "' + 'tmp.tmp' + '" --dest "' + 'tmp.sarc"')
-                os.remove('tmp.tmp')
-                os.chdir(miyamoto_path)
-                shutil.move(miyamoto_path+'/linuxTools/tmp.sarc', fn)
-
-            elif platform.system() == 'Darwin':
-                shutil.copyfile(miyamoto_path+'/miyamotodata/blankcourse.szs', miyamoto_path+'/macTools/tmp.tmp')
-                os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + 'tmp.tmp' + '" --dest "' + 'tmp.sarc"')
-                os.remove('tmp.tmp')
-                os.chdir(miyamoto_path)
-                shutil.move(miyamoto_path+'/macTools/tmp.sarc', fn)
-            else:
-                print("Not a supported platform, sadly...")   
-                LOAD = False            
-
-            if LOAD:
-                self.LoadLevel(None, fn, True, 1)
+        #chDir()
+        shutil.copyfile(miyamoto_path+'miyamotodata/blankcourse.szs', miyamoto_path+"tmp.tmp")
+        self.LoadLevel(None, miyamoto_path+"tmp.tmp", True, 1)
+        os.remove(miyamoto_path+"tmp.tmp")
 
 
     @QtCore.pyqtSlot()
