@@ -3092,7 +3092,7 @@ class Level_NSMBU(AbstractLevel):
         # Add the innersarc to it
         outerArchive.addFile(SarcLib.File(innerfilename, innersarc))
 
-        # Make it easy for future Miyamotos to pick out the innersarc level name		
+        # Make it easy for future Miyamotos to pick out the innersarc level name
         outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
 
         # Add all the other stuff, too
@@ -3114,6 +3114,73 @@ class Level_NSMBU(AbstractLevel):
         
         return outerArchive.save(0x2000)
 
+    def saveNewArea(self, innerfilename, course_new, L0_new, L1_new, L2_new):
+        """
+        Save the level back to a file
+        """
+
+        print("")
+        print("Saving level...")
+
+        # Make a new archive
+        newArchive = SarcLib.SARC_Archive()
+
+        # Create a folder within the archive
+        courseFolder = SarcLib.Folder('course')
+        newArchive.addFolder(courseFolder)
+
+        # Go through the areas, save them and add them back to the archive
+        for areanum, area in enumerate(self.areas):
+            course, L0, L1, L2 = area.save()
+
+            if course is not None:
+                courseFolder.addFile(SarcLib.File('course%d.bin' % (areanum + 1), course))
+            if L0 is not None:
+                courseFolder.addFile(SarcLib.File('course%d_bgdatL0.bin' % (areanum + 1), L0))
+            if L1 is not None:
+                courseFolder.addFile(SarcLib.File('course%d_bgdatL1.bin' % (areanum + 1), L1))
+            if L2 is not None:
+                courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (areanum + 1), L2))
+
+        if course_new is not None:
+            courseFolder.addFile(SarcLib.File('course%d.bin' % (len(self.areas) + 1), course_new))
+        if L0_new is not None:
+            courseFolder.addFile(SarcLib.File('course%d_bgdatL0.bin' % (len(self.areas) + 1), L0_new))
+        if L1_new is not None:
+            courseFolder.addFile(SarcLib.File('course%d_bgdatL1.bin' % (len(self.areas) + 1), L1_new))
+        if L2_new is not None:
+            courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (len(self.areas) + 1), L2_new))
+
+        # Here we have the new inner-SARC savedata
+        innersarc = newArchive.save(0x04, 0x170)
+
+        # Now make an outer SARC
+        outerArchive = SarcLib.SARC_Archive()
+
+        # Add the innersarc to it
+        outerArchive.addFile(SarcLib.File(innerfilename, innersarc))
+
+        # Make it easy for future Miyamotos to pick out the innersarc level name
+        outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
+
+        # Add all the other stuff, too
+        for szsThingName in szsData:
+            try:
+                spl = szsThingName.split('-')
+                int(spl[0])
+                int(spl[1])
+                continue
+            except: pass
+            outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
+
+        # Save the outer sarc and return it
+        print("")
+        print('\n'.join(sorted([x.name for x in outerArchive.contents], key=str.lower)))
+        print("")
+        print("Saved!")
+        print("")
+        
+        return outerArchive.save(0x2000)
 
     def addArea(self):
         """
@@ -3196,34 +3263,8 @@ class AbstractParsedArea(AbstractArea):
         Loads an area from the archive files
         """
 
-        # with open('course3.bin', 'rb') as f:
-        #     course = f.read()
-
         # Load in the course file and blocks
         self.LoadBlocks(course)
-
-        # with open('L0_.bin', 'rb') as f:
-        #     L0 = f.read()
-        # with open('L1_.bin', 'rb') as f:
-        #     L1 = f.read()
-        # with open('L2_.bin', 'rb') as f:
-        #     L2 = f.read()
-        #with open('block7.bin', 'wb') as f:
-        #    f.write(self.blocks[7])
-        # for blocknum in range(20):
-        #     try:
-        #         with open('block%d_.bin' % blocknum, 'rb') as f:
-        #             self.blocks[blocknum] = f.read()
-        #     except: pass
-        #with open('1-1_6.bin', 'rb') as f:
-        #    pass#self.blocks[6] = f.read()
-
-        # with open('course3_bgdatL0.bin', 'rb') as f:
-        #     L0 = f.read()
-        # with open('course3_bgdatL1.bin', 'rb') as f:
-        #     L1 = f.read()
-        # with open('course3_bgdatL2.bin', 'rb') as f:
-        #     L2 = f.read()
 
         # Load stuff from individual blocks
         self.LoadTilesetNames() # block 1
@@ -3269,9 +3310,6 @@ class AbstractParsedArea(AbstractArea):
         if L2 is not None:
             self.LoadLayer(2, L2)
 
-        # Delete self.blocks
-        #del self.blocks
-
         return True
 
     def save(self):
@@ -3281,23 +3319,9 @@ class AbstractParsedArea(AbstractArea):
         # Prepare this first because otherwise the game refuses to load some sprites
         self.SortSpritesByZone()
 
-        # We don't parse blocks 4, 11, 12, 13, 14.
-        # We can create the rest manually.
-        #self.blocks = [None] * 17
-        #self.blocks[3] = b'\0\0\0\0\0\0\0\0'
-        # Other known values for block 4 in NSMBW: 0000 0002 0042 0000,
-        #                     0000 0002 0002 0000, 0000 0003 0003 0000
-        #self.blocks[5] = b'\0\0\xFF\xFF\xFF\xFF\0\0\0\0\0\0\0\0\0\0\0\0\0\0' # always this
-        #self.blocks[11] = b'' # never used
-        #self.blocks[12] = b'' # never used
-        #self.blocks[13] = b'' # paths
-        #self.blocks[14] = b'' # path nodes
-        #self.blocks[15] = b'' # progress paths
-        #self.blocks[16] = b'' # progress path nodes
-
         # Save each block
         self.SaveTilesetNames() # block 1
-        #self.SaveOptions() # block 2
+        self.SaveOptions() # block 2
         self.SaveEntrances() # block 7
         self.SaveSprites() # block 8
         self.SaveLoadedSprites() # block 9
@@ -3764,8 +3788,8 @@ class Area_NSMBU(AbstractParsedArea):
         Saves block 2, the general options
         """
         optstruct = struct.Struct('>xxBBxxxxxBHxBBBBxxBHH')
-        buffer = bytearray(20)
-        optstruct.pack_into(buffer, 0, self.unk1, self.unk2, self.wrapedges, self.timelimit, self.unk3, self.unk4, self.unk5, self.unk6, self.unk7, self.unk8, self.unk9)
+        buffer = bytearray(0x18)
+        optstruct.pack_into(buffer, 0, self.unk1, self.unk2, self.wrapedges, self.timelimit, self.unk3, self.unk4, self.unk5, self.unk6, self.unk7, self.timelimit2, self.timelimit3)
         self.blocks[1] = bytes(buffer)
 
 
@@ -12762,17 +12786,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if self.CheckDirty():
             return
 
-        try:
-            newA = Level.addArea()
-        except: return
+        newID = len(Level.areas) + 1
 
         with open('miyamotodata/blankcourse.bin', 'rb') as blank:
             course = blank.read()
-        newA.load(course)
+        L0 = None
+        L1 = None
+        L2 = None
 
-        newID = len(Level.areas)
-
-        if not self.HandleSave(): return
+        if not self.HandleSaveNewArea(course, L0, L1, L2): return
         self.LoadLevel(None, self.fileSavePath, True, newID)
 
 
@@ -12794,9 +12816,80 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         filetypes += trans.string('FileDlgs', 2) + ' (*)'
         fn = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return
+        fn = str(fn)
 
-        with open(str(fn), 'rb') as fileobj:
-            arcdata = fileobj.read()
+        with open(fn, 'rb') as fileobj:
+            data = fileobj.read()
+
+        # Decompress, if needed (Yaz0)
+        if data.startswith(b'Yaz0'):
+            print('Beginning Yaz0 decompression...')
+            course_name = os.path.splitext(mainWindow.fileSavePath)[0]
+            if platform.system() == 'Windows':
+                os.chdir(miyamoto_path + '/Tools')
+                os.system('wszst.exe DECOMPRESS "' + fn + '" --dest "' + course_name + '.tmp"')
+                os.chdir(miyamoto_path)
+            elif platform.system() == 'Linux':
+                os.chdir(miyamoto_path + '/linuxTools')
+                os.system('chmod +x ./wszst_linux.elf')
+                os.system('./wszst_linux.elf DECOMPRESS "' + fn + '" --dest "' + course_name + '.tmp"')
+                os.chdir(miyamoto_path)
+            elif platform.system() == 'Darwin':
+                os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + fn + '" --dest "' + course_name + '.tmp"')
+            else:
+                print("Not a supported platform, sadly...")
+            os.chdir(miyamoto_path)
+            with open(course_name + '.tmp', 'rb') as f:
+                data = f.read()
+            os.remove(course_name + '.tmp')
+            print('Decompression finished.')
+        elif data.startswith(b'SARC'):
+            print('Yaz0 decompression skipped.')
+        else: return False # keep it from crashing by loading things it shouldn't
+
+        arc = SarcLib.SARC_Archive()
+        arc.load(data)
+
+        def exists(fn):
+            nonlocal arc
+            try: arc[fn]
+            except: return False
+            return True
+
+        if exists('levelname'):
+            fn1 = str(arc['levelname'].data)[2:-1]
+            if exists(fn1):
+                arcdata = arc[fn1].data
+            else:
+                possibilities = []
+                possibilities.append(os.path.basename(fn))
+                possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
+                possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
+                possibilities.append(possibilities[-1].split('.')[0])
+                possibilities.append(possibilities[-1].split('_')[0])
+                for fn in possibilities:
+                    if exists(fn):
+                        arcdata = arc[fn].data
+                        hmm = True
+                        break
+                else:
+                    print('OH NO')
+                    return False
+
+        else:
+            possibilities = []
+            possibilities.append(os.path.basename(fn))
+            possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
+            possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
+            possibilities.append(possibilities[-1].split('.')[0])
+            possibilities.append(possibilities[-1].split('_')[0])
+            for fn in possibilities:
+                if exists(fn):
+                    arcdata = arc[fn].data
+                    break
+            else:
+                print('OH NO')
+                return False
 
         arc = SarcLib.SARC_Archive()
         arc.load(arcdata)
@@ -12804,10 +12897,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # get the area count
         areacount = 0
 
-        for item, val in arc.files:
+        try:
+            courseFolder = arc['course']
+        except:
+            return False
+
+        for file in courseFolder.contents:
+            fname, val = file.name, file.data
             if val is not None:
                 # it's a file
-                fname = item[item.rfind('/')+1:]
                 if fname.startswith('course'):
                     maxarea = int(fname[6])
                     if maxarea > areacount: areacount = maxarea
@@ -12830,9 +12928,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         L1 = None
         L2 = None
 
-        for item, val in arc.files:
+        for file in courseFolder.contents:
+            fname, val = file.name, file.data
             if val is not None:
-                fname = item.split('/')[-1]
                 if fname == reqcourse:
                     course = val
                 elif fname == reqL0:
@@ -12845,10 +12943,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # add them to our level
         newID = len(Level.areas) + 1
 
-        newA = Level.addArea()
-        newA.load(course, L0, L1, L2)
-
-        if not self.HandleSave(): return
+        if not self.HandleSaveNewArea(course, L0, L1, L2): return
         self.LoadLevel(None, self.fileSavePath, True, newID)
 
 
@@ -12860,7 +12955,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         result = QtWidgets.QMessageBox.warning(self, 'Miyamoto!', trans.string('DeleteArea', 0), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
         if result == QtWidgets.QMessageBox.No: return
 
-        if not self.HandleSave(): return
+        if self.CheckDirty():
+            return
 
         Level.deleteArea(Area.areanum)
 
@@ -13038,6 +13134,59 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         global Dirty, AutoSaveDirty
         data = Level.save(name)
+        try:
+            if mainWindow.fileSavePath.endswith('.szs'):
+                course_name = os.path.splitext(mainWindow.fileSavePath)[0]
+                with open(course_name + '.tmp', 'wb') as f:
+                    f.write(data)
+
+                if os.path.isfile(mainWindow.fileSavePath):
+                    os.remove(mainWindow.fileSavePath)
+                if platform.system() == 'Windows':
+                    os.chdir(miyamoto_path + '/Tools')
+                    os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
+                    os.chdir(miyamoto_path)
+                elif platform.system() == 'Linux':
+                    os.chdir(miyamoto_path + '/linuxTools')
+                    os.system('chmod +x ./wszst_linux.elf')
+                    os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
+                    os.chdir(miyamoto_path)
+                elif platform.system() == 'Darwin':
+                    os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
+                else:
+                    print("Not a supported platform, sadly...")
+                os.remove(course_name + '.tmp')
+            else:
+                with open(mainWindow.fileSavePath, 'wb') as f:
+                    f.write(data)
+        except IOError as e:
+            QtWidgets.QMessageBox.warning(None, trans.string('Err_Save', 0), trans.string('Err_Save', 1, '[err1]', e.args[0], '[err2]', e.args[1]))
+            return False
+
+        Dirty = False
+        AutoSaveDirty = False
+        self.UpdateTitle()
+
+        #setSetting('AutoSaveFilePath', self.fileSavePath)
+        #setSetting('AutoSaveFileData', 'x')
+        return True
+
+
+    @QtCore.pyqtSlot()
+    def HandleSaveNewArea(self, course, L0, L1, L2):
+        """
+        Save a level back to the archive
+        """
+        if not mainWindow.fileSavePath:
+            self.HandleSaveAs()
+            return
+
+        name = self.getInnerSarcName()
+        if "-" not in name:
+            print('HEY THERE IS NO -, THIS WILL NOT WORK!')
+
+        global Dirty, AutoSaveDirty
+        data = Level.saveNewArea(name, course, L0, L1, L2)
         try:
             if mainWindow.fileSavePath.endswith('.szs'):
                 course_name = os.path.splitext(mainWindow.fileSavePath)[0]
