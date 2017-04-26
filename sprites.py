@@ -2699,12 +2699,12 @@ class SpriteImage_TowerCog(SLib.SpriteImage_StaticMultiple): # 269
 
         if size == 1:
             self.image = ImageCache['TowerCogB']
-            self.xOffset = -139
-            self.yOffset = -143
+            self.xOffset = -140
+            self.yOffset = -144
         else:
             self.image = ImageCache['TowerCogS']
-            self.xOffset = -92
-            self.yOffset = -94
+            self.xOffset = -88
+            self.yOffset = -96
             
         super().dataChanged()
         self.parent.setZValue(-50000)
@@ -3146,20 +3146,20 @@ class SpriteImage_Starman(SLib.SpriteImage_StaticMultiple): # 395
 
         if direction == 0:
             self.image = ImageCache['StarmanS']
-            self.xOffset = -43
-            self.yOffset = -33
+            self.xOffset = -44
+            self.yOffset = -32
         elif direction == 16:
             self.image = ImageCache['StarmanB']
-            self.xOffset = -62
-            self.yOffset = -51
+            self.xOffset = -64
+            self.yOffset = -52
         elif direction == 32:
             self.image = ImageCache['StarmanG']
             self.xOffset = -100
             self.yOffset = -100
         else:
             self.image = ImageCache['StarmanS']
-            self.xOffset = -43
-            self.yOffset = -33
+            self.xOffset = -44
+            self.yOffset = -32
 
         super().dataChanged()  
 
@@ -3778,8 +3778,8 @@ class SpriteImage_PaintGoal(SLib.SpriteImage_StaticMultiple): # 503
             3.75,
             )
         
-        self.xOffset = -28
-        self.yOffset = -143
+        self.xOffset = -32
+        self.yOffset = -144
 
     @staticmethod
     def loadImages():
