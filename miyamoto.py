@@ -2180,7 +2180,7 @@ def _LoadTileset(idx, name, reload=False):
     Load in a tileset into a specific slot
     """
 
-    # if this file's already loaded, return
+    # if this file's not found, return
     if name not in szsData: return
 
     sarcdata = szsData[name]
@@ -2971,6 +2971,19 @@ class Level_NSMBU(AbstractLevel):
         super().__init__()
         self.areas.append(Area_NSMBU())
 
+    def new(self):
+        """
+        Creates a completely new level
+        """
+        global Area
+
+        # Create area objects
+        self.areas = []
+        newarea = Area_NSMBU()
+        Area = newarea
+        SLib.Area = Area
+        self.areas.append(newarea)
+
     def load(self, data, areaNum, progress=None):
         """
         Loads a NSMBU level from bytes data.
@@ -3392,6 +3405,69 @@ class Area_NSMBU(AbstractParsedArea):
         self.tileset1 = ''
         self.tileset2 = ''
         self.tileset3 = ''
+
+        self.blocks = [None] * 15
+        self.blocks[0] = bytes.fromhex('5061305F6A796F74797500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000')
+        self.blocks[1] = bytes.fromhex('0000000000000000000001900064646400000000012C0000')
+        self.blocks[2] = b''
+        self.blocks[3] = bytes.fromhex('00000000000200420000000000020042')
+        self.blocks[4] = bytes.fromhex('0000000000000000426C61636B000000000000000000000000000000')
+        self.blocks[5] = bytes.fromhex('0000FFFFFFFF00000000000000000000000002000001FFFFFFFF00000000000000000000000002000000FFFFFFFF00000000000000000000000002000001FFFFFFFF0000000000000000000000000200')
+        self.blocks[6] = b''
+        self.blocks[7] = bytes.fromhex('FFFFFFFF')
+        self.blocks[8] = b''
+        self.blocks[9] = b''
+        self.blocks[10] = b''
+        self.blocks[11] = b''
+        self.blocks[12] = b''
+        self.blocks[13] = b''
+        self.blocks[14] = b''
+
+        self.unk1 = 0
+        self.unk2 = 0
+        self.wrapedges = 0
+        self.timelimit = 300
+        self.unk3 = 0
+        self.unk4 = 0
+        self.unk5 = 0
+        self.unk6 = 0
+        self.unk7 = 0
+        self.timelimit2 = 100
+        self.timelimit3 = 100
+
+        self.entrances = []
+        self.sprites = []
+        self.zones = []
+        self.locations = []
+        self.pathdata = []
+        self.paths = []
+
+        self.entrances = []
+        self.sprites = []
+        self.bounding = []
+        self.bgs = []
+        self.zones = []
+        self.locations = []
+        self.pathdata = []
+        self.paths = []
+        self.comments = []
+
+        bgData = self.blocks[4]
+        self.bgCount = len(bgData) // 28
+        bgStruct = struct.Struct('>HxBxxxx16sHxx')
+        offset = 0
+        bgs = {}
+        self.bg_name = []
+        self.bg_unk1 = []
+        self.bg_unk2 = []
+        for i in range(self.bgCount):
+            bg = bgStruct.unpack_from(bgData, offset)
+            self.bg_name.append(find_name(bg[2], 0))
+            self.bg_unk1.append(bg[1])
+            self.bg_unk2.append(bg[3])
+            bgs[bg[0]] = bg
+            offset += 28
+        self.bgs = bgs
 
         super().__init__()
 
@@ -12915,11 +12991,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Create a new level
         """
-
-        #chDir()
-        shutil.copyfile(miyamoto_path+'/miyamotodata/blankcourse.szs', miyamoto_path+"/tmp.tmp")
-        self.LoadLevel(None, miyamoto_path+"/tmp.tmp", True, 1)
-        #os.remove(miyamoto_path+"/tmp.tmp")
+        if self.CheckDirty(): return
+        self.LoadLevel(None, None, False, 1)
 
 
     @QtCore.pyqtSlot()
@@ -13565,150 +13638,175 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Load a level from any game into the editor
         """
-        global levName; levName=name.replace('\\', '/').split('/')[-1]
+        global levName
+        hmm = False
+        if name != None:
+            levName = os.path.basename(name)
 
-        game = NewSuperMarioBrosU
+            game = NewSuperMarioBrosU
 
-        # Get the file path, if possible
-        if name is not None:
-            checknames = []
-            if isFullPath:
-                checknames = [name,]
+            # Get the file path, if possible
+            if name is not None:
+                checknames = []
+                if isFullPath:
+                    checknames = [name,]
+                else:
+                    for ext in FileExtentions[game]:
+                        checknames.append(os.path.join(gamedef.GetGamePath(), name + ext))
+
+                found = False
+                for checkname in checknames:
+                    if os.path.isfile(checkname):
+                        found = True
+                        break
+                if not found:
+                    QtWidgets.QMessageBox.warning(self, 'Miyamoto!', trans.string('Err_CantFindLevel', 0, '[name]', checkname), QtWidgets.QMessageBox.Ok)
+                    return False
+                if not IsNSMBLevel(checkname):
+                    QtWidgets.QMessageBox.warning(self, 'Miyamoto!', trans.string('Err_InvalidLevel', 0), QtWidgets.QMessageBox.Ok)
+                    return False
+
+            name = checkname
+
+            # Get the data
+            global RestoredFromAutoSave
+            if not RestoredFromAutoSave:
+
+                # Check if there is a file by this name
+                if not os.path.isfile(name):
+                    QtWidgets.QMessageBox.warning(None, trans.string('Err_MissingLevel', 0), trans.string('Err_MissingLevel', 1, '[file]', name))
+                    return False
+
+                # Set the filepath variables
+                self.fileSavePath = name
+                self.fileTitle = os.path.basename(self.fileSavePath)
+
+                # Open the file
+                with open(self.fileSavePath, 'rb') as fileobj:
+                    levelData = fileobj.read()
+
+                # Decompress, if needed (Yaz0)
+                if levelData.startswith(b'Yaz0'):
+                    print('Beginning Yaz0 decompression...')
+                    course_name = os.path.splitext(mainWindow.fileSavePath)[0]
+                    if platform.system() == 'Windows':
+                        os.chdir(miyamoto_path + '/Tools')
+                        os.system('wszst.exe DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
+                        os.chdir(miyamoto_path)
+                    elif platform.system() == 'Linux':
+                        os.chdir(miyamoto_path + '/linuxTools')
+                        os.system('chmod +x ./wszst_linux.elf')
+                        os.system('./wszst_linux.elf DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
+                        os.chdir(miyamoto_path)
+                    elif platform.system() == 'Darwin':
+                        os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
+                    else:
+                        print("Not a supported platform, sadly...")
+                    os.chdir(miyamoto_path)
+                    with open(course_name + '.tmp', 'rb') as f:
+                        levelData = f.read()
+                    os.remove(course_name + '.tmp')
+                    print('Decompression finished.')
+                elif levelData.startswith(b'SARC'):
+                    print('Yaz0 decompression skipped.')
+                else: return False # keep it from crashing by loading things it shouldn't
+
+                arc = SarcLib.SARC_Archive()
+                arc.load(levelData)
+
+                def exists(fn):
+                    nonlocal arc
+                    try: arc[fn]
+                    except: return False
+                    return True
+
+                if exists('levelname'):
+                    fn = str(arc['levelname'].data)[2:-1]
+                    if exists(fn):
+                        levelFileData = arc[fn].data
+                    else:
+                        possibilities = []
+                        possibilities.append(os.path.basename(name))
+                        possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
+                        possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
+                        possibilities.append(possibilities[-1].split('.')[0])
+                        possibilities.append(possibilities[-1].split('_')[0])
+                        for fn in possibilities:
+                            if exists(fn):
+                                levelFileData = arc[fn].data
+                                hmm = True
+                                break
+                        else:
+                            print('OH NO')
+                            return False
+
+                else:
+                    possibilities = []
+                    possibilities.append(os.path.basename(name))
+                    possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
+                    possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
+                    possibilities.append(possibilities[-1].split('.')[0])
+                    possibilities.append(possibilities[-1].split('_')[0])
+                    for fn in possibilities:
+                        if exists(fn):
+                            levelFileData = arc[fn].data
+                            break
+                    else:
+                        print('OH NO')
+                        return False
+
+                # Sort the szs data
+                global szsData
+                szsData = {}
+                for file in arc.contents:
+                    szsData[file.name] = file.data
+
+                levelData = levelFileData
+
             else:
-                for ext in FileExtentions[game]:
-                    checknames.append(os.path.join(gamedef.GetGamePath(), name + ext))
+                # Auto-saved level. Check if there's a path associated with it:
 
-            found = False
-            for checkname in checknames:
-                if os.path.isfile(checkname):
-                    found = True
-                    break
-            if not found:
-                QtWidgets.QMessageBox.warning(self, 'Miyamoto!', trans.string('Err_CantFindLevel', 0, '[name]', checkname), QtWidgets.QMessageBox.Ok)
-                return False
-            if not IsNSMBLevel(checkname):
-                QtWidgets.QMessageBox.warning(self, 'Miyamoto!', trans.string('Err_InvalidLevel', 0), QtWidgets.QMessageBox.Ok)
-                return False
+                if AutoSavePath == 'None':
+                    self.fileSavePath = None
+                    self.fileTitle = trans.string('WindowTitle', 0)
+                else:
+                    self.fileSavePath = AutoSavePath
+                    self.fileTitle = os.path.basename(name)
 
-        name = checkname
+                # Get the level data
+                levelData = AutoSaveData
+                SetDirty(noautosave=True)
 
-        # Get the data
-        global RestoredFromAutoSave
-        if not RestoredFromAutoSave:
-
-            # Check if there is a file by this name
-            if not os.path.isfile(name):
-                QtWidgets.QMessageBox.warning(None, trans.string('Err_MissingLevel', 0), trans.string('Err_MissingLevel', 1, '[file]', name))
-                return False
-
-            # Set the filepath variables
-            self.fileSavePath = name
-            self.fileTitle = os.path.basename(self.fileSavePath)
-
-            # Open the file
-            with open(self.fileSavePath, 'rb') as fileobj:
-                levelData = fileobj.read()
-
+                # Turn off the autosave flag
+                RestoredFromAutoSave = False
         else:
-            # Auto-saved level. Check if there's a path associated with it:
-
-            if AutoSavePath == 'None':
-                self.fileSavePath = None
-                self.fileTitle = trans.string('WindowTitle', 0)
+            hmm = True
+            # Set the filepath variables
+            self.fileSavePath = False
+            self.fileTitle = 'untitled'
+            if platform.system() == 'Windows':
+                os.chdir(miyamoto_path + '/Tools')
+                os.system('wszst.exe DECOMPRESS "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.szs" --dest "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc"')
+                os.chdir(miyamoto_path)
+            elif platform.system() == 'Linux':
+                os.chdir(miyamoto_path + '/linuxTools')
+                os.system('chmod +x ./wszst_linux.elf')
+                os.system('./wszst_linux.elf DECOMPRESS "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.szs" --dest "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc"')
+                os.chdir(miyamoto_path)
+            elif platform.system() == 'Darwin':
+                os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.szs" --dest "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc"')
             else:
-                self.fileSavePath = AutoSavePath
-                self.fileTitle = os.path.basename(name)
-
-            # Get the level data
-            levelData = AutoSaveData
-            SetDirty(noautosave=True)
-
-            # Turn off the autosave flag
-            RestoredFromAutoSave = False
+                print("Not a supported platform, sadly...")
+            os.chdir(miyamoto_path)
+            szsData = {}
+            with open(miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc', 'rb') as f:
+                szsData['Pa0_jyotyu'] = f.read()
+            os.remove(miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc')
 
         # Turn the dirty flag off, and keep it that way
         global Dirty, DirtyOverride
         Dirty = False
         DirtyOverride += 1
-
-        # Decompress it (Yaz0)
-        if levelData.startswith(b'Yaz0'):
-            print('Beginning Yaz0 decompression...')
-            course_name = os.path.splitext(mainWindow.fileSavePath)[0]
-            if platform.system() == 'Windows':
-                os.chdir(miyamoto_path + '/Tools')
-                os.system('wszst.exe DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
-                os.chdir(miyamoto_path)
-            elif platform.system() == 'Linux':
-                os.chdir(miyamoto_path + '/linuxTools')
-                os.system('chmod +x ./wszst_linux.elf')
-                os.system('./wszst_linux.elf DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
-                os.chdir(miyamoto_path)
-            elif platform.system() == 'Darwin':
-                os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
-            else:
-                print("Not a supported platform, sadly...")
-            os.chdir(miyamoto_path)
-            with open(course_name + '.tmp', 'rb') as f:
-                levelData = f.read()
-            os.remove(course_name + '.tmp')
-            print('Decompression finished.')
-        elif levelData.startswith(b'SARC'):
-            print('Yaz0 decompression skipped.')
-        else: return False # keep it from crashing by loading things it shouldn't
-
-        arc = SarcLib.SARC_Archive()
-        arc.load(levelData)
-
-        def exists(fn):
-            nonlocal arc
-            try: arc[fn]
-            except: return False
-            return True
-
-        hmm = False
-        if exists('levelname'):
-            fn = str(arc['levelname'].data)[2:-1]
-            if exists(fn):
-                levelFileData = arc[fn].data
-            else:
-                possibilities = []
-                possibilities.append(os.path.basename(name))
-                possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
-                possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
-                possibilities.append(possibilities[-1].split('.')[0])
-                possibilities.append(possibilities[-1].split('_')[0])
-                for fn in possibilities:
-                    if exists(fn):
-                        levelFileData = arc[fn].data
-                        hmm = True
-                        break
-                else:
-                    print('OH NO')
-                    return False
-
-        else:
-            possibilities = []
-            possibilities.append(os.path.basename(name))
-            possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
-            possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
-            possibilities.append(possibilities[-1].split('.')[0])
-            possibilities.append(possibilities[-1].split('_')[0])
-            for fn in possibilities:
-                if exists(fn):
-                    levelFileData = arc[fn].data
-                    break
-            else:
-                print('OH NO')
-                return False
-
-        # Sort the szs data
-        global szsData
-        szsData = {}
-        for file in arc.contents:
-            szsData[file.name] = file.data
-
-        levelData = levelFileData
 
         # Here's how progress is tracked. (After the major refactor, it may be a bit messed up now.)
         # - 0: Loading level data
@@ -13737,12 +13835,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Layer1Shown = True
         Layer2Shown = True
 
-        # Prevent things from snapping when they're created
         global OverrideSnapping
-        OverrideSnapping = True
+        OverrideSnapping = False
 
-        # Update progress
-        self.LoadLevel_NSMBU(levelData, areaNum)
+        # Load the actual level
+        if name == None:
+            self.newLevel()
+        else:
+            self.LoadLevel_NSMBU(levelData, areaNum)
 
         # Set the level overview settings
         mainWindow.levelOverview.maxX = 100
@@ -13796,6 +13896,26 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # If we got this far, everything worked! Return True.
         return True
+
+    def newLevel(self):
+        # Create the new level object
+        global Level
+        Level = Level_NSMBU()
+
+        # Load it
+        Level.new()
+
+        self.objUseLayer1.setChecked(True)
+
+        self.objPicker.LoadFromTilesets()
+
+        self.ReloadTilesets()
+
+        self.objAllTab.setCurrentIndex(0)
+        self.objAllTab.setTabEnabled(0, True)
+        self.objAllTab.setTabEnabled(1, False)
+        self.objAllTab.setTabEnabled(2, False)
+        self.objAllTab.setTabEnabled(3, False)
 
     def LoadLevel_NSMBU(self, levelData, areaNum):
         """
