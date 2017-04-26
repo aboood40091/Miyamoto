@@ -656,8 +656,8 @@ class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple): # 31
             3.75,
             )
         
-        self.xOffset = -28
-        self.yOffset = -143
+        self.xOffset = -32
+        self.yOffset = -144
 
     @staticmethod
     def loadImages():
@@ -1279,6 +1279,18 @@ class SpriteImage_BouncyCloud(SLib.SpriteImage_StaticMultiple): # 94
             self.image = ImageCache['BouncyCloudS']
             
         super().dataChanged()
+
+class SpriteImage_BackCenter(SLib.SpriteImage_Static): # 97
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['BackCenter'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BackCenter', 'back_center.png')
 
 class SpriteImage_CheepCheep(SLib.SpriteImage_Liquid): # 101
     def __init__(self, parent):
@@ -4319,6 +4331,7 @@ ImageClasses = {
     90: SpriteImage_Poison,
     91: SpriteImage_Quicksand,
     94: SpriteImage_BouncyCloud,
+    97: SpriteImage_BackCenter,
     101: SpriteImage_CheepCheep,
     104: SpriteImage_QuestionSwitch,
     105: SpriteImage_PSwitch,
