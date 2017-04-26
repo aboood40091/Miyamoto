@@ -42,7 +42,6 @@ import os
 import pickle
 import platform
 import struct
-import shutil
 import sys
 from xml.etree import ElementTree as etree
 import zipfile
