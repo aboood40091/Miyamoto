@@ -1412,8 +1412,8 @@ class SpriteImage_CastleBossDoor(SLib.SpriteImage_Static): # 110
             ImageCache['CastleBossDoor'],
             )
 
-        self.xOffset = -14
-        self.yOffset = -16
+        self.xOffset = -16
+        self.yOffset = -32
 
     @staticmethod
     def loadImages():
