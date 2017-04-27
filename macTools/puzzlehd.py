@@ -2601,7 +2601,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 text += self.miyamoto_path + '/macTools/mipmap%s_%d.png" ' % ('_nml' if normalmap else '', i)
                 text += self.miyamoto_path + '/macTools/mipmap%s_%d.dds"' % ('_nml' if normalmap else '', i)
                 os.system('wine "' + text)
-                os.remove(self.miyamoto_path + '/macTools/RUN.bat')
 
             ddsmipmaps = []
             for i in range(numMips):
