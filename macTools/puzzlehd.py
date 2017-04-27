@@ -2597,15 +2597,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
             for i, tex in enumerate(mipmaps):
                 tex.save(self.miyamoto_path + '/macTools/mipmap%s_%d.png' % ('_nml' if normalmap else '', i))
-                text_file = open(self.miyamoto_path + '/macTools/RUN.bat', 'w')
-                text = 'nvcompress.exe -bc3 -nomips "'
+                text = self.miyamoto_path + '/macTools/nvcompress.exe" -bc3 -nomips "'
                 text += self.miyamoto_path + '/macTools/mipmap%s_%d.png" ' % ('_nml' if normalmap else '', i)
                 text += self.miyamoto_path + '/macTools/mipmap%s_%d.dds"' % ('_nml' if normalmap else '', i)
-                text_file.write(text)
-                text_file.close()
-                os.chdir(self.miyamoto_path + '/macTools')
-                os.system("wine cmd /c RUN.bat")
-                os.chdir(self.miyamoto_path)
+                os.system('wine "' + text)
                 os.remove(self.miyamoto_path + '/macTools/RUN.bat')
 
             ddsmipmaps = []
@@ -2968,19 +2963,12 @@ class MainWindow(QtWidgets.QMainWindow):
         with open(self.miyamoto_path + '/macTools/texture.gtx', 'wb') as binfile:
             binfile.write(tiledata)
 
-        text_file = open(self.miyamoto_path + '/macTools/RUN.bat', 'w')
-        text_file.write('gtx_extract.exe texture.gtx texture.bmp')
-        text_file.close()
-        os.chdir(self.miyamoto_path + '/macTools')
-        os.system("wine cmd /c RUN.bat")
-        os.chdir(self.miyamoto_path)
-        os.remove(self.miyamoto_path + '/macTools/RUN.bat')
+        os.system('wine "' + miyamoto_path + '/macTools/gtx_extract.exe" "' + miyamoto_path + '/macTools/texture.gtx" "' + miyamoto_path + '/macTools/texture.bmp"')
 
         img = QtGui.QImage(self.miyamoto_path + '/macTools/texture.bmp')
 
         os.remove(self.miyamoto_path + '/macTools/texture.gtx')
         os.remove(self.miyamoto_path + '/macTools/texture.bmp')
-        
 
         return img
 
