@@ -1,4 +1,4 @@
-0:Unused except for an accidental zone in 5-1 A2
+0:CRASH
 1:Overworld
 2:Underground
 3:Underwater
@@ -23,7 +23,7 @@
 22:Purple Toad House
 23:Credits
 24:Pre-Castle Boss Area
-25:UNUSED
+25:Bowser Boss Room (Duplicate)
 26:Big Bowser Boss Room
 27:Princess Peach's Room
 28:Final Castle

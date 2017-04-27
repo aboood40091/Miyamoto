@@ -3271,9 +3271,9 @@ class AbstractParsedArea(AbstractArea):
         self.LoadOptions() # block 2
         self.LoadEntrances() # block 7
         self.LoadSprites() # block 8
-        self.LoadZones() # block 10 (also blocks 3, 5, and 6)
+        self.LoadZones() # blocks 10, 3, and 5
         self.LoadLocations() # block 11
-        self.LoadPaths() # block 12 and 13
+        self.LoadPaths() # block 14 and 15
 
         # Load the editor metadata
         if self.block1pos[0] != 0x70:
@@ -3319,13 +3319,14 @@ class AbstractParsedArea(AbstractArea):
         # Prepare this first because otherwise the game refuses to load some sprites
         self.SortSpritesByZone()
 
-        # Save each block
+        # We don't parse blocks 4, 6, 12, 13
+        # Save the other blocks
         self.SaveTilesetNames() # block 1
         self.SaveOptions() # block 2
         self.SaveEntrances() # block 7
         self.SaveSprites() # block 8
         self.SaveLoadedSprites() # block 9
-        self.SaveZones() # block 10 (and 3 and 5)
+        self.SaveZones() # blocks 10, 3, and 5
         self.SaveLocations() # block 11
         self.SavePaths() # blocks 14 and 15
 
@@ -3476,18 +3477,12 @@ class Area_NSMBU(AbstractParsedArea):
         self.comments = []
 
         bgData = self.blocks[4]
-        self.bgCount = len(bgData) // 28
+        self.bgCount = 1
         bgStruct = struct.Struct('>HxBxxxx16sHxx')
         offset = 0
         bgs = {}
-        self.bg_name = []
-        self.bg_unk1 = []
-        self.bg_unk2 = []
         for i in range(self.bgCount):
             bg = bgStruct.unpack_from(bgData, offset)
-            self.bg_name.append(find_name(bg[2], 0))
-            self.bg_unk1.append(bg[1])
-            self.bg_unk2.append(bg[3])
             bgs[bg[0]] = bg
             offset += 28
         self.bgs = bgs
@@ -3569,7 +3564,7 @@ class Area_NSMBU(AbstractParsedArea):
 
     def LoadZones(self):
         """
-        Loads blocks 3, 5, 6 and 10 - the bounding, background and zone data
+        Loads blocks 3, 5 and 10 - the bounding, background and zone data
         """
 
         # Block 3 - bounding data
@@ -3590,17 +3585,10 @@ class Area_NSMBU(AbstractParsedArea):
         bgStruct = struct.Struct('>HxBxxxx16sHxx')
         offset = 0
         bgs = {}
-        self.bg_name = []
-        self.bg_unk1 = []
-        self.bg_unk2 = []
         for i in range(self.bgCount):
             bg = bgStruct.unpack_from(bgData, offset)
-            self.bg_name.append(find_name(bg[2], 0))
-            self.bg_unk1.append(bg[1])
-            self.bg_unk2.append(bg[3])
             bgs[bg[0]] = bg
             offset += 28
-        self.bgs = bgs
 
         # Block 10 - zone data
         zonedata = self.blocks[9]
@@ -3618,10 +3606,7 @@ class Area_NSMBU(AbstractParsedArea):
                 if checkb[4] == id: boundObj = checkb
 
             # Find the proper bg
-            bgObj = None
-            if dataz[11] in bgs:
-                bgObj = bgs[dataz[11]]
-            else: print('WARNING: BACKGROUND DATA NOT FOUND! THIS IS VERY VERY VERY VERY BAD!!!!!!!!!!!!!')
+            bgObj = bgs[dataz[11]]
 
             zones.append(ZoneItem(
                 dataz[0], dataz[1], dataz[2], dataz[3],
@@ -3680,9 +3665,8 @@ class Area_NSMBU(AbstractParsedArea):
 
     def LoadPaths(self):
         """
-        Loads block 13, the paths
+        Loads blocks 14 and 15, the paths
         """
-        # Path struct: >BBHHxBxxxx
         pathdata = self.blocks[13]
         pathcount = len(pathdata) // 12
         pathstruct = struct.Struct('>BbHHxBxxxx') # updated struct -- MrRean
@@ -3716,9 +3700,8 @@ class Area_NSMBU(AbstractParsedArea):
 
     def LoadPathNodes(self, startindex, count):
         """
-        Loads block 14, the path nodes
+        Loads block 15, the path nodes
         """
-        # PathNode struct: >HHffhHBBBx
         ret = []
         nodedata = self.blocks[14]
         nodestruct = struct.Struct('>HHffhHBBBx') # updated struct -- MrRean
@@ -3836,7 +3819,7 @@ class Area_NSMBU(AbstractParsedArea):
 
     def SavePaths(self):
         """
-        Saves the paths back to block 13
+        Saves the paths back to block 14 and 15
         """
         pathstruct = struct.Struct('>BbHHxBxxxx')
         nodecount = 0
@@ -3863,7 +3846,7 @@ class Area_NSMBU(AbstractParsedArea):
 
     def WritePathNodes(self, buffer, offst, nodes):
         """
-        Writes the pathnode data to the block 14 bytearray
+        Writes the pathnode data to the block 15 bytearray
         """
         offset = int(offst)
 
@@ -3923,26 +3906,30 @@ class Area_NSMBU(AbstractParsedArea):
 
     def SaveZones(self):
         """
-        Saves blocks 10, 3, and 5; the zone data, boundings, and bg data respectively
+        Saves blocks 10, 3, and 5; the zone data, boundings, and background data respectively
         """
         bdngstruct = struct.Struct('>llllHHxxxxxxxx')
+        bgStruct = struct.Struct('>HxBxxxx16sHxx')
         zonestruct = struct.Struct('>HHHHxBxBBBBBxBBxBxBBxBxx')
         offset = 0
         i = 0
         zcount = len(Area.zones)
         buffer2 = bytearray(28 * zcount)
+        buffer4 = bytearray(28 * zcount)
         buffer9 = bytearray(28 * zcount)
         for z in Area.zones:
             bdngstruct.pack_into(buffer2, offset, z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, i, z.unknownbnf)
+            bgStruct.pack_into(buffer4, offset, z.id, z.background[1], z.background[2], z.background[3])
             zonestruct.pack_into(buffer9, offset,
                 z.objx, z.objy, z.width, z.height,
                 z.modeldark, z.unk1, z.id, i,
-                z.cammode, z.camzoom, z.visibility, i,
+                z.cammode, z.camzoom, z.visibility, z.id,
                 z.unk2, z.music, z.unk3, z.unk4)
             offset += 28
             i += 1
 
         self.blocks[2] = bytes(buffer2)
+        self.blocks[4] = bytes(buffer4)
         self.blocks[9] = bytes(buffer9)
 
 
@@ -3960,55 +3947,6 @@ class Area_NSMBU(AbstractParsedArea):
             offset += 12
 
         self.blocks[10] = bytes(buffer)
-
-#####################################################################
-############################ BACKGROUNDS ############################
-#####################################################################
-
-class AbstractBackground():
-    """
-    A class that represents an abstract background for a zone (both bgA and bgB)
-    """
-    def __init__(self, xScroll=1, yScroll=1, xPos=1, yPos=1):
-        self.xScroll = xScroll
-        self.yScroll = yScroll
-        self.xPos = xPos
-        self.yPos = yPos
-
-    def save(idnum=0):
-        return b''
-
-
-class Background_NSMBU(AbstractBackground):
-    """
-    A class that represents a background from New Super Mario Bros. U
-    """
-    def __init__(self, xScroll=1, yScroll=1, xPos=1, yPos=1, name=''):
-        super().__init__(xScroll, yScroll, xPos, yPos)
-        self.name = name
-
-    def loadFrom(self, data):
-        if len(data) != 28:
-            raise ValueError('Wrong data length: must be 28 bytes exactly')
-
-        bgstruct = struct.Struct('>Hbbbbxx15sbxxxx')
-        bgvalues = bgstruct.unpack(data)
-        id = bgvalues[0]
-        self.xScroll = bgvalues[1]
-        self.yScroll = bgvalues[2]
-        self.xPos = bgvalues[3]
-        self.yPos = bgvalues[4]
-        self.name = bgvalues[5].split(b'\0')[0].decode('utf-8')
-        self.unk1 = bgvalues[6]
-
-        return id
-
-    def save(idnum=0):
-        bgstruct = struct.struct('>Hbbbbxx15sbxxxx')
-        return # not yet implemented properly; ignore the stuff below
-        settings = struct.pack('>Hbbbbxx', idnum, self.xScroll, self.yScroll, self.xPos, self.yPos)
-        name = self.name.encode('utf-8') + b'\0' * (20 - len(self.name))
-        return settings + name
 
 #####################################################################
 ######################### LEVELEDITOR ITEMS #########################
@@ -9677,7 +9615,10 @@ class ZonesDialog(QtWidgets.QDialog):
                 return
 
         id = len(self.zoneTabs)
-        z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, 0, 0, 0, 0, 0, (0, 0, 0, 0, 0, 0), (0, 0, b'', 0), id)
+
+        bg = (Area.bgCount, 0, "Black".encode('utf-8') + (b'\x00' * (16 - len("Black".encode('utf-8')))), 0)
+
+        z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, Area.bgCount, 0, 0, 0, 0, (0, 0, 0, 0, 0, 0), bg, id)
         ZoneTabName = trans.string('ZonesDlg', 3, '[num]', id+1)
         tab = ZoneTab(z)
         self.zoneTabs.append(tab)
@@ -10121,11 +10062,11 @@ class BGDialog(QtWidgets.QDialog):
         self.setWindowIcon(GetIcon('background'))
 
         self.tabWidget = QtWidgets.QTabWidget()
-        self.BGTabs = []
-        for i in range(SLib.Area.bgCount):
-            BGTabName = 'Background ' + str(i + 1)
-            tab = BGTab(i)
-            self.BGTabs.append(tab)
+        self.BGTabs = {}
+        for z in Area.zones:
+            BGTabName = 'Zone ' + str(z.id + 1)
+            tab = BGTab(z.background[1], names_bg.index(find_name(z.background[2], 0)), z.background[3])
+            self.BGTabs[z.id] = tab
             self.tabWidget.addTab(tab, BGTabName)
 
         buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
@@ -10140,20 +10081,20 @@ class BGDialog(QtWidgets.QDialog):
 
 
 class BGTab(QtWidgets.QWidget):
-    def __init__(self, i):
+    def __init__(self, unk1, name, unk2):
         QtWidgets.QWidget.__init__(self)
 
         self.bg_name = QtWidgets.QComboBox()
         self.bg_name.addItems(names_bgTrans)
-        self.bg_name.setCurrentIndex(names_bg.index(SLib.Area.bg_name[i]))
+        self.bg_name.setCurrentIndex(name)
 
         self.unk1 = QtWidgets.QSpinBox()
         self.unk1.setRange(0, 0xFF)
-        self.unk1.setValue(SLib.Area.bg_unk1[i])
+        self.unk1.setValue(unk1)
         
         self.unk2 = QtWidgets.QSpinBox()
         self.unk2.setRange(0, 0xFFFF)
-        self.unk2.setValue(SLib.Area.bg_unk2[i])
+        self.unk2.setValue(unk2)
         
         settingsLayout = QtWidgets.QFormLayout()
         settingsLayout.addRow('Background:', self.bg_name)
@@ -15288,22 +15229,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
 
-            block4 = b''
-            for i in range(SLib.Area.bgCount):
-                name = names_bg[names_bgTrans.index(str(dlg.BGTabs[i].bg_name.currentText()))]
-                SLib.Area.bg_name[i] = name
-                unk1 = dlg.BGTabs[i].unk1.value()
-                SLib.Area.bg_unk1[i] = unk1
-                unk2 = dlg.BGTabs[i].unk2.value()
-                SLib.Area.bg_unk2[i] = unk2
-                block4 += i.to_bytes(2, 'big')
-                block4 += 0 .to_bytes(1, 'big')
-                block4 += unk1.to_bytes(1, 'big')
-                block4 += 0 .to_bytes(4, 'big')
-                block4 += name.encode('utf-8') + (b'\x00' * (16 - len(name.encode('utf-8'))))
-                block4 += unk2.to_bytes(2, 'big')
-                block4 += 0 .to_bytes(2, 'big')
-            SLib.Area.blocks[4] = block4
+            for z in Area.zones:
+                name = names_bg[names_bgTrans.index(str(dlg.BGTabs[z.id].bg_name.currentText()))]
+                unk1 = dlg.BGTabs[z.id].unk1.value()
+                unk2 = dlg.BGTabs[z.id].unk2.value()
+                z.background = (z.id, unk1, name.encode('utf-8') + (b'\x00' * (16 - len(name.encode('utf-8')))), unk2)
 
     @QtCore.pyqtSlot()
     def HandleScreenshot(self):
@@ -15373,9 +15303,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Darwin':
             tile_path = miyamoto_path + '/macTools'
 
-        if (SLib.Area.tileset0 is not None) and (SLib.Area.tileset0 != ''):
-            if SLib.Area.tileset0 not in szsData: return
-            sarcdata = szsData[SLib.Area.tileset0]
+        if (Area.tileset0 is not None) and (Area.tileset0 != ''):
+            if Area.tileset0 not in szsData: return
+            sarcdata = szsData[Area.tileset0]
 
             with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
@@ -15384,23 +15314,23 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if platform.system() == 'Windows':
             os.chdir(miyamoto_path + '/Tools')
-            os.system('puzzlehd.exe ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
+            os.system('puzzlehd.exe ' + Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Linux':
             os.chdir(miyamoto_path + '/linuxTools')
             os.system('chmod +x ./puzzlehd.elf')
-            os.system('./puzzlehd.elf ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
+            os.system('./puzzlehd.elf ' + Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Darwin':
             os.chdir(miyamoto_path + '/macTools')
-            os.system('python3 puzzlehd.py ' + SLib.Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
+            os.system('python3 puzzlehd.py ' + Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
             os.chdir(miyamoto_path)
         else:
             print("Not a supported platform, sadly...")
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
             with open(tile_path + '/tmp.tmp', 'rb') as fn:
-                szsData[SLib.Area.tileset0] = fn.read()
+                szsData[Area.tileset0] = fn.read()
             os.remove(tile_path + '/tmp.tmp')
             self.ReloadTilesets()
             SetDirty()
@@ -15419,15 +15349,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Darwin':
             tile_path = miyamoto_path + '/macTools'
 
-        if (SLib.Area.tileset1 is not None) and (SLib.Area.tileset1 != ''):
-            if SLib.Area.tileset1 not in szsData: return
-            sarcdata = szsData[SLib.Area.tileset1]
+        if (Area.tileset1 is not None) and (Area.tileset1 != ''):
+            if Area.tileset1 not in szsData: return
+            sarcdata = szsData[Area.tileset1]
 
             with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
             sarcfile = 'tmp.tmp'
 
-        elif SLib.Area.tileset1 == '':
+        elif Area.tileset1 == '':
             con_msg = "This Tileset doesn't exist, do you want to create it?"
             reply = QtWidgets.QMessageBox.question(self, 'Message', 
                              con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
@@ -15437,43 +15367,43 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if os.path.isfile(tile_path + '/tmp.tmp'):
                     os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
-                SLib.Area.tileset1 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                Area.tileset1 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
                 sarcfile = 'None'
 
             else: return
 
-        if SLib.Area.tileset1 == '': return
+        if Area.tileset1 == '': return
 
         if platform.system() == 'Windows':
             os.chdir(miyamoto_path + '/Tools')
-            os.system('puzzlehd.exe ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
+            os.system('puzzlehd.exe ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Linux':
             os.chdir(miyamoto_path + '/linuxTools')
             os.system('chmod +x ./puzzlehd.elf')
-            os.system('./puzzlehd.elf ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
+            os.system('./puzzlehd.elf ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Darwin':
             os.chdir(miyamoto_path + '/macTools')
-            os.system('python3 puzzlehd.py ' + SLib.Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
+            os.system('python3 puzzlehd.py ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
             os.chdir(miyamoto_path)
         else:
             print("Not a supported platform, sadly...")
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
             with open(tile_path + '/tmp.tmp', 'rb') as fn:
-                szsData[SLib.Area.tileset1] = fn.read()
+                szsData[Area.tileset1] = fn.read()
             os.remove(tile_path + '/tmp.tmp')
 
             self.ReloadTilesets()
             SetDirty()
             mainWindow.objPicker.LoadFromTilesets()
             self.objAllTab.setCurrentIndex(0)
-            self.objAllTab.setTabEnabled(0, (SLib.Area.tileset0 != ''))
-            self.objAllTab.setTabEnabled(1, (SLib.Area.tileset1 != ''))
-            self.objAllTab.setTabEnabled(2, (SLib.Area.tileset2 != ''))
-            self.objAllTab.setTabEnabled(3, (SLib.Area.tileset3 != ''))
+            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
+            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
+            self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
+            self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
 
             for layer in Area.layers:
                 for obj in layer:
@@ -15483,7 +15413,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         else:
             if con == True:
-                SLib.Area.tileset1 = ''
+                Area.tileset1 = ''
 
     @QtCore.pyqtSlot()
     def EditSlot3(self):
@@ -15499,15 +15429,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Darwin':
             tile_path = miyamoto_path + '/macTools'
 
-        if (SLib.Area.tileset2 is not None) and (SLib.Area.tileset2 != ''):
-            if SLib.Area.tileset2 not in szsData: return
-            sarcdata = szsData[SLib.Area.tileset2]
+        if (Area.tileset2 is not None) and (Area.tileset2 != ''):
+            if Area.tileset2 not in szsData: return
+            sarcdata = szsData[Area.tileset2]
 
             with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
             sarcfile = tile_path + '/tmp.tmp'
 
-        elif SLib.Area.tileset2 == '':
+        elif Area.tileset2 == '':
             con_msg = "This Tileset doesn't exist, do you want to create it?"
             reply = QtWidgets.QMessageBox.question(self, 'Message', 
                              con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
@@ -15517,43 +15447,43 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if os.path.isfile(tile_path + '/tmp.tmp'):
                     os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
-                SLib.Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
                 sarcfile = 'None'
 
             else: return
 
-        if SLib.Area.tileset2 == '': return
+        if Area.tileset2 == '': return
 
         if platform.system() == 'Windows':
             os.chdir(miyamoto_path + '/Tools')
-            os.system('puzzlehd.exe ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
+            os.system('puzzlehd.exe ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Linux':
             os.chdir(miyamoto_path + '/linuxTools')
             os.system('chmod +x ./puzzlehd.elf')
-            os.system('./puzzlehd.elf ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
+            os.system('./puzzlehd.elf ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Darwin':
             os.chdir(miyamoto_path + '/macTools')
-            os.system('python3 puzzlehd.py ' + SLib.Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
+            os.system('python3 puzzlehd.py ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
             os.chdir(miyamoto_path)
         else:
             print("Not a supported platform, sadly...")
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
             with open(tile_path + '/tmp.tmp', 'rb') as fn:
-                szsData[SLib.Area.tileset2] = fn.read()
+                szsData[Area.tileset2] = fn.read()
             os.remove(tile_path + '/tmp.tmp')
 
             self.ReloadTilesets()
             SetDirty()
             mainWindow.objPicker.LoadFromTilesets()
             self.objAllTab.setCurrentIndex(0)
-            self.objAllTab.setTabEnabled(0, (SLib.Area.tileset0 != ''))
-            self.objAllTab.setTabEnabled(1, (SLib.Area.tileset1 != ''))
-            self.objAllTab.setTabEnabled(2, (SLib.Area.tileset2 != ''))
-            self.objAllTab.setTabEnabled(3, (SLib.Area.tileset3 != ''))
+            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
+            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
+            self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
+            self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
 
             for layer in Area.layers:
                 for obj in layer:
@@ -15563,7 +15493,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         else:
             if con == True:
-                SLib.Area.tileset2 = ''
+                Area.tileset2 = ''
 
     @QtCore.pyqtSlot()
     def EditSlot4(self):
@@ -15579,15 +15509,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Darwin':
             tile_path = miyamoto_path + '/macTools'
 
-        if (SLib.Area.tileset3 is not None) and (SLib.Area.tileset3 != ''):
-            if SLib.Area.tileset3 not in szsData: return
-            sarcdata = szsData[SLib.Area.tileset3]
+        if (Area.tileset3 is not None) and (Area.tileset3 != ''):
+            if Area.tileset3 not in szsData: return
+            sarcdata = szsData[Area.tileset3]
 
             with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
             sarcfile = tile_path + '/tmp.tmp'
 
-        elif SLib.Area.tileset3 == '':
+        elif Area.tileset3 == '':
             con_msg = "This Tileset doesn't exist, do you want to create it?"
             reply = QtWidgets.QMessageBox.question(self, 'Message', 
                              con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
@@ -15597,43 +15527,43 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if os.path.isfile(tile_path + '/tmp.tmp'):
                     os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
-                SLib.Area.tileset3 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                Area.tileset3 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
                 sarcfile = 'None'
 
             else: return
 
-        if SLib.Area.tileset3 == '': return
+        if Area.tileset3 == '': return
 
         if platform.system() == 'Windows':
             os.chdir(miyamoto_path + '/Tools')
-            os.system('puzzlehd.exe ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
+            os.system('puzzlehd.exe ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Linux':
             os.chdir(miyamoto_path + '/linuxTools')
             os.system('chmod +x ./puzzlehd.elf')
-            os.system('./puzzlehd.elf ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
+            os.system('./puzzlehd.elf ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Darwin':
             os.chdir(miyamoto_path + '/macTools')
-            os.system('python3 puzzlehd.py ' + SLib.Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
+            os.system('python3 puzzlehd.py ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
             os.chdir(miyamoto_path)
         else:
             print("Not a supported platform, sadly...")
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
             with open(tile_path + '/tmp.tmp', 'rb') as fn:
-                szsData[SLib.Area.tileset3] = fn.read()
+                szsData[Area.tileset3] = fn.read()
             os.remove(tile_path + '/tmp.tmp')
 
             self.ReloadTilesets()
             SetDirty()
             mainWindow.objPicker.LoadFromTilesets()
             self.objAllTab.setCurrentIndex(0)
-            self.objAllTab.setTabEnabled(0, (SLib.Area.tileset0 != ''))
-            self.objAllTab.setTabEnabled(1, (SLib.Area.tileset1 != ''))
-            self.objAllTab.setTabEnabled(2, (SLib.Area.tileset2 != ''))
-            self.objAllTab.setTabEnabled(3, (SLib.Area.tileset3 != ''))
+            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
+            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
+            self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
+            self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
 
             for layer in Area.layers:
                 for obj in layer:
@@ -15643,7 +15573,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         else:
             if con == True:
-                SLib.Area.tileset3 = ''
+                Area.tileset3 = ''
 
 def main():
     """
