@@ -3591,8 +3591,10 @@ class Area_NSMBU(AbstractParsedArea):
         bgStruct = struct.Struct('>HxBxxxx16sHxx')
         offset = 0
         bgs = {}
+        self.bgblockid = []
         for i in range(self.bgCount):
             bg = bgStruct.unpack_from(bgData, offset)
+            self.bgblockid.append(bg[0])
             bgs[bg[0]] = bg
             offset += 28
         self.bgs = bgs
