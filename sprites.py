@@ -2652,12 +2652,13 @@ class SpriteImage_Parabeetle(SLib.SpriteImage_Static): # 261
         SLib.loadIfNotInImageCache('Parabeetle', 'parabeetle.png')
 
 class SpriteImage_RollingHill(SLib.SpriteImage): # 265
-    RollingHillSizes = [2*40, 18*40, 32*40, 50*40, 64*40, 0, 0, 0, 18*40, 0, 32*40]
+    RollingHillSizes = [2*40, 18*40, 32*40, 50*40, 64*40, 0, 0, 0, 18*40, 2*40, 30*40]
     def __init__(self, parent):
         super().__init__(parent, 3.75)
+        self.xOffset = 5
 
         size = (self.parent.spritedata[3] >> 4) & 0xF
-        if size == 0:
+        if (size == 0 or size == 9):
             increase = self.parent.spritedata[4] & 0xF
             realSize = self.RollingHillSizes[size] * (increase + 1)
         elif size > 10:
@@ -2671,7 +2672,7 @@ class SpriteImage_RollingHill(SLib.SpriteImage): # 265
         super().dataChanged()
 
         size = (self.parent.spritedata[3] >> 4) & 0xF
-        if size == 0:
+        if (size == 0 or size == 9):
             increase = self.parent.spritedata[4] & 0xF
             realSize = self.RollingHillSizes[size] * (increase + 1)
         elif size > 10:
