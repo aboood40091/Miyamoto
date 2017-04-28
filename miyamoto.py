@@ -2283,13 +2283,10 @@ def LoadTexture_NSMBU(tiledata):
         os.system('gtx_extract.exe texture.gtx texture.bmp')
         os.chdir(miyamoto_path)
     elif platform.system() == 'Linux':
-        text_file = open(miyamoto_path + '/linuxTools/RUN.bat', 'w')
-        text_file.write('gtx_extract.exe texture.gtx texture.bmp')
-        text_file.close()
         os.chdir(miyamoto_path + '/linuxTools')
-        os.system("wine cmd /c RUN.bat")
+        os.system('chmod +x ./gtx_extract.elf')
+        os.system('./gtx_extract.elf texture.gtx texture.bmp')
         os.chdir(miyamoto_path)
-        os.remove(miyamoto_path + '/linuxTools/RUN.bat')
     elif platform.system() == 'Darwin':
         os.system('wine "' + miyamoto_path + '/macTools/gtx_extract.exe" "' + miyamoto_path + '/macTools/texture.gtx" "' + miyamoto_path + '/macTools/texture.bmp"')
     else:
