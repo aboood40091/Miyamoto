@@ -2607,15 +2607,12 @@
       <entry value="2">32 Blocks</entry>
       <entry value="3">50 Blocks</entry>
       <entry value="4">64 Blocks</entry>
-      <entry value="5">Unknown</entry>
-      <entry value="6">Unknown</entry>
-      <entry value="7">Unknown</entry>
-      <entry value="8">18 Blocks</entry>
-      <entry value="9">Unknown</entry>
-      <entry value="10">32 Blocks</entry>
+      <entry value="8">18 Blocks (Desert)</entry>
+      <entry value="9">2 Blocks (Ice)</entry>
+      <entry value="10">30 Blocks (Desert)</entry>
     </list>
     <value nybble="8" title="Unknown Value 8"/>
-    <value nybble="9-10" title="Size Increase" comment="Only works if the size is 0."/>
+    <value nybble="9-10" title="Size Increase" comment="Only works if the size is 0 or 9 (2 Blocks). The result will be size (blocks) * (value + 1)"/>
     <value nybble="11" title="Unknown Value 11"/>
     <checkbox nybble="12" title="Spin Clockwise" comment="Makes the hill spin clockwise."/>
     <value nybble="14" title="Unknown Value 14"/>

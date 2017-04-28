@@ -2938,15 +2938,6 @@ class AbstractLevel():
         """
         return b''
 
-    def addArea(self):
-        """
-        Adds an area to the level, and returns it.
-        """
-        new = AbstractArea()
-        self.areas.append(new)
-
-        return new
-
     def deleteArea(self, number):
         """
         Removes the area specified. Number is a 1-based value, not 0-based;
@@ -3093,14 +3084,56 @@ class Level_NSMBU(AbstractLevel):
         outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
 
         # Add all the other stuff, too
-        for szsThingName in szsData:
-            try:
-                spl = szsThingName.split('-')
-                int(spl[0])
-                int(spl[1])
-                continue
-            except: pass
-            outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
+        if os.path.isdir(miyamoto_path + '/data'):
+            tree = etree.parse(miyamoto_path + '/miyamotodata/spriteresources.xml')
+            root = tree.getroot()
+
+            sprites_xml = {}
+            for sprite in root.iter('sprite'):
+                id = int(sprite.get('id'))
+                name = []
+                for id2 in sprite:
+                    name.append(id2.get('name'))
+                sprites_xml[id] = tuple(name)
+
+            sprites_SARC = []
+            tilesets_names = []
+            for area_SARC in Level.areas:
+                for sprite in area_SARC.sprites:
+                    sprites_SARC.append(sprite.type)
+                if area_SARC.tileset0 != '':
+                    tilesets_names.append(area_SARC.tileset0)
+                if area_SARC.tileset1 != '':
+                    tilesets_names.append(area_SARC.tileset1)
+                if area_SARC.tileset2 != '':
+                    tilesets_names.append(area_SARC.tileset2)
+                if area_SARC.tileset3 != '':
+                    tilesets_names.append(area_SARC.tileset3)
+            sprites_SARC = tuple(set(sprites_SARC))
+            tilesets_names = tuple(set(tilesets_names))
+
+            sprites_names = []
+            for sprite in sprites_SARC:
+                for sprite_name in sprites_xml[sprite]:
+                    sprites_names.append(sprite_name)
+            sprites_names = tuple(set(sprites_names))
+            for sprite_name in sprites_names:
+                with open(miyamoto_path + '/data/' + sprite_name, 'rb') as f:
+                    f1 = f.read()
+                outerArchive.addFile(SarcLib.File(sprite_name, f1))
+            
+            for tileset_name in tilesets_names:
+                if tileset_name in szsData:
+                    outerArchive.addFile(SarcLib.File(tileset_name, szsData[tileset_name]))
+        else:
+            for szsThingName in szsData:
+                try:
+                    spl = szsThingName.split('-')
+                    int(spl[0])
+                    int(spl[1])
+                    continue
+                except: pass
+                outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
 
         # Save the outer sarc and return it
         print("")
@@ -3161,14 +3194,56 @@ class Level_NSMBU(AbstractLevel):
         outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
 
         # Add all the other stuff, too
-        for szsThingName in szsData:
-            try:
-                spl = szsThingName.split('-')
-                int(spl[0])
-                int(spl[1])
-                continue
-            except: pass
-            outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
+        if os.path.isdir(miyamoto_path + '/data'):
+            tree = etree.parse(miyamoto_path + '/miyamotodata/spriteresources.xml')
+            root = tree.getroot()
+
+            sprites_xml = {}
+            for sprite in root.iter('sprite'):
+                id = int(sprite.get('id'))
+                name = []
+                for id2 in sprite:
+                    name.append(id2.get('name'))
+                sprites_xml[id] = tuple(name)
+
+            sprites_SARC = []
+            tilesets_names = []
+            for area_SARC in Level.areas:
+                for sprite in area_SARC.sprites:
+                    sprites_SARC.append(sprite.type)
+                if area_SARC.tileset0 != '':
+                    tilesets_names.append(area_SARC.tileset0)
+                if area_SARC.tileset1 != '':
+                    tilesets_names.append(area_SARC.tileset1)
+                if area_SARC.tileset2 != '':
+                    tilesets_names.append(area_SARC.tileset2)
+                if area_SARC.tileset3 != '':
+                    tilesets_names.append(area_SARC.tileset3)
+            sprites_SARC = tuple(set(sprites_SARC))
+            tilesets_names = tuple(set(tilesets_names))
+
+            sprites_names = []
+            for sprite in sprites_SARC:
+                for sprite_name in sprites_xml[sprite]:
+                    sprites_names.append(sprite_name)
+            sprites_names = tuple(set(sprites_names))
+            for sprite_name in sprites_names:
+                with open(miyamoto_path + '/data/' + sprite_name, 'rb') as f:
+                    f1 = f.read()
+                outerArchive.addFile(SarcLib.File(sprite_name, f1))
+            
+            for tileset_name in tilesets_names:
+                if tileset_name in szsData:
+                    outerArchive.addFile(SarcLib.File(tileset_name, szsData[tileset_name]))
+        else:
+            for szsThingName in szsData:
+                try:
+                    spl = szsThingName.split('-')
+                    int(spl[0])
+                    int(spl[1])
+                    continue
+                except: pass
+                outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
 
         # Save the outer sarc and return it
         print("")
@@ -3178,15 +3253,6 @@ class Level_NSMBU(AbstractLevel):
         print("")
         
         return outerArchive.save(0x2000)
-
-    def addArea(self):
-        """
-        Adds an area to the level, and returns it.
-        """
-        new = Area_NSMBU()
-        self.areas.append(new)
-
-        return new
 
 #####################################################################
 ############################### AREAS ###############################
@@ -3208,6 +3274,53 @@ class AbstractArea():
         self.L0 = L0
         self.L1 = L1
         self.L2 = L2
+        self.LoadBlocks(course)
+        self.LoadTilesetNames()
+        self.LoadSprites()
+
+    def LoadBlocks(self, course):
+        """
+        Loads self.blocks from the course file
+        """
+        self.blocks = [None] * 15
+        getblock = struct.Struct('>II')
+        for i in range(15):
+            data = getblock.unpack_from(course, i * 8)
+            if data[1] == 0:
+                self.blocks[i] = b''
+            else:
+                self.blocks[i] = course[data[0]:data[0] + data[1]]
+
+        self.block1pos = getblock.unpack_from(course, 0)
+
+    def LoadTilesetNames(self):
+        """
+        Loads block 1, the tileset names
+        """
+        data = struct.unpack_from('32s32s32s32s', self.blocks[0])
+        self.tileset0 = data[0].strip(b'\0').decode('latin-1')
+        self.tileset1 = data[1].strip(b'\0').decode('latin-1')
+        self.tileset2 = data[2].strip(b'\0').decode('latin-1')
+        self.tileset3 = data[3].strip(b'\0').decode('latin-1')
+
+    def LoadSprites(self):
+        """
+        Loads block 8, the sprites
+        """
+        spritedata = self.blocks[7]
+        sprcount = len(spritedata) // 24
+        sprstruct = struct.Struct('>HHH10sxx2sxxxx')
+        offset = 0
+        sprites = []
+
+        unpack = sprstruct.unpack_from
+        append = sprites.append
+        obj = SpriteItem
+        for i in range(sprcount):
+            data = unpack(spritedata, offset)
+            append(obj(data[0], data[1], data[2], data[3] + data[4]))
+            offset += 24
+        self.sprites = sprites
 
     def save(self):
         return (self.course, self.L0, self.L1, self.L2)
@@ -3582,8 +3695,10 @@ class Area_NSMBU(AbstractParsedArea):
         bgStruct = struct.Struct('>HxBxxxx16sHxx')
         offset = 0
         bgs = {}
+        self.bgblockid = []
         for i in range(self.bgCount):
             bg = bgStruct.unpack_from(bgData, offset)
+            self.bgblockid.append(bg[0])
             bgs[bg[0]] = bg
             offset += 28
 
@@ -9613,9 +9728,13 @@ class ZonesDialog(QtWidgets.QDialog):
 
         id = len(self.zoneTabs)
 
-        bg = (Area.bgCount, 0, "Black".encode('utf-8') + (b'\x00' * (16 - len("Black".encode('utf-8')))), 0)
+        i = 0
+        while i in Area.bgblockid:
+            i += 1
 
-        z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, Area.bgCount, 0, 0, 0, 0, (0, 0, 0, 0, 0, 0), bg, id)
+        bg = (i, 0, "Black".encode('utf-8') + (b'\x00' * (16 - len("Black".encode('utf-8')))), 0)
+
+        z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, i, 0, 0, 0, 0, (0, 0, 0, 0, 0, 0), bg, id)
         ZoneTabName = trans.string('ZonesDlg', 3, '[num]', id+1)
         tab = ZoneTab(z)
         self.zoneTabs.append(tab)
