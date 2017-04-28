@@ -3063,7 +3063,10 @@ class SpriteImage_CrashHill(SLib.SpriteImage_Static): # 355
             3.75,
             ImageCache['Crash'],
             )
-        self.parent.setZValue(20000)
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Crash', 'crash.png')
 
 class SpriteImage_CrashFive(SLib.SpriteImage_Static): # 358
     def __init__(self, parent):
