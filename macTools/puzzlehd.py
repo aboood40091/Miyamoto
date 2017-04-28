@@ -2471,6 +2471,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.close()
 
 
+    def saveTilesetAs(self):
+
+        fn = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose a new filename', '', 'All files (*)')[0]
+        if fn == '': return
+
+        outdata = self.saving(os.path.basename(str(fn)))
+        
+        with open(fn, 'wb') as f:
+            f.write(outdata)
+
+
     def saving(self, name):
 
         # Prepare tiles, objects, object metadata, and textures and stuff into buffers.
@@ -2802,6 +2813,7 @@ class MainWindow(QtWidgets.QMainWindow):
         icon = QtGui.QIcon(pixmap)
 
         fileMenu.addAction("Import Tileset from file...", self.openTilesetfromFile, QtGui.QKeySequence.Open)
+        fileMenu.addAction("Export Tileset...", self.saveTilesetAs, QtGui.QKeySequence.SaveAs)
         fileMenu.addAction("Import Image...", self.openImage, QtGui.QKeySequence('Ctrl+I'))
         fileMenu.addAction("Export Image...", self.saveImage, QtGui.QKeySequence('Ctrl+E'))
         fileMenu.addAction("Import Normal Map...", self.openNml, QtGui.QKeySequence('Ctrl+Shift+I'))
