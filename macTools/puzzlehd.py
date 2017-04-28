@@ -2608,10 +2608,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
             for i, tex in enumerate(mipmaps):
                 tex.save(self.miyamoto_path + '/macTools/mipmap%s_%d.png' % ('_nml' if normalmap else '', i))
-                text = self.miyamoto_path + '/macTools/nvcompress.exe" -bc3 -nomips "'
+                text = 'open -a "' + self.miyamoto_path + '/macTools/nvcompress" --args -bc3 -nomips "'
                 text += self.miyamoto_path + '/macTools/mipmap%s_%d.png" ' % ('_nml' if normalmap else '', i)
                 text += self.miyamoto_path + '/macTools/mipmap%s_%d.dds"' % ('_nml' if normalmap else '', i)
-                os.system('wine "' + text)
+                os.system(text)
 
             ddsmipmaps = []
             for i in range(numMips):
@@ -2974,7 +2974,7 @@ class MainWindow(QtWidgets.QMainWindow):
         with open(self.miyamoto_path + '/macTools/texture.gtx', 'wb') as binfile:
             binfile.write(tiledata)
 
-        os.system('wine "' + miyamoto_path + '/macTools/gtx_extract.exe" "' + miyamoto_path + '/macTools/texture.gtx" "' + miyamoto_path + '/macTools/texture.bmp"')
+        os.system('open -a "' + self.miyamoto_path + '/macTools/gtx_extract" --args "' + self.miyamoto_path + '/macTools/texture.gtx" "' + self.miyamoto_path + '/macTools/texture.bmp"')
 
         img = QtGui.QImage(self.miyamoto_path + '/macTools/texture.bmp')
 
