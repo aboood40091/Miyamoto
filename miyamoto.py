@@ -12866,8 +12866,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(self, 'Miyamoto!', trans.string('AreaChoiceDlg', 2))
             return
 
-        if self.CheckDirty():
-            return
+        if Dirty:
+            con_msg = "You need to save this level before importing/deleting Areas.\nDo you want to save now?"
+            reply = QtWidgets.QMessageBox.question(self, 'Message', 
+                                 con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if reply == QtWidgets.QMessageBox.Yes:
+                if not self.HandleSave(): return
+            else: return
 
         filetypes = ''
         filetypes += trans.string('FileDlgs', 1) + ' (*.szs);;'
@@ -13014,8 +13020,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         result = QtWidgets.QMessageBox.warning(self, 'Miyamoto!', trans.string('DeleteArea', 0), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
         if result == QtWidgets.QMessageBox.No: return
 
-        if self.CheckDirty():
-            return
+        if Dirty:
+            con_msg = "You need to save this level before importing/deleting Areas.\nDo you want to save now?"
+            reply = QtWidgets.QMessageBox.question(self, 'Message', 
+                                 con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if reply == QtWidgets.QMessageBox.Yes:
+                if not self.HandleSave(): return
+            else: return
 
         Level.deleteArea(Area.areanum)
 
@@ -13184,8 +13196,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Save a level back to the archive
         """
         if not mainWindow.fileSavePath:
-            self.HandleSaveAs()
-            return
+            if not self.HandleSaveAs(): return False
+            else: return True
 
         name = self.getInnerSarcName()
         if "-" not in name:
@@ -13237,8 +13249,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Save a level back to the archive
         """
         if not mainWindow.fileSavePath:
-            self.HandleSaveAs()
-            return
+            if not self.HandleSaveAs(): return False
+            else: return True
 
         name = self.getInnerSarcName()
         if "-" not in name:
@@ -13294,7 +13306,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         filetypes += 'Uncompressed Level Archives (*.sarc);;'
         filetypes += trans.string('FileDlgs', 2) + ' (*)'
         fn = QtWidgets.QFileDialog.getSaveFileName(self, trans.string('FileDlgs', 0), '', filetypes)[0]
-        if fn == '': return
+        if fn == '': return False
         fn = str(fn)
 
         global Dirty, AutoSaveDirty
@@ -13342,6 +13354,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 with open(self.fileSavePath, 'wb') as f:
                     f.write(data)
             self.UpdateTitle()
+
+            return True
+        else: return False
 
         # a quick way to save shit
 
@@ -15467,8 +15482,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Darwin':
             tile_path = miyamoto_path + '/macTools'
 
-        if (Area.tileset1 is not None) and (Area.tileset1 != ''):
-            if Area.tileset1 not in szsData: return
+        if (Area.tileset1 is not None) and (Area.tileset1 != '') and (Area.tileset1 in szsData):
             sarcdata = szsData[Area.tileset1]
 
             with open(tile_path + '/tmp.tmp', 'wb') as fn:
@@ -15490,6 +15504,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 sarcfile = 'None'
 
             else: return
+
+        elif (Area.tileset1 != '') and (Area.tileset1 not in szsData):
+            con_msg = "This Tileset doesn't exist, do you want to create it?"
+            reply = QtWidgets.QMessageBox.question(self, 'Message', 
+                             con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if reply == QtWidgets.QMessageBox.Yes:
+                con = True
+                if os.path.isfile(tile_path + '/tmp.tmp'):
+                    os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+
+                sarcfile = 'None'
 
         if Area.tileset1 == '': return
 
@@ -15547,7 +15573,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Darwin':
             tile_path = miyamoto_path + '/macTools'
 
-        if (Area.tileset2 is not None) and (Area.tileset2 != ''):
+        if (Area.tileset2 is not None) and (Area.tileset2 != '') and (Area.tileset2 in szsData):
             if Area.tileset2 not in szsData: return
             sarcdata = szsData[Area.tileset2]
 
@@ -15567,6 +15593,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
                                                                     "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+                sarcfile = 'None'
+
+        elif (Area.tileset2 != '') and (Area.tileset2 not in szsData):
+            con_msg = "This Tileset doesn't exist, do you want to create it?"
+            reply = QtWidgets.QMessageBox.question(self, 'Message', 
+                             con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if reply == QtWidgets.QMessageBox.Yes:
+                con = True
+                if os.path.isfile(tile_path + '/tmp.tmp'):
+                    os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+
                 sarcfile = 'None'
 
             else: return
@@ -15627,7 +15665,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Darwin':
             tile_path = miyamoto_path + '/macTools'
 
-        if (Area.tileset3 is not None) and (Area.tileset3 != ''):
+        if (Area.tileset3 is not None) and (Area.tileset3 != '') and (Area.tileset3 in szsData):
             if Area.tileset3 not in szsData: return
             sarcdata = szsData[Area.tileset3]
 
@@ -15650,6 +15688,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 sarcfile = 'None'
 
             else: return
+
+        elif (Area.tileset3 != '') and (Area.tileset3 not in szsData):
+            con_msg = "This Tileset doesn't exist, do you want to create it?"
+            reply = QtWidgets.QMessageBox.question(self, 'Message', 
+                             con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if reply == QtWidgets.QMessageBox.Yes:
+                con = True
+                if os.path.isfile(tile_path + '/tmp.tmp'):
+                    os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
+
+                sarcfile = 'None'
 
         if Area.tileset3 == '': return
 
