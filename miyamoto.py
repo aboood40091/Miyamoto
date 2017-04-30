@@ -51,6 +51,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
 # Local imports
+import gtx_extract as gtx
 import SARC as SarcLib
 import spritelib as SLib
 import sprites
@@ -2278,24 +2279,58 @@ def LoadTexture_NSMBU(tiledata):
     with open(tile_path + '/texture.gtx', 'wb') as binfile:
         binfile.write(tiledata)
 
-    if platform.system() == 'Windows':
-        os.chdir(miyamoto_path + '/Tools')
-        os.system('gtx_extract.exe texture.gtx texture.bmp')
-        os.chdir(miyamoto_path)
+    if platform.system() == 'Windows': # Dirty, but works :P
+        data = gtx.readGFD(tiledata) # Read GTX
+
+        if data.format == 0x1A: # for RGBA8, use gtx_extract
+            os.chdir(miyamoto_path + '/Tools')
+            os.system('gtx_extract.exe texture.gtx texture.bmp')
+            os.chdir(miyamoto_path)
+
+            # Return as a QImage
+            img = QtGui.QImage(tile_path + '/texture.bmp')
+            os.remove(tile_path + '/texture.bmp')
+
+        elif data.format == 0x33: # for DXT5, use Abood's GTX Extractor
+            # Convert to DDS
+            hdr, data2 = gtx.get_deswizzled_data(data)
+            with open(tile_path + '/texture2.dds', 'wb+') as output:
+                output.write(hdr)
+                output.write(data2)
+
+            # Decompress DXT5
+            os.chdir(miyamoto_path + '/Tools')
+            os.system('nvcompress.exe -rgb -nomips -alpha  texture2.dds texture.dds')
+            os.chdir(miyamoto_path)
+            os.remove(tile_path + '/texture2.dds')
+
+            # Read DDS, return as a QImage
+            with open(tile_path + '/texture.dds', 'rb') as img:
+                imgdata = img.read()[0x80:0x80+(data.dataSize*4)]
+            img = QtGui.QImage(imgdata, data.width, data.height, QtGui.QImage.Format_ARGB32)
+            os.remove(tile_path + '/texture.dds')
+
     elif platform.system() == 'Linux':
         os.chdir(miyamoto_path + '/linuxTools')
         os.system('chmod +x ./gtx_extract.elf')
         os.system('./gtx_extract.elf texture.gtx texture.bmp')
         os.chdir(miyamoto_path)
+
+        # Return as a QImage
+        img = QtGui.QImage(tile_path + '/texture.bmp')
+        os.remove(tile_path + '/texture.bmp')
+
     elif platform.system() == 'Darwin':
         os.system('open -a "' + miyamoto_path + '/macTools/gtx_extract" --args "' + miyamoto_path + '/macTools/texture.gtx" "' + miyamoto_path + '/macTools/texture.bmp"')
+
+        # Return as a QImage
+        img = QtGui.QImage(tile_path + '/texture.bmp')
+        os.remove(tile_path + '/texture.bmp')
+
     else:
         print("Not a supported platform, sadly...")
 
-    img = QtGui.QImage(tile_path + '/texture.bmp')
-
     os.remove(tile_path + '/texture.gtx')
-    os.remove(tile_path + '/texture.bmp')
 
     return img
 
@@ -3118,10 +3153,15 @@ class Level_NSMBU(AbstractLevel):
                     sprites_names.append(sprite_name)
             sprites_names = tuple(set(sprites_names))
             for sprite_name in sprites_names:
-                with open(miyamoto_path + '/data/' + sprite_name, 'rb') as f:
-                    f1 = f.read()
-                outerArchive.addFile(SarcLib.File(sprite_name, f1))
-            
+                if os.path.isfile(miyamoto_path + '/data/custom/' + sprite_name):
+                    with open(miyamoto_path + '/data/custom/' + sprite_name, 'rb') as f:
+                        f1 = f.read()
+                    outerArchive.addFile(SarcLib.File(sprite_name, f1))
+                elif os.path.isfile(miyamoto_path + '/data/' + sprite_name):
+                    with open(miyamoto_path + '/data/' + sprite_name, 'rb') as f:
+                        f1 = f.read()
+                    outerArchive.addFile(SarcLib.File(sprite_name, f1))
+
             for tileset_name in tilesets_names:
                 if tileset_name in szsData:
                     outerArchive.addFile(SarcLib.File(tileset_name, szsData[tileset_name]))
@@ -3228,10 +3268,15 @@ class Level_NSMBU(AbstractLevel):
                     sprites_names.append(sprite_name)
             sprites_names = tuple(set(sprites_names))
             for sprite_name in sprites_names:
-                with open(miyamoto_path + '/data/' + sprite_name, 'rb') as f:
-                    f1 = f.read()
-                outerArchive.addFile(SarcLib.File(sprite_name, f1))
-            
+                if os.path.isfile(miyamoto_path + '/data/custom/' + sprite_name):
+                    with open(miyamoto_path + '/data/custom/' + sprite_name, 'rb') as f:
+                        f1 = f.read()
+                    outerArchive.addFile(SarcLib.File(sprite_name, f1))
+                elif os.path.isfile(miyamoto_path + '/data/' + sprite_name):
+                    with open(miyamoto_path + '/data/' + sprite_name, 'rb') as f:
+                        f1 = f.read()
+                    outerArchive.addFile(SarcLib.File(sprite_name, f1))
+
             for tileset_name in tilesets_names:
                 if tileset_name in szsData:
                     outerArchive.addFile(SarcLib.File(tileset_name, szsData[tileset_name]))
@@ -3302,6 +3347,14 @@ class AbstractArea():
         self.tileset1 = data[1].strip(b'\0').decode('latin-1')
         self.tileset2 = data[2].strip(b'\0').decode('latin-1')
         self.tileset3 = data[3].strip(b'\0').decode('latin-1')
+        if self.tileset0 not in szsData:
+            self.tileset0 = ''
+        if self.tileset1 not in szsData:
+            self.tileset1 = ''
+        if self.tileset2 not in szsData:
+            self.tileset2 = ''
+        if self.tileset3 not in szsData:
+            self.tileset3 = ''
 
     def LoadSprites(self):
         """
@@ -3626,6 +3679,14 @@ class Area_NSMBU(AbstractParsedArea):
         self.tileset1 = data[1].strip(b'\0').decode('latin-1')
         self.tileset2 = data[2].strip(b'\0').decode('latin-1')
         self.tileset3 = data[3].strip(b'\0').decode('latin-1')
+        if self.tileset0 not in szsData:
+            self.tileset0 = ''
+        if self.tileset1 not in szsData:
+            self.tileset1 = ''
+        if self.tileset2 not in szsData:
+            self.tileset2 = ''
+        if self.tileset3 not in szsData:
+            self.tileset3 = ''
 
     def LoadOptions(self):
         """
