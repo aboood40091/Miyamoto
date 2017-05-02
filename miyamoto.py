@@ -1142,12 +1142,8 @@ class LevelScene(QtWidgets.QGraphicsScene):
                         for tile in row:
                             #If this object has data, make sure to override it properly
                             if item.tileset == 0 and item.type == 28:
-                                # Pretty buggy, but it should work...
-                                brick = (item.data < 13)
                                 overrides = 4*0x200
-                                if item.data in [0, 7, 8, 9, 12, 18, 20]: # Filter out the unknowns
-                                    destrow[destx] = -1
-                                elif brick:
+                                if item.data < 13 and item.data != 0:
                                     base = overrides + 16
                                     if item.data == 1:
                                         thing = 10
@@ -1157,15 +1153,21 @@ class LevelScene(QtWidgets.QGraphicsScene):
                                         thing = 9
                                     elif item.data == 11:
                                         thing = 7
+                                    elif item.data == 12:
+                                        thing = 8
                                     else:
                                         thing = item.data - 3
                                     destrow[destx] = base + thing
                                 else:
                                     base = overrides + 32
-                                    if item.data == 13:
+                                    if item.data == 13 or item.data == 0:
                                         thing = tile - base # Don't override this one, as it's a normal ? block.
+                                    elif item.data == 18:
+                                        thing = 10
                                     elif item.data == 19:
                                         thing = 4
+                                    elif item.data == 20:
+                                        thing = 5
                                     elif item.data == 21:
                                         thing = 6
                                     elif item.data == 22:
@@ -3970,7 +3972,7 @@ class Area_NSMBU(AbstractParsedArea):
                                 f_int(obj.objy),
                                 f_int(obj.width),
                                 f_int(obj.height),
-                                f_int(obj.contents))
+                                f_int(obj.data))
             offset += 16
         buffer[offset] = 0xFF
         buffer[offset + 1] = 0xFF
@@ -4312,7 +4314,7 @@ class ObjectItem(LevelEditorItem):
     Level editor item that represents an ingame object
     """
 
-    def __init__(self, tileset, type, layer, x, y, width, height, z, data=0):
+    def __init__(self, tileset, type, layer, x, y, width, height, z, data=13):
         """
         Creates an object with specific data
         """
@@ -4326,7 +4328,6 @@ class ObjectItem(LevelEditorItem):
         self.width = width
         self.height = height
         self.data = data
-        self.contents = 0
         self.objdata = None
 
 
@@ -4461,7 +4462,7 @@ class ObjectItem(LevelEditorItem):
         """
         Overrides mouse pressing events if needed for resizing
         """
-        if event.button() == Qt.LeftButton: #212016 2
+        if event.button() == Qt.LeftButton:
             if QtWidgets.QApplication.keyboardModifiers() == Qt.ControlModifier:
                 layer = Area.layers[self.layer]
                 if len(layer) == 0:
@@ -7795,6 +7796,157 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         SetDirty()
         self.path.pathinfo['loops'] = (i == Qt.Checked)
         self.path.pathinfo['peline'].loops = (i == Qt.Checked)
+        mainWindow.scene.update()
+
+
+class ObjectDataEditorWidget(QtWidgets.QWidget):
+    """
+    Widget for editing object data
+    """
+    def __init__(self):
+        """
+        Constructor
+        """
+        QtWidgets.QWidget.__init__(self)
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
+
+        # create widgets
+        self.brick = QtWidgets.QCheckBox()
+        self.brick.setToolTip("Use the left list")
+        self.brick.stateChanged.connect(self.HandleAppearanceChanged)
+
+        self.contentbrick = QtWidgets.QComboBox()
+        self.contentbrick.setToolTip("Set the content of the brick block")
+        self.contentbrick.addItems((
+                              "One Coin",
+                              "Ten Coins",
+                              "Fire Flower",
+                              "Invincibility Star",
+                              "1-UP",
+                              "Vine",
+                              "Mini Mushroom",
+                              "Propeller Mushroom",
+                              "Penguin Suit",
+                              "Yoshi",
+                              "Ice Flower",
+                              "Acorn Mushroom"
+                             ))
+        self.contentbrick.currentIndexChanged.connect(self.HandleContentBrickChanged)
+
+        self.contentquest = QtWidgets.QComboBox()
+        self.contentquest.setToolTip("Set the content of the question block")
+        self.contentquest.addItems((
+                                    "Coin",
+                                    "Coin",
+                                    "Fire Flower",
+                                    "Invincibility Star",
+                                    "Continuous Star",
+                                    "Vine",
+                                    "Spring",
+                                    "Mini Mushroom",
+                                    "Propeler Mushroom",
+                                    "Penguin Suit",
+                                    "Yoshi",
+                                    "Ice Flower",
+                                    "Acorn Mushroom"
+                                  ))
+        self.contentquest.currentIndexChanged.connect(self.HandleContentQuestChanged)
+
+        # create a layout
+        layout = QtWidgets.QGridLayout()
+        self.setLayout(layout)
+
+        # add labels
+        layout.addWidget(QtWidgets.QLabel("Brick"), 1, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel("Content"), 4, 0, 1, 1, Qt.AlignRight)
+
+        # add the widgets
+        layout.addWidget(self.brick, 1, 1)
+        layout.addWidget(self.contentbrick, 4, 1)
+        layout.addWidget(self.contentquest, 4, 2)
+
+        self.object = None
+        self.UpdateFlag = False
+
+    def setObject(self, object):
+        """
+        Change the object being edited by the editor, update all fields
+        """
+        # Set object
+        if self.object == object:
+            return
+        self.object = object
+        self.UpdateFlag = True
+        
+        # Get and set fields
+        brick = object.data < 13 and object.data != 0
+        self.brick.setChecked(brick)
+        self.contentbrick.setEnabled(brick)
+        self.contentquest.setEnabled(not brick)
+        if brick:
+            self.contentbrick.setCurrentIndex(object.data - 1)
+            self.contentquest.setCurrentIndex(0)
+        else:
+            if object.data == 0:
+                i = 0
+            else:
+                i = object.data - 12
+            self.contentquest.setCurrentIndex(i)
+            self.contentbrick.setCurrentIndex(0)
+        self.UpdateFlag = False
+
+
+    @QtCore.pyqtSlot(int)
+    def HandleContentBrickChanged(self, value):
+        """
+        Handle a content change
+        """
+        if self.UpdateFlag:
+            return
+        SetDirty()
+
+        self.object.data = value + 1
+        mainWindow.scene.update()
+
+    @QtCore.pyqtSlot(int)
+    def HandleContentQuestChanged(self, value):
+        """
+        Handle a content change for a question block
+        """
+        if self.UpdateFlag:
+            return
+        SetDirty()
+        
+        if value == 0:
+            res = 0
+        else:
+            res = value + 12
+
+        self.object.data = res
+        mainWindow.scene.update()
+
+
+    @QtCore.pyqtSlot(int)
+    def HandleAppearanceChanged(self, value):
+        """
+        Handle an appearance change
+        """
+        if self.UpdateFlag:
+            return
+        SetDirty()
+
+        if (value == Qt.Checked):
+            self.contentquest.setEnabled(False)
+            self.contentbrick.setEnabled(True)
+            self.object.data = self.contentbrick.currentIndex() + 1
+        else:
+            self.contentbrick.setEnabled(False)
+            self.contentquest.setEnabled(True)
+            if self.contentquest.currentIndex() == 0:
+                self.object.data = 0
+            else:
+                self.object.data = self.contentquest.currentIndex() + 12
+
         mainWindow.scene.update()
         
 
@@ -11743,6 +11895,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
         dock.setFloating(True)
 
+        # create the object editor panel
+        dock = QtWidgets.QDockWidget("Object data editor", self)
+        dock.setVisible(False)
+        dock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable)
+        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        dock.setObjectName('objectdataeditor') #needed for the state to save/restore correctly
+
+        self.objectEditor = ObjectDataEditorWidget()
+        dock.setWidget(self.objectEditor)
+        self.objectEditorDock = dock
+
+        self.addDockWidget(Qt.RightDockWidgetArea, dock)
+        dock.setFloating(True)
+
         # create the entrance editor panel
         dock = QtWidgets.QDockWidget(trans.string('EntranceDataEditor', 24), self)
         dock.setVisible(False)
@@ -14401,7 +14567,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             elif func_ii(item, type_obj):
                 self.creationTabs.setCurrentIndex(0)
                 self.UpdateFlag = False
-                if item.type == 28: # Only relevant if it's a ? block
+                if item.tileset == 0 and item.type == 28: # Only relevant if it's a ? block
                     showObjPanel = True
                     updateModeInfo = True
             elif func_ii(item, type_com):
@@ -14498,6 +14664,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.spriteEditorDock.setVisible(showSpritePanel)
         self.entranceEditorDock.setVisible(showEntrancePanel)
+        self.objectEditorDock.setVisible(showObjPanel)
         self.locationEditorDock.setVisible(showLocationPanel)
         self.pathEditorDock.setVisible(showPathPanel)
 
@@ -14995,6 +15162,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.pathEditor.setPath(self.selObj)
         elif self.locationEditorDock.isVisible():
             self.locationEditor.setLocation(self.selObj)
+        elif self.objectEditorDock.isVisible():
+            self.objectEditor.setObject(self.selObj)
 
         self.UpdateFlag = False
 
@@ -15017,7 +15186,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if hovered is not None:
             if isinstance(hovered, ObjectItem): # Object
-                info = trans.string('Statusbar', 23, '[width]', hovered.width, '[height]', hovered.height, '[xpos]', hovered.objx, '[ypos]', hovered.objy, '[layer]', hovered.layer, '[type]', hovered.type, '[tileset]', hovered.tileset+1) + ('' if hovered.contents == 0 else '; contents value of %d' % hovered.contents)
+                info = trans.string('Statusbar', 23, '[width]', hovered.width, '[height]', hovered.height, '[xpos]', hovered.objx, '[ypos]', hovered.objy, '[layer]', hovered.layer, '[type]', hovered.type, '[tileset]', hovered.tileset+1) + ('' if hovered.data == 0 else '; contents value of %d' % hovered.data)
             elif isinstance(hovered, SpriteItem): # Sprite
                 info = trans.string('Statusbar', 24, '[name]', hovered.name, '[xpos]', hovered.objx, '[ypos]', hovered.objy)
             elif isinstance(hovered, SLib.AuxiliaryItem): # Sprite (auxiliary thing) (treat it like the actual sprite)
