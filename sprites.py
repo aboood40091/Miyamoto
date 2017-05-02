@@ -221,8 +221,7 @@ class SpriteImage_Pipe(SLib.SpriteImage):
                 pipeLength = rawlength + rawtype + self.extraLength + 1
             elif rawtop == 0:
                 if rawtype == 0:
-                    pipeLength = rawlength + rawtype + self.extraLength
-                    if rawlength == 1: pipeLength += 1
+                    pipeLength = rawlength + rawtype + self.extraLength + 1
                 else:
                     pipeLength = rawlength + rawtype + self.extraLength
             else:
