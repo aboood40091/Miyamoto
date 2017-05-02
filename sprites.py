@@ -1160,6 +1160,66 @@ class SpriteImage_HuckitCrab(SLib.SpriteImage_StaticMultiple): # 74
     def loadImages():
         SLib.loadIfNotInImageCache('HuckitCrab', 'huckit_crab.png')   
 
+class SpriteImage_BroIce(SLib.SpriteImage_Static): # 75
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['BroIce'],
+            )
+        
+        self.yOffset = -16
+        self.xOffset = -32
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BroIce', 'bro_ice.png')
+
+class SpriteImage_BroHammer(SLib.SpriteImage_Static): # 76
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['BroHammer'],
+            )
+        
+        self.yOffset = -16
+        self.xOffset = -8
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BroHammer', 'bro_hammer.png')
+
+class SpriteImage_BroBoomerang(SLib.SpriteImage_Static): # 78
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['BroBoomerang'],
+            )
+        
+        self.yOffset = -16
+        self.xOffset = -32
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BroBoomerang', 'bro_boomerang.png')
+
+class SpriteImage_BroFire(SLib.SpriteImage_Static): # 79
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['BroFire'],
+            )
+        
+        self.yOffset = -16
+        self.xOffset = -32
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BroFire', 'bro_fire.png')
+
 class SpriteImage_MovingCoin(SLib.SpriteImage_Static): # 87
     def __init__(self, parent):
         super().__init__(
@@ -4329,6 +4389,10 @@ ImageClasses = {
     72: SpriteImage_MovingLandBlock,
     73: SpriteImage_CoinSpawner,
     74: SpriteImage_HuckitCrab,
+    75: SpriteImage_BroIce,
+    76: SpriteImage_BroHammer,
+    78: SpriteImage_BroBoomerang,
+    79: SpriteImage_BroFire,
     87: SpriteImage_MovingCoin,
     88: SpriteImage_Water,
     89: SpriteImage_Lava,
