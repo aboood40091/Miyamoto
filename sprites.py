@@ -4100,6 +4100,18 @@ class SpriteImage_PacornBlock(SLib.SpriteImage_Static): # 612
     def loadImages():
         SLib.loadIfNotInImageCache('PacornBlock', 'pacorn_block.png')
 
+class SpriteImage_SteelBlock(SLib.SpriteImage_Static): # 618
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['SteelBlock'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('SteelBlock', 'steel_block.png')
+
 class SpriteImage_BlueRing(SLib.SpriteImage_Static): # 662
     def __init__(self, parent):
         super().__init__(
@@ -4310,6 +4322,7 @@ ImageClasses = {
     595: SpriteImage_Goombrat,
     600: SpriteImage_MoonBlock,
     612: SpriteImage_PacornBlock,
+    618: SpriteImage_SteelBlock,
     630: SpriteImage_Flagpole,
     631: SpriteImage_PaintGoal,
     662: SpriteImage_BlueRing,
