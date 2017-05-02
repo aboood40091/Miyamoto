@@ -221,7 +221,8 @@ class SpriteImage_Pipe(SLib.SpriteImage):
                 pipeLength = rawlength + rawtype + self.extraLength + 1
             elif rawtop == 0:
                 if rawtype == 0:
-                    pipeLength = rawlength + rawtype + self.extraLength + 1
+                    pipeLength = rawlength + rawtype + self.extraLength
+                    if rawlength == 1: pipeLength += 1
                 else:
                     pipeLength = rawlength + rawtype + self.extraLength
             else:
@@ -1159,6 +1160,66 @@ class SpriteImage_HuckitCrab(SLib.SpriteImage_StaticMultiple): # 74
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('HuckitCrab', 'huckit_crab.png')   
+
+class SpriteImage_BroIce(SLib.SpriteImage_Static): # 75
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['BroIce'],
+            )
+        
+        self.yOffset = -16
+        self.xOffset = -32
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BroIce', 'bro_ice.png')
+
+class SpriteImage_BroHammer(SLib.SpriteImage_Static): # 76
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['BroHammer'],
+            )
+        
+        self.yOffset = -16
+        self.xOffset = -8
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BroHammer', 'bro_hammer.png')
+
+class SpriteImage_BroBoomerang(SLib.SpriteImage_Static): # 78
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['BroBoomerang'],
+            )
+        
+        self.yOffset = -16
+        self.xOffset = -32
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BroBoomerang', 'bro_boomerang.png')
+
+class SpriteImage_BroFire(SLib.SpriteImage_Static): # 79
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['BroFire'],
+            )
+        
+        self.yOffset = -16
+        self.xOffset = -32
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BroFire', 'bro_fire.png')
 
 class SpriteImage_MovingCoin(SLib.SpriteImage_Static): # 87
     def __init__(self, parent):
@@ -2194,7 +2255,7 @@ class SpriteImage_AirshipCannon(SLib.SpriteImage_StaticMultiple): # 176
             
         super().dataChanged()
 
-class SpriteImage_CrashBattery(SLib.SpriteImage_StaticMultiple): # 177
+class SpriteImage_Crash(SLib.SpriteImage_StaticMultiple): # 177
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -2205,15 +2266,6 @@ class SpriteImage_CrashBattery(SLib.SpriteImage_StaticMultiple): # 177
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Crash', 'crash.png')
-
-class SpriteImage_CrashBatteryS(SLib.SpriteImage_Static): # 178
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
 
 class SpriteImage_FallingIcicle(SLib.SpriteImage_StaticMultiple): # 183
     def __init__(self, parent):
@@ -2608,15 +2660,6 @@ class SpriteImage_MicroGoomba(SLib.SpriteImage_Static): # 255
     def loadImages():
         SLib.loadIfNotInImageCache('MicroGoomba', 'micro_goomba.png')    
 
-class SpriteImage_CrashMushroom(SLib.SpriteImage_Static): # 256
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)     
-
 class SpriteImage_Muncher(SLib.SpriteImage_StaticMultiple): # 259
     def __init__(self, parent):
         super().__init__(
@@ -2776,51 +2819,6 @@ class SpriteImage_NoteBlock(SLib.SpriteImage_Static): # 295
     def loadImages():
         SLib.loadIfNotInImageCache('NoteBlock', 'noteblock.png')
 
-class SpriteImage_CrashOne(SLib.SpriteImage_Static): # 306
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
-class SpriteImage_CrashTwo(SLib.SpriteImage_Static): # 310
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
-class SpriteImage_CrashThree(SLib.SpriteImage_Static): # 312
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
-class SpriteImage_CrashFour(SLib.SpriteImage_Static): # 314
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
-class SpriteImage_CrashRaft(SLib.SpriteImage_Static): # 319
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
 class SpriteImage_Broozer(SLib.SpriteImage_Static): # 320
     def __init__(self, parent):
         super().__init__(
@@ -2967,15 +2965,6 @@ class SpriteImage_WoodenBox(SLib.SpriteImage_StaticMultiple): # 338
             
         super().dataChanged()
 
-class SpriteImage_CrashSeesaw(SLib.SpriteImage_Static): # 345
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
 class SpriteImage_StoneBlock(SLib.SpriteImage_Static): # 347
     def __init__(self, parent):
         super().__init__(
@@ -3056,36 +3045,6 @@ class SpriteImage_Pokey(SLib.SpriteImage): # 351
             painter.drawTiledPixmap(0, 60, 100, (self.length-120), ImageCache['PokeyMiddleD'])
             painter.drawPixmap(0, 0, 100, 60, ImageCache['PokeyBottomD'])
 
-class SpriteImage_CrashHill(SLib.SpriteImage_Static): # 355
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('Crash', 'crash.png')
-
-class SpriteImage_CrashFive(SLib.SpriteImage_Static): # 358
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
-class SpriteImage_CrashSix(SLib.SpriteImage_Static): # 360
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
 class SpriteImage_GoldenYoshi(SLib.SpriteImage_Static): # 365
     def __init__(self, parent):
         super().__init__(
@@ -3097,24 +3056,6 @@ class SpriteImage_GoldenYoshi(SLib.SpriteImage_Static): # 365
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('GoldenYoshi', 'babyyoshiglowing.png')
-
-class SpriteImage_CrashSeven(SLib.SpriteImage_Static): # 376
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
-class SpriteImage_CrashEight(SLib.SpriteImage_Static): # 377
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
 
 class SpriteImage_TorpedoLauncher(SLib.SpriteImage_StaticMultiple): # 378
     def __init__(self, parent):
@@ -3227,15 +3168,6 @@ class SpriteImage_PipeUpEnterable(SpriteImage_Pipe): # 404
             
         super().dataChanged()
 
-class SpriteImage_CrashNine(SLib.SpriteImage_Static): # 405
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
 class SpriteImage_BumpPlatform(SLib.SpriteImage): # 407
     def __init__(self, parent):
         super().__init__(
@@ -3313,24 +3245,6 @@ class SpriteImage_SnowyBoxes(SLib.SpriteImage_StaticMultiple): # 427
 
         super().dataChanged()
 
-class SpriteImage_CrashTen(SLib.SpriteImage_Static): # 436
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
-class SpriteImage_CrashEleven(SLib.SpriteImage_Static): # 439
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
 class SpriteImage_Fliprus(SLib.SpriteImage_StaticMultiple): # 441
     def __init__(self, parent):
         super().__init__(
@@ -3400,15 +3314,6 @@ class SpriteImage_NabbitPlacement(SLib.SpriteImage_Static): # 451
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('NabbitP', 'nabbit_placement.png') 
-
-class SpriteImage_CrashBYoshi(SLib.SpriteImage_Static): # 452
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
 
 class SpriteImage_ClapCrowd(SLib.SpriteImage_Static): # 455
     def __init__(self, parent):
@@ -3491,15 +3396,6 @@ class SpriteImage_BigKoopaTroopa(SLib.SpriteImage_StaticMultiple): # 476
             self.image = ImageCache['BigKoopaG']
             
         super().dataChanged()
-
-class SpriteImage_CrashTwelve(SLib.SpriteImage_Static): # 479
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
 
 class SpriteImage_MovementControlledStarCoin(SLib.SpriteImage_Static): # 480
     def __init__(self, parent):
@@ -3872,24 +3768,6 @@ class SpriteImage_MiniPipeDown(SpriteImage_Pipe): # 519
         self.mini = True
         self.direction = 'D'
 
-class SpriteImage_CrashThirteen(SLib.SpriteImage_Static): # 521
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
-class SpriteImage_CrashBarrel(SLib.SpriteImage_Static): # 522
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
 class SpriteImage_FlyingQBlockAmbush(SLib.SpriteImage_Static): # 523
     def __init__(self, parent):
         super().__init__(
@@ -3904,24 +3782,6 @@ class SpriteImage_FlyingQBlockAmbush(SLib.SpriteImage_Static): # 523
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('FlyingQBlockAmbush', 'flying_qblock.png') 
-
-class SpriteImage_CrashFourteen(SLib.SpriteImage_Static): # 529
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
-class SpriteImage_CrashFifteen(SLib.SpriteImage_Static): # 538
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
 
 class SpriteImage_BouncyMushroomPlatform(SLib.SpriteImage): # 542
     def __init__(self, parent):
@@ -4160,24 +4020,6 @@ class SpriteImage_Flowers(SLib.SpriteImage_StaticMultiple): # 546
 
         super().dataChanged()
 
-class SpriteImage_CrashSixteen(SLib.SpriteImage_Static): # 555
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
-class SpriteImage_CrashBubbleYoshi(SLib.SpriteImage_Static): # 556
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
-
 class SpriteImage_NabbitMetal(SLib.SpriteImage_Static): # 566
     def __init__(self, parent):
         super().__init__(
@@ -4201,15 +4043,6 @@ class SpriteImage_NabbitPrize(SLib.SpriteImage_Static): # 569
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('NabbitPrize', 'nabbit_prize.png')
-
-class SpriteImage_CrashSeventeen(SLib.SpriteImage_Static): # 572
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-        self.parent.setZValue(20000)
 
 class SpriteImage_SumoBro(SLib.SpriteImage_Static): # 593
     def __init__(self, parent):
@@ -4329,6 +4162,10 @@ ImageClasses = {
     72: SpriteImage_MovingLandBlock,
     73: SpriteImage_CoinSpawner,
     74: SpriteImage_HuckitCrab,
+    75: SpriteImage_BroIce,
+    76: SpriteImage_BroHammer,
+    78: SpriteImage_BroBoomerang,
+    79: SpriteImage_BroFire,
     87: SpriteImage_MovingCoin,
     88: SpriteImage_Water,
     89: SpriteImage_Lava,
@@ -4368,8 +4205,8 @@ ImageClasses = {
     170: SpriteImage_Parabomb,
     175: SpriteImage_Mechakoopa,
     176: SpriteImage_AirshipCannon,
-    177: SpriteImage_CrashBattery,
-    178: SpriteImage_CrashBatteryS,
+    177: SpriteImage_Crash,
+    178: SpriteImage_Crash,
     183: SpriteImage_FallingIcicle,
     184: SpriteImage_GiantIcicle,
     190: SpriteImage_MovQBlock,
@@ -4388,7 +4225,7 @@ ImageClasses = {
     247: SpriteImage_PricklyGoomba,
     249: SpriteImage_Wiggler,
     255: SpriteImage_MicroGoomba,
-    256: SpriteImage_CrashMushroom,
+    256: SpriteImage_Crash,
     259: SpriteImage_Muncher,
     261: SpriteImage_Parabeetle,
     265: SpriteImage_RollingHill,
@@ -4396,11 +4233,11 @@ ImageClasses = {
     281: SpriteImage_CoinBubble,
     282: SpriteImage_KingBill,
     295: SpriteImage_NoteBlock,
-    306: SpriteImage_CrashOne,
-    310: SpriteImage_CrashTwo,
-    312: SpriteImage_CrashThree,
-    314: SpriteImage_CrashFour,
-    319: SpriteImage_CrashRaft,
+    306: SpriteImage_Crash,
+    310: SpriteImage_Crash,
+    312: SpriteImage_Crash,
+    314: SpriteImage_Crash,
+    319: SpriteImage_Crash,
     320: SpriteImage_Broozer,
     323: SpriteImage_Barrel,
     325: SpriteImage_RotationControlledCoin,
@@ -4409,37 +4246,37 @@ ImageClasses = {
     334: SpriteImage_Cooligan,
     336: SpriteImage_Bramball,
     338: SpriteImage_WoodenBox,
-    345: SpriteImage_CrashSeesaw,   
+    345: SpriteImage_Crash,   
     347: SpriteImage_StoneBlock, 
     348: SpriteImage_SuperGuide,
     351: SpriteImage_Pokey,
-    355: SpriteImage_CrashHill,
-    358: SpriteImage_CrashFive,
-    360: SpriteImage_CrashSix,
+    355: SpriteImage_Crash,
+    358: SpriteImage_Crash,
+    360: SpriteImage_Crash,
     365: SpriteImage_GoldenYoshi,
-    376: SpriteImage_CrashSeven,
-    377: SpriteImage_CrashEight,
+    376: SpriteImage_Crash,
+    377: SpriteImage_Crash,
     378: SpriteImage_TorpedoLauncher,
     395: SpriteImage_Starman,
     398: SpriteImage_BrickMovement,
     402: SpriteImage_GreenRing,
     404: SpriteImage_PipeUpEnterable,
-    405: SpriteImage_CrashNine,
+    405: SpriteImage_Crash,
     407: SpriteImage_BumpPlatform,
     422: SpriteImage_BigBrickBlock,
     427: SpriteImage_SnowyBoxes,
-    436: SpriteImage_CrashTen,
-    439: SpriteImage_CrashEleven,
+    436: SpriteImage_Crash,
+    439: SpriteImage_Crash,
     441: SpriteImage_Fliprus,
     446: SpriteImage_FliprusSnowball,
     451: SpriteImage_NabbitPlacement,
-    452: SpriteImage_CrashBYoshi,
+    452: SpriteImage_Crash,
     455: SpriteImage_ClapCrowd,
     472: SpriteImage_BigGoomba,
     473: SpriteImage_MegaBowser,
     475: SpriteImage_BigQBlock,
     476: SpriteImage_BigKoopaTroopa,
-    479: SpriteImage_CrashTwelve,
+    479: SpriteImage_Crash,
     480: SpriteImage_MovementControlledStarCoin,
     481: SpriteImage_WaddleWing,
     483: SpriteImage_MultiSpinningFirebar,
@@ -4457,19 +4294,19 @@ ImageClasses = {
     517: SpriteImage_MiniPipeLeft,
     518: SpriteImage_MiniPipeUp,
     519: SpriteImage_MiniPipeDown,
-    521: SpriteImage_CrashThirteen,
-    522: SpriteImage_CrashBarrel,
+    521: SpriteImage_Crash,
+    522: SpriteImage_Crash,
     523: SpriteImage_FlyingQBlockAmbush,
-    529: SpriteImage_CrashFourteen,
-    538: SpriteImage_CrashFifteen,
+    529: SpriteImage_Crash,
+    538: SpriteImage_Crash,
     542: SpriteImage_BouncyMushroomPlatform,
     544: SpriteImage_MushroomMovingPlatform,
     546: SpriteImage_Flowers,
-    555: SpriteImage_CrashSixteen,
-    556: SpriteImage_CrashBubbleYoshi,
+    555: SpriteImage_Crash,
+    556: SpriteImage_Crash,
     566: SpriteImage_NabbitMetal,
     569: SpriteImage_NabbitPrize,
-    572: SpriteImage_CrashSeventeen,
+    572: SpriteImage_Crash,
     593: SpriteImage_SumoBro,
     595: SpriteImage_Goombrat,
     600: SpriteImage_MoonBlock,
