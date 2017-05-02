@@ -1690,10 +1690,10 @@
     <value nybble="11" title="Unknown Value 11"/>
     <checkbox nybble="20" title="On moving platform" comment="Check this option if you want to place a Big Dry Bones on a moving platform (place Big Dry Bones right above it)."/>
   </sprite>
-  <sprite id="139" name="Pipe - Up" notes="This sprite seems to be required for pipes to work correctly in-game. If this pipe is inside a quicksand (maybe other liquids as well) location, another pipe has to be placed directly on top of it to make the pipe show in front of the quicksand (maybe other liquids as well)...&#13;&#10;&#13;&#10;&lt;b&gt;NOTE:&lt;/b&gt; This sprite cannot function as an entrance unless there are pipe tiles (from Pa0) behind the entire sprite!">
-    <list nybble="5" title="Height-related" comment="For value(s) with an asterisk, 2 blocks are added to the height. Other values cause an increment of one block to the height.">
+  <sprite id="139" name="Pipe - Up" notes="Collision-less pipe. If this pipe is inside a quicksand (maybe other liquids as well) location, another pipe has to be placed directly on top of it to make the pipe show in front of the quicksand (maybe other liquids as well)...&#13;&#10;&#13;&#10;&lt;b&gt;NOTE:&lt;/b&gt; This sprite cannot function as an entrance unless there are pipe tiles (from Pa0) behind the entire sprite!">
+    <list nybble="5" title="Height-related" comment="The value with an asterisk has some glitchy behaviour when used as an enterable pipe.">
       <entry value="0">Has a top*</entry>
-      <entry value="1">Has a top*</entry>
+      <entry value="1">Has a top</entry>
       <entry value="2">UNUSED</entry>
       <entry value="3">Doesn't have a top</entry>
     </list>
@@ -1710,10 +1710,10 @@
     </list>
     <value nybble="12" title="Height" comment="Value + 1 by default. If height-related is a value with an asterisk, the increment is 2 instead of 1. Additionally, another 2 blocks are added to the height if the type is &quot;Big&quot;, or 1 extra block if the type is &quot;Painted&quot;."/>
   </sprite>
-  <sprite id="140" name="Pipe - Down" notes="This sprite seems to be required for pipes to work correctly in-game. If this pipe is inside a quicksand (maybe others as well) location, another pipe has to be placed directly on top of it to make the pipe show in front of the quicksand (maybe others as well)...&#13;&#10;&#13;&#10;&lt;b&gt;NOTE:&lt;/b&gt; This sprite cannot function as an entrance unless there are pipe tiles (from Pa0) behind the entire sprite!">
-    <list nybble="5" title="Height-related" comment="For value(s) with an asterisk, 2 blocks are added to the height. Other values cause an increment of one block to the height.">
+  <sprite id="140" name="Pipe - Down" notes="Collision-less pipe. If this pipe is inside a quicksand (maybe others as well) location, another pipe has to be placed directly on top of it to make the pipe show in front of the quicksand (maybe others as well)...&#13;&#10;&#13;&#10;&lt;b&gt;NOTE:&lt;/b&gt; This sprite cannot function as an entrance unless there are pipe tiles (from Pa0) behind the entire sprite!">
+    <list nybble="5" title="Height-related" comment="The value with an asterisk has some glitchy behaviour when used as an enterable pipe.">
       <entry value="0">Has a top*</entry>
-      <entry value="1">Has a top*</entry>
+      <entry value="1">Has a top</entry>
       <entry value="2">UNUSED</entry>
       <entry value="3">Doesn't have a top</entry>
     </list>
@@ -1730,10 +1730,10 @@
     </list>
     <value nybble="12" title="Height" comment="Value + 1 by default. If height-related is a value with an asterisk, the increment is 2 instead of 1. Additionally, another 2 blocks are added to the height if the type is &quot;Big&quot;, or 1 extra block if the type is &quot;Painted&quot;."/>
   </sprite>
-  <sprite id="141" name="Pipe - Left" notes="This sprite seems to be required for pipes to work correctly in-game. If this pipe is inside a quicksand (maybe other liquids as well) location, another pipe has to be placed directly on top of it to make the pipe show in front of the quicksand...&#13;&#10;&#13;&#10;&lt;b&gt;NOTE:&lt;/b&gt; This sprite cannot function as an entrance unless there are pipe tiles (from Pa0) behind the entire sprite!">
-    <list nybble="5" title="Length-related" comment="For value(s) with an asterisk, 2 blocks are added to the length. Other values cause an increment of one block to the length.">
+  <sprite id="141" name="Pipe - Left" notes="Collision-less pipe. If this pipe is inside a quicksand (maybe other liquids as well) location, another pipe has to be placed directly on top of it to make the pipe show in front of the quicksand...&#13;&#10;&#13;&#10;&lt;b&gt;NOTE:&lt;/b&gt; This sprite cannot function as an entrance unless there are pipe tiles (from Pa0) behind the entire sprite!">
+    <list nybble="5" title="Length-related" comment="The value with an asterisk has some glitchy behaviour when used as an enterable pipe.">
       <entry value="0">Has a top*</entry>
-      <entry value="1">Has a top*</entry>
+      <entry value="1">Has a top</entry>
       <entry value="2">UNUSED</entry>
       <entry value="3">Doesn't have a top</entry>
     </list>
@@ -1750,10 +1750,10 @@
     </list>
     <value nybble="12" title="Length" comment="Value + 1 by default. If length-related is a value with an asterisk, the increment is 2 instead of 1. Additionally, another 2 blocks are added to the length if the type is &quot;Big&quot;, or 1 extra block if the type is &quot;Painted&quot;."/>
   </sprite>
-  <sprite id="142" name="Pipe - Right" notes="This sprite seems to be required for pipes to work correctly in-game. If this pipe is inside a quicksand (maybe other liquids as well) location, another pipe has to be placed directly on top of it to make the pipe show in front of the quicksand...&#13;&#10;&#13;&#10;&lt;b&gt;NOTE:&lt;/b&gt; This sprite cannot function as an entrance unless there are pipe tiles (from Pa0) behind the entire sprite!">
-    <list nybble="5" title="Length-related" comment="For value(s) with an asterisk, 2 blocks are added to the length. Other values cause an increment of one block to the length.">
+  <sprite id="142" name="Pipe - Right" notes="Collision-less pipe. If this pipe is inside a quicksand (maybe other liquids as well) location, another pipe has to be placed directly on top of it to make the pipe show in front of the quicksand...&#13;&#10;&#13;&#10;&lt;b&gt;NOTE:&lt;/b&gt; This sprite cannot function as an entrance unless there are pipe tiles (from Pa0) behind the entire sprite!">
+    <list nybble="5" title="Length-related" comment="The value with an asterisk has some glitchy behaviour when used as an enterable pipe.">
       <entry value="0">Has a top*</entry>
-      <entry value="1">Has a top*</entry>
+      <entry value="1">Has a top</entry>
       <entry value="2">UNUSED</entry>
       <entry value="3">Doesn't have a top</entry>
     </list>
