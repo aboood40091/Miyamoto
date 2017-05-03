@@ -332,6 +332,18 @@ class SpriteImage_StackedSprite(SLib.SpriteImage):
         self.parent.setZValue(24999)
 
 
+class SpriteImage_Useless(SLib.SpriteImage_Static): # X
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['Useless'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Useless', 'useless.png')
+
 class SpriteImage_Goomba(SLib.SpriteImage_Static): # 0
     def __init__(self, parent):
         super().__init__(
@@ -4233,6 +4245,7 @@ ImageClasses = {
     237: SpriteImage_TileGod,
     238: SpriteImage_Bolt,
     243: SpriteImage_BubbleYoshi,
+    244: SpriteImage_Useless,
     247: SpriteImage_PricklyGoomba,
     249: SpriteImage_Wiggler,
     255: SpriteImage_MicroGoomba,
