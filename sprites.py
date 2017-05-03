@@ -1323,7 +1323,18 @@ class SpriteImage_Quicksand(SLib.SpriteImage_Static): # 91
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Quicksand', 'quicksand.png')
-    
+
+class SpriteImage_Fog(SLib.SpriteImage_Static): # 92
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['Fog'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Fog', 'fog.png')
 
 class SpriteImage_BouncyCloud(SLib.SpriteImage_StaticMultiple): # 94
     def __init__(self, parent):
@@ -4194,6 +4205,7 @@ ImageClasses = {
     89: SpriteImage_Lava,
     90: SpriteImage_Poison,
     91: SpriteImage_Quicksand,
+    92: SpriteImage_Fog,
     94: SpriteImage_BouncyCloud,
     97: SpriteImage_BackCenter,
     101: SpriteImage_CheepCheep,
