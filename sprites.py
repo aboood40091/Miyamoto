@@ -2775,6 +2775,35 @@ class SpriteImage_TowerCog(SLib.SpriteImage_StaticMultiple): # 269
         super().dataChanged()
         self.parent.setZValue(-50000)
 
+class SpriteImage_Amp(SLib.SpriteImage_StaticMultiple): # 334
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Amp', 'amp.png')
+        SLib.loadIfNotInImageCache('AmpB', 'amp_big.png')
+
+    def dataChanged(self):
+        
+        big = self.parent.spritedata[4]
+
+        if big == 0:
+            self.image = ImageCache['Amp']
+            self.xOffset = -2
+            self.yOffset = -4
+        elif big == 1:
+            self.image = ImageCache['AmpB']
+        else:
+            self.image = ImageCache['Amp']
+            self.xOffset = -2
+            self.yOffset = -4
+
+        super().dataChanged()
+
 class SpriteImage_CoinBubble(SLib.SpriteImage_Static): # 281
     def __init__(self, parent):
         super().__init__(
@@ -4268,6 +4297,7 @@ ImageClasses = {
     261: SpriteImage_Parabeetle,
     265: SpriteImage_RollingHill,
     269: SpriteImage_TowerCog,
+    270: SpriteImage_Amp,
     281: SpriteImage_CoinBubble,
     282: SpriteImage_KingBill,
     295: SpriteImage_NoteBlock,
