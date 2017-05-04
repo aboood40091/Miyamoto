@@ -24,8 +24,8 @@
 # Builds Miyamoto! to a binary
 # Use the values below to configure the release:
 
-PackageName = 'miyamoto_v12.0'
-Version = '1.2.0' # This must be a valid float in string format
+PackageName = 'miyamoto_v13.0'
+Version = '13.0' # This must be a valid float in string format
 
 
 ################################################################
