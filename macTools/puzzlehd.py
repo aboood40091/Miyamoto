@@ -2608,7 +2608,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             for i, tex in enumerate(mipmaps):
                 tex.save(self.miyamoto_path + '/macTools/mipmap%s_%d.png' % ('_nml' if normalmap else '', i))
-                text = '"' + self.miyamoto_path + '/macTools/nvcompress" -bc3 -nomips "'
+                text = 'open -a "' + self.miyamoto_path + '/macTools/nvcompress" -bc3 -nomips "'
                 text += self.miyamoto_path + '/macTools/mipmap%s_%d.png" ' % ('_nml' if normalmap else '', i)
                 text += self.miyamoto_path + '/macTools/mipmap%s_%d.dds" &' % ('_nml' if normalmap else '', i)
                 os.system('chmod +x "' + self.miyamoto_path + '/macTools/nvcompress"')
