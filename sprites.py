@@ -2380,7 +2380,8 @@ class SpriteImage_ExpandingPipeUp(SpriteImage_PipeExpand): # 161
             self.painted = False
             self.width = 64
             self.xOffset = -16
-            addSize = 3
+            bigSize = bigSize + 1
+            addSize = 1
         else:
             self.big = False
             self.painted = False
