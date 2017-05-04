@@ -2345,6 +2345,112 @@ class SpriteImage_CoinOutline(SLib.SpriteImage_StaticMultiple): # 158
         self.image = ImageCache['CoinOutline' + ('Multiplayer' if multi else '')]
         super().dataChanged()
 
+class SpriteImage_ExpandingPipeRight(SpriteImage_PipeExpand): # 159
+    def __init__(self, parent, scale=3.75):
+        super().__init__(parent, scale)
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
+        self.direction = 'R'
+        self.typeinfluence = True
+
+    def dataChanged(self):
+        
+        size = self.parent.spritedata[4]
+        self.expandable = True
+
+        bigSize = self.parent.spritedata[5] & 0xF
+
+        adderSize = self.parent.spritedata[5] >> 4
+
+        addSize = 0
+        
+        if size == 0:
+            self.big = False
+            self.painted = False
+            self.height = 32
+            self.yOffset = 0
+            addSize = 1
+        elif size == 1:
+            self.big = False
+            self.painted = True
+            self.height = 32
+            self.yOffset = 0
+            addSize = 1
+        elif size == 2:
+            self.big = True
+            self.painted = False
+            self.height = 64
+            self.yOffset = -16
+            bigSize = bigSize + 1
+            addSize = 1
+        else:
+            self.big = False
+            self.painted = False
+            self.height = 32
+            self.yOffset = 0
+            addSize = 1
+
+
+        totalHeight = (0-1) + (addSize) + adderSize
+
+        xOff = 0
+
+        self.aux[0].setSize(totalHeight*60+120+(bigSize*60), self.height/16*60, xOff*60, 0)
+
+        super().dataChanged()
+
+class SpriteImage_ExpandingPipeLeft(SpriteImage_PipeExpand): # 160
+    def __init__(self, parent, scale=3.75):
+        super().__init__(parent, scale)
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
+        self.direction = 'L'
+        self.typeinfluence = True
+
+    def dataChanged(self):
+        
+        size = self.parent.spritedata[4]
+        self.expandable = True
+
+        bigSize = self.parent.spritedata[5] & 0xF
+
+        adderSize = self.parent.spritedata[5] >> 4
+
+        addSize = 0
+        
+        if size == 0:
+            self.big = False
+            self.painted = False
+            self.height = 32
+            self.yOffset = 0
+            addSize = 1
+        elif size == 1:
+            self.big = False
+            self.painted = True
+            self.height = 32
+            self.yOffset = 0
+            addSize = 1
+        elif size == 2:
+            self.big = True
+            self.painted = False
+            self.height = 64
+            self.yOffset = -16
+            bigSize = bigSize + 1
+            addSize = 1
+        else:
+            self.big = False
+            self.painted = False
+            self.height = 32
+            self.yOffset = 0
+            addSize = 1
+
+
+        totalHeight = (0-1) + (addSize) + adderSize
+
+        xOff = -totalHeight
+
+        self.aux[0].setSize(totalHeight*60+120+(bigSize*60), self.height/16*60, xOff*60, 0)
+
+        super().dataChanged()
+
 class SpriteImage_ExpandingPipeUp(SpriteImage_PipeExpand): # 161
     def __init__(self, parent, scale=3.75):
         super().__init__(parent, scale)
@@ -2398,7 +2504,7 @@ class SpriteImage_ExpandingPipeUp(SpriteImage_PipeExpand): # 161
 
         super().dataChanged()
 
-class SpriteImage_ExpandingPipeDown(SpriteImage_Pipe): # 162
+class SpriteImage_ExpandingPipeDown(SpriteImage_PipeExpand): # 162
     def __init__(self, parent, scale=3.75):
         super().__init__(parent, scale)
         self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
@@ -2410,7 +2516,9 @@ class SpriteImage_ExpandingPipeDown(SpriteImage_Pipe): # 162
         size = self.parent.spritedata[4]
         self.expandable = True
 
-        bigSize = self.parent.spritedata[5]
+        bigSize = self.parent.spritedata[5] & 0xF
+
+        adderSize = self.parent.spritedata[5] >> 4
 
         addSize = 0
         
@@ -2425,13 +2533,14 @@ class SpriteImage_ExpandingPipeDown(SpriteImage_Pipe): # 162
             self.painted = True
             self.width = 32
             self.xOffset = 0
-            addSize = 2
+            addSize = 1
         elif size == 2:
             self.big = True
             self.painted = False
             self.width = 64
             self.xOffset = -16
-            addSize = 3
+            bigSize = bigSize + 1
+            addSize = 1
         else:
             self.big = False
             self.painted = False
@@ -2440,9 +2549,11 @@ class SpriteImage_ExpandingPipeDown(SpriteImage_Pipe): # 162
             addSize = 1
 
 
-        totalHeight = (bigSize/16) + addSize
+        totalHeight = (0-1) + (addSize) + adderSize
 
-        self.aux[0].setSize(self.width/16*60, totalHeight*60)
+        yOff = 0
+
+        self.aux[0].setSize(self.width/16*60, totalHeight*60+120+(bigSize*60), 0, yOff*60)
 
         super().dataChanged()
 
@@ -4648,8 +4759,10 @@ ImageClasses = {
     154: SpriteImage_FlyingQBlock,
     156: SpriteImage_WaterGeyser,
     158: SpriteImage_CoinOutline,
+    159: SpriteImage_ExpandingPipeRight,
+    160: SpriteImage_ExpandingPipeLeft,
     161: SpriteImage_ExpandingPipeUp,
-#    162: SpriteImage_ExpandingPipeDown, --Glitches with pipe length area thing.
+    162: SpriteImage_ExpandingPipeDown,
     163: SpriteImage_WaterGeyserLocation,
     166: SpriteImage_CoinOutline,
     167: SpriteImage_CoinBlue,
