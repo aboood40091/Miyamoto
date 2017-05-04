@@ -105,42 +105,6 @@ class SpriteImage_Block(SLib.SpriteImage_Static):
         if self.image is not None:
             painter.drawPixmap(0, 0, self.image)
 
-class SpriteImage_WaterRender(SLib.SpriteImage_Static):
-
-    def __init__(self, parent, scale=3.75, image='None'):
-        super().__init__(parent, scale, image)
-
-
-
-    """
-        top = QPixmap('miyamotodata/sprites/water_top.png')
-        base = QPixmap('miyamotodata/sprites/water.png')
-
-        currY = self.dimensions[1] - 20
-        x = Waterlocationx
-        y = Waterlocationy
-        w = Waterlocationw
-        h = Waterlocationh
-        tempx = Waterlocationx
-        tempxx = Waterlocationx
- 
-        painter = QPainter()
-
-        for tempx in range(x+w):
-            rect = QRect(tempx, currY, min(x + w - tempx, top.width()), min(y + h - currY, top.height()));
-            painter.drawPixmap(rect, top, QRect(0, 0, rect.right()-rect.left(), rect.bottom()-rect.top()));
-            tempx = tempx+top.width()
-
-        currY += top.height();
-
-        for currY in range(y+h): 
-            for tempxx in range(x+w):
-                tempxx = tempxx + base.width()
-                rect = QRect(tempxx, currY, min(x + w - tempxx, base.width()), min(y + h - currY, base.height()));
-                painter.drawPixmap(rect, base, QRect(0, 0, rect.right()-rect.left(), rect.bottom()-rect.top()));
-            currY = currY + base.height()
-    """
-
 class SpriteImage_Pipe(SLib.SpriteImage):
     def __init__(self, parent, scale=3.75):
         super().__init__(parent, scale)
@@ -523,6 +487,18 @@ class SpriteImage_Useless(SLib.SpriteImage_Static): # X
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Useless', 'useless.png')
+
+class SpriteImage_Crash(SLib.SpriteImage_StaticMultiple): # X
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['Crash'],
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Crash', 'crash.png')
 
 class SpriteImage_Goomba(SLib.SpriteImage_Static): # 0
     def __init__(self, parent):
@@ -1425,38 +1401,9 @@ class SpriteImage_MovingCoin(SLib.SpriteImage_Static): # 87
     def loadImages():
         SLib.loadIfNotInImageCache('MovCoin', 'mov_coin.png')
 
-"""
-# Time to see if I can actually get something to work.
-class SpriteImage_Water(SpriteImage_WaterRender): #88
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Water'].scaled(Waterlocationw,Waterlocationh,QtCore.Qt.KeepAspectRatio),
-            )
-    
-#        size = Waterlocationw, Waterlocationh
-
-#       Draw a shitty rect.
-        self.width = Waterlocationw
-        self.height = Waterlocationh
-#        self.yOffset = -300
-
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('Water', 'water_top.png')
-"""
-
 class SpriteImage_Water(SLib.SpriteImage_Liquid): # 88
     def __init__(self, parent):
-        super().__init__(parent, 3.75, ImageCache['Water'].scaled(180,180,QtCore.Qt.KeepAspectRatio))
-        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
-        self.parent.setZValue(500000)
-
-    def dataChanged(self):
-        super().dataChanged()
-        self.aux[0].setSize(Waterlocationw * 60, Waterlocationh * 60)
+        super().__init__(parent, 3.75, ImageCache['Water'].scaled(60,60,QtCore.Qt.KeepAspectRatio))
 
     @staticmethod
     def loadImages():
@@ -1464,13 +1411,7 @@ class SpriteImage_Water(SLib.SpriteImage_Liquid): # 88
 
 class SpriteImage_Lava(SLib.SpriteImage_Liquid): # 89
     def __init__(self, parent):
-        super().__init__(parent, 3.75, ImageCache['Lava'].scaled(180,180,QtCore.Qt.KeepAspectRatio))
-        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
-        self.parent.setZValue(500000)
-
-    def dataChanged(self):
-        super().dataChanged()
-        self.aux[0].setSize(Waterlocationw * 60, Waterlocationh * 60)
+        super().__init__(parent, 3.75, ImageCache['Lava'].scaled(60,60,QtCore.Qt.KeepAspectRatio))
 
     @staticmethod
     def loadImages():
@@ -1478,15 +1419,7 @@ class SpriteImage_Lava(SLib.SpriteImage_Liquid): # 89
 
 class SpriteImage_Poison(SLib.SpriteImage_Liquid): # 90
     def __init__(self, parent):
-        super().__init__(parent, 3.75, ImageCache['Soda'].scaled(180,180,QtCore.Qt.KeepAspectRatio))
-        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
-        self.xOffset = Waterlocationx
-        self.yOffset = Waterlocationy
-        self.parent.setZValue(500000)
-
-    def dataChanged(self):
-        super().dataChanged()
-        self.aux[0].setSize(Waterlocationw * 60, Waterlocationh * 60)
+        super().__init__(parent, 3.75, ImageCache['Soda'].scaled(60,60,QtCore.Qt.KeepAspectRatio))
 
     @staticmethod
     def loadImages():
@@ -1503,18 +1436,7 @@ class SpriteImage_Quicksand(SLib.SpriteImage_Static): # 91
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Quicksand', 'quicksand.png')
-
-class SpriteImage_Fog(SLib.SpriteImage_Static): # 92
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Fog'],
-            )
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('Fog', 'fog.png')
+    
 
 class SpriteImage_BouncyCloud(SLib.SpriteImage_StaticMultiple): # 94
     def __init__(self, parent):
@@ -1537,7 +1459,7 @@ class SpriteImage_BouncyCloud(SLib.SpriteImage_StaticMultiple): # 94
             self.yOffset = 2
             self.image = ImageCache['BouncyCloudL']
         else:
-            self.xOffset = -2
+            self.xOffset = -6
             self.yOffset = -8
             self.image = ImageCache['BouncyCloudS']
             
@@ -2496,18 +2418,6 @@ class SpriteImage_AirshipCannon(SLib.SpriteImage_StaticMultiple): # 176
             
         super().dataChanged()
 
-class SpriteImage_Crash(SLib.SpriteImage_StaticMultiple): # 177
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Crash'],
-            )
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('Crash', 'crash.png')
-
 class SpriteImage_FallingIcicle(SLib.SpriteImage_StaticMultiple): # 183
     def __init__(self, parent):
         super().__init__(
@@ -2715,6 +2625,27 @@ class SpriteImage_IceBlock(SLib.SpriteImage_StaticMultiple): # 203
 
         super().dataChanged() 
 
+class SpriteImage_Fuzzy(SLib.SpriteImage_StaticMultiple): # 204
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Fuzzy', 'fuzzy.png')
+        SLib.loadIfNotInImageCache('FuzzyGiant', 'fuzzy_giant.png')
+
+    def dataChanged(self):
+
+        giant = self.parent.spritedata[4] & 1
+
+        self.image = ImageCache['FuzzyGiant'] if giant else ImageCache['Fuzzy']
+        self.offset = (-18, -18) if giant else (-7, -7)
+
+        super().dataChanged()
+
 class SpriteImage_ControllerAutoscroll(SLib.SpriteImage_Static): # 212
     def __init__(self, parent):
         super().__init__(
@@ -2889,6 +2820,39 @@ class SpriteImage_Wiggler(SLib.SpriteImage_StaticMultiple): # 249
     def loadImages():
         SLib.loadIfNotInImageCache('Wiggler', 'wiggler.png') 
 
+class SpriteImage_GiantBubble(SLib.SpriteImage): # 251
+    def __init__(self, parent, scale=3.75):
+        super().__init__(parent, scale)
+        self.spritebox.shown = False
+
+    @staticmethod
+    def loadImages():
+        if 'GiantBubble0' not in ImageCache:
+            for shape in range(4):
+                ImageCache['GiantBubble%d' % shape] = SLib.GetImg('giant_bubble_%d.png' % shape)
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        self.shape = self.parent.spritedata[4] >> 4
+        self.direction = self.parent.spritedata[5] & 15
+        arrow = None
+
+        if self.shape == 0 or self.shape > 3:
+            self.size = (122, 137)
+        elif self.shape == 1:
+            self.size = (76, 170)
+        elif self.shape == 2:
+            self.size = (160, 81)
+
+        self.xOffset = -(self.width / 2) + 8
+        self.yOffset = -(self.height / 2) + 8
+
+    def paint(self, painter):
+        super().paint(painter)
+
+        painter.drawPixmap(0, 0, ImageCache['GiantBubble%d' % self.shape])
+
 class SpriteImage_MicroGoomba(SLib.SpriteImage_Static): # 255
     def __init__(self, parent):
         super().__init__(
@@ -2993,6 +2957,46 @@ class SpriteImage_TowerCog(SLib.SpriteImage_StaticMultiple): # 269
             
         super().dataChanged()
         self.parent.setZValue(-50000)
+
+
+class SpriteImage_Amp(SLib.SpriteImage_StaticMultiple): # 270
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['Amp'],
+            (-16, -16),
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Amp', 'amp.png')
+        SLib.loadIfNotInImageCache('BigAmp', 'big_amp.png')
+
+    def dataChanged(self):
+        big = self.parent.spritedata[4] & 0xF
+
+        if big == 1:
+            self.image = ImageCache['BigAmp']
+        else:
+            self.image = ImageCache['Amp']
+
+        shift = (self.parent.spritedata[5] >> 4) & 0xF
+
+        if shift == 1:
+            self.yOffset = -16
+            self.xOffset = -8
+        elif shift == 2:
+            self.yOffset = -8
+            self.xOffset = -16
+        elif shift == 3:
+            self.yOffset = -8
+            self.xOffset = -8
+        else:
+            self.yOffset = -16
+            self.xOffset = -16
+            
+        super().dataChanged()
 
 class SpriteImage_CoinBubble(SLib.SpriteImage_Static): # 281
     def __init__(self, parent):
@@ -4383,6 +4387,7 @@ ImageClasses = {
     6: SpriteImage_PipePiranhaUpFire,
     19: SpriteImage_KoopaTroopa,
     20: SpriteImage_KoopaParatroopa,
+    21: SpriteImage_KoopaParatroopa,
     22: SpriteImage_BuzzyBeetle,
     23: SpriteImage_Spiny,
     25: SpriteImage_MidwayFlag,
@@ -4424,7 +4429,6 @@ ImageClasses = {
     89: SpriteImage_Lava,
     90: SpriteImage_Poison,
     91: SpriteImage_Quicksand,
-    92: SpriteImage_Fog,
     94: SpriteImage_BouncyCloud,
     97: SpriteImage_BackCenter,
     101: SpriteImage_CheepCheep,
@@ -4469,6 +4473,7 @@ ImageClasses = {
     195: SpriteImage_RouletteBlock,
     200: SpriteImage_MushroomPlatform,
     203: SpriteImage_IceBlock,
+    204: SpriteImage_Fuzzy,
     212: SpriteImage_ControllerAutoscroll,
     214: SpriteImage_ControllerSpinOne,
     215: SpriteImage_Springboard,
@@ -4481,12 +4486,14 @@ ImageClasses = {
     244: SpriteImage_Useless,
     247: SpriteImage_PricklyGoomba,
     249: SpriteImage_Wiggler,
+    251: SpriteImage_GiantBubble,
     255: SpriteImage_MicroGoomba,
     256: SpriteImage_Crash,
     259: SpriteImage_Muncher,
     261: SpriteImage_Parabeetle,
     265: SpriteImage_RollingHill,
     269: SpriteImage_TowerCog,
+    270: SpriteImage_Amp,
     281: SpriteImage_CoinBubble,
     282: SpriteImage_KingBill,
     295: SpriteImage_NoteBlock,
@@ -4508,6 +4515,7 @@ ImageClasses = {
     348: SpriteImage_SuperGuide,
     351: SpriteImage_Pokey,
     355: SpriteImage_Crash,
+    357: SpriteImage_Fuzzy,
     358: SpriteImage_Crash,
     360: SpriteImage_Crash,
     365: SpriteImage_GoldenYoshi,
@@ -4571,6 +4579,7 @@ ImageClasses = {
     595: SpriteImage_Goombrat,
     600: SpriteImage_MoonBlock,
     612: SpriteImage_PacornBlock,
+    615: SpriteImage_CheepCheep,
     618: SpriteImage_SteelBlock,
     630: SpriteImage_Flagpole,
     631: SpriteImage_PaintGoal,

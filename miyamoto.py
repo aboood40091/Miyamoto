@@ -932,7 +932,6 @@ def LoadGameDef(name=None, dlg=None):
         # Reload tilesets
         if dlg: dlg.setLabelText(trans.string('Gamedefs', 10)) # Reloading tilesets...
         LoadObjDescriptions(True) # reloads ts1_descriptions
-        if mainWindow is not None: mainWindow.ReloadTilesets(True)
         LoadTilesetNames(True) # reloads tileset names
         if dlg: dlg.setValue(4)
 
@@ -2219,33 +2218,6 @@ def _LoadTileset(idx, name, reload=False):
             sourcex = 0
             sourcey += 1
 
-    isAnimated = False
-    if isAnimated:
-        row = 0
-        col = 0
-        for i in range(tileoffset,tileoffset+441):
-            filenames = []
-            filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].lower(), hex(col)[2].lower()))
-            filenames.append('%s_%d%s%s.bin' % (prefix, idx, hex(row)[2].upper(), hex(col)[2].upper()))
-            if filenames[0] == filenames[1]:
-                item = filenames[0]
-                filenames = []
-                filenames.append(item)
-            for fn in filenames:
-                fn = 'BG_tex/' + fn
-                found = False
-                try:
-                    sarc[fn]
-                    found = True
-                except KeyError:
-                    pass
-                if found:
-                    Tiles[i].addAnimationData()
-            col += 1
-            if col == 16:
-                col = 0
-                row += 1
-
 
     # Load the object definitions
     defs = [None] * 256
@@ -2501,8 +2473,7 @@ def RenderObject(tileset, objnum, width, height, fullslope=False):
 
         for row in obj.rows:
             if len(row) == 0: continue
-            # row[0][0] is 0, 1, 2, 4
-            if (row[0][0] & 2) != 0 or (row[0][0] & 4) != 0:
+            if (row[0][0] & 2) != 0:
                 repeatFound = True
                 inRepeat.append(row)
             else:
@@ -2537,11 +2508,7 @@ def RenderStandardRow(dest, row, y, width):
     afterRepeat = []
 
     for tile in row:
-        # NSMBU introduces two (?) new ways to define horizontal tiling, IN ADDITION TO the original one
-        tiling = False
-        tiling = tiling or ((tile[2] & 1) != 0 and (tile[0] & 1) != 0) # NSMBW-style (still applies to NSMBU)
-        tiling = tiling or ((row[0][0] & 4) != 0 and (tile[0] & 4) == 0) # NSMB2-style (J_Kihon BG rocks)
-        tiling = tiling or ((tile[0] & 1) != 0) # NSMBU-style (horizontal pipes)
+        tiling = (tile[0] & 1) != 0
 
         if tiling:
             repeatFound = True
