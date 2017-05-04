@@ -7811,7 +7811,7 @@ class ObjectDataEditorWidget(QtWidgets.QWidget):
                                     "Vine",
                                     "Spring",
                                     "Mini Mushroom",
-                                    "Propeler Mushroom",
+                                    "Propeller Mushroom",
                                     "Penguin Suit",
                                     "Yoshi",
                                     "Ice Flower",
