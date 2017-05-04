@@ -452,7 +452,7 @@ class SpriteImage_PipeAlt(SLib.SpriteImage):
                     self.top = ImageCache['PipeLeft%s' % self.colour]
                 else:
                     self.top = ImageCache['MiniPipeLeft%s' % self.colour]
-                self.xOffset = 16 - self.width
+                #self.xOffset = 16 - self.width
 
         if self.direction in 'UD': # vertical
             self.pipeHeight = pipeLength * 60
@@ -492,7 +492,7 @@ class SpriteImage_PipeAlt(SLib.SpriteImage):
                     self.top = ImageCache['PipeTop%s' % self.colour]
                 else:
                     self.top = ImageCache['MiniPipeTop%s' % self.colour]
-                self.yOffset = 16 - (self.pipeHeight/3.75)
+                #self.yOffset = 16 - (self.pipeHeight/3.75)
 
     def paint(self, painter):
         super().paint(painter)
@@ -1914,29 +1914,68 @@ class SpriteImage_MovPipe(SpriteImage_PipeAlt): # 146
         self.typeinfluence = True
 
     def dataChanged(self):
-        
+
+        rawlength = (self.parent.spritedata[4] & 0x0F) + 1
+
+        if not self.mini:
+            #rawtop = (self.parent.spritedata[2] >> 4) & 3
+            rawtop = 0
+
+        #if self.moving:
+            #rawtop = 0 & 3
+
+            #if self.expandable: rawcolour = (self.parent.spritedata[3]) & 3
+            #elif self.moving: rawcolour = (self.parent.spritedata[3]) & 3
+            # else:
+            rawcolour = (self.parent.spritedata[3] & 0x0F) & 3
+
+            if self.typeinfluence and rawtop == 0:
+                #if self.expandable: rawtype = self.parent.spritedata[4] & 3
+                #elif self.moving: rawtype = self.parent.spritedata[5] >> 4
+                #else: 
+                rawtype = (self.parent.spritedata[5] >> 4) & 3
+            else:
+                rawtype = 0
+
+            if rawtop == 1:
+                pipeLength = rawlength + rawtype + self.extraLength + 1
+            elif rawtop == 0:
+                if rawtype == 0:
+                    pipeLength = rawlength + rawtype + self.extraLength + 1
+                else:
+                    pipeLength = rawlength + rawtype + self.extraLength
+            else:
+                pipeLength = rawlength + rawtype + self.extraLength
+
         size = self.parent.spritedata[5] >> 4
         direction = self.parent.spritedata[3] >> 4
         self.moving = True
+
+        self.pipeWidth = pipeLength * 60
+        self.pipeHeight = pipeLength * 60
         
         if direction == 1:
             self.direction = 'L'
             self.height = 32
+            self.xOffset = 16 - self.width
             self.topX = 0
             self.topY = 0
         elif direction == 2:
             self.direction = 'U'
             self.width = 32
+            self.yOffset = 16 - (self.pipeHeight/3.75)
             self.topY = 0
             self.topX = 0
         elif direction == 3:
             self.direction = 'D'
             self.width = 32
+            self.yOffset = 0
             self.topY = self.pipeHeight - 60
             self.topX = 0
         else:
             self.direction = 'R'
             self.height = 32
+            self.xOffset = 0
             self.topX = self.pipeWidth - 60
             self.topY = 0
 
