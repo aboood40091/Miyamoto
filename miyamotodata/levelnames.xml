@@ -178,6 +178,7 @@
     <category name="Other">
         <level file="1-39" name="Title Screen" />
         <level file="1-41" name="Credits" />
+        <level file="1-46" name="Boost Rush results" />
     </category>
 
     <category name="Challenge Mode">
@@ -280,7 +281,6 @@
     </category>
 
     <category name="Unused Levels">
-        <level file="1-46" name="Mostly Empty Credits-Like Stage" />
         <level file="4-25" name="Toad House Type 4" />
         <level file="13-2" name="A W1 climbing level with corrupted tilesets" />
         <level file="13-4" name="An underground forest level with a long coin-filled path for a shell" />
