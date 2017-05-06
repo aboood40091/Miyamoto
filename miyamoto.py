@@ -621,22 +621,8 @@ def LoadConstantLists():
     """
     Loads some lists of constants
     """
-    global BgScrollRates
-    global BgScrollRateStrings
-    global ZoneThemeValues
-    global ZoneTerrainThemeValues
     global Sprites
     global SpriteCategories
-
-    BgScrollRates = [0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0, 0.0, 1.2, 1.5, 2.0, 4.0]
-    BgScrollRateStrings = []
-    s = trans.stringList('BGDlg', 1)
-    for i in s:
-        BgScrollRateStrings.append(i)
-
-    ZoneThemeValues = trans.stringList('ZonesDlg', 1)
-
-    ZoneTerrainThemeValues = trans.stringList('ZonesDlg', 2)
 
     Sprites = None
     SpriteListData = None
@@ -4067,7 +4053,7 @@ class Area_NSMBU(AbstractParsedArea):
             bgStruct.pack_into(buffer4, offset, z.id, z.background[1], z.background[2], z.background[3])
             zonestruct.pack_into(buffer9, offset,
                 z.objx, z.objy, z.width, z.height,
-                z.modeldark, z.terraindark, z.id, i,
+                0, 0, z.id, i,
                 z.cammode, z.camzoom, z.visibility, z.id,
                 z.camtrack, z.music, z.sfxmod, z.type)
             offset += 28
@@ -10032,21 +10018,6 @@ class ZoneTab(QtWidgets.QWidget):
     def createVisibility(self, z):
         self.Visibility = QtWidgets.QGroupBox(trans.string('ZonesDlg', 19))
 
-        self.Zone_modeldark = QtWidgets.QComboBox()
-        self.Zone_modeldark.addItems(ZoneThemeValues)
-        self.Zone_modeldark.setToolTip(trans.string('ZonesDlg', 21))
-        if z.modeldark < 0: z.modeldark = 0
-        if z.modeldark >= len(ZoneThemeValues): z.modeldark = len(ZoneThemeValues)
-        self.Zone_modeldark.setCurrentIndex(z.modeldark)
-
-        self.Zone_terraindark = QtWidgets.QComboBox()
-        self.Zone_terraindark.addItems(ZoneTerrainThemeValues)
-        self.Zone_terraindark.setToolTip(trans.string('ZonesDlg', 23))
-        if z.terraindark < 0: z.terraindark = 0
-        if z.terraindark >= len(ZoneTerrainThemeValues): z.terraindark = len(ZoneTerrainThemeValues)
-        self.Zone_terraindark.setCurrentIndex(z.terraindark)
-
-
         self.Zone_vnormal = QtWidgets.QRadioButton(trans.string('ZonesDlg', 24))
         self.Zone_vnormal.setToolTip(trans.string('ZonesDlg', 25))
 
@@ -10126,8 +10097,6 @@ class ZoneTab(QtWidgets.QWidget):
         # Layouts
         ZoneZoomLayout = QtWidgets.QFormLayout()
         ZoneZoomLayout.addRow(trans.string('ZonesDlg', 34), self.Zone_camerazoom)
-        ZoneZoomLayout.addRow(trans.string('ZonesDlg', 20), self.Zone_modeldark)
-        ZoneZoomLayout.addRow(trans.string('ZonesDlg', 22), self.Zone_terraindark)
 
         ZoneCameraLayout = QtWidgets.QFormLayout()
         ZoneCameraLayout.addRow(trans.string('ZonesDlg', 30), self.Zone_xtrack)
@@ -15345,9 +15314,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 z.prepareGeometryChange()
                 z.UpdateRects()
                 z.setPos(z.objx*(TileWidth/16), z.objy*(TileWidth/16))
-
-                z.modeldark = tab.Zone_modeldark.currentIndex()
-                z.terraindark = tab.Zone_terraindark.currentIndex()
 
                 if tab.Zone_xtrack.isChecked():
                     if tab.Zone_ytrack.isChecked():
