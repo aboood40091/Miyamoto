@@ -104,6 +104,7 @@ SpriteImagesShown = True
 RealViewEnabled = False
 LocationsShown = True
 CommentsShown = True
+DrawEntIndicators = False
 ObjectsFrozen = False
 SpritesFrozen = False
 EntrancesFrozen = False
@@ -620,22 +621,8 @@ def LoadConstantLists():
     """
     Loads some lists of constants
     """
-    global BgScrollRates
-    global BgScrollRateStrings
-    global ZoneThemeValues
-    global ZoneTerrainThemeValues
     global Sprites
     global SpriteCategories
-
-    BgScrollRates = [0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0, 0.0, 1.2, 1.5, 2.0, 4.0]
-    BgScrollRateStrings = []
-    s = trans.stringList('BGDlg', 1)
-    for i in s:
-        BgScrollRateStrings.append(i)
-
-    ZoneThemeValues = trans.stringList('ZonesDlg', 1)
-
-    ZoneTerrainThemeValues = trans.stringList('ZonesDlg', 2)
 
     Sprites = None
     SpriteListData = None
@@ -3105,13 +3092,13 @@ class Level_NSMBU(AbstractLevel):
             for area_SARC in Level.areas:
                 for sprite in area_SARC.sprites:
                     sprites_SARC.append(sprite.type)
-                if area_SARC.tileset0 != '':
+                if area_SARC.tileset0 not in ('', None):
                     tilesets_names.append(area_SARC.tileset0)
-                if area_SARC.tileset1 != '':
+                if area_SARC.tileset1 not in ('', None):
                     tilesets_names.append(area_SARC.tileset1)
-                if area_SARC.tileset2 != '':
+                if area_SARC.tileset2 not in ('', None):
                     tilesets_names.append(area_SARC.tileset2)
-                if area_SARC.tileset3 != '':
+                if area_SARC.tileset3 not in ('', None):
                     tilesets_names.append(area_SARC.tileset3)
             sprites_SARC = tuple(set(sprites_SARC))
             tilesets_names = tuple(set(tilesets_names))
@@ -3220,13 +3207,13 @@ class Level_NSMBU(AbstractLevel):
             for area_SARC in Level.areas:
                 for sprite in area_SARC.sprites:
                     sprites_SARC.append(sprite.type)
-                if area_SARC.tileset0 != '':
+                if area_SARC.tileset0 not in ('', None):
                     tilesets_names.append(area_SARC.tileset0)
-                if area_SARC.tileset1 != '':
+                if area_SARC.tileset1 not in ('', None):
                     tilesets_names.append(area_SARC.tileset1)
-                if area_SARC.tileset2 != '':
+                if area_SARC.tileset2 not in ('', None):
                     tilesets_names.append(area_SARC.tileset2)
-                if area_SARC.tileset3 != '':
+                if area_SARC.tileset3 not in ('', None):
                     tilesets_names.append(area_SARC.tileset3)
             sprites_SARC = tuple(set(sprites_SARC))
             tilesets_names = tuple(set(tilesets_names))
@@ -3420,16 +3407,16 @@ class AbstractParsedArea(AbstractArea):
         self.LoadComments()
 
         CreateTilesets()
-        if self.tileset0 != '':
+        if self.tileset0 not in ('', None):
             LoadTileset(0, self.tileset0)
         
-        if self.tileset1 != '':
+        if self.tileset1 not in ('', None):
             LoadTileset(1, self.tileset1)
         
-        if self.tileset2 != '':
+        if self.tileset2 not in ('', None):
             LoadTileset(2, self.tileset2)
         
-        if self.tileset3 != '':
+        if self.tileset3 not in ('', None):
             LoadTileset(3, self.tileset3)
         
         # Load the object layers
@@ -4066,9 +4053,9 @@ class Area_NSMBU(AbstractParsedArea):
             bgStruct.pack_into(buffer4, offset, z.id, z.background[1], z.background[2], z.background[3])
             zonestruct.pack_into(buffer9, offset,
                 z.objx, z.objy, z.width, z.height,
-                z.modeldark, z.unk1, z.id, i,
+                0, 0, z.id, i,
                 z.cammode, z.camzoom, z.visibility, z.id,
-                z.unk2, z.music, z.unk3, z.unk4)
+                z.camtrack, z.music, z.sfxmod, z.type)
             offset += 28
             i += 1
 
@@ -4536,27 +4523,23 @@ class ZoneItem(LevelEditorItem):
         self.font = NumberFont
         self.TitlePos = QtCore.QPointF(10, 10 + QtGui.QFontMetrics(self.font).height())
 
-        # Hey, you. Yeah, you, reading this script. You should help out and get these unknowns documented.
-        # Seriously. Give us a hand here.
+        # It took me less than 10 minutes to figure out the unknowns, and implement them... :P
         self.objx = a
         self.objy = b
         self.width = c
         self.height = d
         self.modeldark = e
-        self.unk1 = f # self.terraindark, possibly?
-        self.terraindark = 0 # TEMPORARY
+        self.terraindark = f
         self.id = g
-        boundingblockid = h
+        self.block3id = h
         self.cammode = i
         self.camzoom = j
         self.visibility = k
-        bgblockid = l
-        self.unk2 = m # Multiplayer tracking, maybe?
-        self.camtrack = 0 # TEMPORARY
+        self.block5id = l
+        self.camtrack = m
         self.music = n
-        self.unk3 = o # One of these is probably self.sfxmod
-        self.unk4 = p
-        self.sfxmod = 0 # TEMPORARY
+        self.sfxmod = o
+        self.type = p
         self.UpdateRects()
 
         self.aux = set()
@@ -4633,7 +4616,7 @@ class ZoneItem(LevelEditorItem):
 
         # Paint an indicator line to show the leftmost edge o
         # where entrances can be safely placed
-        if TileWidth * 13 < self.DrawRect.width():
+        if DrawEntIndicators and (self.camtrack in (0, 1)) and (TileWidth * 13 < self.DrawRect.width()):
             painter.setPen(QtGui.QPen(theme.color('zone_entrance_helper'), 2 * TileWidth / 24))
             lineStart = QtCore.QPointF(self.DrawRect.x() + (TileWidth * 13), self.DrawRect.y())
             lineEnd = QtCore.QPointF(self.DrawRect.x() + (TileWidth * 13), self.DrawRect.y() + self.DrawRect.height())
@@ -8141,20 +8124,20 @@ class LoadingTab(QtWidgets.QWidget):
         self.wrap.setChecked((Area.wrapFlag & 1) != 0)        
 
         self.timer = QtWidgets.QSpinBox()
-        self.timer.setRange(0, 999)
+        self.timer.setRange(100, 999)
         self.timer.setToolTip(trans.string('AreaDlg', 4))
         self.timer.setValue(Area.timeLimit + 100)
 
         self.timelimit2 = QtWidgets.QSpinBox()
         self.timelimit2.setRange(0, 999)
         self.timelimit2.setToolTip(trans.string('AreaDlg', 38))
-        self.timelimit2.setValue(Area.timelimit2)
+        self.timelimit2.setValue(Area.timelimit2 - 100)
 
         self.timelimit3 = QtWidgets.QSpinBox()
-        self.timelimit3.setRange(0, 999)
+        self.timelimit3.setRange(200, 999)
         self.timelimit3.setToolTip(trans.string('AreaDlg', 38))
-        self.timelimit3.setValue(Area.timelimit3)           
-        
+        self.timelimit3.setValue(Area.timelimit3 + 200)
+
         self.unk3 = QtWidgets.QSpinBox()
         self.unk3.setRange(0, 999)
         self.unk3.setToolTip(trans.string('AreaDlg', 26))
@@ -9960,14 +9943,14 @@ class ZoneTab(QtWidgets.QWidget):
         self.createVisibility(z)
         self.createBounds(z)
         self.createAudio(z)
-        self.createUnks(z)
+        self.createType(z)
 
         mainLayout = QtWidgets.QVBoxLayout()
         mainLayout.addWidget(self.Dimensions)
         mainLayout.addWidget(self.Visibility)
         mainLayout.addWidget(self.Bounds)
         mainLayout.addWidget(self.Audio)
-        mainLayout.addWidget(self.Unks)
+        mainLayout.addWidget(self.Type)
         self.setLayout(mainLayout)
 
 
@@ -10032,41 +10015,8 @@ class ZoneTab(QtWidgets.QWidget):
         self.Dimensions.setLayout(innerLayout)
 
 
-    def createUnks(self, z):
-        self.Unks = QtWidgets.QGroupBox('Misc Values')
-
-        self.unk0B = QtWidgets.QSpinBox()
-        self.unk0B.setRange(0, 255)
-        self.unk0B.setToolTip('An unknown. Try to help us document it! Used as 3 in a few places, everywhere else is 0.')
-        self.unk0B.setValue(z.unk1)
-
-        self.unk0E = QtWidgets.QSpinBox()
-        self.unk0E.setRange(0, 255)
-        self.unk0E.setToolTip('An unknown. Try to help us document it! Used as 0, 1, 2, 3, 4, 5, 6.')
-        self.unk0E.setValue(z.cammode)       
-
-        InnerLayout = QtWidgets.QFormLayout()
-        InnerLayout.addRow('Unknown 0x0B:', self.unk0B)
-        InnerLayout.addRow('Unknown 0x0E:', self.unk0E)  
-        self.Unks.setLayout(InnerLayout)
-        
     def createVisibility(self, z):
         self.Visibility = QtWidgets.QGroupBox(trans.string('ZonesDlg', 19))
-
-        self.Zone_modeldark = QtWidgets.QComboBox()
-        self.Zone_modeldark.addItems(ZoneThemeValues)
-        self.Zone_modeldark.setToolTip(trans.string('ZonesDlg', 21))
-        if z.modeldark < 0: z.modeldark = 0
-        if z.modeldark >= len(ZoneThemeValues): z.modeldark = len(ZoneThemeValues)
-        self.Zone_modeldark.setCurrentIndex(z.modeldark)
-
-        # self.Zone_terraindark = QtWidgets.QComboBox()
-        # self.Zone_terraindark.addItems(ZoneTerrainThemeValues)
-        # self.Zone_terraindark.setToolTip(trans.string('ZonesDlg', 23))
-        # if z.terraindark < 0: z.terraindark = 0
-        # if z.terraindark >= len(ZoneTerrainThemeValues): z.terraindark = len(ZoneTerrainThemeValues)
-        # self.Zone_terraindark.setCurrentIndex(z.terraindark)
-
 
         self.Zone_vnormal = QtWidgets.QRadioButton(trans.string('ZonesDlg', 24))
         self.Zone_vnormal.setToolTip(trans.string('ZonesDlg', 25))
@@ -10134,21 +10084,19 @@ class ZoneTab(QtWidgets.QWidget):
         if z.camzoom in [1, 2, 3, 4, 5, 6, 9, 10]:
             self.Zone_camerabias.setChecked(True)
 
-        # directionmodeValues = trans.stringList('ZonesDlg', 38)
-        # self.Zone_directionmode = QtWidgets.QComboBox()
-        # self.Zone_directionmode.addItems(directionmodeValues)
-        # self.Zone_directionmode.setToolTip(trans.string('ZonesDlg', 40))
-        # if z.camtrack < 0: z.camtrack = 0
-        # if z.camtrack >= 6: z.camtrack = 6
-        # idx = z.camtrack/2
-        # if z.camtrack == 1: idx = 1
-        # self.Zone_directionmode.setCurrentIndex(idx)
+        directionmodeValues = trans.stringList('ZonesDlg', 38)
+        self.Zone_directionmode = QtWidgets.QComboBox()
+        self.Zone_directionmode.addItems(directionmodeValues)
+        self.Zone_directionmode.setToolTip(trans.string('ZonesDlg', 40))
+        if z.camtrack < 0: z.camtrack = 0
+        if z.camtrack >= 6: z.camtrack = 6
+        idx = z.camtrack/2
+        if z.camtrack == 1: idx = 1
+        self.Zone_directionmode.setCurrentIndex(idx)
 
         # Layouts
         ZoneZoomLayout = QtWidgets.QFormLayout()
         ZoneZoomLayout.addRow(trans.string('ZonesDlg', 34), self.Zone_camerazoom)
-        ZoneZoomLayout.addRow(trans.string('ZonesDlg', 20), self.Zone_modeldark)
-        # ZoneZoomLayout.addRow(trans.string('ZonesDlg', 22), self.Zone_terraindark)
 
         ZoneCameraLayout = QtWidgets.QFormLayout()
         ZoneCameraLayout.addRow(trans.string('ZonesDlg', 30), self.Zone_xtrack)
@@ -10160,8 +10108,8 @@ class ZoneTab(QtWidgets.QWidget):
         ZoneVisibilityLayout.addWidget(self.Zone_vspotlight)
         ZoneVisibilityLayout.addWidget(self.Zone_vfulldark)
 
-        # ZoneDirectionLayout = QtWidgets.QFormLayout()
-        # ZoneDirectionLayout.addRow(trans.string('ZonesDlg', 39), self.Zone_directionmode)
+        ZoneDirectionLayout = QtWidgets.QFormLayout()
+        ZoneDirectionLayout.addRow(trans.string('ZonesDlg', 39), self.Zone_directionmode)
 
         TopLayout = QtWidgets.QHBoxLayout()
         TopLayout.addLayout(ZoneCameraLayout)
@@ -10171,7 +10119,7 @@ class ZoneTab(QtWidgets.QWidget):
         InnerLayout.addLayout(TopLayout)
         InnerLayout.addLayout(ZoneVisibilityLayout)
         InnerLayout.addWidget(self.Zone_visibility)
-        # InnerLayout.addLayout(ZoneDirectionLayout)
+        InnerLayout.addLayout(ZoneDirectionLayout)
         self.Visibility.setLayout(InnerLayout)
 
     @QtCore.pyqtSlot(bool)
@@ -10200,8 +10148,6 @@ class ZoneTab(QtWidgets.QWidget):
 
     def createBounds(self, z):
         self.Bounds = QtWidgets.QGroupBox(trans.string('ZonesDlg', 47))
-
-        #Block3 = Area.bounding[z.block3id]
 
         self.Zone_yboundup = QtWidgets.QSpinBox()
         self.Zone_yboundup.setRange(-32766, 32767)
@@ -10261,24 +10207,59 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_musicid.setValue(z.music)
         self.Zone_musicid.valueChanged.connect(self.handleMusicIDChange)
 
-        # self.Zone_sfx = QtWidgets.QComboBox()
-        # self.Zone_sfx.setToolTip(trans.string('ZonesDlg', 56))
-        # newItems3 = trans.stringList('ZonesDlg', 57)
-        # self.Zone_sfx.addItems(newItems3)
-        # self.Zone_sfx.setCurrentIndex(z.sfxmod / 16)
+        self.Zone_sfx = QtWidgets.QComboBox()
+        self.Zone_sfx.setToolTip(trans.string('ZonesDlg', 56))
+        newItems3 = trans.stringList('ZonesDlg', 57)
+        self.Zone_sfx.addItems(newItems3)
+        self.Zone_sfx.setCurrentIndex(z.sfxmod / 16)
 
-        # self.Zone_boss = QtWidgets.QCheckBox()
-        # self.Zone_boss.setToolTip(trans.string('ZonesDlg', 59))
-        # self.Zone_boss.setChecked(z.sfxmod % 16)
+        self.Zone_boss = QtWidgets.QCheckBox()
+        self.Zone_boss.setToolTip(trans.string('ZonesDlg', 59))
+        self.Zone_boss.setChecked(z.sfxmod % 16)
 
 
         ZoneAudioLayout = QtWidgets.QFormLayout()
         ZoneAudioLayout.addRow(trans.string('ZonesDlg', 53), self.Zone_music)
         ZoneAudioLayout.addRow(trans.string('ZonesDlg', 68), self.Zone_musicid)
-        # ZoneAudioLayout.addRow(trans.string('ZonesDlg', 55), self.Zone_sfx)
-        # ZoneAudioLayout.addRow(trans.string('ZonesDlg', 58), self.Zone_boss)
+        ZoneAudioLayout.addRow(trans.string('ZonesDlg', 55), self.Zone_sfx)
+        ZoneAudioLayout.addRow(trans.string('ZonesDlg', 58), self.Zone_boss)
 
         self.Audio.setLayout(ZoneAudioLayout)
+
+
+    def createType(self, z):
+        # It took me less than 10 minutes to implement this... :P
+        self.Type = QtWidgets.QGroupBox('Zone Type')
+
+        self.Zone_type = QtWidgets.QComboBox()
+        self.Zone_type.setToolTip('')
+
+        types = (0, 1, 5, 12, 160)
+        zone_types = ['Normal', 'Special Zone (Boss, credits, minigame, etc...)', 'Final Boss', 'Launch to the Airship', 'Power-Up Panels Toad House']
+
+        if z.type not in types:
+            zone_types.append('Unknown')
+
+        self.Zone_type.addItems(zone_types)
+
+        if z.type == 0:
+            self.Zone_type.setCurrentIndex(0)
+        elif z.type == 1:
+            self.Zone_type.setCurrentIndex(1)
+        elif z.type == 5:
+            self.Zone_type.setCurrentIndex(2)
+        elif z.type == 12:
+            self.Zone_type.setCurrentIndex(3)
+        elif z.type == 160:
+            self.Zone_type.setCurrentIndex(4)
+        else:
+            self.Zone_type.setCurrentIndex(5)
+
+
+        ZoneTypeLayout = QtWidgets.QFormLayout()
+        ZoneTypeLayout.addRow('Type:', self.Zone_type)
+
+        self.Type.setLayout(ZoneTypeLayout)
 
 
     def handleMusicListSelect(self):
@@ -10623,6 +10604,8 @@ class PreferencesDialog(QtWidgets.QDialog):
                     if trans == str(setting('Translation')):
                         self.Trans.setCurrentIndex(i)
                     i += 1
+
+                self.zEntIndicator.setChecked(DrawEntIndicators)
 
         return GeneralTab(self.menuSettingChanged)
 
@@ -12256,6 +12239,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         name = self.getInnerSarcName()
         if "-" not in name:
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
+        if name == '':
+            return
 
         data = Level.save(name)
         setSetting('AutoSaveFilePath', self.fileSavePath)
@@ -13223,13 +13208,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if not self.HandleSave(): return
             else: return
 
-        Level.deleteArea(Area.areanum)
-
-        # no error checking. if it saved last time, it will probably work now
-
         name = self.getInnerSarcName()
         if "-" not in name:
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
+        if name == '':
+            return
+
+        Level.deleteArea(Area.areanum)
+
+        # no error checking. if it saved last time, it will probably work now
 
         if self.fileSavePath.endswith('.szs'):
             course_name = os.path.splitext(self.fileSavePath)[0]
@@ -13334,6 +13321,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         name = str(dlg.generalTab.Trans.itemData(dlg.generalTab.Trans.currentIndex(), Qt.UserRole))
         setSetting('Translation', name)
 
+        # Get the Zone Entrance Indicators setting
+        global DrawEntIndicators
+        DrawEntIndicators = dlg.generalTab.zEntIndicator.isChecked()
+        setSetting('ZoneEntIndicators', DrawEntIndicators)
+
         # Get the Toolbar tab settings
         boxes = (dlg.toolbarTab.FileBoxes, dlg.toolbarTab.EditBoxes, dlg.toolbarTab.ViewBoxes, dlg.toolbarTab.SettingsBoxes, dlg.toolbarTab.HelpBoxes)
         ToolbarSettings = {}
@@ -13396,6 +13388,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         name = self.getInnerSarcName()
         if "-" not in name:
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
+        if name == '':
+            return False
 
         global Dirty, AutoSaveDirty
         data = Level.save(name)
@@ -13449,6 +13443,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         name = self.getInnerSarcName()
         if "-" not in name:
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
+        if name == '':
+            return False
 
         global Dirty, AutoSaveDirty
         data = Level.saveNewArea(name, course, L0, L1, L2)
@@ -15210,9 +15206,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             Area.unk5 = dlg.LoadingTab.unk5.value()
             Area.unk6 = dlg.LoadingTab.unk6.value()
             Area.unk7 = dlg.LoadingTab.unk7.value()
-            Area.timelimit2 = dlg.LoadingTab.timelimit2.value()
-            Area.timelimit3 = dlg.LoadingTab.timelimit3.value()            
-            
+            Area.timelimit2 = dlg.LoadingTab.timelimit2.value() + 100
+            Area.timelimit3 = dlg.LoadingTab.timelimit3.value() - 200
+
 
             if dlg.LoadingTab.wrap.isChecked():
                 Area.wrapFlag |= 1
@@ -15238,6 +15234,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 elif fname.startswith(trans.string('AreaDlg', 16)):
                     fname = fname[len(trans.string('AreaDlg', 17, '[name]', '')):]
                     if fname == '': continue
+
+                if fname not in ('', None):
+                    if fname not in szsData:
+                        fname = ''
 
                 exec (assignment + ' = fname')
                 LoadTileset(idx, fname)
@@ -15314,9 +15314,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 z.prepareGeometryChange()
                 z.UpdateRects()
                 z.setPos(z.objx*(TileWidth/16), z.objy*(TileWidth/16))
-
-                z.modeldark = tab.Zone_modeldark.currentIndex()
-                # z.terraindark = tab.Zone_terraindark.currentIndex()
 
                 if tab.Zone_xtrack.isChecked():
                     if tab.Zone_ytrack.isChecked():
@@ -15531,9 +15528,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     z.visibility = 32
                     z.visibility = z.visibility + tab.Zone_visibility.currentIndex()
 
-                # val = tab.Zone_directionmode.currentIndex()*2
-                # if val == 2: val = 1
-                # z.camtrack = val
+                val = tab.Zone_directionmode.currentIndex()*2
+                if val == 2: val = 1
+                z.camtrack = val
 
                 z.yupperbound = tab.Zone_yboundup.value()
                 z.ylowerbound = tab.Zone_ybounddown.value()
@@ -15542,9 +15539,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 z.unknownbnf = 0xF if tab.Zone_boundflg.isChecked() else 0
 
                 z.music = tab.Zone_musicid.value()
+                z.sfxmod = (tab.Zone_sfx.currentIndex() * 16)
+                if tab.Zone_boss.isChecked():
+                    z.sfxmod = z.sfxmod + 1
 
-                z.unk1 = tab.unk0B.value()
-                z.cammode = tab.unk0E.value()
+                if tab.Zone_type.currentIndex() == 0:
+                    z.type = 0
+                elif tab.Zone_type.currentIndex() == 1:
+                    z.type = 1
+                elif tab.Zone_type.currentIndex() == 2:
+                    z.type = 5
+                elif tab.Zone_type.currentIndex() == 3:
+                    z.type = 12
+                elif tab.Zone_type.currentIndex() == 4:
+                    z.type = 160
 
                 i = i + 1
         self.levelOverview.update()
@@ -15992,7 +16000,7 @@ def main():
 
     global EnableAlpha, GridType, CollisionsShown, DepthShown, RealViewEnabled
     global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, CommentsFrozen
-    global SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown
+    global SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown, DrawEntIndicators
 
     gt = setting('GridType')
     if gt == 'checker': GridType = 'checker'
@@ -16011,6 +16019,7 @@ def main():
     SpriteImagesShown = setting('ShowSpriteImages', True)
     LocationsShown = setting('ShowLocations', True)
     CommentsShown = setting('ShowComments', True)
+    DrawEntIndicators = setting('ZoneEntIndicators', False)
     SLib.RealViewEnabled = RealViewEnabled
 
     # choose a folder for the game
