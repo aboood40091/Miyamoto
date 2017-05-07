@@ -2043,9 +2043,9 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 145
         
         height = self.parent.spritedata[5] & 0x0F
 
-        rawleft = self.parent.spritedata[4] & 0xF0
+        rawleft = (self.parent.spritedata[4] >> 4) & 0x0F
 
-        rawdesert = self.parent.spritedata[2]
+        rawdesert = (self.parent.spritedata[2] >> 4) & 0x0F
 
 
         left = False
@@ -2053,23 +2053,23 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 145
         desert = False
 
 
-        if rawleft == 0:
-            left = True
-        else:
+        if rawleft == 1:
             left = False
+        else:
+            left = True
 
-        if rawdesert > 15:
+        if rawdesert == 1:
             desert = True
         else:
             desert = False
 
 
         self.yOffset = -1*(height+4)*16
-
-
+        
+        
         print(height, left, desert)
-
-
+        
+        
         if height == 0:
 
             if left:
