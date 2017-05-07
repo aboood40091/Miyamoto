@@ -3065,7 +3065,7 @@ class Level_NSMBU(AbstractLevel):
         # Make an outer archive
         outerArchive = SarcLib.SARC_Archive()
 
-        # Create a folder within the archive
+        # Create a folder within the inner archive
         courseFolder = SarcLib.Folder('course')
         newArchive.addFolder(courseFolder)
 
@@ -3092,7 +3092,7 @@ class Level_NSMBU(AbstractLevel):
                     area_SARC.tileset3 = 'Pa3_' + innerfilename + '_' + str(areanum + 1)
             tilesets_real_names = tuple(set(tilesets_real_names))
 
-        # Go through the areas, save them and add them back to the archive
+        # Go through the areas, save them and add them back to the inner archive
         for areanum, area in enumerate(self.areas):
             course, L0, L1, L2 = area.save()
 
@@ -3108,7 +3108,7 @@ class Level_NSMBU(AbstractLevel):
         # Here we have the new inner-SARC savedata
         innersarc = newArchive.save(0x04, 0x170)
 
-        # Add the innersarc to it
+        # Add the innersarc to the outer archive
         outerArchive.addFile(SarcLib.File(innerfilename, innersarc))
 
         # Make it easy for future Miyamotos to pick out the innersarc level name
@@ -3172,7 +3172,7 @@ class Level_NSMBU(AbstractLevel):
 
     def saveNewArea(self, innerfilename, course_new, L0_new, L1_new, L2_new):
         """
-        Save the level back to a file
+        Save the level back to a file (when adding a new Area)
         """
 
         print("")
