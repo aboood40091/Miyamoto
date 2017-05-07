@@ -125,13 +125,16 @@ Waterlocationy = 0
 Waterlocationw = 1000		
 Waterlocationh = 30
 miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
+
+# Sort BG Names
 names_bg = []
 names_bgTrans = []
+
 with open(miyamoto_path + '/miyamotodata/bg.txt', 'r') as txt:
     for line in txt.readlines():
         names_bg.append(line.rstrip())
 names_bg = tuple(names_bg)
-names_bgTrans = []
+
 with open(miyamoto_path + '/miyamotodata/bgTrans.txt', 'r') as txt:
     for line in txt.readlines():
         names_bgTrans.append(line.rstrip())
@@ -150,21 +153,35 @@ FirstLevels = {
     }
 
 #####################################################################
-############################# WHATEVER ##############################
+############################## BYTES ################################
 #####################################################################
 
-def find_name(f, name_pos):
-    name = b""
-    char = f[name_pos:name_pos + 1]
+def bytes_to_string(byte):
+    string = b''
+    char = byte[:1]
     i = 1
 
-    while char != b"\x00":
-        name += char
+    while char != b'\x00':
+        string += char
         
-        char = f[name_pos + i:name_pos + i + 1]
+        char = byte[i:i + 1]
         i += 1
 
-    return(name.decode("utf-8"))
+    return(string.decode('utf-8'))
+
+def to_bytes(inp, length):
+    if type(inp) == bytearray:
+        return bytes(inp)
+
+    elif type(inp) == int:
+        return inp.to_bytes(length, 'big')
+
+    elif type(inp) == str:
+        outp = inp.encode('utf-8')
+        outp += b'\x00' * (length - len(outp))
+
+        return outp
+        
 
 #####################################################################
 ############################# UI-THINGS #############################
@@ -3045,11 +3062,37 @@ class Level_NSMBU(AbstractLevel):
         # Make a new archive
         newArchive = SarcLib.SARC_Archive()
 
-        # Create a folder within the archive
+        # Make an outer archive
+        outerArchive = SarcLib.SARC_Archive()
+
+        # Create a folder within the inner archive
         courseFolder = SarcLib.Folder('course')
         newArchive.addFolder(courseFolder)
 
-        # Go through the areas, save them and add them back to the archive
+        # Set the Tilesets names
+        # TODO Clean up this mess...
+        if os.path.isdir(miyamoto_path + '/data'):
+            tilesets_names = {}
+            tilesets_real_names = []
+            for areanum, area_SARC in enumerate(Level.areas):
+                if area_SARC.tileset0 not in ('', None):
+                    tilesets_names[area_SARC.tileset0] = area_SARC.tileset0
+                    tilesets_real_names.append(area_SARC.tileset0)
+                if area_SARC.tileset1 not in ('', None):
+                    tilesets_names[area_SARC.tileset1] = 'Pa1_' + innerfilename + '_' + str(areanum + 1)
+                    tilesets_real_names.append(area_SARC.tileset1)
+                    area_SARC.tileset1 = 'Pa1_' + innerfilename + '_' + str(areanum + 1)
+                if area_SARC.tileset2 not in ('', None):
+                    tilesets_names[area_SARC.tileset2] = 'Pa2_' + innerfilename + '_' + str(areanum + 1)
+                    tilesets_real_names.append(area_SARC.tileset2)
+                    area_SARC.tileset2 = 'Pa2_' + innerfilename + '_' + str(areanum + 1)
+                if area_SARC.tileset3 not in ('', None):
+                    tilesets_names[area_SARC.tileset3] = 'Pa3_' + innerfilename + '_' + str(areanum + 1)
+                    tilesets_real_names.append(area_SARC.tileset3)
+                    area_SARC.tileset3 = 'Pa3_' + innerfilename + '_' + str(areanum + 1)
+            tilesets_real_names = tuple(set(tilesets_real_names))
+
+        # Go through the areas, save them and add them back to the inner archive
         for areanum, area in enumerate(self.areas):
             course, L0, L1, L2 = area.save()
 
@@ -3065,10 +3108,7 @@ class Level_NSMBU(AbstractLevel):
         # Here we have the new inner-SARC savedata
         innersarc = newArchive.save(0x04, 0x170)
 
-        # Now make an outer SARC
-        outerArchive = SarcLib.SARC_Archive()
-
-        # Add the innersarc to it
+        # Add the innersarc to the outer archive
         outerArchive.addFile(SarcLib.File(innerfilename, innersarc))
 
         # Make it easy for future Miyamotos to pick out the innersarc level name
@@ -3088,20 +3128,10 @@ class Level_NSMBU(AbstractLevel):
                 sprites_xml[id] = tuple(name)
 
             sprites_SARC = []
-            tilesets_names = []
-            for area_SARC in Level.areas:
+            for areanum, area_SARC in enumerate(Level.areas):
                 for sprite in area_SARC.sprites:
                     sprites_SARC.append(sprite.type)
-                if area_SARC.tileset0 not in ('', None):
-                    tilesets_names.append(area_SARC.tileset0)
-                if area_SARC.tileset1 not in ('', None):
-                    tilesets_names.append(area_SARC.tileset1)
-                if area_SARC.tileset2 not in ('', None):
-                    tilesets_names.append(area_SARC.tileset2)
-                if area_SARC.tileset3 not in ('', None):
-                    tilesets_names.append(area_SARC.tileset3)
             sprites_SARC = tuple(set(sprites_SARC))
-            tilesets_names = tuple(set(tilesets_names))
 
             sprites_names = []
             for sprite in sprites_SARC:
@@ -3118,9 +3148,9 @@ class Level_NSMBU(AbstractLevel):
                         f1 = f.read()
                     outerArchive.addFile(SarcLib.File(sprite_name, f1))
 
-            for tileset_name in tilesets_names:
-                if tileset_name in szsData:
-                    outerArchive.addFile(SarcLib.File(tileset_name, szsData[tileset_name]))
+            for tileset_real_name in tilesets_real_names:
+                if tileset_real_name in szsData:
+                    outerArchive.addFile(SarcLib.File(tilesets_names[tileset_real_name], szsData[tileset_real_name]))
         else:
             for szsThingName in szsData:
                 try:
@@ -3142,7 +3172,7 @@ class Level_NSMBU(AbstractLevel):
 
     def saveNewArea(self, innerfilename, course_new, L0_new, L1_new, L2_new):
         """
-        Save the level back to a file
+        Save the level back to a file (when adding a new Area)
         """
 
         print("")
@@ -3299,10 +3329,10 @@ class AbstractArea():
         Loads block 1, the tileset names
         """
         data = struct.unpack_from('32s32s32s32s', self.blocks[0])
-        self.tileset0 = data[0].strip(b'\0').decode('latin-1')
-        self.tileset1 = data[1].strip(b'\0').decode('latin-1')
-        self.tileset2 = data[2].strip(b'\0').decode('latin-1')
-        self.tileset3 = data[3].strip(b'\0').decode('latin-1')
+        self.tileset0 = bytes_to_string(data[0])
+        self.tileset1 = bytes_to_string(data[1])
+        self.tileset2 = bytes_to_string(data[2])
+        self.tileset3 = bytes_to_string(data[3])
         if self.tileset0 not in szsData:
             self.tileset0 = ''
         if self.tileset1 not in szsData:
@@ -3450,11 +3480,7 @@ class AbstractParsedArea(AbstractArea):
         self.SavePaths() # blocks 14 and 15
 
         # Save the metadata
-        rdata = bytearray(self.Metadata.save())
-        if len(rdata) % 4 != 0:
-           for i in range(4 - (len(rdata) % 4)):
-               rdata.append(0)
-        rdata = b''#bytes(rdata)
+        rdata = b''
 
         # Save the main course file
         # We'll be passing over the blocks array two times.
@@ -3550,14 +3576,16 @@ class Area_NSMBU(AbstractParsedArea):
         self.tileset3 = ''
 
         self.blocks = [None] * 15
-        self.blocks[0] = bytes.fromhex('5061305F6A796F74797500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000')
-        self.blocks[1] = bytes.fromhex('0000000000000000000001900064646400000000012C0000')
+        self.blocks[0] = to_bytes(0x5061305F6A796F747975, 10) + to_bytes(0, 118)
+        self.blocks[1] = to_bytes(0, 10) + to_bytes(0x19000646464, 6) + to_bytes(0, 4) + to_bytes(0x12C0000, 4)
         self.blocks[2] = b''
-        self.blocks[3] = bytes.fromhex('00000000000200420000000000020042')
-        self.blocks[4] = bytes.fromhex('0000000000000000426C61636B000000000000000000000000000000')
-        self.blocks[5] = bytes.fromhex('0000FFFFFFFF00000000000000000000000002000001FFFFFFFF00000000000000000000000002000000FFFFFFFF00000000000000000000000002000001FFFFFFFF0000000000000000000000000200')
+        self.blocks[3] = to_bytes(0, 5) + to_bytes(0x20042, 3) + to_bytes(0, 5) + to_bytes(0x20042, 3)
+        self.blocks[4] = to_bytes(0, 8) + to_bytes(0x426C61636B, 5) + to_bytes(0, 15)
+        self.blocks[5] = (to_bytes(0, 2) + to_bytes(0xFFFFFFFF, 4) + to_bytes(0, 12) + to_bytes(0x2000001FFFFFFFF, 8)
+                          + to_bytes(0, 12) + to_bytes(0x2000000FFFFFFFF, 8) + to_bytes(0, 12) + to_bytes(0x2000001FFFFFFFF, 8)
+                          + to_bytes(0, 12) + to_bytes(0x200, 2))
         self.blocks[6] = b''
-        self.blocks[7] = bytes.fromhex('FFFFFFFF')
+        self.blocks[7] = to_bytes(0xFFFFFFFF, 4)
         self.blocks[8] = b''
         self.blocks[9] = b''
         self.blocks[10] = b''
@@ -3631,10 +3659,10 @@ class Area_NSMBU(AbstractParsedArea):
         Loads block 1, the tileset names
         """
         data = struct.unpack_from('32s32s32s32s', self.blocks[0])
-        self.tileset0 = data[0].strip(b'\0').decode('latin-1')
-        self.tileset1 = data[1].strip(b'\0').decode('latin-1')
-        self.tileset2 = data[2].strip(b'\0').decode('latin-1')
-        self.tileset3 = data[3].strip(b'\0').decode('latin-1')
+        self.tileset0 = bytes_to_string(data[0])
+        self.tileset1 = bytes_to_string(data[1])
+        self.tileset2 = bytes_to_string(data[2])
+        self.tileset3 = bytes_to_string(data[3])
         if self.tileset0 not in szsData:
             self.tileset0 = ''
         if self.tileset1 not in szsData:
@@ -3996,7 +4024,7 @@ class Area_NSMBU(AbstractParsedArea):
         f_int = int
         for sprite in self.sprites:
             try:
-                sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy), sprite.spritedata[:10], MapPositionToZoneID(self.zones, sprite.objx, sprite.objy, True), 0, sprite.spritedata[10:] + b'\0')
+                sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy), sprite.spritedata[:10], MapPositionToZoneID(self.zones, sprite.objx, sprite.objy, True), 0, sprite.spritedata[10:] + to_bytes(0, 1))
             except struct.error:
                 # Hopefully this will solve the mysterious bug, and will
                 # soon no longer be necessary.
@@ -6854,7 +6882,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.setLayout(mainLayout)
 
         self.spritetype = -1
-        self.data = b'\0\0\0\0\0\0\0\0\0\0\0\0'
+        self.data = to_bytes(0, 12)
         self.fields = []
         self.UpdateFlag = False
         self.DefaultMode = defaultmode
@@ -9897,7 +9925,7 @@ class ZonesDialog(QtWidgets.QDialog):
         while i in Area.bgblockid:
             i += 1
 
-        bg = (i, 0, "Black".encode('utf-8') + (b'\x00' * (16 - len("Black".encode('utf-8')))), 0)
+        bg = (i, 0, to_bytes('Black', 16), 0)
 
         z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, i, 0, 0, 0, 0, (0, 0, 0, 0, 0, 0), bg, id)
         ZoneTabName = trans.string('ZonesDlg', 3, '[num]', id+1)
@@ -10232,7 +10260,7 @@ class ZoneTab(QtWidgets.QWidget):
         self.Type = QtWidgets.QGroupBox('Zone Type')
 
         self.Zone_type = QtWidgets.QComboBox()
-        self.Zone_type.setToolTip('')
+        self.Zone_type.setToolTip(trans.string('ZonesDlg', 78))
 
         types = (0, 1, 5, 12, 160)
         zone_types = ['Normal', 'Special Zone (Boss, credits, minigame, etc...)', 'Final Boss', 'Launch to the Airship', 'Power-Up Panels Toad House']
@@ -10257,7 +10285,7 @@ class ZoneTab(QtWidgets.QWidget):
 
 
         ZoneTypeLayout = QtWidgets.QFormLayout()
-        ZoneTypeLayout.addRow('Type:', self.Zone_type)
+        ZoneTypeLayout.addRow(trans.string('ZonesDlg', 77), self.Zone_type)
 
         self.Type.setLayout(ZoneTypeLayout)
 
@@ -10344,7 +10372,7 @@ class BGDialog(QtWidgets.QDialog):
         self.BGTabs = {}
         for z in Area.zones:
             BGTabName = 'Zone ' + str(z.id + 1)
-            tab = BGTab(z.background[1], names_bg.index(find_name(z.background[2], 0)), z.background[3])
+            tab = BGTab(z.background[1], names_bg.index(bytes_to_string(z.background[2])), z.background[3])
             self.BGTabs[z.id] = tab
             self.tabWidget.addTab(tab, BGTabName)
 
@@ -14790,7 +14818,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         CurrentSprite = type
         if type != 1000 and type >= 0:
             self.defaultDataEditor.setSprite(type)
-            self.defaultDataEditor.data = b'\0\0\0\0\0\0\0\0\0\0\0\0'
+            self.defaultDataEditor.data = to_bytes(0, 12)
             self.defaultDataEditor.update()
             self.defaultPropButton.setEnabled(True)
         else:
@@ -15571,7 +15599,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 name = names_bg[names_bgTrans.index(str(dlg.BGTabs[z.id].bg_name.currentText()))]
                 unk1 = dlg.BGTabs[z.id].unk1.value()
                 unk2 = dlg.BGTabs[z.id].unk2.value()
-                z.background = (z.id, unk1, name.encode('utf-8') + (b'\x00' * (16 - len(name.encode('utf-8')))), unk2)
+                z.background = (z.id, unk1, to_bytes(name, 16), unk2)
+                print('Zone ' + str(z.id + 1) + ' BG: ' + name)
 
     @QtCore.pyqtSlot()
     def HandleScreenshot(self):
@@ -15628,7 +15657,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             ScreenshotImage.save(fn, 'PNG', 50)
 
-    # Handles setting the backgrounds
     @QtCore.pyqtSlot()
     def EditSlot1(self):
         """
@@ -15641,14 +15669,47 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Darwin':
             tile_path = miyamoto_path + '/macTools'
 
-        if (Area.tileset0 is not None) and (Area.tileset0 != ''):
-            if Area.tileset0 not in szsData: return
+        if (Area.tileset0 not in ('', None)) and (Area.tileset0 in szsData):
             sarcdata = szsData[Area.tileset0]
 
             with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
 
-        else: return
+        else:
+            con_msg = "This Tileset doesn't exist, do you want to import it?"
+            reply = QtWidgets.QMessageBox.question(self, 'Message', 
+                             con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if reply == QtWidgets.QMessageBox.Yes:
+                fn = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 0), '', trans.string('FileDlgs', 2) + ' (*)')[0]
+                if fn == '': return
+                fn = str(fn)
+                if Area.tileset0 in ('', None):
+                    Area.tileset0 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                    "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+                    if Area.tileset0 in ('', None): return
+
+                with open(fn, 'rb') as fileobj:
+                    szsData[Area.tileset0] = fileobj.read()
+
+                self.ReloadTilesets()
+                SetDirty()
+                mainWindow.objPicker.LoadFromTilesets()
+                self.objAllTab.setCurrentIndex(0)
+                self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
+                self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
+                self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
+                self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
+
+                for layer in Area.layers:
+                    for obj in layer:
+                        obj.updateObjCache()
+
+                self.scene.update()
+
+                return
+
+            else: return
 
         if platform.system() == 'Windows':
             os.chdir(miyamoto_path + '/Tools')
@@ -15687,14 +15748,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Darwin':
             tile_path = miyamoto_path + '/macTools'
 
-        if (Area.tileset1 is not None) and (Area.tileset1 != '') and (Area.tileset1 in szsData):
+        if (Area.tileset1 not in ('', None)) and (Area.tileset1 in szsData):
             sarcdata = szsData[Area.tileset1]
 
             with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
             sarcfile = 'tmp.tmp'
 
-        elif Area.tileset1 == '':
+        else:
             con_msg = "This Tileset doesn't exist, do you want to create it?"
             reply = QtWidgets.QMessageBox.question(self, 'Message', 
                              con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
@@ -15704,25 +15765,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if os.path.isfile(tile_path + '/tmp.tmp'):
                     os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
-                Area.tileset1 = QtWidgets.QInputDialog.getText(self, "Choose Name",
-                                                                    "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+                if Area.tileset1 in ('', None):
+                    Area.tileset1 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                        "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
                 sarcfile = 'None'
 
             else: return
 
-        elif (Area.tileset1 != '') and (Area.tileset1 not in szsData):
-            con_msg = "This Tileset doesn't exist, do you want to create it?"
-            reply = QtWidgets.QMessageBox.question(self, 'Message', 
-                             con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-            if reply == QtWidgets.QMessageBox.Yes:
-                con = True
-                if os.path.isfile(tile_path + '/tmp.tmp'):
-                    os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
-
-                sarcfile = 'None'
-
-        if Area.tileset1 == '': return
+        if Area.tileset1 in ('', None): return
 
         if platform.system() == 'Windows':
             os.chdir(miyamoto_path + '/Tools')
@@ -15778,15 +15828,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Darwin':
             tile_path = miyamoto_path + '/macTools'
 
-        if (Area.tileset2 is not None) and (Area.tileset2 != '') and (Area.tileset2 in szsData):
-            if Area.tileset2 not in szsData: return
+        if (Area.tileset2 not in ('', None)) and (Area.tileset2 in szsData):
             sarcdata = szsData[Area.tileset2]
 
             with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
-            sarcfile = tile_path + '/tmp.tmp'
+            sarcfile = 'tmp.tmp'
 
-        elif Area.tileset2 == '':
+        else:
             con_msg = "This Tileset doesn't exist, do you want to create it?"
             reply = QtWidgets.QMessageBox.question(self, 'Message', 
                              con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
@@ -15796,25 +15845,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if os.path.isfile(tile_path + '/tmp.tmp'):
                     os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
-                Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
-                                                                    "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
-                sarcfile = 'None'
-
-        elif (Area.tileset2 != '') and (Area.tileset2 not in szsData):
-            con_msg = "This Tileset doesn't exist, do you want to create it?"
-            reply = QtWidgets.QMessageBox.question(self, 'Message', 
-                             con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-            if reply == QtWidgets.QMessageBox.Yes:
-                con = True
-                if os.path.isfile(tile_path + '/tmp.tmp'):
-                    os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
-
+                if Area.tileset2 in ('', None):
+                    Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                        "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
                 sarcfile = 'None'
 
             else: return
 
-        if Area.tileset2 == '': return
+        if Area.tileset2 in ('', None): return
 
         if platform.system() == 'Windows':
             os.chdir(miyamoto_path + '/Tools')
@@ -15870,15 +15908,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Darwin':
             tile_path = miyamoto_path + '/macTools'
 
-        if (Area.tileset3 is not None) and (Area.tileset3 != '') and (Area.tileset3 in szsData):
-            if Area.tileset3 not in szsData: return
+        if (Area.tileset3 not in ('', None)) and (Area.tileset3 in szsData):
             sarcdata = szsData[Area.tileset3]
 
             with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
-            sarcfile = tile_path + '/tmp.tmp'
+            sarcfile = 'tmp.tmp'
 
-        elif Area.tileset3 == '':
+        else:
             con_msg = "This Tileset doesn't exist, do you want to create it?"
             reply = QtWidgets.QMessageBox.question(self, 'Message', 
                              con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
@@ -15888,25 +15925,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if os.path.isfile(tile_path + '/tmp.tmp'):
                     os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
 
-                Area.tileset3 = QtWidgets.QInputDialog.getText(self, "Choose Name",
-                                                                    "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+                if Area.tileset3 in ('', None):
+                    Area.tileset3 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                        "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
                 sarcfile = 'None'
 
             else: return
 
-        elif (Area.tileset3 != '') and (Area.tileset3 not in szsData):
-            con_msg = "This Tileset doesn't exist, do you want to create it?"
-            reply = QtWidgets.QMessageBox.question(self, 'Message', 
-                             con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-            if reply == QtWidgets.QMessageBox.Yes:
-                con = True
-                if os.path.isfile(tile_path + '/tmp.tmp'):
-                    os.remove(tile_path + '/tmp.tmp') # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
-
-                sarcfile = 'None'
-
-        if Area.tileset3 == '': return
+        if Area.tileset3 in ('', None): return
 
         if platform.system() == 'Windows':
             os.chdir(miyamoto_path + '/Tools')
