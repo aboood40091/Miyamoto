@@ -710,7 +710,7 @@ class SpriteImage_PipePiranhaUp(SLib.SpriteImage_Static): # 2
             parent,
             3.75,
             ImageCache['PipePiranhaUp'],
-            (7, -32),
+            (0, -32),
             )
 
     @staticmethod
@@ -723,7 +723,7 @@ class SpriteImage_PipePiranhaDown(SLib.SpriteImage_Static): # 3
             parent,
             3.75,
             ImageCache['PipePiranhaDown'],
-            (7, 32),
+            (0, 32),
             )
 
     @staticmethod
@@ -736,7 +736,7 @@ class SpriteImage_PipePiranhaLeft(SLib.SpriteImage_Static): # 4
             parent,
             3.75,
             ImageCache['PipePiranhaLeft'],
-            (-32, 7),
+            (-32, 0),
             )
 
     @staticmethod
@@ -749,7 +749,7 @@ class SpriteImage_PipePiranhaRight(SLib.SpriteImage_Static): # 5
             parent,
             3.75,
             ImageCache['PipePiranhaRight'],
-            (18, 5),
+            (32, 0),
             )
 
     @staticmethod

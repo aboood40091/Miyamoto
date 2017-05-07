@@ -1,95 +1,92 @@
 None
-Before Boss (Overworld)
-Before Boss (Mountain)
-Before Boss (Beach)
-Before Boss (World 7)
-Before Boss (Jungle)
-Before Boss (Desert)
-Before Boss (Snow)
 Airship
 Airship Boss
 Airship Boss 2
-Overworld 2
-Overworld
+Aiship Clouds (Secondary)
+Beach
+Beach (Secondary)
+Beach 2
+Before Boss (Beach)
+Before Boss (Desert)
+Before Boss (Jungle)
+Before Boss (Mountain)
+Before Boss (Overworld)
+Before Boss (Snow)
+Before Boss (World 7)
+Boss Clouds (Secondary) (Unused)
+Bowser
+Bowser Boss
+Castle
+Castle (Small)
+Castle (Unused)
+Castle 2
+Castle 2 (Small) (Update)
+Castle 3
+Castle Boss (Iggy)
+Castle Boss (Larry)
+Castle Boss (Lemmy)
+Castle Boss (Ludwig)
+Castle Boss (Morton)
+Castle Boss (Roy)
+Castle Boss (Wendy)
+Clouds
+Clouds (Secondary)
+Clouds (Small)
+Credits
+Desert
+Desert 2
+Desert Clouds
+Desert Clouds (Secondary)
+Desert Tower
+Desert Underground (Unused)
+Fanfare Cutscene
+Forest
+Forest 2
+Ghost House
+Ghost House (Outside)
+Ghost House (Small)
+Ghost House 2
+Ghost House 2 (Outside)
+Ghost House 2 (Small)
+Ghost Ship
+Ghost Ship (Outside)
+Ghost Ship (Update)
+Ghost Ship 2
+Ghost Ship 2 (Outside)
+Lava
+Lava (Secondary)
+Lava 2
+Lava Goal
+Luigi Clouds (Update)
 Mountain
 Mountain 2
 Mountain 3
-Beach
-Beach 2
-Beach (Secondary)
-Toad House
-Clouds
-Stormy Clouds
-Overworld Clouds
-Slanted Clouds
-Desert Clouds
-Clouds (Small)
 Mountain Clouds
-Mountain Clouds 2
-Clouds (Secondary)
-Boss Clouds (Secondary) (Unused)
-Aiship Clouds (Secondary)
-Desert Clouds (Secondary)
 Mountain Clouds (Secondary)
+Mountain Clouds 2
 Mountain Clouds 2 (Secondary)
-Bowser
-Bowser Boss
-Forest
-Forest 2
+Mountain Tower
 NSMBW Overworld (Unused)
-Ghost House
-Ghost House 2
-Ghost Ship
-Ghost Ship 2
-Ghost House (Outside)
-Ghost House 2 (Outside)
-Ghost Ship 2 (Outside)
-Ghost Ship (Outside)
-Ghost House (Small)
-Ghost House 2 (Small)
+Nabbit
+Overworld
+Overworld 2
+Overworld Clouds
 Painted
 Painted 2
-Luigi Clouds (Update)
-Ghost Ship (Update)
 Painted 2 (Update)
-Snow (Update)
-Castle 2 (Small) (Update)
-Underwater (Update)
-Desert
-Desert Underground (Unused)
-Desert 2
-Snow
-Snow 2
-Slanted Snow
-Nabbit
-Castle (Unused)
-Fanfare Cutscene
-Castle
-Castle 2
-Castle 3
-Castle Boss (Lemmy?)
-Castle Boss (Morton?)
-Castle Boss (Iggy)
-Castle Boss (Larry)
-Castle Boss (Ludwig)
-Castle Boss (Roy)
-Castle Boss (Wendy)
-World 7 Castle
 Peach's Castle
+Slanted Clouds
+Slanted Lava
+Slanted Snow
+Snow
+Snow (Update)
+Snow 2
 Snow Castle
-Castle (Small)
-Credits
-Underwater
-Underwater (Small)
-Underground
-Underground 2
-Underground 3
+Snow Tower
 Snow Underground
 Snow Underground 2
-Underground Painted
-Underground Painted 2
-Underground Desert
-Ungerground (Small)
+Stormy Clouds
+Toad House
 Tower
 Tower 2
 Tower Boss
@@ -97,11 +94,14 @@ Tower Boss 2
 Tower Boss 3
 Tower Boss 4
 Tower Boss 5
-Mountain Tower
-Desert Tower
-Snow Tower
-Lava
-Lava 2
-Lava Goal
-Slanted Lava
-Lava (Secondary)
+Underground
+Underground 2
+Underground 3
+Underground Desert
+Underground Painted
+Underground Painted 2
+Underwater
+Underwater (Small)
+Underwater (Update)
+Ungerground (Small)
+World 7 Castle

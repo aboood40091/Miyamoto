@@ -899,6 +899,8 @@ class MiyamotoTranslation():
                 74: 'Unknown Flag',
                 75: '[b]Unknown Flag:[/b][br]Something zoom related. Check if you have problems with zooming. Seems to be always checked.',
                 76: 'some unknown thing',
+                77: 'Type:',
+                78: '[b]Type:[/b][br]Sets the type for this Zone',
                 },
             'Zones': {
                 0: 'Zone [num]',
