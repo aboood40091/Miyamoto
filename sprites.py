@@ -2019,6 +2019,85 @@ class SpriteImage_BubbleYoshi(SLib.SpriteImage_Static): # 143, 243
     def loadImages():
         SLib.loadIfNotInImageCache('BubbleYoshi', 'babyyoshibubble.png')
 
+class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 145
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            )
+        
+        self.xOffset = -32
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Palm1', 'palm_1.png')
+        SLib.loadIfNotInImageCache('Palm1L', 'palm_1_l.png')
+        SLib.loadIfNotInImageCache('Palm1D', 'palm_1_d.png')
+        SLib.loadIfNotInImageCache('Palm1LD', 'palm_1_l_d.png')
+        SLib.loadIfNotInImageCache('Palm2', 'palm_2.png')
+        SLib.loadIfNotInImageCache('Palm2L', 'palm_2_l.png')
+        SLib.loadIfNotInImageCache('Palm2D', 'palm_2_d.png')
+        SLib.loadIfNotInImageCache('Palm2LD', 'palm_2_l_d.png')
+
+    def dataChanged(self):
+        
+        height = self.parent.spritedata[5] & 0x0F
+
+        rawleft = self.parent.spritedata[4] & 0xF0
+
+        rawdesert = self.parent.spritedata[2]
+
+
+        left = False
+
+        desert = False
+
+
+        if rawleft == 0:
+            left = True
+        else:
+            left = False
+
+        if rawdesert > 15:
+            desert = True
+        else:
+            desert = False
+
+
+        self.yOffset = -1*(height+4)*16
+
+
+        print(height, left, desert)
+
+
+        if height == 0:
+
+            if left:
+                self.image = ImageCache['Palm1L']
+                if desert:
+                    self.image = ImageCache['Palm1LD']
+            else:
+                self.image = ImageCache['Palm1']
+                if desert:
+                    self.image = ImageCache['Palm1D']
+
+        elif height == 1:
+
+            if left:
+                self.image = ImageCache['Palm2L']
+                if desert:
+                    self.image = ImageCache['Palm2LD']
+            else:
+                self.image = ImageCache['Palm2']
+                if desert:
+                    self.image = ImageCache['Palm2D']
+
+
+        else:
+            self.image = ImageCache['Palm1']
+
+        super().dataChanged()
+
 class SpriteImage_MovPipe(SpriteImage_PipeAlt): # 146
     def __init__(self, parent, scale=3.75):
         super().__init__(parent, scale)
@@ -4753,6 +4832,7 @@ ImageClasses = {
     141: SpriteImage_PipeLeft,
     142: SpriteImage_PipeRight,
     143: SpriteImage_BubbleYoshi,
+    145: SpriteImage_PalmTree,
     146: SpriteImage_MovPipe,
     150: SpriteImage_StoneEye,
     152: SpriteImage_POWBlock,
