@@ -1006,6 +1006,8 @@ class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple): # 31
         self.xOffset = -32
         self.yOffset = -144
 
+        self.parent.setZValue(24999)
+
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('FlagReg', 'flag_reg.png')
@@ -3571,6 +3573,77 @@ class SpriteImage_KingBill(SLib.SpriteImage_StaticMultiple): # 282
 
         super().dataChanged()
 
+class SpriteImage_Bush(SLib.SpriteImage_StaticMultiple): # 288
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            )
+
+        self.parent.setZValue(24000)
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BushSmall', 'bush_small.png')
+        SLib.loadIfNotInImageCache('BushMedium', 'bush_medium.png')
+        SLib.loadIfNotInImageCache('BushBig', 'bush_big.png')
+        SLib.loadIfNotInImageCache('BushVeryBig', 'bush_very_big.png')
+        SLib.loadIfNotInImageCache('BushSmallY', 'bush_small_y.png')
+        SLib.loadIfNotInImageCache('BushMediumY', 'bush_medium_y.png')
+        SLib.loadIfNotInImageCache('BushBigY', 'bush_big_y.png')
+        SLib.loadIfNotInImageCache('BushVeryBigY', 'bush_very_big_y.png')
+
+    def dataChanged(self):
+        
+        Btype = self.parent.spritedata[5]
+
+        if Btype == 0:
+            self.image = ImageCache['BushSmall']
+            self.xOffset = -32
+            self.yOffset = -32
+
+        elif Btype == 1:
+            self.image = ImageCache['BushMedium']
+            self.xOffset = -32
+            self.yOffset = -48
+
+        elif Btype == 2:
+            self.image = ImageCache['BushBig']
+            self.xOffset = -40
+            self.yOffset = -64
+
+        elif Btype == 3:
+            self.image = ImageCache['BushVeryBig']
+            self.xOffset = -40
+            self.yOffset = -78
+
+        elif Btype == 16:
+            self.image = ImageCache['BushSmallY']
+            self.xOffset = -32
+            self.yOffset = -32
+
+        elif Btype == 17:
+            self.image = ImageCache['BushMediumY']
+            self.xOffset = -32
+            self.yOffset = -48
+
+        elif Btype == 18:
+            self.image = ImageCache['BushBigY']
+            self.xOffset = -40
+            self.yOffset = -64
+
+        elif Btype == 19:
+            self.image = ImageCache['BushVeryBigY']
+            self.xOffset = -40
+            self.yOffset = -78
+
+        else:
+            self.image = ImageCache['BushSmall']
+            self.xOffset = -32
+            self.yOffset = -32
+
+        super().dataChanged()
+
 class SpriteImage_NoteBlock(SLib.SpriteImage_Static): # 295
     def __init__(self, parent):
         super().__init__(
@@ -5018,6 +5091,7 @@ ImageClasses = {
     270: SpriteImage_Amp,
     281: SpriteImage_CoinBubble,
     282: SpriteImage_KingBill,
+    288: SpriteImage_Bush,
     295: SpriteImage_NoteBlock,
     306: SpriteImage_Crash,
     310: SpriteImage_Crash,
