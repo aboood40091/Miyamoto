@@ -1796,6 +1796,27 @@ class SpriteImage_CastleBossDoor(SLib.SpriteImage_Static): # 110
     def loadImages():
         SLib.loadIfNotInImageCache('CastleBossDoor', 'castle_boss_door.png')
 
+class SpriteImage_Pendulum(SLib.SpriteImage_StaticMultiple): # 117
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
+        self.parent.setZValue(24999)
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        size = self.parent.spritedata[4] & 0xF
+
+        widths = [2, 2.333333333333335, 2.6666666666666665, 3, 3.333333333333335, 3.5, 3.6666666666666665, 3.6666666666666667, 4, 4.333333333333333, 4.666666666666667, 4.666666666666667, 5, 5.333333333333333, 5.666666666666667, 6]
+        heights = [6.21904761904762, 6.666666666666667, 7.21904761904762, 8, 8.5, 9, 9.666666666666667, 10.21904761904762, 11, 11.21904761904762, 12, 12.5, 13.02051282051282, 13.666666666666667, 14.21904761904762, 15.21904761904762]
+
+        width = widths[size]
+        height = heights[size]
+
+        self.xOffset = -(0.5*(width-1)) * 16
+
+        self.aux[0].setSize(width * 60, height * 60)
+
 class SpriteImage_SandPillar(SLib.SpriteImage_Static): # 123
     def __init__(self, parent):
         super().__init__(
@@ -5030,6 +5051,7 @@ ImageClasses = {
     108: SpriteImage_GhostHouseDoor,
     109: SpriteImage_TowerBossDoor,
     110: SpriteImage_CastleBossDoor,
+    117: SpriteImage_Pendulum,
     123: SpriteImage_SandPillar,
     134: SpriteImage_Useless,
     135: SpriteImage_Thwomp,
