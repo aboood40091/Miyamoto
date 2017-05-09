@@ -1794,6 +1794,27 @@ class SpriteImage_CastleBossDoor(SLib.SpriteImage_Static): # 110
     def loadImages():
         SLib.loadIfNotInImageCache('CastleBossDoor', 'castle_boss_door.png')
 
+class SpriteImage_Pendulum(SLib.SpriteImage_StaticMultiple): # 117
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
+        self.parent.setZValue(24999)
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        size = self.parent.spritedata[4] & 0xF
+
+        widths = [2, 2.333333333333335, 2.6666666666666665, 3, 3.333333333333335, 3.5, 3.6666666666666665, 3.6666666666666667, 4, 4.333333333333333, 4.666666666666667, 4.666666666666667, 5, 5.333333333333333, 5.666666666666667, 6]
+        heights = [6.21904761904762, 6.666666666666667, 7.21904761904762, 8, 8.5, 9, 9.666666666666667, 10.21904761904762, 11, 11.21904761904762, 12, 12.5, 13.02051282051282, 13.666666666666667, 14.21904761904762, 15.21904761904762]
+
+        width = widths[size]
+        height = heights[size]
+
+        self.xOffset = -(0.5*(width-1)) * 16
+
+        self.aux[0].setSize(width * 60, height * 60)
+
 class SpriteImage_SandPillar(SLib.SpriteImage_Static): # 123
     def __init__(self, parent):
         super().__init__(
@@ -2038,6 +2059,43 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 145
         SLib.loadIfNotInImageCache('Palm2L', 'palm_2_l.png')
         SLib.loadIfNotInImageCache('Palm2D', 'palm_2_d.png')
         SLib.loadIfNotInImageCache('Palm2LD', 'palm_2_l_d.png')
+        #SLib.loadIfNotInImageCache('Palm3', 'palm_3.png')
+        #SLib.loadIfNotInImageCache('Palm3L', 'palm_3_l.png')
+        SLib.loadIfNotInImageCache('Palm3D', 'palm_3_d.png')
+        SLib.loadIfNotInImageCache('Palm3LD', 'palm_3_l_d.png')
+        SLib.loadIfNotInImageCache('Palm4', 'palm_4.png')
+        SLib.loadIfNotInImageCache('Palm4L', 'palm_4_l.png')
+        SLib.loadIfNotInImageCache('Palm4D', 'palm_4_d.png')
+        SLib.loadIfNotInImageCache('Palm4LD', 'palm_4_l_d.png')
+        SLib.loadIfNotInImageCache('Palm5', 'palm_5.png')
+        SLib.loadIfNotInImageCache('Palm5L', 'palm_5_l.png')
+        SLib.loadIfNotInImageCache('Palm5D', 'palm_5_d.png')
+        SLib.loadIfNotInImageCache('Palm5LD', 'palm_5_l_d.png')
+        SLib.loadIfNotInImageCache('Palm6', 'palm_6.png')
+        SLib.loadIfNotInImageCache('Palm6L', 'palm_6_l.png')
+        SLib.loadIfNotInImageCache('Palm6D', 'palm_6_d.png')
+        SLib.loadIfNotInImageCache('Palm6LD', 'palm_6_l_d.png')
+        SLib.loadIfNotInImageCache('Palm7', 'palm_7.png')
+        SLib.loadIfNotInImageCache('Palm7L', 'palm_7_l.png')
+        SLib.loadIfNotInImageCache('Palm7D', 'palm_7_d.png')
+        SLib.loadIfNotInImageCache('Palm7LD', 'palm_7_l_d.png')
+        SLib.loadIfNotInImageCache('Palm8', 'palm_8.png')
+        SLib.loadIfNotInImageCache('Palm8L', 'palm_8_l.png')
+        SLib.loadIfNotInImageCache('Palm8D', 'palm_8_d.png')
+        SLib.loadIfNotInImageCache('Palm8LD', 'palm_8_l_d.png')
+        SLib.loadIfNotInImageCache('Palm9', 'palm_9.png')
+        SLib.loadIfNotInImageCache('Palm9L', 'palm_9_l.png')
+        SLib.loadIfNotInImageCache('Palm9D', 'palm_9_d.png')
+        SLib.loadIfNotInImageCache('Palm9LD', 'palm_9_l_d.png')
+        SLib.loadIfNotInImageCache('Palm10', 'palm_10.png')
+        SLib.loadIfNotInImageCache('Palm10L', 'palm_10_l.png')
+        SLib.loadIfNotInImageCache('Palm10D', 'palm_10_d.png')
+        SLib.loadIfNotInImageCache('Palm10LD', 'palm_10_l_d.png')
+        SLib.loadIfNotInImageCache('Palm11', 'palm_11.png')
+        SLib.loadIfNotInImageCache('Palm11L', 'palm_11_l.png')
+        SLib.loadIfNotInImageCache('Palm11D', 'palm_11_d.png')
+        SLib.loadIfNotInImageCache('Palm11LD', 'palm_11_l_d.png')
+
 
     def dataChanged(self):
         
@@ -2091,6 +2149,105 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 145
                 self.image = ImageCache['Palm2']
                 if desert:
                     self.image = ImageCache['Palm2D']
+
+        elif height == 2:
+
+            if left:
+                #self.image = ImageCache['Palm3L']
+                if desert:
+                    self.image = ImageCache['Palm3LD']
+            else:
+                #self.image = ImageCache['Palm3']
+                if desert:
+                    self.image = ImageCache['Palm3D']
+
+        elif height == 3:
+
+            if left:
+                self.image = ImageCache['Palm4L']
+                if desert:
+                    self.image = ImageCache['Palm4LD']
+            else:
+                self.image = ImageCache['Palm4']
+                if desert:
+                    self.image = ImageCache['Palm4D']
+
+        elif height == 4:
+
+            if left:
+                self.image = ImageCache['Palm5L']
+                if desert:
+                    self.image = ImageCache['Palm5LD']
+            else:
+                self.image = ImageCache['Palm5']
+                if desert:
+                    self.image = ImageCache['Palm5D']
+
+        elif height == 5:
+
+            if left:
+                self.image = ImageCache['Palm6L']
+                if desert:
+                    self.image = ImageCache['Palm6LD']
+            else:
+                self.image = ImageCache['Palm6']
+                if desert:
+                    self.image = ImageCache['Palm6D']
+
+        elif height == 6:
+
+            if left:
+                self.image = ImageCache['Palm7L']
+                if desert:
+                    self.image = ImageCache['Palm7LD']
+            else:
+                self.image = ImageCache['Palm7']
+                if desert:
+                    self.image = ImageCache['Palm7D']
+
+        elif height == 7:
+
+            if left:
+                self.image = ImageCache['Palm8L']
+                if desert:
+                    self.image = ImageCache['Palm8LD']
+            else:
+                self.image = ImageCache['Palm8']
+                if desert:
+                    self.image = ImageCache['Palm8D']
+
+        elif height == 8:
+
+            if left:
+                self.image = ImageCache['Palm9L']
+                if desert:
+                    self.image = ImageCache['Palm9LD']
+            else:
+                self.image = ImageCache['Palm9']
+                if desert:
+                    self.image = ImageCache['Palm9D']
+
+        elif height == 9:
+
+            if left:
+                self.image = ImageCache['Palm10L']
+                if desert:
+                    self.image = ImageCache['Palm10LD']
+            else:
+                self.image = ImageCache['Palm10']
+                if desert:
+                    self.image = ImageCache['Palm10D']
+
+        elif height == 10:
+
+            if left:
+                self.image = ImageCache['Palm11L']
+                if desert:
+                    self.image = ImageCache['Palm11LD']
+            else:
+                self.image = ImageCache['Palm11']
+                if desert:
+                    self.image = ImageCache['Palm11D']
 
 
         else:
@@ -3432,6 +3589,77 @@ class SpriteImage_KingBill(SLib.SpriteImage_StaticMultiple): # 282
         else:
             self.image = ImageCache['KingR']
             self.yOffset= -120
+
+        super().dataChanged()
+
+class SpriteImage_Bush(SLib.SpriteImage_StaticMultiple): # 288
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            )
+
+        self.parent.setZValue(24000)
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BushSmall', 'bush_small.png')
+        SLib.loadIfNotInImageCache('BushMedium', 'bush_medium.png')
+        SLib.loadIfNotInImageCache('BushBig', 'bush_big.png')
+        SLib.loadIfNotInImageCache('BushVeryBig', 'bush_very_big.png')
+        SLib.loadIfNotInImageCache('BushSmallY', 'bush_small_y.png')
+        SLib.loadIfNotInImageCache('BushMediumY', 'bush_medium_y.png')
+        SLib.loadIfNotInImageCache('BushBigY', 'bush_big_y.png')
+        SLib.loadIfNotInImageCache('BushVeryBigY', 'bush_very_big_y.png')
+
+    def dataChanged(self):
+        
+        Btype = self.parent.spritedata[5]
+
+        if Btype == 0:
+            self.image = ImageCache['BushSmall']
+            self.xOffset = -32
+            self.yOffset = -32
+
+        elif Btype == 1:
+            self.image = ImageCache['BushMedium']
+            self.xOffset = -32
+            self.yOffset = -48
+
+        elif Btype == 2:
+            self.image = ImageCache['BushBig']
+            self.xOffset = -40
+            self.yOffset = -64
+
+        elif Btype == 3:
+            self.image = ImageCache['BushVeryBig']
+            self.xOffset = -40
+            self.yOffset = -78
+
+        elif Btype == 16:
+            self.image = ImageCache['BushSmallY']
+            self.xOffset = -32
+            self.yOffset = -32
+
+        elif Btype == 17:
+            self.image = ImageCache['BushMediumY']
+            self.xOffset = -32
+            self.yOffset = -48
+
+        elif Btype == 18:
+            self.image = ImageCache['BushBigY']
+            self.xOffset = -40
+            self.yOffset = -64
+
+        elif Btype == 19:
+            self.image = ImageCache['BushVeryBigY']
+            self.xOffset = -40
+            self.yOffset = -78
+
+        else:
+            self.image = ImageCache['BushSmall']
+            self.xOffset = -32
+            self.yOffset = -32
 
         super().dataChanged()
 
@@ -4821,6 +5049,7 @@ ImageClasses = {
     108: SpriteImage_GhostHouseDoor,
     109: SpriteImage_TowerBossDoor,
     110: SpriteImage_CastleBossDoor,
+    117: SpriteImage_Pendulum,
     123: SpriteImage_SandPillar,
     134: SpriteImage_Useless,
     135: SpriteImage_Thwomp,
@@ -4882,6 +5111,7 @@ ImageClasses = {
     270: SpriteImage_Amp,
     281: SpriteImage_CoinBubble,
     282: SpriteImage_KingBill,
+    288: SpriteImage_Bush,
     295: SpriteImage_NoteBlock,
     306: SpriteImage_Crash,
     310: SpriteImage_Crash,
