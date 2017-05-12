@@ -2097,6 +2097,14 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 145
         SLib.loadIfNotInImageCache('Palm11L', 'palm_11_l.png')
         SLib.loadIfNotInImageCache('Palm11D', 'palm_11_d.png')
         SLib.loadIfNotInImageCache('Palm11LD', 'palm_11_l_d.png')
+        SLib.loadIfNotInImageCache('Palm12', 'palm_12.png')
+        SLib.loadIfNotInImageCache('Palm12L', 'palm_12_l.png')
+        SLib.loadIfNotInImageCache('Palm12D', 'palm_12_d.png')
+        SLib.loadIfNotInImageCache('Palm12LD', 'palm_12_l_d.png')
+        SLib.loadIfNotInImageCache('Palm13', 'palm_13.png')
+        SLib.loadIfNotInImageCache('Palm13L', 'palm_13_l.png')
+        SLib.loadIfNotInImageCache('Palm13D', 'palm_13_d.png')
+        SLib.loadIfNotInImageCache('Palm13LD', 'palm_13_l_d.png')
 
 
     def dataChanged(self):
@@ -2250,6 +2258,28 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 145
                 self.image = ImageCache['Palm11']
                 if desert:
                     self.image = ImageCache['Palm11D']
+
+        elif height == 11:
+
+            if left:
+                self.image = ImageCache['Palm12L']
+                if desert:
+                    self.image = ImageCache['Palm12LD']
+            else:
+                self.image = ImageCache['Palm12']
+                if desert:
+                    self.image = ImageCache['Palm12D']
+
+        elif height == 12:
+
+            if left:
+                self.image = ImageCache['Palm13L']
+                if desert:
+                    self.image = ImageCache['Palm13LD']
+            else:
+                self.image = ImageCache['Palm13']
+                if desert:
+                    self.image = ImageCache['Palm13D']
 
 
         else:
