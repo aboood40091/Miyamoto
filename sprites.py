@@ -2105,6 +2105,18 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 145
         SLib.loadIfNotInImageCache('Palm13L', 'palm_13_l.png')
         SLib.loadIfNotInImageCache('Palm13D', 'palm_13_d.png')
         SLib.loadIfNotInImageCache('Palm13LD', 'palm_13_l_d.png')
+        SLib.loadIfNotInImageCache('Palm14', 'palm_14.png')
+        SLib.loadIfNotInImageCache('Palm14L', 'palm_14_l.png')
+        SLib.loadIfNotInImageCache('Palm14D', 'palm_14_d.png')
+        SLib.loadIfNotInImageCache('Palm14LD', 'palm_14_l_d.png')
+        SLib.loadIfNotInImageCache('Palm15', 'palm_15.png')
+        SLib.loadIfNotInImageCache('Palm15L', 'palm_15_l.png')
+        SLib.loadIfNotInImageCache('Palm15D', 'palm_15_d.png')
+        SLib.loadIfNotInImageCache('Palm15LD', 'palm_15_l_d.png')
+        SLib.loadIfNotInImageCache('Palm16', 'palm_16.png')
+        SLib.loadIfNotInImageCache('Palm16L', 'palm_16_l.png')
+        SLib.loadIfNotInImageCache('Palm16D', 'palm_16_d.png')
+        SLib.loadIfNotInImageCache('Palm16LD', 'palm_16_l_d.png')
 
 
     def dataChanged(self):
@@ -2280,6 +2292,39 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 145
                 self.image = ImageCache['Palm13']
                 if desert:
                     self.image = ImageCache['Palm13D']
+
+        elif height == 13:
+
+            if left:
+                self.image = ImageCache['Palm14L']
+                if desert:
+                    self.image = ImageCache['Palm14LD']
+            else:
+                self.image = ImageCache['Palm14']
+                if desert:
+                    self.image = ImageCache['Palm14D']
+
+        elif height == 14:
+
+            if left:
+                self.image = ImageCache['Palm15L']
+                if desert:
+                    self.image = ImageCache['Palm15LD']
+            else:
+                self.image = ImageCache['Palm15']
+                if desert:
+                    self.image = ImageCache['Palm15D']
+
+        elif height == 15:
+
+            if left:
+                self.image = ImageCache['Palm16L']
+                if desert:
+                    self.image = ImageCache['Palm16LD']
+            else:
+                self.image = ImageCache['Palm16']
+                if desert:
+                    self.image = ImageCache['Palm16D']
 
 
         else:
