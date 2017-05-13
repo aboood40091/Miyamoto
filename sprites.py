@@ -2061,8 +2061,8 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 145
         SLib.loadIfNotInImageCache('Palm2L', 'palm_2_l.png')
         SLib.loadIfNotInImageCache('Palm2D', 'palm_2_d.png')
         SLib.loadIfNotInImageCache('Palm2LD', 'palm_2_l_d.png')
-        #SLib.loadIfNotInImageCache('Palm3', 'palm_3.png')
-        #SLib.loadIfNotInImageCache('Palm3L', 'palm_3_l.png')
+        SLib.loadIfNotInImageCache('Palm3', 'palm_3.png')
+        SLib.loadIfNotInImageCache('Palm3L', 'palm_3_l.png')
         SLib.loadIfNotInImageCache('Palm3D', 'palm_3_d.png')
         SLib.loadIfNotInImageCache('Palm3LD', 'palm_3_l_d.png')
         SLib.loadIfNotInImageCache('Palm4', 'palm_4.png')
@@ -2175,11 +2175,11 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 145
         elif height == 2:
 
             if left:
-                #self.image = ImageCache['Palm3L']
+                self.image = ImageCache['Palm3L']
                 if desert:
                     self.image = ImageCache['Palm3LD']
             else:
-                #self.image = ImageCache['Palm3']
+                self.image = ImageCache['Palm3']
                 if desert:
                     self.image = ImageCache['Palm3D']
 
