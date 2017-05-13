@@ -2146,10 +2146,7 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple): # 145
 
         self.yOffset = -1*(height+4)*16
         
-        
-        print(height, left, desert)
-        
-        
+
         if height == 0:
 
             if left:
