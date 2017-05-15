@@ -9862,7 +9862,7 @@ class Rly(QtWidgets.QDialog):
     """
     def __init__(self):
         """
-        Creates and initializes the tab dialog
+        Creates and initializes the dialog
         """
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle('Really... ?')

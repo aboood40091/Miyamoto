@@ -18,6 +18,7 @@ GitHub: https://github.com/Gota7/Miyamoto
 - Hiccup -- Spritedata
 - Huey -- Spritedata, Graphics
 - Kinnay -- Spritedata
+- Luzifer -- Graphics
 - Mayro -- Graphics
 - Toms -- Spritedata, Graphics
 - Treeki -- Original creator, Coding
