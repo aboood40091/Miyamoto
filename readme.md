@@ -1,22 +1,23 @@
-# Miyamoto
-A level editor for NSMBU and NSLU, based on Reggie! Next by RoadrunnerWMC, which is based on Reggie by Treeki, Tempus et al. Uses Python 3 and PyQt5.
+# Miyamoto!
+A level editor for NSMBU and NSLU by AboodXD and Gota7, based on Reggie! Next by RoadrunnerWMC, which is based on Reggie by Treeki, Tempus et al. Uses Python 3 and PyQt5.
 
 # Credits
-- MrRean -- Coding, Spritedata, Categories, Graphics
 - RoadrunnerWMC -- Coding, Spritedata, Graphics
+- MrRean -- Coding, Spritedata, Categories, Graphics
 - AboodXD -- Coding, Spritedata, Graphics
 - Gota7 -- Coding, Spritedata, Graphics
 - Grop -- Coding, Spritedata, Graphics
 - Hiccup -- Spritedata
+- Huey -- Spritedata, Graphics
 - Kinnay -- Spritedata
-- Sierra -- Spritedata, Graphics
+- Toms -- Spritedata
 - Treeki -- Original creator, Coding
 
 # TODO
-- Get Object Data figured out
 - Get unknown entrance fields figured out
 - Get unknown area fields figured out
-- Sprite images / HD screenshots (a lot of them).
+- Sprite images / HD screenshots (a lot of them)
+- Improve Tileset handling
 
 # How To Use
 First, download this repo (either by using ```git clone``` or ```git pull``` if you've already cloned it), or by downloading a release, or by just downloading this repo as a whole.
