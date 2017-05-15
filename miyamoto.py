@@ -2307,6 +2307,7 @@ def LoadTexture_NSMBU(tiledata):
 
     else:
         print("Not a supported platform, sadly...")
+        return
 
     os.remove(tile_path + '/texture.gtx')
 
@@ -3062,37 +3063,11 @@ class Level_NSMBU(AbstractLevel):
         # Make a new archive
         newArchive = SarcLib.SARC_Archive()
 
-        # Make an outer archive
-        outerArchive = SarcLib.SARC_Archive()
-
-        # Create a folder within the inner archive
+        # Create a folder within the archive
         courseFolder = SarcLib.Folder('course')
         newArchive.addFolder(courseFolder)
 
-        # Set the Tilesets names
-        # TODO Clean up this mess...
-        if os.path.isdir(miyamoto_path + '/data'):
-            tilesets_names = {}
-            tilesets_real_names = []
-            for areanum, area_SARC in enumerate(Level.areas):
-                if area_SARC.tileset0 not in ('', None):
-                    tilesets_names[area_SARC.tileset0] = area_SARC.tileset0
-                    tilesets_real_names.append(area_SARC.tileset0)
-                if area_SARC.tileset1 not in ('', None):
-                    tilesets_names[area_SARC.tileset1] = 'Pa1_' + innerfilename + '_' + str(areanum + 1)
-                    tilesets_real_names.append(area_SARC.tileset1)
-                    area_SARC.tileset1 = 'Pa1_' + innerfilename + '_' + str(areanum + 1)
-                if area_SARC.tileset2 not in ('', None):
-                    tilesets_names[area_SARC.tileset2] = 'Pa2_' + innerfilename + '_' + str(areanum + 1)
-                    tilesets_real_names.append(area_SARC.tileset2)
-                    area_SARC.tileset2 = 'Pa2_' + innerfilename + '_' + str(areanum + 1)
-                if area_SARC.tileset3 not in ('', None):
-                    tilesets_names[area_SARC.tileset3] = 'Pa3_' + innerfilename + '_' + str(areanum + 1)
-                    tilesets_real_names.append(area_SARC.tileset3)
-                    area_SARC.tileset3 = 'Pa3_' + innerfilename + '_' + str(areanum + 1)
-            tilesets_real_names = tuple(set(tilesets_real_names))
-
-        # Go through the areas, save them and add them back to the inner archive
+        # Go through the areas, save them and add them back to the archive
         for areanum, area in enumerate(self.areas):
             course, L0, L1, L2 = area.save()
 
@@ -3108,7 +3083,10 @@ class Level_NSMBU(AbstractLevel):
         # Here we have the new inner-SARC savedata
         innersarc = newArchive.save(0x04, 0x170)
 
-        # Add the innersarc to the outer archive
+        # Now make an outer SARC
+        outerArchive = SarcLib.SARC_Archive()
+
+        # Add the innersarc to it
         outerArchive.addFile(SarcLib.File(innerfilename, innersarc))
 
         # Make it easy for future Miyamotos to pick out the innersarc level name
@@ -3128,10 +3106,20 @@ class Level_NSMBU(AbstractLevel):
                 sprites_xml[id] = tuple(name)
 
             sprites_SARC = []
-            for areanum, area_SARC in enumerate(Level.areas):
+            tilesets_names = []
+            for area_SARC in Level.areas:
                 for sprite in area_SARC.sprites:
                     sprites_SARC.append(sprite.type)
+                if area_SARC.tileset0 not in ('', None):
+                    tilesets_names.append(area_SARC.tileset0)
+                if area_SARC.tileset1 not in ('', None):
+                    tilesets_names.append(area_SARC.tileset1)
+                if area_SARC.tileset2 not in ('', None):
+                    tilesets_names.append(area_SARC.tileset2)
+                if area_SARC.tileset3 not in ('', None):
+                    tilesets_names.append(area_SARC.tileset3)
             sprites_SARC = tuple(set(sprites_SARC))
+            tilesets_names = tuple(set(tilesets_names))
 
             sprites_names = []
             for sprite in sprites_SARC:
@@ -3148,9 +3136,9 @@ class Level_NSMBU(AbstractLevel):
                         f1 = f.read()
                     outerArchive.addFile(SarcLib.File(sprite_name, f1))
 
-            for tileset_real_name in tilesets_real_names:
-                if tileset_real_name in szsData:
-                    outerArchive.addFile(SarcLib.File(tilesets_names[tileset_real_name], szsData[tileset_real_name]))
+            for tileset_name in tilesets_names:
+                if tileset_name in szsData:
+                    outerArchive.addFile(SarcLib.File(tileset_name, szsData[tileset_name]))
         else:
             for szsThingName in szsData:
                 try:
@@ -9468,7 +9456,7 @@ class AboutDialog(QtWidgets.QDialog):
         description += '</style></head><body>'
         description += '<center><h1><i>Miyamoto!</i> Level Editor</h1><div class=\'main\'>'
         description += '<i>Miyamoto! Level Editor</i> is a fork of Reggie! Level Editor, an open-source global project started by Treeki in 2010 that aimed to bring New Super Mario Bros. Wii&trade; levels. Now in later years, brings you New Super Mario Bros. U&trade;!<br>'
-        description += 'Interested? Check out <a href=\'https://github.com/aboood40091/Miyamoto\'>https://github.com/aboood40091/Miyamoto</a> for updates and related downloads, or <a href=\'https://discord.gg/c2ut8ky\'>our Discord group</a> to get in touch with the developers.<br>'
+        description += 'Interested? Check out <a href=\'https://github.com/Gota7/Miyamoto\'>the Github repository</a> for updates and related downloads, or <a href=\'https://discord.gg/DYxwBxB\'>our Discord group</a> to get in touch with the developers.<br>'
         description += '</div></center></body></html>'
 
         # Description label
@@ -13110,6 +13098,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + fn + '" --dest "' + course_name + '.tmp"')
             else:
                 print("Not a supported platform, sadly...")
+                return
             os.chdir(miyamoto_path)
             with open(course_name + '.tmp', 'rb') as f:
                 data = f.read()
@@ -13266,6 +13255,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
             else:
                 print("Not a supported platform, sadly...")
+                return
             os.remove(course_name + '.tmp')
         else:
             with open(self.fileSavePath, 'wb') as f:
@@ -13442,6 +13432,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
                 else:
                     print("Not a supported platform, sadly...")
+                    return
                 os.remove(course_name + '.tmp')
             else:
                 with open(mainWindow.fileSavePath, 'wb') as f:
@@ -13497,6 +13488,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
                 else:
                     print("Not a supported platform, sadly...")
+                    return
                 os.remove(course_name + '.tmp')
             else:
                 with open(mainWindow.fileSavePath, 'wb') as f:
@@ -13567,6 +13559,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
                 else:
                     print("Not a supported platform, sadly...")
+                    return
                 os.remove(course_name + '.tmp')
             else:
                 with open(self.fileSavePath, 'wb') as f:
@@ -14142,6 +14135,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
                     else:
                         print("Not a supported platform, sadly...")
+                        return
                     os.chdir(miyamoto_path)
                     with open(course_name + '.tmp', 'rb') as f:
                         levelData = f.read()
@@ -14237,6 +14231,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.szs" --dest "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc"')
             else:
                 print("Not a supported platform, sadly...")
+                return
             os.chdir(miyamoto_path)
             szsData = {}
             with open(miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc', 'rb') as f:
@@ -15657,6 +15652,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             ScreenshotImage.save(fn, 'PNG', 50)
 
+    # Edits Tilesets
+    # TODO Add comments to show
+    # what does what.
+    # To be removed/replaced when
+    # Satoru comes out (?).
     @QtCore.pyqtSlot()
     def EditSlot1(self):
         """
@@ -15684,11 +15684,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 fn = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 0), '', trans.string('FileDlgs', 2) + ' (*)')[0]
                 if fn == '': return
                 fn = str(fn)
-                if Area.tileset0 in ('', None):
-                    Area.tileset0 = QtWidgets.QInputDialog.getText(self, "Choose Name",
-                                                                    "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
-                    if Area.tileset0 in ('', None): return
 
+                Area.tileset0 = os.path.basename(fn)
+                if Area.tileset0 in ('', None): return
                 with open(fn, 'rb') as fileobj:
                     szsData[Area.tileset0] = fileobj.read()
 
@@ -15726,6 +15724,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             os.chdir(miyamoto_path)
         else:
             print("Not a supported platform, sadly...")
+            return
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
             with open(tile_path + '/tmp.tmp', 'rb') as fn:
@@ -15770,6 +15769,22 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                                                                         "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
                 sarcfile = 'None'
 
+                while (Area.tileset1 not in ('', None)) and (Area.tileset1 in szsData):
+                    con_msg = "This Tileset already exists inside the level, do you want to overwrite it?"
+                    reply = QtWidgets.QMessageBox.question(self, 'Warning', 
+                                     con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+                    if reply == QtWidgets.QMessageBox.No:
+                        Area.tileset1 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                            "Choose another name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+                    else:
+                        sarcdata = szsData[Area.tileset1]
+
+                        with open(tile_path + '/tmp.tmp', 'wb') as fn:
+                            fn.write(sarcdata)
+                        sarcfile = 'tmp.tmp'
+                        break
+
             else: return
 
         if Area.tileset1 in ('', None): return
@@ -15789,6 +15804,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             os.chdir(miyamoto_path)
         else:
             print("Not a supported platform, sadly...")
+            return
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
             with open(tile_path + '/tmp.tmp', 'rb') as fn:
@@ -15850,6 +15866,22 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                                                                         "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
                 sarcfile = 'None'
 
+                while (Area.tileset2 not in ('', None)) and (Area.tileset2 in szsData):
+                    con_msg = "This Tileset already exists inside the level, do you want to overwrite it?"
+                    reply = QtWidgets.QMessageBox.question(self, 'Warning', 
+                                     con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+                    if reply == QtWidgets.QMessageBox.No:
+                        Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                            "Choose another name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+                    else:
+                        sarcdata = szsData[Area.tileset2]
+
+                        with open(tile_path + '/tmp.tmp', 'wb') as fn:
+                            fn.write(sarcdata)
+                        sarcfile = 'tmp.tmp'
+                        break
+
             else: return
 
         if Area.tileset2 in ('', None): return
@@ -15869,6 +15901,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             os.chdir(miyamoto_path)
         else:
             print("Not a supported platform, sadly...")
+            return
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
             with open(tile_path + '/tmp.tmp', 'rb') as fn:
@@ -15930,6 +15963,22 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                                                                         "Choose a name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
                 sarcfile = 'None'
 
+                while (Area.tileset3 not in ('', None)) and (Area.tileset3 in szsData):
+                    con_msg = "This Tileset already exists inside the level, do you want to overwrite it?"
+                    reply = QtWidgets.QMessageBox.question(self, 'Warning', 
+                                     con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+                    if reply == QtWidgets.QMessageBox.No:
+                        Area.tileset3 = QtWidgets.QInputDialog.getText(self, "Choose Name",
+                                                                            "Choose another name for this Tileset:", QtWidgets.QLineEdit.Normal)[0]
+                    else:
+                        sarcdata = szsData[Area.tileset3]
+
+                        with open(tile_path + '/tmp.tmp', 'wb') as fn:
+                            fn.write(sarcdata)
+                        sarcfile = 'tmp.tmp'
+                        break
+
             else: return
 
         if Area.tileset3 in ('', None): return
@@ -15949,6 +15998,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             os.chdir(miyamoto_path)
         else:
             print("Not a supported platform, sadly...")
+            return
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
             with open(tile_path + '/tmp.tmp', 'rb') as fn:
