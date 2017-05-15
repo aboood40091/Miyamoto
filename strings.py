@@ -502,6 +502,8 @@ class MiyamotoTranslation():
                 141: 'Edit Slot 3 Tileset',
                 142: 'Edit Slot 4 Tileset',
                 143: 'Edit Slot 4 Tileset',
+                144: 'Create Level by itself',
+                145: 'Creates a Full Level on its own',
                 500: 'Toggle Background',
                 501: 'Swap Current Background',
                 502: 'Liquid Options',
@@ -614,6 +616,7 @@ class MiyamotoTranslation():
                 28: 'Use Default Tileset Picker (recommended)',
                 29: 'Use Old Tileset Picker',
                 30: 'You may need to restart Miyamoto! for changes to take effect.',
+                31: 'Display lines indicating the leftmost x-position where entrances can be safely placed in zones',
                 },
             'Ribbon': {
                 0: '&Home',

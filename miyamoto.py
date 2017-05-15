@@ -43,6 +43,8 @@ import pickle
 import platform
 import struct
 import sys
+if platform.system() == 'Windows':
+    import winsound
 from xml.etree import ElementTree as etree
 import zipfile
 
@@ -1002,6 +1004,7 @@ def LoadActionsLists():
 
     FileActions = (
         (trans.string('MenuItems', 0),  True,  'newlevel'),
+        (trans.string('MenuItems', 144), False, 'createlevel'),
         (trans.string('MenuItems', 2),  True,  'openfromname'),
         (trans.string('MenuItems', 4),  False, 'openfromfile'),
         (trans.string('MenuItems', 8),  True,  'save'),
@@ -4630,13 +4633,13 @@ class ZoneItem(LevelEditorItem):
         #painter.setClipRect(option.exposedRect)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
-        # Paint an indicator line to show the leftmost edge o
+        # Paint an indicator line to show the leftmost edge of
         # where entrances can be safely placed
-        if DrawEntIndicators and (self.camtrack in (0, 1)) and (TileWidth * 13 < self.DrawRect.width()):
+        if DrawEntIndicators and (self.camtrack in (0, 1)) and (TileWidth * 5 < self.DrawRect.width()):
             painter.setPen(QtGui.QPen(theme.color('zone_entrance_helper'), 2 * TileWidth / 24))
-            lineStart = QtCore.QPointF(self.DrawRect.x() + (TileWidth * 13), self.DrawRect.y())
-            lineEnd = QtCore.QPointF(self.DrawRect.x() + (TileWidth * 13), self.DrawRect.y() + self.DrawRect.height())
-            #painter.drawLine(lineStart, lineEnd)
+            lineStart = QtCore.QPointF(self.DrawRect.x() + (TileWidth * 5), self.DrawRect.y())
+            lineEnd = QtCore.QPointF(self.DrawRect.x() + (TileWidth * 5), self.DrawRect.y() + self.DrawRect.height())
+            painter.drawLine(lineStart, lineEnd)
 
         # Now paint the borders
         painter.setPen(QtGui.QPen(theme.color('zone_lines'), 3 * TileWidth / 24))
@@ -9853,6 +9856,28 @@ class AreaOptionsDialog(QtWidgets.QDialog):
         self.setLayout(mainLayout)
 
 
+class Rly(QtWidgets.QDialog):
+    """
+    Dialog which lets you configure your automatically-created level
+    """
+    def __init__(self):
+        """
+        Creates and initializes the dialog
+        """
+        QtWidgets.QDialog.__init__(self)
+        self.setWindowTitle('Really... ?')
+
+        mainLayout = QtWidgets.QVBoxLayout()
+        pic = QtWidgets.QLabel()
+        pic.setGeometry(10, 10, 400, 100)
+        pic.setPixmap(QtGui.QPixmap(miyamoto_path + '/miyamotodata/bitch_please.png'))
+        mainLayout.addWidget(pic)
+        self.setLayout(mainLayout)
+
+        if platform.system() == 'Windows':
+            winsound.PlaySound(miyamoto_path + '/miyamotodata/mou.wav', winsound.SND_FILENAME)
+
+
 class ZonesDialog(QtWidgets.QDialog):
     """
     Dialog which lets you choose among various from tabs
@@ -10585,12 +10610,15 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.Trans = QtWidgets.QComboBox()
                 self.Trans.setMaximumWidth(256)
 
+                # Add the Zone Entrance Indicator checkbox
+                self.zEntIndicator = QtWidgets.QCheckBox(trans.string('PrefsDlg', 31))
+
                 # Create the main layout
                 L = QtWidgets.QFormLayout()
                 L.addRow(trans.string('PrefsDlg', 11), MenuL)
                 L.addRow(trans.string('PrefsDlg', 27), TileL)
                 L.addRow(trans.string('PrefsDlg', 14), self.Trans)
-
+                L.addWidget(self.zEntIndicator)
                 self.setLayout(L)
 
                 # Set the buttons
@@ -11508,6 +11536,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # File
         self.CreateAction('newlevel', self.HandleNewLevel, GetIcon('new'), trans.string('MenuItems', 0), trans.string('MenuItems', 1), QtGui.QKeySequence.New)
+        self.CreateAction('createlevel', self.HandleCreateLevelByItself, GetIcon('new'), trans.string('MenuItems', 144), trans.string('MenuItems', 145), None)
         self.CreateAction('openfromname', self.HandleOpenFromName, GetIcon('open'), trans.string('MenuItems', 2), trans.string('MenuItems', 3), QtGui.QKeySequence.Open)
         self.CreateAction('openfromfile', self.HandleOpenFromFile, GetIcon('openfromfile'), trans.string('MenuItems', 4), trans.string('MenuItems', 5), QtGui.QKeySequence('Ctrl+Shift+O'))
         self.CreateAction('save', self.HandleSave, GetIcon('save'), trans.string('MenuItems', 8), trans.string('MenuItems', 9), QtGui.QKeySequence.Save)
@@ -11607,6 +11636,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         fmenu = menubar.addMenu(trans.string('Menubar', 0))
         fmenu.addAction(self.actions['newlevel'])
+        fmenu.addAction(self.actions['createlevel'])
         fmenu.addAction(self.actions['openfromname'])
         fmenu.addAction(self.actions['openfromfile'])
         fmenu.addSeparator()
@@ -11733,6 +11763,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Groups = (
             (
                 'newlevel',
+                'createlevel',
                 'openfromname',
                 'openfromfile',
                 'save',
@@ -15281,6 +15312,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     obj.updateObjCache()
 
             self.scene.update()
+
+    @QtCore.pyqtSlot()
+    def HandleCreateLevelByItself(self):
+        if not self.CheckDirty(): Rly().exec_()
 
     @QtCore.pyqtSlot()
     def HandleZones(self):
