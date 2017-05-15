@@ -42,6 +42,7 @@ Thirdly, Download and install the following:
  * Python 3.4 (or newer) - http://www.python.org
  * PyQt 5.3 (or newer) - http://www.riverbankcomputing.co.uk/software/pyqt/intro
  * cx_Freeze 4.3 (or newer) (optional) - http://cx-freeze.sourceforge.net  
+
 Run the following in a command prompt:  
 `python3 miyamoto.py`  
 You can replace `python3` with the path to python.exe (including "python.exe" at the end) and `miyamoto.py` with the path to miyamoto.py (including "miyamoto.py" at the end)  
