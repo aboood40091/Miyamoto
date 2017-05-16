@@ -1166,8 +1166,10 @@ class LevelScene(QtWidgets.QGraphicsScene):
                                     destrow[destx] = base + thing
                                 else:
                                     base = overrides + 32
-                                    if item.data == 13 or item.data == 0:
+                                    if item.data == 0:
                                         thing = tile - base # Don't override this one, as it's a normal ? block.
+                                    elif item.data == 13:
+                                        thing = 14
                                     elif item.data == 18:
                                         thing = 10
                                     elif item.data == 19:
@@ -7784,7 +7786,7 @@ class ObjectDataEditorWidget(QtWidgets.QWidget):
 
         # create widgets
         self.brick = QtWidgets.QCheckBox()
-        self.brick.setToolTip("Use the left list")
+        self.brick.setToolTip("Transform this ? block into a Brick")
         self.brick.stateChanged.connect(self.HandleAppearanceChanged)
 
         self.contentbrick = QtWidgets.QComboBox()
@@ -7808,7 +7810,7 @@ class ObjectDataEditorWidget(QtWidgets.QWidget):
         self.contentquest = QtWidgets.QComboBox()
         self.contentquest.setToolTip("Set the content of the question block")
         self.contentquest.addItems((
-                                    "Coin",
+                                    "Normal (Coin)",
                                     "Coin",
                                     "Fire Flower",
                                     "Invincibility Star",
@@ -11896,7 +11898,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         dock.setFloating(True)
 
         # create the object editor panel
-        dock = QtWidgets.QDockWidget("Object data editor", self)
+        dock = QtWidgets.QDockWidget("Object Data Editor", self)
         dock.setVisible(False)
         dock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable)
         dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
