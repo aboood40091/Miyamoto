@@ -762,14 +762,147 @@ class SpriteImage_PipePiranhaUpFire(SLib.SpriteImage_Static): # 6
             parent,
             3.75,
             ImageCache['PipePiranhaUpFire'],
+            (-6, -32),
             )
-
-        self.xOffset = -6
-        self.yOffset = -32
 
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('PipePiranhaUpFire', 'firetrap_pipe_up.png')
+
+class SpriteImage_PipePiranhaDownFire(SLib.SpriteImage_Static): # 7
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['PipePiranhaDownFire'],
+            (-6, 32),
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('PipePiranhaDownFire', 'firetrap_pipe_down.png')
+
+class SpriteImage_PipePiranhaLeftFire(SLib.SpriteImage_Static): # 8
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['PipePiranhaLeftFire'],
+            (-32, -6),
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('PipePiranhaLeftFire', 'firetrap_pipe_left.png')
+
+class SpriteImage_PipePiranhaRightFire(SLib.SpriteImage_Static): # 9
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['PipePiranhaRightFire'],
+            (32, -6),
+            )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('PipePiranhaRightFire', 'firetrap_pipe_right.png')
+
+class SpriteImage_GroundPiranha(SLib.SpriteImage_StaticMultiple): # 14
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.xOffset = -20
+
+    @staticmethod
+    def loadImages():
+        if 'GroundPiranha' in ImageCache: return
+        GP = SLib.GetImg('ground_piranha.png', True)
+        ImageCache['GroundPiranha'] = QtGui.QPixmap.fromImage(GP)
+        ImageCache['GroundPiranhaU'] = QtGui.QPixmap.fromImage(GP.mirrored(False, True))
+
+    def dataChanged(self):
+
+        upsideDown = self.parent.spritedata[5] & 0xF
+        if upsideDown != 8:
+            self.yOffset = 6
+            self.image = ImageCache['GroundPiranha']
+        else:
+            self.yOffset = 30
+            self.image = ImageCache['GroundPiranhaU']
+
+        super().dataChanged()
+
+class SpriteImage_GroundFiretrap(SLib.SpriteImage_StaticMultiple): # 15, 16
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.xOffset = 5
+
+    @staticmethod
+    def loadImages():
+        if 'GroundFiretrap' in ImageCache: return
+        GF = SLib.GetImg('ground_firetrap.png', True)
+        ImageCache['GroundFiretrap'] = QtGui.QPixmap.fromImage(GF)
+        ImageCache['GroundFiretrapU'] = QtGui.QPixmap.fromImage(GF.mirrored(False, True))
+
+    def dataChanged(self):
+
+        upsideDown = self.parent.spritedata[5] & 0xF
+        if upsideDown != 8:
+            self.yOffset = -10
+            self.image = ImageCache['GroundFiretrap']
+        else:
+            self.yOffset = 0
+            self.image = ImageCache['GroundFiretrapU']
+
+        super().dataChanged()
+
+class SpriteImage_BigGroundPiranha(SLib.SpriteImage_StaticMultiple): # 17
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.xOffset = -65
+
+    @staticmethod
+    def loadImages():
+        if 'BigGroundPiranha' in ImageCache: return
+        BGP = SLib.GetImg('big_ground_piranha.png', True)
+        ImageCache['BigGroundPiranha'] = QtGui.QPixmap.fromImage(BGP)
+        ImageCache['BigGroundPiranhaU'] = QtGui.QPixmap.fromImage(BGP.mirrored(False, True))
+
+    def dataChanged(self):
+
+        upsideDown = self.parent.spritedata[5] & 0xF
+        if upsideDown != 8:
+            self.yOffset = 32
+            self.image = ImageCache['BigGroundPiranha']
+        else:
+            self.yOffset = 77
+            self.image = ImageCache['BigGroundPiranhaU']
+
+        super().dataChanged()
+
+class SpriteImage_BigGroundFiretrap(SLib.SpriteImage_StaticMultiple): # 18
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.xOffset = -14
+
+    @staticmethod
+    def loadImages():
+        if 'BigGroundFiretrap' in ImageCache: return
+        BGF = SLib.GetImg('big_ground_firetrap.png', True)
+        ImageCache['BigGroundFiretrap'] = QtGui.QPixmap.fromImage(BGF)
+        ImageCache['BigGroundFiretrapU'] = QtGui.QPixmap.fromImage(BGF.mirrored(False, True))
+
+    def dataChanged(self):
+
+        upsideDown = self.parent.spritedata[5] & 0xF
+        if upsideDown != 8:
+            self.yOffset = -68
+            self.image = ImageCache['BigGroundFiretrap']
+        else:
+            self.yOffset = 0
+            self.image = ImageCache['BigGroundFiretrapU']
+
+        super().dataChanged()
   
 # Image needs to be improved
 class SpriteImage_KoopaTroopa(SLib.SpriteImage_StaticMultiple): # 19
@@ -3101,118 +3234,67 @@ class SpriteImage_RouletteBlock(SLib.SpriteImage_StaticMultiple): # 195
 
 class SpriteImage_MushroomPlatform(SLib.SpriteImage): # 200
     def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            )
+        super().__init__(parent, 3.75)
         self.spritebox.shown = False
-        
+        self.xOffset = -2
+
     @staticmethod
     def loadImages():
-        ImageCache['SkinnyOrangeL'] = SLib.GetImg('orange_mushroom_skinny_l.png')
-        ImageCache['SkinnyOrangeM'] = SLib.GetImg('orange_mushroom_skinny_m.png')
-        ImageCache['SkinnyOrangeR'] = SLib.GetImg('orange_mushroom_skinny_r.png')
-        ImageCache['SkinnyGreenL'] = SLib.GetImg('green_mushroom_skinny_l.png')
-        ImageCache['SkinnyGreenM'] = SLib.GetImg('green_mushroom_skinny_m.png')
-        ImageCache['SkinnyGreenR'] = SLib.GetImg('green_mushroom_skinny_r.png')
-        ImageCache['ThickBlueL'] = SLib.GetImg('blue_mushroom_thick_l.png')
-        ImageCache['ThickBlueM'] = SLib.GetImg('blue_mushroom_thick_m.png')
-        ImageCache['ThickBlueR'] = SLib.GetImg('blue_mushroom_thick_r.png')
-        ImageCache['ThickRedL'] = SLib.GetImg('red_mushroom_thick_l.png')
-        ImageCache['ThickRedM'] = SLib.GetImg('red_mushroom_thick_m.png')
-        ImageCache['ThickRedR'] = SLib.GetImg('red_mushroom_thick_r.png')               
-
+        if 'RedShroomL' in ImageCache: return
+        ImageCache['RedShroomL'] = SLib.GetImg('red_mushroom_left.png')
+        ImageCache['RedShroomM'] = SLib.GetImg('red_mushroom_middle.png')
+        ImageCache['RedShroomR'] = SLib.GetImg('red_mushroom_right.png')
+        ImageCache['GreenShroomL'] = SLib.GetImg('green_mushroom_left.png')
+        ImageCache['GreenShroomM'] = SLib.GetImg('green_mushroom_middle.png')
+        ImageCache['GreenShroomR'] = SLib.GetImg('green_mushroom_right.png')
+        ImageCache['BlueShroomL'] = SLib.GetImg('blue_mushroom_left.png')
+        ImageCache['BlueShroomM'] = SLib.GetImg('blue_mushroom_middle.png')
+        ImageCache['BlueShroomR'] = SLib.GetImg('blue_mushroom_right.png')
+        ImageCache['OrangeShroomL'] = SLib.GetImg('orange_mushroom_left.png')
+        ImageCache['OrangeShroomM'] = SLib.GetImg('orange_mushroom_middle.png')
+        ImageCache['OrangeShroomR'] = SLib.GetImg('orange_mushroom_right.png')
 
     def dataChanged(self):
         super().dataChanged()
 
+        # get size/color
         self.color = self.parent.spritedata[4] & 1
-        self.girth = self.parent.spritedata[5] >> 4 & 1
+        self.shroomsize = (self.parent.spritedata[5] >> 4) & 1
+        self.height = 16 * (self.shroomsize + 1)
 
-
-        if self.girth == 0:
-#            self.width = ((self.parent.spritedata[8] & 0xF) + 3) << 4 # because default crapo
-            self.height = 60
-
-
-            if self.parent.spritedata[8] % 2 == 1:
-                self.width = (self.parent.spritedata[8]) + (self.parent.spritedata[8]-1)
-            else:
-                self.width = (self.parent.spritedata[8]) + 2
-
-            self.xOffset = 16 + (-1*((self.width)*8))
-
+        # get width
+        width = width = self.parent.spritedata[8] & 0xF
+        if self.shroomsize == 0:
+            self.width = (width << 4) + 32
+            self.offset = (
+                0 - (((width + 1) // 2) << 4),
+                0,
+                )
         else:
-            self.height = 120
-            if self.parent.spritedata[8] % 2 == 1:
-#                self.width = (self.parent.spritedata[8]) + (self.parent.spritedata[8]-1)
-                self.width = ((self.parent.spritedata[8]) * 2) + 4
-            else:
-                self.width = ((self.parent.spritedata[8]) * 2) + 4
-
-            self.xOffset = 16 + (-1*((self.width)*8))
-
-            self.yOffset = -16
-
-
-
-        self.width = self.width * 16
-
-#        self.xOffset = (-1*((self.width/16)*16))
-#        self.xOffset = (-1*((self.width/16)*8))
-#        self.xOffset = self.xOffset + (-8 * (self.parent.spritedata[8]))
-
-#        print(self.parent.spritedata[8], self.xOffset)
+            self.width = (width << 5) + 64
+            self.offset = (
+                16 - (self.width / 2),
+                -16,
+                )
 
     def paint(self, painter):
         super().paint(painter)
 
-        # this is coded so horribly
-        
-        if self.width > 32:
-            if self.color == 0 and self.girth == 0:
-                painter.drawTiledPixmap(60, 0, ((self.width * 3.75)-120), 60, ImageCache['SkinnyOrangeM'])
-            elif self.color == 1 and self.girth == 0:
-                painter.drawTiledPixmap(60, 0, ((self.width * 3.75)-120), 60, ImageCache['SkinnyGreenM'])
-            elif self.color == 0 and self.girth == 1:
-                painter.drawTiledPixmap(120, 0, ((self.width * 3.75)-240), 120, ImageCache['ThickRedM'])
-            elif self.color == 1 and self.girth == 1:
-                painter.drawTiledPixmap(120, 0, ((self.width * 3.75)-240), 120, ImageCache['ThickBlueM'])                    
+        tilesize = 60 + (self.shroomsize * 60)
+        if self.shroomsize == 0:
+            if self.color == 0:
+                color = 'Orange'
             else:
-                painter.drawTiledPixmap(60, 0, ((self.width * 3.75)-120), 60, ImageCache['SkinnyOrangeM'])
-
-        if self.width == 24:
-            if self.color == 0 and self.girth == 0:
-                painter.drawPixmap(0, 0, ImageCache['SkinnyOrangeR'])
-                painter.drawPixmap(8, 0, ImageCache['SkinnyOrangeL'])
-            elif self.color == 1 and self.girth == 0:
-                painter.drawPixmap(0, 0, ImageCache['SkinnyGreenR'])
-                painter.drawPixmap(8, 0, ImageCache['SkinnyGreenL'])
-            elif self.color == 0 and self.girth == 1:
-                painter.drawPixmap(0, 0, ImageCache['ThickRedR'])
-                painter.drawPixmap(8, 0, ImageCache['ThickRedL'])
-            elif self.color == 1 and self.girth == 1:
-                painter.drawPixmap(0, 0, ImageCache['ThickBlueR'])
-                painter.drawPixmap(8, 0, ImageCache['ThickBlueL'])                    
-            else:
-                painter.drawPixmap(0, 0, ImageCache['SkinnyOrangeR'])
-                painter.drawPixmap(8, 0, ImageCache['SkinnyOrangeL'])                
+                color = 'Green'
         else:
-            if self.color == 0 and self.girth == 0:
-                painter.drawPixmap((self.width - 16) * 3.75, 0, ImageCache['SkinnyOrangeR'])
-                painter.drawPixmap(0, 0, ImageCache['SkinnyOrangeL'])
-            elif self.color == 1 and self.girth == 0:
-                painter.drawPixmap((self.width - 16) * 3.75, 0, ImageCache['SkinnyGreenR'])
-                painter.drawPixmap(0, 0, ImageCache['SkinnyGreenL'])
-            elif self.color == 0 and self.girth == 1:
-                painter.drawPixmap((self.width - 32) * 3.75, 0, ImageCache['ThickRedR'])
-                painter.drawPixmap(0, 0, ImageCache['ThickRedL'])
-            elif self.color == 1 and self.girth == 1:
-                painter.drawPixmap((self.width - 32) * 3.75, 0, ImageCache['ThickBlueR'])
-                painter.drawPixmap(0, 0, ImageCache['ThickBlueL'])                 
+            if self.color == 0:
+                color = 'Red'
             else:
-                painter.drawPixmap((self.width - 16) * 3.75, 0, ImageCache['SkinnyOrangeR'])
-                painter.drawPixmap(0, 0, ImageCache['SkinnyOrangeL'])
+                color = 'Blue'
+
+        painter.drawPixmap(0, 0, ImageCache[color + 'ShroomL'])
+        painter.drawTiledPixmap(tilesize, 0, (self.width * 3.75) - (tilesize * 2), tilesize, ImageCache[color + 'ShroomM'])
+        painter.drawPixmap((self.width * 3.75) - tilesize, 0, ImageCache[color + 'ShroomR'])
 
 class SpriteImage_IceBlock(SLib.SpriteImage_StaticMultiple): # 203
     def __init__(self, parent):
@@ -5070,6 +5152,18 @@ ImageClasses = {
     4: SpriteImage_PipePiranhaLeft,
     5: SpriteImage_PipePiranhaRight,
     6: SpriteImage_PipePiranhaUpFire,
+    7: SpriteImage_PipePiranhaDownFire,
+    8: SpriteImage_PipePiranhaLeftFire,
+    9: SpriteImage_PipePiranhaRightFire,
+    10: SpriteImage_PipePiranhaUpFire,
+    11: SpriteImage_PipePiranhaDownFire,
+    12: SpriteImage_PipePiranhaLeftFire,
+    13: SpriteImage_PipePiranhaRightFire,
+    14: SpriteImage_GroundPiranha,
+    #15: SpriteImage_GroundFiretrap,
+    #16: SpriteImage_GroundFiretrap,
+    17: SpriteImage_BigGroundPiranha,
+    #18: SpriteImage_BigGroundFiretrap,
     19: SpriteImage_KoopaTroopa,
     20: SpriteImage_KoopaParatroopa,
     21: SpriteImage_KoopaParatroopa,
