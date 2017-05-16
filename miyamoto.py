@@ -1166,8 +1166,10 @@ class LevelScene(QtWidgets.QGraphicsScene):
                                     destrow[destx] = base + thing
                                 else:
                                     base = overrides + 32
-                                    if item.data == 13 or item.data == 0:
+                                    if item.data == 0:
                                         thing = tile - base # Don't override this one, as it's a normal ? block.
+                                    elif item.data == 13:
+                                        thing = 14
                                     elif item.data == 18:
                                         thing = 10
                                     elif item.data == 19:
@@ -6578,10 +6580,13 @@ class ObjectPickerWidget(QtWidgets.QListView):
                         x += TileWidth
                     y += TileWidth
                 p.end()
-                pm = pm.scaledToWidth(pm.width() * 24/TileWidth, Qt.SmoothTransformation)
+                if defs[i].width > 10:
+                    pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
+                else:
+                    pm = pm.scaledToWidth(pm.width() * 24/TileWidth, Qt.SmoothTransformation)
 
                 self.ritems.append(pm)
-                self.itemsize.append(QtCore.QSize(defs[i].width * 24 + 4, defs[i].height * 24 + 4))
+                self.itemsize.append(QtCore.QSize(pm.width() + 4, pm.height() + 4))
                 if (idx == 0) and (i in ObjDesc) and isAnim:
                     self.tooltips.append(trans.string('Objects', 4, '[id]', i, '[desc]', ObjDesc[i]))
                 elif (idx == 0) and (i in ObjDesc):
@@ -7784,7 +7789,7 @@ class ObjectDataEditorWidget(QtWidgets.QWidget):
 
         # create widgets
         self.brick = QtWidgets.QCheckBox()
-        self.brick.setToolTip("Use the left list")
+        self.brick.setToolTip("Transform this ? block into a Brick")
         self.brick.stateChanged.connect(self.HandleAppearanceChanged)
 
         self.contentbrick = QtWidgets.QComboBox()
@@ -7808,7 +7813,7 @@ class ObjectDataEditorWidget(QtWidgets.QWidget):
         self.contentquest = QtWidgets.QComboBox()
         self.contentquest.setToolTip("Set the content of the question block")
         self.contentquest.addItems((
-                                    "Coin",
+                                    "Normal (Coin)",
                                     "Coin",
                                     "Fire Flower",
                                     "Invincibility Star",
@@ -11896,7 +11901,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         dock.setFloating(True)
 
         # create the object editor panel
-        dock = QtWidgets.QDockWidget("Object data editor", self)
+        dock = QtWidgets.QDockWidget("Object Data Editor", self)
         dock.setVisible(False)
         dock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable)
         dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
