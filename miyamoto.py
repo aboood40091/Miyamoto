@@ -6580,10 +6580,10 @@ class ObjectPickerWidget(QtWidgets.QListView):
                         x += TileWidth
                     y += TileWidth
                 p.end()
-                if defs[i].width > 10:
+                if defs[i].width > 8:
                     pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
                 else:
-                    pm = pm.scaledToWidth(pm.width() * 24/TileWidth, Qt.SmoothTransformation)
+                    pm = pm.scaledToWidth(pm.width() * 32/TileWidth, Qt.SmoothTransformation)
 
                 self.ritems.append(pm)
                 self.itemsize.append(QtCore.QSize(pm.width() + 4, pm.height() + 4))
