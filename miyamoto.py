@@ -6580,10 +6580,13 @@ class ObjectPickerWidget(QtWidgets.QListView):
                         x += TileWidth
                     y += TileWidth
                 p.end()
-                pm = pm.scaledToWidth(pm.width() * 24/TileWidth, Qt.SmoothTransformation)
+                if defs[i].width > 10:
+                    pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
+                else:
+                    pm = pm.scaledToWidth(pm.width() * 24/TileWidth, Qt.SmoothTransformation)
 
                 self.ritems.append(pm)
-                self.itemsize.append(QtCore.QSize(defs[i].width * 24 + 4, defs[i].height * 24 + 4))
+                self.itemsize.append(QtCore.QSize(pm.width() + 4, pm.height() + 4))
                 if (idx == 0) and (i in ObjDesc) and isAnim:
                     self.tooltips.append(trans.string('Objects', 4, '[id]', i, '[desc]', ObjDesc[i]))
                 elif (idx == 0) and (i in ObjDesc):
