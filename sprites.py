@@ -4542,9 +4542,12 @@ class SpriteImage_MovingGrassPlatform(SLib.SpriteImage): # 499
     def dataChanged(self):
         super().dataChanged()
 
-        self.width = (self.parent.spritedata[8] & 0xF)*16+16
+        self.width = (self.parent.spritedata[8] & 0xF) * 16 + 16
         if self.width == 16: self.width *= 2
         self.height = 240
+
+        zOrder = (self.parent.spritedata[5] & 0xF) + 1
+        self.parent.setZValue(24999 // zOrder)
 
     def paint(self, painter):
         super().paint(painter)
