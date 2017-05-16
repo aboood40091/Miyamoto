@@ -4300,7 +4300,10 @@ class ObjectItem(LevelEditorItem):
         self.layer = layer
         self.width = width
         self.height = height
-        self.data = data
+        if self.tileset == 0 and self.type == 28:
+            self.data = data
+        else:
+            self.data = 0
         self.objdata = None
 
 
