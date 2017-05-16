@@ -4572,13 +4572,13 @@
     <value nybble="16" title="Unknown Value 16"/>
     <value nybble="17-18" title="Count" comment="The amount of coin fountains this sprite spawns."/>
   </sprite>
-  <sprite id="499" name="Moving Acorn Plains Semi-solid Land Block">
+  <sprite id="499" name="Moving Acorn Plains Semi-solid Land Block" notes="Needs to be assigned to a Two-Way Movement-Controller (Sprite 70) to show up ingame.">
     <value nybble="6" title="Unknown Value 6"/>
     <value nybble="7" title="Rotation"/>
     <value nybble="11" title="Unknown Value 11"/>
     <value nybble="12" title="Z-Order" comment="Higher Values = Further back. Use this if you use more than one of this sprites and they're overlapping."/>
     <value nybble="18" title="Width" comment="Value + 1"/>
-    <value nybble="20" title="Height" comment="Value + 1"/>
+    <value nybble="20" title="Height" comment="Useless."/>
     <value nybble="21-22" title="Movement ID" comment="Use this to make other sprites move along with the platform."/>
   </sprite>
   <sprite id="500" name="Bowser Amps">
