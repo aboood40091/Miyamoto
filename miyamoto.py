@@ -1146,9 +1146,10 @@ class LevelScene(QtWidgets.QGraphicsScene):
                         destrow = tmap[desty]
                         destx = startx
                         for tile in row:
-                            #If this object has data, make sure to override it properly
-                            if item.tileset == 0 and item.type == 28:
-                                overrides = 4*0x200
+                            # If this object has data, make sure to override it properly
+                            # TODO clean this up
+                            overrides = 4*0x200
+                            if tile > 0:
                                 if item.data < 13 and item.data != 0:
                                     base = overrides + 16
                                     if item.data == 1:
@@ -1167,7 +1168,7 @@ class LevelScene(QtWidgets.QGraphicsScene):
                                 else:
                                     base = overrides + 32
                                     if item.data == 0:
-                                        thing = tile - base # Don't override this one, as it's a normal ? block.
+                                        thing = tile - base # Don't override this one.
                                     elif item.data == 13:
                                         thing = 14
                                     elif item.data == 18:
@@ -1186,11 +1187,9 @@ class LevelScene(QtWidgets.QGraphicsScene):
                                         thing = 8
                                     else:
                                         thing = item.data - 14
-                                    destrow[destx] = base + thing
+                                    destrow[destx] = base + thing 
                             elif not exists:
                                 destrow[destx] = -1
-                            elif tile > 0:
-                                destrow[destx] = tile
                             destx += 1
                         desty += 1
 
@@ -2649,8 +2648,7 @@ def ProcessOverrides(idx, name):
     #                    0768-1023 for Pa3;
     # From 1024 (0x200 * 4), there is room for the overrides.
     try:
-        tsindexes = ['Pa0_jyotyu', 'Pa0_jyotyu_chika', 'Pa0_jyotyu_yougan', 'Pa0_jyotyu_yougan2']
-        if name in tsindexes:
+        if name.startswith('Pa0'):
             # We use the same overrides for all Pa0 tilesets
             offset = 0x200 * 4
 
@@ -2665,7 +2663,19 @@ def ProcessOverrides(idx, name):
                 t[i].setOverridden()
                 replace += 1
             
-            # Colisions
+            ## Brick
+            for i in range(16, 28):
+                t[i].main = t[offset + i].main
+                t[i].setOverridden()
+
+            ## ?
+            t[49].main = t[offset + 46].main
+            t[49].setOverridden()
+            for i in range(32, 43):
+                t[i].main = t[offset + i].main
+                t[i].setOverridden()
+
+            # Collisions
             ## Full block
             t[1].main = t[offset + 1].main
             t[1].setOverridden()
@@ -4295,6 +4305,11 @@ class ObjectItem(LevelEditorItem):
         """
         LevelEditorItem.__init__(self)
 
+        # Specify the data value for each Item-containing block
+        items = {16: 1, 17: 2, 18: 3, 19: 4, 20: 5, 21: 6, 22: 7, 23: 8,
+                 24: 9, 25: 10, 26: 11, 27: 12, 28: data, 29: 14, 30: 15,
+                 31: 16, 32: 17, 33: 18, 34: 19, 35: 20, 36: 21, 37: 22, 38: 23, 39: 24}
+
         self.tileset = tileset
         self.type = type
         self.objx = x
@@ -4302,10 +4317,35 @@ class ObjectItem(LevelEditorItem):
         self.layer = layer
         self.width = width
         self.height = height
-        if self.tileset == 0 and self.type == 28:
-            self.data = data
+
+        if self.tileset == 0 and self.type in items:
+            # Transform Item-containing blocks into
+            # ? blocks with specific data values.
+            self.data = items[self.type]
+            self.type = 28
+            if self.data == 0: self.data = 13
+
         else:
+            # In NSMBU, you can transform *any* object
+            # from *any* tileset into a brick, ?, stone, etc
+            # block by changing it's data value.
+            # (from 0 to something else)
+
+            # This was discovered by flzmx
+            # and AboodXD by an accident.
+            # https://filetrip.net/dl?B8A3WFZjHU
+
+            # The tiles' properties can also effect
+            # what the object will turn into
+            # when its data value is not 0.
+
+            if data > 0:
+                SetDirty()
+
+            # Let's hardcode the object's data value to 0
+            # to prevent funny stuff from happening ingame.
             self.data = 0
+
         self.objdata = None
 
 
@@ -6572,10 +6612,12 @@ class ObjectPickerWidget(QtWidgets.QListView):
                     x = 0
                     for tile in row:
                         if tile != -1:
-                            if isinstance(Tiles[tile].main, QtGui.QImage):
-                                p.drawImage(x, y, Tiles[tile].main)
-                            else:
-                                p.drawPixmap(x, y, Tiles[tile].main)
+                            try:
+                                if isinstance(Tiles[tile].main, QtGui.QImage):
+                                    p.drawImage(x, y, Tiles[tile].main)
+                                else:
+                                    p.drawPixmap(x, y, Tiles[tile].main)
+                            except AttributeError: break
                             if isinstance(Tiles[tile], TilesetTile) and Tiles[tile].isAnimated: isAnim = True
                         x += TileWidth
                     y += TileWidth
@@ -7773,157 +7815,6 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         SetDirty()
         self.path.pathinfo['loops'] = (i == Qt.Checked)
         self.path.pathinfo['peline'].loops = (i == Qt.Checked)
-        mainWindow.scene.update()
-
-
-class ObjectDataEditorWidget(QtWidgets.QWidget):
-    """
-    Widget for editing object data
-    """
-    def __init__(self):
-        """
-        Constructor
-        """
-        QtWidgets.QWidget.__init__(self)
-        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
-
-        # create widgets
-        self.brick = QtWidgets.QCheckBox()
-        self.brick.setToolTip("Transform this ? block into a Brick")
-        self.brick.stateChanged.connect(self.HandleAppearanceChanged)
-
-        self.contentbrick = QtWidgets.QComboBox()
-        self.contentbrick.setToolTip("Set the content of the brick block")
-        self.contentbrick.addItems((
-                              "One Coin",
-                              "Ten Coins",
-                              "Fire Flower",
-                              "Invincibility Star",
-                              "1-UP",
-                              "Vine",
-                              "Mini Mushroom",
-                              "Propeller Mushroom",
-                              "Penguin Suit",
-                              "Yoshi",
-                              "Ice Flower",
-                              "Acorn Mushroom"
-                             ))
-        self.contentbrick.currentIndexChanged.connect(self.HandleContentBrickChanged)
-
-        self.contentquest = QtWidgets.QComboBox()
-        self.contentquest.setToolTip("Set the content of the question block")
-        self.contentquest.addItems((
-                                    "Normal (Coin)",
-                                    "Coin",
-                                    "Fire Flower",
-                                    "Invincibility Star",
-                                    "Continuous Star",
-                                    "Vine",
-                                    "Spring",
-                                    "Mini Mushroom",
-                                    "Propeller Mushroom",
-                                    "Penguin Suit",
-                                    "Yoshi",
-                                    "Ice Flower",
-                                    "Acorn Mushroom"
-                                  ))
-        self.contentquest.currentIndexChanged.connect(self.HandleContentQuestChanged)
-
-        # create a layout
-        layout = QtWidgets.QGridLayout()
-        self.setLayout(layout)
-
-        # add labels
-        layout.addWidget(QtWidgets.QLabel("Brick"), 1, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel("Content"), 4, 0, 1, 1, Qt.AlignRight)
-
-        # add the widgets
-        layout.addWidget(self.brick, 1, 1)
-        layout.addWidget(self.contentbrick, 4, 1)
-        layout.addWidget(self.contentquest, 4, 2)
-
-        self.object = None
-        self.UpdateFlag = False
-
-    def setObject(self, object):
-        """
-        Change the object being edited by the editor, update all fields
-        """
-        # Set object
-        if self.object == object:
-            return
-        self.object = object
-        self.UpdateFlag = True
-        
-        # Get and set fields
-        brick = object.data < 13 and object.data != 0
-        self.brick.setChecked(brick)
-        self.contentbrick.setEnabled(brick)
-        self.contentquest.setEnabled(not brick)
-        if brick:
-            self.contentbrick.setCurrentIndex(object.data - 1)
-            self.contentquest.setCurrentIndex(0)
-        else:
-            if object.data == 0:
-                i = 0
-            else:
-                i = object.data - 12
-            self.contentquest.setCurrentIndex(i)
-            self.contentbrick.setCurrentIndex(0)
-        self.UpdateFlag = False
-
-
-    @QtCore.pyqtSlot(int)
-    def HandleContentBrickChanged(self, value):
-        """
-        Handle a content change
-        """
-        if self.UpdateFlag:
-            return
-        SetDirty()
-
-        self.object.data = value + 1
-        mainWindow.scene.update()
-
-    @QtCore.pyqtSlot(int)
-    def HandleContentQuestChanged(self, value):
-        """
-        Handle a content change for a question block
-        """
-        if self.UpdateFlag:
-            return
-        SetDirty()
-        
-        if value == 0:
-            res = 0
-        else:
-            res = value + 12
-
-        self.object.data = res
-        mainWindow.scene.update()
-
-
-    @QtCore.pyqtSlot(int)
-    def HandleAppearanceChanged(self, value):
-        """
-        Handle an appearance change
-        """
-        if self.UpdateFlag:
-            return
-        SetDirty()
-
-        if (value == Qt.Checked):
-            self.contentquest.setEnabled(False)
-            self.contentbrick.setEnabled(True)
-            self.object.data = self.contentbrick.currentIndex() + 1
-        else:
-            self.contentbrick.setEnabled(False)
-            self.contentquest.setEnabled(True)
-            if self.contentquest.currentIndex() == 0:
-                self.object.data = 0
-            else:
-                self.object.data = self.contentquest.currentIndex() + 12
-
         mainWindow.scene.update()
         
 
@@ -11900,20 +11791,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
         dock.setFloating(True)
 
-        # create the object editor panel
-        dock = QtWidgets.QDockWidget("Object Data Editor", self)
-        dock.setVisible(False)
-        dock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable)
-        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-        dock.setObjectName('objectdataeditor') #needed for the state to save/restore correctly
-
-        self.objectEditor = ObjectDataEditorWidget()
-        dock.setWidget(self.objectEditor)
-        self.objectEditorDock = dock
-
-        self.addDockWidget(Qt.RightDockWidgetArea, dock)
-        dock.setFloating(True)
-
         # create the entrance editor panel
         dock = QtWidgets.QDockWidget(trans.string('EntranceDataEditor', 24), self)
         dock.setVisible(False)
@@ -14527,7 +14404,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         showEntrancePanel = False
         showLocationPanel = False
         showPathPanel = False
-        showObjPanel = False
         updateModeInfo = False
 
         # clear our variables
@@ -14589,12 +14465,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 self.UpdateFlag = False
                 showPathPanel = True
                 updateModeInfo = True
-            elif func_ii(item, type_obj):
-                self.creationTabs.setCurrentIndex(0)
-                self.UpdateFlag = False
-                if item.tileset == 0 and item.type == 28: # Only relevant if it's a ? block
-                    showObjPanel = True
-                    updateModeInfo = True
             elif func_ii(item, type_com):
                 self.creationTabs.setCurrentIndex(8)
                 self.UpdateFlag = True
@@ -14689,7 +14559,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.spriteEditorDock.setVisible(showSpritePanel)
         self.entranceEditorDock.setVisible(showEntrancePanel)
-        self.objectEditorDock.setVisible(showObjPanel)
         self.locationEditorDock.setVisible(showLocationPanel)
         self.pathEditorDock.setVisible(showPathPanel)
 
@@ -15187,8 +15056,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.pathEditor.setPath(self.selObj)
         elif self.locationEditorDock.isVisible():
             self.locationEditor.setLocation(self.selObj)
-        elif self.objectEditorDock.isVisible():
-            self.objectEditor.setObject(self.selObj)
 
         self.UpdateFlag = False
 

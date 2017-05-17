@@ -4,6 +4,8 @@
     <list nybble="6" title="Spawned Child Direction (No ground pound)" comment="Controls the direction (and z order) of the Goombas spawned by a Medium Goomba, without ground pound. Higher values cause an overflow with probably unexpected results.">
       <entry value="0">Right</entry>
       <entry value="1">Left</entry>
+      <entry value="2">???</entry>
+      <entry value="3">???</entry>
     </list>
     <value nybble="6" title="Additional Pipe Goomba Z-Order" comment="Additional Z-Order nybble"/>
     <list nybble="6" title="Spawned Child Direction (Ground pound)" comment="Controls the direction (and z order) of the Goombas spawned by a bigger Goomba with a ground pound. Higher values cause an overflow with probably unexpected results.">

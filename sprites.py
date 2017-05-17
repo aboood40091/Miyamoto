@@ -1073,7 +1073,7 @@ class SpriteImage_MidwayFlag(SLib.SpriteImage_StaticMultiple): # 25
             ImageCache['MidwayFlag'],
             )
         
-        self.yOffset = -44
+        self.yOffset = -48
 
     @staticmethod
     def loadImages():
