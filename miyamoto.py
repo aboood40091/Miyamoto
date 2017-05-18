@@ -901,14 +901,12 @@ def LoadGameDef(name=None, dlg=None):
     Loads a game definition
     """
     global gamedef
-    if dlg: dlg.setMaximum(7)
 
     # Put the whole thing into a try-except clause
     # to catch whatever errors may happen
     try:
 
         # Load the gamedef
-        if dlg: dlg.setLabelText(trans.string('Gamedefs', 1)) # Loading game patch...
         gamedef = MiyamotoGameDefinition(name)
         if gamedef.custom and (not settings.contains('GamePath_' + gamedef.name)):
             # First-time usage of this gamedef. Have the
@@ -918,10 +916,8 @@ def LoadGameDef(name=None, dlg=None):
             result = mainWindow.HandleChangeGamePath(True)
             if result is not True: QtWidgets.QMessageBox.information(None, trans.string('Gamedefs', 4), trans.string('Gamedefs', 5, '[game]', gamedef.name), QtWidgets.QMessageBox.Ok)
             else: QtWidgets.QMessageBox.information(None, trans.string('Gamedefs', 6), trans.string('Gamedefs', 7, '[game]', gamedef.name), QtWidgets.QMessageBox.Ok)
-        if dlg: dlg.setValue(1)
 
         # Load spritedata.xml and spritecategories.xml
-        if dlg: dlg.setLabelText(trans.string('Gamedefs', 8)) # Loading sprite data...
         LoadSpriteData()
         LoadSpriteListData(True)
         LoadSpriteCategories(True)
@@ -933,16 +929,12 @@ def LoadGameDef(name=None, dlg=None):
             mainWindow.spriteViewPicker.setCurrentIndex(0) # Sets the sprite picker to category 0 (enemies)
             mainWindow.spriteDataEditor.setSprite(mainWindow.spriteDataEditor.spritetype, True) # Reloads the sprite data editor fields
             mainWindow.spriteDataEditor.update()
-        if dlg: dlg.setValue(2)
 
         # Reload tilesets
-        if dlg: dlg.setLabelText(trans.string('Gamedefs', 10)) # Reloading tilesets...
         LoadObjDescriptions(True) # reloads ts1_descriptions
         LoadTilesetNames(True) # reloads tileset names
-        if dlg: dlg.setValue(4)
 
         # Load sprites.py
-        if dlg: dlg.setLabelText(trans.string('Gamedefs', 11)) # Loading sprite image data...
         if Area is not None:
             SLib.SpritesFolders = gamedef.recursiveFiles('sprites', False, True)
 
@@ -966,30 +958,23 @@ def LoadGameDef(name=None, dlg=None):
                 else:
                     s.setImageObj(SLib.SpriteImage)
 
-        if dlg: dlg.setValue(5)
 
         # Reload the sprite-picker text
-        if dlg: dlg.setLabelText(trans.string('Gamedefs', 12)) # Applying sprite image data...
         if Area is not None:
             for spr in Area.sprites:
                 spr.UpdateListItem() # Reloads the sprite-picker text
-        if dlg: dlg.setValue(6)
 
         # Load entrance names
-        if dlg: dlg.setLabelText(trans.string('Gamedefs', 16)) # Loading entrance names...
         LoadEntranceNames(True)
-        if dlg: dlg.setValue(7)
 
     except Exception as e: raise
     #    # Something went wrong.
-    #    if dlg: dlg.setValue(7) # autocloses it
     #    QtWidgets.QMessageBox.information(None, trans.string('Gamedefs', 17), trans.string('Gamedefs', 18, '[error]', str(e)))
     #    if name is not None: LoadGameDef(None)
     #    return False
 
 
     # Success!
-    if dlg: setSetting('LastGameDef', name)
     return True
 
 def LoadActionsLists():
@@ -1147,47 +1132,16 @@ class LevelScene(QtWidgets.QGraphicsScene):
                         destx = startx
                         for tile in row:
                             # If this object has data, make sure to override it properly
-                            # TODO clean this up
-                            overrides = 4*0x200
                             if tile > 0:
-                                if item.data < 13 and item.data != 0:
-                                    base = overrides + 16
-                                    if item.data == 1:
-                                        thing = 10
-                                    elif item.data == 2:
-                                        thing = 11
-                                    elif item.data == 10:
-                                        thing = 9
-                                    elif item.data == 11:
-                                        thing = 7
-                                    elif item.data == 12:
-                                        thing = 8
-                                    else:
-                                        thing = item.data - 3
-                                    destrow[destx] = base + thing
+                                offset = 0x200 * 4
+                                items = {1: 26, 2: 27, 3: 16, 4: 17, 5: 18, 6: 19,
+                                         7: 20, 8: 21, 9: 22, 10: 23, 11: 24, 12: 25,
+                                         13: 46, 14: 32, 15: 33, 16: 34, 17: 35, 18: 36,
+                                         19: 37, 20: 38, 21: 39, 22: 40, 23: 41, 24: 42}
+                                if item.data in items:
+                                    destrow[destx] = offset + items[item.data]
                                 else:
-                                    base = overrides + 32
-                                    if item.data == 0:
-                                        thing = tile - base # Don't override this one.
-                                    elif item.data == 13:
-                                        thing = 14
-                                    elif item.data == 18:
-                                        thing = 10
-                                    elif item.data == 19:
-                                        thing = 4
-                                    elif item.data == 20:
-                                        thing = 5
-                                    elif item.data == 21:
-                                        thing = 6
-                                    elif item.data == 22:
-                                        thing = 9
-                                    elif item.data == 23:
-                                        thing = 7
-                                    elif item.data == 24:
-                                        thing = 8
-                                    else:
-                                        thing = item.data - 14
-                                    destrow[destx] = base + thing 
+                                    destrow[destx] = tile
                             elif not exists:
                                 destrow[destx] = -1
                             destx += 1
@@ -4319,16 +4273,26 @@ class ObjectItem(LevelEditorItem):
         self.height = height
 
         if self.tileset == 0 and self.type in items:
+            # Set the data value for
+            # each Item-containing block.
+            self.data = items[self.type]
+
             # Transform Item-containing blocks into
             # ? blocks with specific data values.
-            self.data = items[self.type]
+
+            # Technically, we don't even need to do this
+            # but this is how Nintendo did it, so... ¯\_(ツ)_/¯
             self.type = 28
+
+            # Nintendo didn't use value 0 for ?
+            # blocks even though it's fully functional.
+            # Let's use value 13, like them.
             if self.data == 0: self.data = 13
 
         else:
             # In NSMBU, you can transform *any* object
-            # from *any* tileset into a brick, ?, stone, etc
-            # block by changing it's data value.
+            # from *any* tileset into a brick/?/stone/etc.
+            # block by changing its data value.
             # (from 0 to something else)
 
             # This was discovered by flzmx
@@ -11467,10 +11431,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('showlay0', self.HandleUpdateLayer0, GetIcon('layer0'), trans.string('MenuItems', 48), trans.string('MenuItems', 49), QtGui.QKeySequence('Ctrl+1'), True)
         self.CreateAction('showlay1', self.HandleUpdateLayer1, GetIcon('layer1'), trans.string('MenuItems', 50), trans.string('MenuItems', 51), QtGui.QKeySequence('Ctrl+2'), True)
         self.CreateAction('showlay2', self.HandleUpdateLayer2, GetIcon('layer2'), trans.string('MenuItems', 52), trans.string('MenuItems', 53), QtGui.QKeySequence('Ctrl+3'), True)
-        self.CreateAction('tileanim', self.HandleTilesetAnimToggle, GetIcon('animation'), trans.string('MenuItems', 108), trans.string('MenuItems', 109), QtGui.QKeySequence('Ctrl+7'), True)
-        self.CreateAction('collisions', self.HandleCollisionsToggle, GetIcon('collisions'), trans.string('MenuItems', 110), trans.string('MenuItems', 111), QtGui.QKeySequence('Ctrl+8'), True)
-        self.CreateAction('depth', self.HandleDepthToggle, GetIcon('depth'), trans.string('MenuItems', 122), trans.string('MenuItems', 123), QtGui.QKeySequence('Ctrl+H'), True)
-        self.CreateAction('realview', self.HandleRealViewToggle, GetIcon('realview'), trans.string('MenuItems', 118), trans.string('MenuItems', 119), QtGui.QKeySequence('Ctrl+9'), True)
         self.CreateAction('showsprites', self.HandleSpritesVisibility, GetIcon('sprites'), trans.string('MenuItems', 54), trans.string('MenuItems', 55), QtGui.QKeySequence('Ctrl+4'), True)
         self.CreateAction('showspriteimages', self.HandleSpriteImages, GetIcon('sprites'), trans.string('MenuItems', 56), trans.string('MenuItems', 57), QtGui.QKeySequence('Ctrl+6'), True)
         self.CreateAction('showlocations', self.HandleLocationsVisibility, GetIcon('locations'), trans.string('MenuItems', 58), trans.string('MenuItems', 59), QtGui.QKeySequence('Ctrl+5'), True)
@@ -11504,10 +11464,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
 
         # Configure them
-        self.actions['collisions'].setChecked(CollisionsShown)
-        self.actions['depth'].setChecked(DepthShown)
-        self.actions['realview'].setChecked(RealViewEnabled)
-
         self.actions['showsprites'].setChecked(SpritesShown)
         self.actions['showspriteimages'].setChecked(SpriteImagesShown)
         self.actions['showlocations'].setChecked(LocationsShown)
@@ -11573,10 +11529,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         vmenu.addAction(self.actions['showlay0'])
         vmenu.addAction(self.actions['showlay1'])
         vmenu.addAction(self.actions['showlay2'])
-        vmenu.addAction(self.actions['tileanim'])
-        vmenu.addAction(self.actions['collisions'])
-        vmenu.addAction(self.actions['depth'])
-        vmenu.addAction(self.actions['realview'])
         vmenu.addSeparator()
         vmenu.addAction(self.actions['showsprites'])
         vmenu.addAction(self.actions['showspriteimages'])
@@ -13034,14 +12986,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             return True
 
         if exists('levelname'):
-            fn1 = str(arc['levelname'].data)[2:-1]
-            if exists(fn1):
-                arcdata = arc[fn1].data
+            fn = bytes_to_string(arc['levelname'].data)
+            if exists(fn):
+                arcdata = arc[fn].data
             else:
                 possibilities = []
                 possibilities.append(os.path.basename(fn))
-                possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
-                possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
+                possibilities.append(possibilities[-1].split(' ')[-1]) # for names like "NSMBU 1-1.szs"
+                possibilities.append(possibilities[-1].split(' ')[0]) # for names like "1-1 test.szs"
                 possibilities.append(possibilities[-1].split('.')[0])
                 possibilities.append(possibilities[-1].split('_')[0])
                 for fn in possibilities:
@@ -13565,60 +13517,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
 
     @QtCore.pyqtSlot(bool)
-    def HandleTilesetAnimToggle(self, checked):
-        """
-        Handle toggling of tileset animations
-        """
-        global TilesetsAnimating
-
-        TilesetsAnimating = checked
-        for tile in Tiles:
-            if tile is not None: tile.resetAnimation()
-
-        self.scene.update()
-
-
-    @QtCore.pyqtSlot(bool)
-    def HandleCollisionsToggle(self, checked):
-        """
-        Handle toggling of tileset collisions viewing
-        """
-        global CollisionsShown
-
-        CollisionsShown = checked
-
-        setSetting('ShowCollisions', CollisionsShown)
-        self.scene.update()
-
-
-    @QtCore.pyqtSlot(bool)
-    def HandleDepthToggle(self, checked):
-        """
-        Handle toggling of tileset depth highlighting viewing
-        """
-        global DepthShown
-
-        DepthShown = checked
-
-        setSetting('ShowDepth', DepthShown)
-        self.scene.update()
-
-
-    @QtCore.pyqtSlot(bool)
-    def HandleRealViewToggle(self, checked):
-        """
-        Handle toggling of Real View
-        """
-        global RealViewEnabled
-
-        RealViewEnabled = checked
-        SLib.RealViewEnabled = RealViewEnabled
-
-        setSetting('RealViewEnabled', RealViewEnabled)
-        self.scene.update()
-
-
-    @QtCore.pyqtSlot(bool)
     def HandleSpritesVisibility(self, checked):
         """
         Handle toggling of sprite visibility
@@ -14071,14 +13969,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     return True
 
                 if exists('levelname'):
-                    fn = str(arc['levelname'].data)[2:-1]
+                    fn = bytes_to_string(arc['levelname'].data)
                     if exists(fn):
                         levelFileData = arc[fn].data
                     else:
                         possibilities = []
                         possibilities.append(os.path.basename(name))
-                        possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
-                        possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
+                        possibilities.append(possibilities[-1].split(' ')[-1]) # for names like "NSMBU 1-1.szs"
+                        possibilities.append(possibilities[-1].split(' ')[0]) # for names like "1-1 test.szs"
                         possibilities.append(possibilities[-1].split('.')[0])
                         possibilities.append(possibilities[-1].split('_')[0])
                         for fn in possibilities:
@@ -14309,6 +14207,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.spriteList.addItem(spr.listitem)
             self.scene.addItem(spr)
             spr.UpdateListItem()
+            spr.UpdateRects()
+            if SpriteImagesShown:
+                spr.setPos(
+                    (spr.objx + spr.ImageObj.xOffset) * (TileWidth/16),
+                    (spr.objy + spr.ImageObj.yOffset) * (TileWidth/16),
+                    )
+            else:
+                spr.setPos(
+                    spr.objx * (TileWidth/16),
+                    spr.objy * (TileWidth/16),
+                    )
 
         pcEvent = self.HandleEntPosChange
         for ent in Area.entrances:
