@@ -12985,16 +12985,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             return True
 
         if exists('levelname'):
-            fn = bytes_to_string(arc['levelname'].data)
-            if exists(fn):
-                arcdata = arc[fn].data
+            fn1 = bytes_to_string(arc['levelname'].data)
+            if exists(fn1):
+                arcdata = arc[fn1].data
             else:
                 possibilities = []
                 possibilities.append(os.path.basename(fn))
-                possibilities.append(possibilities[-1].split(' ')[-1]) # for names like "NSMBU 1-1.szs"
-                possibilities.append(possibilities[-1].split(' ')[0]) # for names like "1-1 test.szs"
-                possibilities.append(possibilities[-1].split('.')[0])
-                possibilities.append(possibilities[-1].split('_')[0])
+                possibilities.append(os.path.basename(fn).split(' ')[-1]) # for names like "NSMBU 1-1.szs"
+                possibilities.append(os.path.basename(fn).split(' ')[0]) # for names like "1-1 test.szs"
+                possibilities.append(os.path.basename(fn).split('.')[0])
+                possibilities.append(os.path.basename(fn).split('_')[0])
                 for fn in possibilities:
                     if exists(fn):
                         arcdata = arc[fn].data
@@ -13007,10 +13007,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             possibilities = []
             possibilities.append(os.path.basename(fn))
-            possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
-            possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
-            possibilities.append(possibilities[-1].split('.')[0])
-            possibilities.append(possibilities[-1].split('_')[0])
+            possibilities.append(os.path.basename(fn).split(' ')[-1]) # for names like "NSMBU 1-1.szs"
+            possibilities.append(os.path.basename(fn).split(' ')[0]) # for names like "1-1 test.szs"
+            possibilities.append(os.path.basename(fn).split('.')[0])
+            possibilities.append(os.path.basename(fn).split('_')[0])
             for fn in possibilities:
                 if exists(fn):
                     arcdata = arc[fn].data
@@ -13973,11 +13973,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         levelFileData = arc[fn].data
                     else:
                         possibilities = []
-                        possibilities.append(os.path.basename(name))
-                        possibilities.append(possibilities[-1].split(' ')[-1]) # for names like "NSMBU 1-1.szs"
-                        possibilities.append(possibilities[-1].split(' ')[0]) # for names like "1-1 test.szs"
-                        possibilities.append(possibilities[-1].split('.')[0])
-                        possibilities.append(possibilities[-1].split('_')[0])
+                        possibilities.append(os.path.basename(self.fileSavePath))
+                        possibilities.append(os.path.basename(self.fileSavePath).split(' ')[-1]) # for names like "NSMBU 1-1.szs"
+                        possibilities.append(os.path.basename(self.fileSavePath).split(' ')[0]) # for names like "1-1 test.szs"
+                        possibilities.append(os.path.basename(self.fileSavePath).split('.')[0])
+                        possibilities.append(os.path.basename(self.fileSavePath).split('_')[0])
                         for fn in possibilities:
                             if exists(fn):
                                 levelFileData = arc[fn].data
@@ -13989,11 +13989,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 else:
                     possibilities = []
-                    possibilities.append(os.path.basename(name))
-                    possibilities.append(possibilities[-1].split()[-1]) # for formats like "NSMBU 1-1.szs"
-                    possibilities.append(possibilities[-1].split()[0]) # for formats like "1-1 test.szs"
-                    possibilities.append(possibilities[-1].split('.')[0])
-                    possibilities.append(possibilities[-1].split('_')[0])
+                    possibilities.append(os.path.basename(self.fileSavePath))
+                    possibilities.append(os.path.basename(self.fileSavePath).split(' ')[-1]) # for names like "NSMBU 1-1.szs"
+                    possibilities.append(os.path.basename(self.fileSavePath).split(' ')[0]) # for names like "1-1 test.szs"
+                    possibilities.append(os.path.basename(self.fileSavePath).split('.')[0])
+                    possibilities.append(os.path.basename(self.fileSavePath).split('_')[0])
                     for fn in possibilities:
                         if exists(fn):
                             levelFileData = arc[fn].data
