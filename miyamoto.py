@@ -165,6 +165,7 @@ def bytes_to_string(byte):
 
     while char != b'\x00':
         string += char
+        if i == len(byte): break # Prevent it from looping forever
         
         char = byte[i:i + 1]
         i += 1
@@ -4303,11 +4304,9 @@ class ObjectItem(LevelEditorItem):
             # what the object will turn into
             # when its data value is not 0.
 
-            if data > 0:
-                SetDirty()
-
             # Let's hardcode the object's data value to 0
             # to prevent funny stuff from happening ingame.
+            if data > 0: SetDirty()
             self.data = 0
 
         self.objdata = None
@@ -4644,10 +4643,10 @@ class ZoneItem(LevelEditorItem):
 
         # Paint an indicator line to show the leftmost edge of
         # where entrances can be safely placed
-        if DrawEntIndicators and (self.camtrack in (0, 1)) and (TileWidth * 5 < self.DrawRect.width()):
+        if DrawEntIndicators and (self.camtrack in (0, 1)) and (TileWidth * 3 < self.DrawRect.width()):
             painter.setPen(QtGui.QPen(theme.color('zone_entrance_helper'), 2 * TileWidth / 24))
-            lineStart = QtCore.QPointF(self.DrawRect.x() + (TileWidth * 5), self.DrawRect.y())
-            lineEnd = QtCore.QPointF(self.DrawRect.x() + (TileWidth * 5), self.DrawRect.y() + self.DrawRect.height())
+            lineStart = QtCore.QPointF(self.DrawRect.x() + (TileWidth * 3), self.DrawRect.y())
+            lineEnd = QtCore.QPointF(self.DrawRect.x() + (TileWidth * 3), self.DrawRect.y() + self.DrawRect.height())
             painter.drawLine(lineStart, lineEnd)
 
         # Now paint the borders
