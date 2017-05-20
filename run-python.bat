@@ -39,6 +39,7 @@ powershell -Command "Invoke-WebRequest https://raw.githubusercontent.com/Gota7/M
 echo Done!
 echo Starting Miyamoto!
 py miyamoto.py
+EXIT
 
 :srslygoaway
 @echo OFF
