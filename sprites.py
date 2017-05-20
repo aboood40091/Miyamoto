@@ -1929,6 +1929,21 @@ class SpriteImage_CastleBossDoor(SLib.SpriteImage_Static): # 110
     def loadImages():
         SLib.loadIfNotInImageCache('CastleBossDoor', 'castle_boss_door.png')
 
+class SpriteImage_SpecialExit(SLib.SpriteImage): # 115
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        w = (self.parent.spritedata[4] & 15) + 1
+        h = (self.parent.spritedata[5] >> 4) + 1
+        if w == 1 and h == 1: # no point drawing a 1x1 outline behind the self.parent
+            self.aux[0].setSize(0,0)
+            return
+        self.aux[0].setSize(w * 60, h * 60)
+
 class SpriteImage_Pendulum(SLib.SpriteImage_StaticMultiple): # 117
     def __init__(self, parent):
         super().__init__(parent, 3.75)
@@ -4921,6 +4936,18 @@ class SpriteImage_Flowers(SLib.SpriteImage_StaticMultiple): # 546
 
         super().dataChanged()
 
+class SpriteImage_RecordSignboard(SLib.SpriteImage): # 561
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        w = ((self.parent.spritedata[2] >> 4) & 0xF) + 1
+        self.xOffset = -(0.5*(w-1)) * 16
+        self.aux[0].setSize(w * 60, 60)
+
 class SpriteImage_NabbitMetal(SLib.SpriteImage_Static): # 566
     def __init__(self, parent):
         super().__init__(
@@ -5106,6 +5133,7 @@ ImageClasses = {
     108: SpriteImage_GhostHouseDoor,
     109: SpriteImage_TowerBossDoor,
     110: SpriteImage_CastleBossDoor,
+    115: SpriteImage_SpecialExit,
     117: SpriteImage_Pendulum,
     123: SpriteImage_SandPillar,
     134: SpriteImage_Useless,
@@ -5245,6 +5273,7 @@ ImageClasses = {
     551: SpriteImage_Useless,
     555: SpriteImage_Crash,
     556: SpriteImage_Crash,
+    561: SpriteImage_RecordSignboard,
     566: SpriteImage_NabbitMetal,
     569: SpriteImage_NabbitPrize,
     572: SpriteImage_Crash,
