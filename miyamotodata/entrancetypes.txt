@@ -22,7 +22,7 @@
 21:Vine Entrance
 22:Pipe Facing Towards Screen
 23:Boss Entrance (Standing)
-24:Jumping (Facing Left)
+24:Walking Right (From Entrance Pos. to 8 Blocks Right of Entrance Pos.)
 25:Boss Entrance (Jumping Right)
 26:Boss Entrance (Falling Right)
 27:Door Entrance
