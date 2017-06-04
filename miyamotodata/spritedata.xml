@@ -208,13 +208,13 @@
       <entry value="1">Only if midway flag is not yet touched</entry>
       <entry value="2">Only if midway flag is already touched</entry>
     </list>
-    <value nybble="11" title="Unknown Value 11"/>
+    <checkbox nybble="11" title="Affected by gravity" mask="2" comment="Can bounce on Bouncy Clouds. Isn't moved by conveyor belts."/>
     <list nybble="12" title="Time limit" comment="These are the time limits that can be set in the area settings. Time limit 1 is field 0x14 of the area settings, time limit 2 is field 0x16, and time limit 3 is field 0x0A. This might enable multiple midway points with different time settings!">
       <entry value="0">Time limit 1</entry>
       <entry value="1">Time limit 2</entry>
       <entry value="2">Time limit 3</entry>
     </list>
-    <checkbox nybble="20" title="Affected by gravity" comment="If this is ticked, the midway point flag is affected by gravity. So if the blocks underneath it move or break, this flagpole will move along, or fall down. Can bounce on Bouncy Clouds."/>
+    <checkbox nybble="20" title="Unknown Value 20"/>
   </sprite>
   <sprite id="26" name="Zoom Area">
     <value nybble="5" title="Unknown Value 5" comment="This value is separated into a one bit value and a 3 bit field. "/>
@@ -490,20 +490,20 @@
     <checkbox nybble="7-8" title="Ignore enemy location" mask="255" comment="Tick this to disregard the enemy location ID"/>
     <list nybble="9" title="Player powerup" comment="Extra condition: Player must have this powerup.">
       <entry value="0">Any powerup</entry>
-      <entry value="1">Small Player</entry>
-      <entry value="2">Super Player</entry>
+      <entry value="1">Small</entry>
+      <entry value="2">Super</entry>
       <entry value="3">Fire Flower</entry>
-      <entry value="4">MinI mushroom</entry>
+      <entry value="4">Mini Mushroom</entry>
       <entry value="5">Propeller Mushroom</entry>
       <entry value="6">Penguin Suit</entry>
       <entry value="7">Ice Flower</entry>
       <entry value="8">Acorn or P-Acorn mushroom</entry>
       <entry value="9">P-Acorn</entry>
       <entry value="10">Small</entry>
-      <entry value="14">Any powerup except small and mini</entry>
-      <entry value="15">Star</entry>
+      <entry value="14">Any except Small or Mini</entry>
+      <entry value="15">Super Star</entry>
     </list>
-    <list nybble="10" title="Player status" comment="Extra condition: Player must be in this state.">
+    <list nybble="10" title="Player status" comment="Extra condition: Player must be in this state. 'Mini Mario running up a wall' counts as 'in the air' for this.">
       <entry value="0">Any status</entry>
       <entry value="1">Touching ground</entry>
       <entry value="2">In the air</entry>
@@ -559,7 +559,7 @@
     <checkbox nybble="5" title="Unknown Checkbox 5"/>
     <value nybble="6" title="Unknown Value 6"/>
     <checkbox nybble="7" title="Unknown Checkbox 7"/>
-    <value nybble="8" title="POW block falling related?"/>
+    <value nybble="8" title="Unknown Value 8"/>
     <list nybble="9" title="Star coin number" comment="Sets the number of the star coin">
       <entry value="0">First star coin</entry>
       <entry value="1">Second star coin</entry>
@@ -1447,6 +1447,7 @@
     <value nybble="11" title="Cheep-Cheeps in a line" comment="Value + 1. They are in a line, but spaced out. Increasing this increases the amount of cheep-cheeps."/>
   </sprite>
   <sprite id="115" name="Special Exit Controller">
+    <value nybble="2" title="Triggering Event ID" comment="Unknown if this is used."/>
     <value nybble="5" title="Unknown Value 5"/>
     <value nybble="6" title="Unknown Value 6"/>
     <list nybble="8" title="Player State" comment="Player must be in this state for the sprite to activate.">
@@ -2266,7 +2267,7 @@
     <checkbox nybble="5" title="Don't fall" comment="When this is checked, the icicle never falls."/>
     <value nybble="7" title="Range?" comment="Seems to fall the second they get on screen with this value."/>
     <value nybble="9" title="Unknown Value 9"/>
-    <checkbox nybble="11" title="Falls Under Block Train" comment="Unused port from NSMBW. When this is checked, it will only fall when a block train is underneath it."/>
+    <checkbox nybble="11" title="Falls Under Snake Block comment="Unused port from NSMBW. When this is checked, it will only fall when a Snake Block is underneath it."/>
     <checkbox nybble="12" title="Tilt after falling" comment="Unused, but ported from NSMBW. The icicle will tilt to the right after falling."/>
   </sprite>
   <sprite id="185" name="Stationary Icicle" notes="A stationary icicle. Meant to be placed on the ceiling of icy and snowy levels. Doesn't fall.">
@@ -3205,7 +3206,7 @@
     <checkbox nybble="7" title="Unused Flag 7"/>
     <value nybble="8" title="Unknown Value 8"/>
     <value nybble="9" title="Unknown Value 9"/>
-    <checkbox nybble="11" title="Falling"/>
+    <checkbox nybble="11" title="Falling" comment="Doesn't move with conveyor belts"/>
     <list nybble="12" title="Contains">
       <entry value="0">Nothing [unused]</entry>
       <entry value="1">Star Coin</entry>
