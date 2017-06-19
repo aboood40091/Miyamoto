@@ -1,1 +1,6 @@
-source
+--Current Version (Github Tag, No v)
+15
+--If Newest Is Released (Read From Github only)
+false
+--Next down released version (Github Tag, No v)
+14
