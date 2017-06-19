@@ -4,3 +4,11 @@
 false
 --Next down released version (Github Tag, No v)
 14
+--Direct Download For Latest Windows Release
+https://github.com/Gota7/Miyamoto/releases/download/v14/Miyamoto_Windows_x86_BuildV14.0.zip
+--Direct Download For Latest Linux Release
+https://github.com/Gota7/Miyamoto/releases/download/v13/Miyamoto_Linux_x64_BuildV13.0.zip
+--Direct Download For Latest Mac Release
+https://github.com/Gota7/Miyamoto/archive/v14.zip
+--Direct Download For Source Code
+https://github.com/Gota7/Miyamoto/archive/master.zip
