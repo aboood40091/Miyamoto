@@ -95,6 +95,7 @@ Toride_Boss_3
 Toride_Boss_4
 Toride_Boss_5
 Tika
+Tika_tate_2
 Tika_2
 Tika_3
 Tika_sabaku
@@ -103,5 +104,4 @@ Tika_Picture_2
 Suityu
 Suityu_Tate
 R_Suityu
-Tika_tate_2
 Siro_Kougen

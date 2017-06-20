@@ -8,7 +8,7 @@ Beach (Secondary)
 Beach 2
 Before Boss (Beach)
 Before Boss (Desert)
-Before Boss (Jungle)
+Before Boss (Forest)
 Before Boss (Mountain)
 Before Boss (Overworld)
 Before Boss (Snow)
@@ -17,10 +17,10 @@ Boss Clouds (Secondary) (Unused)
 Bowser
 Bowser Boss
 Castle
-Castle (Small)
+Castle (Vertical)
 Castle (Unused)
 Castle 2
-Castle 2 (Small) (Update)
+Castle 2 (Vertical) (Update)
 Castle 3
 Castle Boss (Iggy)
 Castle Boss (Larry)
@@ -31,7 +31,7 @@ Castle Boss (Roy)
 Castle Boss (Wendy)
 Clouds
 Clouds (Secondary)
-Clouds (Small)
+Clouds (Vertical)
 Credits
 Desert
 Desert 2
@@ -44,10 +44,10 @@ Forest
 Forest 2
 Ghost House
 Ghost House (Outside)
-Ghost House (Small)
+Ghost House (Vertical)
 Ghost House 2
 Ghost House 2 (Outside)
-Ghost House 2 (Small)
+Ghost House 2 (Vertical)
 Ghost Ship
 Ghost Ship (Outside)
 Ghost Ship (Update)
@@ -55,7 +55,7 @@ Ghost Ship 2
 Ghost Ship 2 (Outside)
 Lava
 Lava (Secondary)
-Lava 2
+Lava 2 (Crashes)
 Lava Goal
 Luigi Clouds (Update)
 Mountain
@@ -95,13 +95,13 @@ Tower Boss 3
 Tower Boss 4
 Tower Boss 5
 Underground
+Underground (Vertical)
 Underground 2
 Underground 3
 Underground Desert
 Underground Painted
 Underground Painted 2
 Underwater
-Underwater (Small)
+Underwater (Vertical)
 Underwater (Update)
-Ungerground (Small)
 World 7 Castle

@@ -43,8 +43,6 @@ import pickle
 import platform
 import struct
 import sys
-if platform.system() == 'Windows':
-    import winsound
 from xml.etree import ElementTree as etree
 import zipfile
 
@@ -53,7 +51,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
 # Local imports
-import gtx_extract as gtx
+if platform.system() == 'Windows':
+    import gtx_extract as gtx
 import SARC as SarcLib
 import spritelib as SLib
 import sprites
@@ -122,10 +121,7 @@ AutoSavePath = ''
 AutoSaveData = b''
 AutoOpenScriptEnabled = False
 CurrentLevelNameForAutoOpenScript = 'AAAAAAAAAAAAAAAAAAAAAAAAAA'
-Waterlocationx = 0		
-Waterlocationy = 0		
-Waterlocationw = 1000		
-Waterlocationh = 30
+levelNameCache = ''
 miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
 
 # Sort BG Names
@@ -884,6 +880,10 @@ def LoadOverrides():
             idx -= (idx % 16)
             idx += 16
 
+    # ? Block for Sprite 59
+    bmp = OverrideBitmap.copy(44*TileWidth, 2*TileWidth, TileWidth, TileWidth)
+    Overrides[160] = TilesetTile(bmp)
+
 def LoadTranslation():
     """
     Loads the translation
@@ -990,7 +990,6 @@ def LoadActionsLists():
 
     FileActions = (
         (trans.string('MenuItems', 0),  True,  'newlevel'),
-        (trans.string('MenuItems', 144), False, 'createlevel'),
         (trans.string('MenuItems', 2),  True,  'openfromname'),
         (trans.string('MenuItems', 4),  False, 'openfromfile'),
         (trans.string('MenuItems', 8),  True,  'save'),
@@ -1123,9 +1122,12 @@ class LevelScene(QtWidgets.QGraphicsScene):
                     desty = item.objy - y1
 
                     exists = True
-                    if ObjectDefinitions[item.tileset] is None:
-                        exists = False
-                    elif ObjectDefinitions[item.tileset][item.type] is None:
+                    try:
+                        if ObjectDefinitions[item.tileset] is None:
+                            exists = False
+                        elif ObjectDefinitions[item.tileset][item.type] is None:
+                            exists = False
+                    except IndexError:
                         exists = False
 
                     for row in item.objdata:
@@ -2265,7 +2267,8 @@ def LoadTexture_NSMBU(tiledata):
         os.remove(tile_path + '/texture.bmp')
 
     else:
-        print("Not a supported platform, sadly...")
+        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+        warningBox.exec_()
         return
 
     os.remove(tile_path + '/texture.gtx')
@@ -2624,6 +2627,8 @@ def ProcessOverrides(idx, name):
                 t[i].setOverridden()
 
             ## ?
+            t[offset + 160].main = t[49].main
+            t[offset + 160].setOverridden()
             t[49].main = t[offset + 46].main
             t[49].setOverridden()
             for i in range(32, 43):
@@ -2857,7 +2862,8 @@ def ProcessOverrides(idx, name):
                 replace += 1
 
     except Exception:
-        print("Whoops, something went wrong while processing the overrides...")
+        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Whoops, something went wrong while processing the overrides...')
+        warningBox.exec_()
         
 def SimpleTilesetNames():
     """
@@ -5619,7 +5625,7 @@ class EntranceItem(LevelEditorItem):
         """
         Creates an entrance with specific data
         """
-        print('Entrance found! ' + str(type))
+        print('Entrance ' + str(id) + ' found! Type: ' + str(type))
         if EntranceItem.EntranceImages is None:
             ei = []
             src = QtGui.QPixmap('miyamotodata/entrances.png')
@@ -6585,10 +6591,12 @@ class ObjectPickerWidget(QtWidgets.QListView):
                         x += TileWidth
                     y += TileWidth
                 p.end()
-                if defs[i].width > 8:
+
+                pm = pm.scaledToWidth(pm.width() * 32/TileWidth, Qt.SmoothTransformation)
+                if pm.width() > 256:
                     pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
-                else:
-                    pm = pm.scaledToWidth(pm.width() * 32/TileWidth, Qt.SmoothTransformation)
+                if pm.height() > 256:
+                    pm = pm.scaledToHeight(256, Qt.SmoothTransformation)
 
                 self.ritems.append(pm)
                 self.itemsize.append(QtCore.QSize(pm.width() + 4, pm.height() + 4))
@@ -9718,28 +9726,6 @@ class AreaOptionsDialog(QtWidgets.QDialog):
         self.setLayout(mainLayout)
 
 
-class Rly(QtWidgets.QDialog):
-    """
-    Dialog which lets you configure your automatically-created level
-    """
-    def __init__(self):
-        """
-        Creates and initializes the dialog
-        """
-        QtWidgets.QDialog.__init__(self)
-        self.setWindowTitle('Really... ?')
-
-        mainLayout = QtWidgets.QVBoxLayout()
-        pic = QtWidgets.QLabel()
-        pic.setGeometry(10, 10, 400, 100)
-        pic.setPixmap(QtGui.QPixmap(miyamoto_path + '/miyamotodata/bitch_please.png'))
-        mainLayout.addWidget(pic)
-        self.setLayout(mainLayout)
-
-        if platform.system() == 'Windows':
-            winsound.PlaySound(miyamoto_path + '/miyamotodata/mou.wav', winsound.SND_FILENAME)
-
-
 class ZonesDialog(QtWidgets.QDialog):
     """
     Dialog which lets you choose among various from tabs
@@ -10266,9 +10252,12 @@ class BGTab(QtWidgets.QWidget):
     def __init__(self, unk1, name, unk2):
         QtWidgets.QWidget.__init__(self)
 
+        self.createBGViewers()
+
         self.bg_name = QtWidgets.QComboBox()
         self.bg_name.addItems(names_bgTrans)
         self.bg_name.setCurrentIndex(name)
+        self.bg_name.activated.connect(self.handleNameBox)
 
         self.unk1 = QtWidgets.QSpinBox()
         self.unk1.setRange(0, 0xFF)
@@ -10277,16 +10266,50 @@ class BGTab(QtWidgets.QWidget):
         self.unk2 = QtWidgets.QSpinBox()
         self.unk2.setRange(0, 0xFFFF)
         self.unk2.setValue(unk2)
-        
+
+        self.BGSettings = QtWidgets.QGroupBox('Settings')
         settingsLayout = QtWidgets.QFormLayout()
         settingsLayout.addRow('Background:', self.bg_name)
         settingsLayout.addRow('Unknown Value 1:', self.unk1)
         settingsLayout.addRow('Unknown Value 2:', self.unk2)
+        settingsLayout2 = QtWidgets.QGridLayout()
+        settingsLayout2.addLayout(settingsLayout, 0, 0)
+        self.BGSettings.setLayout(settingsLayout2)
 
-        Layout = QtWidgets.QVBoxLayout()
-        Layout.addLayout(settingsLayout)
-        Layout.addStretch(1)
+        Layout = QtWidgets.QGridLayout()
+        Layout.addWidget(self.BGViewer, 0, 1)
+        Layout.addWidget(self.BGSettings, 0, 0)
         self.setLayout(Layout)
+
+        self.updatePreview()
+
+    def createBGViewers(self):
+        g = QtWidgets.QGroupBox(trans.string('BGDlg', 16)) # Preview
+        self.BGViewer = g
+
+        self.preview = QtWidgets.QLabel()
+
+        mainLayout = QtWidgets.QGridLayout()
+        mainLayout.addWidget(self.preview, 0, 0)
+        self.BGViewer.setLayout(mainLayout)
+
+    @QtCore.pyqtSlot()
+    def handleNameBox(self):
+        """
+        Handles any name box changing
+        """
+        self.updatePreview()
+
+    def updatePreview(self):
+        """
+        Updates the preview label
+        """
+
+        filename = miyamoto_path + '/miyamotodata/bg/' + str(self.bg_name.currentText()) + '.png'
+        if not os.path.isfile(filename):
+            filename = miyamoto_path + '/miyamotodata/bg/no_preview.png'
+        pix = QtGui.QPixmap(filename)
+        self.preview.setPixmap(pix)
 
 
 class ScreenCapChoiceDialog(QtWidgets.QDialog):
@@ -11278,6 +11301,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.ZoomLevels = [7.5, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 85.0, 90.0, 95.0, 100.0, 125.0, 150.0, 175.0, 200.0, 250.0, 300.0, 350.0, 400.0]
 
+        if platform.system() == 'Windows':
+            self.AutosaveTimer = QtCore.QTimer()
+            self.AutosaveTimer.timeout.connect(self.Autosave)
+            self.AutosaveTimer.start(20000)
+
         # required variables
         self.UpdateFlag = False
         self.SelectionUpdateFlag = False
@@ -11361,6 +11389,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             else:
                 self.LoadLevel(curgame, FirstLevels[curgame], False, 1)
 
+        if platform.system() == 'Windows':
+            QtCore.QTimer.singleShot(100, self.levelOverview.update)
+
         toggleHandlers = {
             self.HandleSpritesVisibility: SpritesShown,
             self.HandleSpriteImages: SpriteImagesShown,
@@ -11398,7 +11429,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # File
         self.CreateAction('newlevel', self.HandleNewLevel, GetIcon('new'), trans.string('MenuItems', 0), trans.string('MenuItems', 1), QtGui.QKeySequence.New)
-        self.CreateAction('createlevel', self.HandleCreateLevelByItself, GetIcon('new'), trans.string('MenuItems', 144), trans.string('MenuItems', 145), None)
         self.CreateAction('openfromname', self.HandleOpenFromName, GetIcon('open'), trans.string('MenuItems', 2), trans.string('MenuItems', 3), QtGui.QKeySequence.Open)
         self.CreateAction('openfromfile', self.HandleOpenFromFile, GetIcon('openfromfile'), trans.string('MenuItems', 4), trans.string('MenuItems', 5), QtGui.QKeySequence('Ctrl+Shift+O'))
         self.CreateAction('save', self.HandleSave, GetIcon('save'), trans.string('MenuItems', 8), trans.string('MenuItems', 9), QtGui.QKeySequence.Save)
@@ -11490,7 +11520,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         fmenu = menubar.addMenu(trans.string('Menubar', 0))
         fmenu.addAction(self.actions['newlevel'])
-        fmenu.addAction(self.actions['createlevel'])
         fmenu.addAction(self.actions['openfromname'])
         fmenu.addAction(self.actions['openfromfile'])
         fmenu.addSeparator()
@@ -11613,7 +11642,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Groups = (
             (
                 'newlevel',
-                'createlevel',
                 'openfromname',
                 'openfromfile',
                 'save',
@@ -12116,7 +12144,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Auto saves the level
         """
         return
-        global AutoSaveDirty
+        global AutoSaveDirty, levelNameCache
         if not AutoSaveDirty: return
 
         name = self.getInnerSarcName()
@@ -12124,6 +12152,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
         if name == '':
             return
+        levelNameCache = name
 
         data = Level.save(name)
         setSetting('AutoSaveFilePath', self.fileSavePath)
@@ -12964,7 +12993,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             elif platform.system() == 'Darwin':
                 os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + fn + '" --dest "' + course_name + '.tmp"')
             else:
-                print("Not a supported platform, sadly...")
+                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+                warningBox.exec_()
                 return
             os.chdir(miyamoto_path)
             with open(course_name + '.tmp', 'rb') as f:
@@ -13001,7 +13031,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         hmm = True
                         break
                 else:
-                    print('OH NO')
+                    warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Couldn\'t find the inner level file. Aborting.')
+                    warningBox.exec_()
                     return False
 
         else:
@@ -13016,7 +13047,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     arcdata = arc[fn].data
                     break
             else:
-                print('OH NO')
+                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Couldn\'t find the inner level file. Aborting.')
+                warningBox.exec_()
                 return False
 
         arc = SarcLib.SARC_Archive()
@@ -13080,6 +13112,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Deletes the current area
         """
+        global levelNameCache
         result = QtWidgets.QMessageBox.warning(self, 'Miyamoto!', trans.string('DeleteArea', 0), QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
         if result == QtWidgets.QMessageBox.No: return
 
@@ -13097,6 +13130,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
         if name == '':
             return
+        levelNameCache = name
 
         Level.deleteArea(Area.areanum)
 
@@ -13121,7 +13155,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             elif platform.system() == 'Darwin':
                 os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
             else:
-                print("Not a supported platform, sadly...")
+                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+                warningBox.exec_()
                 return
             os.remove(course_name + '.tmp')
         else:
@@ -13266,6 +13301,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Save a level back to the archive
         """
+        global levelNameCache
         if not mainWindow.fileSavePath:
             if not self.HandleSaveAs(): return False
             else: return True
@@ -13275,6 +13311,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
         if name == '':
             return False
+        levelNameCache = name
 
         global Dirty, AutoSaveDirty
         data = Level.save(name)
@@ -13298,7 +13335,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 elif platform.system() == 'Darwin':
                     os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
                 else:
-                    print("Not a supported platform, sadly...")
+                    warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+                    warningBox.exec_()
                     return
                 os.remove(course_name + '.tmp')
             else:
@@ -13322,6 +13360,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Save a level back to the archive
         """
+        global levelNameCache
         if not mainWindow.fileSavePath:
             if not self.HandleSaveAs(): return False
             else: return True
@@ -13331,6 +13370,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
         if name == '':
             return False
+        levelNameCache = name
 
         global Dirty, AutoSaveDirty
         data = Level.saveNewArea(name, course, L0, L1, L2)
@@ -13354,7 +13394,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 elif platform.system() == 'Darwin':
                     os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + mainWindow.fileSavePath + '"')
                 else:
-                    print("Not a supported platform, sadly...")
+                    warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+                    warningBox.exec_()
                     return
                 os.remove(course_name + '.tmp')
             else:
@@ -13386,7 +13427,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if fn == '': return False
         fn = str(fn)
 
-        global Dirty, AutoSaveDirty
+        global Dirty, AutoSaveDirty, levelNameCache
         Dirty = False
         AutoSaveDirty = False
         Dirty = False
@@ -13396,50 +13437,46 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # we take the name of the level and make sure it's formatted right. if not, crashy
         # this is one of the few ways, if there's no - it will certainly crash
-        failure = 0
+        failure = False
         name = self.getInnerSarcName()
         # oh noes there's no - !!!
         if "-" not in name:
             warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning', 'The input name does not include a -, which is what retail levels use. \nThis may crash, because it does not fit the proper format.')
             warningBox.exec_()
-            failure = 1
+        elif name == "":
+            return False
 
-        if failure == 0:
-            data = Level.save(name)
-            if self.fileSavePath.endswith('.szs'):
-                course_name = os.path.splitext(self.fileSavePath)[0]
-                with open(course_name + '.tmp', 'wb') as f:
-                    f.write(data)
+        levelNameCache = name
+        data = Level.save(name)
+        if self.fileSavePath.endswith('.szs'):
+            course_name = os.path.splitext(self.fileSavePath)[0]
+            with open(course_name + '.tmp', 'wb') as f:
+                f.write(data)
 
-                if os.path.isfile(self.fileSavePath):
-                    os.remove(self.fileSavePath)
-                if platform.system() == 'Windows':
-                    os.chdir(miyamoto_path + '/Tools')
-                    os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-                    os.chdir(miyamoto_path)
-                elif platform.system() == 'Linux':
-                    os.chdir(miyamoto_path + '/linuxTools')
-                    os.system('chmod +x ./wszst_linux.elf')
-                    os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-                    os.chdir(miyamoto_path)
-                elif platform.system() == 'Darwin':
-                    os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-                else:
-                    print("Not a supported platform, sadly...")
-                    return
-                os.remove(course_name + '.tmp')
+            if os.path.isfile(self.fileSavePath):
+                os.remove(self.fileSavePath)
+            if platform.system() == 'Windows':
+                os.chdir(miyamoto_path + '/Tools')
+                os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
+                os.chdir(miyamoto_path)
+            elif platform.system() == 'Linux':
+                os.chdir(miyamoto_path + '/linuxTools')
+                os.system('chmod +x ./wszst_linux.elf')
+                os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
+                os.chdir(miyamoto_path)
+            elif platform.system() == 'Darwin':
+                os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
             else:
-                with open(self.fileSavePath, 'wb') as f:
-                    f.write(data)
-            self.UpdateTitle()
+                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+                warningBox.exec_()
+                return
+            os.remove(course_name + '.tmp')
+        else:
+            with open(self.fileSavePath, 'wb') as f:
+                f.write(data)
+        self.UpdateTitle()
 
-            return True
-        else: return False
-
-        # a quick way to save shit
-
-        #setSetting('AutoSaveFilePath', fn)
-        #setSetting('AutoSaveFileData', 'x')
+        return True
 
 
     def getInnerSarcName(self):
@@ -13931,6 +13968,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 with open(self.fileSavePath, 'rb') as fileobj:
                     levelData = fileobj.read()
 
+                global levelNameCache
+
                 # Decompress, if needed (Yaz0)
                 if levelData.startswith(b'Yaz0'):
                     print('Beginning Yaz0 decompression...')
@@ -13947,7 +13986,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     elif platform.system() == 'Darwin':
                         os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
                     else:
-                        print("Not a supported platform, sadly...")
+                        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+                        warningBox.exec_()
                         return
                     os.chdir(miyamoto_path)
                     with open(course_name + '.tmp', 'rb') as f:
@@ -13970,6 +14010,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if exists('levelname'):
                     fn = bytes_to_string(arc['levelname'].data)
                     if exists(fn):
+                        levelNameCache = fn
                         levelFileData = arc[fn].data
                     else:
                         possibilities = []
@@ -13978,13 +14019,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         possibilities.append(os.path.basename(self.fileSavePath).split(' ')[0]) # for names like "1-1 test.szs"
                         possibilities.append(os.path.basename(self.fileSavePath).split('.')[0])
                         possibilities.append(os.path.basename(self.fileSavePath).split('_')[0])
+                        possibilities.append(levelNameCache)
                         for fn in possibilities:
                             if exists(fn):
+                                levelNameCache = fn
                                 levelFileData = arc[fn].data
                                 hmm = True
                                 break
                         else:
-                            print('OH NO')
+                            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Couldn\'t find the inner level file. Aborting.')
+                            warningBox.exec_()
                             return False
 
                 else:
@@ -13994,12 +14038,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     possibilities.append(os.path.basename(self.fileSavePath).split(' ')[0]) # for names like "1-1 test.szs"
                     possibilities.append(os.path.basename(self.fileSavePath).split('.')[0])
                     possibilities.append(os.path.basename(self.fileSavePath).split('_')[0])
+                    possibilities.append(levelNameCache)
                     for fn in possibilities:
                         if exists(fn):
+                            levelNameCache = fn
                             levelFileData = arc[fn].data
                             break
                     else:
-                        print('OH NO')
+                        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Couldn\'t find the inner level file. Aborting.')
+                        warningBox.exec_()
                         return False
 
                 # Sort the szs data
@@ -14043,7 +14090,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             elif platform.system() == 'Darwin':
                 os.system('open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.szs" --dest "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc"')
             else:
-                print("Not a supported platform, sadly...")
+                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+                warningBox.exec_()
                 return
             os.chdir(miyamoto_path)
             szsData = {}
@@ -14134,6 +14182,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.levelOverview.Reset()
         self.levelOverview.update()
+        if platform.system() == 'Windows':
+            QtCore.QTimer.singleShot(20, self.levelOverview.update)
 
         # Set the Current Game setting
         self.CurrentGame = game
@@ -15097,10 +15147,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.scene.update()
 
     @QtCore.pyqtSlot()
-    def HandleCreateLevelByItself(self):
-        if not self.CheckDirty(): Rly().exec_()
-
-    @QtCore.pyqtSlot()
     def HandleZones(self):
         """
         Pops up the options for Zone dialog
@@ -15541,7 +15587,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             os.system('python3 puzzlehd.py ' + Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
             os.chdir(miyamoto_path)
         else:
-            print("Not a supported platform, sadly...")
+            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+            warningBox.exec_()
             return
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
@@ -15621,7 +15668,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             os.system('python3 puzzlehd.py ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
             os.chdir(miyamoto_path)
         else:
-            print("Not a supported platform, sadly...")
+            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+            warningBox.exec_()
             return
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
@@ -15718,7 +15766,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             os.system('python3 puzzlehd.py ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
             os.chdir(miyamoto_path)
         else:
-            print("Not a supported platform, sadly...")
+            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+            warningBox.exec_()
             return
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
@@ -15815,7 +15864,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             os.system('python3 puzzlehd.py ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
             os.chdir(miyamoto_path)
         else:
-            print("Not a supported platform, sadly...")
+            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+            warningBox.exec_()
             return
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
