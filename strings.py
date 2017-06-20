@@ -501,18 +501,7 @@ class MiyamotoTranslation():
                 140: 'Edit Slot 3 Tileset',
                 141: 'Edit Slot 3 Tileset',
                 142: 'Edit Slot 4 Tileset',
-                143: 'Edit Slot 4 Tileset',
-                144: 'Create Level by itself',
-                145: 'Creates a Full Level on its own',
-                500: 'Toggle Background',
-                501: 'Swap Current Background',
-                502: 'Liquid Options',
-                503: 'Decompress .szs File',
-                504: 'Decompress',
-                505: 'Convert ZIP Archive To SARC',
-                506: 'Convert To SARC/Sarchive',
-                507: 'Compress SARC to .szs File',
-                508: 'Compress'
+                143: 'Edit Slot 4 Tileset'
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
