@@ -2660,8 +2660,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
             for i, tex in enumerate(mipmaps):
                 tex.save(tile_path + '/mipmap%s_%d.png' % ('_nml' if normalmap else '', i))
-                os.chdir(tile_path + '')
-                os.system('nvcompress.exe -bc3 -nomips mipmap%s_%d.png ' % ('_nml' if normalmap else '', i)
+                os.chdir(tile_path)
+                os.system('chmod +x ' + self.miyamoto_path + '/macTools/nvcompress-osx.app')
+                os.system(self.miyamoto_path + '/macTools/nvcompress-osx.app -bc3 -nomips mipmap%s_%d.png ' % ('_nml' if normalmap else '', i)
                           + 'mipmap%s_%d.dds' % ('_nml' if normalmap else '', i))
                 os.chdir(tile_path)
 
