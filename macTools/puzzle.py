@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Puzzle HD
+# Puzzle NSMBU
 # This is Puzzle 0.6, ported to Python 3 & PyQt5, and then ported to support the New Super Mario Bros. U tileset format.
 # Puzzle 0.6 by Tempus; all improvements for Python 3, PyQt5 and NSMBU by RoadrunnerWMC
+# Heavily modified by AboodXD
 
-import SARC
+import json
 import os
 import os.path
 import struct
@@ -15,6 +16,7 @@ from ctypes import create_string_buffer
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
+import SARC
 
 try:
     import nsmblib
@@ -66,15 +68,20 @@ class TilesetClass():
 
     class Object():
 
-        def __init__(self, height, width, randByte, uslope, lslope, tilelist):
+        def __init__(self, height, width, randByte, uslope, lslope, tilelist, fromFile):
             '''Tile Constructor'''
 
             self.height = height
             self.width = width
 
-            self.randX = (randByte >> 4) & 1
-            self.randY = (randByte >> 5) & 1
-            self.randLen = randByte & 0xF
+            if fromFile:
+                self.randX = 0
+                self.randY = 0
+                self.randLen = 1
+            else:
+                self.randX = (randByte >> 4) & 1
+                self.randY = (randByte >> 5) & 1
+                self.randLen = randByte & 0xF
 
             self.upperslope = uslope
             self.lowerslope = lslope
@@ -109,7 +116,7 @@ class TilesetClass():
         self.tiles.append(self.Tile(image, nml, bytelist))
 
 
-    def addObject(self, height = 1, width = 1, randByte = 0, uslope = [0, 0], lslope = [0, 0], tilelist = [[(0, 0, 0)]]):
+    def addObject(self, height = 1, width = 1, randByte = 0, uslope = [0, 0], lslope = [0, 0], tilelist = [[(0, 0, 0)]], fromFile=False):
         '''Adds a new object'''
 
         global Tileset
@@ -117,7 +124,7 @@ class TilesetClass():
         if tilelist == [[(0, 0, 0)]]:
             tilelist = [[(0, 0, Tileset.slot)]]
 
-        self.objects.append(self.Object(height, width, randByte, uslope, lslope, tilelist))
+        self.objects.append(self.Object(height, width, randByte, uslope, lslope, tilelist, fromFile))
 
 
     def removeObject(self, index):
@@ -133,18 +140,53 @@ class TilesetClass():
         self.objects = []
 
 
-    def clearCollisions(self):
-        '''Clears the collisions data'''
+    def getUsedTiles(self):
+        usedTiles = []
 
-        for tile in self.tiles:
-            tile.byte0 = 0
-            tile.byte1 = 0
-            tile.byte2 = 0
-            tile.byte3 = 0
-            tile.byte4 = 0
-            tile.byte5 = 0
-            tile.byte6 = 0
-            tile.byte7 = 0
+        for object in self.objects:
+            for i in range(len(object.tiles)):
+                for tile in object.tiles[i]:
+                    if object.randLen > 0:
+                        for i in range(object.randLen):
+                            if tile[1] + i not in usedTiles:
+                                usedTiles.append(tile[1] + i)
+                    else:
+                        if tile[1] not in usedTiles:
+                            usedTiles.append(tile[1])
+
+        return usedTiles
+
+
+#############################################################################################
+######################## Widget for selecting the object to export ##########################
+
+
+class getObjNum(QtWidgets.QDialog):
+    """
+    Dialog which lets you choose an object to export
+    """
+    def __init__(self):
+        """
+        Creates and initializes the dialog
+        """
+        QtWidgets.QDialog.__init__(self)
+        self.setWindowTitle('Choose Object')
+
+        self.objNum = QtWidgets.QSpinBox()
+        count = len(Tileset.objects) - 1
+        self.objNum.setRange(0, count)
+        self.objNum.setValue(0)
+
+        buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+        mainLayout = QtWidgets.QVBoxLayout()
+        mainLayout.addWidget(self.objNum)
+        mainLayout.addWidget(buttonBox)
+
+        self.setLayout(mainLayout)
 
 
 #############################################################################################
@@ -551,7 +593,7 @@ class InfoBox(QtWidgets.QWidget):
         self.imageBox = QtWidgets.QGroupBox()
         imageLayout = QtWidgets.QHBoxLayout()
 
-        pix = QtGui.QPixmap(60, 60)
+        pix = QtGui.QPixmap(24, 24)
         pix.fill(Qt.transparent)
 
         self.coreImage = QtWidgets.QLabel()
@@ -650,8 +692,8 @@ class objectList(QtWidgets.QListView):
         self.setMovement(QtWidgets.QListView.Static)
         self.setBackgroundRole(QtGui.QPalette.BrightText)
         self.setWrapping(False)
-        self.setMinimumHeight(140)
-        self.setMaximumHeight(140)
+        self.setMinimumHeight(150)
+        self.setMaximumHeight(150)
 
 
 
@@ -661,7 +703,7 @@ def SetupObjectModel(self, objects, tiles):
 
     count = 0
     for object in objects:
-        tex = QtGui.QPixmap(object.width * 60, object.height * 60)
+        tex = QtGui.QPixmap(object.width * 24, object.height * 24)
         tex.fill(Qt.transparent)
         painter = QtGui.QPainter(tex)
 
@@ -671,10 +713,10 @@ def SetupObjectModel(self, objects, tiles):
         for i in range(len(object.tiles)):
             for tile in object.tiles[i]:
                 if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
-                    painter.drawPixmap(Xoffset, Yoffset, tiles[tile[1]].image)
-                Xoffset += 60
+                    painter.drawPixmap(Xoffset, Yoffset, tiles[tile[1]].image.scaledToWidth(24, Qt.SmoothTransformation))
+                Xoffset += 24
             Xoffset = 0
-            Yoffset += 60
+            Yoffset += 24
 
         painter.end()
 
@@ -694,13 +736,13 @@ class displayWidget(QtWidgets.QListView):
     def __init__(self, parent=None):
         super(displayWidget, self).__init__(parent)
 
-        self.setMinimumWidth(1000)
-        self.setMaximumWidth(1000)
-        self.setMinimumHeight(400)
+        self.setMinimumWidth(448)
+        self.setMaximumWidth(448)
+        self.setMinimumHeight(404)
         self.setDragEnabled(True)
         self.setViewMode(QtWidgets.QListView.IconMode)
-        self.setIconSize(QtCore.QSize(60,60))
-        self.setGridSize(QtCore.QSize(61,61))
+        self.setIconSize(QtCore.QSize(24,24))
+        self.setGridSize(QtCore.QSize(25,25))
         self.setMovement(QtWidgets.QListView.Static)
         self.setAcceptDrops(False)
         self.setDropIndicatorShown(True)
@@ -732,7 +774,7 @@ class displayWidget(QtWidgets.QListView):
 
             global Tileset
             p = index.model().data(index, Qt.DecorationRole)
-            painter.drawPixmap(option.rect.x(), option.rect.y(), p.pixmap(60,60))
+            painter.drawPixmap(option.rect.x(), option.rect.y(), p.pixmap(24,24))
 
             x = option.rect.x()
             y = option.rect.y()
@@ -769,188 +811,191 @@ class displayWidget(QtWidgets.QListView):
                 # Paints shape based on other junk
                 if curTile.byte0 == 0xB: # Slope
                     if curTile.byte2 == 0:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 60),
-                                                            QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x + 60, y)]))
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
+                                                            QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x + 24, y)]))
                     elif curTile.byte2 == 1:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x, y + 60)]))
+                                                            QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x, y + 24)]))
                     elif curTile.byte2 == 2:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 60),
-                                                            QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x + 60, y + 30)]))
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
+                                                            QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x + 24, y + 12)]))
                     elif curTile.byte2 == 3:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 60),
-                                                            QtCore.QPoint(x, y + 30),
-                                                            QtCore.QPoint(x + 60, y),
-                                                            QtCore.QPoint(x + 60, y + 60)]))
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
+                                                            QtCore.QPoint(x, y + 12),
+                                                            QtCore.QPoint(x + 24, y),
+                                                            QtCore.QPoint(x + 24, y + 24)]))
                     elif curTile.byte2 == 4:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 60),
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
                                                             QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y + 30),
-                                                            QtCore.QPoint(x + 60, y + 60)]))
+                                                            QtCore.QPoint(x + 24, y + 12),
+                                                            QtCore.QPoint(x + 24, y + 24)]))
                     elif curTile.byte2 == 5:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 30),
-                                                            QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x, y + 60)]))
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 12),
+                                                            QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x, y + 24)]))
                     elif curTile.byte2 == 10:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x, y + 60),
-                                                            QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x + 60, y)]))
+                                                            QtCore.QPoint(x, y + 24),
+                                                            QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x + 24, y)]))
                     elif curTile.byte2 == 11:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 60),
-                                                            QtCore.QPoint(x + 60, y + 45),
-                                                            QtCore.QPoint(x + 60, y + 60)]))
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
+                                                            QtCore.QPoint(x + 24, y + 18),
+                                                            QtCore.QPoint(x + 24, y + 24)]))
                     elif curTile.byte2 == 12:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x + 60, y + 30),
-                                                            QtCore.QPoint(x, y + 45),
-                                                            QtCore.QPoint(x, y + 60)]))
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x + 24, y + 12),
+                                                            QtCore.QPoint(x, y + 18),
+                                                            QtCore.QPoint(x, y + 24)]))
                     elif curTile.byte2 == 13:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x + 60, y + 15),
-                                                            QtCore.QPoint(x, y + 30),
-                                                            QtCore.QPoint(x, y + 60)]))
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x + 24, y + 6),
+                                                            QtCore.QPoint(x, y + 12),
+                                                            QtCore.QPoint(x, y + 24)]))
                     elif curTile.byte2 == 14:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x + 60, y),
-                                                            QtCore.QPoint(x, y + 15),
-                                                            QtCore.QPoint(x, y + 60)]))
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x + 24, y),
+                                                            QtCore.QPoint(x, y + 6),
+                                                            QtCore.QPoint(x, y + 24)]))
                     elif curTile.byte2 == 15:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x + 60, y + 15),
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x + 24, y + 6),
                                                             QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x, y + 60)]))
+                                                            QtCore.QPoint(x, y + 24)]))
                     elif curTile.byte2 == 16:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x + 60, y + 30),
-                                                            QtCore.QPoint(x, y + 15),
-                                                            QtCore.QPoint(x, y + 60)]))
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x + 24, y + 12),
+                                                            QtCore.QPoint(x, y + 6),
+                                                            QtCore.QPoint(x, y + 24)]))
                     elif curTile.byte2 == 17:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x + 60, y + 45),
-                                                            QtCore.QPoint(x, y + 30),
-                                                            QtCore.QPoint(x, y + 60)]))
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x + 24, y + 18),
+                                                            QtCore.QPoint(x, y + 12),
+                                                            QtCore.QPoint(x, y + 24)]))
                     elif curTile.byte2 == 18:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x, y + 45),
-                                                            QtCore.QPoint(x, y + 60)]))
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x, y + 18),
+                                                            QtCore.QPoint(x, y + 24)]))
 
                 elif curTile.byte0 == 0xC: # Reverse Slope
                     if curTile.byte2 == 0:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x + 60, y)]))
+                                                            QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x + 24, y)]))
                     elif curTile.byte2 == 1:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 60),
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
                                                             QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y)]))
+                                                            QtCore.QPoint(x + 24, y)]))
                     elif curTile.byte2 == 2:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 60, y),
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y),
                                                             QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y + 30)]))
+                                                            QtCore.QPoint(x + 24, y + 12)]))
                     elif curTile.byte2 == 3:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x, y + 30),
-                                                            QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x + 60, y)]))
+                                                            QtCore.QPoint(x, y + 12),
+                                                            QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x + 24, y)]))
                     elif curTile.byte2 == 4:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 60),
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
                                                             QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y),
-                                                            QtCore.QPoint(x + 60, y + 30)]))
+                                                            QtCore.QPoint(x + 24, y),
+                                                            QtCore.QPoint(x + 24, y + 12)]))
                     elif curTile.byte2 == 5:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 30),
+                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 12),
                                                             QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y)]))
+                                                            QtCore.QPoint(x + 24, y)]))
                     elif curTile.byte2 == 10:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x, y + 60),
-                                                            QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x + 60, y)]))
+                                                            QtCore.QPoint(x, y + 24),
+                                                            QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x + 24, y)]))
                     elif curTile.byte2 == 11:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y),
-                                                            QtCore.QPoint(x + 60, y + 15)]))
+                                                            QtCore.QPoint(x + 24, y),
+                                                            QtCore.QPoint(x + 24, y + 6)]))
                     elif curTile.byte2 == 12:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y),
-                                                            QtCore.QPoint(x + 60, y + 30),
-                                                            QtCore.QPoint(x, y + 15)]))
+                                                            QtCore.QPoint(x + 24, y),
+                                                            QtCore.QPoint(x + 24, y + 12),
+                                                            QtCore.QPoint(x, y + 6)]))
                     elif curTile.byte2 == 13:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y),
-                                                            QtCore.QPoint(x + 60, y + 45),
-                                                            QtCore.QPoint(x, y + 30)]))
+                                                            QtCore.QPoint(x + 24, y),
+                                                            QtCore.QPoint(x + 24, y + 18),
+                                                            QtCore.QPoint(x, y + 12)]))
                     elif curTile.byte2 == 14:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y),
-                                                            QtCore.QPoint(x + 60, y + 60),
-                                                            QtCore.QPoint(x, y + 45)]))
+                                                            QtCore.QPoint(x + 24, y),
+                                                            QtCore.QPoint(x + 24, y + 24),
+                                                            QtCore.QPoint(x, y + 18)]))
                     elif curTile.byte2 == 15:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y),
-                                                            QtCore.QPoint(x + 60, y + 45),
-                                                            QtCore.QPoint(x, y + 60)]))
+                                                            QtCore.QPoint(x + 24, y),
+                                                            QtCore.QPoint(x + 24, y + 18),
+                                                            QtCore.QPoint(x, y + 24)]))
                     elif curTile.byte2 == 16:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y),
-                                                            QtCore.QPoint(x + 60, y + 30),
-                                                            QtCore.QPoint(x, y + 45)]))
+                                                            QtCore.QPoint(x + 24, y),
+                                                            QtCore.QPoint(x + 24, y + 12),
+                                                            QtCore.QPoint(x, y + 18)]))
                     elif curTile.byte2 == 17:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y),
-                                                            QtCore.QPoint(x + 60, y + 15),
-                                                            QtCore.QPoint(x, y + 30)]))
+                                                            QtCore.QPoint(x + 24, y),
+                                                            QtCore.QPoint(x + 24, y + 6),
+                                                            QtCore.QPoint(x, y + 12)]))
                     elif curTile.byte2 == 18:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y),
-                                                            QtCore.QPoint(x, y + 15)]))
+                                                            QtCore.QPoint(x + 24, y),
+                                                            QtCore.QPoint(x, y + 6)]))
 
                 elif curTile.byte0 == 9: # Partial
                     if curTile.byte2 == 2:
                         painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 60, y),
-                                                            QtCore.QPoint(x + 60, y + 30),
-                                                            QtCore.QPoint(x, y + 30)]))
+                                                            QtCore.QPoint(x + 24, y),
+                                                            QtCore.QPoint(x + 24, y + 12),
+                                                            QtCore.QPoint(x, y + 12)]))
 
                 elif curTile.byte0 == 0 and curTile.byte4 == 3: # Solid-on-bottom
-                    painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 60),
-                                                        QtCore.QPoint(x + 60, y + 60),
-                                                        QtCore.QPoint(x + 60, y + 45),
-                                                        QtCore.QPoint(x, y + 45)]))
+                    painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
+                                                        QtCore.QPoint(x + 24, y + 24),
+                                                        QtCore.QPoint(x + 24, y + 18),
+                                                        QtCore.QPoint(x, y + 18)]))
 
-                    painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 37, y),
-                                                        QtCore.QPoint(x + 37, y + 30),
-                                                        QtCore.QPoint(x + 45, y + 30),
-                                                        QtCore.QPoint(x + 30, y + 41),
-                                                        QtCore.QPoint(x + 37, y + 30),
-                                                        QtCore.QPoint(x + 22, y + 30),
-                                                        QtCore.QPoint(x + 22, y)]))
+                    painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 15, y),
+                                                        QtCore.QPoint(x + 15, y + 12),
+                                                        QtCore.QPoint(x + 18, y + 12),
+                                                        QtCore.QPoint(x + 12, y + 41),
+                                                        QtCore.QPoint(x + 15, y + 12),
+                                                        QtCore.QPoint(x + 9, y + 12),
+                                                        QtCore.QPoint(x + 9, y)]))
 
                 elif curTile.byte0 == 0 and curTile.byte4 == 2: # Solid-on-top
                     painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                        QtCore.QPoint(x + 60, y),
-                                                        QtCore.QPoint(x + 60, y + 15),
-                                                        QtCore.QPoint(x, y + 15)]))
+                                                        QtCore.QPoint(x + 24, y),
+                                                        QtCore.QPoint(x + 24, y + 6),
+                                                        QtCore.QPoint(x, y + 6)]))
 
-                    painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 37, y + 60),
-                                                        QtCore.QPoint(x + 37, y + 30),
-                                                        QtCore.QPoint(x + 45, y + 30),
-                                                        QtCore.QPoint(x + 30, y + 17),
-                                                        QtCore.QPoint(x + 16, y + 30),
-                                                        QtCore.QPoint(x + 22, y + 30),
-                                                        QtCore.QPoint(x + 22, y + 60)]))
+                    painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 15, y + 24),
+                                                        QtCore.QPoint(x + 15, y + 12),
+                                                        QtCore.QPoint(x + 18, y + 12),
+                                                        QtCore.QPoint(x + 12, y + 7),
+                                                        QtCore.QPoint(x + 6, y + 12),
+                                                        QtCore.QPoint(x + 9, y + 12),
+                                                        QtCore.QPoint(x + 9, y + 24)]))
 
                 elif curTile.byte0 == 0xF: # Spikes
-                    painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 60, y),
-                                                        QtCore.QPoint(x + 60, y + 30),
-                                                        QtCore.QPoint(x, y + 37)]))
-                    painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 60, y + 30),
-                                                        QtCore.QPoint(x + 60, y + 60),
-                                                        QtCore.QPoint(x, y + 45)]))
+                    if curTile.byte3 == 0x1:
+                        painter.drawPixmap(option.rect, QtGui.QPixmap(path + 'Spikes/Muncher.png'))
+                    else:
+                        if curTile.byte2 == 0x3:
+                            painter.drawPixmap(option.rect, QtGui.QPixmap(path + 'Spikes/SpikeLeft.png'))
+                        if curTile.byte2 == 0x4:
+                            painter.drawPixmap(option.rect, QtGui.QPixmap(path + 'Spikes/SpikeRight.png'))
+                        elif curTile.byte2 == 0x5:
+                            painter.drawPixmap(option.rect, QtGui.QPixmap(path + 'Spikes/Spike.png'))
 
                 elif curTile.byte0 == 9999: # QBlock
                     if curTile.byte7 == 0:
@@ -1008,7 +1053,7 @@ class displayWidget(QtWidgets.QListView):
 
         def sizeHint(self, option, index):
             """Returns the size for the object"""
-            return QtCore.QSize(60, 60)
+            return QtCore.QSize(24, 24)
 
 
 
@@ -1020,8 +1065,6 @@ class tileOverlord(QtWidgets.QWidget):
 
     def __init__(self):
         super(tileOverlord, self).__init__()
-
-        global Tileset
 
         # Setup Widgets
         self.tiles = tileWidget()
@@ -1130,10 +1173,10 @@ class tileOverlord(QtWidgets.QWidget):
 
         Tileset.addObject()
 
-        pix = QtGui.QPixmap(60, 60)
+        pix = QtGui.QPixmap(24, 24)
         pix.fill(Qt.transparent)
         painter = QtGui.QPainter(pix)
-        painter.drawPixmap(0, 0, Tileset.tiles[0].image)
+        painter.drawPixmap(0, 0, Tileset.tiles[0].image.scaledToWidth(24, Qt.SmoothTransformation))
         painter.end()
 
         count = len(Tileset.objects)
@@ -1154,6 +1197,8 @@ class tileOverlord(QtWidgets.QWidget):
         Tileset.removeObject(index.row())
         window.objmodel.removeRow(index.row())
         self.tiles.clear()
+
+        SetupObjectModel(window.objmodel, Tileset.objects, Tileset.tiles)
 
         window.objectList.update()
         self.update()
@@ -1526,7 +1571,7 @@ class tileWidget(QtWidgets.QWidget):
         self.tiles = []
 
         self.size = [1, 1]
-        self.setMinimumSize(60, 60)
+        self.setMinimumSize(24, 24)
 
         self.slope = 0
 
@@ -1549,13 +1594,13 @@ class tileWidget(QtWidgets.QWidget):
     def addColumn(self):
         global Tileset
 
-        if self.size[0] >= 60:
+        if self.size[0] >= 24:
             return
 
         self.size[0] += 1
-        self.setMinimumSize(self.size[0]*60, self.size[1]*60)
+        self.setMinimumSize(self.size[0]*24, self.size[1]*24)
 
-        pix = QtGui.QPixmap(60,60)
+        pix = QtGui.QPixmap(24,24)
         pix.fill(QtGui.QColor(0,0,0,0))
 
         for y in range(self.size[1]):
@@ -1582,7 +1627,7 @@ class tileWidget(QtWidgets.QWidget):
             self.tiles.pop(((y+1) * self.size[0])-(y+1))
 
         self.size[0] = self.size[0] - 1
-        self.setMinimumSize(self.size[0]*60, self.size[1]*60)
+        self.setMinimumSize(self.size[0]*24, self.size[1]*24)
 
 
         curObj = Tileset.objects[self.object]
@@ -1598,13 +1643,13 @@ class tileWidget(QtWidgets.QWidget):
     def addRow(self):
         global Tileset
 
-        if self.size[1] >= 60:
+        if self.size[1] >= 24:
             return
 
         self.size[1] += 1
-        self.setMinimumSize(self.size[0]*60, self.size[1]*60)
+        self.setMinimumSize(self.size[0]*24, self.size[1]*24)
 
-        pix = QtGui.QPixmap(60,60)
+        pix = QtGui.QPixmap(24,24)
         pix.fill(QtGui.QColor(0,0,0,0))
 
         for x in range(self.size[0]):
@@ -1631,9 +1676,10 @@ class tileWidget(QtWidgets.QWidget):
             self.tiles.pop()
 
         self.size[1] -= 1
-        self.setMinimumSize(self.size[0]*60, self.size[1]*60)
+        self.setMinimumSize(self.size[0]*24, self.size[1]*24)
 
         curObj = Tileset.objects[self.object]
+        curObj.tiles = list(curObj.tiles)
         curObj.height -= 1
 
         curObj.tiles.pop()
@@ -1660,9 +1706,9 @@ class tileWidget(QtWidgets.QWidget):
         for row in object.tiles:
             for tile in row:
                 if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
-                    self.tiles.append([x, y, Tileset.tiles[tile[1]].image])
+                    self.tiles.append([x, y, Tileset.tiles[tile[1]].image.scaledToWidth(24, Qt.SmoothTransformation)])
                 else:
-                    pix = QtGui.QPixmap(60,60)
+                    pix = QtGui.QPixmap(24,24)
                     pix.fill(QtGui.QColor(0,0,0,0))
                     self.tiles.append([x, y, pix])
                 x += 1
@@ -1705,21 +1751,21 @@ class tileWidget(QtWidgets.QWidget):
             centerPoint = self.contentsRect().center()
 
             tile = modelItem.row()
-            upperLeftX = centerPoint.x() - self.size[0]*30
-            upperLeftY = centerPoint.y() - self.size[1]*30
+            upperLeftX = centerPoint.x() - self.size[0]*12
+            upperLeftY = centerPoint.y() - self.size[1]*12
 
-            lowerRightX = centerPoint.x() + self.size[0]*30
-            lowerRightY = centerPoint.y() + self.size[1]*30
+            lowerRightX = centerPoint.x() + self.size[0]*12
+            lowerRightY = centerPoint.y() + self.size[1]*12
 
 
-            x = int((event.x() - upperLeftX)/60 + ix)
-            y = int((event.y() - upperLeftY)/60 + iy)
+            x = int((event.x() - upperLeftX)/24 + ix)
+            y = int((event.y() - upperLeftY)/24 + iy)
 
             if event.x() < upperLeftX or event.y() < upperLeftY or event.x() > lowerRightX or event.y() > lowerRightY:
                 return
 
             try:
-                self.tiles[(y * self.size[0]) + x][2] = Tileset.tiles[tile].image
+                self.tiles[(y * self.size[0]) + x][2] = Tileset.tiles[tile].image.scaledToWidth(24, Qt.SmoothTransformation)
                 Tileset.objects[self.object].tiles[y][x] = (Tileset.objects[self.object].tiles[y][x][0], tile, Tileset.slot)
             except IndexError:
                 pass
@@ -1743,7 +1789,7 @@ class tileWidget(QtWidgets.QWidget):
         if not object: return
 
 
-        tex = QtGui.QPixmap(self.size[0] * 60, self.size[1] * 60)
+        tex = QtGui.QPixmap(self.size[0] * 24, self.size[1] * 24)
         tex.fill(Qt.transparent)
         painter = QtGui.QPainter(tex)
 
@@ -1751,7 +1797,7 @@ class tileWidget(QtWidgets.QWidget):
         Yoffset = 0
 
         for tile in self.tiles:
-            painter.drawPixmap(tile[0]*60, tile[1]*60, tile[2])
+            painter.drawPixmap(tile[0]*24, tile[1]*24, tile[2])
 
         painter.end()
 
@@ -1769,17 +1815,17 @@ class tileWidget(QtWidgets.QWidget):
             # Do stuff
             centerPoint = self.contentsRect().center()
 
-            upperLeftX = centerPoint.x() - self.size[0]*30
-            upperLeftY = centerPoint.y() - self.size[1]*30
+            upperLeftX = centerPoint.x() - self.size[0]*12
+            upperLeftY = centerPoint.y() - self.size[1]*12
 
             tile = dlg.tile.value()
             tileset = dlg.tileset.currentIndex()
 
-            x = int((self.contX - upperLeftX) / 60)
-            y = int((self.contY - upperLeftY) / 60)
+            x = int((self.contX - upperLeftX) / 24)
+            y = int((self.contY - upperLeftY) / 24)
 
             if tileset != Tileset.slot:
-                tex = QtGui.QPixmap(self.size[0] * 60, self.size[1] * 60)
+                tex = QtGui.QPixmap(self.size[0] * 24, self.size[1] * 24)
                 tex.fill(Qt.transparent)
 
                 self.tiles[(y * self.size[0]) + x][2] = tex
@@ -1824,13 +1870,13 @@ class tileWidget(QtWidgets.QWidget):
             # Do stuff
             centerPoint = self.contentsRect().center()
 
-            upperLeftX = centerPoint.x() - self.size[0]*30
-            upperLeftY = centerPoint.y() - self.size[1]*30
+            upperLeftX = centerPoint.x() - self.size[0]*12
+            upperLeftY = centerPoint.y() - self.size[1]*12
 
             item = dlg.item.currentIndex()
 
-            x = int((self.contX - upperLeftX) / 60)
-            y = int((self.contY - upperLeftY) / 60)
+            x = int((self.contX - upperLeftX) / 24)
+            y = int((self.contY - upperLeftY) / 24)
 
             obj = Tileset.objects[self.object].tiles[y][x]
 
@@ -1869,17 +1915,17 @@ class tileWidget(QtWidgets.QWidget):
         painter.begin(self)
 
         centerPoint = self.contentsRect().center()
-        upperLeftX = centerPoint.x() - self.size[0]*30
-        lowerRightX = centerPoint.x() + self.size[0]*30
+        upperLeftX = centerPoint.x() - self.size[0]*12
+        lowerRightX = centerPoint.x() + self.size[0]*12
 
-        upperLeftY = centerPoint.y() - self.size[1]*30
-        lowerRightY = centerPoint.y() + self.size[1]*30
+        upperLeftY = centerPoint.y() - self.size[1]*12
+        lowerRightY = centerPoint.y() + self.size[1]*12
 
 
-        painter.fillRect(upperLeftX, upperLeftY, self.size[0] * 60, self.size[1]*60, QtGui.QColor(205, 205, 255))
+        painter.fillRect(upperLeftX, upperLeftY, self.size[0] * 24, self.size[1]*24, QtGui.QColor(205, 205, 255))
 
         for x, y, pix in self.tiles:
-            painter.drawPixmap(upperLeftX + (x * 60), upperLeftY + (y * 60), pix)
+            painter.drawPixmap(upperLeftX + (x * 24), upperLeftY + (y * 24), pix)
 
         if not self.slope == 0:
             pen = QtGui.QPen()
@@ -1887,7 +1933,7 @@ class tileWidget(QtWidgets.QWidget):
             pen.setWidth(1)
             pen.setColor(Qt.blue)
             painter.setPen(QtGui.QPen(pen))
-            painter.drawLine(upperLeftX, upperLeftY + (abs(self.slope) * 60), lowerRightX, upperLeftY + (abs(self.slope) * 60))
+            painter.drawLine(upperLeftX, upperLeftY + (abs(self.slope) * 24), lowerRightX, upperLeftY + (abs(self.slope) * 24))
 
             if self.slope > 0:
                 main = 'Main'
@@ -1902,7 +1948,7 @@ class tileWidget(QtWidgets.QWidget):
             painter.setFont(font)
 
             painter.drawText(upperLeftX+1, upperLeftY+10, main)
-            painter.drawText(upperLeftX+1, upperLeftY + (abs(self.slope) * 60) + 9, sub)
+            painter.drawText(upperLeftX+1, upperLeftY + (abs(self.slope) * 24) + 9, sub)
 
         painter.end()
 
@@ -2046,8 +2092,11 @@ class MainWindow(QtWidgets.QMainWindow):
         EmptyPix = QtGui.QPixmap(60, 60)
         EmptyPix.fill(Qt.black)
 
+        normalmap = QtGui.QPixmap(60, 60)
+        normalmap.fill(QtGui.QColor(0x80, 0x80, 0xff))
+
         for i in range(256):
-            Tileset.addTile(EmptyPix, EmptyPix)
+            Tileset.addTile(EmptyPix, normalmap)
 
         Tileset.slot = self.slot
         self.tileWidget.tilesetType.setText('Pa{0}'.format(Tileset.slot))
@@ -2093,10 +2142,11 @@ class MainWindow(QtWidgets.QMainWindow):
         for folder in arc.contents:
             if folder.name == 'BG_tex':
                 for file in folder.contents:
-                    if file.name.endswith('_nml.gtx'):
+                    if file.name.endswith('_nml.gtx') and len(file.data) in (1421344, 4196384):
                         NmlMap = file.data
                     elif file.name.endswith('.gtx') and len(file.data) in (1421344, 4196384):
                         Image = file.data
+                            
             elif folder.name == 'BG_chk':
                 for file in folder.contents:
                     if file.name.startswith('d_bgchk_') and file.name.endswith('.bin'):
@@ -2465,7 +2515,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def saveTileset(self):
         outdata = self.saving(os.path.basename(self.name))
 
-        with open(self.miyamoto_path + '/macTools/tmp.tmp', 'wb') as f:
+        with open(self.miyamoto_path + '/Tools/tmp.tmp', 'wb') as f:
             f.write(outdata)
 
         self.close()
@@ -2606,20 +2656,21 @@ class MainWindow(QtWidgets.QMainWindow):
         if isDxt5:
             # Convert mipmaps to DDS
 
+            tile_path = self.miyamoto_path + '/macTools'
+
             for i, tex in enumerate(mipmaps):
-                tex.save(self.miyamoto_path + '/macTools/mipmap%s_%d.png' % ('_nml' if normalmap else '', i))
-                text = 'open -a "' + self.miyamoto_path + '/macTools/nvcompress" -bc3 -nomips "'
-                text += self.miyamoto_path + '/macTools/mipmap%s_%d.png" ' % ('_nml' if normalmap else '', i)
-                text += self.miyamoto_path + '/macTools/mipmap%s_%d.dds" &' % ('_nml' if normalmap else '', i)
-                os.system('chmod +x "' + self.miyamoto_path + '/macTools/nvcompress"')
-                os.system(text)
+                tex.save(tile_path + '/mipmap%s_%d.png' % ('_nml' if normalmap else '', i))
+                os.chdir(tile_path + '')
+                os.system('nvcompress.exe -bc3 -nomips mipmap%s_%d.png ' % ('_nml' if normalmap else '', i)
+                          + 'mipmap%s_%d.dds' % ('_nml' if normalmap else '', i))
+                os.chdir(tile_path)
 
             ddsmipmaps = []
             for i in range(numMips):
-                with open(self.miyamoto_path + '/macTools/mipmap%s_%d.dds' % ('_nml' if normalmap else '', i), 'rb') as f:
+                with open(tile_path + '/mipmap%s_%d.dds' % ('_nml' if normalmap else '', i), 'rb') as f:
                     ddsmipmaps.append(f.read())
-                os.remove(self.miyamoto_path + '/macTools/mipmap%s_%d.png' % ('_nml' if normalmap else '', i))
-                os.remove(self.miyamoto_path + '/macTools/mipmap%s_%d.dds' % ('_nml' if normalmap else '', i))
+                os.remove(tile_path + '/mipmap%s_%d.png' % ('_nml' if normalmap else '', i))
+                os.remove(tile_path + '/mipmap%s_%d.dds' % ('_nml' if normalmap else '', i))
 
             # Grab the textures from the DDSs
             texmipmaps = []
@@ -2739,18 +2790,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
                     for row in range(iterationsA, iterationsB):
                         for tile in object.tiles[row]:
-                            a = a + struct.pack('>BBB', tile[0], tile[1], tile[2])
-                        a = a + b'\xfe'
+                            a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                        a += b'\xfe'
 
                     if object.height > 1:
-                        a = a + struct.pack('>B', object.lowerslope[0])
+                        a += struct.pack('>B', object.lowerslope[0])
 
                         for row in range(0, object.upperslope[1]):
                             for tile in object.tiles[row]:
-                                a = a + struct.pack('>BBB', tile[0], tile[1], tile[2])
-                            a = a + b'\xfe'
+                                a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                            a += b'\xfe'
 
-                    a = a + b'\xff'
+                    a += b'\xff'
 
                     objectStrings.append(a)
 
@@ -2761,18 +2812,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
                     for row in range(0, object.upperslope[1]):
                         for tile in object.tiles[row]:
-                            a = a + struct.pack('>BBB', tile[0], tile[1], tile[2])
-                        a = a + b'\xfe'
+                            a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                        a += b'\xfe'
 
                     if object.height > 1:
-                        a = a + struct.pack('>B', object.lowerslope[0])
+                        a += struct.pack('>B', object.lowerslope[0])
 
                         for row in range(object.upperslope[1], object.height):
                             for tile in object.tiles[row]:
-                                a = a + struct.pack('>BBB', tile[0], tile[1], tile[2])
-                            a = a + b'\xfe'
+                                a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                            a += b'\xfe'
 
-                    a = a + b'\xff'
+                    a += b'\xff'
 
                     objectStrings.append(a)
 
@@ -2783,11 +2834,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 for tilerow in object.tiles:
                     for tile in tilerow:
-                        a = a + struct.pack('>BBB', tile[0], tile[1], tile[2])
+                        a += struct.pack('>BBB', tile[0], tile[1], tile[2])
 
-                    a = a + b'\xfe'
+                    a += b'\xfe'
 
-                a = a + b'\xff'
+                a += b'\xff'
 
                 objectStrings.append(a)
 
@@ -2825,7 +2876,12 @@ class MainWindow(QtWidgets.QMainWindow):
         taskMenu = self.menuBar().addMenu("&Tasks")
 
         taskMenu.addAction("Toggle Normal Map", self.toggleNormal, QtGui.QKeySequence('Ctrl+Shift+N'))
-        taskMenu.addAction("Clear Collision Data", Tileset.clearCollisions, QtGui.QKeySequence('Ctrl+Shift+Backspace'))
+        taskMenu.addAction("Show Tiles info...", self.showInfo, QtGui.QKeySequence('Ctrl+P'))
+        taskMenu.addAction("Import object from file...", self.importObjFromFile, '')
+        taskMenu.addAction("Export object...", self.saveObject, '')
+        taskMenu.addAction("Export all objects...", self.saveAllObjects, '')
+        taskMenu.addAction("Clear Collision Data", self.clearCollisions, QtGui.QKeySequence('Ctrl+Shift+Backspace'))
+        taskMenu.addAction("Clear Object Data", self.clearObjects, QtGui.QKeySequence('Ctrl+Alt+Backspace'))
 
 
 
@@ -2834,6 +2890,504 @@ class MainWindow(QtWidgets.QMainWindow):
         self.normalmap = not self.normalmap
 
         self.setuptile()
+
+    def showInfo(self):
+        usedTiles = len(Tileset.getUsedTiles())
+        freeTiles = 256 - usedTiles
+        QtWidgets.QMessageBox.information(self, "Tiles info",
+                "Used Tiles: " + str(usedTiles) + (" tile.\n" if freeTiles == 1 else " tiles.\n")
+                + "Free Tiles: " + str(freeTiles) + (" tile." if freeTiles == 1 else " tiles."),
+                QtWidgets.QMessageBox.Ok)
+
+    def importObjFromFile(self):
+        usedTiles = Tileset.getUsedTiles()
+        if len(usedTiles) >= 256: # It can't be more than 256, oh well
+            QtWidgets.QMessageBox.warning(self, "Open Object",
+                    "There isn't enough room in the Tileset.",
+                    QtWidgets.QMessageBox.Cancel)
+            return
+
+        file = QtWidgets.QFileDialog.getOpenFileName(self, "Open Object", '',
+                    "Object files (*.json)")[0]
+
+        if not file: return
+
+        with open(file) as inf:
+            jsonData = json.load(inf)
+
+        dir = os.path.dirname(file)
+
+        tilelist = [[]]
+        upperslope = [0, 0]
+        lowerslope = [0, 0]
+
+        metaData = open(dir + "/" + jsonData["meta"], "rb").read()
+        objstrings = open(dir + "/" + jsonData["objlyt"], "rb").read()
+        colls = open(dir + "/" + jsonData["colls"], "rb").read()
+
+        numTiles = metaData[3] * metaData[2]
+
+        if numTiles + len(usedTiles) > 256:
+            QtWidgets.QMessageBox.warning(self, "Open Object",
+                    "There isn't enough room for the object.",
+                    QtWidgets.QMessageBox.Cancel)
+            return
+
+        freeTiles = []
+        for i in range(256):
+            if i not in usedTiles: freeTiles.append(i)
+
+        offset = 0
+        byte = struct.unpack_from('>B', objstrings, offset)[0]
+        i = 0
+        row = 0
+
+        while byte != 0xFF:
+
+            if byte == 0xFE:
+                tilelist.append([])
+
+                if (upperslope[0] != 0) and (lowerslope[0] == 0):
+                    upperslope[1] = upperslope[1] + 1
+
+                if lowerslope[0] != 0:
+                    lowerslope[1] = lowerslope[1] + 1
+
+                offset += 1
+                byte = struct.unpack_from('>B', objstrings, offset)[0]
+
+            elif (byte & 0x80):
+
+                if upperslope[0] == 0:
+                    upperslope[0] = byte
+                else:
+                    lowerslope[0] = byte
+
+                offset += 1
+                byte = struct.unpack_from('>B', objstrings, offset)[0]
+
+            else:
+                tile = []
+                tile.append(byte)
+                tile.append(freeTiles[i]); i += 1
+                slot = Tileset.slot
+                tile.append(slot)
+
+                tilelist[-1].append(tile)
+
+                offset += 3
+                byte = struct.unpack_from('>B', objstrings, offset)[0]
+
+        tilelist.pop()
+
+        if (upperslope[0] & 0x80) and (upperslope[0] & 0x2):
+            for i in range(lowerslope[1]):
+                pop = tilelist.pop()
+                tilelist.insert(0, pop)
+
+        Tileset.addObject(metaData[3], metaData[2], metaData[5], upperslope, lowerslope, tilelist, True)
+
+        count = len(Tileset.objects)
+
+        object = Tileset.objects[count-1]
+
+        tileImage = QtGui.QPixmap(dir + "/" + jsonData["img"])
+        nmlImage = QtGui.QPixmap(dir + "/" + jsonData["nml"])
+
+        tex = QtGui.QPixmap(object.width * 60, object.height * 60)
+        tex.fill(Qt.transparent)
+        painter = QtGui.QPainter(tex)
+
+        Xoffset = 0
+        Yoffset = 0
+
+        a = 0
+
+        colls_off = 0
+
+        for i in range(len(object.tiles)):
+            for tile in object.tiles[i]:
+                if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                    object.tiles[i][object.tiles[i].index(tile)][1] = tile[1] = freeTiles[a]
+                    Tileset.tiles[tile[1]].image = tileImage.copy(Xoffset,Yoffset,60,60)
+                    Tileset.tiles[tile[1]].normalmap = nmlImage.copy(Xoffset,Yoffset,60,60)
+                    Tileset.tiles[tile[1]].byte0 = colls[colls_off]
+                    colls_off += 1
+                    Tileset.tiles[tile[1]].byte1 = colls[colls_off]
+                    colls_off += 1
+                    Tileset.tiles[tile[1]].byte2 = colls[colls_off]
+                    colls_off += 1
+                    Tileset.tiles[tile[1]].byte3 = colls[colls_off]
+                    colls_off += 1
+                    Tileset.tiles[tile[1]].byte4 = colls[colls_off]
+                    colls_off += 1
+                    Tileset.tiles[tile[1]].byte5 = colls[colls_off]
+                    colls_off += 1
+                    Tileset.tiles[tile[1]].byte6 = colls[colls_off]
+                    colls_off += 1
+                    Tileset.tiles[tile[1]].byte7 = colls[colls_off]
+                    colls_off += 1
+                    painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].image)
+                    a += 1
+                Xoffset += 60
+            Xoffset = 0
+            Yoffset += 60
+
+        painter.end()
+
+        self.objmodel.appendRow(QtGui.QStandardItem(QtGui.QIcon(tex), 'Object {0}'.format(count-1)))
+        index = self.objectList.currentIndex()
+        self.objectList.setCurrentIndex(index)
+        self.tileWidget.setObject(index)
+
+        self.setuptile()
+
+        self.objectList.update()
+        self.tileWidget.update()
+
+    def saveAllObjects(self):
+        tile_name = (os.path.basename(self.name) if self.name else 'NewTileset')
+
+        curr_path = QtWidgets.QFileDialog.getExistingDirectory(None, "Choose where to save the Object folder")
+        if not curr_path: return
+
+        for object in Tileset.objects:
+            object.jsonData = {}
+
+        count = 0
+        for object in Tileset.objects:
+            tex = QtGui.QPixmap(object.width * 60, object.height * 60)
+            tex.fill(Qt.transparent)
+            painter = QtGui.QPainter(tex)
+
+            Xoffset = 0
+            Yoffset = 0
+
+            Tilebuffer = b''
+
+            for i in range(len(object.tiles)):
+                for tile in object.tiles[i]:
+                    if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                        painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].image)
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte0).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte1).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte2).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte3).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte4).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte5).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte6).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte7).to_bytes(1, 'big')
+                    Xoffset += 60
+                Xoffset = 0
+                Yoffset += 60
+
+            painter.end()
+
+            # Slopes
+            if object.upperslope[0] != 0:
+
+                # Reverse Slopes
+                if object.upperslope[0] & 0x2:
+                    a = struct.pack('>B', object.upperslope[0])
+
+                    if object.height == 1:
+                        iterationsA = 0
+                        iterationsB = 1
+                    else:
+                        iterationsA = object.upperslope[1]
+                        iterationsB = object.lowerslope[1] + object.upperslope[1]
+
+                    for row in range(iterationsA, iterationsB):
+                        for tile in object.tiles[row]:
+                            a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                        a += b'\xfe'
+
+                    if object.height > 1:
+                        a += struct.pack('>B', object.lowerslope[0])
+
+                        for row in range(0, object.upperslope[1]):
+                            for tile in object.tiles[row]:
+                                a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                            a += b'\xfe'
+
+                    a += b'\xff'
+
+
+                # Regular Slopes
+                else:
+                    a = struct.pack('>B', object.upperslope[0])
+
+                    for row in range(0, object.upperslope[1]):
+                        for tile in object.tiles[row]:
+                            a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                        a += b'\xfe'
+
+                    if object.height > 1:
+                        a += struct.pack('>B', object.lowerslope[0])
+
+                        for row in range(object.upperslope[1], object.height):
+                            for tile in object.tiles[row]:
+                                a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                            a += b'\xfe'
+
+                    a += b'\xff'
+
+
+            # Not slopes!
+            else:
+                a = b''
+
+                for tilerow in object.tiles:
+                    for tile in tilerow:
+                        a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+
+                    a += b'\xfe'
+
+                a += b'\xff'
+
+            Objbuffer = a
+            Metabuffer = struct.pack('>HBBxB', (0 if count == 0 else len(Objbuffer)), object.width, object.height, object.getRandByte())
+
+            if not os.path.isdir(curr_path + "/" + tile_name):
+                os.mkdir(curr_path + "/" + tile_name)
+
+            tex.save(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(count) + ".png", "PNG")
+
+            object.jsonData['img'] = tile_name + "_object_" + str(count) + ".png"
+
+            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(count) + ".colls", "wb+") as colls:
+                colls.write(Tilebuffer)
+
+            object.jsonData['colls'] = tile_name + "_object_" + str(count) + ".colls"
+
+            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(count) + ".objlyt", "wb+") as objlyt:
+                objlyt.write(Objbuffer)
+
+            object.jsonData['objlyt'] = tile_name + "_object_" + str(count) + ".objlyt"
+
+            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(count) + ".meta", "wb+") as meta:
+                meta.write(Metabuffer)
+
+            object.jsonData['meta'] = tile_name + "_object_" + str(count) + ".meta"
+
+            count += 1
+
+        count = 0
+        for object in Tileset.objects:
+            tex = QtGui.QPixmap(object.width * 60, object.height * 60)
+            tex.fill(Qt.transparent)
+            painter = QtGui.QPainter(tex)
+
+            Xoffset = 0
+            Yoffset = 0
+
+            for i in range(len(object.tiles)):
+                for tile in object.tiles[i]:
+                    if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                        painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].normalmap)
+                    Xoffset += 60
+                Xoffset = 0
+                Yoffset += 60
+
+            painter.end()
+
+            if not os.path.isdir(curr_path + "/" + tile_name):
+                os.mkdir(curr_path + "/" + tile_name)
+
+            tex.save(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(count) + "_nml.png", "PNG")
+
+            object.jsonData['nml'] = tile_name + "_object_" + str(count) + "_nml.png"
+
+            count += 1
+
+        count = 0
+        for object in Tileset.objects:
+            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(count) + ".json", 'w+') as outfile:
+                json.dump(object.jsonData, outfile)
+
+            count += 1
+
+    def saveObject(self):
+        if len(Tileset.objects) == 0: return
+        dlg = getObjNum()
+        if dlg.exec_() == QtWidgets.QDialog.Accepted:
+            n = dlg.objNum.value()
+
+            tile_name = (os.path.basename(self.name) if self.name else 'NewTileset')
+
+            curr_path = QtWidgets.QFileDialog.getExistingDirectory(None, "Choose where to save the Object folder")
+            if not curr_path: return
+
+            object = Tileset.objects[n]
+
+            object.jsonData = {}
+
+            tex = QtGui.QPixmap(object.width * 60, object.height * 60)
+            tex.fill(Qt.transparent)
+            painter = QtGui.QPainter(tex)
+
+            Xoffset = 0
+            Yoffset = 0
+
+            Tilebuffer = b''
+
+            for i in range(len(object.tiles)):
+                for tile in object.tiles[i]:
+                    if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                        painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].image)
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte0).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte1).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte2).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte3).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte4).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte5).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte6).to_bytes(1, 'big')
+                    Tilebuffer += (Tileset.tiles[tile[1]].byte7).to_bytes(1, 'big')
+                    Xoffset += 60
+                Xoffset = 0
+                Yoffset += 60
+
+            painter.end()
+
+            # Slopes
+            if object.upperslope[0] != 0:
+
+                # Reverse Slopes
+                if object.upperslope[0] & 0x2:
+                    a = struct.pack('>B', object.upperslope[0])
+
+                    if object.height == 1:
+                        iterationsA = 0
+                        iterationsB = 1
+                    else:
+                        iterationsA = object.upperslope[1]
+                        iterationsB = object.lowerslope[1] + object.upperslope[1]
+
+                    for row in range(iterationsA, iterationsB):
+                        for tile in object.tiles[row]:
+                            a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                        a += b'\xfe'
+
+                    if object.height > 1:
+                        a += struct.pack('>B', object.lowerslope[0])
+
+                        for row in range(0, object.upperslope[1]):
+                            for tile in object.tiles[row]:
+                                a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                            a += b'\xfe'
+
+                    a += b'\xff'
+
+
+                # Regular Slopes
+                else:
+                    a = struct.pack('>B', object.upperslope[0])
+
+                    for row in range(0, object.upperslope[1]):
+                        for tile in object.tiles[row]:
+                            a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                        a += b'\xfe'
+
+                    if object.height > 1:
+                        a += struct.pack('>B', object.lowerslope[0])
+
+                        for row in range(object.upperslope[1], object.height):
+                            for tile in object.tiles[row]:
+                                a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                            a += b'\xfe'
+
+                    a += b'\xff'
+
+
+            # Not slopes!
+            else:
+                a = b''
+
+                for tilerow in object.tiles:
+                    for tile in tilerow:
+                        a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+
+                    a += b'\xfe'
+
+                a += b'\xff'
+
+            Objbuffer = a
+            Metabuffer = struct.pack('>HBBxB', (0 if n == 0 else len(Objbuffer)), object.width, object.height, object.getRandByte())
+
+            if not os.path.isdir(curr_path + "/" + tile_name):
+                os.mkdir(curr_path + "/" + tile_name)
+
+            tex.save(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(n) + ".png", "PNG")
+
+            object.jsonData['img'] = tile_name + "_object_" + str(n) + ".png"
+
+            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(n) + ".colls", "wb+") as colls:
+                colls.write(Tilebuffer)
+
+            object.jsonData['colls'] = tile_name + "_object_" + str(n) + ".colls"
+
+            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(n) + ".objlyt", "wb+") as objlyt:
+                objlyt.write(Objbuffer)
+
+            object.jsonData['objlyt'] = tile_name + "_object_" + str(n) + ".objlyt"
+
+            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(n) + ".meta", "wb+") as meta:
+                meta.write(Metabuffer)
+
+            object.jsonData['meta'] = tile_name + "_object_" + str(n) + ".meta"
+
+            tex = QtGui.QPixmap(object.width * 60, object.height * 60)
+            tex.fill(Qt.transparent)
+            painter = QtGui.QPainter(tex)
+
+            Xoffset = 0
+            Yoffset = 0
+
+            for i in range(len(object.tiles)):
+                for tile in object.tiles[i]:
+                    if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                        painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].normalmap)
+                    Xoffset += 60
+                Xoffset = 0
+                Yoffset += 60
+
+            painter.end()
+
+            if not os.path.isdir(curr_path + "/" + tile_name):
+                os.mkdir(curr_path + "/" + tile_name)
+
+            tex.save(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(n) + "_nml.png", "PNG")
+
+            object.jsonData['nml'] = tile_name + "_object_" + str(n) + "_nml.png"
+
+            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(n) + ".json", 'w+') as outfile:
+                json.dump(object.jsonData, outfile)
+
+    def clearObjects(self):
+        '''Clears the object data'''
+
+        Tileset.objects = []
+
+        SetupObjectModel(self.objmodel, Tileset.objects, Tileset.tiles)
+
+        self.objectList.update()
+        self.tileWidget.update()
+
+    def clearCollisions(self):
+        '''Clears the collisions data'''
+
+        for tile in Tileset.tiles:
+            tile.byte0 = 0
+            tile.byte1 = 0
+            tile.byte2 = 0
+            tile.byte3 = 0
+            tile.byte4 = 0
+            tile.byte5 = 0
+            tile.byte6 = 0
+            tile.byte7 = 0
+
+        self.updateInfo(0, 0)
+        self.tileDisplay.update()
 
 
     def setupWidgets(self):
@@ -2972,15 +3526,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def LoadTexture_NSMBU(self, tiledata):
-        with open(self.miyamoto_path + '/macTools/texture.gtx', 'wb') as binfile:
+        tile_path = self.miyamoto_path + '/macTools'
+
+        with open(tile_path + '/texture.gtx', 'wb') as binfile:
             binfile.write(tiledata)
 
         os.system('open -a "' + self.miyamoto_path + '/macTools/gtx_extract" --args "' + self.miyamoto_path + '/macTools/texture.gtx" "' + self.miyamoto_path + '/macTools/texture.bmp"')
 
-        img = QtGui.QImage(self.miyamoto_path + '/macTools/texture.bmp')
+        # Return as a QImage
+        img = QtGui.QImage(tile_path + '/texture.bmp')
+        os.remove(tile_path + '/texture.bmp')
 
-        os.remove(self.miyamoto_path + '/macTools/texture.gtx')
-        os.remove(self.miyamoto_path + '/macTools/texture.bmp')
+        os.remove(tile_path + '/texture.gtx')
 
         return img
 

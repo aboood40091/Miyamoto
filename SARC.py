@@ -210,8 +210,8 @@ class SARC_Archive(FileArchive):
         self.endianness = '>'
         # If you change this default value, be prepared
         # to make some changes to miyamoto.py, because the
-        # NSMB2 file-saving code assumes that a brand-new
-        # SARC_Archive will be little-endian!
+        # NSMBU file-saving code assumes that a brand-new
+        # SARC_Archive will be big-endian!
 
         self.hashMultiplier = 0x65
 
