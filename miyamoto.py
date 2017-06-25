@@ -15575,16 +15575,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if platform.system() == 'Windows':
             os.chdir(miyamoto_path + '/Tools')
-            os.system('puzzlehd.exe ' + Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
+            os.system('puzzle.exe ' + Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Linux':
             os.chdir(miyamoto_path + '/linuxTools')
-            os.system('chmod +x ./puzzlehd.elf')
-            os.system('./puzzlehd.elf ' + Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
+            os.system('chmod +x ./puzzle.elf')
+            os.system('./puzzle.elf ' + Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Darwin':
             os.chdir(miyamoto_path + '/macTools')
-            os.system('python3 puzzlehd.py ' + Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
+            os.system('python3 puzzle.py ' + Area.tileset0 + ' tmp.tmp "' + miyamoto_path + '" 0')
             os.chdir(miyamoto_path)
         else:
             warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
@@ -15656,16 +15656,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if platform.system() == 'Windows':
             os.chdir(miyamoto_path + '/Tools')
-            os.system('puzzlehd.exe ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
+            os.system('puzzle.exe ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Linux':
             os.chdir(miyamoto_path + '/linuxTools')
-            os.system('chmod +x ./puzzlehd.elf')
-            os.system('./puzzlehd.elf ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
+            os.system('chmod +x ./puzzle.elf')
+            os.system('./puzzle.elf ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Darwin':
             os.chdir(miyamoto_path + '/macTools')
-            os.system('python3 puzzlehd.py ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
+            os.system('python3 puzzle.py ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
             os.chdir(miyamoto_path)
         else:
             warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
@@ -15754,16 +15754,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if platform.system() == 'Windows':
             os.chdir(miyamoto_path + '/Tools')
-            os.system('puzzlehd.exe ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
+            os.system('puzzle.exe ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Linux':
             os.chdir(miyamoto_path + '/linuxTools')
-            os.system('chmod +x ./puzzlehd.elf')
-            os.system('./puzzlehd.elf ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
+            os.system('chmod +x ./puzzle.elf')
+            os.system('./puzzle.elf ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Darwin':
             os.chdir(miyamoto_path + '/macTools')
-            os.system('python3 puzzlehd.py ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
+            os.system('python3 puzzle.py ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
             os.chdir(miyamoto_path)
         else:
             warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
@@ -15852,16 +15852,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if platform.system() == 'Windows':
             os.chdir(miyamoto_path + '/Tools')
-            os.system('puzzlehd.exe ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
+            os.system('puzzle.exe ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Linux':
             os.chdir(miyamoto_path + '/linuxTools')
-            os.system('chmod +x ./puzzlehd.elf')
-            os.system('./puzzlehd.elf ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
+            os.system('chmod +x ./puzzle.elf')
+            os.system('./puzzle.elf ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
             os.chdir(miyamoto_path)
         elif platform.system() == 'Darwin':
             os.chdir(miyamoto_path + '/macTools')
-            os.system('python3 puzzlehd.py ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
+            os.system('python3 puzzle.py ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
             os.chdir(miyamoto_path)
         else:
             warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
