@@ -2515,7 +2515,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def saveTileset(self):
         outdata = self.saving(os.path.basename(self.name))
 
-        with open(self.miyamoto_path + '/Tools/tmp.tmp', 'wb') as f:
+        filename = self.miyamoto_path + '/macTools/tmp.tmp'
+
+        with open(filename, 'wb') as f:
             f.write(outdata)
 
         self.close()
