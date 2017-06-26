@@ -42,6 +42,7 @@ except ImportError:
 
 Tileset = None
 AutoOpenScriptEnabled = False
+miyamoto_path = ''
 
 #############################################################################################
 ########################## Tileset Class and Tile/Object Subclasses #########################
@@ -205,7 +206,7 @@ class paletteWidget(QtWidgets.QWidget):
         self.coreWidgets = []
         coreLayout = QtWidgets.QGridLayout()
 
-        path = os.path.dirname(os.path.abspath(sys.argv[0])) + '/Icons/'
+        path = miyamoto_path + '/miyamotodata/Icons/'
 
         self.coreTypes = [  ['Default', QtGui.QIcon(path + 'Core/Default.png'), 'The standard type for tiles.\n\nAny regular terrain or backgrounds\nshould be of this generic type.'],
                             ['Rails', QtGui.QIcon(path + 'Core/Rails.png'), 'Used for all types of rails.\n\nRails are replaced in-game with\n3D models, so modifying these\ntiles with different graphics\nwill have no effect.'],
@@ -496,12 +497,12 @@ class paletteWidget(QtWidgets.QWidget):
         L = QtWidgets.QVBoxLayout(self.collsGroup)
         L.addWidget(self.collsType)
 
-        self.collsTypes = [['No Solidity', QtGui.QIcon()],
+        self.collsTypes = [['No Solidity', QtGui.QIcon(path + 'Collisions/NoSolidity.png')],
                            ['Solid', QtGui.QIcon(path + 'Collisions/Solid.png')],
                            ['Solid-on-Top', QtGui.QIcon(path + 'Collisions/SolidOnTop.png')],
                            ['Solid-on-Bottom', QtGui.QIcon(path + 'Collisions/SolidOnBottom.png')],
-                           ['Sloped Solid-on-Top (1) (doesn\'t seem to work)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
-                           ['Sloped Solid-on-Top (2) (doesn\'t seem to work)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
+                           ['Sloped Solid-on-Top (1)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
+                           ['Sloped Solid-on-Top (2)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
                            ]
 
         for item in self.collsTypes:
@@ -2033,7 +2034,7 @@ class PiecesModel(QtCore.QAbstractListModel):
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self, name, data, miyamoto_path, slot, parent=None):
+    def __init__(self, name, data, slot, parent=None):
         super(MainWindow, self).__init__(parent)
 
         global window
@@ -2042,6 +2043,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.slot = int(slot)
         if self.slot == 0:
             self.anime = ['belt_conveyor_anime', 'block_anime', 'block_anime_L', 'hatena_anime', 'hatena_anime_L', 'tuka_coin_anime']
+
+        global miyamoto_path
+        miyamoto_path = sys.argv[3]
 
         self.miyamoto_path = miyamoto_path
 
@@ -3555,7 +3559,7 @@ if __name__ == '__main__':
     import sys
 
     app = QtWidgets.QApplication([sys.argv[0]])
-    window = MainWindow(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    window = MainWindow(sys.argv[1], sys.argv[2], sys.argv[4])
     window.show()
     sys.exit(app.exec_())
     app.deleteLater()
