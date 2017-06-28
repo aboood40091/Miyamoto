@@ -1,6 +1,6 @@
 01: Overworld
 02: Underground
-03: Rainbow blocks
+03: Rainbow blocks, other stuff
 04: Sky
 05: Beach
 06: Underwater
