@@ -202,13 +202,13 @@
   <sprite id="25" name="Checkpoint Flag" notes="When Mario collides with this flagpole, the game will set Mario's spawn point to it. The flag will turn into the color of the player (Mario = red, Luigi = green, YToad = yellow, BToad = blue) and will give the player who collides with it a mushroom. If a player dies in the same level, then the game will respawn all players at the flagpole. If someone decides to play another level or completes the level with the flagpole active, then the game will reset all memory in the flagpole and reset the spawn point location.&#13;&#10;&#13;&#10;Actor: 0x1EA">
     <value nybble="5" title="Unknown Value 5"/>
     <value nybble="8" title="Entrance ID" comment="The entrance when the player will be spawned if he dies after reaching the midway flag."/>
-    <value nybble="9" title="Unknown Value 9"/>
+    <checkbox nybble="9" title="Can bounce on Bouncy Clouds"/>
     <list nybble="10" title="Appears">
       <entry value="0">Always</entry>
       <entry value="1">Only if midway flag is not yet touched</entry>
       <entry value="2">Only if midway flag is already touched</entry>
     </list>
-    <checkbox nybble="11" title="Affected by gravity" mask="2" comment="Can bounce on Bouncy Clouds. Isn't moved by conveyor belts."/>
+    <checkbox nybble="11" title="Affected by gravity" mask="2" comment="Isn't moved by conveyor belts."/>
     <list nybble="12" title="Time limit" comment="These are the time limits that can be set in the area settings. Time limit 1 is field 0x14 of the area settings, time limit 2 is field 0x16, and time limit 3 is field 0x0A. This might enable multiple midway points with different time settings!">
       <entry value="0">Time limit 1</entry>
       <entry value="1">Time limit 2</entry>
