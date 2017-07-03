@@ -105,7 +105,6 @@ SpriteImagesShown = True
 RealViewEnabled = False
 LocationsShown = True
 CommentsShown = True
-DrawEntIndicators = False
 ObjectsFrozen = False
 SpritesFrozen = False
 EntrancesFrozen = False
@@ -4646,14 +4645,6 @@ class ZoneItem(LevelEditorItem):
 
         #painter.setClipRect(option.exposedRect)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-
-        # Paint an indicator line to show the leftmost edge of
-        # where entrances can be safely placed
-        if DrawEntIndicators and (self.camtrack in (0, 1)) and (TileWidth * 3 < self.DrawRect.width()):
-            painter.setPen(QtGui.QPen(theme.color('zone_entrance_helper'), 2 * TileWidth / 24))
-            lineStart = QtCore.QPointF(self.DrawRect.x() + (TileWidth * 3), self.DrawRect.y())
-            lineEnd = QtCore.QPointF(self.DrawRect.x() + (TileWidth * 3), self.DrawRect.y() + self.DrawRect.height())
-            painter.drawLine(lineStart, lineEnd)
 
         # Now paint the borders
         painter.setPen(QtGui.QPen(theme.color('zone_lines'), 3 * TileWidth / 24))
@@ -10495,15 +10486,11 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.Trans = QtWidgets.QComboBox()
                 self.Trans.setMaximumWidth(256)
 
-                # Add the Zone Entrance Indicator checkbox
-                self.zEntIndicator = QtWidgets.QCheckBox(trans.string('PrefsDlg', 31))
-
                 # Create the main layout
                 L = QtWidgets.QFormLayout()
                 L.addRow(trans.string('PrefsDlg', 11), MenuL)
                 L.addRow(trans.string('PrefsDlg', 27), TileL)
                 L.addRow(trans.string('PrefsDlg', 14), self.Trans)
-                L.addWidget(self.zEntIndicator)
                 self.setLayout(L)
 
                 # Set the buttons
@@ -10533,8 +10520,6 @@ class PreferencesDialog(QtWidgets.QDialog):
                     if trans == str(setting('Translation')):
                         self.Trans.setCurrentIndex(i)
                     i += 1
-
-                self.zEntIndicator.setChecked(DrawEntIndicators)
 
         return GeneralTab(self.menuSettingChanged)
 
@@ -13241,11 +13226,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         name = str(dlg.generalTab.Trans.itemData(dlg.generalTab.Trans.currentIndex(), Qt.UserRole))
         setSetting('Translation', name)
 
-        # Get the Zone Entrance Indicators setting
-        global DrawEntIndicators
-        DrawEntIndicators = dlg.generalTab.zEntIndicator.isChecked()
-        setSetting('ZoneEntIndicators', DrawEntIndicators)
-
         # Get the Toolbar tab settings
         boxes = (dlg.toolbarTab.FileBoxes, dlg.toolbarTab.EditBoxes, dlg.toolbarTab.ViewBoxes, dlg.toolbarTab.SettingsBoxes, dlg.toolbarTab.HelpBoxes)
         ToolbarSettings = {}
@@ -15944,7 +15924,7 @@ def main():
 
     global EnableAlpha, GridType, CollisionsShown, DepthShown, RealViewEnabled
     global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, CommentsFrozen
-    global SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown, DrawEntIndicators
+    global SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown
 
     gt = setting('GridType')
     if gt == 'checker': GridType = 'checker'
@@ -15963,7 +15943,6 @@ def main():
     SpriteImagesShown = setting('ShowSpriteImages', True)
     LocationsShown = setting('ShowLocations', True)
     CommentsShown = setting('ShowComments', True)
-    DrawEntIndicators = setting('ZoneEntIndicators', False)
     SLib.RealViewEnabled = RealViewEnabled
 
     # choose a folder for the game
