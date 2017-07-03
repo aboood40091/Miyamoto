@@ -208,7 +208,7 @@
       <entry value="1">Only if midway flag is not yet touched</entry>
       <entry value="2">Only if midway flag is already touched</entry>
     </list>
-    <checkbox nybble="11" title="Affected by gravity" mask="2" comment="Isn't moved by conveyor belts."/>
+    <checkbox nybble="11" title="Affected by gravity" mask="2" comment="Can't be moved by conveyor belts."/>
     <list nybble="12" title="Time limit" comment="These are the time limits that can be set in the area settings. Time limit 1 is field 0x14 of the area settings, time limit 2 is field 0x16, and time limit 3 is field 0x0A. This might enable multiple midway points with different time settings!">
       <entry value="0">Time limit 1</entry>
       <entry value="1">Time limit 2</entry>
