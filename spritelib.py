@@ -127,15 +127,6 @@ def LoadBasicSuite():
     #ImageCache['RedCoin'] = GetImg('redcoin.png')
     #ImageCache['StarCoin'] = GetImg('star_coin.png')
 
-    # Load contents of blocks
-    ItemImage = GetImg('block_contents.png')
-    Items = []
-    for y in range(ItemImage.height() // TileWidth):
-        for x in range(ItemImage.width() // TileWidth):
-            Items.append(ItemImage.copy(x * TileWidth, y * TileWidth, TileWidth, TileWidth))
-    ImageCache['Items'] = Items
-    ImageCache['InvisiBlock'] = GetImg('block_invisible.png')
-
     # Load the overrides
     Overrides = QtGui.QPixmap('miyamotodata/overrides.png')
     Blocks = []

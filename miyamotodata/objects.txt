@@ -1,0 +1,33 @@
+01: Overworld
+02: Underground
+03: Rainbow blocks, other stuff
+04: Sky
+05: Beach
+06: Underwater
+07: Tower
+08: Castle
+09: Launch to Airship
+10: Airship boss (Koopalings)
+11: Mushroom houses
+12: Credits
+13: Desert
+14: Dersert underground
+15: Ice
+16: Snow
+17: Ghost house
+18: Ghost house (outside)
+19: Ghost ship
+20: Ghost ship (outside)
+21: Forest/Jungle
+22: Forest/Jungle (Spooky)
+23: Forest/Jungle (Painted)
+24: Airship
+25: Bowser Jr
+26: Mountain
+27: Lava
+28: Lava underground
+29: Peach's castle - 1
+30: Peach's castle - 2
+31: Peach's castle - 3
+32: Peach's castle (outside)
+33: Hidden Luigi
