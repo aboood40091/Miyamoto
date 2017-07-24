@@ -770,12 +770,12 @@ class SpriteImage_PipePiranhaRightFire(SLib.SpriteImage_Static): # 9
 class SpriteImage_GroundPiranha(SLib.SpriteImage_StaticMultiple): # 14
     def __init__(self, parent):
         super().__init__(parent, 3.75)
-        self.xOffset = -20
+        self.xOffset = -6.4
 
     @staticmethod
     def loadImages():
         if 'GroundPiranha' in ImageCache: return
-        GP = SLib.GetImg('ground_piranha.png', True)
+        GP = SLib.GetImg('grounded_piranha.png', True)
         ImageCache['GroundPiranha'] = QtGui.QPixmap.fromImage(GP)
         ImageCache['GroundPiranhaU'] = QtGui.QPixmap.fromImage(GP.mirrored(False, True))
 
@@ -783,47 +783,47 @@ class SpriteImage_GroundPiranha(SLib.SpriteImage_StaticMultiple): # 14
 
         upsideDown = self.parent.spritedata[5] & 0xF
         if upsideDown != 8:
-            self.yOffset = 6
+            self.yOffset = 28/60*16
             self.image = ImageCache['GroundPiranha']
         else:
-            self.yOffset = 30
+            self.yOffset = 109/60*16
             self.image = ImageCache['GroundPiranhaU']
 
         super().dataChanged()
 
-class SpriteImage_GroundFiretrap(SLib.SpriteImage_StaticMultiple): # 15, 16
+class SpriteImage_GroundVenustrap(SLib.SpriteImage_StaticMultiple): # 15, 16
     def __init__(self, parent):
         super().__init__(parent, 3.75)
-        self.xOffset = 5
+        self.xOffset = 14/60*16
 
     @staticmethod
     def loadImages():
-        if 'GroundFiretrap' in ImageCache: return
-        GF = SLib.GetImg('ground_firetrap.png', True)
-        ImageCache['GroundFiretrap'] = QtGui.QPixmap.fromImage(GF)
-        ImageCache['GroundFiretrapU'] = QtGui.QPixmap.fromImage(GF.mirrored(False, True))
+        if 'GroundVenustrap' in ImageCache: return
+        GF = SLib.GetImg('grounded_venus_trap.png', True)
+        ImageCache['GroundVenustrap'] = QtGui.QPixmap.fromImage(GF)
+        ImageCache['GroundVenustrapU'] = QtGui.QPixmap.fromImage(GF.mirrored(False, True))
 
     def dataChanged(self):
 
         upsideDown = self.parent.spritedata[5] & 0xF
         if upsideDown != 8:
-            self.yOffset = -10
-            self.image = ImageCache['GroundFiretrap']
+            self.yOffset = -34/60*16
+            self.image = ImageCache['GroundVenustrap']
         else:
-            self.yOffset = 0
-            self.image = ImageCache['GroundFiretrapU']
+            self.yOffset = 30.4
+            self.image = ImageCache['GroundVenustrapU']
 
         super().dataChanged()
 
 class SpriteImage_BigGroundPiranha(SLib.SpriteImage_StaticMultiple): # 17
     def __init__(self, parent):
         super().__init__(parent, 3.75)
-        self.xOffset = -65
+        self.xOffset = -143/60*16
 
     @staticmethod
     def loadImages():
         if 'BigGroundPiranha' in ImageCache: return
-        BGP = SLib.GetImg('big_ground_piranha.png', True)
+        BGP = SLib.GetImg('big_grounded_piranha.png', True)
         ImageCache['BigGroundPiranha'] = QtGui.QPixmap.fromImage(BGP)
         ImageCache['BigGroundPiranhaU'] = QtGui.QPixmap.fromImage(BGP.mirrored(False, True))
 
@@ -831,35 +831,35 @@ class SpriteImage_BigGroundPiranha(SLib.SpriteImage_StaticMultiple): # 17
 
         upsideDown = self.parent.spritedata[5] & 0xF
         if upsideDown != 8:
-            self.yOffset = 32
+            self.yOffset = 127/60*16
             self.image = ImageCache['BigGroundPiranha']
         else:
-            self.yOffset = 77
+            self.yOffset = 289/60*16
             self.image = ImageCache['BigGroundPiranhaU']
 
         super().dataChanged()
 
-class SpriteImage_BigGroundFiretrap(SLib.SpriteImage_StaticMultiple): # 18
+class SpriteImage_BigGroundVenustrap(SLib.SpriteImage_StaticMultiple): # 18
     def __init__(self, parent):
         super().__init__(parent, 3.75)
-        self.xOffset = -14
+        self.xOffset = -61/60*16
 
     @staticmethod
     def loadImages():
-        if 'BigGroundFiretrap' in ImageCache: return
-        BGF = SLib.GetImg('big_ground_firetrap.png', True)
-        ImageCache['BigGroundFiretrap'] = QtGui.QPixmap.fromImage(BGF)
-        ImageCache['BigGroundFiretrapU'] = QtGui.QPixmap.fromImage(BGF.mirrored(False, True))
+        if 'BigGroundVenustrap' in ImageCache: return
+        BGF = SLib.GetImg('big_grounded_venus_trap.png', True)
+        ImageCache['BigGroundVenustrap'] = QtGui.QPixmap.fromImage(BGF)
+        ImageCache['BigGroundVenustrapU'] = QtGui.QPixmap.fromImage(BGF.mirrored(False, True))
 
     def dataChanged(self):
 
         upsideDown = self.parent.spritedata[5] & 0xF
         if upsideDown != 8:
-            self.yOffset = -68
-            self.image = ImageCache['BigGroundFiretrap']
+            self.yOffset = -2.4
+            self.image = ImageCache['BigGroundVenustrap']
         else:
-            self.yOffset = 0
-            self.image = ImageCache['BigGroundFiretrapU']
+            self.yOffset = 76.8
+            self.image = ImageCache['BigGroundVenustrapU']
 
         super().dataChanged()
   
@@ -875,16 +875,21 @@ class SpriteImage_KoopaTroopa(SLib.SpriteImage_StaticMultiple): # 19
 
     @staticmethod
     def loadImages():
+        SLib.loadIfNotInImageCache('KoopaShellG', 'koopa_shell_green.png')
+        SLib.loadIfNotInImageCache('KoopaShellR', 'koopa_shell_red.png')
         SLib.loadIfNotInImageCache('KoopaG', 'koopa_green.png')
         SLib.loadIfNotInImageCache('KoopaR', 'koopa_red.png')
 
     def dataChanged(self):
         shellcolour = self.parent.spritedata[5] & 1
+        inshell = (self.parent.spritedata[5] >> 4) & 1
 
-        if shellcolour == 0:
-            self.image = ImageCache['KoopaG']
+        if inshell:
+            self.offset = (-(0.5*((66/60)-1)) * 16, 0)
+            self.image = ImageCache['KoopaShellR' if shellcolour else 'KoopaShellG']
         else:
-            self.image = ImageCache['KoopaR']
+            self.offset = (-8,-8)
+            self.image = ImageCache['KoopaR' if shellcolour else 'KoopaG']
             
         super().dataChanged()
 
@@ -969,25 +974,32 @@ class SpriteImage_ArrowSignboard(SLib.SpriteImage_StaticMultiple): # 32
         super().__init__(
             parent,
             3.75,
-            ImageCache['ArrowSign0'],
-            (-7,-18),
+            ImageCache['ArrowSign0_0'],
             )
+
+        self.types = {0: "", 1: "_snow", 3: "_rock", 4: "_spooky"}
 
     @staticmethod
     def loadImages():
-        for i in range(0,8):
-            for j in ('', 's'):
-                SLib.loadIfNotInImageCache('ArrowSign{0}{1}'.format(i, j), 'sign{0}{1}.png'.format(i, j))
+        types = {0: "", 1: "_snow", 3: "_rock", 4: "_spooky"}
+        for i in types:
+            for j in range(8):
+                SLib.loadIfNotInImageCache('ArrowSign{0}_{1}'.format(i, j), 'arrow_signboard{0}_{1}.png'.format(types[i], j))
 
     def dataChanged(self):
         direction = self.parent.spritedata[5] & 0xF
         if direction > 7: direction -= 8
-        appear_raw = self.parent.spritedata[3] >> 4
-        appear = ''
-        if appear_raw == 1:
-            appear = 's'
+        type_ = self.parent.spritedata[3] >> 4
 
-        self.image = ImageCache['ArrowSign{0}{1}'.format(direction, appear)]
+        if type_ in self.types:
+            self.image = ImageCache['ArrowSign{0}_{1}'.format(type_, direction)]
+        else:
+            self.image = ImageCache['ArrowSign{0}_{1}'.format(0, direction)]
+
+        if type_ == 3:
+            self.offset = (-9.6, -(53/60*16))
+        else:
+            self.offset = (-8, -17.6)
 
         super().dataChanged()
 
@@ -1875,6 +1887,26 @@ class SpriteImage_BouncyCloud(SLib.SpriteImage_StaticMultiple): # 94
             
         super().dataChanged()
 
+class SpriteImage_Lamp(SLib.SpriteImage_StaticMultiple): # 96
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            )
+        self.offset = (-32, -32)
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Lamp', 'lamp.png')
+        SLib.loadIfNotInImageCache('Candle', 'candle.png')
+
+    def dataChanged(self):
+        style = self.parent.spritedata[5] & 3
+        if style > 1: style -= 2
+        self.image = ImageCache['Candle' if style == 1 else 'Lamp']
+            
+        super().dataChanged()
+
 class SpriteImage_BackCenter(SLib.SpriteImage_Static): # 97
     def __init__(self, parent):
         super().__init__(
@@ -1977,8 +2009,8 @@ class SpriteImage_GhostHouseDoor(SLib.SpriteImage_Static): # 108
             ImageCache['GhostHouseDoor'],
             )
 
-        self.xOffset = 0
-        self.yOffset = 6
+        self.xOffset = -3.125
+        self.yOffset = 2.25
 
     @staticmethod
     def loadImages():
@@ -2073,7 +2105,7 @@ class SpriteImage_Thwomp(SLib.SpriteImage_Static): # 135
             ImageCache['Thwomp'],
             )
         
-        self.xOffset = -3
+        self.xOffset = -8
         self.yOffset = 0
 
     @staticmethod
@@ -2088,7 +2120,7 @@ class SpriteImage_GiantThwomp(SLib.SpriteImage_Static): # 136
             ImageCache['GiantThwomp'],
             )
         
-        self.xOffset = -3
+        self.xOffset = -4
         self.yOffset = 0
 
     @staticmethod
@@ -5498,10 +5530,10 @@ ImageClasses = {
     12: SpriteImage_PipePiranhaLeftFire,
     13: SpriteImage_PipePiranhaRightFire,
     14: SpriteImage_GroundPiranha,
-    #15: SpriteImage_GroundFiretrap,
-    #16: SpriteImage_GroundFiretrap,
+    15: SpriteImage_GroundVenustrap,
+    16: SpriteImage_GroundVenustrap,
     17: SpriteImage_BigGroundPiranha,
-    #18: SpriteImage_BigGroundFiretrap,
+    18: SpriteImage_BigGroundVenustrap,
     19: SpriteImage_KoopaTroopa,
     20: SpriteImage_KoopaParatroopa,
     21: SpriteImage_KoopaParatroopa,
@@ -5547,6 +5579,7 @@ ImageClasses = {
     90: SpriteImage_Poison,
     91: SpriteImage_Quicksand,
     94: SpriteImage_BouncyCloud,
+    96: SpriteImage_Lamp,
     97: SpriteImage_BackCenter,
     101: SpriteImage_CheepCheep,
     102: SpriteImage_Useless,

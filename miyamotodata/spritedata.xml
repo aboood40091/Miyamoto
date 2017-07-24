@@ -1274,10 +1274,10 @@
   <sprite id="95" name="Defunct &quot;Moving&quot; Bouncy Cloud [UNUSED]"/>
   <sprite id="96" name="Lighting - Lamp" notes="A weak light source that will light up a small area around it.">
     <list nybble="12" title="Style">
-      <entry value="0">Desert</entry>
-      <entry value="1">Ghost house candle with holder</entry>
-      <entry value="2">Underwater/Underground</entry>
-      <entry value="3">UNUSED</entry>
+      <entry value="0">Lamp</entry>
+      <entry value="1">Candle</entry>
+      <entry value="2">Lamp</entry>
+      <entry value="3">Candle</entry>
     </list>
     <value nybble="21-22" title="Movement ID"/>
   </sprite>
@@ -1657,22 +1657,26 @@
     <value nybble="13-14" title="Unknown Value 13-14"/>
     <value nybble="21-22" title="Movement ID 2" comment="Links with 149."/>
   </sprite>
-  <sprite id="133" name="Spine Coaster" notes="Known as Bonecoaster in the USA Prima Guide. Known as Spine Coaster from a level name. Both these name sources aren't very good.">
+  <sprite id="133" name="Spine Coaster" notes="&lt;span style=&quot;color:green;&quot;&gt;Yoshi does not work or interact with this sprite.&lt;/span&gt;">
     <value nybble="1-2" title="Target Event ID" comment="When this ID is activated, the coaster will start moving."/>
     <value nybble="3-4" title="Triggering Event ID" comment="When this ID is activated, the spine coaster will activate something else."/>
-    <value nybble="5" title="Unknown Value 5"/>
+    <value nybble="5" title="Pair ID" comment="Any other Spine Coasters with the same Pair ID and have the checkbox below unticked will activate when the one with the below checkbox is activated. Do not have more than 1 with the checkbox per Pair ID" />
     <value nybble="6" title="Unknown Value 6"/>
     <value nybble="7" title="Unknown Value 7"/>
     <value nybble="8" title="Unknown Value 8"/>
     <value nybble="9" title="Unknown Value 9"/>
     <value nybble="10" title="Speed" comment="Speed of the coaster when activated."/>
-    <list nybble="11" title="Movement" comment="2 is unused, 3 for some reason crashes.">
-      <entry value="0">Automatically moving?</entry>
-      <entry value="1">On Touch</entry>
-      <entry value="2">???</entry>
-      <entry value="3">???</entry>
-    </list>
-    <value nybble="12" title="Length" comment="This is the length in segments, not including the head. "/>
+    <checkbox nybble="11" title="Start moving when jumped on" comment="Coaster will start moving when all onscreen players are on the coaster." />
+    <list nybble="12" title="Length" comment="0-7 Value, Value + 1. Increase the number of attached Platforms; begins again with 1 Platform at Value 8. Value 0 = Head (Skull) only. Size of Skull or one Platform = 1 x 2 Blocks.">
+	  <entry value="0">Skull Only</entry>
+      <entry value="1">Skull + 1 Platform</entry>
+      <entry value="2">Skull + 2 Platforms</entry>
+      <entry value="3">Skull + 3 Platforms</entry>
+	  <entry value="4">Skull + 4 Platforms</entry>
+	  <entry value="5">Skull + 5 Platforms</entry>
+	  <entry value="6">Skull + 6 Platforms</entry>
+	  <entry value="7">Skull + 7 Platforms</entry>
+	</list>
     <value nybble="20" title="Unknown Value 20" comment="Possible checkbox? Only used as 1 once."/>
   </sprite>
   <sprite id="134" name="Nothing. (&quot;Foam generation management kun&quot;) [UNUSED]" notes="Useless."/>
@@ -2489,9 +2493,29 @@
   </sprite>
   <sprite id="206" name="Boom Boom (W1 - Flailing)" notes="The Acorn Plains version of Boom boom."/>
   <sprite id="207" name="Lava Geyser" notes="A lava themed obstacle that comes out of lava, and then goes back down. ">
-    <checkbox nybble="10" title="Small Delay in Rising" comment="When set to 1, it makes the lava gyser rise quicker."/>
-    <value nybble="11" title="No Delay in Falling" comment="Makes it so it goes up, and then instantly goes back down instead of waiting for a bit before going down."/>
-    <value nybble="12" title="Unknown Value 12" comment="Only used as 2"/>
+    <list nybble="9" title="Geyser Height">
+      <entry value="0">Tallest</entry>
+      <entry value="1">Tall</entry>
+      <entry value="2">Medium-Tall</entry>
+      <entry value="3">Medium</entry>
+      <entry value="4">Short-Medium</entry>
+      <entry value="5">Short</entry>
+      <entry value="6">Very Short</entry>
+    </list>
+    <list nybble="10" title="Delay Between Eruptions">
+      <entry value="0">Long</entry>
+      <entry value="1">Short</entry>
+      <entry value="2">Medium</entry>
+    </list>
+    <list nybble="11" title="Eruption Length">
+      <entry value="0">Long</entry>
+      <entry value="1">Short</entry>
+      <entry value="2">Medium</entry>
+    </list>
+    <list nybble="12" title="Starts as" comment="Value 0: Prepares for Eruption when Mario enters the Screen. Value 1: Starts Erupting when Mario enters the Screen.">
+      <entry value="0">Not Erupting</entry>
+      <entry value="1">Erupting</entry>
+    </list>
   </sprite>
   <sprite id="208" name="Event Controller - Brick Block &quot;?&quot; Switch (Orange) [UNUSED]" notes="A brick block containing a ? switch.">
     <value nybble="3-4" title="Target Event ID" comment="To trigger an event, you connect another event with this nybble."/>
