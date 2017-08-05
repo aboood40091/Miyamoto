@@ -4368,7 +4368,6 @@ class ObjectItem(LevelEditorItem):
 
             # This was discovered by flzmx
             # and AboodXD by an accident.
-            # https://filetrip.net/dl?B8A3WFZjHU
 
             # The tiles' properties can also effect
             # what the object will turn into

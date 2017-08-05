@@ -10,18 +10,22 @@ GitHub: https://github.com/Gota7/Miyamoto
 ----------------------------------------------------------------
 
 ### Credits
-- RoadrunnerWMC -- Coding, Spritedata, Graphics
-- MrRean -- Coding, Spritedata, Categories, Graphics
-- AboodXD -- Coding, Spritedata, Graphics
-- Gota7 -- Coding, Spritedata, Graphics
-- Grop -- Coding, Spritedata, Graphics
-- Hiccup -- Spritedata
-- Huey -- Spritedata, Graphics
-- Kinnay -- Spritedata
-- Luzifer -- Graphics
-- Mayro -- Graphics
-- Toms -- Spritedata, Graphics
-- Treeki -- Original creator, Coding
+* Treeki -- Creator of Reggie!
+* RoadrunnerWMC -- Creator of Reggie! Next, Spritedata, Graphics  
+  
+* AboodXD -- Coding, Spritedata, Graphics
+* Aileen Lumina -- Coding
+* Gota7 -- Coding, Spritedata, Graphics
+* Grop -- Coding, Spritedata, Graphics
+* Hiccup -- Spritedata
+* Huey -- Spritedata, Graphics
+* Kinnay -- Spritedata
+* Luzifer -- Graphics
+* Mayro -- Graphics
+* MrRean -- Coding, Spritedata, Categories, Graphics
+* NVIDIA -- NVCOMPRESS
+* Toms -- Spritedata, Graphics
+* Wiimm -- WSZST
 
 ----------------------------------------------------------------
 
