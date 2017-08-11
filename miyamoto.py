@@ -11382,11 +11382,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.ZoomLevels = [7.5, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0,
                            85.0, 90.0, 95.0, 100.0, 125.0, 150.0, 175.0, 200.0, 250.0, 300.0, 350.0, 400.0]
 
-        if platform.system() == 'Windows':
-            self.AutosaveTimer = QtCore.QTimer()
-            self.AutosaveTimer.timeout.connect(self.Autosave)
-            self.AutosaveTimer.start(20000)
-
         # required variables
         self.UpdateFlag = False
         self.SelectionUpdateFlag = False
@@ -11430,6 +11425,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Finishes initialization. (fixes bugs with some widgets calling mainWindow.something before it's fully init'ed)
         """
+
+        try:
+            self.AutosaveTimer = QtCore.QTimer()
+            self.AutosaveTimer.timeout.connect(self.Autosave)
+            self.AutosaveTimer.start(20000)
+        except TypeError:
+            pass
+
         # set up actions and menus
         self.SetupActionsAndMenus()
 
@@ -11470,8 +11473,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             else:
                 self.LoadLevel(curgame, FirstLevels[curgame], False, 1)
 
-        if platform.system() == 'Windows':
-            QtCore.QTimer.singleShot(100, self.levelOverview.update)
+        QtCore.QTimer.singleShot(100, self.levelOverview.update)
 
         toggleHandlers = {
             self.HandleSpritesVisibility: SpritesShown,
@@ -14359,8 +14361,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.levelOverview.Reset()
         self.levelOverview.update()
-        if platform.system() == 'Windows':
-            QtCore.QTimer.singleShot(20, self.levelOverview.update)
+        QtCore.QTimer.singleShot(20, self.levelOverview.update)
 
         # Set the Current Game setting
         self.CurrentGame = game

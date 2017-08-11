@@ -11,10 +11,9 @@ GitHub: https://github.com/Gota7/Miyamoto
 
 ### Credits
 * Treeki -- Creator of Reggie!
-* RoadrunnerWMC -- Creator of Reggie! Next, Spritedata, Graphics  
+* RoadrunnerWMC -- Creator of Reggie! Next, Spritedata, Graphics
   
 * AboodXD -- Coding, Spritedata, Graphics
-* Aileen Lumina -- Coding
 * Gota7 -- Coding, Spritedata, Graphics
 * Grop -- Coding, Spritedata, Graphics
 * Hiccup -- Spritedata
