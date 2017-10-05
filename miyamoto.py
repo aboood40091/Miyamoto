@@ -633,38 +633,6 @@ def SetDirty(noautosave=False):
         pass
 
 
-def MapPositionToZoneID(zones, x, y, useid=False):
-    """
-    Returns the zone ID containing or nearest the specified position
-    """
-    id = 0
-    minimumdist = -1
-    rval = -1
-
-    for zone in zones:
-        r = zone.ZoneRect
-        if r.contains(x, y) and useid:
-            return zone.id
-        elif r.contains(x, y) and not useid:
-            return id
-
-        xdist = 0
-        ydist = 0
-        if x <= r.left(): xdist = r.left() - x
-        if x >= r.right(): xdist = x - r.right()
-        if y <= r.top(): ydist = r.top() - y
-        if y >= r.bottom(): ydist = y - r.bottom()
-
-        dist = (xdist ** 2 + ydist ** 2) ** 0.5
-        if dist < minimumdist or minimumdist == -1:
-            minimumdist = dist
-            rval = zone.id
-
-        id += 1
-
-    return rval
-
-
 def FilesAreMissing():
     """
     Checks to see if any of the required files for Miyamoto are missing
@@ -3744,7 +3712,7 @@ class AbstractParsedArea(AbstractArea):
         split = {}
         zones = []
 
-        f_MapPositionToZoneID = MapPositionToZoneID
+        f_MapPositionToZoneID = SLib.MapPositionToZoneID
         zonelist = self.zones
 
         for sprite in self.sprites:
@@ -4174,7 +4142,7 @@ class Area_NSMBU(AbstractParsedArea):
         buffer = bytearray(len(self.entrances) * 24)
         zonelist = self.zones
         for entrance in self.entrances:
-            zoneID = MapPositionToZoneID(zonelist, entrance.objx, entrance.objy)
+            zoneID = SLib.MapPositionToZoneID(zonelist, entrance.objx, entrance.objy)
             entstruct.pack_into(buffer, offset, int(entrance.objx), int(entrance.objy), int(entrance.unk05),
                                 int(entrance.entid), int(entrance.destarea), int(entrance.destentrance),
                                 int(entrance.enttype), int(entrance.unk0C), zoneID, int(entrance.unk0F),
@@ -4234,7 +4202,7 @@ class Area_NSMBU(AbstractParsedArea):
             try:
                 sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy),
                                     sprite.spritedata[:10],
-                                    MapPositionToZoneID(self.zones, sprite.objx, sprite.objy, True), 0,
+                                    SLib.MapPositionToZoneID(self.zones, sprite.objx, sprite.objy, True), 0,
                                     sprite.spritedata[10:] + to_bytes(0, 1))
             except struct.error:
                 # Hopefully this will solve the mysterious bug, and will
@@ -4889,6 +4857,18 @@ class ZoneItem(LevelEditorItem):
 
         # painter.setClipRect(option.exposedRect)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
+
+        # Paint liquids/fog
+        if SpritesShown and SpriteImagesShown:
+            zoneRect = QtCore.QRectF(self.objx * TileWidth / 16, self.objy * TileWidth / 16, self.width * TileWidth / 16, self.height * TileWidth / 16)
+            viewRect = mainWindow.view.mapToScene(mainWindow.view.viewport().rect()).boundingRect()
+
+            for sprite in Area.sprites:
+                if sprite.type in [88, 89, 90, 92, 198, 201]:
+                    spriteZoneID = SLib.MapPositionToZoneID(Area.zones, sprite.objx, sprite.objy)
+
+                    if self.id == spriteZoneID:
+                        sprite.ImageObj.realViewZone(painter, zoneRect, viewRect)
 
         # Now paint the borders
         painter.setPen(QtGui.QPen(theme.color('zone_lines'), 3 * TileWidth / 24))
@@ -5686,7 +5666,7 @@ class SpriteItem(LevelEditorItem):
         Calls a modified MapPositionToZoneID (if obj = True, it returns the actual ZoneItem object)
         """
         if not hasattr(Area, 'zones'): return None
-        id = MapPositionToZoneID(Area.zones, self.objx, self.objy, True)
+        id = SLib.MapPositionToZoneID(Area.zones, self.objx, self.objy, True)
         if obj:
             for z in Area.zones:
                 if z.id == id: return z

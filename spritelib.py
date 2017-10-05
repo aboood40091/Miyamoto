@@ -101,21 +101,36 @@ def loadIfNotInImageCache(name, filename):
     if name not in ImageCache:
         ImageCache[name] = GetImg(filename)
 
-def getNearestZoneTo(objx, objy):
+def MapPositionToZoneID(zones, x, y, useid=False):
     """
-    Returns the nearest zone to the given position
+    Returns the zone ID containing or nearest the specified position
     """
-    print('getNearestZoneTo(%d, %d):' % (objx, objy))
-    if not hasattr(Area, 'zones'):
-        print('    not hasattr; bye bye')
-        return None
+    id = 0
+    minimumdist = -1
+    rval = -1
 
-    id = MapPositionToZoneID(Area.zones, objx, objy, True)
-    for z in Area.zones:
-        if z.id == id:
-            print(('    Found something for id %d; returning ' % id) + str(z))
-            return z
-    print('    Found nothing for id %d; bye bye' % id)
+    for zone in zones:
+        r = zone.ZoneRect
+        if r.contains(x, y) and useid:
+            return zone.id
+        elif r.contains(x, y) and not useid:
+            return id
+
+        xdist = 0
+        ydist = 0
+        if x <= r.left(): xdist = r.left() - x
+        if x >= r.right(): xdist = x - r.right()
+        if y <= r.top(): ydist = r.top() - y
+        if y >= r.bottom(): ydist = y - r.bottom()
+
+        dist = (xdist ** 2 + ydist ** 2) ** 0.5
+        if dist < minimumdist or minimumdist == -1:
+            minimumdist = dist
+            rval = zone.id
+
+        id += 1
+
+    return rval
 
 
 def LoadBasicSuite():

@@ -638,6 +638,76 @@ class SpriteImage_Crash(SLib.SpriteImage_StaticMultiple): # X
     def loadImages():
         SLib.loadIfNotInImageCache('Crash', 'crash.png')
 
+class SpriteImage_LiquidOrFog(SLib.SpriteImage): # 88, 89, 90, 92, 198, 201
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.crest = None
+        self.mid = None
+        self.rise = None
+        self.riseCrestless = None
+
+        self.top = 0
+
+        self.drawCrest = False
+        self.risingHeight = 0
+
+        self.paintZone = False
+        self.paintLoc = False
+
+    def positionChanged(self):
+        super().positionChanged()
+        self.parent.scene().update()
+
+    def dataChanged(self):
+        super().dataChanged()
+        self.parent.scene().update()
+
+    def realViewZone(self, painter, zoneRect, viewRect):
+        """
+        Real view zone painter for liquids/fog
+        """
+        if not self.paintZone: return
+
+        # (0, 0) is the top-left corner of the zone
+
+        zx, zy, zw, zh = zoneRect.topLeft().x(), zoneRect.topLeft().y(), zoneRect.width(), zoneRect.height()
+
+        drawRise = self.risingHeight != 0
+        drawCrest = self.drawCrest
+
+        # Get positions
+        offsetFromTop = (self.top * 3.75) - zy
+        if offsetFromTop <= 4:
+            offsetFromTop = 4
+            drawCrest = False # off the top of the zone; no crest
+        if self.top > (zy + zh) / 3.75:
+            # the sprite is below the zone; don't draw anything
+            return
+
+        # If all that fits in the zone is some of the crest, determine how much
+        if drawCrest:
+            crestSizeRemoval = (zy + offsetFromTop + self.crest.height()) - (zy + zh) + 4
+            if crestSizeRemoval < 0: crestSizeRemoval = 0
+            crestHeight = self.crest.height() - crestSizeRemoval
+
+        # Determine where to put the rise image
+        offsetRise = offsetFromTop - (self.risingHeight * 60)
+        riseToDraw = self.rise
+        if offsetRise < 4:  # close enough to the top zone border
+            offsetRise = 4
+            riseToDraw = self.riseCrestless
+        if not drawCrest:
+            riseToDraw = self.riseCrestless
+
+        if drawCrest:
+            painter.drawTiledPixmap(4, offsetFromTop, zw - 8, crestHeight, self.crest)
+            painter.drawTiledPixmap(4, offsetFromTop + crestHeight, zw - 8, zh - crestHeight - offsetFromTop - 4, self.mid)
+        else:
+            painter.drawTiledPixmap(4, offsetFromTop, zw - 8, zh - offsetFromTop - 4, self.mid)
+        if drawRise:
+            painter.drawTiledPixmap(4, offsetRise, zw - 8, riseToDraw.height(), riseToDraw)
+
 class SpriteImage_Goomba(SLib.SpriteImage_Static): # 0
     def __init__(self, parent):
         super().__init__(
@@ -1812,29 +1882,116 @@ class SpriteImage_MovingCoin(SLib.SpriteImage_Static): # 87
     def loadImages():
         SLib.loadIfNotInImageCache('MovCoin', 'mov_coin.png')
 
-class SpriteImage_Water(SLib.SpriteImage_Liquid): # 88
+class SpriteImage_Water(SpriteImage_LiquidOrFog): # 88
     def __init__(self, parent):
-        super().__init__(parent, 3.75, ImageCache['Water'].scaled(60,60,QtCore.Qt.KeepAspectRatio))
+        super().__init__(parent)
+
+        self.crest = ImageCache['LiquidWaterCrest']
+        self.mid = ImageCache['LiquidWater']
+        self.rise = ImageCache['LiquidWaterRiseCrest']
+        self.riseCrestless = ImageCache['LiquidWaterRise']
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('Water', 'water.png')
+        if 'LiquidWater' in ImageCache: return
+        ImageCache['LiquidWater'] = SLib.GetImg('liquid_water.png')
+        ImageCache['LiquidWaterCrest'] = SLib.GetImg('liquid_water_crest.png')
+        ImageCache['LiquidWaterRise'] = SLib.GetImg('liquid_water_rise.png')
+        ImageCache['LiquidWaterRiseCrest'] = SLib.GetImg('liquid_water_rise_crest.png')
 
-class SpriteImage_Lava(SLib.SpriteImage_Liquid): # 89
+    def dataChanged(self):
+        super().dataChanged()
+
+        self.paintZone = self.parent.spritedata[5] == 0
+        
+        self.parent.scene().update()
+
+    def realViewZone(self, painter, zoneRect, viewRect):
+
+        self.paintZone = self.parent.spritedata[5] == 0
+        self.top = self.parent.objy
+        self.drawCrest = self.parent.spritedata[4] & 15 < 8
+        self.risingHeight = (self.parent.spritedata[3] & 0xF) << 4
+        self.risingHeight |= self.parent.spritedata[4] >> 4
+
+        if self.parent.spritedata[2] & 15 > 7:  # falling
+            self.risingHeight = -self.risingHeight
+
+        super().realViewZone(painter, zoneRect, viewRect)
+
+class SpriteImage_Lava(SpriteImage_LiquidOrFog): # 89
     def __init__(self, parent):
-        super().__init__(parent, 3.75, ImageCache['Lava'].scaled(60,60,QtCore.Qt.KeepAspectRatio))
+        super().__init__(parent)
+
+        self.crest = ImageCache['LiquidLavaCrest']
+        self.mid = ImageCache['LiquidLava']
+        self.rise = ImageCache['LiquidLavaRiseCrest']
+        self.riseCrestless = ImageCache['LiquidLavaRise']
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('Lava', 'lava.png')
+        if 'LiquidLava' in ImageCache: return
+        ImageCache['LiquidLava'] = SLib.GetImg('liquid_lava.png')
+        ImageCache['LiquidLavaCrest'] = SLib.GetImg('liquid_lava_crest.png')
+        ImageCache['LiquidLavaRise'] = SLib.GetImg('liquid_lava_rise.png')
+        ImageCache['LiquidLavaRiseCrest'] = SLib.GetImg('liquid_lava_rise_crest.png')
 
-class SpriteImage_Poison(SLib.SpriteImage_Liquid): # 90
+    def dataChanged(self):
+        super().dataChanged()
+
+        self.paintZone = self.parent.spritedata[5] == 0
+        
+        self.parent.scene().update()
+
+    def realViewZone(self, painter, zoneRect, viewRect):
+
+        self.paintZone = self.parent.spritedata[5] == 0
+        self.top = self.parent.objy
+        self.drawCrest = self.parent.spritedata[4] & 15 < 8
+        self.risingHeight = (self.parent.spritedata[3] & 0xF) << 4
+        self.risingHeight |= self.parent.spritedata[4] >> 4
+
+        if self.parent.spritedata[2] & 15 > 7:  # falling
+            self.risingHeight = -self.risingHeight
+
+        super().realViewZone(painter, zoneRect, viewRect)
+
+class SpriteImage_Poison(SpriteImage_LiquidOrFog): # 90
     def __init__(self, parent):
-        super().__init__(parent, 3.75, ImageCache['Soda'].scaled(60,60,QtCore.Qt.KeepAspectRatio))
+        super().__init__(parent)
+
+        self.crest = ImageCache['LiquidPoisonCrest']
+        self.mid = ImageCache['LiquidPoison']
+        self.rise = ImageCache['LiquidPoisonRiseCrest']
+        self.riseCrestless = ImageCache['LiquidPoisonRise']
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('Soda', 'poison.png')
+        if 'LiquidPoison' in ImageCache: return
+        ImageCache['LiquidPoison'] = SLib.GetImg('liquid_poison.png')
+        ImageCache['LiquidPoisonCrest'] = SLib.GetImg('liquid_poison_crest.png')
+        ImageCache['LiquidPoisonRise'] = SLib.GetImg('liquid_poison_rise.png')
+        ImageCache['LiquidPoisonRiseCrest'] = SLib.GetImg('liquid_poison_rise_crest.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        self.paintZone = self.parent.spritedata[5] == 0
+        
+        self.parent.scene().update()
+
+    def realViewZone(self, painter, zoneRect, viewRect):
+
+        self.paintZone = self.parent.spritedata[5] == 0
+        self.top = self.parent.objy
+        self.drawCrest = self.parent.spritedata[4] & 15 < 8
+        self.risingHeight = (self.parent.spritedata[3] & 0xF) << 4
+        self.risingHeight |= self.parent.spritedata[4] >> 4
+
+        if self.parent.spritedata[2] & 15 > 7:  # falling
+            self.risingHeight = -self.risingHeight
+
+        super().realViewZone(painter, zoneRect, viewRect)
 
 class SpriteImage_Quicksand(SLib.SpriteImage_Static): # 91
     def __init__(self, parent):
@@ -1848,17 +2005,32 @@ class SpriteImage_Quicksand(SLib.SpriteImage_Static): # 91
     def loadImages():
         SLib.loadIfNotInImageCache('Quicksand', 'quicksand.png')
 
-class SpriteImage_Fog(SLib.SpriteImage_Static): # 92
+class SpriteImage_Fog(SpriteImage_LiquidOrFog): # 92
     def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Fog'],
-            )
+        super().__init__(parent)
+        self.mid = ImageCache['Fog']
 
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Fog', 'fog.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        self.paintZone = self.parent.spritedata[5] == 0
+        
+        self.parent.scene().update()
+
+    def realViewZone(self, painter, zoneRect, viewRect):
+
+        self.paintZone = self.parent.spritedata[5] == 0
+
+        self.top = self.parent.objy
+
+        # Get pixmaps
+        mid = ImageCache['Fog']
+
+        super().realViewZone(painter, zoneRect, viewRect)
 
 class SpriteImage_BouncyCloud(SLib.SpriteImage_StaticMultiple): # 94
     def __init__(self, parent):
@@ -3469,7 +3641,31 @@ class SpriteImage_RouletteBlock(SLib.SpriteImage_StaticMultiple): # 195
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('RouletteBlock', 'block_roulette.png') 
+        SLib.loadIfNotInImageCache('RouletteBlock', 'block_roulette.png')
+
+
+class SpriteImage_SnowEffect(SpriteImage_LiquidOrFog): # 198
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.mid = ImageCache['SnowEffect']
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('SnowEffect', 'snow.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        self.paintZone = self.parent.spritedata[5] == 0
+        
+        self.parent.scene().update()
+
+    def realViewZone(self, painter, zoneRect, viewRect):
+
+        # For now, we only paint snow
+        self.paintZone = self.parent.spritedata[5] == 0
+
+        super().realViewZone(painter, zoneRect, viewRect)
 
 
 class SpriteImage_MushroomPlatform(SLib.SpriteImage): # 200
@@ -3535,6 +3731,30 @@ class SpriteImage_MushroomPlatform(SLib.SpriteImage): # 200
         painter.drawPixmap(0, 0, ImageCache[color + 'ShroomL'])
         painter.drawTiledPixmap(tilesize, 0, (self.width * 3.75) - (tilesize * 2), tilesize, ImageCache[color + 'ShroomM'])
         painter.drawPixmap((self.width * 3.75) - tilesize, 0, ImageCache[color + 'ShroomR'])
+
+
+class SpriteImage_LavaParticles(SpriteImage_LiquidOrFog): # 201
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.paintZone = True
+
+    @staticmethod
+    def loadImages():
+        if 'LavaParticlesA' in ImageCache: return
+        ImageCache['LavaParticlesA'] = SLib.GetImg('lava_particles_a.png')
+        ImageCache['LavaParticlesB'] = SLib.GetImg('lava_particles_b.png')
+        ImageCache['LavaParticlesC'] = SLib.GetImg('lava_particles_c.png')
+
+    def realViewZone(self, painter, zoneRect, viewRect):
+
+        type = (self.parent.spritedata[5] & 0xF) % 3
+        self.mid = (
+            ImageCache['LavaParticlesA'],
+            ImageCache['LavaParticlesB'],
+            ImageCache['LavaParticlesC'],
+            )[type]
+
+        super().realViewZone(painter, zoneRect, viewRect)
 
 class SpriteImage_IceBlock(SLib.SpriteImage_StaticMultiple): # 203
     def __init__(self, parent):
@@ -5578,6 +5798,7 @@ ImageClasses = {
     89: SpriteImage_Lava,
     90: SpriteImage_Poison,
     91: SpriteImage_Quicksand,
+    92: SpriteImage_Fog,
     94: SpriteImage_BouncyCloud,
     96: SpriteImage_Lamp,
     97: SpriteImage_BackCenter,
@@ -5630,7 +5851,9 @@ ImageClasses = {
     190: SpriteImage_QBlock,
     191: SpriteImage_BrickBlock,
     195: SpriteImage_RouletteBlock,
+    198: SpriteImage_SnowEffect,
     200: SpriteImage_MushroomPlatform,
+    201: SpriteImage_LavaParticles,
     203: SpriteImage_IceBlock,
     204: SpriteImage_Fuzzy,
     205: SpriteImage_QBlock,
