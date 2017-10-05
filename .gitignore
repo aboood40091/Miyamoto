@@ -6,3 +6,4 @@ data/
 dist/
 *.spec
 build.bat
+dlls.zip

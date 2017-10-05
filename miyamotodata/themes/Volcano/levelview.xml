@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<colors>
+    <color id="bg"               value="#140A00"   />
+    <color id="entrance_fill"    value="#DC0064A0" />
+    <color id="entrance_fill_s"  value="#DC0064F0" />
+    <color id="grid"             value="#FFFFFF3C" />
+    <color id="location_fill"    value="#6E2D6450" />
+    <color id="location_fill_s"  value="#78326478" />
+    <color id="path_fill"        value="#06F91491" />
+    <color id="path_fill_s"      value="#06F914F5" />
+    <color id="ribbon"           value="#FFC3B9"   />
+    <color id="spritebox_fill"   value="#C80000B4" />
+    <color id="spritebox_fill_s" value="#C80000F0" />
+    <color id="ui"               value="#DCD7D7"   />
+    <color id="watermark"        value="#7F000024" />
+    <color id="zone_lines"       value="#93C9FF64" />
+    <color id="zone_text"        value="#FFFFFF"   />
+</colors>

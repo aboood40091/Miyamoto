@@ -283,11 +283,12 @@ class MiyamotoTheme:
     Class that represents a Miyamoto theme
     """
 
-    def __init__(self, file=None):
+    def __init__(self, folder=None):
         """
         Initializes the theme
         """
         self.initAsClassic()
+        if folder is not None: self.initFromFolder(folder)
 
     def initAsClassic(self):
         """
@@ -296,6 +297,9 @@ class MiyamotoTheme:
         self.fileName = 'Classic'
         self.formatver = 1.0
         self.version = 1.0
+        self.themeName = trans.string('Themes', 0)
+        self.creator = trans.string('Themes', 1)
+        self.description = trans.string('Themes', 2)
         self.iconCacheSm = {}
         self.iconCacheLg = {}
         self.style = None
@@ -347,11 +351,169 @@ class MiyamotoTheme:
             'zone_text': QtGui.QColor(44, 64, 84),  # Zone text
         }
 
+    def initFromFolder(self, folder):
+        """
+        Initializes the theme from the folder
+        """
+        folder = os.path.join('miyamotodata', 'themes', folder)
+
+        fileList = os.listdir(folder)
+
+        # Create a XML ElementTree
+        maintree = etree.parse(os.path.join(folder, 'main.xml'))
+        root = maintree.getroot()
+
+        # Parse the attributes of the <theme> tag
+        if not self.parseMainXMLHead(root):
+            # The attributes are messed up
+            return
+
+        # Parse the other nodes
+        for node in root:
+            if node.tag.lower() == 'colors':
+                if 'file' not in node.attrib: continue
+
+                # Load the colors XML
+                self.loadColorsXml(os.path.join(folder, node.attrib['file']))
+
+            elif node.tag.lower() == 'icons':
+                if not all(thing in node.attrib for thing in ['size', 'folder']): continue
+
+                foldername = node.attrib['folder']
+                big = node.attrib['size'].lower()[:2] == 'lg'
+                cache = self.iconCacheLg if big else self.iconCacheSm
+
+                # Load the icons
+                for iconfilename in fileList:
+                    iconname = iconfilename
+                    if not iconname.startswith(foldername + '/'): continue
+                    iconname = iconname[len(foldername) + 1:]
+                    if len(iconname) <= len('icon-.png'): continue
+                    if not iconname.startswith('icon-') or not iconname.endswith('.png'): continue
+                    iconname = iconname[len('icon-'): -len('.png')]
+
+                    with open(os.path.join(folder, iconfilename), "rb") as inf:
+                        icodata = inf.read()
+                    pix = QtGui.QPixmap()
+                    if not pix.loadFromData(icodata): continue
+                    ico = QtGui.QIcon(pix)
+
+                    cache[iconname] = ico
+
+                ##        # Add some overview colors if they weren't specified
+                ##        fallbacks = {
+                ##            'overview_entrance': 'entrance_fill',
+                ##            'overview_location_fill': 'location_fill',
+                ##            'overview_location_lines': 'location_lines',
+                ##            'overview_sprite': 'sprite_fill',
+                ##            'overview_zone_lines': 'zone_lines',
+                ##            }
+                ##        for index in fallbacks:
+                ##            if (index not in colors) and (fallbacks[index] in colors): colors[index] = colors[fallbacks[index]]
+                ##
+                ##        # Use the new colors dict to overwrite values in self.colors
+                ##        for index in colors:
+                ##            self.colors[index] = colors[index]
+
+    def parseMainXMLHead(self, root):
+        """
+        Parses the main attributes of main.xml
+        """
+        MaxSupportedXMLVersion = 1.0
+
+        # Check for required attributes
+        if root.tag.lower() != 'theme': return False
+        if 'format' in root.attrib:
+            formatver = root.attrib['format']
+            try:
+                self.formatver = float(formatver)
+            except ValueError:
+                return False
+        else:
+            return False
+
+        if self.formatver > MaxSupportedXMLVersion: return False
+        if 'name' in root.attrib:
+            self.themeName = root.attrib['name']
+        else:
+            return False
+
+        # Check for optional attributes
+        self.creator = trans.string('Themes', 3)
+        self.description = trans.string('Themes', 4)
+        self.style = None
+        self.version = 1.0
+        if 'creator' in root.attrib: self.creator = root.attrib['creator']
+        if 'description' in root.attrib: self.description = root.attrib['description']
+        if 'style' in root.attrib: self.style = root.attrib['style']
+        if 'version' in root.attrib:
+            try:
+                self.version = float(root.attrib['version'])
+            except ValueError:
+                pass
+
+        return True
+
+    def loadColorsXml(self, file):
+        """
+        Loads a colors.xml file
+        """
+        try:
+            tree = etree.parse(file)
+        except Exception:
+            return
+
+        root = tree.getroot()
+        if root.tag.lower() != 'colors': return False
+
+        colorDict = {}
+        for colorNode in root:
+            if colorNode.tag.lower() != 'color': continue
+            if not all(thing in colorNode.attrib for thing in ['id', 'value']): continue
+
+            colorval = colorNode.attrib['value']
+            if colorval.startswith('#'): colorval = colorval[1:]
+            a = 255
+            try:
+                if len(colorval) == 3:
+                    # RGB
+                    r = int(colorval[0], 16)
+                    g = int(colorval[1], 16)
+                    b = int(colorval[2], 16)
+                elif len(colorval) == 4:
+                    # RGBA
+                    r = int(colorval[0], 16)
+                    g = int(colorval[1], 16)
+                    b = int(colorval[2], 16)
+                    a = int(colorval[3], 16)
+                elif len(colorval) == 6:
+                    # RRGGBB
+                    r = int(colorval[0:2], 16)
+                    g = int(colorval[2:4], 16)
+                    b = int(colorval[4:6], 16)
+                elif len(colorval) == 8:
+                    # RRGGBBAA
+                    r = int(colorval[0:2], 16)
+                    g = int(colorval[2:4], 16)
+                    b = int(colorval[4:6], 16)
+                    a = int(colorval[6:8], 16)
+            except ValueError:
+                continue
+            colorobj = QtGui.QColor(r, g, b, a)
+            colorDict[colorNode.attrib['id']] = colorobj
+
+        # Merge dictionaries
+        self.colors.update(colorDict)
+
     def color(self, name):
         """
         Returns a color
         """
-        return self.colors[name]
+        try:
+            return self.colors[name]
+
+        except KeyError:
+            return None
 
     def GetIcon(self, name, big=False):
         """
@@ -366,6 +528,12 @@ class MiyamotoTheme:
             cache[name] = QtGui.QIcon(path)
 
         return cache[name]
+
+    def ui(self):
+        """
+        Returns the UI style
+        """
+        return self.uiStyle
 
 
 def toQColor(*args):
@@ -540,6 +708,23 @@ def isValidGamePath(check='ug'):
 #####################################################################
 ############################## LOADING ##############################
 #####################################################################
+
+def LoadTheme():
+    """
+    Loads the theme
+    """
+    global theme
+
+    id = setting('Theme')
+    if id is None: id = 'Classic'
+    print('THEME ID: ' + str(id))
+
+    if id != 'Classic':
+        theme = MiyamotoTheme(id)
+
+    else:
+        theme = MiyamotoTheme()
+
 
 def LoadLevelNames():
     """
@@ -8581,7 +8766,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     newpathdata = {'id': newpathid,
                                    'unk1': 0,
                                    'nodes': [
-                                       {'x': clickedx, 'y': clickedy, 'speed': 0.5, 'accel': 0.00498, 'delay': 0}],
+                                       {'x': clickedx, 'y': clickedy, 'speed': 0, 'accel': 0, 'delay': 0}],
                                    'loops': False
                                    }
                     Area.pathdata.append(newpathdata)
@@ -8625,7 +8810,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     if not pathd: return  # shouldn't happen
 
                     pathid = pathd['id']
-                    newnodedata = {'x': clickedx, 'y': clickedy, 'speed': 0.5, 'accel': 0.00498, 'delay': 0}
+                    newnodedata = {'x': clickedx, 'y': clickedy, 'speed': 0, 'accel': 0, 'delay': 0}
                     pathd['nodes'].append(newnodedata)
                     nodeid = pathd['nodes'].index(newnodedata)
 
@@ -10472,8 +10657,10 @@ class PreferencesDialog(QtWidgets.QDialog):
         self.infoLabel = QtWidgets.QLabel()
         self.generalTab = self.getGeneralTab()
         self.toolbarTab = self.getToolbarTab()
+        self.themesTab = self.getThemesTab()
         self.tabWidget.addTab(self.generalTab, trans.string('PrefsDlg', 1))
         self.tabWidget.addTab(self.toolbarTab, trans.string('PrefsDlg', 2))
+        self.tabWidget.addTab(self.themesTab, trans.string('PrefsDlg', 3))
 
         # Create the buttonbox
         buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
@@ -10700,6 +10887,100 @@ class PreferencesDialog(QtWidgets.QDialog):
                         box.setChecked(default[1])
 
         return ToolbarTab()
+
+    def getThemesTab(self):
+        """
+        Returns the Themes Tab
+        """
+
+        class ThemesTab(QtWidgets.QWidget):
+            """
+            Themes Tab
+            """
+            info = trans.string('PrefsDlg', 6)
+
+            def __init__(self):
+                """
+                Initializes the Themes Tab
+                """
+                QtWidgets.QWidget.__init__(self)
+
+                # Get the current and available themes
+                self.themeID = theme.themeName
+                self.themes = self.getAvailableThemes
+
+                # Create the theme box
+                i = 0
+                self.themeBox = QtWidgets.QComboBox()
+                for name, themeObj in self.themes:
+                    self.themeBox.addItem(name)
+
+                self.themeBox.activated.connect(self.UpdatePreview)
+
+                boxGB = QtWidgets.QGroupBox('Themes')
+                L = QtWidgets.QFormLayout()
+                L.addRow('Theme:', self.themeBox)
+                L2 = QtWidgets.QGridLayout()
+                L2.addLayout(L, 0, 0)
+                boxGB.setLayout(L2)
+
+                # Create the preview labels and groupbox
+                self.preview = QtWidgets.QLabel()
+                self.description = QtWidgets.QLabel()
+                L = QtWidgets.QVBoxLayout()
+                L.addWidget(self.preview)
+                L.addWidget(self.description)
+                L.addStretch(1)
+                previewGB = QtWidgets.QGroupBox(trans.string('PrefsDlg', 22))
+                previewGB.setLayout(L)
+
+                # Create a main layout
+                Layout = QtWidgets.QGridLayout()
+                Layout.addWidget(boxGB, 0, 0)
+                Layout.addWidget(previewGB, 0, 1)
+                self.setLayout(Layout)
+
+                # Update the preview things
+                self.UpdatePreview()
+
+            @property
+            def getAvailableThemes(self):
+                """Searches the Themes folder and returns a list of theme filepaths.
+                Automatically adds 'Classic' to the list."""
+                themes = os.listdir('miyamotodata/themes')
+                themeList = [('Classic', MiyamotoTheme())]
+                for themeName in themes:
+                    try:
+                        theme = MiyamotoTheme(themeName)
+                        themeList.append((themeName, theme))
+                    except Exception:
+                        pass
+
+                return tuple(themeList)
+
+            def UpdatePreview(self):
+                """
+                Updates the preview
+                """
+                for name, themeObj in self.themes:
+                    if name == self.themeBox.currentText():
+                        t = themeObj
+                        self.preview.setPixmap(self.drawPreview(t))
+                        text = trans.string('PrefsDlg', 26, '[name]', t.themeName, '[creator]', t.creator,
+                                            '[description]', t.description)
+                        self.description.setText(text)
+
+            def drawPreview(self, theme):
+                """
+                Returns a preview pixmap for the given theme
+                """
+
+                # Set up some things
+                px = QtGui.QPixmap(350, 185)
+                px.fill(theme.color('bg'))
+                return px
+
+        return ThemesTab()
 
 
 #####################################################################
@@ -12487,10 +12768,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 clipboard_o.append(obj)
             elif ii(obj, type_spr):
                 clipboard_s.append(obj)
-        RegClp = self.encodeObjects(clipboard_o, clipboard_s)
+        MiyClp = self.encodeObjects(clipboard_o, clipboard_s)
 
         # Create a Stamp
-        self.stampChooser.addStamp(Stamp(RegClp, 'New Stamp'))
+        self.stampChooser.addStamp(Stamp(MiyClp, 'New Stamp'))
 
     def handleStampsRemove(self):
         """
@@ -13192,7 +13473,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 for fn in possibilities:
                     if exists(fn):
                         arcdata = arc[fn].data
-                        hmm = True
                         break
                 else:
                     warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
@@ -13422,6 +13702,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             for box in boxList:
                 ToolbarSettings[box.InternalName] = box.isChecked()
         setSetting('ToolbarActs', ToolbarSettings)
+
+        # Get the theme settings
+        setSetting('Theme', dlg.themesTab.themeBox.currentText())
 
         # Warn the user that they may need to restart
         QtWidgets.QMessageBox.warning(None, trans.string('PrefsDlg', 0), trans.string('PrefsDlg', 30))
@@ -14731,8 +15014,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if idx == 0:  # objects
             CPT = self.objAllTab.currentIndex()
         elif idx == 1:  # sprites
-            CPT = 4
-            if self.sprAllTab.currentIndex() == 1: CPT = -1
+            if self.sprAllTab.currentIndex() != 1: CPT = 4
         elif idx == 2:
             CPT = 5  # entrances
         elif idx == 3:
@@ -14740,10 +15022,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif idx == 4:
             CPT = 6  # paths
         elif idx == 6:
-            CPT = -1  # events
-        elif idx == 7:
             CPT = 8  # stamp pad
-        elif idx == 8:
+        elif idx == 7:
             CPT = 9  # comment
 
         global CurrentPaintType
@@ -16136,9 +16416,6 @@ def main():
     # create an application
     app = QtWidgets.QApplication(sys.argv)
 
-    # set the default theme, plus some other stuff too
-    theme = MiyamotoTheme()
-
     # load the settings
     settings = QtCore.QSettings('Miyamoto', MiyamotoVersion)
 
@@ -16149,6 +16426,9 @@ def main():
     path = module_path()
     if path is not None:
         os.chdir(module_path())
+
+    # set the default theme, plus some other stuff too
+    theme = MiyamotoTheme()
 
     # check if required files are missing
     if FilesAreMissing():
@@ -16161,6 +16441,7 @@ def main():
     Sprites = None
     SpriteListData = None
     LoadGameDef()
+    LoadTheme()
     LoadActionsLists()
     LoadTilesetNames()
     LoadObjDescriptions()

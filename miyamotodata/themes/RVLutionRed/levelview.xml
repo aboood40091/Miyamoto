@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<colors>
+    <color id="bg"                value="#606060"   />
+    <color id="grid"              value="#FFFFFF3C" />
+    <color id="location_fill"     value="#A4000078" />
+    <color id="location_fill_s"   value="#A40000A0" />
+    <color id="smi"               value="#FF969650" />
+    <color id="spritebox_fill"    value="#FFE5E578" />
+    <color id="spritebox_fill_s"  value="#FFE5E5F0" />
+    <color id="spritebox_lines_s" value="#000000FF" />
+    <color id="ui"                value="#EEE5E5"   />
+</colors>

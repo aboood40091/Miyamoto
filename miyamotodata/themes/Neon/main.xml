@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<theme
+		format="1.0"
+		name="Neon"
+		version="1.0"
+		creator="RoadrunnerWMC"
+		description="A very dark theme with brightly colored accents."
+		>
+		
+	<colors file="levelview.xml" />
+	
+</theme>

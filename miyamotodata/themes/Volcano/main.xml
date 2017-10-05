@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<theme
+		format="1.0"
+		name="Volcano"
+		version="1.0"
+		creator="RoadrunnerWMC"
+		description="This theme can help you visualize volcano levels."
+		>
+		
+	<colors file="levelview.xml" />
+	
+</theme>

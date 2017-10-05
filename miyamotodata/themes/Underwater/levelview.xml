@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<colors>
+    <color id="bg"        value="#369A90" />
+    <color id="ui"        value="#DCFFE6" />
+    <color id="zone_text" value="#FFFFFF" />
+</colors>

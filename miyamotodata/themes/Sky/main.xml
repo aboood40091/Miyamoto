@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<theme
+		format="1.0"
+		name="Sky"
+		version="1.0"
+		creator="RoadrunnerWMC"
+		description="This theme can help you visualize sky levels."
+		>
+		
+	<colors file="levelview.xml" />
+	<icons size="sm" folder="icosm" />
+	<icons size="lg" folder="icolg" />
+	
+</theme>
