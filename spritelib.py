@@ -67,7 +67,6 @@ def main():
     # won't receive it, which causes bugs.
     ImageCache.clear()
     SpriteImagesLoaded.clear()
-    LoadBasicSuite()
 
     SpritesFolders = []
 
@@ -131,37 +130,6 @@ def MapPositionToZoneID(zones, x, y, useid=False):
         id += 1
 
     return rval
-
-
-def LoadBasicSuite():
-
-    # Load some coins, because coins are in almost every Mario level ever
-    ImageCache['Coin'] = GetImg('coin.png')
-    #ImageCache['SpecialCoin'] = GetImg('special_coin.png')
-    #ImageCache['PCoin'] = GetImg('p_coin.png')
-    #ImageCache['RedCoin'] = GetImg('redcoin.png')
-    #ImageCache['StarCoin'] = GetImg('star_coin.png')
-
-    # Load the overrides
-    Overrides = QtGui.QPixmap('miyamotodata/overrides.png')
-    Blocks = []
-    x = Overrides.width() // TileWidth
-    y = Overrides.height() // TileWidth
-    for i in range(y):
-        for j in range(x):
-            Blocks.append(Overrides.copy(j * TileWidth, i * TileWidth, TileWidth, TileWidth))
-    ImageCache['Overrides'] = Blocks
-
-    # Load the characters
-    #for num in range(4):
-    #    for direction in 'lr':
-    #        ImageCache['Character%d%s' % (num + 1, direction.upper())] = \
-    #            GetImg('character_%d_%s.png' % (num + 1, direction))
-
-    # Load vines, because these are used by entrances
-    loadIfNotInImageCache('VineTop', 'vine_top.png')
-    loadIfNotInImageCache('VineMid', 'vine_mid.png')
-    loadIfNotInImageCache('VineBtm', 'vine_btm.png')
 
 
 

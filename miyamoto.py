@@ -1132,7 +1132,6 @@ def LoadGameDef(name=None, dlg=None):
 
             SLib.ImageCache.clear()
             SLib.SpriteImagesLoaded.clear()
-            SLib.LoadBasicSuite()
 
             spriteClasses = gamedef.getImageClasses()
 
@@ -1430,7 +1429,7 @@ class HexSpinBox(QtWidgets.QSpinBox):
         return int(str(value), 16)
 
 
-class SpriteDefinition():
+class SpriteDefinition:
     """
     Stores and manages the data info for a specific sprite
     """
@@ -1550,7 +1549,7 @@ class SpriteDefinition():
                 fields.append((3, attribs['title'], startbit, bitnum, comment))
 
 
-class Metadata():
+class Metadata:
     """
     Class for the new level metadata system
     """
@@ -1819,7 +1818,7 @@ def calculateBgAlignmentMode(idA, idB, idC):
 ########################## TILESET-RELATED ##########################
 #####################################################################
 
-class TilesetTile():
+class TilesetTile:
     """
     Class that represents a single tile in a tileset
     """
@@ -1834,13 +1833,6 @@ class TilesetTile():
         self.animTiles = []
         self.collData = ()
         self.collOverlay = None
-        self.isOverridden = False
-
-    def setMain(self, main):
-        """
-        Sets self.main
-        """
-        self.main = main
 
     def addAnimationData(self):
         """
@@ -2146,11 +2138,8 @@ class TilesetTile():
 
         self.collOverlay = collPix
 
-    def setOverridden(self):
-        self.isOverridden = True
 
-
-class ObjectDef():
+class ObjectDef:
     """
     Class for the object definitions
     """
@@ -2668,51 +2657,39 @@ def ProcessOverrides(idx, name):
             replace = offset + 3
             for i in [3, 4, 5, 6, 7, 8, 9, 10, 13, 29]:
                 t[i].main = t[replace].main
-                t[i].setOverridden()
                 replace += 1
 
             ## Brick
             for i in range(16, 28):
                 t[i].main = t[offset + i].main
-                t[i].setOverridden()
 
             ## ?
             t[offset + 160].main = t[49].main
-            t[offset + 160].setOverridden()
             t[49].main = t[offset + 46].main
-            t[49].setOverridden()
             for i in range(32, 43):
                 t[i].main = t[offset + i].main
-                t[i].setOverridden()
 
             # Collisions
             ## Full block
             t[1].main = t[offset + 1].main
-            t[1].setOverridden()
 
             ## Vine stopper
             t[2].main = t[offset + 2].main
-            t[2].setOverridden()
 
             ## Solid-on-top
             t[11].main = t[offset + 13].main
-            t[11].setOverridden()
 
             ## Half block
             t[12].main = t[offset + 14].main
-            t[12].setOverridden()
 
             ## Muncher (hit)
             t[45].main = t[offset + 45].main
-            t[45].setOverridden()
 
             ## Muncher (hit) 2
             t[209].main = t[offset + 44].main
-            t[209].setOverridden()
 
             ## Donut lift
             t[53].main = t[offset + 43].main
-            t[53].setOverridden()
 
             ## Conveyor belts
             ### Left
@@ -2720,13 +2697,11 @@ def ProcessOverrides(idx, name):
             replace = offset + 115
             for i in range(163, 166):
                 t[i].main = t[replace].main
-                t[i].setOverridden()
                 replace += 1
             #### Slow
             replace = offset + 99
             for i in range(147, 150):
                 t[i].main = t[replace].main
-                t[i].setOverridden()
                 replace += 1
 
             ### Right
@@ -2734,181 +2709,119 @@ def ProcessOverrides(idx, name):
             replace = offset + 112
             for i in range(160, 163):
                 t[i].main = t[replace].main
-                t[i].setOverridden()
                 replace += 1
             #### Slow
             replace = offset + 96
             for i in range(144, 147):
                 t[i].main = t[replace].main
-                t[i].setOverridden()
                 replace += 1
 
             ## Pipes
             ### Green
             #### Vertical
             t[64].main = t[offset + 48].main
-            t[64].setOverridden()
             t[65].main = t[offset + 49].main
-            t[65].setOverridden()
             t[80].main = t[offset + 64].main
-            t[80].setOverridden()
             t[81].main = t[offset + 65].main
-            t[81].setOverridden()
             t[96].main = t[offset + 80].main
-            t[96].setOverridden()
             t[97].main = t[offset + 81].main
-            t[97].setOverridden()
             #### Horizontal
             t[87].main = t[offset + 71].main
-            t[87].setOverridden()
             t[103].main = t[offset + 87].main
-            t[103].setOverridden()
             t[88].main = t[offset + 72].main
-            t[88].setOverridden()
             t[104].main = t[offset + 88].main
-            t[104].setOverridden()
             t[89].main = t[offset + 73].main
-            t[89].setOverridden()
             t[105].main = t[offset + 89].main
-            t[105].setOverridden()
             ### Yellow
             #### Vertical
             t[66].main = t[offset + 50].main
-            t[66].setOverridden()
             t[67].main = t[offset + 51].main
-            t[67].setOverridden()
             t[82].main = t[offset + 66].main
-            t[82].setOverridden()
             t[83].main = t[offset + 67].main
-            t[83].setOverridden()
             t[98].main = t[offset + 82].main
-            t[98].setOverridden()
             t[99].main = t[offset + 83].main
-            t[99].setOverridden()
             #### Horizontal
             t[90].main = t[offset + 74].main
-            t[90].setOverridden()
             t[106].main = t[offset + 90].main
-            t[106].setOverridden()
             t[91].main = t[offset + 75].main
-            t[91].setOverridden()
             t[107].main = t[offset + 91].main
-            t[107].setOverridden()
             t[92].main = t[offset + 76].main
-            t[92].setOverridden()
             t[108].main = t[offset + 92].main
-            t[108].setOverridden()
             ### Red
             #### Vertical
             t[68].main = t[offset + 52].main
-            t[68].setOverridden()
             t[69].main = t[offset + 53].main
-            t[69].setOverridden()
             t[84].main = t[offset + 68].main
-            t[84].setOverridden()
             t[85].main = t[offset + 69].main
-            t[85].setOverridden()
             t[100].main = t[offset + 84].main
-            t[100].setOverridden()
             t[101].main = t[offset + 85].main
-            t[101].setOverridden()
             #### Horizontal
             t[93].main = t[offset + 77].main
-            t[93].setOverridden()
             t[109].main = t[offset + 93].main
-            t[109].setOverridden()
             t[94].main = t[offset + 78].main
-            t[94].setOverridden()
             t[110].main = t[offset + 94].main
-            t[110].setOverridden()
             t[95].main = t[offset + 79].main
-            t[95].setOverridden()
             t[111].main = t[offset + 95].main
-            t[111].setOverridden()
             ### Mini (green)
             #### Vertical
             t[70].main = t[offset + 54].main
-            t[70].setOverridden()
             t[86].main = t[offset + 70].main
-            t[86].setOverridden()
             t[102].main = t[offset + 86].main
-            t[102].setOverridden()
             #### Horizontal
             t[120].main = t[offset + 104].main
-            t[120].setOverridden()
             t[121].main = t[offset + 105].main
-            t[121].setOverridden()
             t[137].main = t[offset + 121].main
-            t[137].setOverridden()
             ### Joints
             #### Normal
             t[118].main = t[offset + 102].main
-            t[118].setOverridden()
             t[119].main = t[offset + 103].main
-            t[119].setOverridden()
             t[134].main = t[offset + 118].main
-            t[134].setOverridden()
             t[135].main = t[offset + 119].main
-            t[135].setOverridden()
             #### Mini
             t[136].main = t[offset + 120].main
-            t[136].setOverridden()
 
             # Coins
             t[30].main = t[offset + 30].main
-            t[30].setOverridden()
             ## Outline
             t[31].main = t[offset + 29].main
-            t[31].setOverridden()
             ### Multiplayer
             t[28].main = t[offset + 28].main
-            t[28].setOverridden()
             ## Blue
             t[47].main = t[offset + 47].main
-            t[47].setOverridden()
-            ### Black BG (not sure what that means)
             t[46].main = t[offset + 47].main
-            t[46].setOverridden()
 
             # Flowers / Grass
             ## Flowers
             replace = offset + 55
             for i in range(210, 213):
                 t[i].main = t[replace].main
-                t[i].setOverridden()
                 replace += 1
             ## Grass
             replace = offset + 58
             for i in range(178, 183):
                 t[i].main = t[replace].main
-                t[i].setOverridden()
                 replace += 1
             ## Flowers and grass
             replace = offset + 106
             for i in range(213, 216):
                 t[i].main = t[replace].main
-                t[i].setOverridden()
                 replace += 1
 
             # Lines
             ## Straight lines
             ### Normal
             t[216].main = t[offset + 128].main
-            t[216].setOverridden()
             t[217].main = t[offset + 63].main
-            t[217].setOverridden()
             ### Corners and diagonals
             replace = offset + 122
             for i in range(218, 231):
                 if i != 224:  # random empty tile
                     t[i].main = t[replace].main
-                    t[i].setOverridden()
                 replace += 1
 
             ## Circles and stops
             for i in range(231, 256):
                 t[i].main = t[replace].main
-                t[i].setOverridden()
                 replace += 1
 
     except Exception:
@@ -2952,7 +2865,7 @@ def SimpleTilesetNames():
 ############################### LEVEL ###############################
 #####################################################################
 
-class AbstractLevel():
+class AbstractLevel:
     """
     Class for an abstract level from any game. Defines the API.
     """
@@ -3313,7 +3226,7 @@ class Level_NSMBU(AbstractLevel):
 ############################### AREAS ###############################
 #####################################################################
 
-class AbstractArea():
+class AbstractArea:
     """
     An extremely basic abstract area. Implements the basic function API.
     """
@@ -10812,7 +10725,7 @@ class PreferencesDialog(QtWidgets.QDialog):
 ############################### STAMP ###############################
 #####################################################################
 
-class Stamp():
+class Stamp:
     """
     Class that represents a stamp in the list
     """
@@ -11095,13 +11008,13 @@ class StampListModel(QtCore.QAbstractListModel):
 ############################# GAME DEFS #############################
 #####################################################################
 
-class MiyamotoGameDefinition():
+class MiyamotoGameDefinition:
     """
-    A class that defines a NSMBW hack: songs, tilesets, sprites, songs, etc.
+    A class that defines a NSMBU hack: songs, tilesets, sprites, songs, etc.
     """
 
     # Gamedef File - has 2 values: name (str) and patch (bool)
-    class GameDefinitionFile():
+    class GameDefinitionFile:
         """
         A class that defines a filepath, and some options
         """
