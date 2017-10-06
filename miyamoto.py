@@ -1914,7 +1914,13 @@ class TilesetTile:
         else:
             color = QtGui.QColor(0, 0, 0, 120)
 
-        style = Qt.SolidPattern
+        # Sets Brush style for fills
+        if CD[0] in [14, 20, 21]:  # Climbing Grid
+            style = Qt.DiagCrossPattern
+        elif CD[0] in [5, 6, 7]:  # Breakable
+            style = Qt.Dense5Pattern
+        else:
+            style = Qt.SolidPattern
 
         brush = QtGui.QBrush(color, style)
         pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 128))
