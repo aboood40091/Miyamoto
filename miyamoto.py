@@ -83,6 +83,7 @@ SpriteCategories = None
 SpriteListData = None
 EntranceTypeNames = None
 Tiles = None  # 0x200 tiles per tileset, plus 64 for each type of override
+TilesetAnimTimer = None
 Overrides = None  # 320 tiles, this is put into Tiles usually
 TileBehaviours = None
 ObjectDefinitions = None  # 4 tilesets
@@ -1336,8 +1337,8 @@ class LevelScene(QtWidgets.QGraphicsScene):
                                 offset = 0x200 * 4
                                 items = {1: 26, 2: 27, 3: 16, 4: 17, 5: 18, 6: 19,
                                          7: 20, 8: 21, 9: 22, 10: 25, 11: 23, 12: 24,
-                                         13: 46, 14: 32, 15: 33, 16: 34, 17: 35, 18: 42,
-                                         19: 36, 20: 37, 21: 38, 22: 41, 23: 39, 24: 40}
+                                         14: 32, 15: 33, 16: 34, 17: 35, 18: 42, 19: 36,
+                                         20: 37, 21: 38, 22: 41, 23: 39, 24: 40}
                                 if item.data in items:
                                     destrow[destx] = offset + items[item.data]
                                 else:
@@ -1834,13 +1835,27 @@ class TilesetTile:
         self.collData = ()
         self.collOverlay = None
 
-    def addAnimationData(self):
+    def addAnimationData(self, data, reverse=False):
         """
-        Applies Newer-style animation data to the tile
+        Applies animation data to the tile
         """
         animTiles = []
+
+        dest = QtGui.QPixmap.fromImage(LoadTexture_NSMBU(data))
+        x = 0
+        y = 0
+
+        while y < (dest.height() // 64):
+            tile = dest.copy((x * 64) + 2, (y * 64) + 2, 60, 60)
+            animTiles.append(tile)
+            x += 1
+
+            if x >= dest.width() // 64:
+                x = 0
+                y += 1
+
         self.animTiles = animTiles
-        self.isAnimated = False
+        self.isAnimated = True
 
     def nextFrame(self):
         """
@@ -2189,11 +2204,14 @@ def CreateTilesets():
     """
     Blank out the tileset arrays
     """
-    global Tiles, TileBehaviours, ObjectDefinitions
+    global Tiles, TilesetAnimTimer, TileBehaviours, ObjectDefinitions
 
     Tiles = [None] * 0x200 * 4
     Tiles += Overrides
     # TileBehaviours = [0]*1024
+    TilesetAnimTimer = QtCore.QTimer()
+    TilesetAnimTimer.timeout.connect(IncrementTilesetFrame)
+    TilesetAnimTimer.start(90)
     ObjectDefinitions = [None] * 4
     SLib.Tiles = Tiles
 
@@ -2241,6 +2259,48 @@ def _LoadTileset(idx, name, reload=False):
         if sourcex >= 32:
             sourcex = 0
             sourcey += 1
+
+    def exists(fn):
+        nonlocal sarc
+        try:
+            sarc[fn]
+        except:
+            return False
+        return True
+    
+    # Load the tileset animations, if there are any
+    tileoffset = idx*256
+    row = 0
+    col = 0
+
+    for i in range(tileoffset,tileoffset+256):
+        if idx == 0:
+            if Tiles[i].collData[0] == 7:
+                fn = 'BG_tex/hatena_anime.gtx'
+                found = exists(fn)
+
+                if found:
+                    Tiles[i].addAnimationData(sarc[fn].data)
+
+            elif Tiles[i].collData[0] == 6:
+                fn = 'BG_tex/block_anime.gtx'
+                found = exists(fn)
+
+                if found:
+                    Tiles[i].addAnimationData(sarc[fn].data)
+
+            elif Tiles[i].collData[0] == 2:
+                fn = 'BG_tex/tuka_coin_anime.gtx'
+                found = exists(fn)
+
+                if found:
+                    Tiles[i].addAnimationData(sarc[fn].data)
+
+        col += 1
+
+        if col == 16:
+            col = 0
+            row += 1
 
     # Load the object definitions
     defs = [None] * 256
@@ -11605,6 +11665,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                           trans.string('MenuItems', 51), QtGui.QKeySequence('Ctrl+2'), True)
         self.CreateAction('showlay2', self.HandleUpdateLayer2, GetIcon('layer2'), trans.string('MenuItems', 52),
                           trans.string('MenuItems', 53), QtGui.QKeySequence('Ctrl+3'), True)
+        self.CreateAction('tileanim', self.HandleTilesetAnimToggle, GetIcon('animation'),
+                          trans.string('MenuItems', 108), trans.string('MenuItems', 109),
+                          QtGui.QKeySequence('Ctrl+7'), True)
         self.CreateAction('collisions', self.HandleCollisionsToggle, GetIcon('collisions'),
                           trans.string('MenuItems', 110), trans.string('MenuItems', 111),
                           QtGui.QKeySequence('Ctrl+8'), True)
@@ -11736,6 +11799,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         vmenu.addAction(self.actions['showlay0'])
         vmenu.addAction(self.actions['showlay1'])
         vmenu.addAction(self.actions['showlay2'])
+        vmenu.addAction(self.actions['tileanim'])
         vmenu.addAction(self.actions['collisions'])
         vmenu.addAction(self.actions['realview'])
         vmenu.addSeparator()
@@ -13760,6 +13824,19 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if Area is not None:
             for obj in Area.layers[2]:
                 obj.setVisible(Layer2Shown)
+
+        self.scene.update()
+
+    @QtCore.pyqtSlot(bool)
+    def HandleTilesetAnimToggle(self, checked):
+        """
+        Handle toggling of tileset animations
+        """
+        global TilesetsAnimating
+
+        TilesetsAnimating = checked
+        for tile in Tiles:
+            if tile is not None: tile.resetAnimation()
 
         self.scene.update()
 
