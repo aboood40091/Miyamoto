@@ -1835,24 +1835,35 @@ class TilesetTile:
         self.collData = ()
         self.collOverlay = None
 
-    def addAnimationData(self, data, reverse=False):
+    def addAnimationData(self, data):
         """
         Applies animation data to the tile
         """
         animTiles = []
 
         dest = QtGui.QPixmap.fromImage(LoadTexture_NSMBU(data))
-        x = 0
-        y = 0
+        for y in range(dest.height() // 64):
+            for x in range(dest.width() // 64):
+                tile = dest.copy((x * 64) + 2, (y * 64) + 2, 60, 60)
+                animTiles.append(tile)
 
-        while y < (dest.height() // 64):
+        self.animTiles = animTiles
+        self.isAnimated = True
+
+    def addConveyorAnimationData(self, data, x, reverse=False):
+        """
+        Applies animation data to the conveyor tile
+        """
+        animTiles = []
+
+        dest = QtGui.QPixmap.fromImage(LoadTexture_NSMBU(data))
+
+        for y in range(dest.height() // 64):
             tile = dest.copy((x * 64) + 2, (y * 64) + 2, 60, 60)
             animTiles.append(tile)
-            x += 1
 
-            if x >= dest.width() // 64:
-                x = 0
-                y += 1
+        if reverse:
+            animTiles = list(reversed(animTiles))
 
         self.animTiles = animTiles
         self.isAnimated = True
@@ -2295,6 +2306,30 @@ def _LoadTileset(idx, name, reload=False):
 
                 if found:
                     Tiles[i].addAnimationData(sarc[fn].data)
+
+            elif Tiles[i].collData[0] == 17:
+                fn = 'BG_tex/belt_conveyor_anime.gtx'
+                found = exists(fn)
+
+                if found:
+                    for x in range(2):
+                        if i == 144+x*16:
+                            Tiles[i].addConveyorAnimationData(sarc[fn].data, 0, True)
+
+                        elif i == 145+x*16:
+                            Tiles[i].addConveyorAnimationData(sarc[fn].data, 1, True)
+
+                        elif i == 146+x*16:
+                            Tiles[i].addConveyorAnimationData(sarc[fn].data, 2, True)
+
+                        elif i == 147+x*16:
+                            Tiles[i].addConveyorAnimationData(sarc[fn].data, 0)
+
+                        elif i == 148+x*16:
+                            Tiles[i].addConveyorAnimationData(sarc[fn].data, 1)
+
+                        elif i == 149+x*16:
+                            Tiles[i].addConveyorAnimationData(sarc[fn].data, 2)
 
         col += 1
 
