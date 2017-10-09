@@ -3569,7 +3569,7 @@ class SpriteImage_AirshipCannon(SLib.SpriteImage_StaticMultiple): # 176
             3.75,
             )
 
-        self.yOffset = -7
+        self.yOffset = -8
 
     @staticmethod
     def loadImages():
@@ -3580,12 +3580,12 @@ class SpriteImage_AirshipCannon(SLib.SpriteImage_StaticMultiple): # 176
         
         direction = self.parent.spritedata[5]
         
-        if direction == 0:
-            self.image = ImageCache['CannonL']
-        elif direction == 1:
+        if direction == 1:
             self.image = ImageCache['CannonR']
+            self.xOffset = 0
         else:
             self.image = ImageCache['CannonL']
+            self.xOffset = -8
             
         super().dataChanged()
 
@@ -4891,7 +4891,7 @@ class SpriteImage_BigBrickBlock(SLib.SpriteImage): # 422
         else:
             painter.drawPixmap(0, 0, 120, 120, self.imagecache)
 
-class SpriteImage_AirshipCannon(SLib.SpriteImage_Static): # 424
+class SpriteImage_ToAirshipCannon(SLib.SpriteImage_Static): # 424
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -5930,7 +5930,7 @@ ImageClasses = {
     405: SpriteImage_Crash,
     407: SpriteImage_BumpPlatform,
     422: SpriteImage_BigBrickBlock,
-    424: SpriteImage_AirshipCannon,
+    424: SpriteImage_ToAirshipCannon,
     427: SpriteImage_SnowyBoxes,
     436: SpriteImage_Crash,
     439: SpriteImage_Crash,
