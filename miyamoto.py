@@ -1841,7 +1841,7 @@ class TilesetTile:
         """
         animTiles = []
 
-        dest = QtGui.QPixmap.fromImage(LoadTexture_NSMBU(data))
+        dest = QtGui.QPixmap.fromImage(data)
         for y in range(dest.height() // 64):
             for x in range(dest.width() // 64):
                 tile = dest.copy((x * 64) + 2, (y * 64) + 2, 60, 60)
@@ -1856,7 +1856,7 @@ class TilesetTile:
         """
         animTiles = []
 
-        dest = QtGui.QPixmap.fromImage(LoadTexture_NSMBU(data))
+        dest = QtGui.QPixmap.fromImage(data)
 
         for y in range(dest.height() // 64):
             tile = dest.copy((x * 64) + 2, (y * 64) + 2, 60, 60)
@@ -2284,52 +2284,69 @@ def _LoadTileset(idx, name, reload=False):
     row = 0
     col = 0
 
+    hatena_anime = None
+    block_anime = None
+    tuka_coin_anime = None
+    belt_conveyor_anime = None
+
+    fn = 'BG_tex/hatena_anime.gtx'
+    found = exists(fn)
+
+    if found:
+        hatena_anime = LoadTexture_NSMBU(sarc[fn].data)
+
+    fn = 'BG_tex/block_anime.gtx'
+    found = exists(fn)
+
+    if found:
+        block_anime = LoadTexture_NSMBU(sarc[fn].data)
+
+    fn = 'BG_tex/tuka_coin_anime.gtx'
+    found = exists(fn)
+
+    if found:
+        tuka_coin_anime = LoadTexture_NSMBU(sarc[fn].data)
+
+    fn = 'BG_tex/belt_conveyor_anime.gtx'
+    found = exists(fn)
+
+    if found:
+        belt_conveyor_anime = LoadTexture_NSMBU(sarc[fn].data)
+
     for i in range(tileoffset,tileoffset+256):
         if idx == 0:
             if Tiles[i].collData[0] == 7:
-                fn = 'BG_tex/hatena_anime.gtx'
-                found = exists(fn)
-
-                if found:
-                    Tiles[i].addAnimationData(sarc[fn].data)
+                if hatena_anime:
+                    Tiles[i].addAnimationData(hatena_anime)
 
             elif Tiles[i].collData[0] == 6:
-                fn = 'BG_tex/block_anime.gtx'
-                found = exists(fn)
-
-                if found:
-                    Tiles[i].addAnimationData(sarc[fn].data)
+                if block_anime:
+                    Tiles[i].addAnimationData(block_anime)
 
             elif Tiles[i].collData[0] == 2:
-                fn = 'BG_tex/tuka_coin_anime.gtx'
-                found = exists(fn)
-
-                if found:
-                    Tiles[i].addAnimationData(sarc[fn].data)
+                if tuka_coin_anime:
+                    Tiles[i].addAnimationData(tuka_coin_anime)
 
             elif Tiles[i].collData[0] == 17:
-                fn = 'BG_tex/belt_conveyor_anime.gtx'
-                found = exists(fn)
-
-                if found:
+                if belt_conveyor_anime:
                     for x in range(2):
                         if i == 144+x*16:
-                            Tiles[i].addConveyorAnimationData(sarc[fn].data, 0, True)
+                            Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 0, True)
 
                         elif i == 145+x*16:
-                            Tiles[i].addConveyorAnimationData(sarc[fn].data, 1, True)
+                            Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 1, True)
 
                         elif i == 146+x*16:
-                            Tiles[i].addConveyorAnimationData(sarc[fn].data, 2, True)
+                            Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 2, True)
 
                         elif i == 147+x*16:
-                            Tiles[i].addConveyorAnimationData(sarc[fn].data, 0)
+                            Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 0)
 
                         elif i == 148+x*16:
-                            Tiles[i].addConveyorAnimationData(sarc[fn].data, 1)
+                            Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 1)
 
                         elif i == 149+x*16:
-                            Tiles[i].addConveyorAnimationData(sarc[fn].data, 2)
+                            Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 2)
 
         col += 1
 
