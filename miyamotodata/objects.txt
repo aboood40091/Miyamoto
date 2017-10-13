@@ -31,3 +31,6 @@
 31: Peach's castle - 3
 32: Peach's castle (outside)
 33: Hidden Luigi
+
+Download the objects from:
+https://github.com/aboood40091/Miyamoto/releases/download/v16/Objects.zip

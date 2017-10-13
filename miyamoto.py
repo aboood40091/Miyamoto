@@ -39,6 +39,7 @@ if currentRunningVersion < minimum:
 
 # Stdlib imports
 import base64
+import json
 import os
 import pickle
 import platform
@@ -87,6 +88,9 @@ TilesetAnimTimer = None
 Overrides = None  # 320 tiles, this is put into Tiles usually
 TileBehaviours = None
 ObjectDefinitions = None  # 4 tilesets
+ObjectAllDefinitions = None
+ObjectAllCollisions = None
+ObjectAllImages = None
 TilesetsAnimating = False
 Area = None
 Dirty = False
@@ -1022,8 +1026,7 @@ def LoadTileset(idx, name, reload=False):
         return _LoadTileset(idx, name, reload)
     except Exception:
         raise
-        QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTileset', 0),
-                                      trans.string('Err_CorruptedTileset', 1, '[file]', name))
+        
         return False
 
 
@@ -1232,9 +1235,6 @@ def LoadActionsLists():
     )
     TileActions = (
         (trans.string('MenuItems', 136), False, 'editslot1'),
-        (trans.string('MenuItems', 138), False, 'editslot2'),
-        (trans.string('MenuItems', 140), False, 'editslot3'),
-        (trans.string('MenuItems', 142), False, 'editslot4'),
     )
     HelpActions = (
         (trans.string('MenuItems', 86), False, 'infobox'),
@@ -1824,11 +1824,17 @@ class TilesetTile:
     Class that represents a single tile in a tileset
     """
 
-    def __init__(self, main):
+    def __init__(self, main, nml=None):
         """
         Initializes the TilesetTile
         """
         self.main = main
+
+        if not nml:
+            nml = QtGui.QPixmap(60, 60)
+            nml.fill(QtGui.QColor(128, 128, 255))
+
+        self.nml = nml
         self.isAnimated = False
         self.animFrame = 0
         self.animTiles = []
@@ -2182,29 +2188,34 @@ class ObjectDef:
         """
         self.width = 0
         self.height = 0
+        self.randByte = 0
         self.rows = []
         self.data = 0
 
-    def load(self, source, offset, tileoffset):
+    def load(self, source, offset):
         """
         Load an object definition
         """
         i = offset
         row = []
+        cbyte = source[i]
 
-        while True:
+        while cbyte != 0xFF and i < len(source):
             cbyte = source[i]
 
             if cbyte == 0xFE:
                 self.rows.append(row)
                 i += 1
                 row = []
-            elif cbyte == 0xFF:
-                return
+
             elif (cbyte & 0x80) != 0:
                 row.append((cbyte,))
                 i += 1
+
             else:
+                if i + 1 >= len(source) or i + 2 >= len(source):
+                    break
+
                 extra = source[i + 2]
                 tile = [cbyte, source[i + 1] | ((extra & 3) << 8), extra >> 2]
                 row.append(tile)
@@ -2227,6 +2238,220 @@ def CreateTilesets():
     SLib.Tiles = Tiles
 
 
+def getUsedTiles():
+    """
+    Get the number of used tiles in each tileset
+    """
+    usedTiles = {}
+
+    for idx in range(1, 4):
+        usedTiles[idx] = []
+
+        defs = ObjectDefinitions[idx]
+
+        if defs is not None:
+            for i in range(256):
+                obj = defs[i]
+                if obj is None: break
+
+                for row in obj.rows:
+                    for tile in row:
+                        if len(tile) == 3:
+                            randLen = obj.randByte & 0xF
+                            tileNum = tile[1] & 0xFF
+                            if randLen > 0:
+                                for i in range(randLen):
+                                    if tileNum + i not in usedTiles[idx]:
+                                        usedTiles[idx].append(tileNum + i)
+                            else:
+                                if tileNum not in usedTiles[idx]:
+                                    usedTiles[idx].append(tileNum)
+
+    return usedTiles
+
+
+def writeGTX(tex, idx):
+    """
+    Converts our tileset image to GTX
+    """
+    if platform.system() == 'Windows':
+        tile_path = miyamoto_path + '/Tools'
+
+    elif platform.system() == 'Linux':
+        tile_path = miyamoto_path + '/linuxTools'
+
+    elif platform.system() == 'Darwin':
+        tile_path = miyamoto_path + '/macTools'
+
+    tex.save(tile_path + '/tmp.png')
+    
+    os.chdir(tile_path)
+
+    if platform.system() == 'Windows':
+        exe = 'nvcompress.exe'
+
+    elif platform.system() == 'Linux':
+        os.system('chmod +x nvcompress.elf')
+        exe = 'nvcompress.elf'
+
+    elif platform.system() == 'Darwin':
+        os.system('chmod +x nvcompress-osx.app')
+        exe = 'nvcompress-osx.app'
+
+    if idx != 0:
+        os.system(exe + ' -bc3 tmp.png tmp.dds')
+    else:
+        os.system(exe + ' -rgb -nomips tmp.png tmp.dds')
+    
+    os.chdir(miyamoto_path)
+
+    import gtx
+    gtxdata = gtx.DDStoGTX(tile_path + '/tmp.dds')
+
+    os.remove(tile_path + '/tmp.dds')
+    os.remove(tile_path + '/tmp.png')
+
+    return gtxdata
+
+
+def PackTexture(idx, nml=False):
+    """
+    Packs the tiles into a GTX file
+    """
+    global Tiles
+
+    tex = QtGui.QImage(2048, 512, QtGui.QImage.Format_ARGB32)
+    tex.fill(Qt.transparent)
+    painter = QtGui.QPainter(tex)
+
+    tileoffset = idx * 256
+    x = 0
+    y = 0
+
+    for i in range(tileoffset, tileoffset + 256):
+        tile = QtGui.QImage(64, 64, QtGui.QImage.Format_ARGB32)
+        tile.fill(Qt.transparent)
+        tilePainter = QtGui.QPainter(tile)
+
+        tilePainter.drawPixmap(2, 2, Tiles[i].nml if nml else Tiles[i].main)
+        tilePainter.end()
+
+        for i in range(2, 62):
+            color = tile.pixel(i, 2)
+            for pix in range(0,2):
+                tile.setPixel(i, pix, color)
+
+            color = tile.pixel(2, i)
+            for p in range(0,2):
+                tile.setPixel(p, i, color)
+
+            color = tile.pixel(i, 61)
+            for p in range(62,64):
+                tile.setPixel(i, p, color)
+
+            color = tile.pixel(61, i)
+            for p in range(62,64):
+                tile.setPixel(p, i, color)
+
+        color = tile.pixel(2, 2)
+        for a in range(0, 2):
+            for b in range(0, 2):
+                tile.setPixel(a, b, color)
+
+        color = tile.pixel(61, 2)
+        for a in range(62, 64):
+            for b in range(0, 2):
+                tile.setPixel(a, b, color)
+
+        color = tile.pixel(2, 61)
+        for a in range(0, 2):
+            for b in range(62, 64):
+                tile.setPixel(a, b, color)
+
+        color = tile.pixel(61, 61)
+        for a in range(62, 64):
+            for b in range(62, 64):
+                tile.setPixel(a, b, color)
+
+
+        painter.drawImage(x, y, tile)
+
+        x += 64
+
+        if x >= 2048:
+            x = 0
+            y += 64
+
+    painter.end()
+
+    outData = writeGTX(tex, idx)
+
+    return outData
+
+
+def SaveTileset(idx):
+    """
+    Saves a tileset from a specific slot
+    """
+    global Tiles, ObjectDefinitions
+
+    name = eval('Area.tileset%d' % idx)
+
+    tileoffset = idx * 256
+
+    tiledata = PackTexture(idx)
+    nmldata = PackTexture(idx, True)
+
+    defs = ObjectDefinitions[idx]
+
+    if defs is None: return False
+
+    colldata = b''
+    deffile = b''
+    indexfile = b''
+
+    for i in range(tileoffset, tileoffset + 256):
+        colldata += bytes(Tiles[i].collData)
+
+    for obj in defs:
+        if obj is None:
+            break
+
+        indexfile += struct.pack('>HBBxB', len(deffile), obj.width, obj.height, obj.randByte)
+
+        for row in obj.rows:
+            for tile in row:
+                if len(tile) == 3:
+                    byte0 = tile[0]
+                    byte1 = tile[1] & 0xFF
+                    byte2 = tile[2] << 2
+                    byte2 |= (tile[1] >> 8) & 3  # Slot
+
+                    deffile += bytes([byte0, byte1, byte2])
+
+                else:
+                    deffile += bytes(tile)
+
+            deffile += b'\xFE'
+
+        deffile += b'\xFF'
+
+    arc = SarcLib.SARC_Archive()
+
+    tex = SarcLib.Folder('BG_tex'); arc.addFolder(tex)
+    tex.addFile(SarcLib.File('%s.gtx' % name, tiledata))
+    tex.addFile(SarcLib.File('%s_nml.gtx' % name, nmldata))
+
+    chk = SarcLib.Folder('BG_chk'); arc.addFolder(chk)
+    chk.addFile(SarcLib.File('d_bgchk_%s.bin' % name, colldata))
+
+    unt = SarcLib.Folder('BG_unt'); arc.addFolder(unt)
+    unt.addFile(SarcLib.File('%s.bin' % name, deffile))
+    unt.addFile(SarcLib.File('%s_hd.bin' % name, indexfile))
+
+    return arc.save(0x2000)
+
+
 def _LoadTileset(idx, name, reload=False):
     """
     Load in a tileset into a specific slot
@@ -2245,6 +2470,7 @@ def _LoadTileset(idx, name, reload=False):
     # Decompress the textures
     try:
         comptiledata = sarc['BG_tex/%s.gtx' % name].data
+        nmldata = sarc['BG_tex/%s_nml.gtx' % name].data
         colldata = sarc['BG_chk/d_bgchk_%s.bin' % name].data
     except KeyError:
         QtWidgets.QMessageBox.warning(None, trans.string('Err_CorruptedTilesetData', 0),
@@ -2253,6 +2479,7 @@ def _LoadTileset(idx, name, reload=False):
 
     # load in the textures
     img = LoadTexture_NSMBU(comptiledata)
+    nml = LoadTexture_NSMBU(nmldata)
 
     # Divide it into individual tiles and
     # add collisions at the same time
@@ -2260,10 +2487,11 @@ def _LoadTileset(idx, name, reload=False):
         return tilemap.copy((xtilenum * 64) + 2, (ytilenum * 64) + 2, 60, 60)
 
     dest = QtGui.QPixmap.fromImage(img)
+    dest2 = QtGui.QPixmap.fromImage(nml)
     sourcex = 0
     sourcey = 0
     for i in range(tileoffset, tileoffset + 256):
-        T = TilesetTile(getTileFromImage(dest, sourcex, sourcey))
+        T = TilesetTile(getTileFromImage(dest, sourcex, sourcey), getTileFromImage(dest2, sourcex, sourcey))
         T.setCollisions(struct.unpack_from('>8B', colldata, (i - tileoffset) * 8))
         Tiles[i] = T
         sourcex += 1
@@ -2367,7 +2595,8 @@ def _LoadTileset(idx, name, reload=False):
         obj = ObjectDef()
         obj.width = data[1]
         obj.height = data[2]
-        obj.load(deffile, data[0], tileoffset)
+        obj.randByte = data[3]
+        obj.load(deffile, data[0])
         defs[i] = obj
 
     ObjectDefinitions[idx] = defs
@@ -2602,6 +2831,56 @@ def RenderObject(tileset, objnum, width, height, fullslope=False):
         bc = len(beforeRepeat);
         ic = len(inRepeat);
         ac = len(afterRepeat)
+        if ic == 0:
+            for y in range(height):
+                RenderStandardRow(dest[y], beforeRepeat[y % bc], y, width)
+        else:
+            afterthreshold = height - ac - 1
+            for y in range(height):
+                if y < bc:
+                    RenderStandardRow(dest[y], beforeRepeat[y], y, width)
+                elif y > afterthreshold:
+                    RenderStandardRow(dest[y], afterRepeat[y - height + ac], y, width)
+                else:
+                    RenderStandardRow(dest[y], inRepeat[(y - bc) % ic], y, width)
+
+    return dest
+
+
+def RenderObjectAll(obj, width, height, fullslope=False):
+    """
+    Used by "All" tab, render a tileset object into an array
+    """
+    # allocate an array
+    dest = []
+    for i in range(height): dest.append([0]*width)
+
+    # ignore non-existent objects
+    if obj is None: return dest
+    if len(obj.rows) == 0: return dest
+
+    # diagonal objects are rendered differently
+    if (obj.rows[0][0][0] & 0x80) != 0:
+        RenderDiagonalObject(dest, obj, width, height, fullslope)
+    else:
+        # standard object
+        repeatFound = False
+        beforeRepeat = []
+        inRepeat = []
+        afterRepeat = []
+
+        for row in obj.rows:
+            if len(row) == 0: continue
+            if (row[0][0] & 2) != 0:
+                repeatFound = True
+                inRepeat.append(row)
+            else:
+                if repeatFound:
+                    afterRepeat.append(row)
+                else:
+                    beforeRepeat.append(row)
+
+        bc = len(beforeRepeat); ic = len(inRepeat); ac = len(afterRepeat)
         if ic == 0:
             for y in range(height):
                 RenderStandardRow(dest[y], beforeRepeat[y % bc], y, width)
@@ -3156,6 +3435,22 @@ class Level_NSMBU(AbstractLevel):
         # Make it easy for future Miyamotos to pick out the innersarc level name
         outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
 
+        # Save all the tilesets
+        if Area.tileset1:
+            tilesetData = SaveTileset(1)
+            if tilesetData:
+                szsData[Area.tileset1] = tilesetData
+
+        if Area.tileset2:
+            tilesetData = SaveTileset(2)
+            if tilesetData:
+                szsData[Area.tileset2] = tilesetData
+
+        if Area.tileset3:
+            tilesetData = SaveTileset(3)
+            if tilesetData:
+                szsData[Area.tileset3] = tilesetData
+
         # Add all the other stuff, too
         if os.path.isdir(miyamoto_path + '/data'):
             tree = etree.parse(miyamoto_path + '/miyamotodata/spriteresources.xml')
@@ -3271,6 +3566,22 @@ class Level_NSMBU(AbstractLevel):
 
         # Make it easy for future Miyamotos to pick out the innersarc level name
         outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
+
+        # Save all the tilesets
+        if Area.tileset1:
+            tilesetData = SaveTileset(1)
+            if tilesetData:
+                szsData[Area.tileset1] = tilesetData
+
+        if Area.tileset2:
+            tilesetData = SaveTileset(2)
+            if tilesetData:
+                szsData[Area.tileset2] = tilesetData
+
+        if Area.tileset3:
+            tilesetData = SaveTileset(3)
+            if tilesetData:
+                szsData[Area.tileset3] = tilesetData
 
         # Add all the other stuff, too
         if os.path.isdir(miyamoto_path + '/data'):
@@ -6529,23 +6840,37 @@ class ObjectPickerWidget(QtWidgets.QListView):
         self.setWrapping(True)
 
         self.m0 = ObjectPickerWidget.ObjectListModel()
-        self.m1 = ObjectPickerWidget.ObjectListModel()
-        self.m2 = ObjectPickerWidget.ObjectListModel()
-        self.m3 = ObjectPickerWidget.ObjectListModel()
+        self.mall = ObjectPickerWidget.ObjectListModel()
+        self.m123 = ObjectPickerWidget.ObjectListModel()
         self.setModel(self.m0)
 
         self.setItemDelegate(ObjectPickerWidget.ObjectItemDelegate())
 
         self.clicked.connect(self.HandleObjReplace)
 
+    def contextMenuEvent(self, event):
+        """
+        Creates and shows the right-click menu
+        """
+        self.menu = QtWidgets.QMenu(self)
+
+        export = QtWidgets.QAction('Export', self)
+        export.triggered.connect(self.HandleObjExport)
+
+        delete = QtWidgets.QAction('Delete', self)
+        delete.triggered.connect(self.HandleObjDelete)
+
+        self.menu.addAction(export)
+        self.menu.addAction(delete)
+
+        self.menu.popup(QtGui.QCursor.pos())
+
     def LoadFromTilesets(self):
         """
         Renders all the object previews
         """
         self.m0.LoadFromTileset(0)
-        self.m1.LoadFromTileset(1)
-        self.m2.LoadFromTileset(2)
-        self.m3.LoadFromTileset(3)
+        self.m123.LoadFromTileset(1)
 
     def ShowTileset(self, id):
         """
@@ -6553,9 +6878,8 @@ class ObjectPickerWidget(QtWidgets.QListView):
         """
         sel = self.currentIndex().row()
         if id == 0: self.setModel(self.m0)
-        if id == 1: self.setModel(self.m1)
-        if id == 2: self.setModel(self.m2)
-        if id == 3: self.setModel(self.m3)
+        elif id == 1: self.setModel(self.mall)
+        else: self.setModel(self.m123)
         self.setCurrentIndex(self.model().index(sel, 0, QtCore.QModelIndex()))
 
     @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QModelIndex)
@@ -6572,6 +6896,141 @@ class ObjectPickerWidget(QtWidgets.QListView):
         """
         if QtWidgets.QApplication.keyboardModifiers() == Qt.AltModifier:
             self.ObjReplace.emit(index.row())
+
+    def HandleObjExport(self, index):
+        """
+        Exports an object from the tileset
+        """
+        save_path = QtWidgets.QFileDialog.getExistingDirectory(None, "Choose where to save the Object folder")
+        if not save_path: return
+
+        idx = CurrentPaintType
+        objNum = CurrentObject
+
+        tileoffset = idx * 256
+
+        name = eval('Area.tileset%d' % idx)
+
+        obj = ObjectDefinitions[idx][objNum]
+
+        jsonData = {}
+
+        tex = QtGui.QPixmap(obj.width * 60, obj.height * 60)
+        tex.fill(Qt.transparent)
+        nml = QtGui.QPixmap(obj.width * 60, obj.height * 60)
+        nml.fill(QtGui.QColor(128, 128, 255))
+        painter = QtGui.QPainter(tex)
+        nmlPainter = QtGui.QPainter(nml)
+
+        colldata = b''
+
+        x = 0
+        y = 0
+        for row in obj.rows:
+            for tile in row:
+                if len(tile) == 3:
+                    tileNum = (tile[1] & 0xFF) + tileoffset
+                    painter.drawPixmap(x, y, Tiles[tileNum].main)
+                    nmlPainter.drawPixmap(x, y, Tiles[tileNum].nml)
+                    colldata += bytes(Tiles[tileNum].collData)
+                    x += 60
+            y += 60
+            x = 0
+
+        painter.end()
+        nmlPainter.end()
+
+        if not os.path.exists(save_path + "/" + name):
+            os.makedirs(save_path + "/" + name)
+
+        tex.save(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + ".png", "PNG")
+        jsonData['img'] = name + "_object_" + str(objNum) + ".png"
+
+        nml.save(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + "_nml.png", "PNG")
+        jsonData['nml'] = name + "_object_" + str(objNum) + "_nml.png"
+
+        with open(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + ".colls", "wb+") as colls:
+                colls.write(colldata)
+
+        jsonData['colls'] = name + "_object_" + str(objNum) + ".colls"
+
+        deffile = b''
+
+        for row in obj.rows:
+            for tile in row:
+                if len(tile) == 3:
+                    byte0 = tile[0]
+                    byte1 = tile[1] & 0xFF
+                    byte2 = tile[2] << 2
+                    byte2 |= idx  # Slot
+
+                    deffile += bytes([byte0, byte1, byte2])
+
+                else:
+                    deffile += bytes(tile)
+
+            deffile += b'\xFE'
+
+        deffile += b'\xFF'
+
+        with open(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + ".objlyt", "wb+") as objlyt:
+            objlyt.write(deffile)
+
+        jsonData['objlyt'] = name + "_object_" + str(objNum) + ".objlyt"
+
+        indexfile = struct.pack('>HBBxB', 0, obj.width, obj.height, obj.randByte)
+
+        with open(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + ".meta", "wb+") as meta:
+            meta.write(indexfile)
+
+        jsonData['meta'] = name + "_object_" + str(objNum) + ".meta"
+
+        with open(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + ".json", 'w+') as outfile:
+            json.dump(jsonData, outfile)
+
+    def HandleObjDelete(self, index):
+        """
+        Deletes an object from the tileset
+        """
+        idx = CurrentPaintType
+        objNum = CurrentObject
+
+        del ObjectDefinitions[idx][objNum]
+        ObjectDefinitions[idx].append(None)
+
+        if ObjectDefinitions[idx] == [None] * 256:
+            if idx == 1: Area.tileset1 = ''
+            elif idx == 2: Area.tileset2 = ''
+            elif idx == 3: Area.tileset3 = ''
+
+        # Doesn't function properly, don't ask me why
+        ## for layer in Area.layers:
+        ##     for obj in layer:
+        ##         if obj.tileset == idx and obj.type == objNum:
+        ##             currLayer = Area.layers.index(layer)
+        ##             currObj = Area.layers[currLayer].index(obj)
+        ##             del Area.layers[currLayer][currObj]
+        ##             mainWindow.scene.removeItem(obj)
+
+        ## global numObj
+
+        ## for i in range(idx):
+        ##     numObj[i] -= 1
+
+        for layer in Area.layers:
+            for obj in layer:
+                if obj.tileset == idx:
+                    if obj.type > objNum:
+                        obj.type -= 1
+
+        self.LoadFromTilesets()
+
+        if not (Area.tileset1 or Area.tileset2 or Area.tileset3):
+            mainWindow.objAllTab.setCurrentIndex(0)
+            mainWindow.objAllTab.setTabEnabled(2, False)
+
+        mainWindow.scene.update()
+        SetDirty()
 
     ObjChanged = QtCore.pyqtSignal(int)
     ObjReplace = QtCore.pyqtSignal(int)
@@ -6657,62 +7116,154 @@ class ObjectPickerWidget(QtWidgets.QListView):
             """
             Renders all the object previews for the model
             """
-            if ObjectDefinitions[idx] is None: return
+            self.items = []
+            self.ritems = []
+            self.itemsize = []
+            self.tooltips = []
 
-            self.beginResetModel()
+            global numObj
+            numObj = []
+
+            z = 0
+
+            if idx != 0:
+                numTileset = range(1, 4)
+            else:
+                numTileset = range(1)  # here
+
+            for idx in numTileset:
+                if ObjectDefinitions[idx] is None:
+                    numObj.append(z)
+                    continue
+
+                self.beginResetModel()
+                defs = ObjectDefinitions[idx]
+
+                for i in range(256):
+                    if defs[i] is None: break
+                    obj = RenderObject(idx, i, defs[i].width, defs[i].height, True)
+                    self.items.append(obj)
+
+                    pm = QtGui.QPixmap(defs[i].width * TileWidth, defs[i].height * TileWidth)
+                    pm.fill(Qt.transparent)
+                    p = QtGui.QPainter()
+                    p.begin(pm)
+                    y = 0
+                    isAnim = False
+
+                    for row in obj:
+                        x = 0
+                        for tile in row:
+                            if tile != -1:
+                                try:
+                                    if isinstance(Tiles[tile].main, QtGui.QImage):
+                                        p.drawImage(x, y, Tiles[tile].main)
+                                    else:
+                                        p.drawPixmap(x, y, Tiles[tile].main)
+                                except AttributeError:
+                                    break
+                                if isinstance(Tiles[tile], TilesetTile) and Tiles[tile].isAnimated: isAnim = True
+                            x += TileWidth
+                        y += TileWidth
+                    p.end()
+
+                    pm = pm.scaledToWidth(pm.width() * 32 / TileWidth, Qt.SmoothTransformation)
+                    if pm.width() > 256:
+                        pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
+                    if pm.height() > 256:
+                        pm = pm.scaledToHeight(256, Qt.SmoothTransformation)
+
+                    self.ritems.append(pm)
+                    self.itemsize.append(QtCore.QSize(pm.width() + 4, pm.height() + 4))
+                    if (idx == 0) and (i in ObjDesc) and isAnim:
+                        self.tooltips.append(trans.string('Objects', 4, '[tileset]', idx+1, '[id]', i, '[desc]', ObjDesc[i]))
+                    elif (idx == 0) and (i in ObjDesc):
+                        self.tooltips.append(trans.string('Objects', 3, '[tileset]', idx+1, '[id]', i, '[desc]', ObjDesc[i]))
+                    elif isAnim:
+                        self.tooltips.append(trans.string('Objects', 2, '[tileset]', idx+1, '[id]', i))
+                    else:
+                        self.tooltips.append(trans.string('Objects', 1, '[tileset]', idx+1, '[id]', i))
+
+                    z += 1
+
+                self.endResetModel()
+
+                numObj.append(z)
+
+        def LoadFromFolder(self):
+            """
+            Renders all the object previews for the model from a folder
+            """
+            global ObjectAllDefinitions, ObjectAllCollisions, ObjectAllImages
+
+            ObjectAllDefinitions = []
+            ObjectAllCollisions = []
+            ObjectAllImages = []
 
             self.items = []
             self.ritems = []
             self.itemsize = []
             self.tooltips = []
-            defs = ObjectDefinitions[idx]
 
-            for i in range(256):
-                if defs[i] is None: break
-                obj = RenderObject(idx, i, defs[i].width, defs[i].height, True)
-                self.items.append(obj)
+            z = 0
 
-                pm = QtGui.QPixmap(defs[i].width * TileWidth, defs[i].height * TileWidth)
-                pm.fill(Qt.transparent)
-                p = QtGui.QPainter()
-                p.begin(pm)
-                y = 0
-                isAnim = False
+            self.beginResetModel()
 
-                for row in obj:
-                    x = 0
-                    for tile in row:
-                        if tile != -1:
-                            try:
-                                if isinstance(Tiles[tile].main, QtGui.QImage):
-                                    p.drawImage(x, y, Tiles[tile].main)
-                                else:
-                                    p.drawPixmap(x, y, Tiles[tile].main)
-                            except AttributeError:
-                                break
-                            if isinstance(Tiles[tile], TilesetTile) and Tiles[tile].isAnimated: isAnim = True
-                        x += TileWidth
-                    y += TileWidth
-                p.end()
+            top_folder = setting('ObjPath') + "/" + mainWindow.folderPicker.currentText()
 
-                pm = pm.scaledToWidth(pm.width() * 32 / TileWidth, Qt.SmoothTransformation)
-                if pm.width() > 256:
-                    pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
-                if pm.height() > 256:
-                    pm = pm.scaledToHeight(256, Qt.SmoothTransformation)
+            for file in os.listdir(top_folder):
+                if file.endswith(".json"):
+                    dir = top_folder + "/"
 
-                self.ritems.append(pm)
-                self.itemsize.append(QtCore.QSize(pm.width() + 4, pm.height() + 4))
-                if (idx == 0) and (i in ObjDesc) and isAnim:
-                    self.tooltips.append(trans.string('Objects', 4, '[id]', i, '[desc]', ObjDesc[i]))
-                elif (idx == 0) and (i in ObjDesc):
-                    self.tooltips.append(trans.string('Objects', 3, '[id]', i, '[desc]', ObjDesc[i]))
-                elif isAnim:
-                    self.tooltips.append(trans.string('Objects', 2, '[id]', i))
-                else:
-                    self.tooltips.append(trans.string('Objects', 1, '[id]', i))
+                    with open(dir + file) as inf:
+                        jsonData = json.load(inf)
 
-            self.endResetModel()
+                    with open(dir + jsonData["colls"], "rb") as inf:
+                        ObjectAllCollisions.append(inf.read())
+
+                    with open(dir + jsonData["meta"], "rb") as inf:
+                        indexfile = inf.read()
+
+                    with open(dir + jsonData["objlyt"], "rb") as inf:
+                        deffile = inf.read()
+
+                    indexstruct = struct.Struct('>HBBH')
+
+                    data = indexstruct.unpack_from(indexfile, 0)
+                    obj = ObjectDef()
+                    obj.width = data[1]
+                    obj.height = data[2]
+                    obj.randByte = data[3]
+                    obj.load(deffile, 0)
+
+                    # Checks if the slop is reversed and reverses the rows
+                    isSlope = obj.rows[0][0][0]
+                    if (isSlope & 0x80) and (isSlope & 0x2):
+                        obj.rows = list(reversed(obj.rows))
+
+                    ObjectAllDefinitions.append(obj)
+
+                    obj = RenderObjectAll(obj, obj.width, obj.height, True)
+                    self.items.append(obj)
+
+                    ObjectAllImages.append([QtGui.QPixmap(dir + jsonData["img"]),
+                                            QtGui.QPixmap(dir + jsonData["nml"])])
+
+                    pm = ObjectAllImages[-1][0]
+
+                    pm = pm.scaledToWidth(pm.width() * 32/TileWidth, Qt.SmoothTransformation)
+                    if pm.width() > 256:
+                        pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
+                    if pm.height() > 256:
+                        pm = pm.scaledToHeight(256, Qt.SmoothTransformation)
+
+                    self.ritems.append(pm)
+                    self.itemsize.append(QtCore.QSize(pm.width() + 4, pm.height() + 4))
+                    self.tooltips.append(trans.string('Objects', 5, '[id]', z))
+
+                    z += 1
+
+                    self.endResetModel()
 
 
 class StampChooserWidget(QtWidgets.QListView):
@@ -8497,6 +9048,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         Overrides mouse pressing events if needed
         """
+        global CurrentPaintType, CurrentObject, CurrentSprite, ObjectDefinitions
+        global ObjectAllDefinitions, ObjectAllCollisions, ObjectAllImages
+
         if event.button() == Qt.RightButton:
             if CurrentPaintType in (0, 1, 2, 3) and CurrentObject != -1:
                 # paint an object
@@ -8524,6 +9078,131 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 self.dragstartx = clickedx
                 self.dragstarty = clickedy
                 SetDirty()
+
+            elif CurrentPaintType == 10 and CurrentObject != -1:
+                # See if the object is addable to one of the tilesets and add it
+                type_ = CurrentObject
+                for idx in range(1, 4):
+                    usedTiles = getUsedTiles()[idx]
+                    if len(usedTiles) >= 256:  # It can't be more than 256, oh well
+                        continue
+
+                    numTiles = 0
+                    obj = ObjectAllDefinitions[CurrentObject]
+                    for row in obj.rows:
+                        for tile in row:
+                            if len(tile) == 3:
+                                numTiles += 1
+
+                    if numTiles + len(usedTiles) > 256:
+                        continue
+
+                    tileoffset = idx * 256
+
+                    freeTiles = []
+                    for i in range(256):
+                        if i not in usedTiles: freeTiles.append(i)
+
+                    ctile = 0
+                    crow = 0
+                    i = 0
+                    for row in obj.rows:
+                        for tile in row:
+                            if len(tile) == 3:
+                                obj.rows[crow][ctile][1] = freeTiles[i] | (idx << 8)
+                                i += 1
+                            ctile += 1
+                        crow += 1
+                        ctile = 0
+
+                    if ObjectDefinitions[idx] is None:
+                        ObjectDefinitions[idx] = [None] * 256
+
+                    defs = ObjectDefinitions[idx]
+
+                    objNum = 0
+                    while defs[objNum] is not None and objNum < 256:
+                        objNum += 1
+
+                    ObjectDefinitions[idx][objNum] = obj
+
+                    colldata = ObjectAllCollisions[CurrentObject]
+                    img, nml = ObjectAllImages[CurrentObject]
+
+                    x = 0
+                    y = 0
+                    i = 0
+                    for row in obj.rows:
+                        for tile in row:
+                            if len(tile) == 3:
+                                tileNum = (tile[1] & 0xFF) + tileoffset
+                                T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
+                                T.setCollisions(struct.unpack_from('>8B', colldata, i))
+                                Tiles[tileNum] = T
+                                x += 60
+                                i += 8
+                        y += 60
+                        x = 0
+
+                    SLib.Tiles = Tiles
+
+                    CurrentPaintType = idx
+                    CurrentObject = objNum
+
+                    mainWindow.objPicker.LoadFromTilesets()
+
+                    if not eval('Area.tileset%d' % idx):
+                        if idx == 1:
+                            Area.tileset1 = ('Pa1_%d'
+                                             % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+
+                        elif idx == 2:
+                            Area.tileset2 = ('Pa2_%d'
+                                             % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+
+                        elif idx == 3:
+                            Area.tileset3 = ('Pa3_%d'
+                                             % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+
+                    mainWindow.objAllTab.setTabEnabled(2, (Area.tileset1 != ''
+                                                           or Area.tileset2 != ''
+                                                           or Area.tileset3 != ''))
+
+                    break
+
+                if CurrentPaintType == 10:
+                    QtWidgets.QMessageBox.warning(None, 'Warning',
+                                                  'There isn\'t enough room left for this object!')
+                    return
+
+                # paint an object
+                clicked = mainWindow.view.mapToScene(event.x(), event.y())
+                if clicked.x() < 0: clicked.setX(0)
+                if clicked.y() < 0: clicked.setY(0)
+                clickedx = int(clicked.x() / TileWidth)
+                clickedy = int(clicked.y() / TileWidth)
+
+                ln = CurrentLayer
+                layer = Area.layers[CurrentLayer]
+                if len(layer) == 0:
+                    z = (2 - ln) * 8192
+                else:
+                    z = layer[-1].zValue() + 1
+
+                obj = ObjectItem(CurrentPaintType, CurrentObject, ln, clickedx, clickedy, 1, 1, z, 0)
+                layer.append(obj)
+                mw = mainWindow
+                obj.positionChanged = mw.HandleObjPosChange
+                mw.scene.addItem(obj)
+
+                self.dragstamp = False
+                self.currentobj = obj
+                self.dragstartx = clickedx
+                self.dragstarty = clickedy
+                SetDirty()
+
+                CurrentPaintType = 10
+                CurrentObject = type_
 
             elif CurrentPaintType == 4 and CurrentSprite != -1:
                 # paint a sprite
@@ -11666,6 +12345,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('changegamepath', self.HandleChangeGamePath, GetIcon('folderpath'),
                           trans.string('MenuItems', 16), trans.string('MenuItems', 17),
                           QtGui.QKeySequence('Ctrl+Alt+G'))
+        self.CreateAction('changeobjpath', self.HandleChangeObjPath, GetIcon('folderpath'),
+                          trans.string('MenuItems', 138), trans.string('MenuItems', 139),
+                          None)
         # self.CreateAction('changesavepath', self.HandleChangeSavePath, GetIcon('folderpath'), trans.string('MenuItems', 134), trans.string('MenuItems', 135), QtGui.QKeySequence('Ctrl+Alt+L'))
         self.CreateAction('preferences', self.HandlePreferences, GetIcon('settings'), trans.string('MenuItems', 18),
                           trans.string('MenuItems', 19), QtGui.QKeySequence('Ctrl+Alt+P'))
@@ -11775,12 +12457,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Tilesets
         self.CreateAction('editslot1', self.EditSlot1, GetIcon('animation'), trans.string('MenuItems', 136),
                           trans.string('MenuItems', 137), None)
-        self.CreateAction('editslot2', self.EditSlot2, GetIcon('animation'), trans.string('MenuItems', 138),
-                          trans.string('MenuItems', 139), None)
-        self.CreateAction('editslot3', self.EditSlot3, GetIcon('animation'), trans.string('MenuItems', 140),
-                          trans.string('MenuItems', 141), None)
-        self.CreateAction('editslot4', self.EditSlot4, GetIcon('animation'), trans.string('MenuItems', 142),
-                          trans.string('MenuItems', 143), None)
 
         # Help actions are created later
 
@@ -11822,6 +12498,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addSeparator()
         fmenu.addAction(self.actions['screenshot'])
         fmenu.addAction(self.actions['changegamepath'])
+        fmenu.addAction(self.actions['changeobjpath'])
         # fmenu.addAction(self.actions['changesavepath'])
         fmenu.addAction(self.actions['preferences'])
         fmenu.addSeparator()
@@ -11887,9 +12564,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         tmenu = menubar.addMenu(trans.string('Menubar', 4))
         tmenu.addAction(self.actions['editslot1'])
-        tmenu.addAction(self.actions['editslot2'])
-        tmenu.addAction(self.actions['editslot3'])
-        tmenu.addAction(self.actions['editslot4'])
 
         hmenu = menubar.addMenu(trans.string('Menubar', 5))
         self.SetupHelpMenu(hmenu)
@@ -11949,6 +12623,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'saveas',
                 'screenshot',
                 'changegamepath',
+                'changeobjpath',
                 # 'changesavepath',
                 'preferences',
                 'exit',
@@ -11997,9 +12672,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'reloaddata',
             ), (
                 'editslot1',
-                'editslot2',
-                'editslot3',
-                'editslot4',
             ), (
                 'infobox',
                 'helpbox',
@@ -12147,13 +12819,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         tabs.setTabToolTip(0, trans.string('Palette', 13))
 
         self.objTS0Tab = QtWidgets.QWidget()
-        self.objTS1Tab = QtWidgets.QWidget()
-        self.objTS2Tab = QtWidgets.QWidget()
-        self.objTS3Tab = QtWidgets.QWidget()
-        self.objAllTab.addTab(self.objTS0Tab, tsicon, '1')
-        self.objAllTab.addTab(self.objTS1Tab, tsicon, '2')
-        self.objAllTab.addTab(self.objTS2Tab, tsicon, '3')
-        self.objAllTab.addTab(self.objTS3Tab, tsicon, '4')
+        self.objTSAllTab = QtWidgets.QWidget()
+        self.objTS123Tab = QtWidgets.QWidget()
+        self.objAllTab.addTab(self.objTS0Tab, tsicon, 'Main')
+        self.objAllTab.addTab(self.objTSAllTab, tsicon, 'All')
+        self.objAllTab.addTab(self.objTS123Tab, tsicon, 'Embedded')
 
         oel = QtWidgets.QVBoxLayout(self.objTS0Tab)
         self.createObjectLayout = oel
@@ -12179,10 +12849,33 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         lbg.buttonClicked[int].connect(self.LayerChoiceChanged)
         self.LayerButtonGroup = lbg
 
+        self.folderPicker = QtWidgets.QComboBox()
+
+        top_folder = setting('ObjPath')
+
+        if not top_folder:
+            self.objAllTab.setTabEnabled(1, False)
+
+        else:
+            for folder in os.listdir(top_folder):
+                    if os.path.isdir(top_folder + "/" + folder):
+                        self.folderPicker.addItem(folder)
+
+        self.folderPicker.setVisible(False)
+        oel.addWidget(self.folderPicker, 1)
+
         self.objPicker = ObjectPickerWidget()
         self.objPicker.ObjChanged.connect(self.ObjectChoiceChanged)
         self.objPicker.ObjReplace.connect(self.ObjectReplace)
         oel.addWidget(self.objPicker, 1)
+
+        if top_folder:
+            def UpdateObjFolder():
+                self.objPicker.mall.LoadFromFolder()
+
+            UpdateObjFolder()
+
+            self.folderPicker.currentIndexChanged.connect(UpdateObjFolder)
 
         # sprite tab
         self.sprAllTab = QtWidgets.QTabWidget()
@@ -13514,6 +14207,31 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         return True
 
     @QtCore.pyqtSlot()
+    def HandleChangeObjPath(self):
+        """
+        Change the Objects path used by "All" tab
+        """
+        path = QtWidgets.QFileDialog.getExistingDirectory(None,
+                                                          'Choose the folder containing Object folders')
+
+        if not path: return
+
+        setSetting('ObjPath', path)
+
+        self.objAllTab.setTabEnabled(1, True)
+
+        for folder in os.listdir(path):
+                if os.path.isdir(path + "/" + folder):
+                    self.folderPicker.addItem(folder)
+
+        def UpdateObjFolder():
+            self.objPicker.mall.LoadFromFolder()
+
+        UpdateObjFolder()
+
+        self.folderPicker.currentIndexChanged.connect(UpdateObjFolder)
+
+    @QtCore.pyqtSlot()
     def HandleChangeSavePath(self, auto=False):
         """
         Change the save path used by the current game definition
@@ -14581,9 +15299,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.objAllTab.setCurrentIndex(0)
         self.objAllTab.setTabEnabled(0, True)
-        self.objAllTab.setTabEnabled(1, False)
         self.objAllTab.setTabEnabled(2, False)
-        self.objAllTab.setTabEnabled(3, False)
 
     def LoadLevel_NSMBU(self, levelData, areaNum):
         """
@@ -14605,9 +15321,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.objAllTab.setCurrentIndex(0)
         self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
-        self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
-        self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
-        self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
+        self.objAllTab.setTabEnabled(2, (Area.tileset1 != ''
+                                         or Area.tileset2 != ''
+                                         or Area.tileset3 != ''))
 
         # Load events
         self.LoadEventTabFromLevel()
@@ -14922,6 +15638,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         CPT = -1
         if idx == 0:  # objects
             CPT = self.objAllTab.currentIndex()
+            if CPT == 1:
+                CPT = 10 # "All" objects
         elif idx == 1:  # sprites
             if self.sprAllTab.currentIndex() != 1: CPT = 4
         elif idx == 2:
@@ -14946,7 +15664,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if hasattr(self, 'objPicker'):
             if nt >= 0 and nt <= 3:
                 self.objPicker.ShowTileset(nt)
-                eval('self.objTS%dTab' % nt).setLayout(self.createObjectLayout)
+                if nt == 0:
+                    self.objTS0Tab.setLayout(self.createObjectLayout)
+                    self.folderPicker.setVisible(False)
+                elif nt == 1:
+                    self.objTSAllTab.setLayout(self.createObjectLayout)
+                    self.folderPicker.setVisible(True)
+                    nt = 10
+                else:
+                    self.objTS123Tab.setLayout(self.createObjectLayout)
+                    self.folderPicker.setVisible(False)
             self.defaultPropDock.setVisible(False)
         global CurrentPaintType
         CurrentPaintType = nt
@@ -15023,8 +15750,23 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Handles a new object being chosen
         """
-        global CurrentObject
-        CurrentObject = type
+        global CurrentObject, CurrentPaintType
+
+        if CurrentPaintType not in [0, 10]:
+            type += 1
+            if type > numObj[1]:
+                CurrentPaintType = 3
+                CurrentObject = type - numObj[1]
+            elif type > numObj[0]:
+                CurrentPaintType = 2
+                CurrentObject = type - numObj[0]
+            else:
+                CurrentPaintType = 1
+                CurrentObject = type
+            CurrentObject -= 1
+
+        else:
+            CurrentObject = type
 
     @QtCore.pyqtSlot(int)
     def ObjectReplace(self, type):
@@ -15035,6 +15777,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         type_obj = ObjectItem
         tileset = CurrentPaintType
         changed = False
+
+        if CurrentPaintType != 0:
+            type += 1
+
+            if type > numObj[1]:
+                type -= numObj[1]
+
+            elif type > numObj[0]:
+                type -= numObj[0]
+
+            type -= 1
 
         for x in items:
             if isinstance(x, type_obj) and (x.tileset != tileset or x.type != type):
@@ -15506,9 +16259,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             mainWindow.objPicker.LoadFromTilesets()
             self.objAllTab.setCurrentIndex(0)
             self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
-            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
-            self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
-            self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
+            self.objAllTab.setTabEnabled(2, (Area.tileset1 != ''
+                                         or Area.tileset2 != ''
+                                         or Area.tileset3 != ''))
 
             for layer in Area.layers:
                 for obj in layer:
@@ -15920,11 +16673,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             ScreenshotImage.save(fn, 'PNG', 50)
 
-    # Edits Tilesets
-    # TODO Add comments to show
-    # what does what.
-    # To be removed/replaced when
-    # Satoru comes out (?).
     @QtCore.pyqtSlot()
     def EditSlot1(self):
         """
@@ -15964,9 +16712,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 mainWindow.objPicker.LoadFromTilesets()
                 self.objAllTab.setCurrentIndex(0)
                 self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
-                self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
-                self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
-                self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
+                self.objAllTab.setTabEnabled(2, (Area.tileset1 != ''
+                                             or Area.tileset2 != ''
+                                             or Area.tileset3 != ''))
 
                 for layer in Area.layers:
                     for obj in layer:
@@ -16004,315 +16752,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             os.remove(tile_path + '/tmp.tmp')
             self.ReloadTilesets()
             SetDirty()
-
-    @QtCore.pyqtSlot()
-    def EditSlot2(self):
-        """
-        Edits Slot 2 tileset
-        """
-        con = False
-
-        if platform.system() == 'Windows':
-            tile_path = miyamoto_path + '/Tools'
-        elif platform.system() == 'Linux':
-            tile_path = miyamoto_path + '/linuxTools'
-        elif platform.system() == 'Darwin':
-            tile_path = miyamoto_path + '/macTools'
-
-        if (Area.tileset1 not in ('', None)) and (Area.tileset1 in szsData):
-            sarcdata = szsData[Area.tileset1]
-
-            with open(tile_path + '/tmp.tmp', 'wb') as fn:
-                fn.write(sarcdata)
-            sarcfile = 'tmp.tmp'
-
-        else:
-            con_msg = "This Tileset doesn't exist, do you want to create it?"
-            reply = QtWidgets.QMessageBox.question(self, 'Message',
-                                                   con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-            if reply == QtWidgets.QMessageBox.Yes:
-                con = True
-                if os.path.isfile(tile_path + '/tmp.tmp'):
-                    os.remove(
-                        tile_path + '/tmp.tmp')  # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
-
-                if Area.tileset1 in ('', None):
-                    Area.tileset1 = QtWidgets.QInputDialog.getText(self, "Choose Name",
-                                                                   "Choose a name for this Tileset:",
-                                                                   QtWidgets.QLineEdit.Normal)[0]
-                sarcfile = 'None'
-
-                while (Area.tileset1 not in ('', None)) and (Area.tileset1 in szsData):
-                    con_msg = "This Tileset already exists inside the level, do you want to overwrite it?"
-                    reply = QtWidgets.QMessageBox.question(self, 'Warning',
-                                                           con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-                    if reply == QtWidgets.QMessageBox.No:
-                        Area.tileset1 = QtWidgets.QInputDialog.getText(self, "Choose Name",
-                                                                       "Choose another name for this Tileset:",
-                                                                       QtWidgets.QLineEdit.Normal)[0]
-                    else:
-                        sarcdata = szsData[Area.tileset1]
-
-                        with open(tile_path + '/tmp.tmp', 'wb') as fn:
-                            fn.write(sarcdata)
-                        sarcfile = 'tmp.tmp'
-                        break
-
-            else:
-                return
-
-        if Area.tileset1 in ('', None): return
-
-        if platform.system() == 'Windows':
-            os.chdir(miyamoto_path + '/Tools')
-            os.system('puzzle.exe ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
-            os.chdir(miyamoto_path)
-        elif platform.system() == 'Linux':
-            os.chdir(miyamoto_path + '/linuxTools')
-            os.system('chmod +x ./puzzle.elf')
-            os.system('./puzzle.elf ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
-            os.chdir(miyamoto_path)
-        elif platform.system() == 'Darwin':
-            os.chdir(miyamoto_path + '/macTools')
-            os.system('python3 puzzle.py ' + Area.tileset1 + ' ' + sarcfile + ' "' + miyamoto_path + '" 1')
-            os.chdir(miyamoto_path)
-        else:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                               'Not a supported platform, sadly...')
-            warningBox.exec_()
-            return
-
-        if os.path.isfile(tile_path + '/tmp.tmp'):
-            with open(tile_path + '/tmp.tmp', 'rb') as fn:
-                szsData[Area.tileset1] = fn.read()
-            os.remove(tile_path + '/tmp.tmp')
-
-            self.ReloadTilesets()
-            SetDirty()
-            mainWindow.objPicker.LoadFromTilesets()
-            self.objAllTab.setCurrentIndex(0)
-            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
-            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
-            self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
-            self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
-
-            for layer in Area.layers:
-                for obj in layer:
-                    obj.updateObjCache()
-
-            self.scene.update()
-
-        else:
-            if con == True:
-                Area.tileset1 = ''
-
-    @QtCore.pyqtSlot()
-    def EditSlot3(self):
-        """
-        Edits Slot 3 tileset
-        """
-        con = False
-
-        if platform.system() == 'Windows':
-            tile_path = miyamoto_path + '/Tools'
-        elif platform.system() == 'Linux':
-            tile_path = miyamoto_path + '/linuxTools'
-        elif platform.system() == 'Darwin':
-            tile_path = miyamoto_path + '/macTools'
-
-        if (Area.tileset2 not in ('', None)) and (Area.tileset2 in szsData):
-            sarcdata = szsData[Area.tileset2]
-
-            with open(tile_path + '/tmp.tmp', 'wb') as fn:
-                fn.write(sarcdata)
-            sarcfile = 'tmp.tmp'
-
-        else:
-            con_msg = "This Tileset doesn't exist, do you want to create it?"
-            reply = QtWidgets.QMessageBox.question(self, 'Message',
-                                                   con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-            if reply == QtWidgets.QMessageBox.Yes:
-                con = True
-                if os.path.isfile(tile_path + '/tmp.tmp'):
-                    os.remove(
-                        tile_path + '/tmp.tmp')  # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
-
-                if Area.tileset2 in ('', None):
-                    Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
-                                                                   "Choose a name for this Tileset:",
-                                                                   QtWidgets.QLineEdit.Normal)[0]
-                sarcfile = 'None'
-
-                while (Area.tileset2 not in ('', None)) and (Area.tileset2 in szsData):
-                    con_msg = "This Tileset already exists inside the level, do you want to overwrite it?"
-                    reply = QtWidgets.QMessageBox.question(self, 'Warning',
-                                                           con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-                    if reply == QtWidgets.QMessageBox.No:
-                        Area.tileset2 = QtWidgets.QInputDialog.getText(self, "Choose Name",
-                                                                       "Choose another name for this Tileset:",
-                                                                       QtWidgets.QLineEdit.Normal)[0]
-                    else:
-                        sarcdata = szsData[Area.tileset2]
-
-                        with open(tile_path + '/tmp.tmp', 'wb') as fn:
-                            fn.write(sarcdata)
-                        sarcfile = 'tmp.tmp'
-                        break
-
-            else:
-                return
-
-        if Area.tileset2 in ('', None): return
-
-        if platform.system() == 'Windows':
-            os.chdir(miyamoto_path + '/Tools')
-            os.system('puzzle.exe ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
-            os.chdir(miyamoto_path)
-        elif platform.system() == 'Linux':
-            os.chdir(miyamoto_path + '/linuxTools')
-            os.system('chmod +x ./puzzle.elf')
-            os.system('./puzzle.elf ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
-            os.chdir(miyamoto_path)
-        elif platform.system() == 'Darwin':
-            os.chdir(miyamoto_path + '/macTools')
-            os.system('python3 puzzle.py ' + Area.tileset2 + ' ' + sarcfile + ' "' + miyamoto_path + '" 2')
-            os.chdir(miyamoto_path)
-        else:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                               'Not a supported platform, sadly...')
-            warningBox.exec_()
-            return
-
-        if os.path.isfile(tile_path + '/tmp.tmp'):
-            with open(tile_path + '/tmp.tmp', 'rb') as fn:
-                szsData[Area.tileset2] = fn.read()
-            os.remove(tile_path + '/tmp.tmp')
-
-            self.ReloadTilesets()
-            SetDirty()
-            mainWindow.objPicker.LoadFromTilesets()
-            self.objAllTab.setCurrentIndex(0)
-            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
-            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
-            self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
-            self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
-
-            for layer in Area.layers:
-                for obj in layer:
-                    obj.updateObjCache()
-
-            self.scene.update()
-
-        else:
-            if con == True:
-                Area.tileset2 = ''
-
-    @QtCore.pyqtSlot()
-    def EditSlot4(self):
-        """
-        Edits Slot 4 tileset
-        """
-        con = False
-
-        if platform.system() == 'Windows':
-            tile_path = miyamoto_path + '/Tools'
-        elif platform.system() == 'Linux':
-            tile_path = miyamoto_path + '/linuxTools'
-        elif platform.system() == 'Darwin':
-            tile_path = miyamoto_path + '/macTools'
-
-        if (Area.tileset3 not in ('', None)) and (Area.tileset3 in szsData):
-            sarcdata = szsData[Area.tileset3]
-
-            with open(tile_path + '/tmp.tmp', 'wb') as fn:
-                fn.write(sarcdata)
-            sarcfile = 'tmp.tmp'
-
-        else:
-            con_msg = "This Tileset doesn't exist, do you want to create it?"
-            reply = QtWidgets.QMessageBox.question(self, 'Message',
-                                                   con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-            if reply == QtWidgets.QMessageBox.Yes:
-                con = True
-                if os.path.isfile(tile_path + '/tmp.tmp'):
-                    os.remove(
-                        tile_path + '/tmp.tmp')  # seems like Miyamoto crashed last time, remove this to not replace the wrong Tileset
-
-                if Area.tileset3 in ('', None):
-                    Area.tileset3 = QtWidgets.QInputDialog.getText(self, "Choose Name",
-                                                                   "Choose a name for this Tileset:",
-                                                                   QtWidgets.QLineEdit.Normal)[0]
-                sarcfile = 'None'
-
-                while (Area.tileset3 not in ('', None)) and (Area.tileset3 in szsData):
-                    con_msg = "This Tileset already exists inside the level, do you want to overwrite it?"
-                    reply = QtWidgets.QMessageBox.question(self, 'Warning',
-                                                           con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-                    if reply == QtWidgets.QMessageBox.No:
-                        Area.tileset3 = QtWidgets.QInputDialog.getText(self, "Choose Name",
-                                                                       "Choose another name for this Tileset:",
-                                                                       QtWidgets.QLineEdit.Normal)[0]
-                    else:
-                        sarcdata = szsData[Area.tileset3]
-
-                        with open(tile_path + '/tmp.tmp', 'wb') as fn:
-                            fn.write(sarcdata)
-                        sarcfile = 'tmp.tmp'
-                        break
-
-            else:
-                return
-
-        if Area.tileset3 in ('', None): return
-
-        if platform.system() == 'Windows':
-            os.chdir(miyamoto_path + '/Tools')
-            os.system('puzzle.exe ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
-            os.chdir(miyamoto_path)
-        elif platform.system() == 'Linux':
-            os.chdir(miyamoto_path + '/linuxTools')
-            os.system('chmod +x ./puzzle.elf')
-            os.system('./puzzle.elf ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
-            os.chdir(miyamoto_path)
-        elif platform.system() == 'Darwin':
-            os.chdir(miyamoto_path + '/macTools')
-            os.system('python3 puzzle.py ' + Area.tileset3 + ' ' + sarcfile + ' "' + miyamoto_path + '" 3')
-            os.chdir(miyamoto_path)
-        else:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                               'Not a supported platform, sadly...')
-            warningBox.exec_()
-            return
-
-        if os.path.isfile(tile_path + '/tmp.tmp'):
-            with open(tile_path + '/tmp.tmp', 'rb') as fn:
-                szsData[Area.tileset3] = fn.read()
-            os.remove(tile_path + '/tmp.tmp')
-
-            self.ReloadTilesets()
-            SetDirty()
-            mainWindow.objPicker.LoadFromTilesets()
-            self.objAllTab.setCurrentIndex(0)
-            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
-            self.objAllTab.setTabEnabled(1, (Area.tileset1 != ''))
-            self.objAllTab.setTabEnabled(2, (Area.tileset2 != ''))
-            self.objAllTab.setTabEnabled(3, (Area.tileset3 != ''))
-
-            for layer in Area.layers:
-                for obj in layer:
-                    obj.updateObjCache()
-
-            self.scene.update()
-
-        else:
-            if con == True:
-                Area.tileset3 = ''
 
 
 def main():
