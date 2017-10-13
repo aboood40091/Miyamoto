@@ -124,6 +124,7 @@ AutoSavePath = ''
 AutoSaveData = b''
 AutoOpenScriptEnabled = False
 CurrentLevelNameForAutoOpenScript = 'AAAAAAAAAAAAAAAAAAAAAAAAAA'
+szsData = {}
 levelNameCache = ''
 miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
 
@@ -3406,6 +3407,8 @@ class Level_NSMBU(AbstractLevel):
         Save the level back to a file
         """
 
+        global szsData
+
         print("")
         print("Saving level...")
 
@@ -3459,6 +3462,10 @@ class Level_NSMBU(AbstractLevel):
 
         # Add all the other stuff, too
         if os.path.isdir(miyamoto_path + '/data'):
+            szsNewData = {}
+
+            szsNewData[levelNameCache] = szsData[levelNameCache]
+
             tree = etree.parse(miyamoto_path + '/miyamotodata/spriteresources.xml')
             root = tree.getroot()
 
@@ -3496,23 +3503,22 @@ class Level_NSMBU(AbstractLevel):
                     with open(miyamoto_path + '/data/custom/' + sprite_name, 'rb') as f:
                         f1 = f.read()
                     outerArchive.addFile(SarcLib.File(sprite_name, f1))
+                    szsNewData[sprite_name] = f1
                 elif os.path.isfile(miyamoto_path + '/data/' + sprite_name):
                     with open(miyamoto_path + '/data/' + sprite_name, 'rb') as f:
                         f1 = f.read()
                     outerArchive.addFile(SarcLib.File(sprite_name, f1))
+                    szsNewData[sprite_name] = f1
 
             for tileset_name in tilesets_names:
                 if tileset_name in szsData:
                     outerArchive.addFile(SarcLib.File(tileset_name, szsData[tileset_name]))
+                    szsNewData[tileset_name] = szsData[tileset_name]
+
+            szsData = szsNewData
         else:
             for szsThingName in szsData:
-                try:
-                    spl = szsThingName.split('-')
-                    int(spl[0])
-                    int(spl[1])
-                    continue
-                except:
-                    pass
+                if szsThingName == levelNameCache: continue
                 outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
 
         # Save the outer sarc and return it
@@ -3573,79 +3579,10 @@ class Level_NSMBU(AbstractLevel):
         # Make it easy for future Miyamotos to pick out the innersarc level name
         outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
 
-        # Save all the tilesets
-        if Area.tileset1:
-            tilesetData = SaveTileset(1)
-            if tilesetData:
-                szsData[Area.tileset1] = tilesetData
-
-        if Area.tileset2:
-            tilesetData = SaveTileset(2)
-            if tilesetData:
-                szsData[Area.tileset2] = tilesetData
-
-        if Area.tileset3:
-            tilesetData = SaveTileset(3)
-            if tilesetData:
-                szsData[Area.tileset3] = tilesetData
-
         # Add all the other stuff, too
-        if os.path.isdir(miyamoto_path + '/data'):
-            tree = etree.parse(miyamoto_path + '/miyamotodata/spriteresources.xml')
-            root = tree.getroot()
-
-            sprites_xml = {}
-            for sprite in root.iter('sprite'):
-                id = int(sprite.get('id'))
-                name = []
-                for id2 in sprite:
-                    name.append(id2.get('name'))
-                sprites_xml[id] = tuple(name)
-
-            sprites_SARC = []
-            tilesets_names = []
-            for area_SARC in Level.areas:
-                for sprite in area_SARC.sprites:
-                    sprites_SARC.append(sprite.type)
-                if area_SARC.tileset0 not in ('', None):
-                    tilesets_names.append(area_SARC.tileset0)
-                if area_SARC.tileset1 not in ('', None):
-                    tilesets_names.append(area_SARC.tileset1)
-                if area_SARC.tileset2 not in ('', None):
-                    tilesets_names.append(area_SARC.tileset2)
-                if area_SARC.tileset3 not in ('', None):
-                    tilesets_names.append(area_SARC.tileset3)
-            sprites_SARC = tuple(set(sprites_SARC))
-            tilesets_names = tuple(set(tilesets_names))
-
-            sprites_names = []
-            for sprite in sprites_SARC:
-                for sprite_name in sprites_xml[sprite]:
-                    sprites_names.append(sprite_name)
-            sprites_names = tuple(set(sprites_names))
-            for sprite_name in sprites_names:
-                if os.path.isfile(miyamoto_path + '/data/custom/' + sprite_name):
-                    with open(miyamoto_path + '/data/custom/' + sprite_name, 'rb') as f:
-                        f1 = f.read()
-                    outerArchive.addFile(SarcLib.File(sprite_name, f1))
-                elif os.path.isfile(miyamoto_path + '/data/' + sprite_name):
-                    with open(miyamoto_path + '/data/' + sprite_name, 'rb') as f:
-                        f1 = f.read()
-                    outerArchive.addFile(SarcLib.File(sprite_name, f1))
-
-            for tileset_name in tilesets_names:
-                if tileset_name in szsData:
-                    outerArchive.addFile(SarcLib.File(tileset_name, szsData[tileset_name]))
-        else:
-            for szsThingName in szsData:
-                try:
-                    spl = szsThingName.split('-')
-                    int(spl[0])
-                    int(spl[1])
-                    continue
-                except:
-                    pass
-                outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
+        for szsThingName in szsData:
+            if szsThingName == levelNameCache: continue
+            outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
 
         # Save the outer sarc and return it
         print("")
@@ -13273,9 +13210,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
         if name == '':
             return
-        levelNameCache = name
 
         data = Level.save(name)
+        levelNameCache = name
         setSetting('AutoSaveFilePath', self.fileSavePath)
         setSetting('AutoSaveFileData', QtCore.QByteArray(data))
         AutoSaveDirty = False
@@ -14267,7 +14204,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
         if name == '':
             return
-        levelNameCache = name
 
         Level.deleteArea(Area.areanum)
 
@@ -14301,6 +14237,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             with open(self.fileSavePath, 'wb') as f:
                 f.write(Level.save(name))
+        levelNameCache = name
         self.LoadLevel(None, self.fileSavePath, True, 1)
 
     @QtCore.pyqtSlot()
@@ -14475,10 +14412,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
         if name == '':
             return False
-        levelNameCache = name
 
         global Dirty, AutoSaveDirty
         data = Level.save(name)
+        levelNameCache = name
         try:
             if mainWindow.fileSavePath.endswith('.szs'):
                 course_name = os.path.splitext(mainWindow.fileSavePath)[0]
@@ -14539,10 +14476,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             print('HEY THERE IS NO -, THIS WILL NOT WORK!')
         if name == '':
             return False
-        levelNameCache = name
 
         global Dirty, AutoSaveDirty
         data = Level.saveNewArea(name, course, L0, L1, L2)
+        levelNameCache = name
         try:
             if mainWindow.fileSavePath.endswith('.szs'):
                 course_name = os.path.splitext(mainWindow.fileSavePath)[0]
@@ -14619,8 +14556,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif name == "":
             return False
 
-        levelNameCache = name
         data = Level.save(name)
+        levelNameCache = name
         if self.fileSavePath.endswith('.szs'):
             course_name = os.path.splitext(self.fileSavePath)[0]
             with open(course_name + '.tmp', 'wb') as f:
@@ -15114,7 +15051,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Load a level from any game into the editor
         """
-        global levName
+        global levName, szsData
         hmm = False
         if name != None:
             levName = os.path.basename(name)
@@ -15260,8 +15197,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         return False
 
                 # Sort the szs data
-                global szsData
-                szsData = {}
                 for file in arc.contents:
                     szsData[file.name] = file.data
 
@@ -15288,29 +15223,35 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             # Set the filepath variables
             self.fileSavePath = False
             self.fileTitle = 'untitled'
+
             if platform.system() == 'Windows':
                 os.chdir(miyamoto_path + '/Tools')
                 os.system(
                     'wszst.exe DECOMPRESS "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.szs" --dest "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc"')
                 os.chdir(miyamoto_path)
+
             elif platform.system() == 'Linux':
                 os.chdir(miyamoto_path + '/linuxTools')
                 os.system('chmod +x ./wszst_linux.elf')
                 os.system(
                     './wszst_linux.elf DECOMPRESS "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.szs" --dest "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc"')
                 os.chdir(miyamoto_path)
+
             elif platform.system() == 'Darwin':
                 os.system(
                     'open -a "' + miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.szs" --dest "' + miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc"')
+
             else:
                 warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
                                                    'Not a supported platform, sadly...')
                 warningBox.exec_()
                 return
+
             os.chdir(miyamoto_path)
-            szsData = {}
+
             with open(miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc', 'rb') as f:
                 szsData['Pa0_jyotyu'] = f.read()
+
             os.remove(miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc')
 
         # Turn the dirty flag off, and keep it that way
