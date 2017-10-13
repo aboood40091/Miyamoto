@@ -28,6 +28,7 @@
 ################################################################
 
 import os.path
+from xml.etree import ElementTree as etree
 
 class MiyamotoTranslation():
     """
@@ -577,7 +578,7 @@ class MiyamotoTranslation():
                 3: 'Themes',
                 4: '[b]Miyamoto! Preferences[/b][br]Customize Miyamoto! by changing these settings.[br]Use the tabs below to view even more settings.[br]Miyamoto! must be restarted before certain changes can take effect.',
                 5: '[b]Toolbar Preferences[/b][br]Choose menu items you would like to appear on the toolbar.[br]Miyamoto! must be restarted before the toolbar can be updated.[br]',
-                6: '[b]Miyamoto! Themes[/b][br]Pick a theme below to change application colors and icons.[br]You can download more themes at [a href="rvlution.net"]rvlution.net[/a].[br]Miyamoto! must be restarted before the theme can be changed.',
+                6: '[b]Miyamoto! Themes[/b][br]Pick a theme below to change application colors and icons.[br]Miyamoto! must be restarted before the theme can be changed.',
                 7: 'Show the splash screen:',
                 8: 'If TPLLib cannot use a fast backend (recommended)',
                 9: 'Always',
@@ -886,10 +887,11 @@ class MiyamotoTranslation():
                 72: 'Lower Bounds 2:',
                 73: '[b]Lower Bounds 2:[/b][br]Unknown differences from the main lower bounds.',
                 74: 'Unknown Flag',
-                75: '[b]Unknown Flag:[/b][br]Something zoom related. Check if you have problems with zooming. Seems to be always checked.',
-                76: 'some unknown thing',
-                77: 'Type:',
-                78: '[b]Type:[/b][br]Sets the type for this Zone',
+                75: '[b]Unknown Flag:[/b][br]Unknown purpose. Seems to be always checked.',
+                76: 'Type:',
+                77: '[b]Type:[/b][br]Sets the type for this Zone',
+                78: 'Snap to 8x8 Grid',
+                79: 'Snap to 16x16 Grid',
                 },
             'Zones': {
                 0: 'Zone [num]',

@@ -10633,6 +10633,12 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_ypos.setToolTip(trans.string('ZonesDlg', 12))
         self.Zone_ypos.setValue(z.objy)
 
+        self.snapButton8 = QtWidgets.QPushButton(trans.string('ZonesDlg', 78))
+        self.snapButton8.clicked.connect(lambda: self.HandleSnapTo8x8Grid(z))
+
+        self.snapButton16 = QtWidgets.QPushButton(trans.string('ZonesDlg', 79))
+        self.snapButton16.clicked.connect(lambda: self.HandleSnapTo16x16Grid(z))
+
         self.Zone_width = QtWidgets.QSpinBox()
         self.Zone_width.setRange(300, 65535)
         self.Zone_width.setToolTip(trans.string('ZonesDlg', 14))
@@ -10672,11 +10678,124 @@ class ZoneTab(QtWidgets.QWidget):
         ZoneSizeLayout.addRow(trans.string('ZonesDlg', 15), self.Zone_height)
         ZoneSizeLayout.addRow(trans.string('ZonesDlg', 17), self.Zone_presets)
 
+        snapLayout = QtWidgets.QHBoxLayout()
+
+        snapLayout.addWidget(self.snapButton8)
+        snapLayout.addWidget(self.snapButton16)
+
         innerLayout = QtWidgets.QHBoxLayout()
 
         innerLayout.addLayout(ZonePositionLayout)
         innerLayout.addLayout(ZoneSizeLayout)
-        self.Dimensions.setLayout(innerLayout)
+
+        verticalLayout = QtWidgets.QVBoxLayout()
+
+        verticalLayout.addLayout(innerLayout)
+        verticalLayout.addLayout(snapLayout)
+
+        self.Dimensions.setLayout(verticalLayout)
+
+    @QtCore.pyqtSlot()
+    def HandleSnapTo8x8Grid(self, z):
+        """
+        Snaps the current zone to an 8x8 grid
+        """
+        left = self.Zone_xpos.value()
+        top = self.Zone_ypos.value()
+        right = left + self.Zone_width.value()
+        bottom = top + self.Zone_height.value()
+
+        if left % 8 < 4:
+            left -= (left % 8)
+        else:
+            left += 8 - (left % 8)
+
+        if top % 8 < 4:
+            top -= (top % 8)
+        else:
+            top += 8 - (top % 8)
+
+        if right % 8 < 4:
+            right -= (right % 8)
+        else:
+            right += 8 - (right % 8)
+
+        if bottom % 8 < 4:
+            bottom -= (bottom % 8)
+        else:
+            bottom += 8 - (bottom % 8)
+
+        if right <= left: right += 8
+        if bottom <= top: bottom += 8
+
+        right -= left
+        bottom -= top
+
+        if left < 16: left = 16
+        if top < 16: top = 16
+        if right < 304: right = 304
+        if bottom < 200: bottom = 200
+
+        if left > 65528: left = 65528
+        if top > 65528: top = 65528
+        if right > 65528: right = 65528
+        if bottom > 65528: bottom = 65528
+
+        self.Zone_xpos.setValue(left)
+        self.Zone_ypos.setValue(top)
+        self.Zone_width.setValue(right)
+        self.Zone_height.setValue(bottom)
+
+    @QtCore.pyqtSlot()
+    def HandleSnapTo16x16Grid(self, z):
+        """
+        Snaps the current zone to a 16x16 grid
+        """
+        left = self.Zone_xpos.value()
+        top = self.Zone_ypos.value()
+        right = left + self.Zone_width.value()
+        bottom = top + self.Zone_height.value()
+
+        if left % 16 < 8:
+            left -= (left % 16)
+        else:
+            left += 16 - (left % 16)
+
+        if top % 16 < 8:
+            top -= (top % 16)
+        else:
+            top += 16 - (top % 16)
+
+        if right % 16 < 8:
+            right -= (right % 16)
+        else:
+            right += 16 - (right % 16)
+
+        if bottom % 16 < 8:
+            bottom -= (bottom % 16)
+        else:
+            bottom += 16 - (bottom % 16)
+
+        if right <= left: right += 16
+        if bottom <= top: bottom += 16
+
+        right -= left
+        bottom -= top
+
+        if left < 16: left = 16
+        if top < 16: top = 16
+        if right < 304: right = 304
+        if bottom < 208: bottom = 208
+
+        if left > 65520: left = 65520
+        if top > 65520: top = 65520
+        if right > 65520: right = 65520
+        if bottom > 65520: bottom = 65520
+
+        self.Zone_xpos.setValue(left)
+        self.Zone_ypos.setValue(top)
+        self.Zone_width.setValue(right)
+        self.Zone_height.setValue(bottom)
 
     def createVisibility(self, z):
         self.Visibility = QtWidgets.QGroupBox(trans.string('ZonesDlg', 19))
@@ -10891,7 +11010,7 @@ class ZoneTab(QtWidgets.QWidget):
         self.Type = QtWidgets.QGroupBox('Zone Type')
 
         self.Zone_type = QtWidgets.QComboBox()
-        self.Zone_type.setToolTip(trans.string('ZonesDlg', 78))
+        self.Zone_type.setToolTip(trans.string('ZonesDlg', 77))
 
         types = (0, 1, 5, 12, 160)
         zone_types = ['Normal', 'Special Zone (Boss, credits, minigame, etc...)', 'Final Boss', 'Launch to the Airship',
@@ -10916,7 +11035,7 @@ class ZoneTab(QtWidgets.QWidget):
             self.Zone_type.setCurrentIndex(5)
 
         ZoneTypeLayout = QtWidgets.QFormLayout()
-        ZoneTypeLayout.addRow(trans.string('ZonesDlg', 77), self.Zone_type)
+        ZoneTypeLayout.addRow(trans.string('ZonesDlg', 76), self.Zone_type)
 
         self.Type.setLayout(ZoneTypeLayout)
 
