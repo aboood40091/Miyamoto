@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
 
-# gtx.py
+# dds.py
 # A small script for reading RGBA8 and DXT5 DDS files.
 
 
