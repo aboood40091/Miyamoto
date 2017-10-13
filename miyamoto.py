@@ -2735,8 +2735,9 @@ def UnloadTileset(idx):
     """
     Unload the tileset from a specific slot
     """
-    for i in range(idx * 0x200, idx * 0x200 + 0x200):
-        Tiles[i] = None
+    tileoffset = idx * 256
+    for i in range(tileoffset, tileoffset + 256):
+        Tiles[i] = Tiles[4 * 0x200]
 
     ObjectDefinitions[idx] = None
 
@@ -16073,6 +16074,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if toUnload:
                 Area.tileset0 = ''
+                UnloadTileset(0)
 
             self.objPicker.LoadFromTilesets()
             self.objAllTab.setCurrentIndex(0)
