@@ -1824,10 +1824,14 @@ class TilesetTile:
     Class that represents a single tile in a tileset
     """
 
-    def __init__(self, main, nml=None):
+    def __init__(self, main=None, nml=None):
         """
         Initializes the TilesetTile
         """
+        if not main:
+            main = QtGui.QPixmap(60, 60)
+            main.fill(Qt.transparent)
+
         self.main = main
 
         if not nml:
@@ -2228,7 +2232,9 @@ def CreateTilesets():
     """
     global Tiles, TilesetAnimTimer, TileBehaviours, ObjectDefinitions
 
-    Tiles = [None] * 0x200 * 4
+    T = TilesetTile()
+    T.setCollisions([0] * 8)
+    Tiles = [T] * 0x200 * 4
     Tiles += Overrides
     # TileBehaviours = [0]*1024
     TilesetAnimTimer = QtCore.QTimer()
