@@ -1192,6 +1192,7 @@ def LoadActionsLists():
         (trans.string('MenuItems', 10), False, 'saveas'),
         (trans.string('MenuItems', 14), True, 'screenshot'),
         (trans.string('MenuItems', 16), False, 'changegamepath'),
+        (trans.string('MenuItems', 138), False, 'changeobjpath'),
         # (trans.string('MenuItems', 16), False, 'changesavepath'),
         (trans.string('MenuItems', 18), False, 'preferences'),
         (trans.string('MenuItems', 20), False, 'exit'),
@@ -1231,7 +1232,6 @@ def LoadActionsLists():
         (trans.string('MenuItems', 78), False, 'addarea'),
         (trans.string('MenuItems', 80), False, 'importarea'),
         (trans.string('MenuItems', 82), False, 'deletearea'),
-        (trans.string('MenuItems', 84), False, 'reloadgfx'),
         (trans.string('MenuItems', 128), False, 'reloaddata'),
     )
     TileActions = (
@@ -3259,10 +3259,7 @@ def SimpleTilesetNames():
         return result
 
     pa0 = sorted(ParseCategory(TilesetNames[0][0]), key=lambda entry: entry[1])
-    pa1 = sorted(ParseCategory(TilesetNames[1][0]), key=lambda entry: entry[1])
-    pa2 = sorted(ParseCategory(TilesetNames[2][0]), key=lambda entry: entry[1])
-    pa3 = sorted(ParseCategory(TilesetNames[3][0]), key=lambda entry: entry[1])
-    return (pa0, pa1, pa2, pa3)
+    return pa0
 
 
 #####################################################################
@@ -3446,16 +3443,25 @@ class Level_NSMBU(AbstractLevel):
 
         # Save all the tilesets
         if Area.tileset1:
+            Area.tileset1 = ('Pa1_%d'
+                             % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+
             tilesetData = SaveTileset(1)
             if tilesetData:
                 szsData[Area.tileset1] = tilesetData
 
         if Area.tileset2:
+            Area.tileset2 = ('Pa2_%d'
+                             % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+
             tilesetData = SaveTileset(2)
             if tilesetData:
                 szsData[Area.tileset2] = tilesetData
 
         if Area.tileset3:
+            Area.tileset3 = ('Pa3_%d'
+                             % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+
             tilesetData = SaveTileset(3)
             if tilesetData:
                 szsData[Area.tileset3] = tilesetData
@@ -3547,7 +3553,7 @@ class Level_NSMBU(AbstractLevel):
 
         # Go through the areas, save them and add them back to the archive
         for areanum, area in enumerate(self.areas):
-            course, L0, L1, L2 = area.save()
+            course, L0, L1, L2 = area.save(True)
 
             if course is not None:
                 courseFolder.addFile(SarcLib.File('course%d.bin' % (areanum + 1), course))
@@ -3771,7 +3777,7 @@ class AbstractParsedArea(AbstractArea):
 
         return True
 
-    def save(self):
+    def save(self, isNewArea=False):
         """
         Save the area back to a file
         """
@@ -3780,7 +3786,7 @@ class AbstractParsedArea(AbstractArea):
 
         # We don't parse blocks 4, 6, 12, 13
         # Save the other blocks
-        self.SaveTilesetNames()  # block 1
+        self.SaveTilesetNames(isNewArea)  # block 1
         self.SaveOptions()  # block 2
         self.SaveEntrances()  # block 7
         self.SaveSprites()  # block 8
@@ -4220,10 +4226,21 @@ class Area_NSMBU(AbstractParsedArea):
 
             com.UpdateListItem()
 
-    def SaveTilesetNames(self):
+    def SaveTilesetNames(self, isNewArea):
         """
         Saves the tileset names back to block 1
         """
+        if not isNewArea:
+            if self.tileset1:
+                self.tileset1 = ('Pa1_%d'
+                                 % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+            if self.tileset2:
+                self.tileset2 = ('Pa2_%d'
+                                 % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+            if self.tileset3:
+                self.tileset3 = ('Pa3_%d'
+                                 % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+
         self.blocks[0] = ''.join(
             [self.tileset0.ljust(32, '\0'), self.tileset1.ljust(32, '\0'), self.tileset2.ljust(32, '\0'),
              self.tileset3.ljust(32, '\0')]).encode('latin-1')
@@ -8644,282 +8661,65 @@ class LoadingTab(QtWidgets.QWidget):
 class TilesetsTab(QtWidgets.QWidget):
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
-        self.setMinimumWidth(384)
-
-        # Set up each tileset
-        self.widgets = []
-        self.trees = []
-        self.lineEdits = []
-        self.itemDict = [{}, {}, {}, {}]
-        self.noneItems = []
-
-        for slot in range(4):
-            # Create the main widget
-            widget = QtWidgets.QWidget()
-            self.widgets.append(widget)
-
-            # Create the tree widget
-            tree = QtWidgets.QTreeWidget()
-            tree.setColumnCount(2)
-            tree.setHeaderLabels([trans.string('AreaDlg', 28), trans.string('AreaDlg', 29)])  # ['Name', 'File']
-            tree.setIndentation(16)
-            if slot == 0:
-                handler = self.handleTreeSel0
-            elif slot == 1:
-                handler = self.handleTreeSel1
-            elif slot == 2:
-                handler = self.handleTreeSel2
-            else:
-                handler = self.handleTreeSel3
-            tree.itemSelectionChanged.connect(handler)
-            self.trees.append(tree)
-
-            # Add "None" entry
-            item = QtWidgets.QTreeWidgetItem()
-            item.setText(0, trans.string('AreaDlg', 15))  # 'None'
-            tree.addTopLevelItem(item)
-            self.noneItems.append(item)
-
-            # Keep an unsorted list for the textbox autocomplete
-            tilesetList = []
-
-            # Add entries for each tileset
-            def ParseCategory(items):
-                """
-                Parses a list of strings and returns a tuple of QTreeWidgetItem's
-                """
-                nodes = []
-                for item in items:
-                    node = QtWidgets.QTreeWidgetItem()
-
-                    # Check if it's a tileset or a category
-                    if isinstance(item[1], str):
-                        # It's a tileset
-                        node.setText(0, item[1])
-                        node.setText(1, item[0])
-                        node.setToolTip(0, item[1])
-                        node.setToolTip(1, item[0])
-                        self.itemDict[slot][item[0]] = node
-                        tilesetList.append(item[0])
-                    else:
-                        # It's a category
-                        node.setText(0, item[0])
-                        node.setToolTip(0, item[0])
-                        node.setFlags(Qt.ItemIsEnabled)
-                        children = ParseCategory(item[1])
-                        for cnode in children:
-                            node.addChild(cnode)
-                    nodes.append(node)
-                return tuple(nodes)
-
-            categories = ParseCategory(TilesetNames[slot][0])
-            tree.addTopLevelItems(categories)
-
-            # Create the line edit
-            line = QtWidgets.QLineEdit()
-            line.textChanged.connect(eval('self.handleTextEdit%d' % slot))
-            line.setCompleter(QtWidgets.QCompleter(tilesetList))
-            line.setPlaceholderText(trans.string('AreaDlg', 30))  # '(None)'
-            self.lineEdits.append(line)
-            line.setText(eval('Area.tileset%d' % slot))
-            self.handleTextEdit(slot)
-            # Above line: For some reason, PyQt doesn't automatically call
-            # the handler if (Area.tileset%d % slot) == ''
-
-            # Create the layout and add it to the widget
-            L = QtWidgets.QGridLayout()
-            L.addWidget(tree, 0, 0, 1, 2)
-            L.addWidget(QtWidgets.QLabel(trans.string('AreaDlg', 31, '[slot]', slot)), 1, 0)  # 'Tilesets (Pa[slot])'
-            L.addWidget(line, 1, 1)
-            L.setRowStretch(0, 1)
-            widget.setLayout(L)
-
-        # Set up the tab widget
-        T = QtWidgets.QTabWidget()
-        T.setTabPosition(T.West)
-        T.setUsesScrollButtons(False)
-        T.addTab(self.widgets[0], trans.string('AreaDlg', 11))  # 'Standard Suite'
-        T.addTab(self.widgets[1], trans.string('AreaDlg', 12))  # 'Stage Suite'
-        T.addTab(self.widgets[2], trans.string('AreaDlg', 13))  # 'Background Suite'
-        T.addTab(self.widgets[3], trans.string('AreaDlg', 14))  # 'Interactive Suite'
-        L = QtWidgets.QVBoxLayout()
-        L.addWidget(T)
-        self.setLayout(L)
-        return
-
-    # Tree handlers
-    def handleTreeSel0(self):
-        self.handleTreeSel(0)
-
-    def handleTreeSel1(self):
-        self.handleTreeSel(1)
-
-    def handleTreeSel2(self):
-        self.handleTreeSel(2)
-
-    def handleTreeSel3(self):
-        self.handleTreeSel(3)
-
-    def handleTreeSel(self, slot):
-        """
-        Handles changes to the selections in all tree widgets
-        """
-        selItems = self.trees[slot].selectedItems()
-        if len(selItems) != 1: return
-        item = selItems[0]
-
-        value = str(item.text(1))
-        self.lineEdits[slot].setText(value)
-
-    # Line-edit handlers
-    def handleTextEdit0(self):
-        self.handleTextEdit(0)
-
-    def handleTextEdit1(self):
-        self.handleTextEdit(1)
-
-    def handleTextEdit2(self):
-        self.handleTextEdit(2)
-
-    def handleTextEdit3(self):
-        self.handleTextEdit(3)
-
-    def handleTextEdit(self, slot):
-        """
-        Handles changes made to the line-edit widgets
-        """
-        self.trees[slot].clearSelection()
-        txt = str(self.lineEdits[slot].text())
-
-        if (txt in self.itemDict[slot]) or (txt == ''):
-            # Collapse all
-            for i in range(self.trees[slot].topLevelItemCount()):
-                self.trees[slot].collapseItem(self.trees[slot].topLevelItem(i))
-
-            # If there's no text, just select None
-            if txt == '':
-                self.noneItems[slot].setSelected(True)
-                return
-
-            # Find the item matching the description, and select it
-            item = self.itemDict[slot][txt]
-            item.setSelected(True)
-
-            # Expand all of its parents
-            parent = item.parent()
-            while parent is not None:
-                parent.setExpanded(True)
-                parent = parent.parent()
-
-    def values(self):
-        """
-        Returns all 4 tileset choices
-        """
-        result = []
-        for i in range(4):
-            result.append(str(self.lineEdits[i].text()))
-        return tuple(result)
-
-
-class OldTilesetsTab(QtWidgets.QWidget):
-    def __init__(self):
-        QtWidgets.QWidget.__init__(self)
 
         self.tile0 = QtWidgets.QComboBox()
-        self.tile1 = QtWidgets.QComboBox()
-        self.tile2 = QtWidgets.QComboBox()
-        self.tile3 = QtWidgets.QComboBox()
 
-        self.widgets = [self.tile0, self.tile1, self.tile2, self.tile3]
-        names = [Area.tileset0, Area.tileset1, Area.tileset2, Area.tileset3]
-        slots = [self.HandleTileset0Choice, self.HandleTileset1Choice, self.HandleTileset2Choice,
-                 self.HandleTileset3Choice]
+        name = Area.tileset0
+        slot = self.HandleTileset0Choice
 
-        self.currentChoices = [None, None, None, None]
+        self.currentChoice = None
 
-        TilesetNamesIterable = SimpleTilesetNames()
+        data = SimpleTilesetNames()
 
-        for idx, widget, name, data, slot in zip(range(4), self.widgets, names, TilesetNamesIterable, slots):
-            # This loop runs once for each tileset.
-            # First, find the current index and custom-tileset strings
-            if name == '':  # No tileset selected, the current index should be None
-                ts_index = trans.string('AreaDlg', 15)  # None
+        # First, find the current index and custom-tileset strings
+        if name == '':  # No tileset selected, the current index should be None
+            ts_index = trans.string('AreaDlg', 15)  # None
+            custom = ''
+            custom_fname = trans.string('AreaDlg', 16)  # [CUSTOM]
+        else:  # Tileset selected
+            ts_index = trans.string('AreaDlg', 18, '[name]', name)  # Custom filename... [name]
+            custom = name
+            custom_fname = trans.string('AreaDlg', 17, '[name]', name)  # [CUSTOM] [name]
+
+        # Add items to the widget:
+        # - None
+        self.tile0.addItem(trans.string('AreaDlg', 15), '')  # None
+        # - Retail Tilesets
+        for tfile, tname in data:
+            text = trans.string('AreaDlg', 19, '[name]', tname, '[file]', tfile)  # [name] ([file])
+            self.tile0.addItem(text, tfile)
+            if name == tfile:
+                ts_index = text
                 custom = ''
-                custom_fname = trans.string('AreaDlg', 16)  # [CUSTOM]
-            else:  # Tileset selected
-                ts_index = trans.string('AreaDlg', 18, '[name]', name)  # Custom filename... [name]
-                custom = name
-                custom_fname = trans.string('AreaDlg', 17, '[name]', name)  # [CUSTOM] [name]
+        # - Custom Tileset
+        self.tile0.addItem(trans.string('AreaDlg', 18, '[name]', custom), custom_fname)  # Custom filename... [name]
 
-            # Add items to the widget:
-            # - None
-            widget.addItem(trans.string('AreaDlg', 15), '')  # None
-            # - Retail Tilesets
-            for tfile, tname in data:
-                text = trans.string('AreaDlg', 19, '[name]', tname, '[file]', tfile)  # [name] ([file])
-                widget.addItem(text, tfile)
-                if name == tfile:
-                    ts_index = text
-                    custom = ''
-            # - Custom Tileset
-            widget.addItem(trans.string('AreaDlg', 18, '[name]', custom), custom_fname)  # Custom filename... [name]
+        # Set the current index
+        item_idx = self.tile0.findText(ts_index)
+        self.currentChoice = item_idx
+        self.tile0.setCurrentIndex(item_idx)
 
-            # Set the current index
-            item_idx = widget.findText(ts_index)
-            self.currentChoices[idx] = item_idx
-            widget.setCurrentIndex(item_idx)
-
-            # Handle combobox changes
-            widget.activated.connect(slot)
+        # Handle combobox changes
+        self.tile0.activated.connect(slot)
 
         # don't allow ts0 to be removable
         self.tile0.removeItem(0)
 
         mainLayout = QtWidgets.QVBoxLayout()
         tile0Box = QtWidgets.QGroupBox(trans.string('AreaDlg', 11))
-        tile1Box = QtWidgets.QGroupBox(trans.string('AreaDlg', 12))
-        tile2Box = QtWidgets.QGroupBox(trans.string('AreaDlg', 13))
-        tile3Box = QtWidgets.QGroupBox(trans.string('AreaDlg', 14))
 
         t0 = QtWidgets.QVBoxLayout()
         t0.addWidget(self.tile0)
-        t1 = QtWidgets.QVBoxLayout()
-        t1.addWidget(self.tile1)
-        t2 = QtWidgets.QVBoxLayout()
-        t2.addWidget(self.tile2)
-        t3 = QtWidgets.QVBoxLayout()
-        t3.addWidget(self.tile3)
 
         tile0Box.setLayout(t0)
-        tile1Box.setLayout(t1)
-        tile2Box.setLayout(t2)
-        tile3Box.setLayout(t3)
 
         mainLayout.addWidget(tile0Box)
-        mainLayout.addWidget(tile1Box)
-        mainLayout.addWidget(tile2Box)
-        mainLayout.addWidget(tile3Box)
         mainLayout.addStretch(1)
         self.setLayout(mainLayout)
 
     @QtCore.pyqtSlot(int)
     def HandleTileset0Choice(self, index):
-        self.HandleTilesetChoice(0, index)
-
-    @QtCore.pyqtSlot(int)
-    def HandleTileset1Choice(self, index):
-        self.HandleTilesetChoice(1, index)
-
-    @QtCore.pyqtSlot(int)
-    def HandleTileset2Choice(self, index):
-        self.HandleTilesetChoice(2, index)
-
-    @QtCore.pyqtSlot(int)
-    def HandleTileset3Choice(self, index):
-        self.HandleTilesetChoice(3, index)
-
-    def HandleTilesetChoice(self, tileset, index):
-        w = self.widgets[tileset]
+        w = self.tile0
 
         if index == (w.count() - 1):
             fname = str(w.itemData(index))
@@ -8939,22 +8739,18 @@ class OldTilesetsTab(QtWidgets.QWidget):
                 w.setItemText(index, trans.string('AreaDlg', 18, '[name]', fname))
                 w.setItemData(index, trans.string('AreaDlg', 17, '[name]', fname))
             else:
-                w.setCurrentIndex(self.currentChoices[tileset])
+                w.setCurrentIndex(self.currentChoice)
                 return
 
-        self.currentChoices[tileset] = index
+        self.currentChoice = index
 
-    def values(self):
+    def value(self):
         """
-        Returns all 4 tileset choices
+        Returns the main tileset choice
         """
-        result = []
-        for i in range(4):
-            widget = eval('self.tile%d' % i)
-            idx = widget.currentIndex()
-            name = str(widget.itemData(idx))
-            result.append(name)
-        return tuple(result)
+        idx = self.tile0.currentIndex()
+        name = str(self.tile0.itemData(idx))
+        return name
 
 
 class LevelViewWidget(QtWidgets.QGraphicsView):
@@ -10417,7 +10213,7 @@ class AreaOptionsDialog(QtWidgets.QDialog):
     Dialog which lets you choose among various area options from tabs
     """
 
-    def __init__(self, NewTilesetsTab=True):
+    def __init__(self):
         """
         Creates and initializes the tab dialog
         """
@@ -10427,7 +10223,7 @@ class AreaOptionsDialog(QtWidgets.QDialog):
 
         self.tabWidget = QtWidgets.QTabWidget()
         self.LoadingTab = LoadingTab()
-        self.TilesetsTab = TilesetsTab() if NewTilesetsTab else OldTilesetsTab()
+        self.TilesetsTab = TilesetsTab()
         self.tabWidget.addTab(self.TilesetsTab, trans.string('AreaDlg', 1))
         self.tabWidget.addTab(self.LoadingTab, trans.string('AreaDlg', 2))
 
@@ -11273,19 +11069,12 @@ class PreferencesDialog(QtWidgets.QDialog):
 
         # Update it
         self.tabChanged()
-        self.menuSettingChanged()
 
     def tabChanged(self):
         """
         Handles the current tab being changed
         """
         self.infoLabel.setText(self.tabWidget.currentWidget().info)
-
-    def menuSettingChanged(self):
-        """
-        Handles the menu-style option being changed
-        """
-        self.tabWidget.setTabEnabled(1, True)
 
     def getGeneralTab(self):
         """
@@ -11298,28 +11087,11 @@ class PreferencesDialog(QtWidgets.QDialog):
             """
             info = trans.string('PrefsDlg', 4)
 
-            def __init__(self, menuHandler):
+            def __init__(self):
                 """
                 Initializes the General Tab
                 """
                 QtWidgets.QWidget.__init__(self)
-
-                # Add the Menu Format settings
-                self.MenuG = QtWidgets.QButtonGroup()  # huge glitches if it's not assigned to self.something
-                self.MenuG.setExclusive(True)
-                MenuL = QtWidgets.QVBoxLayout()
-                self.MenuG.buttonClicked.connect(menuHandler)
-
-                # Add the Tileset Selection settings
-                self.TileD = QtWidgets.QRadioButton(trans.string('PrefsDlg', 28))
-                self.TileO = QtWidgets.QRadioButton(trans.string('PrefsDlg', 29))
-                self.TileG = QtWidgets.QButtonGroup()  # huge glitches if it's not assigned to self.something
-                self.TileG.setExclusive(True)
-                self.TileG.addButton(self.TileD)
-                self.TileG.addButton(self.TileO)
-                TileL = QtWidgets.QVBoxLayout()
-                TileL.addWidget(self.TileD)
-                TileL.addWidget(self.TileO)
 
                 # Add the Translation Language setting
                 self.Trans = QtWidgets.QComboBox()
@@ -11327,8 +11099,6 @@ class PreferencesDialog(QtWidgets.QDialog):
 
                 # Create the main layout
                 L = QtWidgets.QFormLayout()
-                L.addRow(trans.string('PrefsDlg', 11), MenuL)
-                L.addRow(trans.string('PrefsDlg', 27), TileL)
                 L.addRow(trans.string('PrefsDlg', 14), self.Trans)
                 self.setLayout(L)
 
@@ -11339,11 +11109,6 @@ class PreferencesDialog(QtWidgets.QDialog):
                 """
                 Read the preferences and check the respective boxes
                 """
-                if str(setting('TilesetTab')) != 'Old':
-                    self.TileD.setChecked(True)
-                else:
-                    self.TileO.setChecked(True)
-
                 self.Trans.addItem('English')
                 self.Trans.setItemData(0, None, Qt.UserRole)
                 self.Trans.setCurrentIndex(0)
@@ -11362,7 +11127,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                         self.Trans.setCurrentIndex(i)
                     i += 1
 
-        return GeneralTab(self.menuSettingChanged)
+        return GeneralTab()
 
     def getToolbarTab(self):
         """
@@ -12511,8 +12276,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                           trans.string('MenuItems', 81), QtGui.QKeySequence('Ctrl+Alt+O'))
         self.CreateAction('deletearea', self.HandleDeleteArea, GetIcon('delete'), trans.string('MenuItems', 82),
                           trans.string('MenuItems', 83), QtGui.QKeySequence('Ctrl+Alt+D'))
-        self.CreateAction('reloadgfx', self.ReloadTilesets, GetIcon('reload'), trans.string('MenuItems', 84),
-                          trans.string('MenuItems', 85), QtGui.QKeySequence('Ctrl+Alt+R'))
         self.CreateAction('reloaddata', self.ReloadSpriteData, GetIcon('reload'), trans.string('MenuItems', 128),
                           trans.string('MenuItems', 129), QtGui.QKeySequence('Ctrl+Shift+R'))
 
@@ -12621,7 +12384,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         lmenu.addAction(self.actions['importarea'])
         lmenu.addAction(self.actions['deletearea'])
         lmenu.addSeparator()
-        lmenu.addAction(self.actions['reloadgfx'])
         lmenu.addAction(self.actions['reloaddata'])
 
         tmenu = menubar.addMenu(trans.string('Menubar', 4))
@@ -12730,7 +12492,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'importarea',
                 'deletearea',
             ), (
-                'reloadgfx',
                 'reloaddata',
             ), (
                 'editslot1',
@@ -15839,6 +15600,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Handles a new object being chosen to replace the selected objects
         """
+        if CurrentPaintType == 10: return
+
         items = self.scene.selectedItems()
         type_obj = ObjectItem
         tileset = CurrentPaintType
@@ -16272,7 +16035,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Pops up the options for Area Dialogue
         """
-        dlg = AreaOptionsDialog(setting('TilesetTab') != 'Old')
+        dlg = AreaOptionsDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
             Area.timeLimit = dlg.LoadingTab.timer.value() - 100
@@ -16291,43 +16054,29 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             else:
                 Area.wrapFlag &= ~1
 
-            tileset0tmp = Area.tileset0
-            tileset1tmp = Area.tileset1
-            tileset2tmp = Area.tileset2
-            tileset3tmp = Area.tileset3
+            fname = dlg.TilesetsTab.value()
 
-            oldnames = [Area.tileset0, Area.tileset1, Area.tileset2, Area.tileset3]
-            assignments = ['Area.tileset0', 'Area.tileset1', 'Area.tileset2', 'Area.tileset3']
-            newnames = dlg.TilesetsTab.values()
+            toUnload = False
 
-            toUnload = []
-
-            for idx, oldname, assignment, fname in zip(range(4), oldnames, assignments, newnames):
-
-                if fname in ('', None):
-                    toUnload.append(idx)
-                    continue
-                elif fname.startswith(trans.string('AreaDlg', 16)):
+            if fname in ('', None):
+                toUnload = True
+            else:
+                if fname.startswith(trans.string('AreaDlg', 16)):
                     fname = fname[len(trans.string('AreaDlg', 17, '[name]', '')):]
-                    if fname == '': continue
 
                 if fname not in ('', None):
                     if fname not in szsData:
-                        fname = ''
+                        toUnload = True
+                    else:
+                        Area.tileset0 = fname
+                        LoadTileset(0, fname)
 
-                exec(assignment + ' = fname')
-                LoadTileset(idx, fname)
+            if toUnload:
+                Area.tileset0 = ''
 
-            for idx in toUnload:
-                exec('Area.tileset%d = \'\'' % idx)
-                UnloadTileset(idx)
-
-            mainWindow.objPicker.LoadFromTilesets()
+            self.objPicker.LoadFromTilesets()
             self.objAllTab.setCurrentIndex(0)
             self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
-            self.objAllTab.setTabEnabled(2, (Area.tileset1 != ''
-                                         or Area.tileset2 != ''
-                                         or Area.tileset3 != ''))
 
             for layer in Area.layers:
                 for obj in layer:
@@ -16773,14 +16522,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 with open(fn, 'rb') as fileobj:
                     szsData[Area.tileset0] = fileobj.read()
 
-                self.ReloadTilesets()
+                LoadTileset(0, Area.tileset0)
                 SetDirty()
-                mainWindow.objPicker.LoadFromTilesets()
+                self.objPicker.LoadFromTilesets()
                 self.objAllTab.setCurrentIndex(0)
                 self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
-                self.objAllTab.setTabEnabled(2, (Area.tileset1 != ''
-                                             or Area.tileset2 != ''
-                                             or Area.tileset3 != ''))
 
                 for layer in Area.layers:
                     for obj in layer:
@@ -16816,8 +16562,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             with open(tile_path + '/tmp.tmp', 'rb') as fn:
                 szsData[Area.tileset0] = fn.read()
             os.remove(tile_path + '/tmp.tmp')
-            self.ReloadTilesets()
+            LoadTileset(0, Area.tileset0)
             SetDirty()
+            self.objPicker.LoadFromTilesets()
+            self.objAllTab.setCurrentIndex(0)
+            self.objAllTab.setTabEnabled(0, (Area.tileset0 != ''))
+
+            for layer in Area.layers:
+                for obj in layer:
+                    obj.updateObjCache()
+
+            self.scene.update()
 
 
 def main():
