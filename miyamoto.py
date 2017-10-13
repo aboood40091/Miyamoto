@@ -6984,7 +6984,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
         jsonData['objlyt'] = name + "_object_" + str(objNum) + ".objlyt"
 
-        indexfile = struct.pack('>HBBxB', 0, obj.width, obj.height, obj.randByte)
+        indexfile = struct.pack('>HBBxB', 0, obj.width, obj.height, 0)
 
         with open(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + ".meta", "wb+") as meta:
             meta.write(indexfile)
@@ -7239,7 +7239,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
                     obj = ObjectDef()
                     obj.width = data[1]
                     obj.height = data[2]
-                    obj.randByte = data[3]
+                    obj.randByte = 0  # TODO
                     obj.load(deffile, 0)
 
                     # Checks if the slop is reversed and reverses the rows
