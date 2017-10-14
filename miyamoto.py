@@ -7012,15 +7012,12 @@ class ObjectPickerWidget(QtWidgets.QListView):
                     del ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
                     break
 
-            if not found:
-                QtWidgets.QMessageBox.critical(self, 'Cannot Delete', 'Whoops, something went wrong...')
-                return
-
-            for i in ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()]:
-                obj = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
-                if obj[0] == tempidx:
-                    if obj[1] > tempobjNum:
-                        ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i][1] -= 1
+            if found:
+                for i in ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()]:
+                    obj = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
+                    if obj[0] == tempidx:
+                        if obj[1] > tempobjNum:
+                            ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i][1] -= 1
 
         if ObjectDefinitions[idx] == [None] * 256:
             if idx == 1: Area.tileset1 = ''
