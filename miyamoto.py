@@ -91,6 +91,7 @@ ObjectDefinitions = None  # 4 tilesets
 ObjectAllDefinitions = None
 ObjectAllCollisions = None
 ObjectAllImages = None
+ObjectAddedtoEmbedded = {}
 TilesetsAnimating = False
 Area = None
 Dirty = False
@@ -7020,7 +7021,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         mainWindow.scene.update()
         SetDirty()
 
-        mainWindow.updateTileCountLabel()
+        mainWindow.updateNumUsedTilesLabel()
 
     ObjChanged = QtCore.pyqtSignal(int)
     ObjReplace = QtCore.pyqtSignal(int)
@@ -8846,122 +8847,132 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             elif CurrentPaintType == 10 and CurrentObject != -1:
                 # See if the object is addable to and add it
                 type_ = CurrentObject
-                for idx in range(1, 4):
-                    usedTiles = getUsedTiles()[idx]
-                    if len(usedTiles) >= 256:  # It can't be more than 256, oh well
-                        continue
+                if CurrentObject in ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()]:
+                    (CurrentPaintType,
+                     CurrentObject) = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][
+                         CurrentObject]
+                else:
+                    for idx in range(1, 4):
+                        usedTiles = getUsedTiles()[idx]
+                        if len(usedTiles) >= 256:  # It can't be more than 256, oh well
+                            continue
 
-                    numTiles = 0
-                    obj = ObjectAllDefinitions[CurrentObject]
-                    for row in obj.rows:
-                        for tile in row:
-                            if len(tile) == 3:
-                                numTiles += 1
+                        numTiles = 0
+                        obj = ObjectAllDefinitions[CurrentObject]
+                        for row in obj.rows:
+                            for tile in row:
+                                if len(tile) == 3:
+                                    numTiles += 1
 
-                    if numTiles + len(usedTiles) > 256:
-                        continue
+                        if numTiles + len(usedTiles) > 256:
+                            continue
 
-                    tileoffset = idx * 256
+                        tileoffset = idx * 256
 
-                    freeTiles = []
-                    for i in range(256):
-                        if i not in usedTiles: freeTiles.append(i)
+                        freeTiles = []
+                        for i in range(256):
+                            if i not in usedTiles: freeTiles.append(i)
 
-                    ctile = 0
-                    crow = 0
-                    i = 0
-                    for row in obj.rows:
-                        for tile in row:
-                            if len(tile) == 3:
-                                obj.rows[crow][ctile][1] = freeTiles[i] | (idx << 8)
-                                i += 1
-                            ctile += 1
-                        crow += 1
                         ctile = 0
-
-                    if ObjectDefinitions[idx] is None:
-                        ObjectDefinitions[idx] = [None] * 256
-
-                    defs = ObjectDefinitions[idx]
-
-                    objNum = 0
-                    while defs[objNum] is not None and objNum < 256:
-                        objNum += 1
-
-                    ObjectDefinitions[idx][objNum] = obj
-
-                    colldata = ObjectAllCollisions[CurrentObject]
-                    img, nml = ObjectAllImages[CurrentObject]
-
-                    # Checks if the slop is reversed and reverses the rows
-                    isSlope = obj.rows[0][0][0]
-                    if (isSlope & 0x80) and (isSlope & 0x2):
-                        x = 0
-                        y = (obj.height - 1) * 60
-                        i = 0
                         crow = 0
-                        for row in obj.rows:
-                            for tile in row:
-                                if len(tile) == 3:
-                                    tileNum = (tile[1] & 0xFF) + tileoffset
-                                    T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
-                                    realRow = len(obj.rows) - 1 - crow
-                                    colls = struct.unpack_from('>8B', colldata, (8 * obj.width * realRow) + i)
-                                    T.setCollisions(colls)
-                                    Tiles[tileNum] = T
-                                    x += 60
-                                    i += 8
-                            crow += 1
-                            y -= 60
-                            x = 0
-                            i = 0
-
-                    else:
-                        x = 0
-                        y = 0
                         i = 0
                         for row in obj.rows:
                             for tile in row:
                                 if len(tile) == 3:
-                                    tileNum = (tile[1] & 0xFF) + tileoffset
-                                    T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
-                                    T.setCollisions(struct.unpack_from('>8B', colldata, i))
-                                    Tiles[tileNum] = T
-                                    x += 60
-                                    i += 8
-                            y += 60
+                                    obj.rows[crow][ctile][1] = freeTiles[i] | (idx << 8)
+                                    i += 1
+                                ctile += 1
+                            crow += 1
+                            ctile = 0
+
+                        if ObjectDefinitions[idx] is None:
+                            ObjectDefinitions[idx] = [None] * 256
+
+                        defs = ObjectDefinitions[idx]
+
+                        objNum = 0
+                        while defs[objNum] is not None and objNum < 256:
+                            objNum += 1
+
+                        ObjectDefinitions[idx][objNum] = obj
+
+                        colldata = ObjectAllCollisions[CurrentObject]
+                        img, nml = ObjectAllImages[CurrentObject]
+
+                        # Checks if the slop is reversed and reverses the rows
+                        isSlope = obj.rows[0][0][0]
+                        if (isSlope & 0x80) and (isSlope & 0x2):
                             x = 0
+                            y = (obj.height - 1) * 60
+                            i = 0
+                            crow = 0
+                            for row in obj.rows:
+                                for tile in row:
+                                    if len(tile) == 3:
+                                        tileNum = (tile[1] & 0xFF) + tileoffset
+                                        T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
+                                        realRow = len(obj.rows) - 1 - crow
+                                        colls = struct.unpack_from('>8B', colldata, (8 * obj.width * realRow) + i)
+                                        T.setCollisions(colls)
+                                        Tiles[tileNum] = T
+                                        x += 60
+                                        i += 8
+                                crow += 1
+                                y -= 60
+                                x = 0
+                                i = 0
 
-                    SLib.Tiles = Tiles
+                        else:
+                            x = 0
+                            y = 0
+                            i = 0
+                            for row in obj.rows:
+                                for tile in row:
+                                    if len(tile) == 3:
+                                        tileNum = (tile[1] & 0xFF) + tileoffset
+                                        T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
+                                        T.setCollisions(struct.unpack_from('>8B', colldata, i))
+                                        Tiles[tileNum] = T
+                                        x += 60
+                                        i += 8
+                                y += 60
+                                x = 0
 
-                    CurrentPaintType = idx
-                    CurrentObject = objNum
+                        SLib.Tiles = Tiles
 
-                    mainWindow.objPicker.LoadFromTilesets()
+                        ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][
+                            CurrentObject] = (idx, objNum)
 
-                    if not eval('Area.tileset%d' % idx):
-                        if idx == 1:
-                            Area.tileset1 = ('Pa1_%d'
-                                             % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+                        CurrentPaintType = idx
+                        CurrentObject = objNum
 
-                        elif idx == 2:
-                            Area.tileset2 = ('Pa2_%d'
-                                             % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+                        mainWindow.objPicker.LoadFromTilesets()
 
-                        elif idx == 3:
-                            Area.tileset3 = ('Pa3_%d'
-                                             % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+                        if not eval('Area.tileset%d' % idx):
+                            if idx == 1:
+                                Area.tileset1 = ('Pa1_%d'
+                                                 % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
 
-                    mainWindow.objAllTab.setTabEnabled(2, (Area.tileset1 != ''
-                                                           or Area.tileset2 != ''
-                                                           or Area.tileset3 != ''))
+                            elif idx == 2:
+                                Area.tileset2 = ('Pa2_%d'
+                                                 % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
 
-                    break
+                            elif idx == 3:
+                                Area.tileset3 = ('Pa3_%d'
+                                                 % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
 
-                # Checks if the object fit in one of the tilesets
-                if CurrentPaintType == 10:
-                    QtWidgets.QMessageBox.critical(None, 'Cannot Paint', 'There isn\'t enough room left for this object!')
-                    return
+                        mainWindow.objAllTab.setTabEnabled(2, (Area.tileset1 != ''
+                                                               or Area.tileset2 != ''
+                                                               or Area.tileset3 != ''))
+
+                        mainWindow.updateNumUsedTilesLabel()
+
+                        break
+
+                    # Checks if the object fit in one of the tilesets
+                    if CurrentPaintType == 10:
+                        QtWidgets.QMessageBox.critical(None, 'Cannot Paint', 'There isn\'t enough room left for this object!')
+                        return 
 
                 # paint an object
                 clicked = mainWindow.view.mapToScene(event.x(), event.y())
@@ -12731,8 +12742,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.objAllTab.setTabEnabled(1, False)
 
         else:
-            for folder in os.listdir(top_folder):
+            for i, folder in enumerate(os.listdir(top_folder)):
                     if os.path.isdir(top_folder + "/" + folder):
+                        ObjectAddedtoEmbedded[i] = {}
                         self.folderPicker.addItem(folder)
 
         self.folderPicker.setVisible(False)
@@ -14085,6 +14097,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Change the Objects path used by "All" tab
         """
+        global ObjectAddedtoEmbedded
         path = QtWidgets.QFileDialog.getExistingDirectory(None,
                                                           'Choose the folder containing Object folders')
 
@@ -14094,8 +14107,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.objAllTab.setTabEnabled(1, True)
 
-        for folder in os.listdir(path):
+        for i, folder in enumerate(os.listdir(path)):
                 if os.path.isdir(path + "/" + folder):
+                    ObjectAddedtoEmbedded[i] = {}
                     self.folderPicker.addItem(folder)
 
         def UpdateObjFolder():
