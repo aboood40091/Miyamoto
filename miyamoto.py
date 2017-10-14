@@ -7017,7 +7017,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
                     obj = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
                     if obj[0] == tempidx:
                         if obj[1] > tempobjNum:
-                            ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i][1] -= 1
+                            ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i] = (obj[0], obj[1] - 1)
 
         if ObjectDefinitions[idx] == [None] * 256:
             if idx == 1: Area.tileset1 = ''
