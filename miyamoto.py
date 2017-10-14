@@ -2127,8 +2127,8 @@ class TilesetTile:
             painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(TileWidth * 0.625, 0),
                                                 QtCore.QPoint(TileWidth * 0.625, TileWidth * 0.5),
                                                 QtCore.QPoint(TileWidth * 0.75, TileWidth * 0.5),
-                                                QtCore.QPoint(TileWidth * 0.5, 41),
-                                                QtCore.QPoint(TileWidth * 0.625, TileWidth * 0.5),
+                                                QtCore.QPoint(TileWidth * 0.5, TileWidth * (17/24)),
+                                                QtCore.QPoint(TileWidth * 0.25, TileWidth * 0.5),
                                                 QtCore.QPoint(TileWidth * 0.375, TileWidth * 0.5),
                                                 QtCore.QPoint(TileWidth * 0.375, 0)]))
 
@@ -6883,20 +6883,43 @@ class ObjectPickerWidget(QtWidgets.QListView):
         painter = QtGui.QPainter(tex)
         nmlPainter = QtGui.QPainter(nml)
 
-        colldata = b''
+        # Checks if the slop is reversed and reverses the rows
+        isSlope = obj.rows[0][0][0]
+        if (isSlope & 0x80) and (isSlope & 0x2):
+            colldata = []
 
-        x = 0
-        y = 0
-        for row in obj.rows:
-            for tile in row:
-                if len(tile) == 3:
-                    tileNum = (tile[1] & 0xFF) + tileoffset
-                    painter.drawPixmap(x, y, Tiles[tileNum].main)
-                    nmlPainter.drawPixmap(x, y, Tiles[tileNum].nml)
-                    colldata += bytes(Tiles[tileNum].collData)
-                    x += 60
-            y += 60
             x = 0
+            y = (obj.height - 1) * 60
+            for row in obj.rows:
+                colls = b''
+                for tile in row:
+                    if len(tile) == 3:
+                        tileNum = (tile[1] & 0xFF) + tileoffset
+                        painter.drawPixmap(x, y, Tiles[tileNum].main)
+                        nmlPainter.drawPixmap(x, y, Tiles[tileNum].nml)
+                        colls += bytes(Tiles[tileNum].collData)
+                        x += 60
+                colldata.append(colls)
+                y -= 60
+                x = 0
+
+            colldata = b''.join(reversed(colldata))
+
+        else:
+            colldata = b''
+
+            x = 0
+            y = 0
+            for row in obj.rows:
+                for tile in row:
+                    if len(tile) == 3:
+                        tileNum = (tile[1] & 0xFF) + tileoffset
+                        painter.drawPixmap(x, y, Tiles[tileNum].main)
+                        nmlPainter.drawPixmap(x, y, Tiles[tileNum].nml)
+                        colldata += bytes(Tiles[tileNum].collData)
+                        x += 60
+                y += 60
+                x = 0
 
         painter.end()
         nmlPainter.end()
@@ -7196,11 +7219,6 @@ class ObjectPickerWidget(QtWidgets.QListView):
                     obj.height = data[2]
                     obj.randByte = 0  # TODO
                     obj.load(deffile, 0)
-
-                    # Checks if the slop is reversed and reverses the rows
-                    isSlope = obj.rows[0][0][0]
-                    if (isSlope & 0x80) and (isSlope & 0x2):
-                        obj.rows = list(reversed(obj.rows))
 
                     ObjectAllDefinitions.append(obj)
 
@@ -8869,20 +8887,44 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     colldata = ObjectAllCollisions[CurrentObject]
                     img, nml = ObjectAllImages[CurrentObject]
 
-                    x = 0
-                    y = 0
-                    i = 0
-                    for row in obj.rows:
-                        for tile in row:
-                            if len(tile) == 3:
-                                tileNum = (tile[1] & 0xFF) + tileoffset
-                                T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
-                                T.setCollisions(struct.unpack_from('>8B', colldata, i))
-                                Tiles[tileNum] = T
-                                x += 60
-                                i += 8
-                        y += 60
+                    # Checks if the slop is reversed and reverses the rows
+                    isSlope = obj.rows[0][0][0]
+                    if (isSlope & 0x80) and (isSlope & 0x2):
                         x = 0
+                        y = (obj.height - 1) * 60
+                        i = 0
+                        crow = 0
+                        for row in obj.rows:
+                            for tile in row:
+                                if len(tile) == 3:
+                                    tileNum = (tile[1] & 0xFF) + tileoffset
+                                    T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
+                                    realRow = len(obj.rows) - 1 - crow
+                                    colls = struct.unpack_from('>8B', colldata, (8 * obj.width * realRow) + i)
+                                    T.setCollisions(colls)
+                                    Tiles[tileNum] = T
+                                    x += 60
+                                    i += 8
+                            crow += 1
+                            y -= 60
+                            x = 0
+                            i = 0
+
+                    else:
+                        x = 0
+                        y = 0
+                        i = 0
+                        for row in obj.rows:
+                            for tile in row:
+                                if len(tile) == 3:
+                                    tileNum = (tile[1] & 0xFF) + tileoffset
+                                    T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
+                                    T.setCollisions(struct.unpack_from('>8B', colldata, i))
+                                    Tiles[tileNum] = T
+                                    x += 60
+                                    i += 8
+                            y += 60
+                            x = 0
 
                     SLib.Tiles = Tiles
 
