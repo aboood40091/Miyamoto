@@ -6979,6 +6979,24 @@ class ObjectPickerWidget(QtWidgets.QListView):
         idx = CurrentPaintType
         objNum = CurrentObject
 
+        # From Satoru
+        ## Checks if the object is deletable
+        matchingObjs = []
+
+        for layer in Area.layers:
+            for obj in layer:
+                if obj.tileset == idx and obj.type == objNum:
+                    matchingObjs.append(obj)
+
+        if matchingObjs:
+            where = [('(%d, %d)' % (obj.objx, obj.objy)) for obj in matchingObjs]
+            dlgTxt = "You can't delete this object because there are instances of it at the following coordinates:\n"
+            dlgTxt += ', '.join(where)
+            dlgTxt += '\nPlease remove or replace them before deleting this object.'
+
+            QtWidgets.QMessageBox.critical(self, 'Cannot Delete', dlgTxt)
+            return
+
         del ObjectDefinitions[idx][objNum]
         ObjectDefinitions[idx].append(None)
 
@@ -6986,20 +7004,6 @@ class ObjectPickerWidget(QtWidgets.QListView):
             if idx == 1: Area.tileset1 = ''
             elif idx == 2: Area.tileset2 = ''
             elif idx == 3: Area.tileset3 = ''
-
-        # Doesn't function properly, don't ask me why
-        ## for layer in Area.layers:
-        ##     for obj in layer:
-        ##         if obj.tileset == idx and obj.type == objNum:
-        ##             currLayer = Area.layers.index(layer)
-        ##             currObj = Area.layers[currLayer].index(obj)
-        ##             del Area.layers[currLayer][currObj]
-        ##             mainWindow.scene.removeItem(obj)
-
-        ## global numObj
-
-        ## for i in range(idx):
-        ##     numObj[i] -= 1
 
         for layer in Area.layers:
             for obj in layer:
@@ -7015,6 +7019,8 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
         mainWindow.scene.update()
         SetDirty()
+
+        mainWindow.updateTileCountLabel()
 
     ObjChanged = QtCore.pyqtSignal(int)
     ObjReplace = QtCore.pyqtSignal(int)
@@ -8838,7 +8844,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 SetDirty()
 
             elif CurrentPaintType == 10 and CurrentObject != -1:
-                # See if the object is addable to one of the tilesets and add it
+                # See if the object is addable to and add it
                 type_ = CurrentObject
                 for idx in range(1, 4):
                     usedTiles = getUsedTiles()[idx]
@@ -8952,9 +8958,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                     break
 
+                # Checks if the object fit in one of the tilesets
                 if CurrentPaintType == 10:
-                    QtWidgets.QMessageBox.warning(None, 'Warning',
-                                                  'There isn\'t enough room left for this object!')
+                    QtWidgets.QMessageBox.critical(None, 'Cannot Paint', 'There isn\'t enough room left for this object!')
                     return
 
                 # paint an object
@@ -12124,9 +12130,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # set up the status bar
         self.posLabel = QtWidgets.QLabel()
+        self.numUsedTilesLabel = QtWidgets.QLabel()
         self.selectionLabel = QtWidgets.QLabel()
         self.hoverLabel = QtWidgets.QLabel()
         self.statusBar().addWidget(self.posLabel)
+        self.statusBar().addWidget(self.numUsedTilesLabel)
         self.statusBar().addWidget(self.selectionLabel)
         self.statusBar().addWidget(self.hoverLabel)
         self.ZoomWidget = ZoomWidget()
@@ -15142,6 +15150,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.levelOverview.Reset()
         self.levelOverview.update()
         QtCore.QTimer.singleShot(20, self.levelOverview.update)
+        self.updateNumUsedTilesLabel()
 
         # Set the Current Game setting
         self.CurrentGame = game
@@ -16050,6 +16059,25 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             trans.string('Statusbar', 28, '[objx]', int(x / TileWidth), '[objy]', int(y / TileWidth), '[sprx]',
                          int(x / TileWidth * 16), '[spry]', int(y / TileWidth * 16)))
         self.hoverLabel.setText(info)
+
+    def updateNumUsedTilesLabel(self):
+        """
+        Updates the label for number of used tiles
+        Based on a similar function from Satoru
+        """
+        usedTiles = getUsedTiles()
+
+        numUsedTiles = 0
+
+        for idx in range(1, 4):
+            numUsedTiles += len(usedTiles[idx])
+
+        text = str(numUsedTiles) + '/768 tiles (' + str(numUsedTiles / 768 * 100)[:5] + '%)'
+
+        if numUsedTiles > 768:
+            text = '<span style="color:red;font-weight:bold;">' + text + '</span>'
+
+        self.numUsedTilesLabel.setText(text)
 
     def keyPressEvent(self, event):
         """
