@@ -7376,7 +7376,7 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
         """
         Initializes the widget
         """
-        QtWidgets.QTreeWidget.__init__(self)
+        super().__init__()
         self.setColumnCount(1)
         self.setHeaderHidden(True)
         self.setIndentation(16)
@@ -7429,6 +7429,8 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
 
         self.itemClicked.connect(self.HandleSprReplace)
 
+        self.SwitchView(SpriteCategories[0])
+
     def SwitchView(self, view):
         """
         Changes the selected sprite view
@@ -7439,7 +7441,6 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
         for node in view[2]:
             node.setHidden(False)
 
-    @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, QtWidgets.QTreeWidgetItem)
     def HandleItemChange(self, current, previous):
         """
         Throws a signal when the selected object changed
@@ -7465,7 +7466,6 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
         self.NoSpritesFound.setHidden((len(results) != 0))
         self.SearchResultsCategory.setExpanded(True)
 
-    @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
     def HandleSprReplace(self, item, column):
         """
         Throws a signal when the selected sprite is used as a replacement
@@ -7489,7 +7489,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         """
         Constructor
         """
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
         # create the raw editor
@@ -9028,7 +9028,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 if clicked.y() < 0: clicked.setY(0)
 
                 if CurrentSprite >= 0:  # fixes a bug -Treeki
-                    # [18:15:36]  Angel-SL: I found a bug in Miyamoto
+                    # [18:15:36]  Angel-SL: I found a bug in Reggie
                     # [18:15:42]  Angel-SL: you can paint a 'No sprites found'
                     # [18:15:47]  Angel-SL: results in a sprite -2
 
