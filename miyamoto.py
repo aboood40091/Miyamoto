@@ -7002,24 +7002,25 @@ class ObjectPickerWidget(QtWidgets.QListView):
         ObjectDefinitions[idx].append(None)
 
         # Remove the object from ObjectAddedtoEmbedded
-        found = False
-        for i in ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()]:
-            obj = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
-            if obj == (idx, objNum):
-                found = True
-                tempidx, tempobjNum = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
-                del ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
-                break
+        if len(ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()]):
+            found = False
+            for i in ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()]:
+                obj = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
+                if obj == (idx, objNum):
+                    found = True
+                    tempidx, tempobjNum = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
+                    del ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
+                    break
 
-        if not found:
-            QtWidgets.QMessageBox.critical(self, 'Cannot Delete', 'Whoops, something went wrong...')
-            return
+            if not found:
+                QtWidgets.QMessageBox.critical(self, 'Cannot Delete', 'Whoops, something went wrong...')
+                return
 
-        for i in ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()]:
-            obj = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
-            if obj[0] == tempidx:
-                if obj[1] > tempobjNum:
-                    ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i][1] -= 1
+            for i in ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()]:
+                obj = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
+                if obj[0] == tempidx:
+                    if obj[1] > tempobjNum:
+                        ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i][1] -= 1
 
         if ObjectDefinitions[idx] == [None] * 256:
             if idx == 1: Area.tileset1 = ''
