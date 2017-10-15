@@ -14127,12 +14127,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.objAllTab.setTabEnabled(1, True)
 
+        self.folderPicker.clear()
+
         i = 0
         for folder in os.listdir(path):
-                if os.path.isdir(path + "/" + folder):
-                    ObjectAddedtoEmbedded[CurrentArea][i] = {}
-                    self.folderPicker.addItem(folder)
-                    i += 1
+            if os.path.isdir(path + "/" + folder):
+                ObjectAddedtoEmbedded[CurrentArea][i] = {}
+                self.folderPicker.addItem(folder)
+                i += 1
 
         def UpdateObjFolder():
             self.objPicker.mall.LoadFromFolder()
@@ -15156,6 +15158,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 self.objAllTab.setTabEnabled(1, False)
 
             else:
+                self.folderPicker.clear()
+
                 i = 0
                 for folder in os.listdir(top_folder):
                         if os.path.isdir(top_folder + "/" + folder):
