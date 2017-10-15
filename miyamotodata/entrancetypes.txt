@@ -31,4 +31,5 @@
 30:Unknown
 31:Unknown
 32:Unknown
-33:Unknown
+33:Title Screen
+34:Ambush entrance (center)

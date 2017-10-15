@@ -5931,10 +5931,6 @@ class EntranceItem(LevelEditorItem):
                 # Vine
                 self.setPos(-0.5 * TileWidth, -10 * TileWidth)
                 self.BoundingRect = QtCore.QRectF(0, 0, 2 * TileWidth, 29 * TileWidth)
-            elif self.parent.enttype == 24:
-                # Jumping facing left
-                self.setPos(-3.0833333 * TileWidth, -11.5 * TileWidth)
-                self.BoundingRect = QtCore.QRectF(0, 0, 4.0833333 * TileWidth, 12.5 * TileWidth)
             else:
                 self.setPos(0, 0)
                 self.BoundingRect = QtCore.QRectF(0, 0, TileWidth, TileWidth)
