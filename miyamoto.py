@@ -2301,11 +2301,11 @@ def writeGTX(tex, idx):
 
     elif platform.system() == 'Linux':
         os.system('chmod +x nvcompress.elf')
-        exe = 'nvcompress.elf'
+        exe = './nvcompress.elf'
 
     elif platform.system() == 'Darwin':
         os.system('chmod +x nvcompress-osx.app')
-        exe = 'nvcompress-osx.app'
+        exe = './nvcompress-osx.app'
 
     if idx != 0:
         os.system(exe + ' -bc3 tmp.png tmp.dds')
