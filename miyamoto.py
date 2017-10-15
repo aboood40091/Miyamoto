@@ -91,7 +91,7 @@ ObjectDefinitions = None  # 4 tilesets
 ObjectAllDefinitions = None
 ObjectAllCollisions = None
 ObjectAllImages = None
-ObjectAddedtoEmbedded = {}
+ObjectAddedtoEmbedded = None
 TilesetsAnimating = False
 Area = None
 Dirty = False
@@ -102,6 +102,7 @@ CurrentPaintType = -1
 CurrentObject = -1
 CurrentSprite = -1
 CurrentLayer = 1
+CurrentArea = 1
 Layer0Shown = True
 Layer1Shown = True
 Layer2Shown = True
@@ -3445,24 +3446,21 @@ class Level_NSMBU(AbstractLevel):
 
         # Save all the tilesets
         if Area.tileset1:
-            Area.tileset1 = ('Pa1_%d'
-                             % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+            Area.tileset1 = ('Pa1_%d' % CurrentArea)
 
             tilesetData = SaveTileset(1)
             if tilesetData:
                 szsData[Area.tileset1] = tilesetData
 
         if Area.tileset2:
-            Area.tileset2 = ('Pa2_%d'
-                             % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+            Area.tileset2 = ('Pa2_%d' % CurrentArea)
 
             tilesetData = SaveTileset(2)
             if tilesetData:
                 szsData[Area.tileset2] = tilesetData
 
         if Area.tileset3:
-            Area.tileset3 = ('Pa3_%d'
-                             % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+            Area.tileset3 = ('Pa3_%d' % CurrentArea)
 
             tilesetData = SaveTileset(3)
             if tilesetData:
@@ -3540,7 +3538,7 @@ class Level_NSMBU(AbstractLevel):
 
     def saveNewArea(self, innerfilename, course_new, L0_new, L1_new, L2_new):
         """
-        Save the level back to a file (when adding a new Area)
+        Save the level back to a file (when adding a new or deleting an existing Area)
         """
 
         print("")
@@ -4234,14 +4232,11 @@ class Area_NSMBU(AbstractParsedArea):
         """
         if not isNewArea:
             if self.tileset1:
-                self.tileset1 = ('Pa1_%d'
-                                 % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+                self.tileset1 = ('Pa1_%d' % CurrentArea)
             if self.tileset2:
-                self.tileset2 = ('Pa2_%d'
-                                 % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+                self.tileset2 = ('Pa2_%d' % CurrentArea)
             if self.tileset3:
-                self.tileset3 = ('Pa3_%d'
-                                 % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+                self.tileset3 = ('Pa3_%d' % CurrentArea)
 
         self.blocks[0] = ''.join(
             [self.tileset0.ljust(32, '\0'), self.tileset1.ljust(32, '\0'), self.tileset2.ljust(32, '\0'),
@@ -7002,22 +6997,22 @@ class ObjectPickerWidget(QtWidgets.QListView):
         ObjectDefinitions[idx].append(None)
 
         # Remove the object from ObjectAddedtoEmbedded
-        if len(ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()]):
+        if len(ObjectAddedtoEmbedded[CurrentArea][mainWindow.folderPicker.currentIndex()]):
             found = False
-            for i in ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()]:
-                obj = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
+            for i in ObjectAddedtoEmbedded[CurrentArea][mainWindow.folderPicker.currentIndex()]:
+                obj = ObjectAddedtoEmbedded[CurrentArea][mainWindow.folderPicker.currentIndex()][i]
                 if obj == (idx, objNum):
                     found = True
-                    tempidx, tempobjNum = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
-                    del ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
+                    tempidx, tempobjNum = ObjectAddedtoEmbedded[CurrentArea][mainWindow.folderPicker.currentIndex()][i]
+                    del ObjectAddedtoEmbedded[CurrentArea][mainWindow.folderPicker.currentIndex()][i]
                     break
 
             if found:
-                for i in ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()]:
-                    obj = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i]
+                for i in ObjectAddedtoEmbedded[CurrentArea][mainWindow.folderPicker.currentIndex()]:
+                    obj = ObjectAddedtoEmbedded[CurrentArea][mainWindow.folderPicker.currentIndex()][i]
                     if obj[0] == tempidx:
                         if obj[1] > tempobjNum:
-                            ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][i] = (obj[0], obj[1] - 1)
+                            ObjectAddedtoEmbedded[CurrentArea][mainWindow.folderPicker.currentIndex()][i] = (obj[0], obj[1] - 1)
 
         if ObjectDefinitions[idx] == [None] * 256:
             if idx == 1: Area.tileset1 = ''
@@ -8865,9 +8860,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             elif CurrentPaintType == 10 and CurrentObject != -1:
                 # See if the object is addable to and add it
                 type_ = CurrentObject
-                if CurrentObject in ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()]:
+                if CurrentObject in ObjectAddedtoEmbedded[CurrentArea][mainWindow.folderPicker.currentIndex()]:
                     (CurrentPaintType,
-                     CurrentObject) = ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][
+                     CurrentObject) = ObjectAddedtoEmbedded[CurrentArea][mainWindow.folderPicker.currentIndex()][
                          CurrentObject]
                 else:
                     for idx in range(1, 4):
@@ -8958,7 +8953,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                         SLib.Tiles = Tiles
 
-                        ObjectAddedtoEmbedded[mainWindow.folderPicker.currentIndex()][
+                        ObjectAddedtoEmbedded[CurrentArea][mainWindow.folderPicker.currentIndex()][
                             CurrentObject] = (idx, objNum)
 
                         CurrentPaintType = idx
@@ -8968,16 +8963,13 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                         if not eval('Area.tileset%d' % idx):
                             if idx == 1:
-                                Area.tileset1 = ('Pa1_%d'
-                                                 % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+                                Area.tileset1 = ('Pa1_%d' % CurrentArea)
 
                             elif idx == 2:
-                                Area.tileset2 = ('Pa2_%d'
-                                                 % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+                                Area.tileset2 = ('Pa2_%d' % CurrentArea)
 
                             elif idx == 3:
-                                Area.tileset3 = ('Pa3_%d'
-                                                 % int(str(mainWindow.areaComboBox.currentText()).split(' ')[1]))
+                                Area.tileset3 = ('Pa3_%d' % CurrentArea)
 
                         mainWindow.objAllTab.setTabEnabled(2, (Area.tileset1 != ''
                                                                or Area.tileset2 != ''
@@ -12097,6 +12089,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         global Initializing
         Initializing = True
 
+        global ObjectAddedtoEmbedded
+        ObjectAddedtoEmbedded = {1: {}}
+
         # Miyamoto Version number goes below here. 64 char max (32 if non-ascii).
         self.MiyamotoInfo = MiyamotoID
 
@@ -12763,7 +12758,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             i = 0
             for folder in os.listdir(top_folder):
                     if os.path.isdir(top_folder + "/" + folder):
-                        ObjectAddedtoEmbedded[i] = {}
+                        ObjectAddedtoEmbedded[CurrentArea][i] = {}
                         self.folderPicker.addItem(folder)
                         i += 1
 
@@ -14056,7 +14051,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if self.fileSavePath.endswith('.szs'):
             course_name = os.path.splitext(self.fileSavePath)[0]
             with open(course_name + '.tmp', 'wb') as f:
-                f.write(Level.save(name))
+                f.write(Level.saveNewArea(name, None, None, None, None))
 
             if os.path.isfile(self.fileSavePath):
                 os.remove(self.fileSavePath)
@@ -14080,8 +14075,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             os.remove(course_name + '.tmp')
         else:
             with open(self.fileSavePath, 'wb') as f:
-                f.write(Level.save(name))
+                f.write(Level.saveNewArea(name, None, None, None, None))
         levelNameCache = name
+
+        if CurrentArea in ObjectAddedtoEmbedded:  # Should always be true
+            del ObjectAddedtoEmbedded[CurrentArea]
+
         self.LoadLevel(None, self.fileSavePath, True, 1)
 
     @QtCore.pyqtSlot()
@@ -14109,7 +14108,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             SetGamePath(path)
             # break
 
-        if not auto: self.LoadLevel(None, FirstLevels[CurrentGame], False, 1)
+        if not auto:
+            global ObjectAddedtoEmbedded
+            ObjectAddedtoEmbedded = {}
+
+            self.LoadLevel(None, FirstLevels[CurrentGame], False, 1)
+
         return True
 
     @QtCore.pyqtSlot()
@@ -14130,7 +14134,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         i = 0
         for folder in os.listdir(path):
                 if os.path.isdir(path + "/" + folder):
-                    ObjectAddedtoEmbedded[i] = {}
+                    ObjectAddedtoEmbedded[CurrentArea][i] = {}
                     self.folderPicker.addItem(folder)
                     i += 1
 
@@ -14214,6 +14218,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Create a new level
         """
         if self.CheckDirty(): return
+
+        global ObjectAddedtoEmbedded
+        ObjectAddedtoEmbedded = {}
+
         self.LoadLevel(None, None, False, 1)
 
     @QtCore.pyqtSlot()
@@ -14226,6 +14234,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         LoadLevelNames()
         dlg = ChooseLevelNameDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
+            global ObjectAddedtoEmbedded
+            ObjectAddedtoEmbedded = {}
+
             self.LoadLevel(None, dlg.currentlevel, False, 1)
 
     @QtCore.pyqtSlot()
@@ -14241,6 +14252,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         filetypes += trans.string('FileDlgs', 2) + ' (*)'
         fn = QtWidgets.QFileDialog.getOpenFileName(self, trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return
+
+        global ObjectAddedtoEmbedded
+        ObjectAddedtoEmbedded = {}
+
         self.LoadLevel(None, str(fn), True, 1)
 
     @QtCore.pyqtSlot()
@@ -14899,7 +14914,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Load a level from any game into the editor
         """
-        global levName, szsData
+        global levName, szsData, CurrentArea
         hmm = False
         if name != None:
             levName = os.path.basename(name)
@@ -15133,6 +15148,23 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Layer0Shown = True
         Layer1Shown = True
         Layer2Shown = True
+        CurrentArea = areaNum
+
+        if CurrentArea not in ObjectAddedtoEmbedded:
+            ObjectAddedtoEmbedded[CurrentArea] = {}
+
+            top_folder = setting('ObjPath')
+
+            if not top_folder:
+                self.objAllTab.setTabEnabled(1, False)
+
+            else:
+                i = 0
+                for folder in os.listdir(top_folder):
+                        if os.path.isdir(top_folder + "/" + folder):
+                            ObjectAddedtoEmbedded[CurrentArea][i] = {}
+                            self.folderPicker.addItem(folder)
+                            i += 1 
 
         global OverrideSnapping
         OverrideSnapping = False
