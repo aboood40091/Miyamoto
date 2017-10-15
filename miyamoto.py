@@ -3524,7 +3524,7 @@ class Level_NSMBU(AbstractLevel):
             szsData = szsNewData
         else:
             for szsThingName in szsData:
-                if szsThingName == levelNameCache: continue
+                if szsThingName in [levelNameCache, 'levelname']: continue
                 outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
 
         # Save the outer sarc and return it
@@ -3587,7 +3587,7 @@ class Level_NSMBU(AbstractLevel):
 
         # Add all the other stuff, too
         for szsThingName in szsData:
-            if szsThingName == levelNameCache: continue
+            if szsThingName in [levelNameCache, 'levelname']: continue
             outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
 
         # Save the outer sarc and return it
@@ -3677,7 +3677,7 @@ class AbstractArea:
             offset += 24
         self.sprites = sprites
 
-    def save(self):
+    def save(self, isNewArea=False):
         return (self.course, self.L0, self.L1, self.L2)
 
 
@@ -15060,6 +15060,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         return False
 
                 # Sort the szs data
+                szsData = {}
                 for file in arc.contents:
                     szsData[file.name] = file.data
 
@@ -15113,7 +15114,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             os.chdir(miyamoto_path)
 
             with open(miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc', 'rb') as f:
-                szsData['Pa0_jyotyu'] = f.read()
+                szsData = {'Pa0_jyotyu': f.read()}
 
             os.remove(miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc')
 
