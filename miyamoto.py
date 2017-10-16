@@ -2304,7 +2304,7 @@ def writeGTX(tex, idx):
         exe = './nvcompress.elf'
 
     elif platform.system() == 'Darwin':
-        os.system('chmod +x nvcompress-osx.app')
+        os.system('chmod 777 nvcompress-osx.app')
         exe = './nvcompress-osx.app'
 
     if idx != 0:
