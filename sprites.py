@@ -4827,7 +4827,7 @@ class SpriteImage_BumpPlatform(SLib.SpriteImage): # 407
     def dataChanged(self):
         super().dataChanged()
 
-        self.width = ((self.parent.spritedata[8] & 0xF) + 1) << 4
+        self.width = (self.parent.spritedata[8] & 0xF) << 4
 
     def paint(self, painter):
         super().paint(painter)
