@@ -4664,7 +4664,7 @@ class ObjectItem(LevelEditorItem):
     Level editor item that represents an ingame object
     """
 
-    def __init__(self, tileset, type, layer, x, y, width, height, z, data=13):
+    def __init__(self, tileset, type, layer, x, y, width, height, z, data=0):
         """
         Creates an object with specific data
         """
@@ -4860,7 +4860,7 @@ class ObjectItem(LevelEditorItem):
                 currentZ = self.zValue()
                 self.setZValue(newZ)  # swap the Z values so it doesn't look like the cloned item is the old one
                 newitem = ObjectItem(self.tileset, self.type, self.layer, self.objx, self.objy, self.width, self.height,
-                                     currentZ, 0)
+                                     currentZ, self.data)
                 layer.append(newitem)
                 mainWindow.scene.addItem(newitem)
                 mainWindow.scene.clearSelection()
