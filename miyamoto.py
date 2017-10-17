@@ -117,6 +117,7 @@ EntrancesFrozen = False
 LocationsFrozen = False
 PathsFrozen = False
 CommentsFrozen = False
+OverwriteSprite = False
 PaintingEntrance = None
 PaintingEntranceListIndex = None
 NumberFont = None
@@ -1194,7 +1195,7 @@ def LoadActionsLists():
         (trans.string('MenuItems', 10), False, 'saveas'),
         (trans.string('MenuItems', 14), True, 'screenshot'),
         (trans.string('MenuItems', 16), False, 'changegamepath'),
-        (trans.string('MenuItems', 138), False, 'changeobjpath'),
+        (trans.string('MenuItems', 132), False, 'changeobjpath'),
         # (trans.string('MenuItems', 16), False, 'changesavepath'),
         (trans.string('MenuItems', 18), False, 'preferences'),
         (trans.string('MenuItems', 20), False, 'exit'),
@@ -1237,7 +1238,7 @@ def LoadActionsLists():
         (trans.string('MenuItems', 128), False, 'reloaddata'),
     )
     TileActions = (
-        (trans.string('MenuItems', 136), False, 'editslot1'),
+        (trans.string('MenuItems', 130), False, 'editslot1'),
     )
     HelpActions = (
         (trans.string('MenuItems', 86), False, 'infobox'),
@@ -2281,7 +2282,7 @@ def getUsedTiles():
 
 def writeGTX(tex, idx):
     """
-    Converts our tileset image to GTX
+    Generates a GTX file from a QImage
     """
     if platform.system() == 'Windows':
         tile_path = miyamoto_path + '/Tools'
@@ -2292,33 +2293,44 @@ def writeGTX(tex, idx):
     elif platform.system() == 'Darwin':
         tile_path = miyamoto_path + '/macTools'
 
-    tex.save(tile_path + '/tmp.png')
+    if idx != 0:  # Save as DXT5/BC3
+        tex.save(tile_path + '/tmp.png')
     
-    os.chdir(tile_path)
+        os.chdir(tile_path)
 
-    if platform.system() == 'Windows':
-        exe = 'nvcompress.exe'
+        if platform.system() == 'Windows':
+            exe = 'nvcompress.exe'
 
-    elif platform.system() == 'Linux':
-        os.system('chmod +x nvcompress.elf')
-        exe = './nvcompress.elf'
+        elif platform.system() == 'Linux':
+            os.system('chmod +x nvcompress.elf')
+            exe = './nvcompress.elf'
 
-    elif platform.system() == 'Darwin':
-        os.system('chmod 777 nvcompress-osx.app')
-        exe = './nvcompress-osx.app'
+        elif platform.system() == 'Darwin':
+            os.system('chmod 777 nvcompress-osx.app')
+            exe = './nvcompress-osx.app'
 
-    if idx != 0:
         os.system(exe + ' -bc3 tmp.png tmp.dds')
-    else:
-        os.system(exe + ' -rgb -nomips tmp.png tmp.dds')
     
-    os.chdir(miyamoto_path)
+        os.chdir(miyamoto_path)
+
+        os.remove(tile_path + '/tmp.png')
+
+    else:  # Save as RGBA8
+        import dds
+
+        data = tex.bits()
+        data.setsize(tex.byteCount())
+        data = data.asstring()
+
+        with open(tile_path + '/tmp.dds', 'wb+') as out:
+            hdr = dds.generateRGBA8Header(2048, 512)
+            out.write(hdr)
+            out.write(data)
 
     import gtx
     gtxdata = gtx.DDStoGTX(tile_path + '/tmp.dds')
 
     os.remove(tile_path + '/tmp.dds')
-    os.remove(tile_path + '/tmp.png')
 
     return gtxdata
 
@@ -2329,7 +2341,7 @@ def PackTexture(idx, nml=False):
     """
     global Tiles
 
-    tex = QtGui.QImage(2048, 512, QtGui.QImage.Format_ARGB32)
+    tex = QtGui.QImage(2048, 512, QtGui.QImage.Format_RGBA8888)
     tex.fill(Qt.transparent)
     painter = QtGui.QPainter(tex)
 
@@ -2338,7 +2350,7 @@ def PackTexture(idx, nml=False):
     y = 0
 
     for i in range(tileoffset, tileoffset + 256):
-        tile = QtGui.QImage(64, 64, QtGui.QImage.Format_ARGB32)
+        tile = QtGui.QImage(64, 64, QtGui.QImage.Format_RGBA8888)
         tile.fill(Qt.transparent)
         tilePainter = QtGui.QPainter(tile)
 
@@ -3421,7 +3433,7 @@ class Level_NSMBU(AbstractLevel):
 
         # Go through the areas, save them and add them back to the archive
         for areanum, area in enumerate(self.areas):
-            course, L0, L1, L2 = area.save()
+            course, L0, L1, L2 = area.save(innerfilename)
 
             if course is not None:
                 courseFolder.addFile(SarcLib.File('course%d.bin' % (areanum + 1), course))
@@ -3434,6 +3446,7 @@ class Level_NSMBU(AbstractLevel):
 
         # Here we have the new inner-SARC savedata
         innersarc = newArchive.save(0x04, 0x170)
+        szsData[innerfilename] = innersarc
 
         # Now make an outer SARC
         outerArchive = SarcLib.SARC_Archive()
@@ -3443,25 +3456,20 @@ class Level_NSMBU(AbstractLevel):
 
         # Make it easy for future Miyamotos to pick out the innersarc level name
         outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
+        szsData['levelname'] = innerfilename.encode('utf-8')
 
         # Save all the tilesets
         if Area.tileset1:
-            Area.tileset1 = ('Pa1_%d' % CurrentArea)
-
             tilesetData = SaveTileset(1)
             if tilesetData:
                 szsData[Area.tileset1] = tilesetData
 
         if Area.tileset2:
-            Area.tileset2 = ('Pa2_%d' % CurrentArea)
-
             tilesetData = SaveTileset(2)
             if tilesetData:
                 szsData[Area.tileset2] = tilesetData
 
         if Area.tileset3:
-            Area.tileset3 = ('Pa3_%d' % CurrentArea)
-
             tilesetData = SaveTileset(3)
             if tilesetData:
                 szsData[Area.tileset3] = tilesetData
@@ -3470,61 +3478,94 @@ class Level_NSMBU(AbstractLevel):
         if os.path.isdir(miyamoto_path + '/data'):
             szsNewData = {}
 
-            szsNewData[levelNameCache] = szsData[levelNameCache]
+            szsNewData[innerfilename] = innersarc
+            szsNewData['levelname'] = innerfilename.encode('utf-8')
 
+            # Read the sprites resources xml
             tree = etree.parse(miyamoto_path + '/miyamotodata/spriteresources.xml')
             root = tree.getroot()
 
+            # Get all sprites' filenames and add them to a tuple
             sprites_xml = {}
             for sprite in root.iter('sprite'):
                 id = int(sprite.get('id'))
+
                 name = []
                 for id2 in sprite:
                     name.append(id2.get('name'))
+
                 sprites_xml[id] = tuple(name)
 
+            # Look up every sprite and tileset used in each area
             sprites_SARC = []
             tilesets_names = []
             for area_SARC in Level.areas:
                 for sprite in area_SARC.sprites:
                     sprites_SARC.append(sprite.type)
+
                 if area_SARC.tileset0 not in ('', None):
                     tilesets_names.append(area_SARC.tileset0)
+
                 if area_SARC.tileset1 not in ('', None):
                     tilesets_names.append(area_SARC.tileset1)
+
                 if area_SARC.tileset2 not in ('', None):
                     tilesets_names.append(area_SARC.tileset2)
+
                 if area_SARC.tileset3 not in ('', None):
                     tilesets_names.append(area_SARC.tileset3)
+
             sprites_SARC = tuple(set(sprites_SARC))
             tilesets_names = tuple(set(tilesets_names))
 
+            # Sort the filenames for each "used" sprite
             sprites_names = []
             for sprite in sprites_SARC:
                 for sprite_name in sprites_xml[sprite]:
                     sprites_names.append(sprite_name)
+
             sprites_names = tuple(set(sprites_names))
+
+            # Look up each needed file and add it to our archive
             for sprite_name in sprites_names:
-                if os.path.isfile(miyamoto_path + '/data/custom/' + sprite_name):
+                # Get it from inside the original archive
+                if not OverwriteSprite and sprite_name in szsData:
+                    outerArchive.addFile(SarcLib.File(sprite_name, szsData[sprite_name]))
+                    szsNewData[sprite_name] = szsData[sprite_name]
+
+                # Get it from the "custom" data folder
+                elif os.path.isfile(miyamoto_path + '/data/custom/' + sprite_name):
                     with open(miyamoto_path + '/data/custom/' + sprite_name, 'rb') as f:
                         f1 = f.read()
-                    outerArchive.addFile(SarcLib.File(sprite_name, f1))
-                    szsNewData[sprite_name] = f1
-                elif os.path.isfile(miyamoto_path + '/data/' + sprite_name):
-                    with open(miyamoto_path + '/data/' + sprite_name, 'rb') as f:
-                        f1 = f.read()
+
                     outerArchive.addFile(SarcLib.File(sprite_name, f1))
                     szsNewData[sprite_name] = f1
 
+                # Get it from the data folder
+                elif os.path.isfile(miyamoto_path + '/data/' + sprite_name):
+                    with open(miyamoto_path + '/data/' + sprite_name, 'rb') as f:
+                        f1 = f.read()
+
+                    outerArchive.addFile(SarcLib.File(sprite_name, f1))
+                    szsNewData[sprite_name] = f1
+
+                # Throw a warning because the file was not found...
+                else:
+                    print("WARNING: Could not find the file: %s" % sprite_name)
+                    print("Expect the level to crash ingame...")
+
+            # Add each tileset to our archive
             for tileset_name in tilesets_names:
                 if tileset_name in szsData:
                     outerArchive.addFile(SarcLib.File(tileset_name, szsData[tileset_name]))
                     szsNewData[tileset_name] = szsData[tileset_name]
 
             szsData = szsNewData
+
         else:
+            # data folder not found, copy the files
             for szsThingName in szsData:
-                if szsThingName in [levelNameCache, 'levelname']: continue
+                if szsThingName in [levelNameCache, innerfilename, 'levelname']: continue
                 outerArchive.addFile(SarcLib.File(szsThingName, szsData[szsThingName]))
 
         # Save the outer sarc and return it
@@ -3553,7 +3594,7 @@ class Level_NSMBU(AbstractLevel):
 
         # Go through the areas, save them and add them back to the archive
         for areanum, area in enumerate(self.areas):
-            course, L0, L1, L2 = area.save(True)
+            course, L0, L1, L2 = area.save('', True)
 
             if course is not None:
                 courseFolder.addFile(SarcLib.File('course%d.bin' % (areanum + 1), course))
@@ -3677,7 +3718,7 @@ class AbstractArea:
             offset += 24
         self.sprites = sprites
 
-    def save(self, isNewArea=False):
+    def save(self, innerfilename='', isNewArea=False):
         return (self.course, self.L0, self.L1, self.L2)
 
 
@@ -3777,7 +3818,7 @@ class AbstractParsedArea(AbstractArea):
 
         return True
 
-    def save(self, isNewArea=False):
+    def save(self, innerfilename='', isNewArea=False):
         """
         Save the area back to a file
         """
@@ -3786,7 +3827,7 @@ class AbstractParsedArea(AbstractArea):
 
         # We don't parse blocks 4, 6, 12, 13
         # Save the other blocks
-        self.SaveTilesetNames(isNewArea)  # block 1
+        self.SaveTilesetNames(innerfilename, isNewArea)  # block 1
         self.SaveOptions()  # block 2
         self.SaveEntrances()  # block 7
         self.SaveSprites()  # block 8
@@ -4226,17 +4267,19 @@ class Area_NSMBU(AbstractParsedArea):
 
             com.UpdateListItem()
 
-    def SaveTilesetNames(self, isNewArea):
+    def SaveTilesetNames(self, innerfilename, isNewArea):
         """
         Saves the tileset names back to block 1
         """
         if not isNewArea:
             if self.tileset1:
-                self.tileset1 = ('Pa1_%d' % CurrentArea)
+                self.tileset1 = ('Pa1_%s_%d' % (innerfilename, CurrentArea))
+
             if self.tileset2:
-                self.tileset2 = ('Pa2_%d' % CurrentArea)
+                self.tileset2 = ('Pa2_%s_%d' % (innerfilename, CurrentArea))
+
             if self.tileset3:
-                self.tileset3 = ('Pa3_%d' % CurrentArea)
+                self.tileset3 = ('Pa3_%s_%d' % (innerfilename, CurrentArea))
 
         self.blocks[0] = ''.join(
             [self.tileset0.ljust(32, '\0'), self.tileset1.ljust(32, '\0'), self.tileset2.ljust(32, '\0'),
@@ -7209,7 +7252,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
             self.beginResetModel()
 
-            top_folder = setting('ObjPath') + "/" + mainWindow.folderPicker.currentText()
+            top_folder = os.path.join(setting('ObjPath'), mainWindow.folderPicker.currentText())
 
             for file in os.listdir(top_folder):
                 if file.endswith(".json"):
@@ -8959,13 +9002,13 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                         if not eval('Area.tileset%d' % idx):
                             if idx == 1:
-                                Area.tileset1 = ('Pa1_%d' % CurrentArea)
+                                Area.tileset1 = 'temp1'
 
                             elif idx == 2:
-                                Area.tileset2 = ('Pa2_%d' % CurrentArea)
+                                Area.tileset2 = 'temp2'
 
                             elif idx == 3:
-                                Area.tileset3 = ('Pa3_%d' % CurrentArea)
+                                Area.tileset3 = 'temp3'
 
                         mainWindow.objAllTab.setTabEnabled(2, (Area.tileset1 != ''
                                                                or Area.tileset2 != ''
@@ -11375,14 +11418,15 @@ class PreferencesDialog(QtWidgets.QDialog):
             def getAvailableThemes(self):
                 """Searches the Themes folder and returns a list of theme filepaths.
                 Automatically adds 'Classic' to the list."""
-                themes = os.listdir('miyamotodata/themes')
+                themes = os.listdir(miyamoto_path + '/miyamotodata/themes')
                 themeList = [('Classic', MiyamotoTheme())]
                 for themeName in themes:
-                    try:
-                        theme = MiyamotoTheme(themeName)
-                        themeList.append((themeName, theme))
-                    except Exception:
-                        pass
+                    if os.path.isdir(miyamoto_path + '/miyamotodata/themes/' + themeName):
+                        try:
+                            theme = MiyamotoTheme(themeName)
+                            themeList.append((themeName, theme))
+                        except Exception:
+                            pass
 
                 return tuple(themeList)
 
@@ -12244,7 +12288,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                           trans.string('MenuItems', 16), trans.string('MenuItems', 17),
                           QtGui.QKeySequence('Ctrl+Alt+G'))
         self.CreateAction('changeobjpath', self.HandleChangeObjPath, GetIcon('folderpath'),
-                          trans.string('MenuItems', 138), trans.string('MenuItems', 139),
+                          trans.string('MenuItems', 132), trans.string('MenuItems', 133),
                           None)
         # self.CreateAction('changesavepath', self.HandleChangeSavePath, GetIcon('folderpath'), trans.string('MenuItems', 134), trans.string('MenuItems', 135), QtGui.QKeySequence('Ctrl+Alt+L'))
         self.CreateAction('preferences', self.HandlePreferences, GetIcon('settings'), trans.string('MenuItems', 18),
@@ -12349,10 +12393,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                           trans.string('MenuItems', 83), QtGui.QKeySequence('Ctrl+Alt+D'))
         self.CreateAction('reloaddata', self.ReloadSpriteData, GetIcon('reload'), trans.string('MenuItems', 128),
                           trans.string('MenuItems', 129), QtGui.QKeySequence('Ctrl+Shift+R'))
+        self.CreateAction('overwritesprite', self.HandleOverwriteSprite, GetIcon('folderpath'),
+                          trans.string('MenuItems', 134), trans.string('MenuItems', 135), None, True)
 
         # Tilesets
-        self.CreateAction('editslot1', self.EditSlot1, GetIcon('animation'), trans.string('MenuItems', 136),
-                          trans.string('MenuItems', 137), None)
+        self.CreateAction('editslot1', self.EditSlot1, GetIcon('animation'), trans.string('MenuItems', 130),
+                          trans.string('MenuItems', 131), None)
 
         # Help actions are created later
 
@@ -12372,6 +12418,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.actions['freezelocations'].setChecked(LocationsFrozen)
         self.actions['freezepaths'].setChecked(PathsFrozen)
         self.actions['freezecomments'].setChecked(CommentsFrozen)
+
+        self.actions['overwritesprite'].setChecked(OverwriteSprite)
 
         self.actions['cut'].setEnabled(False)
         self.actions['copy'].setEnabled(False)
@@ -12456,6 +12504,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         lmenu.addAction(self.actions['deletearea'])
         lmenu.addSeparator()
         lmenu.addAction(self.actions['reloaddata'])
+        lmenu.addSeparator()
+        lmenu.addAction(self.actions['overwritesprite'])
 
         tmenu = menubar.addMenu(trans.string('Menubar', 4))
         tmenu.addAction(self.actions['editslot1'])
@@ -12753,10 +12803,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             i = 0
             for folder in os.listdir(top_folder):
-                    if os.path.isdir(top_folder + "/" + folder):
-                        ObjectAddedtoEmbedded[CurrentArea][i] = {}
-                        self.folderPicker.addItem(folder)
-                        i += 1
+                if os.path.isdir(top_folder + "/" + folder):
+                    ObjectAddedtoEmbedded[CurrentArea][i] = {}
+                    self.folderPicker.addItem(folder)
+                    i += 1
 
         self.folderPicker.setVisible(False)
         oel.addWidget(self.folderPicker, 1)
@@ -14452,9 +14502,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         return True
 
     def getInnerSarcName(self):
-        return QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
+        name = QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
                                               "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):",
                                               QtWidgets.QLineEdit.Normal)[0]
+
+        if "/" in name or "\\" in name:
+            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning', r'The input name included "/" or "\", aborting...')
+            warningBox.exec_()
+            return ''
+
+        return name
 
     @QtCore.pyqtSlot()
     def HandleExit(self):
@@ -14747,6 +14804,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         setSetting('FreezeComments', CommentsFrozen)
         self.scene.update()
+
+    @QtCore.pyqtSlot(bool)
+    def HandleOverwriteSprite(self, checked):
+        """
+        Handle setting overwriting sprites
+        """
+        global OverwriteSprite
+
+        OverwriteSprite = not checked
+
+        setSetting('OverwriteSprite', OverwriteSprite)
 
     @QtCore.pyqtSlot(bool)
     def HandleFullscreen(self, checked):
@@ -16769,7 +16837,7 @@ def main():
 
     global EnableAlpha, GridType, CollisionsShown, RealViewEnabled
     global ObjectsFrozen, SpritesFrozen, EntrancesFrozen, LocationsFrozen, PathsFrozen, CommentsFrozen
-    global SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown
+    global OverwriteSprite, SpritesShown, SpriteImagesShown, LocationsShown, CommentsShown
 
     gt = setting('GridType')
     if gt == 'checker':
@@ -16785,6 +16853,7 @@ def main():
     LocationsFrozen = setting('FreezeLocations', False)
     PathsFrozen = setting('FreezePaths', False)
     CommentsFrozen = setting('FreezeComments', False)
+    OverwriteSprite = setting('OverwriteSprite', False)
     SpritesShown = setting('ShowSprites', True)
     SpriteImagesShown = setting('ShowSpriteImages', True)
     LocationsShown = setting('ShowLocations', True)
