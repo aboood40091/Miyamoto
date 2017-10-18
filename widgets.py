@@ -24,7 +24,7 @@
 ################################################################
 ################################################################
 
-import json
+import json, sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
@@ -36,6 +36,7 @@ if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
 from bytes import *
 import globals
 from loading import *
+from misc import *
 import spritelib as SLib
 from stamp import *
 from ui import *
@@ -805,9 +806,10 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
         self.setIndentation(16)
         self.currentItemChanged.connect(self.HandleItemChange)
 
-        LoadSpriteData()
-        LoadSpriteListData()
-        LoadSpriteCategories()
+        import loading
+        loading.LoadSpriteData()
+        loading.LoadSpriteListData()
+        loading.LoadSpriteCategories()
         self.LoadItems()
 
     def LoadItems(self):
@@ -1424,7 +1426,8 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.entranceID.valueChanged.connect(self.HandleEntranceIDChanged)
 
         self.entranceType = QtWidgets.QComboBox()
-        LoadEntranceNames()
+        import loading
+        loading.LoadEntranceNames()
         self.entranceType.addItems(globals.EntranceTypeNames)
         self.entranceType.setToolTip(globals.trans.string('EntranceDataEditor', 3))
         self.entranceType.activated.connect(self.HandleEntranceTypeChanged)

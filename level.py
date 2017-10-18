@@ -26,7 +26,6 @@
 
 import os
 
-from area import *
 import globals
 import SARC as SarcLib
 import spritelib as SLib
@@ -77,7 +76,8 @@ class Level_NSMBU(AbstractLevel):
         Initializes the level with default settings
         """
         super().__init__()
-        self.areas.append(Area_NSMBU())
+        import area
+        self.areas.append(area.Area_NSMBU())
 
     def new(self):
         """
@@ -85,7 +85,8 @@ class Level_NSMBU(AbstractLevel):
         """
         # Create area objects
         self.areas = []
-        newarea = Area_NSMBU()
+        import area
+        newarea = area.Area_NSMBU()
         globals.Area = newarea
         SLib.Area = globals.Area
         self.areas.append(newarea)
@@ -146,12 +147,13 @@ class Level_NSMBU(AbstractLevel):
             L1 = areaData[thisArea][2]
             L2 = areaData[thisArea][3]
 
+            import area
             if thisArea == areaNum:
-                newarea = Area_NSMBU()
+                newarea = area.Area_NSMBU()
                 globals.Area = newarea
                 SLib.Area = globals.Area
             else:
-                newarea = AbstractArea()
+                newarea = area.AbstractArea()
 
             newarea.areanum = thisArea
             newarea.load(course, L0, L1, L2, progress)
