@@ -204,7 +204,7 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
         """
         Creates and initializes the dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle(trans.string('OpenFromNameDlg', 0))
         self.setWindowIcon(GetIcon('open'))
         LoadLevelNames()
@@ -1261,7 +1261,7 @@ class LevelScene(QtWidgets.QGraphicsScene):
         global theme
 
         self.bgbrush = QtGui.QBrush(theme.color('bg'))
-        QtWidgets.QGraphicsScene.__init__(self, *args)
+        super().__init__(*args)
 
     def drawBackground(self, painter, rect):
         """
@@ -1378,7 +1378,7 @@ class LevelScene(QtWidgets.QGraphicsScene):
 class HexSpinBox(QtWidgets.QSpinBox):
     class HexValidator(QtGui.QValidator):
         def __init__(self, min, max):
-            QtGui.QValidator.__init__(self)
+            super().__init__()
             self.valid = set('0123456789abcdef')
             self.min = min
             self.max = max
@@ -1407,7 +1407,7 @@ class HexSpinBox(QtWidgets.QSpinBox):
 
     def __init__(self, format='%04X', *args):
         self.format = format
-        QtWidgets.QSpinBox.__init__(self, *args)
+        super().__init__(*args)
         self.validator = self.HexValidator(self.minimum(), self.maximum())
 
     def setMinimum(self, value):
@@ -1448,7 +1448,7 @@ class SpriteDefinition:
             """
             Constructor
             """
-            QtCore.QAbstractListModel.__init__(self)
+            super().__init__()
             self.entries = entries
             self.existingLookup = existingLookup
             self.max = max
@@ -3740,7 +3740,7 @@ class AbstractParsedArea(AbstractArea):
         # Settings
         self.defEvents = 0
         self.wrapFlag = 0
-        self.timeLimit = 300
+        self.timeLimit = 400
         self.unk1 = 0
         self.startEntrance = 0
         self.unk2 = 0
@@ -3758,11 +3758,6 @@ class AbstractParsedArea(AbstractArea):
 
         # Metadata
         self.LoadMiyamotoInfo(None)
-
-        # Load tilesets
-        CreateTilesets()
-        # LoadTileset(0, self.tileset0)
-        # LoadTileset(1, self.tileset1)
 
     def load(self, course, L0, L1, L2, progress=None):
         """
@@ -3927,50 +3922,29 @@ class Area_NSMBU(AbstractParsedArea):
         """
         Creates a completely new NSMBU area
         """
+        super().__init__()
+
         # Default tileset names for NSMBU
         self.tileset0 = 'Pa0_jyotyu'
         self.tileset1 = ''
         self.tileset2 = ''
         self.tileset3 = ''
 
-        self.blocks = [None] * 15
-        self.blocks[0] = to_bytes(0x5061305F6A796F747975, 10) + to_bytes(0, 118)
-        self.blocks[1] = to_bytes(0, 10) + to_bytes(0x19000646464, 6) + to_bytes(0, 4) + to_bytes(0x12C0000, 4)
-        self.blocks[2] = b''
-        self.blocks[3] = to_bytes(0, 5) + to_bytes(0x20042, 3) + to_bytes(0, 5) + to_bytes(0x20042, 3)
-        self.blocks[4] = to_bytes(0, 8) + to_bytes(0x426C61636B, 5) + to_bytes(0, 15)
-        self.blocks[5] = (to_bytes(0, 2) + to_bytes(0xFFFFFFFF, 4) + to_bytes(0, 12) + to_bytes(0x2000001FFFFFFFF, 8)
-                          + to_bytes(0, 12) + to_bytes(0x2000000FFFFFFFF, 8) + to_bytes(0, 12) + to_bytes(
-            0x2000001FFFFFFFF, 8)
-                          + to_bytes(0, 12) + to_bytes(0x200, 2))
-        self.blocks[6] = b''
-        self.blocks[7] = to_bytes(0xFFFFFFFF, 4)
-        self.blocks[8] = b''
-        self.blocks[9] = b''
-        self.blocks[10] = b''
-        self.blocks[11] = b''
-        self.blocks[12] = b''
-        self.blocks[13] = b''
-        self.blocks[14] = b''
+        self.blocks = [b''] * 15
+        self.blocks[4] = (to_bytes(0, 8) + to_bytes(0x426C61636B, 5)
+                          + to_bytes(0, 15))
 
         self.unk1 = 0
         self.unk2 = 0
         self.wrapedges = 0
-        self.timelimit = 300
+        self.timelimit = 400
         self.unk3 = 0
         self.unk4 = 0
         self.unk5 = 0
         self.unk6 = 0
         self.unk7 = 0
-        self.timelimit2 = 100
-        self.timelimit3 = 100
-
-        self.entrances = []
-        self.sprites = []
-        self.zones = []
-        self.locations = []
-        self.pathdata = []
-        self.paths = []
+        self.timelimit2 = 300
+        self.timelimit3 = 300
 
         self.entrances = []
         self.sprites = []
@@ -3981,21 +3955,14 @@ class Area_NSMBU(AbstractParsedArea):
         self.pathdata = []
         self.paths = []
         self.comments = []
+        self.layers = [[], [], []]
 
-        bgData = self.blocks[4]
         self.bgCount = 1
-        bgStruct = struct.Struct('>HxBxxxx16sHxx')
-        offset = 0
-        bgs = {}
+        self.bgs = {}
         self.bgblockid = []
-        for i in range(self.bgCount):
-            bg = bgStruct.unpack_from(bgData, offset)
-            self.bgblockid.append(bg[0])
-            bgs[bg[0]] = bg
-            offset += 28
-        self.bgs = bgs
-
-        super().__init__()
+        bg = struct.unpack('>HxBxxxx16sHxx', self.blocks[4])
+        self.bgblockid.append(bg[0])
+        self.bgs[bg[0]] = bg
 
     def LoadBlocks(self, course):
         """
@@ -4489,7 +4456,7 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
         """
         Generic constructor for level editor items
         """
-        QtWidgets.QGraphicsItem.__init__(self)
+        super().__init__()
         self.setFlag(self.ItemSendsGeometryChanges, True)
 
     def __lt__(self, other):
@@ -4668,7 +4635,7 @@ class ObjectItem(LevelEditorItem):
         """
         Creates an object with specific data
         """
-        LevelEditorItem.__init__(self)
+        super().__init__()
 
         # Specify the data value for each Item-containing block
         items = {16: 1, 17: 2, 18: 3, 19: 4, 20: 5, 21: 6, 22: 7, 23: 8,
@@ -4950,12 +4917,11 @@ class ZoneItem(LevelEditorItem):
         """
         Creates a zone with specific data
         """
-        LevelEditorItem.__init__(self)
+        super().__init__()
 
         self.font = NumberFont
         self.TitlePos = QtCore.QPointF(10, 10 + QtGui.QFontMetrics(self.font).height())
 
-        # It took me less than 10 minutes to figure out the unknowns, and implement them... :P
         self.objx = a
         self.objy = b
         self.width = c
@@ -5227,7 +5193,7 @@ class LocationItem(LevelEditorItem):
         """
         Creates a location with specific data
         """
-        LevelEditorItem.__init__(self)
+        super().__init__()
 
         self.font = NumberFont
         self.TitlePos = QtCore.QPointF(TileWidth / 4, TileWidth / 4)
@@ -5388,7 +5354,7 @@ class SpriteItem(LevelEditorItem):
         """
         Creates a sprite with specific data
         """
-        LevelEditorItem.__init__(self)
+        super().__init__()
         self.setZValue(26000)
 
         self.font = NumberFont
@@ -6036,7 +6002,6 @@ class EntranceItem(LevelEditorItem):
         """
         Creates an entrance with specific data
         """
-        print('Entrance ' + str(id) + ' found! Type: ' + str(type))
         if EntranceItem.EntranceImages is None:
             ei = []
             src = QtGui.QPixmap('miyamotodata/entrances.png')
@@ -6044,10 +6009,10 @@ class EntranceItem(LevelEditorItem):
                 ei.append(src.copy(i * TileWidth, 0, TileWidth, TileWidth))
             EntranceItem.EntranceImages = ei
 
-        LevelEditorItem.__init__(self)
+        super().__init__()
 
-        layer = 0;
-        path = 0;
+        layer = 0
+        path = 0
         cpd = 0
 
         self.font = NumberFont
@@ -6257,7 +6222,7 @@ class PathItem(LevelEditorItem):
         """
 
         global mainWindow
-        LevelEditorItem.__init__(self)
+        super().__init__()
 
         self.font = NumberFont
         self.objx = objx
@@ -6383,7 +6348,7 @@ class PathEditorLineItem(LevelEditorItem):
         """
 
         global mainWindow
-        LevelEditorItem.__init__(self)
+        super().__init__()
 
         self.objx = 0
         self.objy = 0
@@ -6480,7 +6445,7 @@ class CommentItem(LevelEditorItem):
         """
         Creates a in-level comment
         """
-        LevelEditorItem.__init__(self)
+        super().__init__()
         zval = 50000
         self.zval = zval
 
@@ -6651,7 +6616,7 @@ class LevelOverviewWidget(QtWidgets.QWidget):
         """
         global theme
 
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
         self.setSizePolicy(
             QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding))
 
@@ -6827,7 +6792,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         Initializes the widget
         """
 
-        QtWidgets.QListView.__init__(self)
+        super().__init__()
         self.setFlow(QtWidgets.QListView.LeftToRight)
         self.setLayoutMode(QtWidgets.QListView.SinglePass)
         self.setMovement(QtWidgets.QListView.Static)
@@ -6835,12 +6800,12 @@ class ObjectPickerWidget(QtWidgets.QListView):
         self.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
         self.setWrapping(True)
 
-        self.m0 = ObjectPickerWidget.ObjectListModel()
-        self.mall = ObjectPickerWidget.ObjectListModel()
-        self.m123 = ObjectPickerWidget.ObjectListModel()
+        self.m0 = self.ObjectListModel()
+        self.mall = self.ObjectListModel()
+        self.m123 = self.ObjectListModel()
         self.setModel(self.m0)
 
-        self.setItemDelegate(ObjectPickerWidget.ObjectItemDelegate())
+        self.setItemDelegate(self.ObjectItemDelegate())
 
         self.clicked.connect(self.HandleObjReplace)
 
@@ -7083,12 +7048,6 @@ class ObjectPickerWidget(QtWidgets.QListView):
         Handles tileset objects and their rendering
         """
 
-        def __init__(self):
-            """
-            Initializes the delegate
-            """
-            QtWidgets.QAbstractItemDelegate.__init__(self)
-
         def paint(self, painter, option, index):
             """
             Paints an object
@@ -7117,10 +7076,10 @@ class ObjectPickerWidget(QtWidgets.QListView):
             """
             Initializes the model
             """
+            super().__init__()
             self.items = []
             self.ritems = []
             self.itemsize = []
-            QtCore.QAbstractListModel.__init__(self)
 
             for i in range(256):
                 self.items.append(None)
@@ -7314,7 +7273,7 @@ class StampChooserWidget(QtWidgets.QListView):
         """
         Initializes the widget
         """
-        QtWidgets.QListView.__init__(self)
+        super().__init__()
 
         self.setFlow(QtWidgets.QListView.LeftToRight)
         self.setLayoutMode(QtWidgets.QListView.SinglePass)
@@ -7336,7 +7295,7 @@ class StampChooserWidget(QtWidgets.QListView):
             """
             Initializes the delegate
             """
-            QtWidgets.QStyledItemDelegate.__init__(self)
+            super().__init__()
 
         def createEditor(self, parent, option, index):
             """
@@ -7593,12 +7552,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         Base class for all the sprite data decoder/encoders
         """
         updateData = QtCore.pyqtSignal('PyQt_PyObject')
-
-        def __init__(self):
-            """
-            Generic constructor
-            """
-            super().__init__()
 
         def retrieve(self, data):
             """
@@ -8031,7 +7984,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         """
         Constructor
         """
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
         # create widgets
@@ -8333,7 +8286,7 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         """
         Constructor
         """
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
         # create widgets
@@ -8467,7 +8420,7 @@ class LocationEditorWidget(QtWidgets.QWidget):
         """
         Constructor
         """
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
         # create widgets
@@ -8661,7 +8614,7 @@ class LocationEditorWidget(QtWidgets.QWidget):
 
 class LoadingTab(QtWidgets.QWidget):
     def __init__(self):
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
 
         self.unk1 = QtWidgets.QSpinBox()
         self.unk1.setRange(0, 0x255)
@@ -8738,7 +8691,7 @@ class LoadingTab(QtWidgets.QWidget):
 
 class TilesetsTab(QtWidgets.QWidget):
     def __init__(self):
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
 
         self.tile0 = QtWidgets.QComboBox()
 
@@ -8844,7 +8797,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         Constructor
         """
-        QtWidgets.QGraphicsView.__init__(self, scene, parent)
+        super().__init__(scene, parent)
 
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         # self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(119,136,153)))
@@ -9694,7 +9647,7 @@ class InfoPreviewWidget(QtWidgets.QWidget):
         """
         Creates and initializes the widget
         """
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
         self.direction = direction
 
         self.Label1 = QtWidgets.QLabel('')
@@ -9754,7 +9707,7 @@ class ZoomWidget(QtWidgets.QWidget):
         """
         Creates and initializes the widget
         """
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
         maxwidth = 512 - 128
         maxheight = 20
 
@@ -9828,7 +9781,7 @@ class ZoomStatusWidget(QtWidgets.QWidget):
         """
         Creates and initializes the widget
         """
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
         self.label = QtWidgets.QPushButton('100%')
         self.label.setFlat(True)
         self.label.clicked.connect(mainWindow.HandleZoomActual)
@@ -9892,7 +9845,7 @@ class InputBox(QtWidgets.QDialog):
     Type_HexSpinBox = 3
 
     def __init__(self, type=Type_TextBox):
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
 
         self.label = QtWidgets.QLabel('-')
         self.label.setWordWrap(True)
@@ -9927,7 +9880,7 @@ class AboutDialog(QtWidgets.QDialog):
         """
         Creates and initializes the dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle(trans.string('AboutDlg', 0))
         self.setWindowIcon(GetIcon('miyamoto'))
 
@@ -9992,7 +9945,7 @@ class ObjectShiftDialog(QtWidgets.QDialog):
         """
         Creates and initializes the dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle(trans.string('ShftItmDlg', 0))
         self.setWindowIcon(GetIcon('move'))
 
@@ -10031,7 +9984,7 @@ class ObjectTilesetSwapDialog(QtWidgets.QDialog):
         """
         Creates and initializes the dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle('Swap Objects\' Tilesets')
         self.setWindowIcon(GetIcon('swap'))
 
@@ -10072,7 +10025,7 @@ class ObjectTypeSwapDialog(QtWidgets.QDialog):
         """
         Creates and initializes the dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle('Swap Objects\' Types')
         self.setWindowIcon(GetIcon('swap'))
 
@@ -10128,7 +10081,7 @@ class MetaInfoDialog(QtWidgets.QDialog):
         """
         Creates and initializes the dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle(trans.string('InfoDlg', 0))
         self.setWindowIcon(GetIcon('info'))
 
@@ -10255,7 +10208,7 @@ class MetaInfoDialog(QtWidgets.QDialog):
             """
 
             def __init__(self):
-                QtWidgets.QDialog.__init__(self)
+                super().__init__()
                 self.setWindowTitle(trans.string('InfoDlg', 9))
                 self.setWindowIcon(GetIcon('info'))
 
@@ -10326,7 +10279,7 @@ class AreaOptionsDialog(QtWidgets.QDialog):
         """
         Creates and initializes the tab dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle(trans.string('AreaDlg', 0))
         self.setWindowIcon(GetIcon('area'))
 
@@ -10356,7 +10309,7 @@ class ZonesDialog(QtWidgets.QDialog):
         """
         Creates and initializes the tab dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle(trans.string('ZonesDlg', 0))
         self.setWindowIcon(GetIcon('zones'))
 
@@ -10443,7 +10396,7 @@ class ZonesDialog(QtWidgets.QDialog):
 
 class ZoneTab(QtWidgets.QWidget):
     def __init__(self, z):
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
 
         self.zoneObj = z
         self.AutoChangingSize = False
@@ -10958,7 +10911,7 @@ class BGDialog(QtWidgets.QDialog):
         """
         Creates and initializes the tab dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle('Backgrounds')
         self.setWindowIcon(GetIcon('background'))
 
@@ -10983,7 +10936,7 @@ class BGDialog(QtWidgets.QDialog):
 
 class BGTab(QtWidgets.QWidget):
     def __init__(self, unk1, name, unk2):
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
 
         self.createBGViewers()
 
@@ -11054,7 +11007,7 @@ class ScreenCapChoiceDialog(QtWidgets.QDialog):
         """
         Creates and initializes the dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle(trans.string('ScrShtDlg', 0))
         self.setWindowIcon(GetIcon('screenshot'))
 
@@ -11086,7 +11039,7 @@ class AutoSavedInfoDialog(QtWidgets.QDialog):
         """
         Creates and initializes the dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle(trans.string('AutoSaveDlg', 0))
         self.setWindowIcon(GetIcon('save'))
 
@@ -11119,7 +11072,7 @@ class AreaChoiceDialog(QtWidgets.QDialog):
         """
         Creates and initializes the dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle(trans.string('AreaChoiceDlg', 0))
         self.setWindowIcon(GetIcon('areas'))
 
@@ -11147,7 +11100,7 @@ class PreferencesDialog(QtWidgets.QDialog):
         """
         Creates and initializes the dialog
         """
-        QtWidgets.QDialog.__init__(self)
+        super().__init__()
         self.setWindowTitle(trans.string('PrefsDlg', 0))
         self.setWindowIcon(GetIcon('settings'))
 
@@ -11200,7 +11153,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 """
                 Initializes the General Tab
                 """
-                QtWidgets.QWidget.__init__(self)
+                super().__init__()
 
                 # Add the Translation Language setting
                 self.Trans = QtWidgets.QComboBox()
@@ -11260,7 +11213,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 global TileActions
                 global HelpActions
 
-                QtWidgets.QWidget.__init__(self)
+                super().__init__()
 
                 # Determine which keys are activated
                 if setting('ToolbarActs') in (None, 'None', 'none', '', 0):
@@ -11374,7 +11327,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 """
                 Initializes the Themes Tab
                 """
-                QtWidgets.QWidget.__init__(self)
+                super().__init__()
 
                 # Get the current and available themes
                 self.themeID = theme.themeName
@@ -11662,7 +11615,7 @@ class StampListModel(QtCore.QAbstractListModel):
         """
         Initializes the model
         """
-        QtCore.QAbstractListModel.__init__(self)
+        super().__init__()
 
         self.items = []  # list of Stamp objects
 
@@ -12148,7 +12101,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if self.CurrentGame is None: self.CurrentGame = NewSuperMarioBrosU
 
         # set up the window
-        QtWidgets.QMainWindow.__init__(self, None)
+        super().__init__(None)
         self.setWindowTitle('Miyamoto!')
         self.setWindowIcon(QtGui.QIcon('miyamotodata/icon.png'))
         self.setIconSize(QtCore.QSize(16, 16))
