@@ -764,11 +764,11 @@ class Area_NSMBU(AbstractArea):
         zonestruct = struct.Struct('>HHHHxBxBBBBBxBBxBxBBxBxx')
         offset = 0
         i = 0
-        zcount = len(Area.zones)
+        zcount = len(globals.Area.zones)
         buffer2 = bytearray(28 * zcount)
         buffer4 = bytearray(28 * zcount)
         buffer9 = bytearray(28 * zcount)
-        for z in Area.zones:
+        for z in globals.Area.zones:
             bdngstruct.pack_into(buffer2, offset, z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, i,
                                  z.unknownbnf)
             bgStruct.pack_into(buffer4, offset, z.id, z.background[1], z.background[2], z.background[3])
@@ -790,10 +790,10 @@ class Area_NSMBU(AbstractArea):
         """
         locstruct = struct.Struct('>HHHHBxxx')
         offset = 0
-        zcount = len(Area.locations)
+        zcount = len(globals.Area.locations)
         buffer = bytearray(12 * zcount)
 
-        for z in Area.locations:
+        for z in globals.Area.locations:
             locstruct.pack_into(buffer, offset, int(z.objx), int(z.objy), int(z.width), int(z.height), int(z.id))
             offset += 12
 
