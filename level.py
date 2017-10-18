@@ -25,10 +25,12 @@
 ################################################################
 
 import os
+from xml.etree import ElementTree as etree
 
 import globals
 import SARC as SarcLib
 import spritelib as SLib
+from tileset import SaveTileset
 
 
 class AbstractLevel:
@@ -246,7 +248,7 @@ class Level_NSMBU(AbstractLevel):
             # Look up every sprite and tileset used in each area
             sprites_SARC = []
             tilesets_names = []
-            for area_SARC in Level.areas:
+            for area_SARC in globals.Level.areas:
                 for sprite in area_SARC.sprites:
                     sprites_SARC.append(sprite.type)
 
