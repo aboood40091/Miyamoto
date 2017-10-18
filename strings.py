@@ -30,6 +30,7 @@
 import os.path
 from xml.etree import ElementTree as etree
 
+
 class MiyamotoTranslation():
     """
     A translation of all visible Miyamoto strings
