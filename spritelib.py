@@ -52,6 +52,15 @@ Area = None
 ################################################################
 ########################## Functions ###########################
 
+def loadVines():
+    """
+    Loads vines
+    """
+    loadIfNotInImageCache('VineTop', 'vine_top.png')
+    loadIfNotInImageCache('VineMid', 'vine_mid.png')
+    loadIfNotInImageCache('VineBtm', 'vine_btm.png')
+
+
 def main():
     """
     Resets Sprites.py to its original settings
@@ -67,6 +76,8 @@ def main():
     # won't receive it, which causes bugs.
     ImageCache.clear()
     SpriteImagesLoaded.clear()
+
+    loadVines()
 
     SpritesFolders = []
 

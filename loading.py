@@ -469,6 +469,7 @@ def LoadGameDef(name=None, dlg=None):
 
             SLib.ImageCache.clear()
             SLib.SpriteImagesLoaded.clear()
+            SLib.loadVines()
 
             spriteClasses = globals.gamedef.getImageClasses()
 
