@@ -3722,33 +3722,50 @@ class AbstractArea:
         return (self.course, self.L0, self.L1, self.L2)
 
 
-class AbstractParsedArea(AbstractArea):
+class Area_NSMBU(AbstractArea):
     """
-    An area that is parsed to load sprites, entrances, etc. Still abstracted among games.
-    Don't instantiate this! It could blow up because many of the functions are only defined
-    within subclasses. If you want an area object, use a game-specific subclass.
+    Class for a parsed NSMBU level area
     """
 
     def __init__(self):
         """
-        Creates a completely new area
+        Creates a completely new NSMBU area
         """
+        super().__init__()
 
         # Default area number
         self.areanum = 1
 
+        # Default tileset names for NSMBU
+        self.tileset0 = 'Pa0_jyotyu'
+        self.tileset1 = ''
+        self.tileset2 = ''
+        self.tileset3 = ''
+
+        self.blocks = [b''] * 15
+        self.blocks[4] = (to_bytes(0, 8) + to_bytes(0x426C61636B, 5)
+                          + to_bytes(0, 15))
+
         # Settings
         self.defEvents = 0
-        self.wrapFlag = 0
-        self.timeLimit = 400
-        self.unk1 = 0
         self.startEntrance = 0
+        self.unk1 = 0
         self.unk2 = 0
-        self.unk3 = 0
+        self.wrapedges = 0
+        self.timelimit = 400
+        self.unk3 = 100
+        self.unk4 = 100
+        self.unk5 = 100
+        self.unk6 = 0
+        self.unk7 = 0
+        self.timelimit2 = 300
+        self.timelimit3 = 0
 
         # Lists of things
         self.entrances = []
         self.sprites = []
+        self.bounding = []
+        self.bgs = []
         self.zones = []
         self.locations = []
         self.pathdata = []
@@ -3758,6 +3775,14 @@ class AbstractParsedArea(AbstractArea):
 
         # Metadata
         self.LoadMiyamotoInfo(None)
+
+        # BG data
+        self.bgCount = 1
+        self.bgs = {}
+        self.bgblockid = []
+        bg = struct.unpack('>HxBxxxx16sHxx', self.blocks[4])
+        self.bgblockid.append(bg[0])
+        self.bgs[bg[0]] = bg
 
     def load(self, course, L0, L1, L2, progress=None):
         """
@@ -3911,58 +3936,6 @@ class AbstractParsedArea(AbstractArea):
             self.Metadata = Metadata(data)
         except Exception:
             self.Metadata = Metadata()  # fallback
-
-
-class Area_NSMBU(AbstractParsedArea):
-    """
-    Class for a parsed NSMBU level area
-    """
-
-    def __init__(self):
-        """
-        Creates a completely new NSMBU area
-        """
-        super().__init__()
-
-        # Default tileset names for NSMBU
-        self.tileset0 = 'Pa0_jyotyu'
-        self.tileset1 = ''
-        self.tileset2 = ''
-        self.tileset3 = ''
-
-        self.blocks = [b''] * 15
-        self.blocks[4] = (to_bytes(0, 8) + to_bytes(0x426C61636B, 5)
-                          + to_bytes(0, 15))
-
-        self.unk1 = 0
-        self.unk2 = 0
-        self.wrapedges = 0
-        self.timelimit = 400
-        self.unk3 = 0
-        self.unk4 = 0
-        self.unk5 = 0
-        self.unk6 = 0
-        self.unk7 = 0
-        self.timelimit2 = 300
-        self.timelimit3 = 300
-
-        self.entrances = []
-        self.sprites = []
-        self.bounding = []
-        self.bgs = []
-        self.zones = []
-        self.locations = []
-        self.pathdata = []
-        self.paths = []
-        self.comments = []
-        self.layers = [[], [], []]
-
-        self.bgCount = 1
-        self.bgs = {}
-        self.bgblockid = []
-        bg = struct.unpack('>HxBxxxx16sHxx', self.blocks[4])
-        self.bgblockid.append(bg[0])
-        self.bgs[bg[0]] = bg
 
     def LoadBlocks(self, course):
         """
@@ -8626,14 +8599,10 @@ class LoadingTab(QtWidgets.QWidget):
         self.unk2.setToolTip(trans.string('AreaDlg', 25))
         self.unk2.setValue(Area.unk2)
 
-        self.wrap = QtWidgets.QCheckBox(trans.string('AreaDlg', 7))
-        self.wrap.setToolTip(trans.string('AreaDlg', 8))
-        self.wrap.setChecked((Area.wrapFlag & 1) != 0)
-
         self.timer = QtWidgets.QSpinBox()
-        self.timer.setRange(100, 999)
+        self.timer.setRange(0, 999)
         self.timer.setToolTip(trans.string('AreaDlg', 4))
-        self.timer.setValue(Area.timeLimit + 100)
+        self.timer.setValue(Area.timelimit)
 
         self.timelimit2 = QtWidgets.QSpinBox()
         self.timelimit2.setRange(0, 999)
@@ -8681,7 +8650,6 @@ class LoadingTab(QtWidgets.QWidget):
         settingsLayout.addRow(trans.string('AreaDlg', 33), self.unk5)
         settingsLayout.addRow(trans.string('AreaDlg', 34), self.unk6)
         settingsLayout.addRow(trans.string('AreaDlg', 35), self.unk7)
-        settingsLayout.addRow(self.wrap)
 
         Layout = QtWidgets.QVBoxLayout()
         Layout.addLayout(settingsLayout)
@@ -16199,7 +16167,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         dlg = AreaOptionsDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
-            Area.timeLimit = dlg.LoadingTab.timer.value() - 100
+            Area.timelimit = dlg.LoadingTab.timer.value()
             Area.unk1 = dlg.LoadingTab.unk1.value()
             Area.unk2 = dlg.LoadingTab.unk2.value()
             Area.unk3 = dlg.LoadingTab.unk3.value()
@@ -16209,11 +16177,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             Area.unk7 = dlg.LoadingTab.unk7.value()
             Area.timelimit2 = dlg.LoadingTab.timelimit2.value() + 100
             Area.timelimit3 = dlg.LoadingTab.timelimit3.value() - 200
-
-            if dlg.LoadingTab.wrap.isChecked():
-                Area.wrapFlag |= 1
-            else:
-                Area.wrapFlag &= ~1
 
             fname = dlg.TilesetsTab.value()
 
