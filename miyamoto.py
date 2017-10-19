@@ -381,6 +381,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Tilesets
         self.CreateAction('editslot1', self.EditSlot1, GetIcon('animation'), globals.trans.string('MenuItems', 130),
                           globals.trans.string('MenuItems', 131), None)
+        self.CreateAction('importobj', self.ImportObjFromFile, GetIcon('import'), globals.trans.string('MenuItems', 136),
+                          globals.trans.string('MenuItems', 137), None)
 
         # Help actions are created later
 
@@ -491,6 +493,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         tmenu = menubar.addMenu(globals.trans.string('Menubar', 4))
         tmenu.addAction(self.actions['editslot1'])
+        tmenu.addSeparator()
+        tmenu.addAction(self.actions['importobj'])
 
         hmenu = menubar.addMenu(globals.trans.string('Menubar', 5))
         self.SetupHelpMenu(hmenu)
@@ -2202,12 +2206,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # Get the Menubar setting
         setSetting('Menu', 'Menubar')
-
-        # Get the Tileset Tab setting
-        if dlg.generalTab.TileD.isChecked():
-            setSetting('TilesetTab', 'Default')
-        else:
-            setSetting('TilesetTab', 'Old')
 
         # Get the translation
         name = str(dlg.generalTab.Trans.itemData(dlg.generalTab.Trans.currentIndex(), Qt.UserRole))
