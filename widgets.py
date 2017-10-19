@@ -2246,6 +2246,12 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         if event.button() == Qt.RightButton:
             if globals.CurrentPaintType in (0, 1, 2, 3) and globals.CurrentObject != -1:
+                # return if the Embedded tab is empty
+                if (globals.CurrentPaintType in (1, 2, 3)
+                    and not len(globals.mainWindow.objPicker.m123.items)):
+                    globals.CurrentObject = -1
+                    return
+
                 # paint an object
                 clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
