@@ -381,8 +381,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Tilesets
         self.CreateAction('editslot1', self.EditSlot1, GetIcon('animation'), globals.trans.string('MenuItems', 130),
                           globals.trans.string('MenuItems', 131), None)
-        self.CreateAction('importobj', self.ImportObjFromFile, GetIcon('import'), globals.trans.string('MenuItems', 136),
-                          globals.trans.string('MenuItems', 137), None)
 
         # Help actions are created later
 
@@ -493,8 +491,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         tmenu = menubar.addMenu(globals.trans.string('Menubar', 4))
         tmenu.addAction(self.actions['editslot1'])
-        tmenu.addSeparator()
-        tmenu.addAction(self.actions['importobj'])
 
         hmenu = menubar.addMenu(globals.trans.string('Menubar', 5))
         self.SetupHelpMenu(hmenu)
@@ -3223,13 +3219,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.objUseLayer1.setChecked(True)
 
-        self.objPicker.LoadFromTilesets()
+        CreateTilesets()
 
         self.ReloadTilesets()
 
+        self.objPicker.LoadFromTilesets()
+
         self.objAllTab.setCurrentIndex(0)
         self.objAllTab.setTabEnabled(0, True)
-        self.objAllTab.setTabEnabled(2, False)
 
     def LoadLevel_NSMBU(self, levelData, areaNum):
         """
@@ -3250,9 +3247,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.objAllTab.setCurrentIndex(0)
         self.objAllTab.setTabEnabled(0, (globals.Area.tileset0 != ''))
-        self.objAllTab.setTabEnabled(2, (globals.Area.tileset1 != ''
-                                         or globals.Area.tileset2 != ''
-                                         or globals.Area.tileset3 != ''))
 
         # Load events
         self.LoadEventTabFromLevel()

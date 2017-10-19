@@ -465,8 +465,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         self.LoadFromTilesets()
 
         if not (globals.Area.tileset1 or globals.Area.tileset2 or globals.Area.tileset3):
-            globals.mainWindow.objAllTab.setCurrentIndex(0)
-            globals.mainWindow.objAllTab.setTabEnabled(2, False)
+            globals.CurrentObject = -1
 
         globals.mainWindow.scene.update()
         SetDirty()

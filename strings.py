@@ -496,8 +496,6 @@ class MiyamotoTranslation():
                 133: 'Set a different folder to load the objects from',
                 134: 'Don\'t overwrite sprites in the level archive',
                 135: 'Don\'t overwrite sprites in the level archive with sprites from the data folder',
-                136: 'Import Object',
-                137: 'Import an object from a file',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',

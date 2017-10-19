@@ -613,10 +613,6 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
             elif idx == 3:
                 globals.Area.tileset3 = 'temp3'
 
-        globals.mainWindow.objAllTab.setTabEnabled(2, (globals.Area.tileset1 != ''
-                                               or globals.Area.tileset2 != ''
-                                               or globals.Area.tileset3 != ''))
-
         globals.mainWindow.updateNumUsedTilesLabel()
 
         break
