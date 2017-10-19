@@ -786,6 +786,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.folderPicker.setVisible(False)
         oel.addWidget(self.folderPicker, 1)
 
+        self.importObj = QtWidgets.QPushButton()
+        self.importObj.setText("Import")
+        self.importObj.clicked.connect(self.ImportObjFromFile)
+        self.importObj.setVisible(False)
+        oel.addWidget(self.importObj, 1)
+
         self.objPicker = ObjectPickerWidget()
         self.objPicker.ObjChanged.connect(self.ObjectChoiceChanged)
         self.objPicker.ObjReplace.connect(self.ObjectReplace)
@@ -3590,13 +3596,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if nt == 0:
                     self.objTS0Tab.setLayout(self.createObjectLayout)
                     self.folderPicker.setVisible(False)
+                    self.importObj.setVisible(False)
                 elif nt == 1:
                     self.objTSAllTab.setLayout(self.createObjectLayout)
                     self.folderPicker.setVisible(True)
+                    self.importObj.setVisible(False)
                     nt = 10
                 else:
                     self.objTS123Tab.setLayout(self.createObjectLayout)
                     self.folderPicker.setVisible(False)
+                    self.importObj.setVisible(True)
             self.defaultPropDock.setVisible(False)
         globals.CurrentPaintType = nt
 
@@ -3664,6 +3673,53 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             self.scene.update()
             SetDirty()
+
+    def ImportObjFromFile(self):
+        """
+        Handles importing an object
+        """
+        # Get the json file
+        file = QtWidgets.QFileDialog.getOpenFileName(self, "Open Object", '',
+                    "Object files (*.json)")[0]
+
+        if not file: return
+
+        with open(file) as inf:
+            jsonData = json.load(inf)
+
+        dir = os.path.dirname(file)
+
+        # Read the other files
+        with open(dir + "/" + jsonData["meta"], "rb") as inf:
+            indexfile = inf.read()
+
+        with open(dir + "/" + jsonData["objlyt"], "rb") as inf:
+            deffile = inf.read()
+
+        with open(dir + "/" + jsonData["colls"], "rb") as inf:
+            colls = inf.read()
+
+        # Get the object's definition
+        indexstruct = struct.Struct('>HBBH')
+
+        data = indexstruct.unpack_from(indexfile, 0)
+        obj = ObjectDef()
+        obj.width = data[1]
+        obj.height = data[2]
+        obj.randByte = 0  # TODO
+        obj.load(deffile, 0)
+
+        # Get the image and normal map
+        img = QtGui.QPixmap(dir + "/" + jsonData["img"])
+        nml = QtGui.QPixmap(dir + "/" + jsonData["nml"])
+
+        # Add the object to one of the tilesets
+        paintType, objNum = addObjToTileset(obj, colls, img, nml)
+
+        # Checks if the object fit in one of the tilesets
+        if paintType == 11:
+            # Throw a message that the object didn't fit
+            QtWidgets.QMessageBox.critical(None, 'Cannot Import', "There isn't enough room left for this object!")
 
     @QtCore.pyqtSlot(int)
     def ObjectChoiceChanged(self, type):

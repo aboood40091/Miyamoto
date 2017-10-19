@@ -29,10 +29,6 @@ import json, sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
-if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
-    # enables itemChange being called on QGraphicsItem
-    QtWidgets.QGraphicsItem.ItemSendsGeometryChanges = QtWidgets.QGraphicsItem.GraphicsItemFlag(0x800)
-
 from bytes import *
 import globals
 from loading import *
@@ -247,6 +243,9 @@ class ObjectPickerWidget(QtWidgets.QListView):
         """
         Creates and shows the right-click menu
         """
+        if globals.CurrentPaintType in [0, 10]:
+            return QtWidgets.QListView.contextMenuEvent(self, event)
+
         self.menu = QtWidgets.QMenu(self)
 
         export = QtWidgets.QAction('Export', self)
@@ -1467,7 +1466,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.camera = QtWidgets.QSpinBox()
         self.camera.setRange(0, 255)
         self.camera.setToolTip(
-            'Related to camera movement. Value of 1 makes the camera zoom in if the value is < 0, or out if it\'s >= 0.')
+            "Related to camera movement. Value of 1 makes the camera zoom in if the value is < 0, or out if it's >= 0.")
         self.camera.valueChanged.connect(self.HandleCamera)
 
         self.pathID = QtWidgets.QSpinBox()
@@ -2275,131 +2274,36 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 SetDirty()
 
             elif globals.CurrentPaintType == 10 and globals.CurrentObject != -1:
-                # See if the object is addable to and add it
                 type_ = globals.CurrentObject
+                # Check if the object is already in one of the tilesets
                 if globals.CurrentObject in globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()]:
                     (globals.CurrentPaintType,
                      globals.CurrentObject) = globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][
                          globals.CurrentObject]
+
+                # Try to add the object to on of the tilesets
                 else:
-                    for idx in range(1, 4):
-                        usedTiles = getUsedTiles()[idx]
-                        if len(usedTiles) >= 256:  # It can't be more than 256, oh well
-                            continue
+                    # Get the object definition, collision data, image and normal map
+                    obj = globals.ObjectAllDefinitions[globals.CurrentObject]
+                    colldata = globals.ObjectAllCollisions[globals.CurrentObject]
+                    img, nml = globals.ObjectAllImages[globals.CurrentObject]
 
-                        numTiles = 0
-                        obj = globals.ObjectAllDefinitions[globals.CurrentObject]
-                        for row in obj.rows:
-                            for tile in row:
-                                if len(tile) == 3:
-                                    numTiles += 1
-
-                        if numTiles + len(usedTiles) > 256:
-                            continue
-
-                        tileoffset = idx * 256
-
-                        freeTiles = []
-                        for i in range(256):
-                            if i not in usedTiles: freeTiles.append(i)
-
-                        ctile = 0
-                        crow = 0
-                        i = 0
-                        for row in obj.rows:
-                            for tile in row:
-                                if len(tile) == 3:
-                                    obj.rows[crow][ctile][1] = freeTiles[i] | (idx << 8)
-                                    i += 1
-                                ctile += 1
-                            crow += 1
-                            ctile = 0
-
-                        if globals.ObjectDefinitions[idx] is None:
-                            globals.ObjectDefinitions[idx] = [None] * 256
-
-                        defs = globals.ObjectDefinitions[idx]
-
-                        objNum = 0
-                        while defs[objNum] is not None and objNum < 256:
-                            objNum += 1
-
-                        globals.ObjectDefinitions[idx][objNum] = obj
-
-                        colldata = globals.ObjectAllCollisions[globals.CurrentObject]
-                        img, nml = globals.ObjectAllImages[globals.CurrentObject]
-
-                        # Checks if the slop is reversed and reverses the rows
-                        isSlope = obj.rows[0][0][0]
-                        if (isSlope & 0x80) and (isSlope & 0x2):
-                            x = 0
-                            y = (obj.height - 1) * 60
-                            i = 0
-                            crow = 0
-                            for row in obj.rows:
-                                for tile in row:
-                                    if len(tile) == 3:
-                                        tileNum = (tile[1] & 0xFF) + tileoffset
-                                        T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
-                                        realRow = len(obj.rows) - 1 - crow
-                                        colls = struct.unpack_from('>8B', colldata, (8 * obj.width * realRow) + i)
-                                        T.setCollisions(colls)
-                                        globals.Tiles[tileNum] = T
-                                        x += 60
-                                        i += 8
-                                crow += 1
-                                y -= 60
-                                x = 0
-                                i = 0
-
-                        else:
-                            x = 0
-                            y = 0
-                            i = 0
-                            for row in obj.rows:
-                                for tile in row:
-                                    if len(tile) == 3:
-                                        tileNum = (tile[1] & 0xFF) + tileoffset
-                                        T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
-                                        T.setCollisions(struct.unpack_from('>8B', colldata, i))
-                                        globals.Tiles[tileNum] = T
-                                        x += 60
-                                        i += 8
-                                y += 60
-                                x = 0
-
-                        SLib.Tiles = globals.Tiles
-
-                        globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][
-                            globals.CurrentObject] = (idx, objNum)
-
-                        globals.CurrentPaintType = idx
-                        globals.CurrentObject = objNum
-
-                        globals.mainWindow.objPicker.LoadFromTilesets()
-
-                        if not eval('globals.Area.tileset%d' % idx):
-                            if idx == 1:
-                                globals.Area.tileset1 = 'temp1'
-
-                            elif idx == 2:
-                                globals.Area.tileset2 = 'temp2'
-
-                            elif idx == 3:
-                                globals.Area.tileset3 = 'temp3'
-
-                        globals.mainWindow.objAllTab.setTabEnabled(2, (globals.Area.tileset1 != ''
-                                                               or globals.Area.tileset2 != ''
-                                                               or globals.Area.tileset3 != ''))
-
-                        globals.mainWindow.updateNumUsedTilesLabel()
-
-                        break
+                    # Add the object to one of the tilesets and set CurrentPaintType and CurrentObject
+                    (globals.CurrentPaintType,
+                     globals.CurrentObject) = addObjToTileset(obj, colldata, img, nml, True)
 
                     # Checks if the object fit in one of the tilesets
                     if globals.CurrentPaintType == 10:
-                        QtWidgets.QMessageBox.critical(None, 'Cannot Paint', 'There isn\'t enough room left for this object!')
-                        return 
+                        # Reverse CurrentObject
+                        globals.CurrentObject = type_
+
+                        # Throw a message that the object didn't fit
+                        QtWidgets.QMessageBox.critical(None, 'Cannot Paint', "There isn't enough room left for this object!")
+                        return
+
+                    # Add the object to ObjectAddedtoEmbedded
+                    globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][
+                    type_] = (globals.CurrentPaintType, globals.CurrentObject)
 
                 # paint an object
                 clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
