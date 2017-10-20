@@ -772,7 +772,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         top_folder = setting('ObjPath')
 
-        if not top_folder:
+        if not (top_folder and os.path.isdir(top_folder)):
             self.objAllTab.setTabEnabled(1, False)
 
         else:
@@ -797,7 +797,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.objPicker.ObjReplace.connect(self.ObjectReplace)
         oel.addWidget(self.objPicker, 1)
 
-        if top_folder:
+        if top_folder and os.path.isdir(top_folder):
             def UpdateObjFolder():
                 self.objPicker.mall.LoadFromFolder()
 
@@ -3134,7 +3134,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             top_folder = setting('ObjPath')
 
-            if not top_folder:
+            if not (top_folder and os.path.isdir(top_folder)):
                 self.objAllTab.setTabEnabled(1, False)
 
             else:
