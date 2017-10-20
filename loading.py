@@ -364,7 +364,11 @@ def LoadEntranceNames(reload_=False):
 def LoadTileset(idx, name, reload=False):
     try:
         import tileset
-        return tileset._LoadTileset(idx, name, reload)
+        ans = tileset._LoadTileset(idx, name, reload)
+        del tileset
+
+        return ans
+
     except:
         return False
 

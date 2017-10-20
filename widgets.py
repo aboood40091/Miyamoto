@@ -808,6 +808,8 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
         loading.LoadSpriteData()
         loading.LoadSpriteListData()
         loading.LoadSpriteCategories()
+        del loading
+
         self.LoadItems()
 
     def LoadItems(self):
@@ -1424,8 +1426,11 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.entranceID.valueChanged.connect(self.HandleEntranceIDChanged)
 
         self.entranceType = QtWidgets.QComboBox()
+
         import loading
         loading.LoadEntranceNames()
+        del loading
+
         self.entranceType.addItems(globals.EntranceTypeNames)
         self.entranceType.setToolTip(globals.trans.string('EntranceDataEditor', 3))
         self.entranceType.activated.connect(self.HandleEntranceTypeChanged)
@@ -2286,7 +2291,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                      globals.CurrentObject) = globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][
                          globals.CurrentObject]
 
-                # Try to add the object to on of the tilesets
+                # Try to add the object to one of the tilesets
                 else:
                     # Get the object definition, collision data, image and normal map
                     obj = globals.ObjectAllDefinitions[globals.CurrentObject]
@@ -2299,10 +2304,10 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                     # Checks if the object fit in one of the tilesets
                     if globals.CurrentPaintType == 10:
-                        # Reverse CurrentObject
+                        # Revert CurrentObject back to what it was
                         globals.CurrentObject = type_
 
-                        # Throw a message that the object didn't fit
+                        # Throw a messagebox because the object didn't fit
                         QtWidgets.QMessageBox.critical(None, 'Cannot Paint', "There isn't enough room left for this object!")
                         return
 

@@ -131,7 +131,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # set up the window
         super().__init__(None)
-        self.setWindowTitle('Miyamoto!')
+        self.setWindowTitle('Miyamoto! V%s' % MiyamotoVersion)
         self.setWindowIcon(QtGui.QIcon('miyamotodata/icon.png'))
         self.setIconSize(QtCore.QSize(16, 16))
         self.setUnifiedTitleAndToolBarOnMac(True)
@@ -4774,7 +4774,7 @@ def main():
 
     # Set the default window icon (used for random popups and stuff)
     globals.app.setWindowIcon(GetIcon('miyamoto'))
-    globals.app.setApplicationDisplayName('Miyamoto!')
+    globals.app.setApplicationDisplayName('Miyamoto! V%s' % MiyamotoVersion)
 
     gt = setting('GridType')
     if gt == 'checker':

@@ -969,7 +969,11 @@ class ZoneTab(QtWidgets.QWidget):
 
         self.Zone_music = QtWidgets.QComboBox()
         self.Zone_music.setToolTip(globals.trans.string('ZonesDlg', 54))
-        newItems = getMusic()
+
+        import gamedefs
+        newItems = gamedefs.getMusic()
+        del gamedefs
+
         for a, b in newItems:
             self.Zone_music.addItem(b, a)  # text, songid
         self.Zone_music.setCurrentIndex(self.Zone_music.findData(z.music))
