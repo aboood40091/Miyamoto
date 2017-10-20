@@ -3049,15 +3049,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             else:
                 # Auto-saved level. Check if there's a path associated with it:
 
-                if AutoSavePath == 'None':
+                if globals.AutoSavePath == 'None':
                     self.fileSavePath = None
                     self.fileTitle = globals.trans.string('WindowTitle', 0)
                 else:
-                    self.fileSavePath = AutoSavePath
+                    self.fileSavePath = globals.AutoSavePath
                     self.fileTitle = os.path.basename(name)
 
                 # Get the level data
-                levelData = AutoSaveData
+                levelData = globals.AutoSaveData
                 SetDirty(noautosave=True)
 
                 # Turn off the autosave flag
@@ -4568,7 +4568,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             SetDirty()
 
             for z in globals.Area.zones:
-                name = names_bg[names_bgTrans.index(str(dlg.BGTabs[z.id].bg_name.currentText()))]
+                name = globals.names_bg[globals.names_bgTrans.index(str(dlg.BGTabs[z.id].bg_name.currentText()))]
                 unk1 = dlg.BGTabs[z.id].unk1.value()
                 unk2 = dlg.BGTabs[z.id].unk2.value()
                 z.background = (z.id, unk1, to_bytes(name, 16), unk2)
