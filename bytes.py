@@ -24,19 +24,13 @@
 ################################################################
 ################################################################
 
-def bytes_to_string(byte):
-    string = b''
-    char = byte[:1]
-    i = 1
+def bytes_to_string(data, offset=0, charWidth=1, encoding='utf-8'):
+    # Thanks RoadrunnerWMC
+    end = data.find(b'\0' * charWidth, offset)
+    if end == -1:
+        return data[offset:].decode(encoding)
 
-    while char != b'\x00':
-        string += char
-        if i == len(byte): break  # Prevent it from looping forever
-
-        char = byte[i:i + 1]
-        i += 1
-
-    return (string.decode('utf-8'))
+    return data[offset:end].decode(encoding)
 
 
 def to_bytes(inp, length=1, endianness='big'):
