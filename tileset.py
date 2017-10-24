@@ -511,11 +511,17 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
             continue
 
         # Get the number of tiles in this object
+        if len(obj.rows) == 1:
+            randLen = obj.randByte & 0xF
+
+        else:
+            randLen = 0
+
         numTiles = 0
         for row in obj.rows:
             for tile in row:
                 if len(tile) == 3:
-                    numTiles += 1
+                    numTiles += (randLen if randLen else 1)
 
         
         if numTiles + len(usedTiles) > 256:
@@ -529,71 +535,123 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
         for i in range(256):
             if i not in usedTiles: freeTiles.append(i)
 
-        # Set the object's tiles' indecies
-        ctile = 0
-        crow = 0
-        i = 0
-        for row in obj.rows:
-            for tile in row:
-                if len(tile) == 3:
-                    obj.rows[crow][ctile][1] = freeTiles[i] | (idx << 8)
-                    i += 1
-                ctile += 1
-            crow += 1
+        # Handle randomized objects differently
+        if randLen:
+            # Look for any "randLen" free tiles in a row
+            found = False
+            for i in freeTiles:
+                for z in range(randLen):
+                    if i + z not in freeTiles:
+                        break
+
+                    if z == randLen - 1:
+                        tileNum = i
+                        found = True
+                        break
+
+                if found:
+                    break
+
+            if not found:
+                # Skip to to the next tileset because no "randLen" free tiles in a row were found
+                continue
+
+            # Set the object's tiles' indecies
             ctile = 0
+            z = 0
+            for tile in obj.rows[0]:
+                if len(tile) == 3:
+                    obj.rows[0][ctile][1] = (tileNum + z) | (idx << 8)
+                    if z < randLen:
+                        z += 1
+                ctile += 1
 
-        if globals.ObjectDefinitions[idx] is None:
-            # Make us a new ObjectDefinitions for this tileset
-            globals.ObjectDefinitions[idx] = [None] * 256
+            if globals.ObjectDefinitions[idx] is None:
+                # Make us a new ObjectDefinitions for this tileset
+                globals.ObjectDefinitions[idx] = [None] * 256
 
-        defs = globals.ObjectDefinitions[idx]
+            defs = globals.ObjectDefinitions[idx]
 
-        # Set the object's number
-        objNum = 0
-        while defs[objNum] is not None and objNum < 256:
-            objNum += 1
+            # Set the object's number
+            objNum = 0
+            while defs[objNum] is not None and objNum < 256:
+                objNum += 1
 
-        globals.ObjectDefinitions[idx][objNum] = obj
+            globals.ObjectDefinitions[idx][objNum] = obj
 
-        # Checks if the slop is reversed and reverses the rows
-        # Also adds the object's tiles to the Tiles dict.
-        isSlope = obj.rows[0][0][0]
-        if (isSlope & 0x80) and (isSlope & 0x2):
-            x = 0
-            y = (obj.height - 1) * 60
-            i = 0
-            crow = 0
-            for row in obj.rows:
-                for tile in row:
-                    if len(tile) == 3:
-                        tileNum = (tile[1] & 0xFF) + tileoffset
-                        T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
-                        realRow = len(obj.rows) - 1 - crow
-                        colls = struct.unpack_from('>8B', colldata, (8 * obj.width * realRow) + i)
-                        T.setCollisions(colls)
-                        globals.Tiles[tileNum] = T
-                        x += 60
-                        i += 8
-                crow += 1
-                y -= 60
-                x = 0
-                i = 0
+            # Adds the object's tiles to the Tiles dict.
+            tileNum += tileoffset
+            for z in range(randLen):
+                T = TilesetTile(img.copy(z * 60, 0, 60, 60), nml.copy(z * 60, 0, 60, 60))
+                T.setCollisions(struct.unpack_from('>8B', colldata, z * 8))
+                globals.Tiles[tileNum + z] = T
 
         else:
-            x = 0
-            y = 0
+            # Set the object's tiles' indecies
+            ctile = 0
+            crow = 0
             i = 0
             for row in obj.rows:
                 for tile in row:
                     if len(tile) == 3:
-                        tileNum = (tile[1] & 0xFF) + tileoffset
-                        T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
-                        T.setCollisions(struct.unpack_from('>8B', colldata, i))
-                        globals.Tiles[tileNum] = T
-                        x += 60
-                        i += 8
-                y += 60
+                        obj.rows[crow][ctile][1] = freeTiles[i] | (idx << 8)
+                        i += 1
+                    ctile += 1
+                crow += 1
+                ctile = 0
+
+            if globals.ObjectDefinitions[idx] is None:
+                # Make us a new ObjectDefinitions for this tileset
+                globals.ObjectDefinitions[idx] = [None] * 256
+
+            defs = globals.ObjectDefinitions[idx]
+
+            # Set the object's number
+            objNum = 0
+            while defs[objNum] is not None and objNum < 256:
+                objNum += 1
+
+            globals.ObjectDefinitions[idx][objNum] = obj
+
+            # Checks if the slop is reversed and reverses the rows
+            # Also adds the object's tiles to the Tiles dict.
+            isSlope = obj.rows[0][0][0]
+            if (isSlope & 0x80) and (isSlope & 0x2):
                 x = 0
+                y = (obj.height - 1) * 60
+                i = 0
+                crow = 0
+                for row in obj.rows:
+                    for tile in row:
+                        if len(tile) == 3:
+                            tileNum = (tile[1] & 0xFF) + tileoffset
+                            T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
+                            realRow = len(obj.rows) - 1 - crow
+                            colls = struct.unpack_from('>8B', colldata, (8 * obj.width * realRow) + i)
+                            T.setCollisions(colls)
+                            globals.Tiles[tileNum] = T
+                            x += 60
+                            i += 8
+                    crow += 1
+                    y -= 60
+                    x = 0
+                    i = 0
+
+            else:
+                x = 0
+                y = 0
+                i = 0
+                for row in obj.rows:
+                    for tile in row:
+                        if len(tile) == 3:
+                            tileNum = (tile[1] & 0xFF) + tileoffset
+                            T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
+                            T.setCollisions(struct.unpack_from('>8B', colldata, i))
+                            globals.Tiles[tileNum] = T
+                            x += 60
+                            i += 8
+                    y += 60
+                    x = 0
 
         # Set the paint type
         paintType = idx

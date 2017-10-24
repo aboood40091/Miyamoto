@@ -3698,7 +3698,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         obj = ObjectDef()
         obj.width = data[1]
         obj.height = data[2]
-        obj.randByte = 0  # TODO
+
+        if "randLen" in jsonData:
+            obj.randByte = data[3]
+
+        else:
+            obj.randByte = 0
+
         obj.load(deffile, 0)
 
         # Get the image and normal map

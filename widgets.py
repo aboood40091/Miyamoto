@@ -303,15 +303,23 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
         tileoffset = idx * 256
 
-        name = eval('Area.tileset%d' % idx)
+        name = eval('globals.Area.tileset%d' % idx)
 
         obj = globals.ObjectDefinitions[idx][objNum]
 
         jsonData = {}
 
-        tex = QtGui.QPixmap(obj.width * 60, obj.height * 60)
+        randLen = obj.randByte & 0xF
+
+        if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+            tex = QtGui.QPixmap(randLen * 60, obj.height * 60)
+            nml = QtGui.QPixmap(randLen * 60, obj.height * 60)
+
+        else:
+            tex = QtGui.QPixmap(obj.width * 60, obj.height * 60)
+            nml = QtGui.QPixmap(obj.width * 60, obj.height * 60)
+
         tex.fill(Qt.transparent)
-        nml = QtGui.QPixmap(obj.width * 60, obj.height * 60)
         nml.fill(QtGui.QColor(128, 128, 255))
         painter = QtGui.QPainter(tex)
         nmlPainter = QtGui.QPainter(nml)
@@ -328,10 +336,20 @@ class ObjectPickerWidget(QtWidgets.QListView):
                 for tile in row:
                     if len(tile) == 3:
                         tileNum = (tile[1] & 0xFF) + tileoffset
-                        painter.drawPixmap(x, y, globals.Tiles[tileNum].main)
-                        nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum].nml)
-                        colls += bytes(globals.Tiles[tileNum].collData)
-                        x += 60
+                        if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+                            for z in range(randLen):
+                                painter.drawPixmap(x, y, globals.Tiles[tileNum + z].main)
+                                nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum + z].nml)
+                                colls += bytes(globals.Tiles[tileNum + z].collData)
+                                x += 60
+                            break
+
+                        else:
+                            painter.drawPixmap(x, y, globals.Tiles[tileNum].main)
+                            nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum].nml)
+                            colls += bytes(globals.Tiles[tileNum].collData)
+                            x += 60
+
                 colldata.append(colls)
                 y -= 60
                 x = 0
@@ -347,26 +365,35 @@ class ObjectPickerWidget(QtWidgets.QListView):
                 for tile in row:
                     if len(tile) == 3:
                         tileNum = (tile[1] & 0xFF) + tileoffset
-                        painter.drawPixmap(x, y, globals.Tiles[tileNum].main)
-                        nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum].nml)
-                        colldata += bytes(globals.Tiles[tileNum].collData)
-                        x += 60
+                        if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+                            for z in range(randLen):
+                                painter.drawPixmap(x, y, globals.Tiles[tileNum + z].main)
+                                nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum + z].nml)
+                                colldata += bytes(globals.Tiles[tileNum + z].collData)
+                                x += 60
+                            break
+
+                        else:
+                            painter.drawPixmap(x, y, globals.Tiles[tileNum].main)
+                            nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum].nml)
+                            colldata += bytes(globals.Tiles[tileNum].collData)
+                            x += 60
                 y += 60
                 x = 0
 
         painter.end()
         nmlPainter.end()
 
-        if not os.path.exists(save_path + "/" + name):
-            os.makedirs(save_path + "/" + name)
+        if not os.path.exists(save_path + "/" + name + "_objects"):
+            os.makedirs(save_path + "/" + name + "_objects")
 
-        tex.save(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + ".png", "PNG")
+        tex.save(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".png", "PNG")
         jsonData['img'] = name + "_object_" + str(objNum) + ".png"
 
-        nml.save(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + "_nml.png", "PNG")
+        nml.save(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + "_nml.png", "PNG")
         jsonData['nml'] = name + "_object_" + str(objNum) + "_nml.png"
 
-        with open(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + ".colls", "wb+") as colls:
+        with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".colls", "wb+") as colls:
                 colls.write(colldata)
 
         jsonData['colls'] = name + "_object_" + str(objNum) + ".colls"
@@ -390,19 +417,22 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
         deffile += b'\xFF'
 
-        with open(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + ".objlyt", "wb+") as objlyt:
+        with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".objlyt", "wb+") as objlyt:
             objlyt.write(deffile)
 
         jsonData['objlyt'] = name + "_object_" + str(objNum) + ".objlyt"
 
         indexfile = struct.pack('>HBBxB', 0, obj.width, obj.height, 0)
 
-        with open(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + ".meta", "wb+") as meta:
+        with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".meta", "wb+") as meta:
             meta.write(indexfile)
 
         jsonData['meta'] = name + "_object_" + str(objNum) + ".meta"
 
-        with open(save_path + "/" + name + "/" + name + "_object_" + str(objNum) + ".json", 'w+') as outfile:
+        if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+            jsonData['randLen'] = randLen
+
+        with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".json", 'w+') as outfile:
             json.dump(jsonData, outfile)
 
     def HandleObjDelete(self, index):
@@ -411,6 +441,8 @@ class ObjectPickerWidget(QtWidgets.QListView):
         """
         idx = globals.CurrentPaintType
         objNum = globals.CurrentObject
+
+        if objNum == -1: return
 
         # From Satoru
         ## Checks if the object is deletable
@@ -430,6 +462,31 @@ class ObjectPickerWidget(QtWidgets.QListView):
             QtWidgets.QMessageBox.critical(self, 'Cannot Delete', dlgTxt)
             return
 
+        # Replace the object's tiles with transparent tiles
+        obj = globals.ObjectDefinitions[idx][objNum]
+        usedTiles = []
+        for row in obj.rows:
+            for tile in row:
+                if len(tile) == 3:
+                    randLen = obj.randByte & 0xF
+                    tileNum = tile[1] & 0xFF
+                    if randLen > 0:
+                        for i in range(randLen):
+                            if tileNum + i not in usedTiles:
+                                usedTiles.append(tileNum + i)
+                    else:
+                        if tileNum not in usedTiles:
+                            usedTiles.append(tileNum)
+
+        T = TilesetTile()
+        T.setCollisions([0] * 8)
+
+        tileoffset = idx * 256
+
+        for i in usedTiles:
+            globals.Tiles[i + tileoffset] = T
+
+        # Completely remove the object's definitions
         del globals.ObjectDefinitions[idx][objNum]
         globals.ObjectDefinitions[idx].append(None)
 
@@ -664,7 +721,13 @@ class ObjectPickerWidget(QtWidgets.QListView):
                     obj = ObjectDef()
                     obj.width = data[1]
                     obj.height = data[2]
-                    obj.randByte = 0  # TODO
+
+                    if "randLen" in jsonData:
+                        obj.randByte = data[3]
+
+                    else:
+                        obj.randByte = 0
+
                     obj.load(deffile, 0)
 
                     globals.ObjectAllDefinitions.append(obj)
@@ -675,7 +738,11 @@ class ObjectPickerWidget(QtWidgets.QListView):
                     globals.ObjectAllImages.append([QtGui.QPixmap(dir + jsonData["img"]),
                                             QtGui.QPixmap(dir + jsonData["nml"])])
 
-                    pm = globals.ObjectAllImages[-1][0]
+                    if "randLen" in jsonData:
+                        pm = globals.ObjectAllImages[-1][0].copy(0, 0, 60, 60)
+
+                    else:
+                        pm = globals.ObjectAllImages[-1][0]
 
                     pm = pm.scaledToWidth(pm.width() * 32/globals.TileWidth, Qt.SmoothTransformation)
                     if pm.width() > 256:
