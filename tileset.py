@@ -1599,7 +1599,6 @@ def ProcessOverrides(idx, name):
             ### Multiplayer
             t[28].main = t[offset + 28].main
             ## Blue
-            t[47].main = t[offset + 47].main
             t[46].main = t[offset + 47].main
 
             # Flowers / Grass

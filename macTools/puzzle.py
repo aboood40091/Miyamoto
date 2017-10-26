@@ -63,20 +63,15 @@ class TilesetClass():
 
     class Object():
 
-        def __init__(self, height, width, randByte, uslope, lslope, tilelist, fromFile):
+        def __init__(self, height, width, randByte, uslope, lslope, tilelist):
             '''Tile Constructor'''
 
             self.height = height
             self.width = width
 
-            if fromFile:
-                self.randX = 0
-                self.randY = 0
-                self.randLen = 1
-            else:
-                self.randX = (randByte >> 4) & 1
-                self.randY = (randByte >> 5) & 1
-                self.randLen = randByte & 0xF
+            self.randX = (randByte >> 4) & 1
+            self.randY = (randByte >> 5) & 1
+            self.randLen = randByte & 0xF
 
             self.upperslope = uslope
             self.lowerslope = lslope
@@ -111,7 +106,7 @@ class TilesetClass():
         self.tiles.append(self.Tile(image, nml, bytelist))
 
 
-    def addObject(self, height = 1, width = 1, randByte = 0, uslope = [0, 0], lslope = [0, 0], tilelist = [[(0, 0, 0)]], fromFile=False):
+    def addObject(self, height = 1, width = 1, randByte = 0, uslope = [0, 0], lslope = [0, 0], tilelist = [[(0, 0, 0)]]):
         '''Adds a new object'''
 
         global Tileset
@@ -119,13 +114,17 @@ class TilesetClass():
         if tilelist == [[(0, 0, 0)]]:
             tilelist = [[(0, 0, Tileset.slot)]]
 
-        self.objects.append(self.Object(height, width, randByte, uslope, lslope, tilelist, fromFile))
+        self.objects.append(self.Object(height, width, randByte, uslope, lslope, tilelist))
 
 
     def removeObject(self, index):
         '''Removes an Object by Index number. Don't use this much, because we want objects to preserve their ID.'''
 
-        self.objects.pop(index)
+        try:
+            self.objects.pop(index)
+
+        except IndexError:
+            pass
 
 
     def clear(self):
@@ -2607,9 +2606,7 @@ class MainWindow(QtWidgets.QMainWindow):
             os.chdir(tile_path)
 
             os.system('chmod 777 nvcompress-osx.app')
-            exe = './nvcompress-osx.app'
-
-            os.system(exe + ' -bc3 tmp.png tmp.dds')
+            os.system('./nvcompress-osx.app -bc3 tmp.png tmp.dds')
             
             os.chdir(self.miyamoto_path)
 
@@ -2804,7 +2801,14 @@ class MainWindow(QtWidgets.QMainWindow):
         objstrings = open(dir + "/" + jsonData["objlyt"], "rb").read()
         colls = open(dir + "/" + jsonData["colls"], "rb").read()
 
-        numTiles = metaData[3] * metaData[2]
+        randLen = 0
+
+        if "randLen" in jsonData:
+            randLen = (metaData[5] & 0xF)
+            numTiles = metaData[3] * randLen
+
+        else:
+            numTiles = metaData[3] * metaData[2]
 
         if numTiles + len(usedTiles) > 256:
             QtWidgets.QMessageBox.warning(self, "Open Object",
@@ -2815,6 +2819,27 @@ class MainWindow(QtWidgets.QMainWindow):
         freeTiles = []
         for i in range(256):
             if i not in usedTiles: freeTiles.append(i)
+
+        if randLen:
+            found = False
+            for i in freeTiles:
+                for z in range(randLen):
+                    if i + z not in freeTiles:
+                        break
+
+                    if z == randLen - 1:
+                        tileNum = i
+                        found = True
+                        break
+
+                if found:
+                    break
+
+            if not found:
+                QtWidgets.QMessageBox.warning(self, "Open Object",
+                        "There isn't enough room for the object.",
+                        QtWidgets.QMessageBox.Cancel)
+                return
 
         offset = 0
         byte = struct.unpack_from('>B', objstrings, offset)[0]
@@ -2848,7 +2873,15 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 tile = []
                 tile.append(byte)
-                tile.append(freeTiles[i]); i += 1
+
+                if randLen:
+                    tile.append(tileNum + i)
+                    if i < randLen: i += 1
+
+                else:
+                    tile.append(freeTiles[i])
+                    i += 1
+
                 byte2 = (struct.unpack_from('>B', objstrings, offset + 2)[0]) & 0xFC
                 byte2 |= Tileset.slot
                 tile.append(byte2)
@@ -2865,7 +2898,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 pop = tilelist.pop()
                 tilelist.insert(0, pop)
 
-        Tileset.addObject(metaData[3], metaData[2], metaData[5], upperslope, lowerslope, tilelist, True)
+        if randLen:
+            Tileset.addObject(metaData[3], metaData[2], metaData[5], upperslope, lowerslope, tilelist)
+
+        else:
+            Tileset.addObject(metaData[3], metaData[2], 0, upperslope, lowerslope, tilelist)
 
         count = len(Tileset.objects)
 
@@ -2874,46 +2911,71 @@ class MainWindow(QtWidgets.QMainWindow):
         tileImage = QtGui.QPixmap(dir + "/" + jsonData["img"])
         nmlImage = QtGui.QPixmap(dir + "/" + jsonData["nml"])
 
-        tex = QtGui.QPixmap(object.width * 60, object.height * 60)
-        tex.fill(Qt.transparent)
-        painter = QtGui.QPainter(tex)
+        if randLen:
+            tex = tileImage.copy(0,0,60,60)
 
-        Xoffset = 0
-        Yoffset = 0
+            colls_off = 0
+            for z in range(randLen):
+                Tileset.tiles[tileNum + z].image = tileImage.copy(z*60,0,60,60)
+                Tileset.tiles[tileNum + z].normalmap = nmlImage.copy(z*60,0,60,60)
+                Tileset.tiles[tileNum + z].byte0 = colls[colls_off]
+                colls_off += 1
+                Tileset.tiles[tileNum + z].byte1 = colls[colls_off]
+                colls_off += 1
+                Tileset.tiles[tileNum + z].byte2 = colls[colls_off]
+                colls_off += 1
+                Tileset.tiles[tileNum + z].byte3 = colls[colls_off]
+                colls_off += 1
+                Tileset.tiles[tileNum + z].byte4 = colls[colls_off]
+                colls_off += 1
+                Tileset.tiles[tileNum + z].byte5 = colls[colls_off]
+                colls_off += 1
+                Tileset.tiles[tileNum + z].byte6 = colls[colls_off]
+                colls_off += 1
+                Tileset.tiles[tileNum + z].byte7 = colls[colls_off]
+                colls_off += 1
 
-        a = 0
+        else:
+            tex = QtGui.QPixmap(object.width * 60, object.height * 60)
+            tex.fill(Qt.transparent)
+            painter = QtGui.QPainter(tex)
 
-        colls_off = 0
-
-        for i in range(len(object.tiles)):
-            for tile in object.tiles[i]:
-                if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
-                    object.tiles[i][object.tiles[i].index(tile)][1] = tile[1] = freeTiles[a]
-                    Tileset.tiles[tile[1]].image = tileImage.copy(Xoffset,Yoffset,60,60)
-                    Tileset.tiles[tile[1]].normalmap = nmlImage.copy(Xoffset,Yoffset,60,60)
-                    Tileset.tiles[tile[1]].byte0 = colls[colls_off]
-                    colls_off += 1
-                    Tileset.tiles[tile[1]].byte1 = colls[colls_off]
-                    colls_off += 1
-                    Tileset.tiles[tile[1]].byte2 = colls[colls_off]
-                    colls_off += 1
-                    Tileset.tiles[tile[1]].byte3 = colls[colls_off]
-                    colls_off += 1
-                    Tileset.tiles[tile[1]].byte4 = colls[colls_off]
-                    colls_off += 1
-                    Tileset.tiles[tile[1]].byte5 = colls[colls_off]
-                    colls_off += 1
-                    Tileset.tiles[tile[1]].byte6 = colls[colls_off]
-                    colls_off += 1
-                    Tileset.tiles[tile[1]].byte7 = colls[colls_off]
-                    colls_off += 1
-                    painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].image)
-                    a += 1
-                Xoffset += 60
             Xoffset = 0
-            Yoffset += 60
+            Yoffset = 0
 
-        painter.end()
+            a = 0
+
+            colls_off = 0
+
+            for i in range(len(object.tiles)):
+                for tile in object.tiles[i]:
+                    if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                        object.tiles[i][object.tiles[i].index(tile)][1] = tile[1] = freeTiles[a]
+                        Tileset.tiles[tile[1]].image = tileImage.copy(Xoffset,Yoffset,60,60)
+                        Tileset.tiles[tile[1]].normalmap = nmlImage.copy(Xoffset,Yoffset,60,60)
+                        Tileset.tiles[tile[1]].byte0 = colls[colls_off]
+                        colls_off += 1
+                        Tileset.tiles[tile[1]].byte1 = colls[colls_off]
+                        colls_off += 1
+                        Tileset.tiles[tile[1]].byte2 = colls[colls_off]
+                        colls_off += 1
+                        Tileset.tiles[tile[1]].byte3 = colls[colls_off]
+                        colls_off += 1
+                        Tileset.tiles[tile[1]].byte4 = colls[colls_off]
+                        colls_off += 1
+                        Tileset.tiles[tile[1]].byte5 = colls[colls_off]
+                        colls_off += 1
+                        Tileset.tiles[tile[1]].byte6 = colls[colls_off]
+                        colls_off += 1
+                        Tileset.tiles[tile[1]].byte7 = colls[colls_off]
+                        colls_off += 1
+                        painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].image)
+                        a += 1
+                    Xoffset += 60
+                Xoffset = 0
+                Yoffset += 60
+
+            painter.end()
 
         self.objmodel.appendRow(QtGui.QStandardItem(QtGui.QIcon(tex), 'Object {0}'.format(count-1)))
         index = self.objectList.currentIndex()
@@ -2936,7 +2998,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         count = 0
         for object in Tileset.objects:
-            tex = QtGui.QPixmap(object.width * 60, object.height * 60)
+            if object.randLen and (object.width, object.height) == (1, 1):
+                tex = QtGui.QPixmap(object.randLen * 60, object.height * 60)
+            else:
+                tex = QtGui.QPixmap(object.width * 60, object.height * 60)
             tex.fill(Qt.transparent)
             painter = QtGui.QPainter(tex)
 
@@ -2947,17 +3012,33 @@ class MainWindow(QtWidgets.QMainWindow):
 
             for i in range(len(object.tiles)):
                 for tile in object.tiles[i]:
-                    if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
-                        painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].image)
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte0).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte1).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte2).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte3).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte4).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte5).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte6).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte7).to_bytes(1, 'big')
-                    Xoffset += 60
+                    if object.randLen and (object.width, object.height) == (1, 1):
+                        for z in range(object.randLen):
+                            if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                                painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1] + z].image)
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte0).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte1).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte2).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte3).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte4).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte5).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte6).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte7).to_bytes(1, 'big')
+                            Xoffset += 60
+                        break
+
+                    else:
+                        if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                            painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].image)
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte0).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte1).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte2).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte3).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte4).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte5).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte6).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte7).to_bytes(1, 'big')
+                        Xoffset += 60
                 Xoffset = 0
                 Yoffset += 60
 
@@ -3028,33 +3109,39 @@ class MainWindow(QtWidgets.QMainWindow):
             Objbuffer = a
             Metabuffer = struct.pack('>HBBxB', (0 if count == 0 else len(Objbuffer)), object.width, object.height, object.getRandByte())
 
-            if not os.path.isdir(curr_path + "/" + tile_name):
-                os.mkdir(curr_path + "/" + tile_name)
+            if not os.path.isdir(curr_path + "/" + tile_name + "_objects"):
+                os.mkdir(curr_path + "/" + tile_name + "_objects")
 
-            tex.save(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(count) + ".png", "PNG")
+            tex.save(curr_path + "/" + tile_name + "_objects" + "/" + tile_name + "_object_" + str(count) + ".png", "PNG")
 
             object.jsonData['img'] = tile_name + "_object_" + str(count) + ".png"
 
-            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(count) + ".colls", "wb+") as colls:
+            with open(curr_path + "/" + tile_name + "_objects" + "/" + tile_name + "_object_" + str(count) + ".colls", "wb+") as colls:
                 colls.write(Tilebuffer)
 
             object.jsonData['colls'] = tile_name + "_object_" + str(count) + ".colls"
 
-            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(count) + ".objlyt", "wb+") as objlyt:
+            with open(curr_path + "/" + tile_name + "_objects" + "/" + tile_name + "_object_" + str(count) + ".objlyt", "wb+") as objlyt:
                 objlyt.write(Objbuffer)
 
             object.jsonData['objlyt'] = tile_name + "_object_" + str(count) + ".objlyt"
 
-            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(count) + ".meta", "wb+") as meta:
+            with open(curr_path + "/" + tile_name + "_objects" + "/" + tile_name + "_object_" + str(count) + ".meta", "wb+") as meta:
                 meta.write(Metabuffer)
 
             object.jsonData['meta'] = tile_name + "_object_" + str(count) + ".meta"
 
             count += 1
 
+            if object.randLen and (object.width, object.height) == (1, 1):
+                object.jsonData['randLen'] = object.randLen
+
         count = 0
         for object in Tileset.objects:
-            tex = QtGui.QPixmap(object.width * 60, object.height * 60)
+            if object.randLen and (object.width, object.height) == (1, 1):
+                tex = QtGui.QPixmap(object.randLen * 60, object.height * 60)
+            else:
+                tex = QtGui.QPixmap(object.width * 60, object.height * 60)
             tex.fill(Qt.transparent)
             painter = QtGui.QPainter(tex)
 
@@ -3063,18 +3150,26 @@ class MainWindow(QtWidgets.QMainWindow):
 
             for i in range(len(object.tiles)):
                 for tile in object.tiles[i]:
-                    if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
-                        painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].normalmap)
-                    Xoffset += 60
+                    if object.randLen and (object.width, object.height) == (1, 1):
+                        for z in range(object.randLen):
+                            if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                                painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1] + z].normalmap)
+                            Xoffset += 60
+                        break
+
+                    else:
+                        if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                            painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].normalmap)
+                        Xoffset += 60
                 Xoffset = 0
                 Yoffset += 60
 
             painter.end()
 
-            if not os.path.isdir(curr_path + "/" + tile_name):
-                os.mkdir(curr_path + "/" + tile_name)
+            if not os.path.isdir(curr_path + "/" + tile_name + "_objects"):
+                os.mkdir(curr_path + "/" + tile_name + "_objects")
 
-            tex.save(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(count) + "_nml.png", "PNG")
+            tex.save(curr_path + "/" + tile_name + "_objects" + "/" + tile_name + "_object_" + str(count) + "_nml.png", "PNG")
 
             object.jsonData['nml'] = tile_name + "_object_" + str(count) + "_nml.png"
 
@@ -3082,7 +3177,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         count = 0
         for object in Tileset.objects:
-            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(count) + ".json", 'w+') as outfile:
+            with open(curr_path + "/" + tile_name + "_objects" + "/" + tile_name + "_object_" + str(count) + ".json", 'w+') as outfile:
                 json.dump(object.jsonData, outfile)
 
             count += 1
@@ -3102,7 +3197,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
             object.jsonData = {}
 
-            tex = QtGui.QPixmap(object.width * 60, object.height * 60)
+            if object.randLen and (object.width, object.height) == (1, 1):
+                tex = QtGui.QPixmap(object.randLen * 60, object.height * 60)
+            else:
+                tex = QtGui.QPixmap(object.width * 60, object.height * 60)
             tex.fill(Qt.transparent)
             painter = QtGui.QPainter(tex)
 
@@ -3113,17 +3211,33 @@ class MainWindow(QtWidgets.QMainWindow):
 
             for i in range(len(object.tiles)):
                 for tile in object.tiles[i]:
-                    if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
-                        painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].image)
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte0).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte1).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte2).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte3).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte4).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte5).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte6).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte7).to_bytes(1, 'big')
-                    Xoffset += 60
+                    if object.randLen and (object.width, object.height) == (1, 1):
+                        for z in range(object.randLen):
+                            if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                                painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1] + z].image)
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte0).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte1).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte2).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte3).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte4).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte5).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte6).to_bytes(1, 'big')
+                            Tilebuffer += (Tileset.tiles[tile[1] + z].byte7).to_bytes(1, 'big')
+                            Xoffset += 60
+                        break
+
+                    else:
+                        if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                            painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].image)
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte0).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte1).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte2).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte3).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte4).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte5).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte6).to_bytes(1, 'big')
+                        Tilebuffer += (Tileset.tiles[tile[1]].byte7).to_bytes(1, 'big')
+                        Xoffset += 60
                 Xoffset = 0
                 Yoffset += 60
 
@@ -3194,29 +3308,35 @@ class MainWindow(QtWidgets.QMainWindow):
             Objbuffer = a
             Metabuffer = struct.pack('>HBBxB', (0 if n == 0 else len(Objbuffer)), object.width, object.height, object.getRandByte())
 
-            if not os.path.isdir(curr_path + "/" + tile_name):
-                os.mkdir(curr_path + "/" + tile_name)
+            if not os.path.isdir(curr_path + "/" + tile_name + "_objects"):
+                os.mkdir(curr_path + "/" + tile_name + "_objects")
 
-            tex.save(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(n) + ".png", "PNG")
+            tex.save(curr_path + "/" + tile_name + "_objects" + "/" + tile_name + "_object_" + str(n) + ".png", "PNG")
 
             object.jsonData['img'] = tile_name + "_object_" + str(n) + ".png"
 
-            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(n) + ".colls", "wb+") as colls:
+            with open(curr_path + "/" + tile_name + "_objects" + "/" + tile_name + "_object_" + str(n) + ".colls", "wb+") as colls:
                 colls.write(Tilebuffer)
 
             object.jsonData['colls'] = tile_name + "_object_" + str(n) + ".colls"
 
-            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(n) + ".objlyt", "wb+") as objlyt:
+            with open(curr_path + "/" + tile_name + "_objects" + "/" + tile_name + "_object_" + str(n) + ".objlyt", "wb+") as objlyt:
                 objlyt.write(Objbuffer)
 
             object.jsonData['objlyt'] = tile_name + "_object_" + str(n) + ".objlyt"
 
-            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(n) + ".meta", "wb+") as meta:
+            with open(curr_path + "/" + tile_name + "_objects" + "/" + tile_name + "_object_" + str(n) + ".meta", "wb+") as meta:
                 meta.write(Metabuffer)
 
             object.jsonData['meta'] = tile_name + "_object_" + str(n) + ".meta"
 
-            tex = QtGui.QPixmap(object.width * 60, object.height * 60)
+            if object.randLen and (object.width, object.height) == (1, 1):
+                object.jsonData['randLen'] = object.randLen
+
+            if object.randLen and (object.width, object.height) == (1, 1):
+                tex = QtGui.QPixmap(object.randLen * 60, object.height * 60)
+            else:
+                tex = QtGui.QPixmap(object.width * 60, object.height * 60)
             tex.fill(Qt.transparent)
             painter = QtGui.QPainter(tex)
 
@@ -3225,22 +3345,30 @@ class MainWindow(QtWidgets.QMainWindow):
 
             for i in range(len(object.tiles)):
                 for tile in object.tiles[i]:
-                    if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
-                        painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].normalmap)
-                    Xoffset += 60
+                    if object.randLen and (object.width, object.height) == (1, 1):
+                        for z in range(object.randLen):
+                            if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                                painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1] + z].normalmap)
+                            Xoffset += 60
+                        break
+
+                    else:
+                        if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
+                            painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].normalmap)
+                        Xoffset += 60
                 Xoffset = 0
                 Yoffset += 60
 
             painter.end()
 
-            if not os.path.isdir(curr_path + "/" + tile_name):
-                os.mkdir(curr_path + "/" + tile_name)
+            if not os.path.isdir(curr_path + "/" + tile_name + "_objects"):
+                os.mkdir(curr_path + "/" + tile_name + "_objects")
 
-            tex.save(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(n) + "_nml.png", "PNG")
+            tex.save(curr_path + "/" + tile_name + "_objects" + "/" + tile_name + "_object_" + str(n) + "_nml.png", "PNG")
 
             object.jsonData['nml'] = tile_name + "_object_" + str(n) + "_nml.png"
 
-            with open(curr_path + "/" + tile_name + "/" + tile_name + "_object_" + str(n) + ".json", 'w+') as outfile:
+            with open(curr_path + "/" + tile_name + "_objects" + "/" + tile_name + "_object_" + str(n) + ".json", 'w+') as outfile:
                 json.dump(object.jsonData, outfile)
 
     def clearObjects(self):
