@@ -1383,7 +1383,11 @@ class SpriteItem(LevelEditorItem):
         if event.button() == Qt.LeftButton:
             if QtWidgets.QApplication.keyboardModifiers() == Qt.ControlModifier:
                 newitem = SpriteItem(self.type, self.objx, self.objy, self.spritedata)
-                newitem.listitem = ListWidgetItem_SortsByOther(newitem, newitem.ListString())
+
+                import widgets
+                newitem.listitem = widgets.ListWidgetItem_SortsByOther(newitem, newitem.ListString())
+                del widgets
+
                 globals.mainWindow.spriteList.addItem(newitem.listitem)
                 globals.Area.sprites.append(newitem)
                 globals.mainWindow.scene.addItem(newitem)
