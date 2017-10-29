@@ -1508,9 +1508,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # get sprites
         for item in clipboard_s:
             data = item.spritedata
-            convclip.append('1:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d' % (
+            convclip.append('1:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d' % (
             item.type, item.objx, item.objy, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
-            data[9], data[10], data[11]))
+            data[8], data[9], data[10], data[11]))
 
         convclip.append('%')
         return '|'.join(convclip)
@@ -1696,13 +1696,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 elif split[0] == '1':
                     # sprite
-                    if len(split) != 11: continue
+                    if len(split) != 16: continue
 
                     objx = int(split[2])
                     objy = int(split[3])
                     data = bytes(map(int,
-                                     [split[4], split[5], split[6], split[7], split[8], split[9], '0', split[10], '0',
-                                      '0', '0', '0', '0', '0']))
+                                     [split[4], split[5], split[6], split[7], split[8], split[9],
+                                      split[10], split[11], split[12], split[13], split[14], split[15]]))
 
                     x = objx / 16
                     y = objy / 16
