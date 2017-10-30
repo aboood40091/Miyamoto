@@ -3,7 +3,7 @@
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
 # Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
 # This file is part of Miyamoto!.
 
@@ -496,6 +496,8 @@ class MiyamotoTranslation():
                 133: 'Set a different folder to load the objects from',
                 134: 'Don\'t overwrite sprites in the level archive',
                 135: 'Don\'t overwrite sprites in the level archive with sprites from the data folder',
+                136: 'Quick Paint Properties',
+                137: 'Show the Properties Window to Configure Quick Paint',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
