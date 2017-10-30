@@ -3,7 +3,7 @@
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
 # Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
 # This file is part of Miyamoto!.
 
@@ -66,6 +66,7 @@ from items import *
 from level import *
 from loading import *
 from misc import *
+from quickpaint import *
 import SARC as SarcLib
 import spritelib as SLib
 import sprites
@@ -76,7 +77,7 @@ from ui import *
 from verifications import *
 from widgets import *
 
-MiyamotoID = 'Miyamoto! Level Editor by AboodXD and Gota7, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
+MiyamotoID = 'Miyamoto! Level Editor by AboodXD, Gota7, John10v10, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
 MiyamotoVersion = '20.0'
 MiyamotoVersionShort = ""
 UpdateURL = ''
@@ -646,6 +647,26 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         act.setShortcut(QtGui.QKeySequence('Ctrl+M'))
         act.setIcon(GetIcon('overview'))
         act.setStatusTip(globals.trans.string('MenuItems', 95))
+        self.vmenu.addAction(act)
+		
+        # quick paint configuration
+        dock = QtWidgets.QDockWidget(globals.trans.string('MenuItems', 136), self)
+        dock.setFeatures(
+            QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable | QtWidgets.QDockWidget.DockWidgetClosable)
+        # dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        dock.setObjectName('quickpaint')  # needed for the state to save/restore correctly #
+
+        self.quickPaint = QuickPaintConfigWidget()
+        #self.quickPaint.moveIt.connect(self.HandleOverviewClick)
+        self.quickPaintDock = dock
+        dock.setWidget(self.quickPaint)
+
+        self.addDockWidget(Qt.RightDockWidgetArea, dock)
+        dock.setVisible(True)
+        act = dock.toggleViewAction()
+        act.setShortcut(QtGui.QKeySequence('Alt+Q'))
+        act.setIcon(GetIcon('quickpaint'))
+        act.setStatusTip(globals.trans.string('MenuItems', 137))
         self.vmenu.addAction(act)
 
         # create the sprite editor panel

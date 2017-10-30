@@ -3,7 +3,7 @@
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
 # Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
 # This file is part of Miyamoto!.
 
@@ -66,7 +66,6 @@ setup(
         'build_exe': {
             'excludes': excludes,
             'packages': ['sip', 'encodings', 'encodings.hex_codec', 'encodings.utf_8'],
-            'compressed': 1,
             'build_exe': dir_,
             'icon': 'miyamotodata/win_icon.ico',
             },

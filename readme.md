@@ -25,6 +25,7 @@ GitHub: https://github.com/Gota7/Miyamoto
 * NVIDIA -- NVCOMPRESS
 * Toms -- Spritedata, Graphics
 * Wiimm -- WSZST
+* John10v10 -- Coding the Quick Paint Tool
 
 ----------------------------------------------------------------
 
