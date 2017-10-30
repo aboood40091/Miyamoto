@@ -3,7 +3,7 @@
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
 # Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
 # This file is part of Miyamoto!.
 
@@ -35,8 +35,9 @@ from loading import *
 from misc import *
 import spritelib as SLib
 from stamp import *
+from quickpaint import *
 from ui import *
-
+from math import sqrt
 
 class LevelOverviewWidget(QtWidgets.QWidget):
     """
@@ -211,6 +212,872 @@ class LevelOverviewWidget(QtWidgets.QWidget):
 
         self.CalcSize()
 
+class QuickPaintConfigWidget(QtWidgets.QWidget):
+    """
+    Widget that allows the user to configure tiles and objects for quick paint.
+    """
+    moveIt = QtCore.pyqtSignal(int, int)
+
+    def __init__(self):
+        """
+        Constructor for the quick paint confirmation widget
+        """
+
+        QtWidgets.QWidget.__init__(self)
+        self.setSizePolicy(
+            QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding))
+        self.QuickPaintMode = None
+        self.gridLayout = QtWidgets.QGridLayout(self)
+        self.gridLayout.setObjectName("gridLayout")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.PaintModeCheck = QtWidgets.QPushButton(self)
+        self.PaintModeCheck.setMinimumSize(QtCore.QSize(0, 80))
+        self.PaintModeCheck.clicked.connect(self.SetPaintMode)
+        self.PaintModeCheck.setCheckable(True)
+        self.PaintModeCheck.setObjectName("PaintModeCheck")
+        self.horizontalLayout_2.addWidget(self.PaintModeCheck)
+        self.EraseModeCheck = QtWidgets.QPushButton(self)
+        self.EraseModeCheck.setMinimumSize(QtCore.QSize(0, 80))
+        self.EraseModeCheck.clicked.connect(self.SetEraseMode)
+        self.EraseModeCheck.setCheckable(True)
+        self.EraseModeCheck.setObjectName("EraseModeCheck")
+        self.horizontalLayout_2.addWidget(self.EraseModeCheck)
+        self.gridLayout.addLayout(self.horizontalLayout_2, 4, 0, 1, 1)
+        self.horizontalScrollBar = QtWidgets.QScrollBar(self)
+        self.horizontalScrollBar.setOrientation(QtCore.Qt.Horizontal)
+        self.horizontalScrollBar.setValue(50)
+        self.horizontalScrollBar.valueChanged.connect(self.horizontalScrollBar_changed)
+        self.horizontalScrollBar.setObjectName("horizontalScrollBar")
+        self.gridLayout.addWidget(self.horizontalScrollBar, 2, 0, 1, 1)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setSpacing(5)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.label_4 = QtWidgets.QLabel(self)
+        self.label_4.setMaximumSize(QtCore.QSize(80, 40))
+        self.label_4.setObjectName("label_4")
+        self.horizontalLayout.addWidget(self.label_4)
+        self.comboBox_4 = QtWidgets.QComboBox(self)
+        self.comboBox_4.currentIndexChanged.connect(self.currentPresetIndexChanged)
+        self.comboBox_4.setObjectName("comboBox_4")
+        self.horizontalLayout.addWidget(self.comboBox_4)
+        self.SaveToPresetButton = QtWidgets.QPushButton(self)
+        self.SaveToPresetButton.setMaximumSize(QtCore.QSize(80, 40))
+        self.SaveToPresetButton.setBaseSize(QtCore.QSize(0, 0))
+        self.SaveToPresetButton.setCheckable(False)
+        self.SaveToPresetButton.clicked.connect(self.saveToCurrentPresetConfirm)
+        self.SaveToPresetButton.setEnabled(False)
+        self.SaveToPresetButton.setObjectName("SaveToPresetButton")
+        self.horizontalLayout.addWidget(self.SaveToPresetButton)
+        self.AddPresetButton = QtWidgets.QPushButton(self)
+        self.AddPresetButton.setMaximumSize(QtCore.QSize(80, 40))
+        self.AddPresetButton.setBaseSize(QtCore.QSize(0, 0))
+        self.AddPresetButton.clicked.connect(self.openTextForm)
+        self.AddPresetButton.setObjectName("AddPresetButton")
+        self.horizontalLayout.addWidget(self.AddPresetButton)
+        self.RemovePresetButton = QtWidgets.QPushButton(self)
+        self.RemovePresetButton.setMaximumSize(QtCore.QSize(80, 40))
+        self.RemovePresetButton.clicked.connect(self.removeCurrentPresetConfirm)
+        self.RemovePresetButton.setObjectName("RemovePresetButton")
+        self.horizontalLayout.addWidget(self.RemovePresetButton)
+        self.gridLayout.addLayout(self.horizontalLayout, 0, 0, 1, 1)
+        self.scene = self.QuickPaintScene()
+        self.graphicsView = self.QuickPaintView(self.scene, self)
+        self.graphicsView.setObjectName("graphicsView")
+        self.gridLayout.addWidget(self.graphicsView, 1, 0, 1, 1)
+        self.verticalScrollBar = QtWidgets.QScrollBar(self)
+        self.verticalScrollBar.setOrientation(QtCore.Qt.Vertical)
+        self.verticalScrollBar.valueChanged.connect(self.verticalScrollBar_changed)
+        self.verticalScrollBar.setValue(50)
+        self.verticalScrollBar.setObjectName("verticalScrollBar")
+        self.gridLayout.addWidget(self.verticalScrollBar, 1, 1, 1, 1)
+        self.ZoomButton = QtWidgets.QPushButton(self)
+        self.ZoomButton.setMinimumSize(QtCore.QSize(40, 40))
+        self.ZoomButton.setMaximumSize(QtCore.QSize(40, 40))
+        self.ZoomButton.setObjectName("ZoomButton")
+        self.ZoomButton.clicked.connect(self.zoom)
+        self.gridLayout.addWidget(self.ZoomButton, 0, 1, 1, 1)
+        self.retranslateUi()
+        QtCore.QMetaObject.connectSlotsByName(self)
+        self.setTabOrder(self.AddPresetButton, self.comboBox_4)
+        self.setTabOrder(self.comboBox_4, self.RemovePresetButton)
+    def SetPaintMode(self):
+        """
+        Sets the Quick-Paint Mode to paint or turn off.
+        """
+#        self.SlopeModeCheck.setChecked(False)
+        self.EraseModeCheck.setChecked(False)
+        if self.PaintModeCheck.isChecked():
+            self.QuickPaintMode = 'PAINT'
+        else:
+            self.QuickPaintMode = None
+    #I don't know if slopes will be supported in the future or not. But for now this function is useless.
+    """def SetSlopeMode(self):
+        self.PaintModeCheck.setChecked(False)
+        self.EraseModeCheck.setChecked(False)
+        if self.SlopeModeCheck.isChecked():
+            self.QuickPaintMode = 'SLOPE'
+        else:
+            self.QuickPaintMode = None"""
+    def SetEraseMode(self):
+        """
+        Sets the Quick-Paint Mode to erase or turn off.
+        """
+        self.PaintModeCheck.setChecked(False)
+        #self.SlopeModeCheck.setChecked(False)
+        if self.EraseModeCheck.isChecked():
+            self.QuickPaintMode = 'ERASE'
+        else:
+            self.QuickPaintMode = None
+    def currentPresetIndexChanged(self, index):
+        """
+        Handles the change of index of the saved presets context menu and loads the preset.
+        """
+        self.SaveToPresetButton.setEnabled(index != -1)
+        name = self.comboBox_4.currentText()
+        no = False
+        try:
+            f=open("miyamotodata/qpsp/"+name+".qpp", 'r')
+        except: no = True
+        if not no and globals.ObjectDefinitions is not None:
+            try:
+                for line in f.readlines():
+                    elements = line.split('\t')
+                    if line != '\n':
+                        self.scene.object_database[elements[0]]['x'] = int(elements[1])
+                        self.scene.object_database[elements[0]]['y'] = int(elements[2])
+                        self.scene.object_database[elements[0]]['w'] = int(elements[3])
+                        self.scene.object_database[elements[0]]['h'] = int(elements[4])
+                        self.scene.object_database[elements[0]]['ow'] = int(elements[3])
+                        self.scene.object_database[elements[0]]['oh'] = int(elements[4])
+                        if elements[5] == '\n':
+                            self.scene.object_database[elements[0]]['i'] = None
+                        else:
+                            self.scene.object_database[elements[0]]['ts'] = int(elements[5])
+                            self.scene.object_database[elements[0]]['t'] = int(elements[6])
+                            self.scene.object_database[elements[0]]['i'] = ObjectItem(int(elements[5]), int(elements[6]), -1, self.scene.object_database[elements[0]]['x'], self.scene.object_database[elements[0]]['y'], int(elements[3]), int(elements[4]), 0, 0)
+					
+            except:
+                print("Preset parse failed.")
+            f.close()
+        self.scene.fixAndUpdateObjects()
+        self.scene.invalidate()
+    def zoom(self):
+        """
+        Zoom the view to half/full. Half is best for view when it's in a small region.
+        """
+        if self.scene.zoom == 1:
+            self.scene.zoom = 0.5
+            self.ZoomButton.setIcon(GetIcon("zoomin", True))
+        else:
+            self.scene.zoom = 1
+            self.ZoomButton.setIcon(GetIcon("zoomout", True))
+        self.scene.invalidate()
+    def verticalScrollBar_changed(self):
+        """
+        Handles vertical scroll movement, moving the view up and down.
+        """
+        self.scene.setYoffset((50-self.verticalScrollBar.value())*16)
+    def horizontalScrollBar_changed(self):
+        """
+        Handles horizontal scroll movement, moving the view left and right.
+        """
+        self.scene.setXoffset((50-self.horizontalScrollBar.value())*16)
+    def retranslateUi(self):
+        """
+        More UI construction.
+        """
+        _translate = QtCore.QCoreApplication.translate
+        self.setWindowTitle(_translate("self", "Quick Paint Tool"))
+        self.PaintModeCheck.setText(_translate("self", "Paint"))
+#        self.SlopeModeCheck.setText(_translate("self", "Slope"))
+        self.EraseModeCheck.setText(_translate("self", "Erase"))
+        self.label_4.setText(_translate("self", "Presets:"))
+        for fname in os.listdir("miyamotodata/qpsp/"):
+            self.comboBox_4.addItem(fname.split(".qpp")[0])
+        self.comboBox_4.setCurrentIndex(-1)
+        self.SaveToPresetButton.setText(_translate("self", "Save"))
+        self.AddPresetButton.setText(_translate("self", "Add"))
+        self.RemovePresetButton.setText(_translate("self", "Remove"))
+        self.ZoomButton.setIcon(GetIcon("zoomin", True))
+    class ConfirmRemovePresetDialog(object):
+        """
+        Dialog that asks the user for confirmation before removing a preset. We want to make sure the user didn't press the remove preset button by mistake.
+        """
+        def __init__(self, Dialog):
+            """
+            Dialog construction.
+            """
+            Dialog.setObjectName("Dialog")
+            Dialog.resize(650, 109)
+            Dialog.setMinimumSize(QtCore.QSize(650, 109))
+            Dialog.setMaximumSize(QtCore.QSize(650, 109))
+            self.gridLayout = QtWidgets.QGridLayout(Dialog)
+            self.gridLayout.setObjectName("gridLayout")
+            self.label = QtWidgets.QLabel(Dialog)
+            self.label.setObjectName("label")
+            self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+            self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
+            self.buttonBox.setLayoutDirection(QtCore.Qt.LeftToRight)
+            self.buttonBox.setAutoFillBackground(False)
+            self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+            self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.No|QtWidgets.QDialogButtonBox.Yes)
+            self.buttonBox.setCenterButtons(True)
+            self.buttonBox.setObjectName("buttonBox")
+            self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
+            self.retranslateUi(Dialog)
+            self.buttonBox.accepted.connect(Dialog.accept)
+            self.buttonBox.rejected.connect(Dialog.reject)
+            QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+        def retranslateUi(self, Dialog):
+            """
+            More dialog UI construction.
+            """
+            _translate = QtCore.QCoreApplication.translate
+            Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+            self.label.setText(_translate("Dialog", "Are you sure you want to delete this preset? You cannot undo this action."))
+    class ConfirmOverwritePresetDialog(object):
+        """
+        Dialog that asks the user for confirmation before overiting a preset. We want to make sure the user didn't press the save preset button by mistake.
+        """
+        def __init__(self, Dialog):
+            """
+            Dialog construction.
+            """
+            Dialog.setObjectName("Dialog")
+            Dialog.resize(360, 109)
+            Dialog.setMinimumSize(QtCore.QSize(360, 109))
+            Dialog.setMaximumSize(QtCore.QSize(360, 109))
+            self.gridLayout = QtWidgets.QGridLayout(Dialog)
+            self.gridLayout.setObjectName("gridLayout")
+            self.label = QtWidgets.QLabel(Dialog)
+            self.label.setObjectName("label")
+            self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+            self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
+            self.buttonBox.setLayoutDirection(QtCore.Qt.LeftToRight)
+            self.buttonBox.setAutoFillBackground(False)
+            self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+            self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.No|QtWidgets.QDialogButtonBox.Yes)
+            self.buttonBox.setCenterButtons(True)
+            self.buttonBox.setObjectName("buttonBox")
+            self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
+            self.retranslateUi(Dialog)
+            self.buttonBox.accepted.connect(Dialog.accept)
+            self.buttonBox.rejected.connect(Dialog.reject)
+            QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+        def retranslateUi(self, Dialog):
+            """
+            More dialog UI construction.
+            """
+            _translate = QtCore.QCoreApplication.translate
+            Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+            self.label.setText(_translate("Dialog", "Overwrite this preset?."))
+    class TextDialog(object):
+        """
+        Dialog that asks for the name of the new preset and confirms the action.
+        """
+        def __init__(self, Dialog, parent):
+            """
+            Dialog construction.
+            """
+            Dialog.setObjectName("Dialog")
+            Dialog.resize(380, 109)
+            Dialog.setMinimumSize(QtCore.QSize(380, 109))
+            Dialog.setMaximumSize(QtCore.QSize(380, 109))
+            self.gridLayout = QtWidgets.QGridLayout(Dialog)
+            self.gridLayout.setObjectName("gridLayout")
+            self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
+            self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+            self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+            self.buttonBox.setObjectName("buttonBox")
+            self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
+            self.lineEdit = QtWidgets.QLineEdit(Dialog)
+            self.lineEdit.setFrame(True)
+            self.lineEdit.setClearButtonEnabled(False)
+            self.lineEdit.setObjectName("lineEdit")
+            self.gridLayout.addWidget(self.lineEdit, 0, 0, 1, 1)
+
+            self.retranslateUi(Dialog)
+            self.buttonBox.accepted.connect(self.Accepted)
+            self.buttonBox.rejected.connect(Dialog.reject)
+            QtCore.QMetaObject.connectSlotsByName(Dialog)
+            self.Dialog = Dialog
+            self.parent = parent
+        def Accepted(self):
+            """
+            Yeah, I wrote the action in here because this was my first attempt to program a dialog in PyQt.
+            """
+            if self.lineEdit.text() != "" and self.lineEdit.text() != self.parent.comboBox_4.currentText():
+                self.parent.saveCurrentPreset(self.lineEdit.text())
+                self.parent.comboBox_4.insertItem(0,self.lineEdit.text())
+                self.parent.comboBox_4.setCurrentIndex(0)
+                self.Dialog.accept()
+        def retranslateUi(self, Dialog):
+            """
+            More dialog UI construction.
+            """
+            _translate = QtCore.QCoreApplication.translate
+            Dialog.setWindowTitle(_translate("Name Preset", "Name Preset"))
+    class QuickPaintView(QtWidgets.QGraphicsView):
+        """
+        Here we view the graphics that display the objects that will be arranged inside the user's quick paint strokes.
+        """
+        def __init__(self, scene, parent):
+            """
+            Constructs the quick paint view.
+            """
+            QtWidgets.QGraphicsView.__init__(self, scene, parent)
+            self.parent = parent
+            
+        def mousePressEvent(self, event):
+            """
+            Handles mouse pressing events over the widget
+            """
+            obj = self.parent.scene.HitObject(event.x(), event.y(), self.width(), self.height())
+            if obj is not None:
+                #global ObjectAllDefinitions, ObjectAllCollisions, ObjectAllImages
+                if event.button() == Qt.LeftButton:
+                    if globals.CurrentPaintType != -1 and globals.CurrentObject != -1:
+                        odef = globals.ObjectDefinitions[globals.CurrentPaintType][globals.CurrentObject]
+                        self.parent.scene.object_database[obj]['w'] = odef.width
+                        self.parent.scene.object_database[obj]['h'] = odef.height
+                        self.parent.scene.object_database[obj]['ow'] = odef.width
+                        self.parent.scene.object_database[obj]['oh'] = odef.height
+                        self.parent.scene.object_database[obj]['i'] = ObjectItem(globals.CurrentPaintType, globals.CurrentObject, -1, self.parent.scene.object_database[obj]['x'], self.parent.scene.object_database[obj]['y'], odef.width, odef.height, 0, 0)
+                        self.parent.scene.object_database[obj]['ts'] = globals.CurrentPaintType
+                        self.parent.scene.object_database[obj]['t'] = globals.CurrentObject
+                        self.parent.scene.invalidate()
+                elif event.button() == Qt.RightButton:
+                    self.parent.scene.object_database[obj]['w'] = 1
+                    self.parent.scene.object_database[obj]['h'] = 1
+                    self.parent.scene.object_database[obj]['ow'] = 1
+                    self.parent.scene.object_database[obj]['oh'] = 1
+                    self.parent.scene.object_database[obj]['i'] = None
+                    self.parent.scene.invalidate()
+                self.parent.scene.fixAndUpdateObjects()
+            
+            
+            
+            
+            
+            
+    class QuickPaintScene(QtWidgets.QGraphicsScene):
+        """
+        This is the scene that contains the objects that will be arranged inside the user's quick paint strokes.
+        """
+        def __init__(self, *args):
+            """
+            Constructs the quick paint scene.
+            """
+            bgcolor = globals.theme.color('bg')
+            bghsv = bgcolor.getHsv()
+            self.xoffset = 0
+            self.yoffset = 0
+            self.zoom = 0.5
+            self.object_database = {
+				'base': {'x':0,'y':0,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1, 'i': None},
+				'top': {'x':0,'y':-1,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1,'p': 'base', 'i': None},
+				'topRight': {'x':1,'y':-1,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1,'p': 'base', 'i': None},
+				'topRightCorner': {'x':4,'y':0,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1,'p': 'base', 'i': None},
+				'right': {'x':1,'y':0,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1,'p': 'base', 'i': None},
+				'bottomRight': {'x':1,'y':1,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1,'p': 'base', 'i': None},
+				'bottomRightCorner': {'x':4,'y':0,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1,'p': 'base', 'i': None},
+				'bottom': {'x':0,'y':1,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1,'p': 'base', 'i': None},
+				'bottomLeft': {'x':-1,'y':1,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1,'p': 'base', 'i': None},
+				'bottomLeftCorner': {'x':4,'y':0,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1,'p': 'base', 'i': None},
+				'left': {'x':-1,'y':0,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1,'p': 'base', 'i': None},
+				'topLeft': {'x':-1,'y':-1,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1,'p': 'base', 'i': None},
+				'topLeftCorner': {'x':4,'y':0,'w':1,'h':1,'ow':1,'oh':1, 'ts': -1, 't':-1,'p': 'base', 'i': None}
+			}
+            self.display_objects = []
+			#I just feel like giving this widget a darker background than normal for some reason. Maybe it feels more empathetic.
+            bgcolor.setHsv(bghsv[0], min(bghsv[1]*1.5, 255), bghsv[2]/1.5, bghsv[3])
+            self.bgbrush = QtGui.QBrush(bgcolor)
+            QtWidgets.QGraphicsScene.__init__(self, *args)
+        def setXoffset(self, value):
+            """
+            Sets the X view position.
+            """
+            self.xoffset = value
+            self.invalidate()
+        def setYoffset(self, value):
+            """
+            Sets the Y view position.
+            """
+            self.yoffset = value
+            self.invalidate()
+        def HitObject(self, x, y, w, h):
+            """
+            Looks to see if there is an object at this position.
+            """
+            hitPoint = ((x-w/2-self.xoffset)/self.zoom,(y-h/2-self.yoffset)/self.zoom)
+            for obj in self.object_database:
+                if (self.object_database[obj] and
+                    not (self.object_database[obj].get('p') is not None and self.object_database.get(self.object_database[obj]['p']) is not None and self.object_database[self.object_database[obj]['p']]['i'] is None) and
+				    self.object_database[obj]['x']*globals.TileWidth <= hitPoint[0] and
+				    self.object_database[obj]['y']*globals.TileWidth <= hitPoint[1] and
+					self.object_database[obj]['x']*globals.TileWidth+self.object_database[obj]['w']*globals.TileWidth > hitPoint[0] and
+				    self.object_database[obj]['y']*globals.TileWidth+self.object_database[obj]['h']*globals.TileWidth > hitPoint[1]):
+                    return obj
+            return None
+        def ArrangeMainIsland(self, maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight, maxbottomheight):
+            """
+            Places the objects forming the main island correctly (or at least it should).
+            """
+            self.object_database['top']['w'] = maxbasewidth
+            self.object_database['base']['w'] = maxbasewidth
+            self.object_database['bottom']['w'] = maxbasewidth
+            self.object_database['topLeft']['w'] = maxleftwidth
+            self.object_database['left']['w'] = maxleftwidth
+            self.object_database['bottomLeft']['w'] = maxleftwidth
+            self.object_database['top']['x'] = maxleftwidth-1
+            self.object_database['base']['x'] = maxleftwidth-1
+            self.object_database['bottom']['x'] = maxleftwidth-1
+            self.object_database['topRight']['w'] = maxrightwidth
+            self.object_database['right']['w'] = maxrightwidth
+            self.object_database['bottomRight']['w'] = maxrightwidth
+            self.object_database['topRight']['x'] = maxbasewidth+maxleftwidth-1
+            self.object_database['right']['x'] = maxbasewidth+maxleftwidth-1
+            self.object_database['bottomRight']['x'] = maxbasewidth+maxleftwidth-1
+            self.object_database['right']['h'] = maxbaseheight
+            self.object_database['base']['h'] = maxbaseheight
+            self.object_database['left']['h'] = maxbaseheight
+            self.object_database['topLeft']['h'] = maxtopheight
+            self.object_database['top']['h'] = maxtopheight
+            self.object_database['topRight']['h'] = maxtopheight
+            self.object_database['right']['y'] = maxtopheight-1
+            self.object_database['base']['y'] = maxtopheight-1
+            self.object_database['left']['y'] = maxtopheight-1
+            self.object_database['bottomLeft']['h'] = maxbottomheight
+            self.object_database['bottom']['h'] = maxbottomheight
+            self.object_database['bottomRight']['h'] = maxbottomheight
+            self.object_database['bottomLeft']['y'] = maxbaseheight+maxtopheight-1
+            self.object_database['bottom']['y'] = maxbaseheight+maxtopheight-1
+            self.object_database['bottomRight']['y'] = maxbaseheight+maxtopheight-1
+        def ArrangeCornerSetterIsland(self, offsetX, maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight, maxbottomheight):
+            """
+            Places the objects forming the corner setter island (the square doughnut-shaped island) correctly (or at least it should).
+            """
+            o0 = self.AddDisplayObject('topLeft',  maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX, -3, maxleftwidth, maxtopheight)
+            tx = 0
+            for i in range(3+maxrightwidth+maxleftwidth):
+                o1 = self.AddDisplayObject('top',  maxbasewidth+maxleftwidth-1+maxrightwidth + i + offsetX + maxleftwidth, -3, 1, maxtopheight)
+                tx += 1
+            o2 = self.AddDisplayObject('topRight',  maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth + tx, -3, self.object_database['topRight']['w'], maxtopheight)
+            ty1 = 0
+            ty2 = 0
+            for i in range(3+maxtopheight+maxbottomheight):
+                o3 = self.AddDisplayObject('left',  maxbasewidth+maxleftwidth-1+maxrightwidth+offsetX, -3 + i + maxtopheight, maxleftwidth, 1)
+                ty1 += 1
+            for i in range(3+maxtopheight+maxbottomheight):
+                o4 = self.AddDisplayObject('right',  maxbasewidth+maxleftwidth-1+maxrightwidth+offsetX + maxleftwidth + tx, -3 + i + maxtopheight, maxrightwidth, 1)
+                ty2 += 1
+            ty = max(ty1, ty2)
+            o5 = self.AddDisplayObject('bottomLeft',  maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX, -3+ty+maxtopheight, maxleftwidth, maxbottomheight)
+            for i in range(3+maxrightwidth+maxleftwidth):
+                o6 = self.AddDisplayObject('bottom',  maxbasewidth+maxleftwidth-1+maxrightwidth + i + offsetX + maxleftwidth, -3+ty+maxtopheight, 1, maxbottomheight)
+            o7 = self.AddDisplayObject('bottomRight',  maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth + tx, -3+ty+maxtopheight, self.object_database['bottomRight']['w'], maxbottomheight)
+            for i in range(3):
+                o8 = self.AddDisplayObject('top', maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth +maxrightwidth+ i, -3+ty, 1, maxtopheight)
+            for i in range(3):
+                o9 = self.AddDisplayObject('bottom', maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth+maxrightwidth + i, -3+maxtopheight, 1, maxbottomheight)
+            for i in range(3):
+                o13 = self.AddDisplayObject('right', maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth, -3+maxtopheight+i+maxbottomheight, maxrightwidth, 1)
+            for i in range(3):
+                o14 = self.AddDisplayObject('left', maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth+maxrightwidth+3, -3+maxtopheight+i+maxbottomheight, maxleftwidth, 1)
+            already_created_corner = False
+            for ix in range(maxrightwidth):
+                for iy in range(maxbottomheight):
+                    if ix <= maxrightwidth-self.object_database['topLeftCorner']['w']-1 or iy <= maxbottomheight-self.object_database['topLeftCorner']['h']-1:
+                        o10 = self.AddDisplayObject('base', maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth + ix, -3+iy+maxtopheight, 1, 1)
+                    else:
+                        if not already_created_corner:
+                            self.object_database['topLeftCorner']['x'] = maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth + ix
+                            self.object_database['topLeftCorner']['y'] = -3+iy+maxtopheight
+                            already_created_corner = True
+            already_created_corner = False
+            for ix in range(maxleftwidth):
+                for iy in range(maxbottomheight):
+                    if ix >= self.object_database['topRightCorner']['w'] or iy <= maxbottomheight-self.object_database['topRightCorner']['h']-1:
+                        o10 = self.AddDisplayObject('base', maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth+maxrightwidth+3+ix, -3+iy+maxtopheight, 1, 1)
+                    else:
+                        if not already_created_corner:
+                            self.object_database['topRightCorner']['x'] = maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth+maxrightwidth+3+ix
+                            self.object_database['topRightCorner']['y'] = -3+iy+maxtopheight
+                            already_created_corner = True
+            already_created_corner = False
+            for ix in range(maxrightwidth):
+                for iy in range(maxtopheight):
+                    if ix <= maxrightwidth-self.object_database['bottomLeftCorner']['w']-1 or iy >= self.object_database['bottomLeftCorner']['h']:
+                        o10 = self.AddDisplayObject('base', maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth + ix, -3+iy+maxtopheight+3+maxbottomheight, 1, 1)
+                    else:
+                        if not already_created_corner:
+                            self.object_database['bottomLeftCorner']['x'] = maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth + ix
+                            self.object_database['bottomLeftCorner']['y'] = -3+iy+maxtopheight+3+maxbottomheight
+                            already_created_corner = True
+            already_created_corner = False
+            for ix in range(maxleftwidth):
+                for iy in range(maxtopheight):
+                    if ix >= self.object_database['bottomRightCorner']['w'] or iy >= self.object_database['bottomRightCorner']['h']:
+                        o10 = self.AddDisplayObject('base', maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth+maxrightwidth+3+ix, -3+iy+maxtopheight+3+maxbottomheight, 1, 1)
+                    else:
+                        if not already_created_corner:
+                            self.object_database['bottomRightCorner']['x'] = maxbasewidth+maxleftwidth-1+maxrightwidth + offsetX + maxleftwidth+maxrightwidth+3+ix
+                            self.object_database['bottomRightCorner']['y'] = -3+iy+maxtopheight+3+maxbottomheight
+                            already_created_corner = True
+        def calculateBoundaries(self):
+            """
+            Gets the maximum boundaries for all objects.
+            """
+            #Fix Widths
+            maxbasewidth = max(
+								1 if self.object_database['top']['i'] is None else self.object_database['top']['i'].width,
+								1 if self.object_database['base']['i'] is None else self.object_database['base']['i'].width,
+								1 if self.object_database['bottom']['i'] is None else self.object_database['bottom']['i'].width) if self.object_database['base']['i'] is not None else 1
+            maxleftwidth = max(
+								1 if self.object_database['topLeft']['i'] is None else self.object_database['topLeft']['i'].width,
+								1 if self.object_database['bottomRightCorner']['i'] is None else self.object_database['bottomRightCorner']['i'].width,
+								1 if self.object_database['left']['i'] is None else self.object_database['left']['i'].width,
+								1 if self.object_database['bottomLeft']['i'] is None else self.object_database['bottomLeft']['i'].width,
+								1 if self.object_database['topRightCorner']['i'] is None else self.object_database['topRightCorner']['i'].width) if self.object_database['base']['i'] is not None else 1
+            maxrightwidth = max(
+								1 if self.object_database['topRight']['i'] is None else self.object_database['topRight']['i'].width,
+								1 if self.object_database['bottomLeftCorner']['i'] is None else self.object_database['bottomLeftCorner']['i'].width,
+								1 if self.object_database['right']['i'] is None else self.object_database['right']['i'].width,
+								1 if self.object_database['bottomRight']['i'] is None else self.object_database['bottomRight']['i'].width,
+								1 if self.object_database['topLeftCorner']['i'] is None else self.object_database['topLeftCorner']['i'].width) if self.object_database['base']['i'] is not None else 1
+            #Fix Heights
+            maxbaseheight = max(
+								1 if self.object_database['right']['i'] is None else self.object_database['right']['i'].height,
+								1 if self.object_database['base']['i'] is None else self.object_database['base']['i'].height,
+								1 if self.object_database['left']['i'] is None else self.object_database['left']['i'].height) if self.object_database['base']['i'] is not None else 1
+            maxtopheight = max(
+								1 if self.object_database['topLeft']['i'] is None else self.object_database['topLeft']['i'].height,
+								1 if self.object_database['bottomRightCorner']['i'] is None else self.object_database['bottomRightCorner']['i'].height,
+								1 if self.object_database['top']['i'] is None else self.object_database['top']['i'].height,
+								1 if self.object_database['topRight']['i'] is None else self.object_database['topRight']['i'].height,
+								1 if self.object_database['bottomLeftCorner']['i'] is None else self.object_database['bottomLeftCorner']['i'].height) if self.object_database['base']['i'] is not None else 1
+            maxbottomheight = max(
+								1 if self.object_database['bottomLeft']['i'] is None else self.object_database['bottomLeft']['i'].height,
+								1 if self.object_database['topRightCorner']['i'] is None else self.object_database['topRightCorner']['i'].height,
+								1 if self.object_database['bottom']['i'] is None else self.object_database['bottom']['i'].height,
+								1 if self.object_database['bottomRight']['i'] is None else self.object_database['bottomRight']['i'].height,
+								1 if self.object_database['topLeftCorner']['i'] is None else self.object_database['topLeftCorner']['i'].height) if self.object_database['base']['i'] is not None else 1
+            return maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight, maxbottomheight
+        def fixAndUpdateObjects(self):
+            """
+            Main function for arranging/positioning the objects in the scene.
+            """
+            #Get those boundaries
+            maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight, maxbottomheight = self.calculateBoundaries()
+			#Arrange Main Island...
+            self.ArrangeMainIsland(maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight, maxbottomheight)
+            #Set corner setter island...
+            self.display_objects.clear()
+            self.ArrangeCornerSetterIsland(1,maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight, maxbottomheight)
+            #Let's update the sizes of these objects...
+            for obj in self.object_database:
+                if(self.object_database[obj]['i'] is not None):
+                    self.object_database[obj]['i'].updateObjCacheWH(self.object_database[obj]['w'], self.object_database[obj]['h'])
+        def AddDisplayObject(self, type, x, y, width, height):
+            """
+            Adds a display-only object into the scene. No effect when clicked on.
+            """
+            if self.object_database['base']['i'] is not None:
+                this_type = self.pickObject(type)
+                this_obj = self.object_database[this_type]
+                if this_obj.get('ts') is not None and this_obj.get('t') is not None:
+                    obj = ObjectItem(this_obj['ts'], this_obj['t'], -1, x, y, width, height, 0, 0)
+                    self.display_objects.append(obj)
+                    return obj
+            return None
+        def pickObject(self, type):
+          """
+          Finds the object that works for the type name passed from the parameter.
+          """
+          if (self.object_database[type]['i'] is None):
+            if type == 'top' or type == 'bottom' or type == 'left' or type == 'right': return 'base'
+            elif (type == 'topRight' or type == 'topLeft') and self.object_database['top']['i'] is not None:return 'top'
+            elif type == 'topLeft'and self.object_database['left']['i'] is not None:return 'left'
+            elif type == 'topRight'and self.object_database['right']['i'] is not None:return 'right'
+            elif (type == 'bottomRight' or type == 'bottomLeft') and self.object_database['bottom']['i'] is not None:return 'bottom'
+            elif type == 'bottomLeft' and self.object_database['left']['i'] is not None:return 'left'
+            elif type == 'bottomRight' and self.object_database['right']['i'] is not None:return 'right'
+            else: return 'base'
+			
+          return type
+        def drawObject(self, tiledata, painter, tiles):
+            """
+            Draws an object.
+            """
+            item = tiledata['i']
+            w = tiledata['w']
+            h = tiledata['h']
+            _x = tiledata['x']
+            _y = tiledata['y']
+            self.drawItem(item, painter, tiles,width=w,height=h,x=_x,y=_y)
+        def drawItem(self, item, painter, tiles, x = None, y = None, width = None, height = None):
+            """
+            Draws an object item.
+            """
+            tmap = []
+            i = 0
+            if width is None: width = item.width
+            if height is None: height = item.height
+            if x is None: x = item.objx
+            if y is None: y = item.objy
+            while i < height:
+                tmap.append([None] * width)
+                i += 1
+            startx = 0
+            desty = 0
+
+            exists = True
+            try:
+                    if globals.ObjectDefinitions[item.tileset] is None:
+                        exists = False
+                    elif globals.ObjectDefinitions[item.tileset][item.type] is None:
+                        exists = False
+            except IndexError:
+                    exists = False
+            for row in item.objdata:
+                    destrow = tmap[desty]
+                    destx = startx
+                    for tile in row:
+                        # If this object has data, make sure to override it properly
+                        if tile > 0:
+                            offset = 0x200 * 4
+                            items = {1: 26, 2: 27, 3: 16, 4: 17, 5: 18, 6: 19,
+                                     7: 20, 8: 21, 9: 22, 10: 25, 11: 23, 12: 24,
+                                     14: 32, 15: 33, 16: 34, 17: 35, 18: 42, 19: 36,
+                                     20: 37, 21: 38, 22: 41, 23: 39, 24: 40}
+                            if item.data in items:
+                                destrow[destx] = offset + items[item.data]
+                            else:
+                                destrow[destx] = tile
+                        elif not exists:
+                            destrow[destx] = -1
+                        destx += 1
+                    desty += 1
+
+            painter.save()
+            painter.translate(x * globals.TileWidth,y * globals.TileWidth)
+            drawPixmap = painter.drawPixmap
+            desty = 0
+            for row in tmap:
+                destx = 0
+                for tile in row:
+                    pix = None
+                    if tile == -1:
+                        # Draw unknown tiles
+                        pix = tiles[4 * 0x200].getCurrentTile()
+                    elif tile is not None:
+                        pix = tiles[tile].getCurrentTile()
+                    if pix is not None:
+                        painter.drawPixmap(destx, desty, pix)
+
+                    destx += globals.TileWidth
+                desty += globals.TileWidth
+            painter.restore()
+        def drawEmptyBox(self, filltype, type, painter, fillbrush):
+            """
+            Draws an empty box.
+            """
+            self.drawEmptyBoxCoords(filltype, self.object_database[type]['x'], self.object_database[type]['y'], self.object_database[type]['w'],self.object_database[type]['h'], painter, fillbrush)
+        def drawEmptyBoxCoords(self, filltype, x, y, width, height, painter, fillbrush):
+            """
+            Draws an empty box with specified position, width, and height.
+            """
+            if filltype == 'FULL':
+                painter.fillRect(x*globals.TileWidth,y*globals.TileWidth,width*globals.TileWidth,height*globals.TileWidth, fillbrush)
+            elif filltype == 'TOP':
+                painter.fillRect(x*globals.TileWidth,y*globals.TileWidth+6,width*globals.TileWidth,height*globals.TileWidth-6, fillbrush)
+            elif filltype == 'RIGHT':
+                painter.fillRect(x*globals.TileWidth,y*globals.TileWidth,width*globals.TileWidth-6,height*globals.TileWidth, fillbrush)
+            elif filltype == 'BOTTOM':
+                painter.fillRect(x*globals.TileWidth,y*globals.TileWidth,width*globals.TileWidth,height*globals.TileWidth-6, fillbrush)
+            elif filltype == 'LEFT':
+                painter.fillRect(x*globals.TileWidth+6,y*globals.TileWidth,width*globals.TileWidth-6,height*globals.TileWidth, fillbrush)
+            elif filltype == 'TOPRIGHT':
+                painter.fillRect(x*globals.TileWidth,y*globals.TileWidth+6,width*globals.TileWidth-15,height*globals.TileWidth-6, fillbrush)
+                painter.fillRect(x*globals.TileWidth+width*globals.TileWidth-9,y*globals.TileWidth+15,3,height*globals.TileWidth-15, fillbrush)
+                painter.fillRect(x*globals.TileWidth+width*globals.TileWidth-15,y*globals.TileWidth+9,6,height*globals.TileWidth-9, fillbrush)
+            elif filltype == 'BOTTOMRIGHT':
+                painter.fillRect(x*globals.TileWidth,y*globals.TileWidth,width*globals.TileWidth-15,height*globals.TileWidth-6, fillbrush)
+                painter.fillRect(x*globals.TileWidth+width*globals.TileWidth-9,y*globals.TileWidth,3,height*globals.TileWidth-15, fillbrush)
+                painter.fillRect(x*globals.TileWidth+width*globals.TileWidth-15,y*globals.TileWidth,6,height*globals.TileWidth-9, fillbrush)
+            elif filltype == 'BOTTOMLEFT':
+                painter.fillRect(x*globals.TileWidth+15,y*globals.TileWidth,width*globals.TileWidth-15,height*globals.TileWidth-6, fillbrush)
+                painter.fillRect(x*globals.TileWidth+9,y*globals.TileWidth,6,height*globals.TileWidth-9, fillbrush)
+                painter.fillRect(x*globals.TileWidth+6,y*globals.TileWidth,3,height*globals.TileWidth-15, fillbrush)
+            elif filltype == 'TOPLEFT':
+                painter.fillRect(x*globals.TileWidth+15,y*globals.TileWidth+6,width*globals.TileWidth-15,height*globals.TileWidth-6, fillbrush)
+                painter.fillRect(x*globals.TileWidth+9,y*globals.TileWidth+9,6,height*globals.TileWidth-9, fillbrush)
+                painter.fillRect(x*globals.TileWidth+6,y*globals.TileWidth+15,3,height*globals.TileWidth-15, fillbrush)
+            elif filltype == 'TOPLEFTCORNER':
+                painter.fillRect(x*globals.TileWidth,y*globals.TileWidth,width*globals.TileWidth-6,height*globals.TileWidth, fillbrush)
+                painter.fillRect(x*globals.TileWidth+width*globals.TileWidth-6,y*globals.TileWidth,6,height*globals.TileWidth-6, fillbrush)
+            elif filltype == 'TOPRIGHTCORNER':
+                painter.fillRect(x*globals.TileWidth+6,y*globals.TileWidth,width*globals.TileWidth-6,height*globals.TileWidth, fillbrush)
+                painter.fillRect(x*globals.TileWidth,y*globals.TileWidth,6,height*globals.TileWidth-6, fillbrush)
+            elif filltype == 'BOTTOMLEFTCORNER':
+                painter.fillRect(x*globals.TileWidth,y*globals.TileWidth,width*globals.TileWidth-6,height*globals.TileWidth, fillbrush)
+                painter.fillRect(x*globals.TileWidth+width*globals.TileWidth-6,y*globals.TileWidth+6,6,height*globals.TileWidth-6, fillbrush)
+            elif filltype == 'BOTTOMRIGHTCORNER':
+                painter.fillRect(x*globals.TileWidth+6,y*globals.TileWidth,width*globals.TileWidth-6,height*globals.TileWidth, fillbrush)
+                painter.fillRect(x*globals.TileWidth,y*globals.TileWidth+6,6,height*globals.TileWidth-6, fillbrush)
+            painter.drawRect(x*globals.TileWidth,y*globals.TileWidth,width*globals.TileWidth,height*globals.TileWidth)
+        def drawMainIsland(self, painter, tiles, fillbrush):
+            """
+            Draws the main island.
+            """
+            Paint_Level2 = False
+            if self.object_database['base']['i'] != None:
+                self.drawObject(self.object_database['base'],painter, tiles)
+                self.drawEmptyBox('', 'base', painter, fillbrush)
+                Paint_Level2 = True
+            else:
+                self.drawEmptyBox('FULL', 'base', painter, fillbrush)
+            if Paint_Level2:
+                if self.object_database['top']['i'] != None:
+                    self.drawObject(self.object_database['top'],painter, tiles)
+                    self.drawEmptyBox('', 'top', painter, fillbrush)
+                else:
+                    self.drawEmptyBox('TOP', 'top', painter, fillbrush)
+                if self.object_database['right']['i'] != None:
+                    self.drawObject(self.object_database['right'],painter, tiles)
+                    self.drawEmptyBox('', 'right', painter, fillbrush)
+                else:
+                    self.drawEmptyBox('RIGHT', 'right', painter, fillbrush)
+                if self.object_database['bottom']['i'] != None:
+                    self.drawObject(self.object_database['bottom'],painter, tiles)
+                    self.drawEmptyBox('', 'bottom', painter, fillbrush)
+                else:
+                    self.drawEmptyBox('BOTTOM', 'bottom', painter, fillbrush)
+                if self.object_database['left']['i'] != None:
+                    self.drawObject(self.object_database['left'],painter, tiles)
+                    self.drawEmptyBox('', 'left', painter, fillbrush)
+                else:
+                    self.drawEmptyBox('LEFT', 'left', painter, fillbrush)
+                if self.object_database['topRight']['i'] != None:
+                    self.drawObject(self.object_database['topRight'],painter, tiles)
+                    self.drawEmptyBox('', 'topRight', painter, fillbrush)
+                else:
+                    self.drawEmptyBox('TOPRIGHT', 'topRight', painter, fillbrush)
+                if self.object_database['bottomRight']['i'] != None:
+                    self.drawObject(self.object_database['bottomRight'],painter, tiles)
+                    self.drawEmptyBox('', 'bottomRight', painter, fillbrush)
+                else:
+                    self.drawEmptyBox('BOTTOMRIGHT', 'bottomRight', painter, fillbrush)
+                if self.object_database['bottomLeft']['i'] != None:
+                    self.drawObject(self.object_database['bottomLeft'],painter, tiles)
+                    self.drawEmptyBox('', 'bottomLeft', painter, fillbrush)
+                else:
+                    self.drawEmptyBox('BOTTOMLEFT', 'bottomLeft', painter, fillbrush)
+                if self.object_database['topLeft']['i'] != None:
+                    self.drawObject(self.object_database['topLeft'],painter, tiles)
+                    self.drawEmptyBox('', 'topLeft', painter, fillbrush)
+                else:
+                    self.drawEmptyBox('TOPLEFT', 'topLeft', painter, fillbrush)
+            return Paint_Level2
+        def drawCornerObjects(self, painter, tiles, fillbrush):
+                """
+                Draws the corner objects.
+                """
+                if self.object_database['topRightCorner']['i'] != None:
+                    self.drawObject(self.object_database['topRightCorner'],painter, tiles)
+                    self.drawEmptyBox('', 'topRightCorner', painter, fillbrush)
+                else:
+                    self.drawEmptyBox('TOPRIGHTCORNER', 'topRightCorner', painter, fillbrush)
+                if self.object_database['bottomRightCorner']['i'] != None:
+                    self.drawObject(self.object_database['bottomRightCorner'],painter, tiles)
+                    self.drawEmptyBox('', 'bottomRightCorner', painter, fillbrush)
+                else:
+                    self.drawEmptyBox('BOTTOMRIGHTCORNER', 'bottomRightCorner', painter, fillbrush)
+                if self.object_database['bottomLeftCorner']['i'] != None:
+                    self.drawObject(self.object_database['bottomLeftCorner'],painter, tiles)
+                    self.drawEmptyBox('', 'bottomLeftCorner', painter, fillbrush)
+                else:
+                    self.drawEmptyBox('BOTTOMLEFTCORNER', 'bottomLeftCorner', painter, fillbrush)
+                if self.object_database['topLeftCorner']['i'] != None:
+                    self.drawObject(self.object_database['topLeftCorner'],painter, tiles)
+                    self.drawEmptyBox('', 'topLeftCorner', painter, fillbrush)
+                else:
+                    self.drawEmptyBox('TOPLEFTCORNER', 'topLeftCorner', painter, fillbrush)
+        def drawBackground(self, painter, rect):
+            """
+            Draws all visible objects
+            """
+            painter.fillRect(rect, self.bgbrush)
+            gridpen = QtGui.QPen()
+            gridpen.setColor(globals.theme.color('grid'))
+            gridpen.setWidth(4)
+            painter.setPen(gridpen)
+            painter.translate(self.xoffset,self.yoffset)
+            fillbrush = QtGui.QBrush(globals.theme.color('object_fill_s'))
+            painter.scale(self.zoom, self.zoom)
+			#Start Painting
+            tiles = globals.Tiles
+            if self.drawMainIsland(painter, tiles, fillbrush):
+                self.drawCornerObjects(painter, tiles, fillbrush)
+            for obj in self.display_objects:
+                self.drawItem(obj, painter, tiles)
+			
+    def openTextForm(self):
+        """
+        Opens the dialog that confirms saving a new preset.
+        """
+        self.Dialog = QtWidgets.QDialog()
+        self.ui = self.TextDialog(self.Dialog, self)
+        self.Dialog.setWindowModality(Qt.ApplicationModal)
+        self.Dialog.show()
+    def saveToCurrentPresetConfirm(self):
+        """
+        Opens the dialog that confirms saving the current preset.
+        """
+        if self.comboBox_4.count() > 0:
+            self.Dialog = QtWidgets.QDialog()
+            self.ui = self.ConfirmOverwritePresetDialog(self.Dialog)
+            self.Dialog.setWindowModality(Qt.ApplicationModal)
+            self.Dialog.accepted.connect(self.saveCurrentPreset)
+            self.Dialog.show()
+    def removeCurrentPresetConfirm(self):
+        """
+        Opens the dialog that confirms removing the current preset.
+        """
+        if self.comboBox_4.count() > 0:
+            self.Dialog = QtWidgets.QDialog()
+            self.ui = self.ConfirmRemovePresetDialog(self.Dialog)
+            self.Dialog.setWindowModality(Qt.ApplicationModal)
+            self.Dialog.accepted.connect(self.removeCurrentPreset)
+            self.Dialog.show()
+    def saveCurrentPreset(self, name=None):
+        """
+        Saves the current preset to file as a qpp.
+        """
+        if name is None:
+            name = self.comboBox_4.currentText()
+        f=open("miyamotodata/qpsp/"+name+".qpp", "w")
+        for obj in self.scene.object_database:
+            f.write(obj+"\t")
+            f.write(str(self.scene.object_database[obj]['x'])+"\t")
+            f.write(str(self.scene.object_database[obj]['y'])+"\t")
+            f.write(str(self.scene.object_database[obj]['ow'])+"\t")
+            f.write(str(self.scene.object_database[obj]['oh'])+"\t")
+            if self.scene.object_database[obj]['i'] is not None:
+                f.write(str(self.scene.object_database[obj]['i'].tileset)+"\t")
+                f.write(str(self.scene.object_database[obj]['i'].type)+"\t")
+            f.write("\n")
+        f.close()
+    def removeCurrentPreset(self):
+        """
+        Removes the current preset.
+        """
+        os.remove("miyamotodata/qpsp/"+self.comboBox_4.currentText()+".qpp")
+        index = self.comboBox_4.currentIndex()
+        self.comboBox_4.removeItem(index)
 
 class ObjectPickerWidget(QtWidgets.QListView):
     """
@@ -1661,7 +2528,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
     @QtCore.pyqtSlot(int)
     def HandleDestAreaChanged(self, i):
         """
-        Handler for the destination area changing
+        Handler for the destination globals.Area changing
         """
         if self.UpdateFlag: return
         SetDirty()
@@ -2309,6 +3176,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         self.setHorizontalScrollBar(self.XScrollBar)
 
         self.currentobj = None
+        self.mouseGridPosition = None #QUICKPAINT purposes
+        self.prev_mouseGridPosition = None #QUICKPAINT purposes
 
         self.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.SmoothPixmapTransform)
 
@@ -2317,7 +3186,26 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         Overrides mouse pressing events if needed
         """
         if event.button() == Qt.RightButton:
-            if globals.CurrentPaintType in (0, 1, 2, 3) and globals.CurrentObject != -1:
+            if globals.mainWindow.quickPaint is not None and globals.mainWindow.quickPaint.QuickPaintMode is not None:
+                mw = globals.mainWindow
+                ln = globals.CurrentLayer
+                layer = globals.Area.layers[globals.CurrentLayer]
+                if len(layer) == 0:
+                    z = (2 - ln) * 8192
+                else:
+                    z = layer[-1].zValue() + 1
+                
+                if mw.quickPaint.QuickPaintMode == 'PAINT':
+                    QuickPaintOperations.prePaintObject(ln,layer,int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]-0.5), z)
+                    QuickPaintOperations.prePaintObject(ln,layer,int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]-0.5), z)
+                    QuickPaintOperations.prePaintObject(ln,layer,int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]+0.5), z)
+                    QuickPaintOperations.prePaintObject(ln,layer,int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]+0.5), z)
+                elif mw.quickPaint.QuickPaintMode == 'ERASE':
+                    QuickPaintOperations.preEraseObject(ln,layer,int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]-0.5))
+                    QuickPaintOperations.preEraseObject(ln,layer,int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]-0.5))
+                    QuickPaintOperations.preEraseObject(ln,layer,int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]+0.5))
+                    QuickPaintOperations.preEraseObject(ln,layer,int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]+0.5))
+            elif globals.CurrentPaintType in (0, 1, 2, 3) and globals.CurrentObject != -1:
                 # return if the Embedded tab is empty
                 if (globals.CurrentPaintType in (1, 2, 3)
                     and not len(globals.mainWindow.objPicker.m123.items)):
@@ -2365,13 +3253,13 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     colldata = globals.ObjectAllCollisions[globals.CurrentObject]
                     img, nml = globals.ObjectAllImages[globals.CurrentObject]
 
-                    # Add the object to one of the tilesets and set CurrentPaintType and CurrentObject
+                    # Add the object to one of the tilesets and set globals.CurrentPaintType and globals.CurrentObject
                     (globals.CurrentPaintType,
                      globals.CurrentObject) = addObjToTileset(obj, colldata, img, nml, True)
 
                     # Checks if the object fit in one of the tilesets
                     if globals.CurrentPaintType == 10:
-                        # Revert CurrentObject back to what it was
+                        # Revert globals.CurrentObject back to what it was
                         globals.CurrentObject = type_
 
                         # Throw a messagebox because the object didn't fit
@@ -2711,13 +3599,34 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         Overrides mouse movement events if needed
         """
-
+        inv = False #If set to True, invalidates the scene at the end of this function.
         pos = globals.mainWindow.view.mapToScene(event.x(), event.y())
         if pos.x() < 0: pos.setX(0)
         if pos.y() < 0: pos.setY(0)
         self.PositionHover.emit(int(pos.x()), int(pos.y()))
-
-        if event.buttons() == Qt.RightButton and self.currentobj is not None and not self.dragstamp:
+		
+        if globals.mainWindow.quickPaint is not None and globals.mainWindow.quickPaint.QuickPaintMode is not None:
+            self.mouseGridPosition = ((pos.x()/globals.TileWidth), (pos.y()/globals.TileWidth))
+            inv = True
+        if event.buttons() == Qt.RightButton and globals.mainWindow.quickPaint is not None and globals.mainWindow.quickPaint.QuickPaintMode is not None:
+                mw = globals.mainWindow
+                ln = globals.CurrentLayer
+                layer = globals.Area.layers[globals.CurrentLayer]
+                if len(layer) == 0:
+                    z = (2 - ln) * 8192
+                else:
+                    z = layer[-1].zValue() + 1
+                if mw.quickPaint.QuickPaintMode == 'PAINT':
+                    QuickPaintOperations.prePaintObject(ln,layer,int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]-0.5), z)
+                    QuickPaintOperations.prePaintObject(ln,layer,int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]-0.5), z)
+                    QuickPaintOperations.prePaintObject(ln,layer,int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]+0.5), z)
+                    QuickPaintOperations.prePaintObject(ln,layer,int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]+0.5), z)
+                elif mw.quickPaint.QuickPaintMode == 'ERASE':
+                    QuickPaintOperations.preEraseObject(ln,layer,int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]-0.5))
+                    QuickPaintOperations.preEraseObject(ln,layer,int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]-0.5))
+                    QuickPaintOperations.preEraseObject(ln,layer,int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]+0.5))
+                    QuickPaintOperations.preEraseObject(ln,layer,int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]+0.5))
+        elif event.buttons() == Qt.RightButton and self.currentobj is not None and not self.dragstamp:
 
             # possibly a small optimization
             type_obj = ObjectItem
@@ -2771,7 +3680,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         obj.objy = y
                         obj.setPos(x * globals.TileWidth, y * globals.TileWidth)
 
-                    # if the size changed, recache it and update the area
+                    # if the size changed, recache it and update the globals.Area
                     if cwidth != width or cheight != height:
                         obj.width = width
                         obj.height = height
@@ -2824,7 +3733,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         obj.setPos(x * globals.TileWidth / 16, y * globals.TileWidth / 16)
                         globals.OverrideSnapping = False
 
-                    # if the size changed, recache it and update the area
+                    # if the size changed, recache it and update the globals.Area
                     if cwidth != width or cheight != height:
                         obj.width = width
                         obj.height = height
@@ -2920,12 +3829,19 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
         else:
             QtWidgets.QGraphicsView.mouseMoveEvent(self, event)
+        if inv: self.scene().invalidate()
 
     def mouseReleaseEvent(self, event):
         """
         Overrides mouse release events if needed
         """
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.RightButton and globals.mainWindow.quickPaint is not None and globals.mainWindow.quickPaint.QuickPaintMode is not None:
+            if globals.mainWindow.quickPaint.QuickPaintMode == 'PAINT':
+                QuickPaintOperations.PaintFromPrePaintedObjects()
+            elif globals.mainWindow.quickPaint.QuickPaintMode == 'ERASE':
+                QuickPaintOperations.EraseFromPreErasedObjects()
+            QuickPaintOperations.optimizeObjects()
+        elif event.button() == Qt.RightButton:
             self.currentobj = None
             event.accept()
         else:
@@ -2942,6 +3858,34 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         Draws a foreground grid
         """
+        
+        #Draw Paint Tool Helpers
+        if self.mouseGridPosition is not None and globals.mainWindow.quickPaint is not None and globals.mainWindow.quickPaint.QuickPaintMode is not None:
+            gridpen = QtGui.QPen()
+            gridpen.setColor(globals.theme.color('grid'))
+            gridpen.setWidth(4)
+            painter.setPen(gridpen)
+            fillbrush = QtGui.QBrush(globals.theme.color('object_fill_s'))
+            globals.mainWindow.quickPaint.scene.drawEmptyBoxCoords('FULL', int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]-0.5), 1, 1, painter, fillbrush)
+            globals.mainWindow.quickPaint.scene.drawEmptyBoxCoords('FULL', int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]-0.5), 1, 1, painter, fillbrush)
+            globals.mainWindow.quickPaint.scene.drawEmptyBoxCoords('FULL', int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]+0.5), 1, 1, painter, fillbrush)
+            globals.mainWindow.quickPaint.scene.drawEmptyBoxCoords('FULL', int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]+0.5), 1, 1, painter, fillbrush)
+        #Draws Pre-painted objects
+        if QuickPaintOperations.color_shift_mouseGridPosition is None: QuickPaintOperations.color_shift_mouseGridPosition = self.mouseGridPosition
+        if hasattr(QuickPaintOperations, 'prePaintedObjects'):
+            QuickPaintOperations.color_shift += sqrt((self.mouseGridPosition[0] - QuickPaintOperations.color_shift_mouseGridPosition[0])**2+(self.mouseGridPosition[1] - QuickPaintOperations.color_shift_mouseGridPosition[1])**2)
+            voidpen = QtGui.QPen()
+            voidpen.setWidth(0)
+            painter.setPen(voidpen)
+            for ppobj in QuickPaintOperations.prePaintedObjects:
+                c = QtGui.QColor(QuickPaintOperations.prePaintedObjects[ppobj]['r'],QuickPaintOperations.prePaintedObjects[ppobj]['g'],QuickPaintOperations.prePaintedObjects[ppobj]['b'],127)
+                hsl = c.getHslF()
+                c.setHslF((hsl[0]+QuickPaintOperations.color_shift/16)%1, hsl[1]/2+0.5,hsl[2],0.5)
+                fillbrush = QtGui.QBrush(c)
+                globals.mainWindow.quickPaint.scene.drawEmptyBoxCoords('FULL', QuickPaintOperations.prePaintedObjects[ppobj]['x'], QuickPaintOperations.prePaintedObjects[ppobj]['y'], 1,1, painter, fillbrush)
+        QuickPaintOperations.color_shift_mouseGridPosition = self.mouseGridPosition
+
+        #Draws a foreground grid
         if globals.GridType is None: return
 
         Zoom = globals.mainWindow.ZoomLevel
@@ -3066,7 +4010,7 @@ class InfoPreviewWidget(QtWidgets.QWidget):
         """
         Updates the widget labels
         """
-        if ('Area' not in globals.globals()) or not hasattr(globals.Area, 'filename'):  # can't get level metadata if there's no level
+        if ('globals.Area' not in globals.globals()) or not hasattr(globals.Area, 'filename'):  # can't get level metadata if there's no level
             self.Label1.setText('')
             if self.direction == Qt.Horizontal: self.Label2.setText('')
             return

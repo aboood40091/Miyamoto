@@ -3,7 +3,7 @@
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
 # Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
 # This file is part of Miyamoto!.
 
@@ -26,6 +26,8 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
+
+
 
 if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
     # enables itemChange being called on QGraphicsItem
@@ -238,6 +240,7 @@ class ObjectItem(LevelEditorItem):
 
         self.tileset = tileset
         self.type = type
+        self.original_type = type
         self.objx = x
         self.objy = y
         self.layer = layer
@@ -307,6 +310,37 @@ class ObjectItem(LevelEditorItem):
         self.updateObjCache()
         self.UpdateTooltip()
 
+    def UpdateSearchDatabase(self):
+        y = 0
+        import quickpaint
+        self.RemoveFromSearchDatabase()
+        quickpaint.QuickPaintOperations.object_search_database[self] = []
+        if self.width == 1 and self.height == 1:
+            if quickpaint.QuickPaintOperations.object_search_database.get((self.objx, self.objy, self.layer)) is None: quickpaint.QuickPaintOperations.object_search_database[self.objx, self.objy, self.layer] = []
+            if self not in quickpaint.QuickPaintOperations.object_search_database[(self.objx, self.objy, self.layer)]:
+                quickpaint.QuickPaintOperations.object_search_database[(self.objx, self.objy, self.layer)].append(self)
+                quickpaint.QuickPaintOperations.object_search_database[self].append((self.objx, self.objy, self.layer)) 
+        elif self.objdata is not None:
+            for row in self.objdata:
+                x = 0
+                for tile in row:
+                    if tile != -1:
+                        if quickpaint.QuickPaintOperations.object_search_database.get((self.objx+x, self.objy+y, self.layer)) is None: quickpaint.QuickPaintOperations.object_search_database[self.objx+x, self.objy+y, self.layer] = []
+                        if self not in quickpaint.QuickPaintOperations.object_search_database[(self.objx+x, self.objy+y, self.layer)]:
+                            quickpaint.QuickPaintOperations.object_search_database[(self.objx+x, self.objy+y, self.layer)].append(self)
+                            quickpaint.QuickPaintOperations.object_search_database[self].append((self.objx+x, self.objy+y, self.layer))
+                    x+=1
+                y+=1
+        del quickpaint
+    def RemoveFromSearchDatabase(self):
+        import quickpaint
+        if self in quickpaint.QuickPaintOperations.object_search_database:
+            for t in quickpaint.QuickPaintOperations.object_search_database[self]:
+                if quickpaint.QuickPaintOperations.object_search_database.get(t) is not None and self in quickpaint.QuickPaintOperations.object_search_database[t]:
+                    quickpaint.QuickPaintOperations.object_search_database[t].remove(self)
+            del quickpaint.QuickPaintOperations.object_search_database[self]
+        del quickpaint
+
     def SetType(self, tileset, type):
         """
         Sets the type of the object
@@ -331,7 +365,13 @@ class ObjectItem(LevelEditorItem):
         Updates the rendered object data
         """
         self.objdata = RenderObject(self.tileset, self.type, self.width, self.height)
-
+        self.UpdateSearchDatabase()
+    def updateObjCacheWH(self, width, height):
+        """
+        Updates the rendered object data with custom width and height
+        """
+        self.objdata = RenderObject(self.tileset, self.type, width, height)
+        self.UpdateSearchDatabase()
     def UpdateRects(self):
         """
         Recreates the bounding and selection rects
@@ -376,6 +416,7 @@ class ObjectItem(LevelEditorItem):
                 oldy = self.objy
                 self.objx = x
                 self.objy = y
+                self.UpdateSearchDatabase()
                 if self.positionChanged is not None:
                     self.positionChanged(self, oldx, oldy, x, y)
 
@@ -495,6 +536,7 @@ class ObjectItem(LevelEditorItem):
         """
         Delete the object from the level
         """
+        self.RemoveFromSearchDatabase()
         globals.Area.RemoveFromLayer(self)
         self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
 
