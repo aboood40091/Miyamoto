@@ -51,14 +51,16 @@ class QuickPaintOperations:
         return res
 
     @staticmethod
-    def optimizeObjects():
+    def optimizeObjects(FromQPWidget=False):
         """
         This function merges all touching objects of the same type. We don't want huge files for level data.
-        Nor do we don't want an island to be completely made up of 1x1 objects. And we most definately don't want
+        Nor do we want an island to be completely made up of 1x1 objects. And we most definately don't want
         objects more than 1x1 to repeat only the first tile in them.
         """
         optimize_memory = []
-        for ln in range(len(globals.Area.layers)):
+        if FromQPWidget: lr = range(-1,0)
+        else: lr = range(len(globals.Area.layers))
+        for ln in lr:
             objects_inside_optimize_boxes = []
 
             while len(list(filter(lambda i: i.layer == ln, QuickPaintOperations.object_optimize_database))) > 0:
@@ -90,13 +92,12 @@ class QuickPaintOperations:
                             w = x
                             break
 
+                # This somewhat helps remove the bug when painting over slopes.
+                calculated_dimensions = list(filter(lambda i: i[0] != 0 and i[1] != 0, calculated_dimensions))
+                if True in map(lambda i: i[1] > 1, calculated_dimensions):
+                    calculated_dimensions = list(filter(lambda i: i[1] > 1, calculated_dimensions))
+
                 if len(calculated_dimensions) > 0:
-                    # This somewhat helps remove the bus when painting over slopes.
-                    calculated_dimensions = list(filter(lambda i: i[0] != 0 and i[1] != 0, calculated_dimensions))
-
-                    if True in map(lambda i: i[1] > 1, calculated_dimensions):
-                        calculated_dimensions = list(filter(lambda i: i[1] > 1, calculated_dimensions))
-
                     lets_use_these_dimensions = max(calculated_dimensions, key=lambda i: i[0] * i[1])
 
                 else:
@@ -121,9 +122,14 @@ class QuickPaintOperations:
 
             for obj in objects_inside_optimize_boxes:
                 if obj not in map(lambda i: i[4], optimize_memory):
-                    obj.delete()
-                    obj.setSelected(False)
-                    globals.mainWindow.scene.removeItem(obj)
+                    if FromQPWidget:
+                        if obj in globals.mainWindow.quickPaint.scene.display_objects:
+                            obj.RemoveFromSearchDatabase()
+                            globals.mainWindow.quickPaint.scene.display_objects.remove(obj)
+                    else:
+                        obj.delete()
+                        obj.setSelected(False)
+                        globals.mainWindow.scene.removeItem(obj)
 
             for rect in optimize_memory:
                 if rect is not None:
