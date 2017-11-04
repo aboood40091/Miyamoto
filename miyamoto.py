@@ -2934,12 +2934,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     for ext in globals.FileExtentions[game]:
                         checknames.append(os.path.join(globals.gamedef.GetGamePath(), name + ext))
 
-                found = False
                 for checkname in checknames:
                     if os.path.isfile(checkname):
-                        found = True
                         break
-                if not found:
+                else:
                     QtWidgets.QMessageBox.warning(self, 'Miyamoto!',
                                                   globals.trans.string('Err_CantFindLevel', 0, '[name]', checkname),
                                                   QtWidgets.QMessageBox.Ok)
