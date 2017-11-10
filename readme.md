@@ -4,8 +4,8 @@ A level editor for NSMBU and NSLU by AboodXD and Gota7, based on Reggie! Next by
 
 ----------------------------------------------------------------
 
-Discord: https://discord.gg/DYxwBxB  
-GitHub: https://github.com/Gota7/Miyamoto  
+Discord: https://discord.gg/AvFEHpp  
+GitHub: https://github.com/aboood40091/Miyamoto  
 
 ----------------------------------------------------------------
 
@@ -18,6 +18,7 @@ GitHub: https://github.com/Gota7/Miyamoto
 * Grop -- Coding, Spritedata, Graphics
 * Hiccup -- Spritedata
 * Huey -- Spritedata, Graphics
+* John10v10 -- Coding the Quick Paint Tool
 * Kinnay -- Spritedata
 * Luzifer -- Graphics
 * Mayro -- Graphics
@@ -25,7 +26,6 @@ GitHub: https://github.com/Gota7/Miyamoto
 * NVIDIA -- NVCOMPRESS
 * Toms -- Spritedata, Graphics
 * Wiimm -- WSZST
-* John10v10 -- Coding the Quick Paint Tool
 
 ----------------------------------------------------------------
 
