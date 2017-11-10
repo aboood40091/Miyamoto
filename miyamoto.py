@@ -78,8 +78,8 @@ from verifications import *
 from widgets import *
 
 MiyamotoID = 'Miyamoto! Level Editor by AboodXD, Gota7, John10v10, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
-MiyamotoVersion = '20.0'
-MiyamotoVersionShort = ""
+MiyamotoVersion = '21.0'
+MiyamotoVersionShort = ''
 UpdateURL = ''
 
 
@@ -244,6 +244,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Sets up Miyamoto's actions, menus and toolbars
         """
+        self.RecentMenu = RecentFilesMenu()
+
         self.createMenubar()
 
     actions = {}
@@ -261,6 +263,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('openfromfile', self.HandleOpenFromFile, GetIcon('openfromfile'),
                           globals.trans.string('MenuItems', 4), globals.trans.string('MenuItems', 5),
                           QtGui.QKeySequence('Ctrl+Shift+O'))
+        self.CreateAction('openrecent', None, GetIcon('recent'), globals.trans.string('MenuItems', 6),
+                          globals.trans.string('MenuItems', 7), None)
         self.CreateAction('save', self.HandleSave, GetIcon('save'), globals.trans.string('MenuItems', 8),
                           globals.trans.string('MenuItems', 9), QtGui.QKeySequence.Save)
         self.CreateAction('saveas', self.HandleSaveAs, GetIcon('saveas'), globals.trans.string('MenuItems', 10),
@@ -387,6 +391,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
 
         # Configure them
+        self.actions['openrecent'].setMenu(self.RecentMenu)
+
         self.actions['collisions'].setChecked(globals.CollisionsShown)
         self.actions['realview'].setChecked(globals.RealViewEnabled)
 
@@ -419,6 +425,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addAction(self.actions['newlevel'])
         fmenu.addAction(self.actions['openfromname'])
         fmenu.addAction(self.actions['openfromfile'])
+        fmenu.addAction(self.actions['openrecent'])
         fmenu.addSeparator()
         fmenu.addAction(self.actions['save'])
         fmenu.addAction(self.actions['saveas'])
@@ -540,6 +547,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'newlevel',
                 'openfromname',
                 'openfromfile',
+                'openrecent',
                 'save',
                 'saveas',
                 'screenshot',
@@ -2474,6 +2482,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 f.write(data)
         self.UpdateTitle()
 
+        self.RecentMenu.AddToList(self.fileSavePath)
+
         return True
 
     def getInnerSarcName(self):
@@ -3225,6 +3235,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if hmm:
             SetDirty()
+
+        else:
+            # Add the path to Recent Files
+            self.RecentMenu.AddToList(globals.mainWindow.fileSavePath)
 
         # If we got this far, everything worked! Return True.
         return True

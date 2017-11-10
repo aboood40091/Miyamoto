@@ -1358,6 +1358,11 @@ class PreferencesDialog(QtWidgets.QDialog):
                 """
                 super().__init__()
 
+                # Add the Clear Recent Files button
+                ClearRecentBtn = QtWidgets.QPushButton(globals.trans.string('PrefsDlg', 16))
+                ClearRecentBtn.setMaximumWidth(ClearRecentBtn.minimumSizeHint().width())
+                ClearRecentBtn.clicked.connect(self.ClearRecent)
+
                 # Add the Translation Language setting
                 self.Trans = QtWidgets.QComboBox()
                 self.Trans.setMaximumWidth(256)
@@ -1365,6 +1370,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 # Create the main layout
                 L = QtWidgets.QFormLayout()
                 L.addRow(globals.trans.string('PrefsDlg', 14), self.Trans)
+                L.addRow(globals.trans.string('PrefsDlg', 15), ClearRecentBtn)
                 self.setLayout(L)
 
                 # Set the buttons
@@ -1391,6 +1397,14 @@ class PreferencesDialog(QtWidgets.QDialog):
                     if trans == str(setting('Translation')):
                         self.Trans.setCurrentIndex(i)
                     i += 1
+
+            def ClearRecent(self):
+                """
+                Handle the Clear Recent Files button being clicked
+                """
+                ans = QtWidgets.QMessageBox.question(None, globals.trans.string('PrefsDlg', 17), globals.trans.string('PrefsDlg', 18), QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                if ans != QtWidgets.QMessageBox.Yes: return
+                globals.mainWindow.RecentMenu.clearAll()
 
         return GeneralTab()
 

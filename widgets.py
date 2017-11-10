@@ -4353,6 +4353,156 @@ class InfoPreviewWidget(QtWidgets.QWidget):
         self.update()
 
 
+class RecentFilesMenu(QtWidgets.QMenu):
+    """
+    A menu which displays recently opened files
+    """
+    def __init__(self):
+        """
+        Creates and initializes the menu
+        """
+        QtWidgets.QMenu.__init__(self)
+        self.setMinimumWidth(192)
+
+        # Here's how this works:
+        # - Upon startup, RecentFiles is obtained from QSettings and put into self.FileList
+        # - All modifications to the menu thereafter are then applied to self.FileList
+        # - The actions displayed in the menu are determined by whatever's in self.FileList
+        # - Whenever self.FileList is changed, self.writeSettings is called which writes
+        #      it all back to the QSettings
+
+        # Populate FileList upon startup
+        if globals.settings.contains('RecentFiles'):
+            self.FileList = str(setting('RecentFiles')).split('|')
+
+        else:
+            self.FileList = ['']
+
+        # This fixes bugs
+        self.FileList = [path for path in self.FileList if path.lower() not in ('', 'none', 'false', 'true')]
+
+        self.updateActionList()
+
+
+    def writeSettings(self):
+        """
+        Writes FileList back to the Registry
+        """
+        setSetting('RecentFiles', str('|'.join(self.FileList)))
+
+    def updateActionList(self):
+        """
+        Updates the actions visible in the menu
+        """
+
+        self.clear()  # removes any actions already in the menu
+        ico = GetIcon('new')
+        currentShortcut = 0
+
+        for i, filename in enumerate(self.FileList):
+            filename = os.path.basename(filename)
+            short = clipStr(filename, 72)
+            if short is not None: filename = short + '...'
+
+            act = QtWidgets.QAction(ico, filename, self)
+            if i <= 9: act.setShortcut(QtGui.QKeySequence('Ctrl+Alt+%d' % i))
+            act.setToolTip(str(self.FileList[i]))
+
+            # This is a TERRIBLE way to do this, but I can't think of anything simpler. :(
+            if i == 0:  handler = self.HandleOpenRecentFile0
+            if i == 1:  handler = self.HandleOpenRecentFile1
+            if i == 2:  handler = self.HandleOpenRecentFile2
+            if i == 3:  handler = self.HandleOpenRecentFile3
+            if i == 4:  handler = self.HandleOpenRecentFile4
+            if i == 5:  handler = self.HandleOpenRecentFile5
+            if i == 6:  handler = self.HandleOpenRecentFile6
+            if i == 7:  handler = self.HandleOpenRecentFile7
+            if i == 8:  handler = self.HandleOpenRecentFile8
+            if i == 9:  handler = self.HandleOpenRecentFile9
+            if i == 10: handler = self.HandleOpenRecentFile10
+            if i == 11: handler = self.HandleOpenRecentFile11
+            if i == 12: handler = self.HandleOpenRecentFile12
+            if i == 13: handler = self.HandleOpenRecentFile13
+            if i == 14: handler = self.HandleOpenRecentFile14
+            act.triggered.connect(handler)
+
+            self.addAction(act)
+
+    def AddToList(self, path):
+        """
+        Adds an entry to the list
+        """
+        MaxLength = 16
+
+        if path in ('None', 'True', 'False', None, True, False): return  # fixes bugs
+        path = str(path).replace('/', '\\')
+
+        new = [path]
+        for filename in self.FileList:
+            if filename != path:
+                new.append(filename)
+        if len(new) > MaxLength: new = new[:MaxLength]
+
+        self.FileList = new
+        self.writeSettings()
+        self.updateActionList()
+
+    def RemoveFromList(self, index):
+        """
+        Removes an entry from the list
+        """
+        del self.FileList[index]
+        self.writeSettings()
+        self.updateActionList()
+
+    def clearAll(self):
+        """
+        Clears all recent files from the list and the registry
+        """
+        self.FileList = []
+        self.writeSettings()
+        self.updateActionList()
+
+    def HandleOpenRecentFile0(self):
+        self.HandleOpenRecentFile(0)
+    def HandleOpenRecentFile1(self):
+        self.HandleOpenRecentFile(1)
+    def HandleOpenRecentFile2(self):
+        self.HandleOpenRecentFile(2)
+    def HandleOpenRecentFile3(self):
+        self.HandleOpenRecentFile(3)
+    def HandleOpenRecentFile4(self):
+        self.HandleOpenRecentFile(4)
+    def HandleOpenRecentFile5(self):
+        self.HandleOpenRecentFile(5)
+    def HandleOpenRecentFile6(self):
+        self.HandleOpenRecentFile(6)
+    def HandleOpenRecentFile7(self):
+        self.HandleOpenRecentFile(7)
+    def HandleOpenRecentFile8(self):
+        self.HandleOpenRecentFile(8)
+    def HandleOpenRecentFile9(self):
+        self.HandleOpenRecentFile(9)
+    def HandleOpenRecentFile10(self):
+        self.HandleOpenRecentFile(10)
+    def HandleOpenRecentFile11(self):
+        self.HandleOpenRecentFile(11)
+    def HandleOpenRecentFile12(self):
+        self.HandleOpenRecentFile(12)
+    def HandleOpenRecentFile13(self):
+        self.HandleOpenRecentFile(13)
+    def HandleOpenRecentFile14(self):
+        self.HandleOpenRecentFile(14)
+
+    def HandleOpenRecentFile(self, number):
+        """
+        Open a recently opened level picked from the main menu
+        """
+        if globals.mainWindow.CheckDirty(): return
+
+        if not globals.mainWindow.LoadLevel(None, self.FileList[number], True, 1): self.RemoveFromList(number)
+
+
 class ZoomWidget(QtWidgets.QWidget):
     """
     Widget that allows easy zoom level control
