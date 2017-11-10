@@ -58,8 +58,10 @@ class QuickPaintOperations:
         objects more than 1x1 to repeat only the first tile in them.
         """
         optimize_memory = []
-        if FromQPWidget: lr = range(-1,0)
+
+        if FromQPWidget: lr = range(-1, 0)
         else: lr = range(len(globals.Area.layers))
+
         for ln in lr:
             objects_inside_optimize_boxes = []
 
@@ -126,6 +128,7 @@ class QuickPaintOperations:
                         if obj in globals.mainWindow.quickPaint.scene.display_objects:
                             obj.RemoveFromSearchDatabase()
                             globals.mainWindow.quickPaint.scene.display_objects.remove(obj)
+
                     else:
                         obj.delete()
                         obj.setSelected(False)

@@ -26,6 +26,7 @@
 
 import json
 from math import sqrt
+import os
 import sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -437,12 +438,11 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         #        self.SlopeModeCheck.setText(_translate("self", "Slope"))
         self.EraseModeCheck.setText(_translate("self", "Erase"))
         self.label_4.setText(_translate("self", "Presets:"))
-        import os
+        
         for fname in os.listdir("miyamotodata/qpsp/"):
-            filename, file_extension = os.path.splitext(fname)
-            if file_extension == '.qpp':
-                self.comboBox_4.addItem(fname.split(".qpp")[0])
-        del os
+            if fname.endswith(".qpp"):
+                self.comboBox_4.addItem(fname[:-4])
+        
         self.comboBox_4.setCurrentIndex(-1)
         self.SaveToPresetButton.setText(_translate("self", "Save"))
         self.AddPresetButton.setText(_translate("self", "Add"))
@@ -924,21 +924,27 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             """
             # Get those boundaries
             maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight, maxbottomheight = self.calculateBoundaries()
+
             # Arrange Main Island...
             self.ArrangeMainIsland(maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight,
                                    maxbottomheight)
+
             # Set corner setter island...
-            for obj in self.display_objects:obj.RemoveFromSearchDatabase()
+            for obj in self.display_objects:
+                obj.RemoveFromSearchDatabase()
+
             self.display_objects.clear()
             self.ArrangeCornerSetterIsland(1, maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight,
                                            maxbottomheight)
+
             # Let's update the sizes of these objects...
             for obj in self.object_database:
                 if (self.object_database[obj]['i'] is not None):
                     self.object_database[obj]['i'].updateObjCacheWH(self.object_database[obj]['w'],
                                                                     self.object_database[obj]['h'])
-            if len(QuickPaintOperations.object_optimize_database)>0:
-                    QuickPaintOperations.optimizeObjects(range(-1,0))
+
+            if len(QuickPaintOperations.object_optimize_database) > 0:
+                QuickPaintOperations.optimizeObjects(True)
 
         def AddDisplayObject(self, type, x, y, width, height):
             """
@@ -959,6 +965,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                     obj = ObjectItem(this_obj['ts'], this_obj['t'], -1, x, y, width, height, z, 0)
                     self.display_objects.append(obj)
                     QuickPaintOperations.object_optimize_database.append(obj)
+                    
                     return obj
             
             return None
