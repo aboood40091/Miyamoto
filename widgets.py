@@ -437,10 +437,12 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         #        self.SlopeModeCheck.setText(_translate("self", "Slope"))
         self.EraseModeCheck.setText(_translate("self", "Erase"))
         self.label_4.setText(_translate("self", "Presets:"))
-        
+        import os
         for fname in os.listdir("miyamotodata/qpsp/"):
-            self.comboBox_4.addItem(fname.split(".qpp")[0])
-        
+            filename, file_extension = os.path.splitext(fname)
+            if file_extension == '.qpp':
+                self.comboBox_4.addItem(fname.split(".qpp")[0])
+        del os
         self.comboBox_4.setCurrentIndex(-1)
         self.SaveToPresetButton.setText(_translate("self", "Save"))
         self.AddPresetButton.setText(_translate("self", "Add"))
@@ -596,13 +598,6 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             if obj is not None:
                 if event.button() == Qt.LeftButton:
                     if globals.CurrentPaintType not in [-1, 10] and globals.CurrentObject != -1:
-                        ln = globals.CurrentLayer
-                        layer = globals.Area.layers[globals.CurrentLayer]
-                        if len(layer) == 0:
-                            z = (2 - ln) * 8192
-                        else:
-                            z = layer[-1].zValue() + 1
-
                         odef = globals.ObjectDefinitions[globals.CurrentPaintType][globals.CurrentObject]
                         self.parent.scene.object_database[obj]['w'] = odef.width
                         self.parent.scene.object_database[obj]['h'] = odef.height
@@ -613,7 +608,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                                                                                  self.parent.scene.object_database[obj][
                                                                                      'x'],
                                                                                  self.parent.scene.object_database[obj][
-                                                                                     'y'], odef.width, odef.height, z,
+                                                                                     'y'], odef.width, odef.height, 0,
                                                                                  0)
                         self.parent.scene.object_database[obj]['ts'] = globals.CurrentPaintType
                         self.parent.scene.object_database[obj]['t'] = globals.CurrentObject
@@ -933,6 +928,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             self.ArrangeMainIsland(maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight,
                                    maxbottomheight)
             # Set corner setter island...
+            for obj in self.display_objects:obj.RemoveFromSearchDatabase()
             self.display_objects.clear()
             self.ArrangeCornerSetterIsland(1, maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight,
                                            maxbottomheight)
@@ -941,6 +937,8 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                 if (self.object_database[obj]['i'] is not None):
                     self.object_database[obj]['i'].updateObjCacheWH(self.object_database[obj]['w'],
                                                                     self.object_database[obj]['h'])
+            if len(QuickPaintOperations.object_optimize_database)>0:
+                    QuickPaintOperations.optimizeObjects(range(-1,0))
 
         def AddDisplayObject(self, type, x, y, width, height):
             """
@@ -960,7 +958,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
 
                     obj = ObjectItem(this_obj['ts'], this_obj['t'], -1, x, y, width, height, z, 0)
                     self.display_objects.append(obj)
-                    
+                    QuickPaintOperations.object_optimize_database.append(obj)
                     return obj
             
             return None
