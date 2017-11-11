@@ -682,51 +682,103 @@ def writeGTX(tex, idx):
     """
     Generates a GTX file from a QImage
     """
-    if platform.system() == 'Windows':
-        tile_path = globals.miyamoto_path + '/Tools'
+    if platform.system() in ['Windows', 'Linux']:
+        if platform.system() == 'Windows':
+            tile_path = globals.miyamoto_path + '/Tools'
 
-    elif platform.system() == 'Linux':
-        tile_path = globals.miyamoto_path + '/linuxTools'
+        elif platform.system() == 'Linux':
+            tile_path = globals.miyamoto_path + '/linuxTools'
 
+        if idx != 0:  # Save as DXT5/BC3
+            tex.save(tile_path + '/tmp.png')
+        
+            os.chdir(tile_path)
+
+            if platform.system() == 'Windows':
+                exe = 'nvcompress.exe'
+
+            elif platform.system() == 'Linux':
+                os.system('chmod +x nvcompress.elf')
+                exe = './nvcompress.elf'
+
+            os.system(exe + ' -bc3 tmp.png tmp.dds')
+        
+            os.chdir(globals.miyamoto_path)
+
+            os.remove(tile_path + '/tmp.png')
+
+        else:  # Save as RGBA8
+            import dds
+
+            data = tex.bits()
+            data.setsize(tex.byteCount())
+            data = data.asstring()
+
+            with open(tile_path + '/tmp.dds', 'wb+') as out:
+                hdr = dds.generateHeader(2048, 512, 0x1a)
+                out.write(hdr)
+                out.write(data)
+
+            del dds
+
+    # nvcompress doesn't want to work on MacOSX
+    # so let's use a local BC3 compressor (lossy)
+    # TODO do the same in Puzzle NSMBU for MacOSX
     elif platform.system() == 'Darwin':
         tile_path = globals.miyamoto_path + '/macTools'
 
-    if idx != 0:  # Save as DXT5/BC3
-        tex.save(tile_path + '/tmp.png')
-    
-        os.chdir(tile_path)
-
-        if platform.system() == 'Windows':
-            exe = 'nvcompress.exe'
-
-        elif platform.system() == 'Linux':
-            os.system('chmod +x nvcompress.elf')
-            exe = './nvcompress.elf'
-
-        elif platform.system() == 'Darwin':
-            os.system('chmod 777 nvcompress-osx.app')
-            exe = './nvcompress-osx.app'
-
-        os.system(exe + ' -bc3 tmp.png tmp.dds')
-    
-        os.chdir(globals.miyamoto_path)
-
-        os.remove(tile_path + '/tmp.png')
-
-    else:  # Save as RGBA8
         import dds
 
         data = tex.bits()
         data.setsize(tex.byteCount())
         data = data.asstring()
 
+        dataList = []
+
+        if idx != 0:  # Save as DXT5/BC3
+            fmt = 0x33
+            numMips = 12
+
+            try:
+                import pyximport
+
+                pyximport.install()
+                import compressBC3_cy as compressBC3
+            except ImportError:
+                import compressBC3
+
+            dataList.append(compressBC3.CompressBC3(data, tex.bytesPerLine(), 2048, 512))
+
+            mipmaps = []
+            for i in range(1, numMips):
+                mipTex = QtGui.QImage(tex).scaledToWidth(max(1, 2048 >> i), Qt.SmoothTransformation)
+                mipTex = mipTex.convertToFormat(QtGui.QImage.Format_RGBA8888)
+
+                mipData = mipTex.bits()
+                mipData.setsize(mipTex.byteCount())
+                mipData = mipData.asstring()
+
+                dataList.append(compressBC3.CompressBC3(mipData, mipTex.bytesPerLine(), max(1, 2048 >> i), max(1, 512 >> i)))
+
+            del compressBC3
+
+        else:  # Save as RGBA8
+            fmt = 0x1a
+            numMips = 1
+
+            dataList.append(data)
+
         with open(tile_path + '/tmp.dds', 'wb+') as out:
-            hdr = dds.generateRGBA8Header(2048, 512)
+            hdr = dds.generateHeader(2048, 512, fmt, numMips)
             out.write(hdr)
-            out.write(data)
+            for data in dataList:
+                out.write(data)
+
+        del dds
 
     import gtx
     gtxdata = gtx.DDStoGTX(tile_path + '/tmp.dds')
+    del gtx
 
     os.remove(tile_path + '/tmp.dds')
 
@@ -1071,31 +1123,27 @@ def CascadeTilesetNames_Category(lower, upper):
         if isinstance(item[1], tuple) or isinstance(item[1], list):
             # It's a category
 
-            found = False
             for i, lowitem in enumerate(lower):
                 lowitem = lower[i]
                 if lowitem[0] == item[0]:  # names are ==
                     lower[i] = list(lower[i])
                     lower[i][1] = CascadeTilesetNames_Category(lowitem[1], item[1])
-                    found = True
                     break
 
-            if not found:
+            else:
                 i = 0
                 while (i < len(lower)) and (isinstance(lower[i][1], tuple) or isinstance(lower[i][1], list)): i += 1
                 lower.insert(i + 1, item)
 
         else:  # It's a tileset entry
-            found = False
             for i, lowitem in enumerate(lower):
                 lowitem = lower[i]
                 if lowitem[0] == item[0]:  # filenames are ==
                     lower[i] = list(lower[i])
                     lower[i][1] = item[1]
-                    found = True
                     break
 
-            if not found: lower.append(item)
+            else: lower.append(item)
     return lower
 
 

@@ -4,6 +4,7 @@ __pycache__/
 build/
 data/
 dist/
+*.qpp
 *.spec
 build.bat
 dlls.zip

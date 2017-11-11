@@ -106,7 +106,7 @@ class AboutDialog(QtWidgets.QDialog):
         description += '</style></head><body>'
         description += '<center><h1><i>Miyamoto!</i> Level Editor</h1><div class=\'main\'>'
         description += '<i>Miyamoto! Level Editor</i> is a fork of Reggie! Level Editor, an open-source global project started by Treeki in 2010 that aimed to bring New Super Mario Bros. Wii&trade; levels. Now in later years, brings you New Super Mario Bros. U&trade;!<br>'
-        description += 'Interested? Check out <a href=\'https://github.com/Gota7/Miyamoto\'>the Github repository</a> for updates and related downloads, or <a href=\'https://discord.gg/DYxwBxB\'>our Discord group</a> to get in touch with the developers.<br>'
+        description += 'Interested? Check out <a href=\'https://github.com/aboood40091/Miyamoto\'>the Github repository</a> for updates and related downloads, or <a href=\'https://discord.gg/AvFEHpp\'>our Discord group</a> to get in touch with the developers.<br>'
         description += '</div></center></body></html>'
 
         # Description label
@@ -1358,6 +1358,11 @@ class PreferencesDialog(QtWidgets.QDialog):
                 """
                 super().__init__()
 
+                # Add the Clear Recent Files button
+                ClearRecentBtn = QtWidgets.QPushButton(globals.trans.string('PrefsDlg', 16))
+                ClearRecentBtn.setMaximumWidth(ClearRecentBtn.minimumSizeHint().width())
+                ClearRecentBtn.clicked.connect(self.ClearRecent)
+
                 # Add the Translation Language setting
                 self.Trans = QtWidgets.QComboBox()
                 self.Trans.setMaximumWidth(256)
@@ -1365,6 +1370,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 # Create the main layout
                 L = QtWidgets.QFormLayout()
                 L.addRow(globals.trans.string('PrefsDlg', 14), self.Trans)
+                L.addRow(globals.trans.string('PrefsDlg', 15), ClearRecentBtn)
                 self.setLayout(L)
 
                 # Set the buttons
@@ -1391,6 +1397,14 @@ class PreferencesDialog(QtWidgets.QDialog):
                     if trans == str(setting('Translation')):
                         self.Trans.setCurrentIndex(i)
                     i += 1
+
+            def ClearRecent(self):
+                """
+                Handle the Clear Recent Files button being clicked
+                """
+                ans = QtWidgets.QMessageBox.question(None, globals.trans.string('PrefsDlg', 17), globals.trans.string('PrefsDlg', 18), QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                if ans != QtWidgets.QMessageBox.Yes: return
+                globals.mainWindow.RecentMenu.clearAll()
 
         return GeneralTab()
 
