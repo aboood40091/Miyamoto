@@ -295,7 +295,8 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         self.verticalScrollBar.setObjectName("verticalScrollBar")
         self.gridLayout.addWidget(self.verticalScrollBar, 1, 1, 1, 1)
         self.ZoomButton = QtWidgets.QPushButton(self)
-        self.ZoomButton.setMaximumSize(QtCore.QSize(40, 40))
+        self.ZoomButton.setMinimumSize(QtCore.QSize(30, 30))
+        self.ZoomButton.setMaximumSize(QtCore.QSize(30, 30))
         self.ZoomButton.setObjectName("ZoomButton")
         self.ZoomButton.clicked.connect(self.zoom)
         self.gridLayout.addWidget(self.ZoomButton, 0, 1, 1, 1)
@@ -303,7 +304,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         QtCore.QMetaObject.connectSlotsByName(self)
         self.setTabOrder(self.AddPresetButton, self.comboBox_4)
         self.setTabOrder(self.comboBox_4, self.RemovePresetButton)
-
+        self.show_badObjWarning = False
     def SetPaintMode(self):
         """
         Sets the Quick-Paint Mode to paint or turn off.
@@ -343,10 +344,24 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         else:
             self.QuickPaintMode = None
 
+        globals.mainWindow.scene.update()
+    def reset(self):
+        setoffsets = False
+        if hasattr(self, 'scene'):
+            panoffsets = (self.scene.xoffset,self.scene.yoffset)
+            del self.scene
+            setoffsets = True
+        self.scene = self.QuickPaintScene(self)
+        if setoffsets:
+            self.scene.xoffset = panoffsets[0]
+            self.scene.yoffset = panoffsets[1]
+        self.graphicsView.setScene(self.scene)
+        self.comboBox_4.setCurrentIndex(-1)
     def currentPresetIndexChanged(self, index):
         """
         Handles the change of index of the saved presets context menu and loads the preset.
         """
+        self.show_badObjWarning = True
         self.SaveToPresetButton.setEnabled(index != -1)
         name = self.comboBox_4.currentText()
         no = False
