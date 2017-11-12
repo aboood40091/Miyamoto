@@ -632,7 +632,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     addedButtons = True
             if addedButtons:
                 self.toolbar.addSeparator()
-
+    def __QPPaintSet(self):
+        self.quickPaint.PaintModeCheck.setChecked(not self.quickPaint.PaintModeCheck.isChecked())
+        self.quickPaint.SetPaintMode()
+        if hasattr(QuickPaintOperations, 'prePaintedObjects'):
+            QuickPaintOperations.prePaintedObjects.clear()
+    def __QPEraseSet(self):
+        self.quickPaint.EraseModeCheck.setChecked(not self.quickPaint.EraseModeCheck.isChecked())
+        self.quickPaint.SetEraseMode()
+        if hasattr(QuickPaintOperations, 'prePaintedObjects'):
+            QuickPaintOperations.prePaintedObjects.clear()
     def SetupDocksAndPanels(self):
         """
         Sets up the dock widgets and panels
@@ -671,6 +680,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
         dock.setVisible(True)
+        self.QPPaintShortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Alt+P"), self)
+        self.QPPaintShortcut.activated.connect(self.__QPPaintSet)
+        self.QPEraseShortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Alt+Shift+P"), self)
+        self.QPEraseShortcut.activated.connect(self.__QPEraseSet)
         act = dock.toggleViewAction()
         act.setShortcut(QtGui.QKeySequence('Alt+Q'))
         act.setIcon(GetIcon('quickpaint'))
@@ -3183,6 +3196,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.newLevel()
         else:
             self.LoadLevel_NSMBU(levelData, areaNum)
+            if hasattr(self, 'quickPaint'):
+                self.quickPaint.reset()#Reset the QP widget.
+            QuickPaintOperations.object_optimize_database = []
+            QuickPaintOperations.object_search_database = {}
 
         # Set the level overview settings
         globals.mainWindow.levelOverview.maxX = 100
