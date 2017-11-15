@@ -821,6 +821,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.importObj.setVisible(False)
         oel.addWidget(self.importObj, 1)
 
+        self.exportAll = QtWidgets.QPushButton()
+        self.exportAll.setText("Export All")
+        self.exportAll.clicked.connect(self.HandleExportAllObj)
+        self.exportAll.setVisible(False)
+        oel.addWidget(self.exportAll, 1)
+
+        self.deleteAll = QtWidgets.QPushButton()
+        self.deleteAll.setText("Delete All")
+        self.deleteAll.clicked.connect(self.HandleDeleteAllObj)
+        self.deleteAll.setVisible(False)
+        oel.addWidget(self.deleteAll, 1)
+
         self.objPicker = ObjectPickerWidget()
         self.objPicker.ObjChanged.connect(self.ObjectChoiceChanged)
         self.objPicker.ObjReplace.connect(self.ObjectReplace)
@@ -3622,15 +3634,21 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     self.objTS0Tab.setLayout(self.createObjectLayout)
                     self.folderPicker.setVisible(False)
                     self.importObj.setVisible(False)
+                    self.exportAll.setVisible(False)
+                    self.deleteAll.setVisible(False)
                 elif nt == 1:
                     self.objTSAllTab.setLayout(self.createObjectLayout)
                     self.folderPicker.setVisible(True)
                     self.importObj.setVisible(False)
+                    self.exportAll.setVisible(False)
+                    self.deleteAll.setVisible(False)
                     nt = 10
                 else:
                     self.objTS123Tab.setLayout(self.createObjectLayout)
                     self.folderPicker.setVisible(False)
                     self.importObj.setVisible(True)
+                    self.exportAll.setVisible(True)
+                    self.deleteAll.setVisible(True)
             self.defaultPropDock.setVisible(False)
         globals.CurrentPaintType = nt
 
@@ -3751,6 +3769,268 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if paintType == 11:
             # Throw a message that the object didn't fit
             QtWidgets.QMessageBox.critical(None, 'Cannot Import', "There isn't enough room left for this object!")
+
+    def HandleExportAllObj(self):
+        """
+        Handles exporting all the objects
+        """
+        save_path = QtWidgets.QFileDialog.getExistingDirectory(None, "Choose where to save the Object folder")
+        if not save_path: return
+
+        for idx in [1, 2, 3]:
+            if globals.ObjectDefinitions[idx] is None:
+                continue
+
+            tileoffset = idx * 256
+
+            name = eval('globals.Area.tileset%d' % idx)
+
+            for objNum in range(256):
+                if globals.ObjectDefinitions[idx][objNum] is None:
+                    break
+
+                obj = globals.ObjectDefinitions[idx][objNum]
+
+                jsonData = {}
+
+                randLen = obj.randByte & 0xF
+
+                if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+                    tex = QtGui.QPixmap(randLen * 60, obj.height * 60)
+                    nml = QtGui.QPixmap(randLen * 60, obj.height * 60)
+
+                else:
+                    tex = QtGui.QPixmap(obj.width * 60, obj.height * 60)
+                    nml = QtGui.QPixmap(obj.width * 60, obj.height * 60)
+
+                tex.fill(Qt.transparent)
+                nml.fill(QtGui.QColor(128, 128, 255))
+                painter = QtGui.QPainter(tex)
+                nmlPainter = QtGui.QPainter(nml)
+
+                # Checks if the slop is reversed and reverses the rows
+                isSlope = obj.rows[0][0][0]
+                if (isSlope & 0x80) and (isSlope & 0x2):
+                    colldata = []
+
+                    x = 0
+                    y = (obj.height - 1) * 60
+                    for row in obj.rows:
+                        colls = b''
+                        for tile in row:
+                            if len(tile) == 3:
+                                tileNum = (tile[1] & 0xFF) + tileoffset
+                                if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+                                    for z in range(randLen):
+                                        painter.drawPixmap(x, y, globals.Tiles[tileNum + z].main)
+                                        nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum + z].nml)
+                                        colls += bytes(globals.Tiles[tileNum + z].collData)
+                                        x += 60
+                                    break
+
+                                else:
+                                    painter.drawPixmap(x, y, globals.Tiles[tileNum].main)
+                                    nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum].nml)
+                                    colls += bytes(globals.Tiles[tileNum].collData)
+                                    x += 60
+
+                        colldata.append(colls)
+                        y -= 60
+                        x = 0
+
+                    colldata = b''.join(reversed(colldata))
+
+                else:
+                    colldata = b''
+
+                    x = 0
+                    y = 0
+                    for row in obj.rows:
+                        for tile in row:
+                            if len(tile) == 3:
+                                tileNum = (tile[1] & 0xFF) + tileoffset
+                                if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+                                    for z in range(randLen):
+                                        painter.drawPixmap(x, y, globals.Tiles[tileNum + z].main)
+                                        nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum + z].nml)
+                                        colldata += bytes(globals.Tiles[tileNum + z].collData)
+                                        x += 60
+                                    break
+
+                                else:
+                                    painter.drawPixmap(x, y, globals.Tiles[tileNum].main)
+                                    nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum].nml)
+                                    colldata += bytes(globals.Tiles[tileNum].collData)
+                                    x += 60
+                        y += 60
+                        x = 0
+
+                painter.end()
+                nmlPainter.end()
+
+                if not os.path.exists(save_path + "/" + name + "_objects"):
+                    os.makedirs(save_path + "/" + name + "_objects")
+
+                tex.save(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".png", "PNG")
+                jsonData['img'] = name + "_object_" + str(objNum) + ".png"
+
+                nml.save(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + "_nml.png", "PNG")
+                jsonData['nml'] = name + "_object_" + str(objNum) + "_nml.png"
+
+                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".colls", "wb+") as colls:
+                        colls.write(colldata)
+
+                jsonData['colls'] = name + "_object_" + str(objNum) + ".colls"
+
+                deffile = b''
+
+                for row in obj.rows:
+                    for tile in row:
+                        if len(tile) == 3:
+                            byte0 = tile[0]
+                            byte1 = tile[1] & 0xFF
+                            byte2 = tile[2] << 2
+                            byte2 |= idx  # Slot
+
+                            deffile += bytes([byte0, byte1, byte2])
+
+                        else:
+                            deffile += bytes(tile)
+
+                    deffile += b'\xFE'
+
+                deffile += b'\xFF'
+
+                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".objlyt", "wb+") as objlyt:
+                    objlyt.write(deffile)
+
+                jsonData['objlyt'] = name + "_object_" + str(objNum) + ".objlyt"
+
+                indexfile = struct.pack('>HBBxB', 0, obj.width, obj.height, 0)
+
+                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".meta", "wb+") as meta:
+                    meta.write(indexfile)
+
+                jsonData['meta'] = name + "_object_" + str(objNum) + ".meta"
+
+                if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+                    jsonData['randLen'] = randLen
+
+                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".json", 'w+') as outfile:
+                    json.dump(jsonData, outfile)
+
+    def HandleDeleteAllObj(self):
+        """
+        Handles deleting all objects
+        """
+        dlgTxt = "Do you really want to delete all the objects?\nThis can't be undone!"
+        reply = QtWidgets.QMessageBox.question(self, 'Warning',
+                                               dlgTxt, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+        if reply == QtWidgets.QMessageBox.Yes:
+            instancesFound = False
+            noneRemoved = True
+
+            for idx in [1, 2, 3]:
+                if globals.ObjectDefinitions[idx] is None:
+                    continue
+
+                objNum = 0
+                while True:
+                    if globals.ObjectDefinitions[idx][objNum] is None:
+                        break
+
+                    # From Satoru
+                    ## Checks if the object is deletable
+                    instanceFound = False
+                    for layer in globals.Area.layers:
+                        for obj in layer:
+                            if obj.tileset == idx and obj.type == objNum:
+                                if not instanceFound:
+                                    instanceFound = True
+
+                                if not instancesFound:
+                                    instancesFound = True
+
+                    if instanceFound:
+                        objNum += 1
+                        continue
+
+                    # Replace the object's tiles with transparent tiles
+                    obj = globals.ObjectDefinitions[idx][objNum]
+                    usedTiles = []
+                    for row in obj.rows:
+                        for tile in row:
+                            if len(tile) == 3:
+                                randLen = obj.randByte & 0xF
+                                tileNum = tile[1] & 0xFF
+                                if randLen > 0:
+                                    for i in range(randLen):
+                                        if tileNum + i not in usedTiles:
+                                            usedTiles.append(tileNum + i)
+                                else:
+                                    if tileNum not in usedTiles:
+                                        usedTiles.append(tileNum)
+
+                    T = TilesetTile()
+                    T.setCollisions([0] * 8)
+
+                    tileoffset = idx * 256
+
+                    for i in usedTiles:
+                        globals.Tiles[i + tileoffset] = T
+
+                    # Completely remove the object's definitions
+                    del globals.ObjectDefinitions[idx][objNum]
+                    globals.ObjectDefinitions[idx].append(None)
+
+                    # Remove the object from globals.ObjectAddedtoEmbedded
+                    if len(globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()]):
+                        found = False
+                        for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()]:
+                            obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][i]
+                            if obj == (idx, objNum):
+                                found = True
+                                tempidx, tempobjNum = globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][i]
+                                del globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][i]
+                                break
+
+                        if found:
+                            for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()]:
+                                obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][i]
+                                if obj[0] == tempidx:
+                                    if obj[1] > tempobjNum:
+                                        globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][i] = (obj[0], obj[1] - 1)
+
+                    if globals.ObjectDefinitions[idx] == [None] * 256:
+                        if idx == 1: globals.Area.tileset1 = ''
+                        elif idx == 2: globals.Area.tileset2 = ''
+                        elif idx == 3: globals.Area.tileset3 = ''
+
+                    for layer in globals.Area.layers:
+                        for obj in layer:
+                            if obj.tileset == idx:
+                                if obj.type > objNum:
+                                    obj.SetType(idx, obj.type - 1)
+
+                    if noneRemoved:
+                        noneRemoved = False
+
+            if not noneRemoved:
+                self.objPicker.LoadFromTilesets()
+
+                if not (globals.Area.tileset1 or globals.Area.tileset2 or globals.Area.tileset3):
+                    globals.CurrentObject = -1
+
+                globals.mainWindow.scene.update()
+                SetDirty()
+
+                globals.mainWindow.updateNumUsedTilesLabel()
+
+            if instancesFound:
+                dlgTxt = "Some objects couldn't be deleted because there are instances of them in the level scene."
+
+                QtWidgets.QMessageBox.critical(self, 'Cannot Delete', dlgTxt)
 
     @QtCore.pyqtSlot(int)
     def ObjectChoiceChanged(self, type):

@@ -1672,7 +1672,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
             for obj in layer:
                 if obj.tileset == idx:
                     if obj.type > objNum:
-                        obj.type -= 1
+                        obj.SetType(idx, obj.type - 1)
 
         self.LoadFromTilesets()
 
