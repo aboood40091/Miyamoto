@@ -3940,8 +3940,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     if globals.ObjectDefinitions[idx][objNum] is None:
                         break
 
-                    # From Satoru
-                    ## Checks if the object is deletable
                     instanceFound = False
                     for layer in globals.Area.layers:
                         for obj in layer:
