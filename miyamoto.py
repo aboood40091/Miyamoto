@@ -633,16 +633,21 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     addedButtons = True
             if addedButtons:
                 self.toolbar.addSeparator()
+
     def __QPPaintSet(self):
         self.quickPaint.PaintModeCheck.setChecked(not self.quickPaint.PaintModeCheck.isChecked())
         self.quickPaint.SetPaintMode()
+
         if hasattr(QuickPaintOperations, 'prePaintedObjects'):
             QuickPaintOperations.prePaintedObjects.clear()
+
     def __QPEraseSet(self):
         self.quickPaint.EraseModeCheck.setChecked(not self.quickPaint.EraseModeCheck.isChecked())
         self.quickPaint.SetEraseMode()
+
         if hasattr(QuickPaintOperations, 'prePaintedObjects'):
             QuickPaintOperations.prePaintedObjects.clear()
+
     def SetupDocksAndPanels(self):
         """
         Sets up the dock widgets and panels
@@ -681,10 +686,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
         dock.setVisible(True)
+
         self.QPPaintShortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Alt+P"), self)
         self.QPPaintShortcut.activated.connect(self.__QPPaintSet)
         self.QPEraseShortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Alt+Shift+P"), self)
         self.QPEraseShortcut.activated.connect(self.__QPEraseSet)
+
         act = dock.toggleViewAction()
         act.setShortcut(QtGui.QKeySequence('Alt+Q'))
         act.setIcon(GetIcon('quickpaint'))
@@ -2934,8 +2941,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Load a level from any game into the editor
         """
-        hmm = False
-        if name != None:
+        new = name == None
+
+        if new:
+            # Set the filepath variables
+            self.fileSavePath = False
+            self.fileTitle = 'untitled'
+
+            with open(globals.miyamoto_path + "/miyamotoextras/Pa0_jyotyu.szs", "rb") as inf:
+                inb = inf.read()
+
+            data = Yaz0Dec(inb)
+            globals.szsData = {'Pa0_jyotyu': data}
+
+        else:
             globals.levName = os.path.basename(name)
 
             game = globals.NewSuperMarioBrosU
@@ -3021,7 +3040,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                             if exists(fn):
                                 globals.levelNameCache = fn
                                 levelFileData = arc[fn].data
-                                hmm = True
+                                new = True
                                 break
                         else:
                             warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
@@ -3073,17 +3092,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 # Turn off the autosave flag
                 globals.RestoredFromAutoSave = False
-        else:
-            hmm = True
-            # Set the filepath variables
-            self.fileSavePath = False
-            self.fileTitle = 'untitled'
-
-            with open(globals.miyamoto_path + "/miyamotoextras/Pa0_jyotyu.szs", "rb") as inf:
-                inb = inf.read()
-
-            data = Yaz0Dec(inb)
-            globals.szsData = {'Pa0_jyotyu': data}
 
         # Turn the dirty flag off, and keep it that way
         globals.Dirty = False
@@ -3141,10 +3149,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.newLevel()
         else:
             self.LoadLevel_NSMBU(levelData, areaNum)
-            if hasattr(self, 'quickPaint'):
-                self.quickPaint.reset()#Reset the QP widget.
-            QuickPaintOperations.object_optimize_database = []
-            QuickPaintOperations.object_search_database = {}
+
+        # Set up and reset the Quick Paint Tool
+        if hasattr(self, 'quickPaint'):
+            self.quickPaint.reset()  # Reset the QP widget.
+        QuickPaintOperations.object_optimize_database = []
+        QuickPaintOperations.object_search_database = {}
 
         # Set the level overview settings
         globals.mainWindow.levelOverview.maxX = 100
@@ -3195,7 +3205,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CurrentGame = game
         setSetting('CurrentGame', self.CurrentGame)
 
-        if hmm:
+        if new:
             SetDirty()
 
         else:

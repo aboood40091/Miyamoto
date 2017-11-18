@@ -65,6 +65,7 @@ class QuickPaintOperations:
         for ln in lr:
             objects_inside_optimize_boxes = []
             InfiniteLoopStopper = [-1, 0]
+
             while len(list(filter(lambda i: i.layer == ln, QuickPaintOperations.object_optimize_database))) > 0:
                 from math import sqrt
 
@@ -124,16 +125,22 @@ class QuickPaintOperations:
 
                 if InfiniteLoopStopper[0] == len(list(filter(lambda i: i.layer == ln, QuickPaintOperations.object_optimize_database))):
                     InfiniteLoopStopper[1] += 1
-                    if InfiniteLoopStopper[1] >= 20: break
+
+                    if InfiniteLoopStopper[1] >= 20:
+                        break
+
                 else:
                     InfiniteLoopStopper[1] = 0
+
                 InfiniteLoopStopper[0] = len(list(filter(lambda i: i.layer == ln, QuickPaintOperations.object_optimize_database)))
+
             for obj in objects_inside_optimize_boxes:
                 if obj not in map(lambda i: i[4], optimize_memory):
                     if FromQPWidget:
                         if obj in globals.mainWindow.quickPaint.scene.display_objects:
                             obj.RemoveFromSearchDatabase()
                             globals.mainWindow.quickPaint.scene.display_objects.remove(obj)
+
                     else:
                         obj.delete()
                         obj.setSelected(False)
@@ -150,6 +157,7 @@ class QuickPaintOperations:
                     obj.updateObjCache()
                     obj.UpdateRects()
                     obj.UpdateTooltip()
+
         QuickPaintOperations.object_optimize_database = []
 
     @staticmethod

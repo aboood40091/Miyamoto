@@ -226,6 +226,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         """
         Constructor for the quick paint confirmation widget
         """
+
         QtWidgets.QWidget.__init__(self)
         self.setSizePolicy(
             QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding))
@@ -257,7 +258,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         self.horizontalLayout.setSpacing(5)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.label_4 = QtWidgets.QLabel(self)
-        self.label_4.setMaximumSize(QtCore.QSize(40, 30))
+        self.label_4.setMaximumSize(QtCore.QSize(60, 30))
         self.label_4.setObjectName("label_4")
         self.horizontalLayout.addWidget(self.label_4)
         self.comboBox_4 = QtWidgets.QComboBox(self)
@@ -305,6 +306,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         self.setTabOrder(self.AddPresetButton, self.comboBox_4)
         self.setTabOrder(self.comboBox_4, self.RemovePresetButton)
         self.show_badObjWarning = False
+
     def SetPaintMode(self):
         """
         Sets the Quick-Paint Mode to paint or turn off.
@@ -345,23 +347,28 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             self.QuickPaintMode = None
 
         globals.mainWindow.scene.update()
+
     def reset(self):
         setoffsets = False
+
         if hasattr(self, 'scene'):
             panoffsets = (self.scene.xoffset,self.scene.yoffset)
             del self.scene
             setoffsets = True
+
         self.scene = self.QuickPaintScene(self)
+
         if setoffsets:
             self.scene.xoffset = panoffsets[0]
             self.scene.yoffset = panoffsets[1]
+
         self.graphicsView.setScene(self.scene)
         self.comboBox_4.setCurrentIndex(-1)
+
     def currentPresetIndexChanged(self, index):
         """
         Handles the change of index of the saved presets context menu and loads the preset.
         """
-        self.show_badObjWarning = True
         self.SaveToPresetButton.setEnabled(index != -1)
         name = self.comboBox_4.currentText()
         no = False
@@ -460,10 +467,15 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         self.AddPresetButton.setText(globals.trans.string('QuickPaint', 8))
         self.RemovePresetButton.setText(globals.trans.string('QuickPaint', 9))
         self.ZoomButton.setIcon(GetIcon("zoomin", True))
+
     def ShowBadObjectWarning(self):
         if self.show_badObjWarning:
-            QtWidgets.QMessageBox().warning(self, globals.trans.string('QuickPaint', 1), globals.trans.string('QuickPaint', 2))
+            QtWidgets.QMessageBox().warning(self,
+                                            globals.trans.string('QuickPaint', 1),
+                                            globals.trans.string('QuickPaint', 2))
+
             self.show_badObjWarning = False
+
     class ConfirmRemovePresetDialog(object):
         """
         Dialog that asks the user for confirmation before removing a preset. We want to make sure the user didn't press the remove preset button by mistake.
@@ -644,7 +656,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             """
             Constructs the quick paint scene.
             """
-            bgcolor = QtGui.QColor(globals.theme.color('bg'))
+            bgcolor = globals.theme.color('bg')
             bghsv = bgcolor.getHsv()
             self.xoffset = 0
             self.yoffset = 0
@@ -802,6 +814,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                     self.display_objects.remove(obj[0])
                     obj[0].RemoveFromSearchDatabase()
                     if obj[0] in QuickPaintOperations.object_optimize_database: QuickPaintOperations.object_optimize_database.remove(obj[0])
+
         def ArrangeCornerSetterIsland(self, offsetX, maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight,
                                       maxtopheight, maxbottomheight):
             """
@@ -1036,27 +1049,33 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                 obj.RemoveFromSearchDatabase()
 
             self.display_objects.clear()
+
             # Arrange Main Island...
             self.ArrangeMainIsland(maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight,
                                    maxbottomheight)
 
             if len(QuickPaintOperations.object_optimize_database) > 0:
                 QuickPaintOperations.optimizeObjects(True)
-            doas = [] #Means "Display Objects Already Shifted."
+
+            doas = []  # Means "Display Objects Already Shifted."
             for obj in self.display_objects:
-                obj.objx-=20
-                obj.objy-=20
+                obj.objx -= 20
+                obj.objy -= 20
+
                 doas.append(obj)
+
             # Set corner setter island...
             self.ArrangeCornerSetterIsland(1, maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight,
                                            maxbottomheight)
             
             if len(QuickPaintOperations.object_optimize_database) > 0:
                 QuickPaintOperations.optimizeObjects(True)
+
             for obj in self.display_objects:
                 if obj not in doas:
-                    obj.objx-=20
-                    obj.objy-=20
+                    obj.objx -= 20
+                    obj.objy -= 20
+
             # Let's update the sizes of these objects...
             for obj in self.object_database:
                 if (self.object_database[obj]['i'] is not None):
@@ -1068,7 +1087,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             Adds a display-only object into the scene. No effect when clicked on.
             """
             if self.object_database['base']['i'] is not None:
-                this_type = type#self.pickObject(type)
+                this_type = type  # self.pickObject(type)
                 this_obj = self.object_database[this_type]
                 
                 if this_obj.get('ts') is not None and this_obj.get('t') is not None:
@@ -1086,6 +1105,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                     return obj
             
             return None
+
         def pickObject(self, type):
             """
             Finds the object that works for the type name passed from the parameter.
@@ -1117,6 +1137,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                     return 'base'
 
             return type
+
         def drawObject(self, tiledata, painter, tiles):
             """
             Draws an object.
@@ -1304,7 +1325,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             """
             Paint_Level2 = False
             if self.object_database['base']['i'] != None:
-                #self.drawObject(self.object_database['base'], painter, tiles)
+                # self.drawObject(self.object_database['base'], painter, tiles)
                 self.drawEmptyBox('', 'base', painter, fillbrush)
                 Paint_Level2 = True
             
@@ -1313,56 +1334,56 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             
             if Paint_Level2:
                 if self.object_database['top']['i'] != None:
-                    #self.drawObject(self.object_database['top'], painter, tiles)
+                    # self.drawObject(self.object_database['top'], painter, tiles)
                     self.drawEmptyBox('', 'top', painter, fillbrush)
                 
                 else:
                     self.drawEmptyBox('TOP', 'top', painter, fillbrush)
                 
                 if self.object_database['right']['i'] != None:
-                    #self.drawObject(self.object_database['right'], painter, tiles)
+                    # self.drawObject(self.object_database['right'], painter, tiles)
                     self.drawEmptyBox('', 'right', painter, fillbrush)
                 
                 else:
                     self.drawEmptyBox('RIGHT', 'right', painter, fillbrush)
                 
                 if self.object_database['bottom']['i'] != None:
-                    #self.drawObject(self.object_database['bottom'], painter, tiles)
+                    # self.drawObject(self.object_database['bottom'], painter, tiles)
                     self.drawEmptyBox('', 'bottom', painter, fillbrush)
                 
                 else:
                     self.drawEmptyBox('BOTTOM', 'bottom', painter, fillbrush)
                 
                 if self.object_database['left']['i'] != None:
-                    #self.drawObject(self.object_database['left'], painter, tiles)
+                    # self.drawObject(self.object_database['left'], painter, tiles)
                     self.drawEmptyBox('', 'left', painter, fillbrush)
                 
                 else:
                     self.drawEmptyBox('LEFT', 'left', painter, fillbrush)
                 
                 if self.object_database['topRight']['i'] != None:
-                    #self.drawObject(self.object_database['topRight'], painter, tiles)
+                    # self.drawObject(self.object_database['topRight'], painter, tiles)
                     self.drawEmptyBox('', 'topRight', painter, fillbrush)
                 
                 else:
                     self.drawEmptyBox('TOPRIGHT', 'topRight', painter, fillbrush)
                 
                 if self.object_database['bottomRight']['i'] != None:
-                    #self.drawObject(self.object_database['bottomRight'], painter, tiles)
+                    # self.drawObject(self.object_database['bottomRight'], painter, tiles)
                     self.drawEmptyBox('', 'bottomRight', painter, fillbrush)
                 
                 else:
                     self.drawEmptyBox('BOTTOMRIGHT', 'bottomRight', painter, fillbrush)
                 
                 if self.object_database['bottomLeft']['i'] != None:
-                    #self.drawObject(self.object_database['bottomLeft'], painter, tiles)
+                    # self.drawObject(self.object_database['bottomLeft'], painter, tiles)
                     self.drawEmptyBox('', 'bottomLeft', painter, fillbrush)
                 
                 else:
                     self.drawEmptyBox('BOTTOMLEFT', 'bottomLeft', painter, fillbrush)
                 
                 if self.object_database['topLeft']['i'] != None:
-                    #self.drawObject(self.object_database['topLeft'], painter, tiles)
+                    # self.drawObject(self.object_database['topLeft'], painter, tiles)
                     self.drawEmptyBox('', 'topLeft', painter, fillbrush)
                 
                 else:
@@ -1375,28 +1396,28 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             Draws the corner objects.
             """
             if self.object_database['topRightCorner']['i'] != None:
-                #self.drawObject(self.object_database['topRightCorner'], painter, tiles)
+                self.drawObject(self.object_database['topRightCorner'], painter, tiles)
                 self.drawEmptyBox('', 'topRightCorner', painter, fillbrush)
             
             else:
                 self.drawEmptyBox('TOPRIGHTCORNER', 'topRightCorner', painter, fillbrush)
             
             if self.object_database['bottomRightCorner']['i'] != None:
-                #self.drawObject(self.object_database['bottomRightCorner'], painter, tiles)
+                self.drawObject(self.object_database['bottomRightCorner'], painter, tiles)
                 self.drawEmptyBox('', 'bottomRightCorner', painter, fillbrush)
             
             else:
                 self.drawEmptyBox('BOTTOMRIGHTCORNER', 'bottomRightCorner', painter, fillbrush)
             
             if self.object_database['bottomLeftCorner']['i'] != None:
-                #self.drawObject(self.object_database['bottomLeftCorner'], painter, tiles)
+                self.drawObject(self.object_database['bottomLeftCorner'], painter, tiles)
                 self.drawEmptyBox('', 'bottomLeftCorner', painter, fillbrush)
             
             else:
                 self.drawEmptyBox('BOTTOMLEFTCORNER', 'bottomLeftCorner', painter, fillbrush)
             
             if self.object_database['topLeftCorner']['i'] != None:
-                #self.drawObject(self.object_database['topLeftCorner'], painter, tiles)
+                self.drawObject(self.object_database['topLeftCorner'], painter, tiles)
                 self.drawEmptyBox('', 'topLeftCorner', painter, fillbrush)
             else:
                 self.drawEmptyBox('TOPLEFTCORNER', 'topLeftCorner', painter, fillbrush)
@@ -1422,7 +1443,9 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
 				
             if self.drawMainIsland(painter, tiles, fillbrush):
                 self.drawCornerObjects(painter, tiles, fillbrush)
-            if self.BadObjectWarning: self.parent.ShowBadObjectWarning()
+
+            if self.BadObjectWarning:
+                self.parent.ShowBadObjectWarning()
 
     def openTextForm(self):
         """

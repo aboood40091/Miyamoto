@@ -605,8 +605,8 @@ class MiyamotoTranslation():
                 31: 'Display lines indicating the leftmost x-position where entrances can be safely placed in zones',
                 },
             'QuickPaint': {
-				1: "WOAH! Watch out!",
-				2: "Uh oh, it looks like there are objects in this preset that don't exist. Please remove them immediately![br]If you use the Quick Paint tool with non-existing objects, the game will likely CRASH when loading the level!",
+                1: "WOAH! Watch out!",
+                2: "Uh oh, it looks like there are objects in this preset that don't exist. Please remove them immediately![br]If you use the Quick Paint tool with non-existing objects, the game will likely CRASH when loading the level!",
                 3: "Quick Paint Tool",
                 4: "Paint",
                 5: "Erase",
@@ -618,7 +618,7 @@ class MiyamotoTranslation():
                 11: "Are you sure you want to delete this preset? You cannot undo this action.",
                 12: "Overwrite this preset?",
                 13: "Name Preset"
-			},
+                },
             'Ribbon': {
                 0: '&Home',
                 1: '&Actions',
