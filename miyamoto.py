@@ -64,6 +64,7 @@ from gamedefs import *
 import globals
 from items import *
 from level import *
+from libyaz0 import decompress as Yaz0Dec
 from loading import *
 from misc import *
 from quickpaint import *
@@ -1946,28 +1947,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Decompress, if needed (Yaz0)
         if data.startswith(b'Yaz0'):
             print('Beginning Yaz0 decompression...')
-            course_name = os.path.splitext(globals.mainWindow.fileSavePath)[0]
-            if platform.system() == 'Windows':
-                os.chdir(globals.miyamoto_path + '/Tools')
-                os.system('wszst.exe DECOMPRESS "' + fn + '" --dest "' + course_name + '.tmp"')
-                os.chdir(globals.miyamoto_path)
-            elif platform.system() == 'Linux':
-                os.chdir(globals.miyamoto_path + '/linuxTools')
-                os.system('chmod +x ./wszst_linux.elf')
-                os.system('./wszst_linux.elf DECOMPRESS "' + fn + '" --dest "' + course_name + '.tmp"')
-                os.chdir(globals.miyamoto_path)
-            elif platform.system() == 'Darwin':
-                os.system(
-                    'open -a "' + globals.miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + fn + '" --dest "' + course_name + '.tmp"')
-            else:
-                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                   'Not a supported platform, sadly...')
-                warningBox.exec_()
-                return
-            os.chdir(globals.miyamoto_path)
-            with open(course_name + '.tmp', 'rb') as f:
-                data = f.read()
-            os.remove(course_name + '.tmp')
+            data = Yaz0Dec(data)
             print('Decompression finished.')
         elif data.startswith(b'SARC'):
             print('Yaz0 decompression skipped.')
@@ -2991,30 +2971,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 # Decompress, if needed (Yaz0)
                 if levelData.startswith(b'Yaz0'):
                     print('Beginning Yaz0 decompression...')
-                    course_name = os.path.splitext(globals.mainWindow.fileSavePath)[0]
-                    if platform.system() == 'Windows':
-                        os.chdir(globals.miyamoto_path + '/Tools')
-                        os.system(
-                            'wszst.exe DECOMPRESS "' + globals.mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
-                        os.chdir(globals.miyamoto_path)
-                    elif platform.system() == 'Linux':
-                        os.chdir(globals.miyamoto_path + '/linuxTools')
-                        os.system('chmod +x ./wszst_linux.elf')
-                        os.system(
-                            './wszst_linux.elf DECOMPRESS "' + globals.mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
-                        os.chdir(globals.miyamoto_path)
-                    elif platform.system() == 'Darwin':
-                        os.system(
-                            'open -a "' + globals.miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + globals.mainWindow.fileSavePath + '" --dest "' + course_name + '.tmp"')
-                    else:
-                        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                           'Not a supported platform, sadly...')
-                        warningBox.exec_()
-                        return
-                    os.chdir(globals.miyamoto_path)
-                    with open(course_name + '.tmp', 'rb') as f:
-                        levelData = f.read()
-                    os.remove(course_name + '.tmp')
+                    levelData = Yaz0Dec(levelData)
                     print('Decompression finished.')
                 elif levelData.startswith(b'SARC'):
                     print('Yaz0 decompression skipped.')
@@ -3109,35 +3066,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.fileSavePath = False
             self.fileTitle = 'untitled'
 
-            if platform.system() == 'Windows':
-                os.chdir(globals.miyamoto_path + '/Tools')
-                os.system(
-                    'wszst.exe DECOMPRESS "' + globals.miyamoto_path + '/miyamotoextras/Pa0_jyotyu.szs" --dest "' + globals.miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc"')
-                os.chdir(globals.miyamoto_path)
+            with open(globals.miyamoto_path + "/miyamotoextras/Pa0_jyotyu.szs", "rb") as inf:
+                inb = inf.read()
 
-            elif platform.system() == 'Linux':
-                os.chdir(globals.miyamoto_path + '/linuxTools')
-                os.system('chmod +x ./wszst_linux.elf')
-                os.system(
-                    './wszst_linux.elf DECOMPRESS "' + globals.miyamoto_path + '/miyamotoextras/Pa0_jyotyu.szs" --dest "' + globals.miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc"')
-                os.chdir(globals.miyamoto_path)
-
-            elif platform.system() == 'Darwin':
-                os.system(
-                    'open -a "' + globals.miyamoto_path + '/macTools/wszst_mac" --args DECOMPRESS "' + globals.miyamoto_path + '/miyamotoextras/Pa0_jyotyu.szs" --dest "' + globals.miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc"')
-
-            else:
-                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                   'Not a supported platform, sadly...')
-                warningBox.exec_()
-                return
-
-            os.chdir(globals.miyamoto_path)
-
-            with open(globals.miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc', 'rb') as f:
-                globals.szsData = {'Pa0_jyotyu': f.read()}
-
-            os.remove(globals.miyamoto_path + '/miyamotoextras/Pa0_jyotyu.sarc')
+            data = Yaz0Dec(inb)
+            globals.szsData = {'Pa0_jyotyu': data}
 
         # Turn the dirty flag off, and keep it that way
         globals.Dirty = False
