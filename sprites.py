@@ -2340,12 +2340,7 @@ class SpriteImage_PipeUp(SpriteImage_Pipe): # 139
         
         size = self.parent.spritedata[3]
         
-        if size == 0:
-            self.big = False
-            self.painted = False
-            self.width = 32
-            self.xOffset = 0
-        elif size == 1:
+        if size == 1:
             self.big = False
             self.painted = True
             self.width = 32
@@ -2373,18 +2368,12 @@ class SpriteImage_PipeDown(SpriteImage_Pipe): # 140
         
         size = self.parent.spritedata[3]
         
-        if size == 0:
-            self.big = False
-            self.painted = False
-            self.width = 32
-            self.xOffset = 0
-            self.yOffset = 0
-        elif size == 1:
+        if size == 1:
             self.big = False
             self.painted = True
             self.width = 32
             self.xOffset = 0
-            self.yOffset = -16
+            self.yOffset = 0
         elif size == 2:
             self.big = True
             self.painted = False
@@ -2410,13 +2399,7 @@ class SpriteImage_PipeLeft(SpriteImage_Pipe): # 141
         
         size = self.parent.spritedata[3]
         
-        if size == 0:
-            self.big = False
-            self.painted = False
-            self.height = 32
-            self.yOffset = 0
-            self.xOffset = 0
-        elif size == 1:
+        if size == 1:
             self.big = False
             self.painted = True
             self.height = 32
@@ -2444,12 +2427,7 @@ class SpriteImage_PipeRight(SpriteImage_Pipe): # 142
         
         size = self.parent.spritedata[3]
         
-        if size == 0:
-            self.big = False
-            self.painted = False
-            self.height = 32
-            self.yOffset = 0
-        elif size == 1:
+        if size == 1:
             self.big = False
             self.painted = True
             self.height = 32

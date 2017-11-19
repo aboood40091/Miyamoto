@@ -105,7 +105,7 @@ cdef bytearray CompressYazFast(src):
     return dest
 
 
-# This is currently as fast as the Python version, I will try to improve it later
+# This is currently very slow, I will try to improve it later
 cpdef bytearray CompressYaz(src, level):
     cdef bytearray dest = bytearray()
     cdef u32 src_end = len(src)
@@ -160,12 +160,12 @@ cpdef bytearray CompressYaz(src, level):
             if found_len >= 3 and found != -1:
                 delta = search_len - found - 1
                 if found_len < 0x12:
-                    buffer += bytes([delta >> 8 | (found_len - 2) << 4])
-                    buffer += bytes([delta & 0xFF])
+                    buffer.append(delta >> 8 | (found_len - 2) << 4)
+                    buffer.append(delta & 0xFF)
                 else:
-                    buffer += bytes([delta >> 8])
-                    buffer += bytes([delta & 0xFF])
-                    buffer += bytes([(found_len - 0x12) & 0xFF])
+                    buffer.append(delta >> 8)
+                    buffer.append(delta & 0xFF)
+                    buffer.append((found_len - 0x12) & 0xFF)
                 pos += found_len
 
             else:
@@ -176,7 +176,7 @@ cpdef bytearray CompressYaz(src, level):
 
                 code_byte |= 1 << (7 - i)
 
-        dest += bytes([code_byte])
+        dest.append(code_byte)
         dest += buffer
 
     return dest
