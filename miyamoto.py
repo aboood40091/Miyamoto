@@ -203,8 +203,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 self.LoadLevel(curgame, globals.FirstLevels[curgame], False, 1)
         else:
             filetypes = ''
-            filetypes += globals.trans.string('FileDlgs', 1) + ' (*.szs);;'
-            filetypes += 'Uncompressed Level Archives (*.sarc);;'
+            filetypes += globals.trans.string('FileDlgs', 1) + ' (*.sarc *.szs);;'
+            filetypes += globals.trans.string('FileDlgs', 8) + ' (*.szs);;'
+            filetypes += globals.trans.string('FileDlgs', 9) + ' (*.sarc);;'
             filetypes += globals.trans.string('FileDlgs', 2) + ' (*)'
             fn = QtWidgets.QFileDialog.getOpenFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
             if fn:
@@ -1995,8 +1996,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 return
 
         filetypes = ''
-        filetypes += globals.trans.string('FileDlgs', 1) + ' (*.szs);;'
-        filetypes += 'Uncompressed Level Archives (*.sarc);;'
+        filetypes += globals.trans.string('FileDlgs', 1) + ' (*.sarc *.szs);;'
+        filetypes += globals.trans.string('FileDlgs', 8) + ' (*.szs);;'
+        filetypes += globals.trans.string('FileDlgs', 9) + ' (*.sarc);;'
         filetypes += globals.trans.string('FileDlgs', 2) + ' (*)'
         fn = QtWidgets.QFileDialog.getOpenFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return
@@ -2335,8 +2337,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if self.CheckDirty(): return
 
         filetypes = ''
-        filetypes += globals.trans.string('FileDlgs', 1) + ' (*.szs);;'
-        filetypes += 'Uncompressed Level Archives (*.sarc);;'
+        filetypes += globals.trans.string('FileDlgs', 1) + ' (*.sarc *.szs);;'
+        filetypes += globals.trans.string('FileDlgs', 8) + ' (*.szs);;'
+        filetypes += globals.trans.string('FileDlgs', 9) + ' (*.sarc);;'
         filetypes += globals.trans.string('FileDlgs', 2) + ' (*)'
         fn = QtWidgets.QFileDialog.getOpenFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return
@@ -2458,8 +2461,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Save a level back to the archive, with a new filename
         """
         filetypes = ''
-        filetypes += globals.trans.string('FileDlgs', 1) + ' (*.szs);;'
-        filetypes += 'Uncompressed Level Archives (*.sarc);;'
+        filetypes += globals.trans.string('FileDlgs', 1) + ' (*.sarc *.szs);;'
+        filetypes += globals.trans.string('FileDlgs', 8) + ' (*.szs);;'
+        filetypes += globals.trans.string('FileDlgs', 9) + ' (*.sarc);;'
         filetypes += globals.trans.string('FileDlgs', 2) + ' (*)'
         fn = QtWidgets.QFileDialog.getSaveFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return False
@@ -2472,13 +2476,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # this is one of the few ways, if there's no - it will certainly crash
         failure = False
         name = self.getInnerSarcName()
+        if name == "":
+            return False
         # oh noes there's no - !!!
-        if "-" not in name:
+        elif "-" not in name:
             warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning',
                                                'The input name does not include a -, which is what retail levels use. \nThis may crash, because it does not fit the proper format.')
             warningBox.exec_()
-        elif name == "":
-            return False
 
         data = globals.Level.save(name)
         globals.levelNameCache = name

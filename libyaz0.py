@@ -49,13 +49,13 @@ def decompress(data):
 
 
 def compress(data, unk=0, level=9):
-    data = yaz0.CompressYaz(data, level)
+    compressed_data = yaz0.CompressYaz(data, level)
 
     result = bytearray(b'Yaz0')
     result += len(data).to_bytes(4, "big")
     result += unk.to_bytes(4, "big")
     result += bytes(4)
-    result += data
+    result += compressed_data
 
     return result
 
