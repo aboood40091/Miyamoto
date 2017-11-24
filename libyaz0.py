@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # libyaz0
-# Version 0.2
+# Version 0.3
 # Copyright © 2017 MasterVermilli0n / AboodXD
 
 # This file is part of libyaz0.
