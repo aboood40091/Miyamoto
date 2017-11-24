@@ -38,15 +38,11 @@ if currentRunningVersion < minimum:
     raise Exception(errormsg)
 
 # Stdlib imports
-import base64
 import json
 import os
-import pickle
 import platform
 import struct
 import sys
-from xml.etree import ElementTree as etree
-import zipfile
 
 # PyQt5: import, and error msg if not installed
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -65,6 +61,7 @@ import globals
 from items import *
 from level import *
 from libyaz0 import decompress as Yaz0Dec
+from libyaz0 import compress as Yaz0Comp
 from loading import *
 from misc import *
 from quickpaint import *
@@ -222,6 +219,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.HandleSpriteImages: globals.SpriteImagesShown,
             self.HandleLocationsVisibility: globals.LocationsShown,
             self.HandleCommentsVisibility: globals.CommentsShown,
+            self.HandlePathsVisibility: globals.PathsShown,
         }
         for handler in toggleHandlers:
             handler(
@@ -270,6 +268,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                           globals.trans.string('MenuItems', 9), QtGui.QKeySequence.Save)
         self.CreateAction('saveas', self.HandleSaveAs, GetIcon('saveas'), globals.trans.string('MenuItems', 10),
                           globals.trans.string('MenuItems', 11), QtGui.QKeySequence.SaveAs)
+        self.CreateAction('metainfo', self.HandleInfo, GetIcon('info'), globals.trans.string('MenuItems', 12),
+                          globals.trans.string('MenuItems', 13), QtGui.QKeySequence('Ctrl+Alt+I'))
         self.CreateAction('screenshot', self.HandleScreenshot, GetIcon('screenshot'), globals.trans.string('MenuItems', 14),
                           globals.trans.string('MenuItems', 15), QtGui.QKeySequence('Ctrl+Alt+S'))
         self.CreateAction('changegamepath', self.HandleChangeGamePath, GetIcon('folderpath'),
@@ -350,6 +350,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.CreateAction('showcomments', self.HandleCommentsVisibility, GetIcon('comments'),
                           globals.trans.string('MenuItems', 116), globals.trans.string('MenuItems', 117), QtGui.QKeySequence('Ctrl+0'),
                           True)
+        self.CreateAction('showpaths', self.HandlePathsVisibility, GetIcon('paths'),
+                          globals.trans.string('MenuItems', 138), globals.trans.string('MenuItems', 139), QtGui.QKeySequence('Ctrl+*'),
+                          True)
         self.CreateAction('fullscreen', self.HandleFullscreen, GetIcon('fullscreen'), globals.trans.string('MenuItems', 126),
                           globals.trans.string('MenuItems', 127), QtGui.QKeySequence('Ctrl+U'), True)
         self.CreateAction('grid', self.HandleSwitchGrid, GetIcon('grid'), globals.trans.string('MenuItems', 60),
@@ -401,6 +404,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.actions['showspriteimages'].setChecked(globals.SpriteImagesShown)
         self.actions['showlocations'].setChecked(globals.LocationsShown)
         self.actions['showcomments'].setChecked(globals.CommentsShown)
+        self.actions['showpaths'].setChecked(globals.PathsShown)
 
         self.actions['freezeobjects'].setChecked(globals.ObjectsFrozen)
         self.actions['freezesprites'].setChecked(globals.SpritesFrozen)
@@ -409,7 +413,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.actions['freezepaths'].setChecked(globals.PathsFrozen)
         self.actions['freezecomments'].setChecked(globals.CommentsFrozen)
 
-        self.actions['overwritesprite'].setChecked(globals.OverwriteSprite)
+        self.actions['overwritesprite'].setChecked(not globals.OverwriteSprite)
 
         self.actions['cut'].setEnabled(False)
         self.actions['copy'].setEnabled(False)
@@ -430,6 +434,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addSeparator()
         fmenu.addAction(self.actions['save'])
         fmenu.addAction(self.actions['saveas'])
+        fmenu.addAction(self.actions['metainfo'])
         fmenu.addSeparator()
         fmenu.addAction(self.actions['screenshot'])
         fmenu.addAction(self.actions['changegamepath'])
@@ -471,6 +476,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         vmenu.addAction(self.actions['showspriteimages'])
         vmenu.addAction(self.actions['showlocations'])
         vmenu.addAction(self.actions['showcomments'])
+        vmenu.addAction(self.actions['showpaths'])
         vmenu.addSeparator()
         vmenu.addAction(self.actions['fullscreen'])
         vmenu.addAction(self.actions['grid'])
@@ -551,6 +557,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'openrecent',
                 'save',
                 'saveas',
+                'metainfo',
                 'screenshot',
                 'changegamepath',
                 'changeobjpath',
@@ -589,6 +596,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'showsprites',
                 'showspriteimages',
                 'showlocations',
+                'showpaths',
             ), (
                 'areaoptions',
                 'zones',
@@ -737,6 +745,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.pathEditor = PathNodeEditorWidget()
         dock.setWidget(self.pathEditor)
         self.pathEditorDock = dock
+
+        self.addDockWidget(Qt.RightDockWidgetArea, dock)
+        dock.setFloating(True)
+
+        # create the nabbit path node editor panel
+        dock = QtWidgets.QDockWidget(globals.trans.string('PathDataEditor', 13), self)
+        dock.setVisible(False)
+        dock.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable | QtWidgets.QDockWidget.DockWidgetFloatable)
+        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        dock.setObjectName('pathnodeeditor')  # needed for the state to save/restore correctly
+
+        self.nabbitPathEditor = NabbitPathNodeEditorWidget()
+        dock.setWidget(self.nabbitPathEditor)
+        self.nabbitPathEditorDock = dock
 
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
         dock.setFloating(True)
@@ -1012,6 +1034,24 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         pathel.addWidget(deselectbtn)
         pathel.addWidget(self.pathList)
 
+        # nabbit path tab
+        self.nabbitPathEditorTab = QtWidgets.QWidget()
+        tabs.addTab(self.nabbitPathEditorTab, GetIcon('nabbitpath'), '')
+        tabs.setTabToolTip(5, globals.trans.string('Palette', 36))
+
+        nabbitPathel = QtWidgets.QVBoxLayout(self.nabbitPathEditorTab)
+        self.nabbitPathEditorLayout = nabbitPathel
+
+        nabbitPathlabel = QtWidgets.QLabel(globals.trans.string('Palette', 37))
+        nabbitPathlabel.setWordWrap(True)
+        self.nabbitPathList = ListWidgetWithToolTipSignal()
+        self.nabbitPathList.itemActivated.connect(self.HandleNabbitPathSelectByList)
+        self.nabbitPathList.toolTipAboutToShow.connect(self.HandleNabbitPathToolTipAboutToShow)
+        self.nabbitPathList.setSortingEnabled(True)
+
+        nabbitPathel.addWidget(nabbitPathlabel)
+        nabbitPathel.addWidget(self.nabbitPathList)
+
         # events tab
         self.eventEditorTab = QtWidgets.QWidget()
         tabs.addTab(self.eventEditorTab, GetIcon('events'), '')
@@ -1098,6 +1138,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.commentsTab = QtWidgets.QWidget()
         tabs.addTab(self.commentsTab, GetIcon('comments'), '')
         tabs.setTabToolTip(8, globals.trans.string('Palette', 33))
+        tabs.setTabEnabled(8, False)
 
         cel = QtWidgets.QVBoxLayout()
         self.commentsTab.setLayout(cel)
@@ -2095,6 +2136,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             if reply == QtWidgets.QMessageBox.Yes:
                 if not self.HandleSave(): return
+
             else:
                 return
 
@@ -2109,33 +2151,25 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # no error checking. if it saved last time, it will probably work now
 
         if self.fileSavePath.endswith('.szs'):
-            course_name = os.path.splitext(self.fileSavePath)[0]
-            with open(course_name + '.tmp', 'wb') as f:
+            if not globals.CompLevel:  # Compress using libyaz0
+                with open(self.fileSavePath, 'wb+') as f:
+                    f.write(Yaz0Comp(globals.Level.saveNewArea(name, None, None, None, None), 0, 0))
+
+            else:  # Compress using WSZST
+                course_name = os.path.splitext(self.fileSavePath)[0]
+                with open(course_name + '.tmp', 'wb') as f:
+                    f.write(globals.Level.saveNewArea(name, None, None, None, None))
+
+                if not compressWSZST(course_name + '.tmp', self.fileSavePath):
+                    os.remove(course_name + '.tmp')
+                    return
+
+                os.remove(course_name + '.tmp')
+
+        else:
+            with open(self.fileSavePath, 'wb+') as f:
                 f.write(globals.Level.saveNewArea(name, None, None, None, None))
 
-            if os.path.isfile(self.fileSavePath):
-                os.remove(self.fileSavePath)
-            if platform.system() == 'Windows':
-                os.chdir(globals.miyamoto_path + '/Tools')
-                os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-                os.chdir(globals.miyamoto_path)
-            elif platform.system() == 'Linux':
-                os.chdir(globals.miyamoto_path + '/linuxTools')
-                os.system('chmod +x ./wszst_linux.elf')
-                os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-                os.chdir(globals.miyamoto_path)
-            elif platform.system() == 'Darwin':
-                os.system(
-                    'open -a "' + globals.miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-            else:
-                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                   'Not a supported platform, sadly...')
-                warningBox.exec_()
-                return
-            os.remove(course_name + '.tmp')
-        else:
-            with open(self.fileSavePath, 'wb') as f:
-                f.write(globals.Level.saveNewArea(name, None, None, None, None))
         globals.levelNameCache = name
 
         if globals.CurrentArea in globals.ObjectAddedtoEmbedded:  # Should always be true
@@ -2248,6 +2282,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         name = str(dlg.generalTab.Trans.itemData(dlg.generalTab.Trans.currentIndex(), Qt.UserRole))
         setSetting('Translation', name)
 
+        # Get the compression level
+        globals.CompLevel = dlg.generalTab.compLevel.currentIndex()
+        setSetting('CompLevel', globals.CompLevel)
+
         # Get the Toolbar tab settings
         boxes = (
         dlg.toolbarTab.FileBoxes, dlg.toolbarTab.EditBoxes, dlg.toolbarTab.ViewBoxes, dlg.toolbarTab.SettingsBoxes,
@@ -2315,6 +2353,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if not globals.mainWindow.fileSavePath:
             if not self.HandleSaveAs():
                 return False
+
             else:
                 return True
 
@@ -2328,34 +2367,25 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.levelNameCache = name
         try:
             if globals.mainWindow.fileSavePath.endswith('.szs'):
-                course_name = os.path.splitext(globals.mainWindow.fileSavePath)[0]
-                with open(course_name + '.tmp', 'wb') as f:
+                if not globals.CompLevel:  # Compress using libyaz0
+                    with open(globals.mainWindow.fileSavePath, 'wb+') as f:
+                        f.write(Yaz0Comp(data, 0, 0))
+
+                else:  # Compress using WSZST
+                    course_name = os.path.splitext(globals.mainWindow.fileSavePath)[0]
+                    with open(course_name + '.tmp', 'wb') as f:
+                        f.write(data)
+
+                    if not compressWSZST(course_name + '.tmp', globals.mainWindow.fileSavePath):
+                        os.remove(course_name + '.tmp')
+                        return
+
+                    os.remove(course_name + '.tmp')
+
+            else:
+                with open(globals.mainWindow.fileSavePath, 'wb+') as f:
                     f.write(data)
 
-                if os.path.isfile(globals.mainWindow.fileSavePath):
-                    os.remove(globals.mainWindow.fileSavePath)
-                if platform.system() == 'Windows':
-                    os.chdir(globals.miyamoto_path + '/Tools')
-                    os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + globals.mainWindow.fileSavePath + '"')
-                    os.chdir(globals.miyamoto_path)
-                elif platform.system() == 'Linux':
-                    os.chdir(globals.miyamoto_path + '/linuxTools')
-                    os.system('chmod +x ./wszst_linux.elf')
-                    os.system(
-                        './wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + globals.mainWindow.fileSavePath + '"')
-                    os.chdir(globals.miyamoto_path)
-                elif platform.system() == 'Darwin':
-                    os.system(
-                        'open -a "' + globals.miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + globals.mainWindow.fileSavePath + '"')
-                else:
-                    warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                       'Not a supported platform, sadly...')
-                    warningBox.exec_()
-                    return
-                os.remove(course_name + '.tmp')
-            else:
-                with open(globals.mainWindow.fileSavePath, 'wb') as f:
-                    f.write(data)
         except IOError as e:
             QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 0),
                                           globals.trans.string('Err_Save', 1, '[err1]', e.args[0], '[err2]', e.args[1]))
@@ -2390,34 +2420,25 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.levelNameCache = name
         try:
             if globals.mainWindow.fileSavePath.endswith('.szs'):
-                course_name = os.path.splitext(globals.mainWindow.fileSavePath)[0]
-                with open(course_name + '.tmp', 'wb') as f:
+                if not globals.CompLevel:  # Compress using libyaz0
+                    with open(globals.mainWindow.fileSavePath, 'wb+') as f:
+                        f.write(Yaz0Comp(data, 0, 0))
+
+                else:  # Compress using WSZST
+                    course_name = os.path.splitext(globals.mainWindow.fileSavePath)[0]
+                    with open(course_name + '.tmp', 'wb') as f:
+                        f.write(data)
+
+                    if not compressWSZST(course_name + '.tmp', globals.mainWindow.fileSavePath):
+                        os.remove(course_name + '.tmp')
+                        return
+
+                    os.remove(course_name + '.tmp')
+
+            else:
+                with open(globals.mainWindow.fileSavePath, 'wb+') as f:
                     f.write(data)
 
-                if os.path.isfile(globals.mainWindow.fileSavePath):
-                    os.remove(globals.mainWindow.fileSavePath)
-                if platform.system() == 'Windows':
-                    os.chdir(globals.miyamoto_path + '/Tools')
-                    os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + globals.mainWindow.fileSavePath + '"')
-                    os.chdir(globals.miyamoto_path)
-                elif platform.system() == 'Linux':
-                    os.chdir(globals.miyamoto_path + '/linuxTools')
-                    os.system('chmod +x ./wszst_linux.elf')
-                    os.system(
-                        './wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + globals.mainWindow.fileSavePath + '"')
-                    os.chdir(globals.miyamoto_path)
-                elif platform.system() == 'Darwin':
-                    os.system(
-                        'open -a "' + globals.miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + globals.mainWindow.fileSavePath + '"')
-                else:
-                    warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                       'Not a supported platform, sadly...')
-                    warningBox.exec_()
-                    return
-                os.remove(course_name + '.tmp')
-            else:
-                with open(globals.mainWindow.fileSavePath, 'wb') as f:
-                    f.write(data)
         except IOError as e:
             QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 0),
                                           globals.trans.string('Err_Save', 1, '[err1]', e.args[0], '[err2]', e.args[1]))
@@ -2444,9 +2465,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if fn == '': return False
         fn = str(fn)
 
-        globals.Dirty = False
-        globals.AutoSaveDirty = False
-
         self.fileSavePath = fn
         self.fileTitle = os.path.basename(fn)
 
@@ -2465,33 +2483,27 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         data = globals.Level.save(name)
         globals.levelNameCache = name
         if self.fileSavePath.endswith('.szs'):
-            course_name = os.path.splitext(self.fileSavePath)[0]
-            with open(course_name + '.tmp', 'wb') as f:
+            if not globals.CompLevel:  # Compress using libyaz0
+                with open(self.fileSavePath, 'wb+') as f:
+                    f.write(Yaz0Comp(data, 0, 0))
+
+            else:  # Compress using WSZST
+                course_name = os.path.splitext(self.fileSavePath)[0]
+                with open(course_name + '.tmp', 'wb') as f:
+                    f.write(data)
+
+                if not compressWSZST(course_name + '.tmp', self.fileSavePath):
+                    os.remove(course_name + '.tmp')
+                    return
+
+                os.remove(course_name + '.tmp')
+
+        else:
+            with open(self.fileSavePath, 'wb+') as f:
                 f.write(data)
 
-            if os.path.isfile(self.fileSavePath):
-                os.remove(self.fileSavePath)
-            if platform.system() == 'Windows':
-                os.chdir(globals.miyamoto_path + '/Tools')
-                os.system('wszst.exe COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-                os.chdir(globals.miyamoto_path)
-            elif platform.system() == 'Linux':
-                os.chdir(globals.miyamoto_path + '/linuxTools')
-                os.system('chmod +x ./wszst_linux.elf')
-                os.system('./wszst_linux.elf COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-                os.chdir(globals.miyamoto_path)
-            elif platform.system() == 'Darwin':
-                os.system(
-                    'open -a "' + globals.miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + course_name + '.tmp" --dest "' + self.fileSavePath + '"')
-            else:
-                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                   'Not a supported platform, sadly...')
-                warningBox.exec_()
-                return
-            os.remove(course_name + '.tmp')
-        else:
-            with open(self.fileSavePath, 'wb') as f:
-                f.write(data)
+        globals.Dirty = False
+        globals.AutoSaveDirty = False
         self.UpdateTitle()
 
         self.RecentMenu.AddToList(self.fileSavePath)
@@ -2668,6 +2680,29 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.scene.update()
 
     @QtCore.pyqtSlot(bool)
+    def HandlePathsVisibility(self, checked):
+        """
+        Handle toggling of path visibility
+        """
+        globals.PathsShown = checked
+
+        if globals.Area is not None:
+            for node in globals.Area.paths:
+                node.setVisible(globals.PathsShown)
+
+            for node in globals.Area.nPaths:
+                node.setVisible(globals.PathsShown)
+
+            for path in globals.Area.pathdata:
+                path['peline'].setVisible(globals.PathsShown)
+
+            if globals.Area.nPathdata:
+                globals.Area.nPathdata['peline'].setVisible(globals.PathsShown)
+
+        setSetting('ShowPaths', globals.PathsShown)
+        self.scene.update()
+
+    @QtCore.pyqtSlot(bool)
     def HandleObjectsFreeze(self, checked):
         """
         Handle toggling of objects being frozen
@@ -2747,6 +2782,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if globals.Area is not None:
             for node in globals.Area.paths:
+                node.setFlag(flag1, not globals.PathsFrozen)
+                node.setFlag(flag2, not globals.PathsFrozen)
+
+            for node in globals.Area.nPaths:
                 node.setFlag(flag1, not globals.PathsFrozen)
                 node.setFlag(flag2, not globals.PathsFrozen)
 
@@ -2916,6 +2955,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.spriteEditorDock.setVisible(False)
             self.entranceEditorDock.setVisible(False)
             self.pathEditorDock.setVisible(False)
+            self.nabbitPathEditorDock.setVisible(False)
             self.locationEditorDock.setVisible(False)
             self.defaultPropDock.setVisible(False)
 
@@ -3112,7 +3152,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.scene.clear()
 
         # Clear out all level-thing lists
-        for thingList in (self.spriteList, self.entranceList, self.locationList, self.pathList, self.commentList):
+        for thingList in (self.spriteList, self.entranceList, self.locationList, self.pathList, self.nabbitPathList, self.commentList):
             thingList.clear()
             thingList.selectionModel().setCurrentIndex(QtCore.QModelIndex(), QtCore.QItemSelectionModel.Clear)
 
@@ -3311,13 +3351,29 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.scene.addItem(path)
             path.UpdateListItem()
 
+        for path in globals.Area.nPaths:
+            path.positionChanged = self.HandlePathPosChange
+            path.listitem = ListWidgetItem_SortsByOther(path)
+            self.nabbitPathList.addItem(path.listitem)
+            self.scene.addItem(path)
+            path.UpdateListItem()
+
         for path in globals.Area.pathdata:
             peline = PathEditorLineItem(path['nodes'])
             path['peline'] = peline
             self.scene.addItem(peline)
             peline.loops = path['loops']
 
+        nPath = globals.Area.nPathdata
+        if nPath:
+            peline = NabbitPathEditorLineItem(nPath['nodes'])
+            nPath['peline'] = peline
+            self.scene.addItem(peline)
+
         for path in globals.Area.paths:
+            path.UpdateListItem()
+
+        for path in globals.Area.nPaths:
             path.UpdateListItem()
 
         for com in globals.Area.comments:
@@ -3373,6 +3429,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         showEntrancePanel = False
         showLocationPanel = False
         showPathPanel = False
+        showNabbitPathPanel = False
         updateModeInfo = False
 
         # clear our variables
@@ -3383,6 +3440,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.entranceList.setCurrentItem(None)
         self.locationList.setCurrentItem(None)
         self.pathList.setCurrentItem(None)
+        self.nabbitPathList.setCurrentItem(None)
         self.commentList.setCurrentItem(None)
 
         # possibly a small optimization
@@ -3392,6 +3450,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         type_ent = EntranceItem
         type_loc = LocationItem
         type_path = PathItem
+        type_nPath = NabbitPathItem
         type_com = CommentItem
 
         if len(selitems) == 0:
@@ -3434,6 +3493,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 self.UpdateFlag = False
                 showPathPanel = True
                 updateModeInfo = True
+            elif func_ii(item, type_nPath):
+                self.creationTabs.setCurrentIndex(5)
+                self.UpdateFlag = True
+                self.nabbitPathList.setCurrentItem(item.listitem)
+                self.UpdateFlag = False
+                showNabbitPathPanel = True
+                updateModeInfo = True
             elif func_ii(item, type_com):
                 self.creationTabs.setCurrentIndex(8)
                 self.UpdateFlag = True
@@ -3458,6 +3524,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         obj = 0
         loc = 0
         path = 0
+        nPath = 0
         com = 0
         for item in selitems:
             if func_ii(item, type_spr):
@@ -3470,6 +3537,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 loc += 1
             elif func_ii(item, type_path):
                 path += 1
+            elif func_ii(item, type_nPath):
+                nPath += 1
             elif func_ii(item, type_com):
                 com += 1
 
@@ -3491,20 +3560,24 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     text = globals.trans.string('Statusbar', 3)  # 1 location selected
                 elif path:
                     text = globals.trans.string('Statusbar', 4)  # 1 path node selected
+                elif nPath:
+                    text = globals.trans.string('Statusbar', 34)  # 1 nabbit path node selected
                 else:
                     text = globals.trans.string('Statusbar', 29)  # 1 comment selected
             else:  # multiple things selected; see if they're all the same type
-                if not any((spr, ent, loc, path, com)):
+                if not any((spr, ent, loc, path, nPath, com)):
                     text = globals.trans.string('Statusbar', 5, '[x]', obj)  # x objects selected
-                elif not any((obj, ent, loc, path, com)):
+                elif not any((obj, ent, loc, path, nPath, com)):
                     text = globals.trans.string('Statusbar', 6, '[x]', spr)  # x sprites selected
-                elif not any((obj, spr, loc, path, com)):
+                elif not any((obj, spr, loc, path, nPath, com)):
                     text = globals.trans.string('Statusbar', 7, '[x]', ent)  # x entrances selected
-                elif not any((obj, spr, ent, path, com)):
+                elif not any((obj, spr, ent, path, nPath, com)):
                     text = globals.trans.string('Statusbar', 8, '[x]', loc)  # x locations selected
-                elif not any((obj, spr, ent, loc, com)):
+                elif not any((obj, spr, ent, nPath, loc, com)):
                     text = globals.trans.string('Statusbar', 9, '[x]', path)  # x path nodes selected
-                elif not any((obj, spr, ent, loc, path)):
+                elif not any((obj, spr, ent, path, loc, com)):
+                    text = globals.trans.string('Statusbar', 35, '[x]', nPath)  # x nabbit path nodes selected
+                elif not any((obj, spr, ent, path, nPath, loc)):
                     text = globals.trans.string('Statusbar', 30, '[x]', com)  # x comments selected
                 else:  # different types
                     text = globals.trans.string('Statusbar', 10, '[x]', len(selitems))  # x items selected
@@ -3514,6 +3587,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         (ent, 16, 17),
                         (loc, 18, 19),
                         (path, 20, 21),
+                        (nPath, 36, 37),
                         (com, 31, 32),
                     )
                     first = True
@@ -3539,6 +3613,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.entranceEditorDock.setVisible(showEntrancePanel)
         self.locationEditorDock.setVisible(showLocationPanel)
         self.pathEditorDock.setVisible(showPathPanel)
+        self.nabbitPathEditorDock.setVisible(showNabbitPathPanel)
 
         if len(self.CurrentSelection) > 0:
             self.actions['deselect'].setEnabled(True)
@@ -3575,9 +3650,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             CPT = 7  # locations
         elif idx == 4:
             CPT = 6  # paths
-        elif idx == 6:
-            CPT = 8  # stamp pad
+        elif idx == 5:
+            CPT = 12  # nabbit path
         elif idx == 7:
+            CPT = 8  # stamp pad
+        elif idx == 8:
             CPT = 9  # comment
 
         globals.CurrentPaintType = CPT
@@ -4307,6 +4384,36 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         path.UpdateListItem(True)
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
+    def HandleNabbitPathSelectByList(self, item):
+        """
+        Handle a path node being selected
+        """
+        nPath = None
+        for check in globals.Area.nPaths:
+            if check.listitem == item:
+                nPath = check
+                break
+        if nPath is None: return
+
+        nPath.ensureVisible(QtCore.QRectF(), 192, 192)
+        self.scene.clearSelection()
+        nPath.setSelected(True)
+
+    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
+    def HandleNabbitPathToolTipAboutToShow(self, item):
+        """
+        Handle a path node being hovered in the list
+        """
+        nPath = None
+        for check in globals.Area.nPaths:
+            if check.listitem == item:
+                nPath = check
+                break
+        if nPath is None: return
+
+        nPath.UpdateListItem(True)
+
+    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleCommentSelectByList(self, item):
         """
         Handle a comment being selected
@@ -4372,6 +4479,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.entranceEditor.setEntrance(self.selObj)
         elif self.pathEditorDock.isVisible():
             self.pathEditor.setPath(self.selObj)
+        elif self.nabbitPathEditorDock.isVisible():
+            self.nabbitPathEditor.setPath(self.selObj)
         elif self.locationEditorDock.isVisible():
             self.locationEditor.setLocation(self.selObj)
 
@@ -4414,6 +4523,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             elif isinstance(hovered, PathItem):  # Path
                 info = globals.trans.string('Statusbar', 27, '[path]', hovered.pathid, '[node]', hovered.nodeid, '[xpos]',
                                     hovered.objx, '[ypos]', hovered.objy)
+            elif isinstance(hovered, NabbitPathItem):  # Nabbit Path
+                info = globals.trans.string('Statusbar', 38, '[node]', hovered.nodeid, '[xpos]', hovered.objx, '[ypos]',
+                                    hovered.objy)
             elif isinstance(hovered, CommentItem):  # Comment
                 info = globals.trans.string('Statusbar', 33, '[xpos]', hovered.objx, '[ypos]', hovered.objy, '[text]',
                                     hovered.OneLineText())
@@ -5072,6 +5184,8 @@ def main():
     globals.SpriteImagesShown = setting('ShowSpriteImages', True)
     globals.LocationsShown = setting('ShowLocations', True)
     globals.CommentsShown = setting('ShowComments', True)
+    globals.PathsShown = setting('ShowPaths', True)
+    globals.CompLevel = setting('CompLevel', 1)
     SLib.RealViewEnabled = globals.RealViewEnabled
 
     # choose a folder for the game

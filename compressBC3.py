@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
 
-# compressBC3_cy.pyx
+# compressBC3.py
 # A Python port of Wexos's Toolbox BC3 compressor.
 
 

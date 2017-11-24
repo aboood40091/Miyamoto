@@ -3210,6 +3210,106 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         globals.mainWindow.scene.update()
 
 
+class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
+    """
+    Widget for editing path node properties
+    """
+
+    def __init__(self, defaultmode=False):
+        """
+        Constructor
+        """
+        super().__init__()
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
+
+        # create widgets
+        self.action = QtWidgets.QComboBox()
+
+        self.action.addItems(['0: Run to the right',
+                              '1: Jump to the next node',
+                              '6: Same as 0?',
+                              '7: Same as 1?',
+                              '8: Same as 0 and look behind?',
+                              '11: Same as 0?',
+                              '20: Same as 0 except don\'t look behind?',
+                              '23: Wait, then slide',
+                              '24: Stop at the next node',
+                              '25: Same as 0?',
+                              '26: Same as 0?'])
+
+        self.action.setToolTip(globals.trans.string('PathDataEditor', 16))
+        self.action.currentIndexChanged.connect(self.HandleActionChanged)
+        self.action.setMaximumWidth(256)
+
+        # create a layout
+        layout = QtWidgets.QGridLayout()
+        self.setLayout(layout)
+
+        # 'Editing Path #' label
+        self.editingLabel = QtWidgets.QLabel('-')
+        layout.addWidget(self.editingLabel, 0, 0, 1, 2, Qt.AlignTop)
+        # add labels
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 15)), 1, 0, 1, 1, Qt.AlignRight)
+
+        # add the widgets
+        layout.addWidget(self.action, 1, 1)
+
+        self.path = None
+        self.UpdateFlag = False
+
+    def setPath(self, path):
+        """
+        Change the path node being edited by the editor, update the action field
+        """
+        if self.path == path: return
+        self.editingLabel.setText(globals.trans.string('PathDataEditor', 14, '[id]', path.nodeid))
+        self.path = path
+        self.UpdateFlag = True
+
+        indecies = {0: 0,
+                    1: 1,
+                    6: 2,
+                    7: 3,
+                    8: 4,
+                    11: 5,
+                    20: 6,
+                    23: 7,
+                    24: 8,
+                    25: 9,
+                    26: 10}
+
+        if path.nodeinfo['action'] in indecies:
+            self.action.setCurrentIndex(indecies[path.nodeinfo['action']])
+
+        else:
+            print("Unknown nabbit path node action found: %d" % path.nodeinfo['action'])
+            self.action.setCurrentIndex(0)
+
+        self.UpdateFlag = False
+
+    @QtCore.pyqtSlot(int)
+    def HandleActionChanged(self, i):
+        """
+        Handler for the action changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+
+        indecies = {0: 0,
+                    1: 1,
+                    2: 6,
+                    3: 7,
+                    4: 8,
+                    5: 11,
+                    6: 20,
+                    7: 23,
+                    8: 24,
+                    9: 25,
+                    10: 26}
+
+        self.path.nodeinfo['action'] = indecies[i]
+
+
 class LocationEditorWidget(QtWidgets.QWidget):
     """
     Widget for editing location properties
@@ -3820,6 +3920,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 if selectedpn is None:
                     getids = [False for x in range(256)]
                     getids[0] = True
+                    getids[90] = True  # Skip Nabbit path
                     for pathdatax in globals.Area.pathdata:
                         # if(len(pathdatax['nodes']) > 0):
                         getids[int(pathdatax['id'])] = True
@@ -4005,6 +4106,93 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 com.UpdateListItem()
 
                 SetDirty()
+
+            
+            elif globals.CurrentPaintType == 12:
+                # paint a nabbit path node
+                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                if clicked.x() < 0: clicked.setX(0)
+                if clicked.y() < 0: clicked.setY(0)
+                clickedx = int((clicked.x() - 12) / globals.TileWidth * 16)
+                clickedy = int((clicked.y() - 12) / globals.TileWidth * 16)
+                mw = globals.mainWindow
+                plist = mw.nabbitPathList
+                selectedpn = None if len(plist.selectedItems()) < 1 else plist.selectedItems()[0]
+                if not globals.Area.nPathdata:
+                    newpathdata = {'nodes': [
+                                       {'x': clickedx, 'y': clickedy, 'action': 0}],
+                                   }
+                    globals.Area.nPathdata = newpathdata
+                    newnode = NabbitPathItem(clickedx, clickedy, newpathdata, newpathdata['nodes'][0], 0, 0, 0, 0)
+                    newnode.positionChanged = mw.HandlePathPosChange
+
+                    mw.scene.addItem(newnode)
+
+                    peline = NabbitPathEditorLineItem(newpathdata['nodes'])
+                    newpathdata['peline'] = peline
+                    mw.scene.addItem(peline)
+
+                    newnode.listitem = ListWidgetItem_SortsByOther(newnode)
+                    plist.clear()
+                    fpath = globals.Area.nPathdata
+                    for fpnode in fpath['nodes']:
+                        fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'],
+                                                                                      fpnode[
+                                                                                          'graphicsitem'].ListString())
+                        plist.addItem(fpnode['graphicsitem'].listitem)
+                        fpnode['graphicsitem'].updateId()
+                    newnode.listitem.setSelected(True)
+                    globals.Area.nPaths.append(newnode)
+
+                    self.dragstamp = False
+                    self.currentobj = newnode
+                    self.dragstartx = clickedx
+                    self.dragstarty = clickedy
+
+                    newnode.UpdateListItem()
+
+                    SetDirty()
+                else:
+                    pathd = None
+                    for pathnode in globals.Area.nPaths:
+                        if selectedpn and pathnode.listitem == selectedpn:
+                            pathd = pathnode.pathinfo
+
+                    if not pathd:
+                        pathd = globals.Area.nPaths[-1].pathinfo
+
+                    newnodedata = {'x': clickedx, 'y': clickedy, 'action': 0}
+                    pathd['nodes'].append(newnodedata)
+                    nodeid = pathd['nodes'].index(newnodedata)
+
+                    newnode = NabbitPathItem(clickedx, clickedy, pathd, newnodedata, 0, 0, 0, 0)
+
+                    newnode.positionChanged = mw.HandlePathPosChange
+                    mw.scene.addItem(newnode)
+
+                    newnode.listitem = ListWidgetItem_SortsByOther(newnode)
+                    plist.clear()
+                    fpath = globals.Area.nPathdata
+                    for fpnode in fpath['nodes']:
+                        fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'],
+                                                                                      fpnode[
+                                                                                          'graphicsitem'].ListString())
+                        plist.addItem(fpnode['graphicsitem'].listitem)
+                        fpnode['graphicsitem'].updateId()
+                    newnode.listitem.setSelected(True)
+                    # globals.PaintingEntrance = ent
+                    # globals.PaintingEntranceListIndex = minimumID
+
+                    globals.Area.nPaths.append(newnode)
+                    pathd['peline'].nodePosChanged()
+                    self.dragstamp = False
+                    self.currentobj = newnode
+                    self.dragstartx = clickedx
+                    self.dragstarty = clickedy
+
+                    newnode.UpdateListItem()
+
+                    SetDirty()
             event.accept()
         elif (event.button() == Qt.LeftButton) and (QtWidgets.QApplication.keyboardModifiers() == Qt.ShiftModifier):
             mw = globals.mainWindow

@@ -24,6 +24,8 @@
 ################################################################
 ################################################################
 
+from xml.etree import ElementTree as etree
+
 from gamedefs import *
 import globals
 from misc import *
@@ -520,6 +522,7 @@ def LoadActionsLists():
         (globals.trans.string('MenuItems', 4), False, 'openfromfile'),
         (globals.trans.string('MenuItems', 8), True, 'save'),
         (globals.trans.string('MenuItems', 10), False, 'saveas'),
+        (globals.trans.string('MenuItems', 12), False, 'metainfo'),
         (globals.trans.string('MenuItems', 14), True, 'screenshot'),
         (globals.trans.string('MenuItems', 16), False, 'changegamepath'),
         (globals.trans.string('MenuItems', 132), False, 'changeobjpath'),
@@ -548,6 +551,7 @@ def LoadActionsLists():
         (globals.trans.string('MenuItems', 54), True, 'showsprites'),
         (globals.trans.string('MenuItems', 56), False, 'showspriteimages'),
         (globals.trans.string('MenuItems', 58), True, 'showlocations'),
+        (globals.trans.string('MenuItems', 138), True, 'showpaths'),
         (globals.trans.string('MenuItems', 60), True, 'grid'),
         (globals.trans.string('MenuItems', 62), True, 'zoommax'),
         (globals.trans.string('MenuItems', 64), True, 'zoomin'),

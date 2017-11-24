@@ -24,6 +24,8 @@
 ################################################################
 ################################################################
 
+import base64
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
@@ -34,6 +36,7 @@ if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
 import globals
 import spritelib as SLib
 from tileset import *
+from ui import *
 from verifications import *
 
 
@@ -1891,6 +1894,8 @@ class PathItem(LevelEditorItem):
         self.setZValue(25002)
         self.UpdateTooltip()
 
+        self.setVisible(globals.PathsShown)
+
         # now that we're inited, set
         self.nodeinfo['graphicsitem'] = self
 
@@ -1976,6 +1981,127 @@ class PathItem(LevelEditorItem):
         self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
 
 
+class NabbitPathItem(LevelEditorItem):
+    """
+    Level editor item that represents a nabbit path node
+    """
+    BoundingRect = QtCore.QRectF(0, 0, globals.TileWidth, globals.TileWidth)
+    SelectionRect = QtCore.QRectF(0, 0, globals.TileWidth, globals.TileWidth)
+    RoundedRect = QtCore.QRectF(1, 1, globals.TileWidth - 2, globals.TileWidth - 2)
+
+    def __init__(self, objx, objy, pathinfo, nodeinfo, unk1, unk2, unk3,
+                 unk4):  # no idea what the unknowns are, so...placeholders!
+        """
+        Creates a nabbit path node with specific data
+        """
+
+        super().__init__()
+
+        self.font = globals.NumberFont
+        self.objx = objx
+        self.objy = objy
+        self.unk1 = unk1
+        self.unk2 = unk2
+        self.unk3 = unk3
+        self.unk4 = unk4
+        self.nodeid = pathinfo['nodes'].index(nodeinfo)
+        self.pathinfo = pathinfo
+        self.nodeinfo = nodeinfo
+        self.listitem = None
+        self.LevelRect = (QtCore.QRectF(self.objx / 16, self.objy / 16, globals.TileWidth / 16, globals.TileWidth / 16))
+        self.setFlag(self.ItemIsMovable, not globals.PathsFrozen)
+        self.setFlag(self.ItemIsSelectable, not globals.PathsFrozen)
+
+        globals.DirtyOverride += 1
+        self.setPos(int(objx * globals.TileWidth / 16), int(objy * globals.TileWidth / 16))
+        globals.DirtyOverride -= 1
+
+        self.setZValue(25002)
+        self.UpdateTooltip()
+
+        self.setVisible(globals.PathsShown)
+
+        # now that we're inited, set
+        self.nodeinfo['graphicsitem'] = self
+
+    def UpdateTooltip(self):
+        """
+        Updates the path object's tooltip
+        """
+        self.setToolTip(globals.trans.string('Paths', 2, '[node]', self.nodeid))
+
+    def ListString(self):
+        """
+        Returns a string that can be used to describe the path in a list
+        """
+        return globals.trans.string('Paths', 3, '[node]', self.nodeid)
+
+    def __lt__(self, other):
+        return self.nodeid < other.nodeid
+
+    def updatePos(self):
+        """
+        Our x/y was changed, update pathinfo
+        """
+        self.pathinfo['nodes'][self.nodeid]['x'] = self.objx
+        self.pathinfo['nodes'][self.nodeid]['y'] = self.objy
+
+    def updateId(self):
+        """
+        Path was changed, find our new nodeid
+        """
+        # called when 1. add node 2. delete node 3. change node order
+        # hacky code but it works. considering how pathnodes are stored.
+        self.nodeid = self.pathinfo['nodes'].index(self.nodeinfo)
+        self.UpdateTooltip()
+        self.scene().update()
+        self.UpdateListItem()
+
+        # if node doesn't exist, let Miyamoto implode!
+
+    def paint(self, painter, option, widget):
+        """
+        Paints the path
+        """
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setClipRect(option.exposedRect)
+
+        if self.isSelected():
+            painter.setBrush(QtGui.QBrush(globals.theme.color('nabbit_path_fill_s')))
+            painter.setPen(QtGui.QPen(globals.theme.color('nabbit_path_lines_s'), 1 / 24 * globals.TileWidth))
+        else:
+            painter.setBrush(QtGui.QBrush(globals.theme.color('nabbit_path_fill')))
+            painter.setPen(QtGui.QPen(globals.theme.color('nabbit_path_lines'), 1 / 24 * globals.TileWidth))
+        painter.drawRoundedRect(self.RoundedRect, 4, 4)
+
+        icontype = 0
+
+        painter.setFont(self.font)
+        painter.drawText(self.RoundedRect, Qt.AlignCenter, str(self.nodeid))
+
+    def delete(self):
+        """
+        Delete the path from the level
+        """
+        plist = globals.mainWindow.nabbitPathList
+        globals.mainWindow.UpdateFlag = True
+        plist.takeItem(plist.row(self.listitem))
+        globals.mainWindow.UpdateFlag = False
+        plist.selectionModel().clearSelection()
+        globals.Area.nPaths.remove(self)
+        self.pathinfo['nodes'].remove(self.nodeinfo)
+
+        if (len(self.pathinfo['nodes']) < 1):
+            globals.Area.nPathdata = []
+            self.scene().removeItem(self.pathinfo['peline'])
+
+        # update other nodes' IDs
+        for pathnode in self.pathinfo['nodes']:
+            pathnode['graphicsitem'].updateId()
+
+        self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
+
+
 class PathEditorLineItem(LevelEditorItem):
     """
     Level editor item to draw a line between two path nodes
@@ -1998,6 +2124,8 @@ class PathEditorLineItem(LevelEditorItem):
         self.computeBoundRectAndPos()
         self.setZValue(25002)
         self.UpdateTooltip()
+
+        self.setVisible(globals.PathsShown)
 
     def UpdateTooltip(self):
         """
@@ -2069,6 +2197,41 @@ class PathEditorLineItem(LevelEditorItem):
         self.scene().update()
 
 
+class NabbitPathEditorLineItem(PathEditorLineItem):
+    """
+    Level editor item to draw a line between two nabbit path nodes
+    """
+    def paint(self, painter, option, widget):
+        """
+        Paints the path lines
+        """
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setClipRect(option.exposedRect)
+
+        color = globals.theme.color('nabbit_path_connector')
+        painter.setBrush(QtGui.QBrush(color))
+        painter.setPen(QtGui.QPen(color, 3 * globals.TileWidth / 24, join=Qt.RoundJoin, cap=Qt.RoundCap))
+        ppath = QtGui.QPainterPath()
+
+        lines = []
+
+        firstn = True
+
+        snl = self.nodelist
+        mult = globals.TileWidth / 16
+        for j, node in enumerate(snl):
+            if ((j + 1) < len(snl)):
+                a = QtCore.QPointF(float(snl[j]['x'] * mult) - self.x(), float(snl[j]['y'] * mult) - self.y())
+                b = QtCore.QPointF(float(snl[j + 1]['x'] * mult) - self.x(), float(snl[j + 1]['y'] * mult) - self.y())
+                lines.append(QtCore.QLineF(a, b))
+            elif self.loops and (j + 1) == len(snl):
+                a = QtCore.QPointF(float(snl[j]['x'] * mult) - self.x(), float(snl[j]['y'] * mult) - self.y())
+                b = QtCore.QPointF(float(snl[0]['x'] * mult) - self.x(), float(snl[0]['y'] * mult) - self.y())
+                lines.append(QtCore.QLineF(a, b))
+
+        painter.drawLines(lines)
+
+
 class CommentItem(LevelEditorItem):
     """
     Level editor item that represents a in-level comment
@@ -2090,7 +2253,7 @@ class CommentItem(LevelEditorItem):
         self.objx = x
         self.objy = y
         self.listitem = None
-        self.LevelRect = (QtCore.QRectF(self.objx / 16, self.objy / 16, 3.75, 3.75))
+        self.LevelRect = (QtCore.QRectF(self.objx / 16, self.objy / 16, 5.625, 5.625))
 
         self.setFlag(self.ItemIsMovable, not globals.CommentsFrozen)
         self.setFlag(self.ItemIsSelectable, not globals.CommentsFrozen)
@@ -2106,7 +2269,7 @@ class CommentItem(LevelEditorItem):
         self.TextEditProxy = globals.mainWindow.scene.addWidget(self.TextEdit)
         self.TextEditProxy.setZValue(self.zval)
         self.TextEditProxy.setCursor(Qt.IBeamCursor)
-        self.TextEditProxy.boundingRect = lambda self: QtCore.QRectF(0, 0, 100 * globals.TileWidth, 100 * globals.TileWidth)
+        self.TextEditProxy.boundingRect = lambda self: QtCore.QRectF(0, 0, 4000 * globals.TileWidth / 24, 4000 * globals.TileWidth / 24)
         self.TextEdit.setVisible(False)
         self.TextEdit.setMaximumWidth(192 * globals.TileWidth / 24)
         self.TextEdit.setMaximumHeight(128 * globals.TileWidth / 24)
@@ -2138,7 +2301,11 @@ class CommentItem(LevelEditorItem):
 
         f = None
         if self.listitem is not None: f = self.listitem.font()
-        t2 = clipStr(t, 128, f)
+
+        import misc
+        t2 = misc.clipStr(t, 128, f)
+        del misc
+
         if t2 is not None: t = t2 + '...'
 
         return t
@@ -2180,7 +2347,7 @@ class CommentItem(LevelEditorItem):
             self.TextEditProxy = globals.mainWindow.scene.addWidget(self.TextEdit)
             self.TextEditProxy.setZValue(self.zval)
             self.TextEditProxy.setCursor(Qt.IBeamCursor)
-            self.TextEditProxy.BoundingRect = QtCore.QRectF(0, 0, 100 * globals.TileWidth, 100 * globals.TileWidth)
+            self.TextEditProxy.BoundingRect = QtCore.QRectF(0, 0, 4000 * globals.TileWidth / 24, 4000 * globals.TileWidth / 24)
             self.TextEditProxy.boundingRect = lambda self: self.BoundingRect
             self.TextEdit.setMaximumWidth(192 * globals.TileWidth / 24)
             self.TextEdit.setMaximumHeight(128 * globals.TileWidth / 24)
@@ -2209,8 +2376,8 @@ class CommentItem(LevelEditorItem):
         self.reposTextEdit()
 
         # Manual scene update :(
-        w = 8 * globals.TileWidth + globals.TileWidth
-        h = 16 / 3 * globals.TileWidth + globals.TileWidth
+        w = 192 * globals.TileWidth / 24 + globals.TileWidth
+        h = 128 * globals.TileWidth / 24 + globals.TileWidth
         oldx *= globals.TileWidth / 16
         oldy *= globals.TileWidth / 16
         oldRect = QtCore.QRectF(oldx, oldy, w, h)

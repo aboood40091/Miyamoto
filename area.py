@@ -157,7 +157,9 @@ class Area_NSMBU(AbstractArea):
         self.zones = []
         self.locations = []
         self.pathdata = []
+        self.nPathdata = []
         self.paths = []
+        self.nPaths = []
         self.comments = []
         self.layers = [[], [], []]
 
@@ -190,9 +192,9 @@ class Area_NSMBU(AbstractArea):
         self.LoadPaths()  # block 14 and 15
 
         # Load the editor metadata
-        if self.block1pos[0] != 0x70:
-            rdsize = self.block1pos[0] - 0x70
-            rddata = course[0x70:self.block1pos[0]]
+        if self.block1pos[0] != 0x78:
+            rdsize = self.block1pos[0] - 0x78
+            rddata = course[0x78:self.block1pos[0]]
             self.LoadMiyamotoInfo(rddata)
         else:
             self.LoadMiyamotoInfo(None)
@@ -245,14 +247,18 @@ class Area_NSMBU(AbstractArea):
         self.SavePaths()  # blocks 14 and 15
 
         # Save the metadata
-        rdata = b''
+        rdata = bytearray(self.Metadata.save())
+        if len(rdata) % 4 != 0:
+            for i in range(4 - (len(rdata) % 4)):
+                rdata.append(0)
+        rdata = bytes(rdata)
 
         # Save the main course file
         # We'll be passing over the blocks array two times.
         # Using bytearray here because it offers mutable bytes
         # and works directly with struct.pack_into(), so it's a
         # win-win situation
-        FileLength = (len(self.blocks) * 8) + len(rdata)
+        FileLength = (15 * 8) + len(rdata)
         for block in self.blocks:
             FileLength += len(block)
 
@@ -261,7 +267,8 @@ class Area_NSMBU(AbstractArea):
         saveblock = struct.Struct('>II')
 
         HeaderOffset = 0
-        FileOffset = (len(self.blocks) * 8) + len(rdata)
+        FileOffset = (15 * 8) + len(rdata)
+        struct.pack_into('{0}s'.format(len(rdata)), course, 0x78, rdata)
         for block in self.blocks:
             blocksize = len(block)
             saveblock.pack_into(course, HeaderOffset, FileOffset, blocksize)
@@ -515,25 +522,41 @@ class Area_NSMBU(AbstractArea):
         paths = []
         for i in range(pathcount):
             data = unpack(pathdata, offset)
+
+            if data[0] == 90:
+                self.LoadNabbitPath(data)
+                continue
+
             nodes = self.LoadPathNodes(data[2], data[3])
             add2p = {'id': int(data[0]),
                      'unk1': int(data[1]),  # no idea what this is
-                     'nodes': [],
+                     'nodes': [node for node in nodes],
                      'loops': data[4] == 2,
                      }
-            for node in nodes:
-                add2p['nodes'].append(node)
             pathinfo.append(add2p)
 
             offset += 12
 
-        for i in range(pathcount):
-            xpi = pathinfo[i]
+        for xpi in pathinfo:
+            if xpi['id'] == 90:
+                continue
             for j, xpj in enumerate(xpi['nodes']):
                 paths.append(PathItem(xpj['x'], xpj['y'], xpi, xpj, 0, 0, 0, 0))
 
         self.pathdata = pathinfo
         self.paths = paths
+
+    def LoadNabbitPath(self, data):
+        nodes = self.LoadNabbitPathNodes(data[2], data[3])
+
+        add2p = {'nodes': [node for node in nodes]}
+
+        paths = []
+        for j, xpj in enumerate(add2p['nodes']):
+            paths.append(NabbitPathItem(xpj['x'], xpj['y'], add2p, xpj, 0, 0, 0, 0))
+
+        self.nPathdata = add2p
+        self.nPaths = paths
 
     def LoadPathNodes(self, startindex, count):
         """
@@ -555,6 +578,24 @@ class Area_NSMBU(AbstractArea):
                         'unk2': int(data[6]),
                         'unk3': int(data[7]),
                         'unk4': int(data[8]),
+                        })
+            offset += 20
+        return ret
+
+    def LoadNabbitPathNodes(self, startindex, count):
+        """
+        Loads the Nabbit path nodes
+        """
+        ret = []
+        nodedata = self.blocks[14]
+        nodestruct = struct.Struct('>HHffhHBBBx')  # updated struct -- MrRean
+        offset = startindex * 20
+        unpack = nodestruct.unpack_from
+        for i in range(count):
+            data = unpack(nodedata, offset)
+            ret.append({'x': int(data[0]),
+                        'y': int(data[1]),
+                        'action': int(data[4]),
                         })
             offset += 20
         return ret
@@ -674,14 +715,33 @@ class Area_NSMBU(AbstractArea):
         nodecount = 0
         for path in self.pathdata:
             nodecount += len(path['nodes'])
+        if self.nPathdata:
+            nodecount += len(self.nPathdata['nodes'])
+        nodecount
         nodebuffer = bytearray(nodecount * 20)
         nodeoffset = 0
         nodeindex = 0
         offset = 0
-        buffer = bytearray(len(self.pathdata) * 12)
+        pathcount = len(self.pathdata)
+        if self.nPathdata:
+            pathcount += 1
+        buffer = bytearray(pathcount * 12)
+
+        nPathSaved = False
 
         for path in self.pathdata:
             if (len(path['nodes']) < 1): continue
+
+            if path['id'] > 90 and not nPathSaved:
+                self.WriteNabbitPathNodes(nodebuffer, nodeoffset, self.nPathdata['nodes'])
+
+                pathstruct.pack_into(buffer, offset, 90, 0, int(nodeindex), int(len(self.nPathdata['nodes'])), 0)
+                offset += 12
+                nodeoffset += len(self.nPathdata['nodes']) * 20
+                nodeindex += len(self.nPathdata['nodes'])
+
+                nPathSaved = True
+
             self.WritePathNodes(nodebuffer, nodeoffset, path['nodes'])
 
             pathstruct.pack_into(buffer, offset, int(path['id']), 0, int(nodeindex), int(len(path['nodes'])),
@@ -690,12 +750,20 @@ class Area_NSMBU(AbstractArea):
             nodeoffset += len(path['nodes']) * 20
             nodeindex += len(path['nodes'])
 
+        if not nPathSaved:
+            self.WriteNabbitPathNodes(nodebuffer, nodeoffset, self.nPathdata['nodes'])
+
+            pathstruct.pack_into(buffer, offset, 90, 0, int(nodeindex), int(len(self.nPathdata['nodes'])), 0)
+            offset += 12
+            nodeoffset += len(self.nPathdata['nodes']) * 20
+            nodeindex += len(self.nPathdata['nodes'])
+
         self.blocks[13] = bytes(buffer)
         self.blocks[14] = bytes(nodebuffer)
 
     def WritePathNodes(self, buffer, offst, nodes):
         """
-        Writes the pathnode data to the block 15 bytearray
+        Writes the path node data to the block 15 bytearray
         """
         offset = int(offst)
 
@@ -703,6 +771,18 @@ class Area_NSMBU(AbstractArea):
         for node in nodes:
             nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), float(node['speed']),
                                  float(node['accel']), int(node['delay']), 0, 0, 0, 0)
+            offset += 20
+
+    def WriteNabbitPathNodes(self, buffer, offst, nodes):
+        """
+        Writes the Nabbit path node data to the block 15 bytearray
+        """
+        offset = int(offst)
+
+        nodestruct = struct.Struct('>HHffhHBBBx')
+        for node in nodes:
+            nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), 0.0,
+                                 0.0, int(node['action']), 0, 0, 0, 0)
             offset += 20
 
     def SaveSprites(self):

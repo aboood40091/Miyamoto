@@ -1367,10 +1367,17 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.Trans = QtWidgets.QComboBox()
                 self.Trans.setMaximumWidth(256)
 
+                # Add the compression level setting
+                self.compLevel = QtWidgets.QComboBox()
+                self.compLevel.setMaximumWidth(256)
+                self.compLevel.addItems([globals.trans.string('PrefsDlg', 33), globals.trans.string('PrefsDlg', 34)])
+                self.compLevel.setCurrentIndex(globals.CompLevel)
+
                 # Create the main layout
                 L = QtWidgets.QFormLayout()
                 L.addRow(globals.trans.string('PrefsDlg', 14), self.Trans)
                 L.addRow(globals.trans.string('PrefsDlg', 15), ClearRecentBtn)
+                L.addRow(globals.trans.string('PrefsDlg', 32), self.compLevel)
                 self.setLayout(L)
 
                 # Set the buttons
@@ -1549,7 +1556,11 @@ class PreferencesDialog(QtWidgets.QDialog):
                 for name, themeObj in self.themes:
                     self.themeBox.addItem(name)
 
-                self.themeBox.activated.connect(self.UpdatePreview)
+                index = self.themeBox.findText(setting('Theme'), Qt.MatchFixedString)
+                if index >= 0:
+                     self.themeBox.setCurrentIndex(index)
+
+                self.themeBox.currentIndexChanged.connect(self.UpdatePreview)
 
                 boxGB = QtWidgets.QGroupBox('Themes')
                 L = QtWidgets.QFormLayout()

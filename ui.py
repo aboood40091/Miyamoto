@@ -24,6 +24,8 @@
 ################################################################
 ################################################################
 
+from xml.etree import ElementTree as etree
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
@@ -185,10 +187,15 @@ class MiyamotoTheme:
             'overview_zone_fill': QtGui.QColor(47, 79, 79, 120),  # Overview zone fill
             'overview_zone_lines': QtGui.QColor(0, 255, 255),  # Overview zone lines
             'path_connector': QtGui.QColor(6, 249, 20),  # Path node connecting lines
+            'nabbit_path_connector': QtGui.QColor(161, 69, 255),  # Nabbit path node connecting lines
             'path_fill': QtGui.QColor(6, 249, 20, 120),  # Unselected path node fill
             'path_fill_s': QtGui.QColor(6, 249, 20, 240),  # Selected path node fill
+            'nabbit_path_fill': QtGui.QColor(161, 69, 255, 120),  # Unselected nabbit path node fill
+            'nabbit_path_fill_s': QtGui.QColor(161, 69, 255, 240),  # Selected nabbit path node fill
             'path_lines': QtGui.QColor(0, 0, 0),  # Unselected path node lines
             'path_lines_s': QtGui.QColor(255, 255, 255),  # Selected path node lines
+            'nabbit_path_lines': QtGui.QColor(0, 0, 0),  # Unselected nabbit path node lines
+            'nabbit_path_lines_s': QtGui.QColor(255, 255, 255),  # Selected nabbit path node lines
             'smi': QtGui.QColor(255, 255, 255, 80),  # Sprite movement indicator
             'sprite_fill_s': QtGui.QColor(255, 255, 255, 64),  # Selected sprite w/ image fill
             'sprite_lines_s': QtGui.QColor(255, 255, 255),  # Selected sprite w/ image lines

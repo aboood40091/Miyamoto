@@ -69,6 +69,7 @@ SpriteImagesShown = True
 RealViewEnabled = False
 LocationsShown = True
 CommentsShown = True
+PathsShown = True
 ObjectsFrozen = False
 SpritesFrozen = False
 EntrancesFrozen = False

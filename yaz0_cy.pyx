@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # libyaz0
-# Version 0.1
+# Version 0.2
 # Copyright © 2017 MasterVermilli0n / AboodXD
 
 # This file is part of libyaz0.
@@ -105,17 +105,46 @@ cdef bytearray CompressYazFast(src):
     return dest
 
 
-# This is currently very slow, I will try to improve it later
+cdef compressionSearch(data, pos, maxMatchLen, maxMatchDiff, src_end):
+    """
+    Find the longest match in `data` at or after `pos`.
+    From ndspy, thanks RoadrunnerWMC!
+    """
+    cdef u32 start = max(0, pos - maxMatchDiff)
+
+    cdef u32 lower = 0
+    cdef u32 upper = min(maxMatchLen, src_end - pos)
+
+    cdef u32 recordMatchPos = 0
+    cdef u32 recordMatchLen = 0
+
+    cdef u32 matchLen
+    cdef bytes match
+    cdef int matchPos
+
+    while lower <= upper:
+        matchLen = (lower + upper) // 2
+        match = data[pos : pos + matchLen]
+        matchPos = data.find(match, start, pos)
+
+        if matchPos == -1:
+            upper = matchLen - 1
+        else:
+            if matchLen > recordMatchLen:
+                recordMatchPos, recordMatchLen = matchPos, matchLen
+            lower = matchLen + 1
+
+    return recordMatchPos, recordMatchLen
+
+
 cpdef bytearray CompressYaz(src, level):
     cdef bytearray dest = bytearray()
     cdef u32 src_end = len(src)
 
     if not level:
         return CompressYazFast(src)
-    elif level < 9:
-        search_range = 0x10e0 * level // 9 - 0x0e0
-    else:
-        search_range = 0x1000
+
+    cdef u32 search_range = 0x10e0 * level // 9 - 0x0e0
 
     cdef u32 max_len = 0x111
 
@@ -123,56 +152,36 @@ cpdef bytearray CompressYaz(src, level):
 
     cdef bytearray buffer
     cdef u8 code_byte
-    cdef int i, found
-    cdef u32 search, search_len, found_len, delta
-    cdef bytes c1, search_data, byte
+    cdef int i
+    cdef u32 found, found_len, delta
 
     while pos < src_end:
         buffer = bytearray()
         code_byte = 0
 
         for i in range(8):
-            if pos - search_range < 0:
-                search = 0
-                search_len = pos
-            else:
-                search = pos - search_range
-                search_len = search_range
+            if pos >= src_end:
+                break
 
-            found_len = max_len
-            if pos + found_len > src_end:
-                found_len = src_end - pos
+            found, found_len = compressionSearch(src, pos, max_len, search_range, src_end)
 
-            c1 = src[pos:pos + found_len]
-            search_data = src[search:search + search_len]
+            if found_len > 2:
+                delta = pos - found - 1
 
-            found = search_data.rfind(c1)
-
-            while found == -1 and found_len > 3:
-                found_len -= 1
-                c1 = src[pos:pos + found_len]
-
-                if len(c1) < found_len:
-                    found_len = len(c1)
-
-                found = search_data.rfind(c1)
-
-            if found_len >= 3 and found != -1:
-                delta = search_len - found - 1
                 if found_len < 0x12:
                     buffer.append(delta >> 8 | (found_len - 2) << 4)
                     buffer.append(delta & 0xFF)
+
                 else:
                     buffer.append(delta >> 8)
                     buffer.append(delta & 0xFF)
                     buffer.append((found_len - 0x12) & 0xFF)
+
                 pos += found_len
 
             else:
-                byte = src[pos:pos + 1]
+                buffer.append(src[pos])
                 pos += 1
-
-                buffer += byte
 
                 code_byte |= 1 << (7 - i)
 

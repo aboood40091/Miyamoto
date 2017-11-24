@@ -24,6 +24,7 @@
 ################################################################
 ################################################################
 
+import pickle
 import sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -590,6 +591,38 @@ def SetGamePath(newpath):
     # isValidGamePath crashes in os.path.join if QString is used..
     # so we must change it to a Python string manually
     globals.gamedef.SetGamePath(str(newpath))
+
+
+def compressWSZST(inf, outf):
+    if os.path.isfile(outf):
+        os.remove(outf)
+
+    if platform.system() == 'Windows':
+        os.chdir(globals.miyamoto_path + '/Tools')
+        os.system('wszst.exe COMPRESS "' + inf + '" --dest "' + outf + '"')
+        os.chdir(globals.miyamoto_path)
+
+    elif platform.system() == 'Linux':
+        os.chdir(globals.miyamoto_path + '/linuxTools')
+        os.system('chmod +x ./wszst_linux.elf')
+        os.system('./wszst_linux.elf COMPRESS "' + inf + '" --dest "' + outf + '"')
+        os.chdir(globals.miyamoto_path)
+
+    elif platform.system() == 'Darwin':
+        os.system(
+            'open -a "' + globals.miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + inf + '" --dest "' + outf + '"')
+
+    else:
+        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
+                                           'Not a supported platform, sadly...')
+        warningBox.exec_()
+
+        return False
+
+    if not os.path.isfile(outf):
+        return False
+
+    return True
 
 
 # USELESS
