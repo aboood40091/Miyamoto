@@ -732,7 +732,7 @@ class Area_NSMBU(AbstractArea):
         for path in self.pathdata:
             if (len(path['nodes']) < 1): continue
 
-            if path['id'] > 90 and not nPathSaved:
+            if path['id'] > 90 and not nPathSaved and self.nPathdata:
                 self.WriteNabbitPathNodes(nodebuffer, nodeoffset, self.nPathdata['nodes'])
 
                 pathstruct.pack_into(buffer, offset, 90, 0, int(nodeindex), int(len(self.nPathdata['nodes'])), 0)
@@ -750,7 +750,7 @@ class Area_NSMBU(AbstractArea):
             nodeoffset += len(path['nodes']) * 20
             nodeindex += len(path['nodes'])
 
-        if not nPathSaved:
+        if not nPathSaved and self.nPathdata:
             self.WriteNabbitPathNodes(nodebuffer, nodeoffset, self.nPathdata['nodes'])
 
             pathstruct.pack_into(buffer, offset, 90, 0, int(nodeindex), int(len(self.nPathdata['nodes'])), 0)

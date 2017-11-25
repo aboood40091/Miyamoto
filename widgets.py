@@ -4109,90 +4109,97 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
             
             elif globals.CurrentPaintType == 12:
-                # paint a nabbit path node
-                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
-                if clicked.x() < 0: clicked.setX(0)
-                if clicked.y() < 0: clicked.setY(0)
-                clickedx = int((clicked.x() - 12) / globals.TileWidth * 16)
-                clickedy = int((clicked.y() - 12) / globals.TileWidth * 16)
-                mw = globals.mainWindow
-                plist = mw.nabbitPathList
-                selectedpn = None if len(plist.selectedItems()) < 1 else plist.selectedItems()[0]
-                if not globals.Area.nPathdata:
-                    newpathdata = {'nodes': [
-                                       {'x': clickedx, 'y': clickedy, 'action': 0}],
-                                   }
-                    globals.Area.nPathdata = newpathdata
-                    newnode = NabbitPathItem(clickedx, clickedy, newpathdata, newpathdata['nodes'][0], 0, 0, 0, 0)
-                    newnode.positionChanged = mw.HandlePathPosChange
+                if globals.Area.areanum == 1:
+                    # paint a nabbit path node
+                    clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                    if clicked.x() < 0: clicked.setX(0)
+                    if clicked.y() < 0: clicked.setY(0)
+                    clickedx = int((clicked.x() - 12) / globals.TileWidth * 16)
+                    clickedy = int((clicked.y() - 12) / globals.TileWidth * 16)
+                    mw = globals.mainWindow
+                    plist = mw.nabbitPathList
+                    selectedpn = None if len(plist.selectedItems()) < 1 else plist.selectedItems()[0]
+                    if not globals.Area.nPathdata:
+                        newpathdata = {'nodes': [
+                                           {'x': clickedx, 'y': clickedy, 'action': 0}],
+                                       }
+                        globals.Area.nPathdata = newpathdata
+                        newnode = NabbitPathItem(clickedx, clickedy, newpathdata, newpathdata['nodes'][0], 0, 0, 0, 0)
+                        newnode.positionChanged = mw.HandlePathPosChange
 
-                    mw.scene.addItem(newnode)
+                        mw.scene.addItem(newnode)
 
-                    peline = NabbitPathEditorLineItem(newpathdata['nodes'])
-                    newpathdata['peline'] = peline
-                    mw.scene.addItem(peline)
+                        peline = NabbitPathEditorLineItem(newpathdata['nodes'])
+                        newpathdata['peline'] = peline
+                        mw.scene.addItem(peline)
 
-                    newnode.listitem = ListWidgetItem_SortsByOther(newnode)
-                    plist.clear()
-                    fpath = globals.Area.nPathdata
-                    for fpnode in fpath['nodes']:
-                        fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'],
-                                                                                      fpnode[
-                                                                                          'graphicsitem'].ListString())
-                        plist.addItem(fpnode['graphicsitem'].listitem)
-                        fpnode['graphicsitem'].updateId()
-                    newnode.listitem.setSelected(True)
-                    globals.Area.nPaths.append(newnode)
+                        newnode.listitem = ListWidgetItem_SortsByOther(newnode)
+                        plist.clear()
+                        fpath = globals.Area.nPathdata
+                        for fpnode in fpath['nodes']:
+                            fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'],
+                                                                                          fpnode[
+                                                                                              'graphicsitem'].ListString())
+                            plist.addItem(fpnode['graphicsitem'].listitem)
+                            fpnode['graphicsitem'].updateId()
+                        newnode.listitem.setSelected(True)
+                        globals.Area.nPaths.append(newnode)
 
-                    self.dragstamp = False
-                    self.currentobj = newnode
-                    self.dragstartx = clickedx
-                    self.dragstarty = clickedy
+                        self.dragstamp = False
+                        self.currentobj = newnode
+                        self.dragstartx = clickedx
+                        self.dragstarty = clickedy
 
-                    newnode.UpdateListItem()
+                        newnode.UpdateListItem()
 
-                    SetDirty()
+                        SetDirty()
+                    else:
+                        pathd = None
+                        for pathnode in globals.Area.nPaths:
+                            if selectedpn and pathnode.listitem == selectedpn:
+                                pathd = pathnode.pathinfo
+
+                        if not pathd:
+                            pathd = globals.Area.nPaths[-1].pathinfo
+
+                        newnodedata = {'x': clickedx, 'y': clickedy, 'action': 0}
+                        pathd['nodes'].append(newnodedata)
+                        nodeid = pathd['nodes'].index(newnodedata)
+
+                        newnode = NabbitPathItem(clickedx, clickedy, pathd, newnodedata, 0, 0, 0, 0)
+
+                        newnode.positionChanged = mw.HandlePathPosChange
+                        mw.scene.addItem(newnode)
+
+                        newnode.listitem = ListWidgetItem_SortsByOther(newnode)
+                        plist.clear()
+                        fpath = globals.Area.nPathdata
+                        for fpnode in fpath['nodes']:
+                            fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'],
+                                                                                          fpnode[
+                                                                                              'graphicsitem'].ListString())
+                            plist.addItem(fpnode['graphicsitem'].listitem)
+                            fpnode['graphicsitem'].updateId()
+                        newnode.listitem.setSelected(True)
+                        # globals.PaintingEntrance = ent
+                        # globals.PaintingEntranceListIndex = minimumID
+
+                        globals.Area.nPaths.append(newnode)
+                        pathd['peline'].nodePosChanged()
+                        self.dragstamp = False
+                        self.currentobj = newnode
+                        self.dragstartx = clickedx
+                        self.dragstarty = clickedy
+
+                        newnode.UpdateListItem()
+
+                        SetDirty()
+
                 else:
-                    pathd = None
-                    for pathnode in globals.Area.nPaths:
-                        if selectedpn and pathnode.listitem == selectedpn:
-                            pathd = pathnode.pathinfo
-
-                    if not pathd:
-                        pathd = globals.Area.nPaths[-1].pathinfo
-
-                    newnodedata = {'x': clickedx, 'y': clickedy, 'action': 0}
-                    pathd['nodes'].append(newnodedata)
-                    nodeid = pathd['nodes'].index(newnodedata)
-
-                    newnode = NabbitPathItem(clickedx, clickedy, pathd, newnodedata, 0, 0, 0, 0)
-
-                    newnode.positionChanged = mw.HandlePathPosChange
-                    mw.scene.addItem(newnode)
-
-                    newnode.listitem = ListWidgetItem_SortsByOther(newnode)
-                    plist.clear()
-                    fpath = globals.Area.nPathdata
-                    for fpnode in fpath['nodes']:
-                        fpnode['graphicsitem'].listitem = ListWidgetItem_SortsByOther(fpnode['graphicsitem'],
-                                                                                      fpnode[
-                                                                                          'graphicsitem'].ListString())
-                        plist.addItem(fpnode['graphicsitem'].listitem)
-                        fpnode['graphicsitem'].updateId()
-                    newnode.listitem.setSelected(True)
-                    # globals.PaintingEntrance = ent
-                    # globals.PaintingEntranceListIndex = minimumID
-
-                    globals.Area.nPaths.append(newnode)
-                    pathd['peline'].nodePosChanged()
-                    self.dragstamp = False
-                    self.currentobj = newnode
-                    self.dragstartx = clickedx
-                    self.dragstarty = clickedy
-
-                    newnode.UpdateListItem()
-
-                    SetDirty()
+                    dlg = QtWidgets.QMessageBox()
+                    dlg.setText(globals.trans.string('Paths', 4))
+                    dlg.exec_()
+            
             event.accept()
         elif (event.button() == Qt.LeftButton) and (QtWidgets.QApplication.keyboardModifiers() == Qt.ShiftModifier):
             mw = globals.mainWindow

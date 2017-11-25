@@ -575,6 +575,7 @@ class MiyamotoTranslation():
                 1: 'Path [path], Node [node]',
                 2: '[b]Nabbit Path[/b][br]Node [node]',
                 3: 'Nabbit Path, Node [node]',
+                4: 'Sorry![br]You can only paint Nabbit path nodes in Area 1.',
                 },
             'PrefsDlg': {
                 0: 'Miyamoto! Preferences',
