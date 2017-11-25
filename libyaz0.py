@@ -85,8 +85,5 @@ def guessFileExt(data):
     elif data[0:4] == b"Yaz0":
         return ".yaz0"
 
-    elif data[-0x28:-0x24] == b"FLIM":
-        return ".bflim"
-
     else:  # Couldn't guess the file extension
         return ".bin"
