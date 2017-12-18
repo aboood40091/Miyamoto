@@ -626,7 +626,7 @@ class SpriteImage_Useless(SLib.SpriteImage_Static): # X
     def loadImages():
         SLib.loadIfNotInImageCache('Useless', 'useless.png')
 
-class SpriteImage_Crash(SLib.SpriteImage_StaticMultiple): # X
+class SpriteImage_Crash(SLib.SpriteImage_Static): # X
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -2233,7 +2233,7 @@ class SpriteImage_SpecialExit(SLib.SpriteImage): # 115
             return
         self.aux[0].setSize(w * 60, h * 60)
 
-class SpriteImage_Pendulum(SLib.SpriteImage_StaticMultiple): # 117
+class SpriteImage_Pendulum(SLib.SpriteImage): # 117
     def __init__(self, parent):
         super().__init__(parent, 3.75)
         self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
@@ -4095,16 +4095,18 @@ class SpriteImage_Parabeetle(SLib.SpriteImage_Static): # 261
 
 class SpriteImage_RollingHill(SLib.SpriteImage): # 265
     RollingHillSizes = [2*40, 18*40, 32*40, 50*40, 64*40, 0, 0, 0, 18*40, 2*40, 30*40]
+
     def __init__(self, parent):
         super().__init__(parent, 3.75)
-        self.xOffset = 4.5
 
         size = (self.parent.spritedata[3] >> 4) & 0xF
-        if (size == 0 or size == 9):
+        if size in [0, 9]:
             increase = self.parent.spritedata[4]
             realSize = self.RollingHillSizes[size] * (increase + 1)
+
         elif size > 10:
             realSize = 0
+
         else:
             realSize = self.RollingHillSizes[size]
 
@@ -4114,11 +4116,13 @@ class SpriteImage_RollingHill(SLib.SpriteImage): # 265
         super().dataChanged()
 
         size = (self.parent.spritedata[3] >> 4) & 0xF
-        if (size == 0 or size == 9):
+        if size in [0, 9]:
             increase = self.parent.spritedata[4]
             realSize = self.RollingHillSizes[size] * (increase + 1)
+
         elif size > 10:
             realSize = 0
+
         else:
             realSize = self.RollingHillSizes[size]
 

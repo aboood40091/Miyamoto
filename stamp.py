@@ -256,7 +256,7 @@ class StampListModel(QtCore.QAbstractListModel):
             return self.items[n].Icon
 
         elif role == Qt.BackgroundRole:
-            return QtGui.qApp.palette().base()
+            return QtWidgets.qApp.palette().base()
 
         elif role == Qt.UserRole:
             return self.items[n].Name

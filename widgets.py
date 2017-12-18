@@ -1889,7 +1889,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
                 return self.ritems[n]
 
             if role == Qt.BackgroundRole:
-                return QtGui.qApp.palette().base()
+                return QtWidgets.qApp.palette().base()
 
             if role == Qt.UserRole and n < len(self.itemsize):
                 return self.itemsize[n]

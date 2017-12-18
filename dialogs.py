@@ -1621,9 +1621,78 @@ class PreferencesDialog(QtWidgets.QDialog):
                 Returns a preview pixmap for the given theme
                 """
 
+                tilewidth = 24
+                width = int(21.875 * tilewidth)
+                height = int(11.5625 * tilewidth)
+
                 # Set up some things
-                px = QtGui.QPixmap(350, 185)
+                px = QtGui.QPixmap(width, height)
                 px.fill(theme.color('bg'))
+
+                paint = QtGui.QPainter(px)
+
+                font = QtGui.QFont(globals.NumberFont) # need to make a new instance to avoid changing global settings
+                font.setPointSize(6)
+                paint.setFont(font)
+
+                # Draw the spriteboxes
+                paint.setPen(QtGui.QPen(theme.color('spritebox_lines'), 1))
+                paint.setBrush(QtGui.QBrush(theme.color('spritebox_fill')))
+
+                paint.drawRoundedRect(11 * tilewidth, 4 * tilewidth, tilewidth, tilewidth, 5, 5)
+                paint.drawText(QtCore.QPointF(11.25 * tilewidth, 4.6875 * tilewidth), '38')
+
+                paint.drawRoundedRect(tilewidth, 6 * tilewidth, tilewidth, tilewidth, 5, 5)
+                paint.drawText(QtCore.QPointF(1.25 * tilewidth, 6.6875 * tilewidth), '53')
+
+                # Draw the entrance
+                paint.setPen(QtGui.QPen(theme.color('entrance_lines'), 1))
+                paint.setBrush(QtGui.QBrush(theme.color('entrance_fill')))
+
+                paint.drawRoundedRect(13 * tilewidth, 8 * tilewidth, tilewidth, tilewidth, 5, 5)
+                paint.drawText(QtCore.QPointF(13.25 * tilewidth, 8.625 * tilewidth), '0')
+
+                # Draw the location
+                paint.setPen(QtGui.QPen(theme.color('location_lines'), 1))
+                paint.setBrush(QtGui.QBrush(theme.color('location_fill')))
+
+                paint.drawRect(tilewidth, 9 * tilewidth, 6 * tilewidth, 2 * tilewidth)
+                paint.setPen(QtGui.QPen(theme.color('location_text'), 1))
+                paint.drawText(QtCore.QPointF(1.25 * tilewidth, 9.625 * tilewidth), '1')
+
+                # Draw the zone
+                paint.setPen(QtGui.QPen(theme.color('zone_lines'), 3))
+                paint.setBrush(QtGui.QBrush(toQColor(0, 0, 0, 0)))
+                paint.drawRect(8.5 * tilewidth, 3.25 * tilewidth, 16 * tilewidth, 7.5 * tilewidth)
+                paint.setPen(QtGui.QPen(theme.color('zone_corner'), 3))
+                paint.setBrush(QtGui.QBrush(theme.color('zone_corner'), 3))
+                paint.drawRect(8.4375 * tilewidth, 3.1875 * tilewidth, 0.125 * tilewidth, 0.125 * tilewidth)
+                paint.drawRect(8.4375 * tilewidth, 10.6875 * tilewidth, 0.125 * tilewidth, 0.125 * tilewidth)
+                paint.setPen(QtGui.QPen(theme.color('zone_text'), 1))
+                font = QtGui.QFont(globals.NumberFont)
+                font.setPointSize(5 / 16 * tilewidth)
+                paint.setFont(font)
+                paint.drawText(QtCore.QPointF(8.75 * tilewidth, 3.875 * tilewidth), 'Zone 1')
+
+                # Draw the grid
+                paint.setPen(QtGui.QPen(theme.color('grid'), 1, Qt.DotLine))
+                gridcoords = [i for i in range(0, width, tilewidth)]
+                for i in gridcoords:
+                    paint.setPen(QtGui.QPen(theme.color('grid'), 0.75, Qt.DotLine))
+                    paint.drawLine(i, 0, i, height)
+                    paint.drawLine(0, i, width, i)
+                    if not (i / tilewidth) % (tilewidth / 4):
+                        paint.setPen(QtGui.QPen(theme.color('grid'), 1.5, Qt.DotLine))
+                        paint.drawLine(i, 0, i, height)
+                        paint.drawLine(0, i, width, i)
+
+                    if not (i / tilewidth) % (tilewidth / 2):
+                        paint.setPen(QtGui.QPen(theme.color('grid'), 2.25, Qt.DotLine))
+                        paint.drawLine(i, 0, i, height)
+                        paint.drawLine(0, i, width, i)
+
+                # Delete the painter and return the pixmap
+                paint.end()
                 return px
 
         return ThemesTab()
