@@ -4014,27 +4014,29 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     for i in usedTiles:
                         globals.Tiles[i + tileoffset] = T
 
+                    folderIndex = obj.folderIndex
+
                     # Completely remove the object's definitions
                     del globals.ObjectDefinitions[idx][objNum]
                     globals.ObjectDefinitions[idx].append(None)
 
                     # Remove the object from globals.ObjectAddedtoEmbedded
-                    if len(globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()]):
+                    if folderIndex > -1 and globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
                         found = False
-                        for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()]:
-                            obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][i]
+                        for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
+                            obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
                             if obj == (idx, objNum):
                                 found = True
-                                tempidx, tempobjNum = globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][i]
-                                del globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][i]
+                                tempidx, tempobjNum = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
+                                del globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
                                 break
 
                         if found:
-                            for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()]:
-                                obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][i]
+                            for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
+                                obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
                                 if obj[0] == tempidx:
                                     if obj[1] > tempobjNum:
-                                        globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][i] = (obj[0], obj[1] - 1)
+                                        globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i] = (obj[0], obj[1] - 1)
 
                     if globals.ObjectDefinitions[idx] == [None] * 256:
                         if idx == 1: globals.Area.tileset1 = ''

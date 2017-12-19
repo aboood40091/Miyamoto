@@ -411,6 +411,7 @@ class ObjectDef:
         """
         self.width = 0
         self.height = 0
+        self.folderIndex = -1
         self.randByte = 0
         self.rows = []
         self.data = 0
