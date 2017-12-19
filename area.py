@@ -203,7 +203,6 @@ class Area_NSMBU(AbstractArea):
         # Now, load the comments
         self.LoadComments()
 
-        CreateTilesets()
         if self.tileset0 not in ('', None):
             LoadTileset(0, self.tileset0)
 

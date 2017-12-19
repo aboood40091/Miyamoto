@@ -1478,7 +1478,7 @@
     <value nybble="21-22" title="Movement ID 1" comment="Could also be the output"/>
     <value nybble="23-24" title="Movement ID 2" comment="Could also be the output"/>
   </sprite>
-  <sprite id="117" name="Big Spinner (Ball 'n' Chain)" notes="A swinging spiked ball on a spiked chain.">
+  <sprite id="117" name="Big Spinner (Ball 'n' Chain)" notes="A swinging spiked ball on a spiked chain. Does not spawn if not tied to a movement controller.">
     <value nybble="8" title="Unknown Value 8"/>
     <value nybble="10" title="Scale"/>
     <value nybble="11" title="Unknown Value 11"/>
@@ -2787,35 +2787,30 @@
     <value nybble="16" title="Spinning Speed" comment="The spinning speed of the fire bar. Maximum recommended value is 6-ish."/>
   </sprite>
   <sprite id="237" name="Tile God" notes="This sprite can spawn in tiles, or destroy tiles.">
-    <value nybble="1-2" title="Triggering Event ID 2" comment="Things are done when this event or the other event is triggered."/>
-    <value nybble="3-4" title="Triggering Event ID" comment="Things are done when this event or the other event is triggered."/>
-    <checkbox nybble="5" title="Never expires" comment="When checked, the effects of the tile god remain permanent."/>
-    <list nybble="8" title="Pattern">
-      <entry value="0">Fills area</entry>
-      <entry value="1">Checkers pattern</entry>
-      <entry value="2">Inverted checkerboard</entry>
+    <value nybble="3-4" title="Triggering Event ID" comment="When this Event ID is activated, the tiles affected by the sprite's area will be created/destroyed (depending on the Mode)." />
+    <checkbox nybble="5" title="Permanent" comment="If this option is checked, the effect of the sprite (creation / destruction) will remain even after the event is deactivated. If this is not checked, previously destroyed tiles will 'respawn' (with their 'Block Type' set) after the initial event is deactivated again." />
+    <list nybble="8" title="Fill Pattern" comment="Determines the pattern the area will be filled with.">
+      <entry value="0">Solid Fill</entry>
+      <entry value="1">Checkers</entry>
+      <entry value="2">Inverted Checkers</entry>
     </list>
-    <list nybble="9" title="Spawns / Destroys" comment="What the tile god spawns or destroys.">
-      <entry value="0">Red Block</entry>
-      <entry value="1">Brick Block</entry>
+    <list nybble="9" title="Object Type" comment="Here you can select which object type will be used to fill the selected area.&lt;br&gt;&lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; If an event is activated that triggers the 'Tile God' effect to destroy objects, and the event is deactivated afterward, then the area will be filled with the object type selected here (the 'Permanent' checkbox overrides this).&lt;br&gt;&lt;br&gt;&lt;b&gt;Tip:&lt;/b&gt; The number in parentheses () corresponds to the position of the tile in the tileset (tiles 0-255). Each tileset has 16 rows, each row has 16 tiles, and each tile is 60x60px. The number in the second parentheses () correspond to the object number if hovering in Miyamoto! over an object in the palette with your mouse cursor.">
+      <entry value="0">Red Block (Pa0 tile #208) (Object #143)</entry>
+      <entry value="1">Brick Block (Pa0 tile #48) (Object #15)</entry>
       <entry value="2">An effect</entry>
-      <entry value="3">Stone Block</entry>
-      <entry value="4">Wooden Block</entry>
-      <entry value="5">Wooden Block</entry>
-      <entry value="6">Ground Slope Tile</entry>
-      <entry value="7">Rocky BG Tile</entry>
-      <entry value="8">Nothing</entry>
-      <entry value="9">Nothing</entry>
-      <entry value="10">Nothing</entry>
-      <entry value="11">Nothing</entry>
+      <entry value="3">Stone Block (Pa0 tile #52) (Object #42)</entry>
+      <entry value="4">Wooden Block (Pa0 tile #51) (Object #41)</entry>
+      <entry value="6">Pa1 tile #240</entry>
+      <entry value="7">Pa1 tile #4</entry>
       <entry value="12">Same as 6</entry>
+      <entry value="13">Same as 7</entry>
     </list>
-    <list nybble="10" title="Action">
+    <list nybble="10" title="Effect" comment="Determines the effect that is triggered when the event is activated. 'Destroy Tiles' can destroy all kinds of objects. It cannot destroy sprites. 'Spawns Tiles' will even create new tiles above other tiles or objects.">
       <entry value="0">Destroys Tiles</entry>
       <entry value="1">Spawns Tiles</entry>
     </list>
-    <value nybble="18" title="Width" comment="Value + 0. Value 0 will cause a width of 1 block."/>
-    <value nybble="20" title="Height" comment="Value + 0. Value 0 will cause a height of 1 block."/>
+    <value nybble="11" title="Width" comment="Determines the width of the area that is affected." />
+    <value nybble="12" title="Height" comment="Determines the height of the area that is affected." />
   </sprite>
   <sprite id="238" name="Movement Controller - Bolt" notes="Spin the bolt to move objects!">
     <list nybble="10" title="Style" comment="The design of the bolt.">
@@ -3608,9 +3603,12 @@
   <sprite id="345" name="&quot;Remote control seesaw lift&quot; - CRASHES [UNUSED]" notes="Crashes because it tries to load remo_lift.szs, but that file doesn't exist."/>
   <sprite id="346" name="Grouped Thwimp" notes="Actor: 0x2a1">
     <value nybble="6" title="Path ID" comment="Link this with the Path ID of Sprite 196 (Movement Controller: Lines)"/>
-    <value nybble="7" title="Unknown Value 7"/>
-    <value nybble="8" title="Unknown Value 8"/>
-    <value nybble="20" title="Delay" comment="The higher you set the delay, the later the Thwimps will jump when tey come on screen. Note: when you set 1, the Thwimp will jump about 1/10 sec. later."/>
+    <value nybble="7" title="The way it jumps somehow"/>
+    <checkbox nybble="8" title="Starts jumping left" comment="If not checked, jumps to the right."/>
+    <value nybble="9" title="Unknown Value 9" comment="Values higher than 6 default to 0"/>
+    <value nybble="10-11" title="Horizontal distance" comment="Value + 1 blocks."/>
+    <value nybble="12" title="Height" comment="Value + 1 blocks."/>
+    <value nybble="20" title="Delay of first jump" comment="The higher you set the delay, the later the Thwimps will jump when tey come on screen. Note: when you set 1, the Thwimp will jump about 1/10 sec. later."/>
   </sprite>
   <sprite id="347" name="Stone Block" notes="A single stone block."/>
   <sprite id="348" name="Super Guide Block">
@@ -5642,35 +5640,30 @@
     <value nybble="21-22" title="Movement ID"/>
   </sprite>
   <sprite id="673" name="Tile God - NSLU" notes="Exactly the same as NSMBU tile god, except the effect is placed a half tile higher if the 'Spawns / Destroys' nybble is set to 2.">
-    <value nybble="1-2" title="Triggering Event ID 2"/>
-    <value nybble="3-4" title="Triggering Event ID"/>
-    <checkbox nybble="5" title="Never expires"/>
-    <list nybble="8" title="Pattern">
-      <entry value="0">Fills area</entry>
-      <entry value="1">Checkers pattern</entry>
-      <entry value="2">Inverted checkerboard</entry>
+    <value nybble="3-4" title="Triggering Event ID" comment="When this Event ID is activated, the tiles affected by the sprite's area will be created/destroyed (depending on the Mode)." />
+    <checkbox nybble="5" title="Permanent" comment="If this option is checked, the effect of the sprite (creation / destruction) will remain even after the event is deactivated. If this is not checked, previously destroyed tiles will 'respawn' (with their 'Block Type' set) after the initial event is deactivated again." />
+    <list nybble="8" title="Fill Pattern" comment="Determines the pattern the area will be filled with.">
+      <entry value="0">Solid Fill</entry>
+      <entry value="1">Checkers</entry>
+      <entry value="2">Inverted Checkers</entry>
     </list>
-    <list nybble="9" title="Spawns / Destroys">
-      <entry value="0">Red Block</entry>
-      <entry value="1">Brick Block</entry>
+    <list nybble="9" title="Object Type" comment="Here you can select which object type will be used to fill the selected area.&lt;br&gt;&lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; If an event is activated that triggers the 'Tile God' effect to destroy objects, and the event is deactivated afterward, then the area will be filled with the object type selected here (the 'Permanent' checkbox overrides this).&lt;br&gt;&lt;br&gt;&lt;b&gt;Tip:&lt;/b&gt; The number in parentheses () corresponds to the position of the tile in the tileset (tiles 0-255). Each tileset has 16 rows, each row has 16 tiles, and each tile is 60x60px. The number in the second parentheses () correspond to the object number if hovering in Miyamoto! over an object in the palette with your mouse cursor.">
+      <entry value="0">Red Block (Pa0 tile #208) (Object #143)</entry>
+      <entry value="1">Brick Block (Pa0 tile #48) (Object #15)</entry>
       <entry value="2">An effect</entry>
-      <entry value="3">Stone Block</entry>
-      <entry value="4">Wooden Block</entry>
-      <entry value="5">Wooden Block</entry>
-      <entry value="6">Ground Slope Tile</entry>
-      <entry value="7">Rocky BG Tile</entry>
-      <entry value="8">Nothing</entry>
-      <entry value="9">Nothing</entry>
-      <entry value="10">Nothing</entry>
-      <entry value="11">Nothing</entry>
+      <entry value="3">Stone Block (Pa0 tile #52) (Object #42)</entry>
+      <entry value="4">Wooden Block (Pa0 tile #51) (Object #41)</entry>
+      <entry value="6">Pa1 tile #240</entry>
+      <entry value="7">Pa1 tile #4</entry>
       <entry value="12">Same as 6</entry>
+      <entry value="13">Same as 7</entry>
     </list>
-    <list nybble="10" title="Action">
+    <list nybble="10" title="Effect" comment="Determines the effect that is triggered when the event is activated. 'Destroy Tiles' can destroy all kinds of objects. It cannot destroy sprites. 'Spawns Tiles' will even create new tiles above other tiles or objects.">
       <entry value="0">Destroys Tiles</entry>
       <entry value="1">Spawns Tiles</entry>
     </list>
-    <value nybble="18" title="Width"/>
-    <value nybble="20" title="Height"/>
+    <value nybble="11" title="Width" comment="Determines the width of the area that is affected." />
+    <value nybble="12" title="Height" comment="Determines the height of the area that is affected." />
   </sprite>
   <sprite id="674" name="Movement-controlled Lava Land Block - NSLU" notes="Lava themed">
     <value nybble="10" title="Unknown Value 10"/>

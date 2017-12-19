@@ -163,33 +163,17 @@ class MiyamotoGameDefinition:
             paths.append(stg)
             return paths
 
-    def GetSavePaths(self):
-        """
-        Returns game paths of this gamedef and its bases
-        """
-        mainpath = str(setting('SavePath_NSMBU'))
-        if not self.custom: return [mainpath, ]
-
-        name = 'SavePath_' + self.name
-        stg = setting(name)
-        if self.base is None:
-            return [mainpath, stg]
-        else:
-            paths = self.base.GetSavePaths()
-            paths.append(stg)
-            return paths
-
     def GetLastLevel(self):
         """
         Returns the last loaded level
         """
-        if not self.custom: return setting('LastLevelNSMBUversion')
+        if not self.custom: return setting('LastLevel')
         name = 'LastLevel_' + self.name
         stg = setting(name)
 
         # Use the default if there are no settings for this yet
         if stg is None:
-            return setting('LastLevelNSMBUversion')
+            return setting('LastLevel')
         else:
             return stg
 
@@ -198,9 +182,9 @@ class MiyamotoGameDefinition:
         Sets the last loaded level
         """
         if path in (None, 'None', 'none', True, 'True', 'true', False, 'False', 'false', 0, 1, ''): return
-        # print('Last loaded level set to ' + str(path))
+        print('Last loaded level set to ' + str(path))
         if not self.custom:
-            setSetting('LastLevelNSMBUversion', path)
+            setSetting('LastLevel', path)
         else:
             name = 'LastLevel_' + self.name
             setSetting(name, path)

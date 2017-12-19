@@ -30,7 +30,7 @@ from xml.etree import ElementTree as etree
 import globals
 import SARC as SarcLib
 import spritelib as SLib
-from tileset import SaveTileset
+from tileset import CreateTilesets, SaveTileset
 
 
 class AbstractLevel:
@@ -78,8 +78,11 @@ class Level_NSMBU(AbstractLevel):
         Initializes the level with default settings
         """
         super().__init__()
+        CreateTilesets()
+        
         import area
         self.areas.append(area.Area_NSMBU())
+        globals.Area = self.areas[0]
 
     def new(self):
         """

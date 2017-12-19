@@ -3967,22 +3967,80 @@ class SpriteImage_Bolt(SLib.SpriteImage_StaticMultiple): # 238
             
         super().dataChanged()
 
-class SpriteImage_TileGod(SLib.SpriteImage): # 237
+class SpriteImage_TileGod(SLib.SpriteImage_StaticMultiple): # 237, 673
     def __init__(self, parent):
         super().__init__(parent, 3.75)
-        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
+        self.aux2 = [SLib.AuxiliaryRectOutline(parent, 0, 0)]
+        self.aux = self.aux2
 
     def dataChanged(self):
         super().dataChanged()
 
-        width = self.parent.spritedata[8] & 0xF
-        height = self.parent.spritedata[9] & 0xF
-        if width == 0: width = 1
-        if height == 0: height = 1
-        if width == 1 and height == 1:
-            self.aux[0].setSize(0,0)
+        type_ = self.parent.spritedata[4] >> 4
+        self.width = (self.parent.spritedata[5] >> 4) * 16
+        self.height = (self.parent.spritedata[5] & 0xF) * 16
+
+        if not self.width:
+            self.width = 16
+
+        if not self.height:
+            self.height = 16
+
+        if type_ in [2, 5, 8, 9, 10, 11, 14, 15]:
+            self.aux = self.aux2
+            self.spritebox.shown = True
+            self.image = None
+
+            if [self.width, self.height] == [16, 16]:
+                self.aux2[0].setSize(0, 0)
+                return
+        else:
+            self.aux = []
+            self.spritebox.shown = False
+
+            if not type_:
+                tile = SLib.Tiles[208]
+
+            elif type_ == 1:
+                tile = SLib.Tiles[48]
+
+            elif type_ == 3:
+                tile = SLib.Tiles[52]
+
+            elif type_ == 4:
+                tile = SLib.Tiles[51]
+
+            elif type_ in [6, 12]:
+                tile = SLib.Tiles[256 + 240]
+
+            elif type_ in [7, 13]:
+                tile = SLib.Tiles[256 + 4]
+
+            if tile.exists:
+                self.image = tile.main
+
+            else:
+                self.image = SLib.Tiles[0x200 * 4].main
+
+        self.aux2[0].setSize(self.width * 3.75, self.height * 3.75)
+
+    def paint(self, painter):
+        if self.image is None:
             return
-        self.aux[0].setSize(width * 60, height * 60)
+
+        painter.save()
+
+        painter.setOpacity(self.alpha)
+        painter.setRenderHint(painter.SmoothPixmapTransform)
+
+        for yTile in range(self.height // 16):
+            for xTile in range(self.width // 16):
+                painter.drawPixmap(xTile * 60, yTile * 60, self.image)
+
+        aux = self.aux2
+        aux[0].paint(painter, None, None)
+
+        painter.restore()
 
 class SpriteImage_PricklyGoomba(SLib.SpriteImage_StaticMultiple): # 247
     def __init__(self, parent):
@@ -5977,6 +6035,7 @@ ImageClasses = {
     643: SpriteImage_LavaBubble,
     644: SpriteImage_LavaBubble,
     662: SpriteImage_BlueRing,
+    673: SpriteImage_TileGod,
     683: SpriteImage_QBlock,
     692: SpriteImage_BrickBlock,
     701: SpriteImage_BrickBlock,

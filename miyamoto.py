@@ -201,6 +201,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 self.LoadLevel(curgame, fn, True, 1)
             except:
                 self.LoadLevel(curgame, globals.FirstLevels[curgame], False, 1)
+
+        elif globals.settings.contains(('LastLevel_' + globals.gamedef.name) if globals.gamedef.custom else 'LastLevel'):
+            lastlevel = str(globals.gamedef.GetLastLevel())
+            self.LoadLevel(curgame, lastlevel, True, 1)
+
         else:
             filetypes = ''
             filetypes += globals.trans.string('FileDlgs', 1) + ' (*.sarc *.szs);;'
@@ -2327,7 +2332,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             globals.ObjectAddedtoEmbedded = {}
 
-            self.LoadLevel(None, dlg.currentlevel, False, 1)
+            self.LoadLevel(self.CurrentGame, dlg.currentlevel, False, 1)
 
     @QtCore.pyqtSlot()
     def HandleOpenFromFile(self):
@@ -2346,7 +2351,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         globals.ObjectAddedtoEmbedded = {}
 
-        self.LoadLevel(None, str(fn), True, 1)
+        self.LoadLevel(self.CurrentGame, str(fn), True, 1)
 
     @QtCore.pyqtSlot()
     def HandleSave(self):
@@ -2543,7 +2548,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             return
 
         if globals.Area.areanum != idx + 1:
-            self.LoadLevel(None, self.fileSavePath, True, idx + 1)
+            self.LoadLevel(self.CurrentGame, self.fileSavePath, True, idx + 1)
 
     @QtCore.pyqtSlot(bool)
     def HandleUpdateLayer0(self, checked):
@@ -2974,7 +2979,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if hasattr(self, 'TipsBoxInstance'):
                 self.TipsBoxInstance.close()
 
-            globals.gamedef.SetLastLevel(str(globals.mainWindow.fileSavePath))
+            globals.gamedef.SetLastLevel(str(self.fileSavePath))
 
             setSetting('AutoSaveFilePath', 'none')
             setSetting('AutoSaveFileData', 'x')
@@ -3065,34 +3070,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         return False
                     return True
 
-                if exists('levelname'):
-                    fn = bytes_to_string(arc['levelname'].data)
-                    if exists(fn):
-                        globals.levelNameCache = fn
-                        levelFileData = arc[fn].data
-                    else:
-                        possibilities = []
-                        possibilities.append(os.path.basename(self.fileSavePath))
-                        possibilities.append(
-                            os.path.basename(self.fileSavePath).split(' ')[-1])  # for names like "NSMBU 1-1.szs"
-                        possibilities.append(
-                            os.path.basename(self.fileSavePath).split(' ')[0])  # for names like "1-1 test.szs"
-                        possibilities.append(os.path.basename(self.fileSavePath).split('.')[0])
-                        possibilities.append(os.path.basename(self.fileSavePath).split('_')[0])
-                        possibilities.append(globals.levelNameCache)
-                        for fn in possibilities:
-                            if exists(fn):
-                                globals.levelNameCache = fn
-                                levelFileData = arc[fn].data
-                                new = True
-                                break
-                        else:
-                            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                               'Couldn\'t find the inner level file. Aborting.')
-                            warningBox.exec_()
-                            return False
-
-                else:
+                def guessInnerName():
                     possibilities = []
                     possibilities.append(os.path.basename(self.fileSavePath))
                     possibilities.append(
@@ -3105,12 +3083,27 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     for fn in possibilities:
                         if exists(fn):
                             globals.levelNameCache = fn
+                            nonlocal levelFileData, new
                             levelFileData = arc[fn].data
+                            new = True
                             break
                     else:
                         warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
                                                            'Couldn\'t find the inner level file. Aborting.')
                         warningBox.exec_()
+                        return False
+
+                if exists('levelname'):
+                    fn = bytes_to_string(arc['levelname'].data)
+                    if exists(fn):
+                        globals.levelNameCache = fn
+                        levelFileData = arc[fn].data
+                    else:
+                        if not guessInnerName():
+                            return False
+
+                else:
+                    if not guessInnerName():
                         return False
 
                 # Sort the szs data
@@ -3186,13 +3179,22 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                             self.folderPicker.addItem(folder)
                             i += 1 
 
-        globals.OverrideSnapping = False
+        globals.OverrideSnapping = True
 
         # Load the actual level
-        if name == None:
+        if name is None:
             self.newLevel()
         else:
             self.LoadLevel_NSMBU(levelData, areaNum)
+
+        # Refresh object layouts
+        self.objPicker.LoadFromTilesets()
+        for layer in globals.Area.layers:
+            for obj in layer:
+                obj.updateObjCache()
+        for sprite in globals.Area.sprites:
+            sprite.UpdateDynamicSizing()
+        self.scene.update()
 
         # Set up and reset the Quick Paint Tool
         if hasattr(self, 'quickPaint'):
@@ -3268,8 +3270,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.objUseLayer1.setChecked(True)
 
-        CreateTilesets()
-
         self.ReloadTilesets()
 
         self.objPicker.LoadFromTilesets()
@@ -3314,17 +3314,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.spriteList.addItem(spr.listitem)
             self.scene.addItem(spr)
             spr.UpdateListItem()
-            spr.UpdateRects()
-            if globals.SpriteImagesShown:
-                spr.setPos(
-                    (spr.objx + spr.ImageObj.xOffset) * (globals.TileWidth / 16),
-                    (spr.objy + spr.ImageObj.yOffset) * (globals.TileWidth / 16),
-                )
-            else:
-                spr.setPos(
-                    spr.objx * (globals.TileWidth / 16),
-                    spr.objy * (globals.TileWidth / 16),
-                )
 
         pcEvent = self.HandleEntPosChange
         for ent in globals.Area.entrances:

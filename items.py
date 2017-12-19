@@ -1998,7 +1998,7 @@ class NabbitPathItem(LevelEditorItem):
         super().__init__()
 
         self.font = globals.NumberFont
-        self.objx = objx
+        self.objx = objx - 8
         self.objy = objy
         self.unk1 = unk1
         self.unk2 = unk2
@@ -2013,7 +2013,7 @@ class NabbitPathItem(LevelEditorItem):
         self.setFlag(self.ItemIsSelectable, not globals.PathsFrozen)
 
         globals.DirtyOverride += 1
-        self.setPos(int(objx * globals.TileWidth / 16), int(objy * globals.TileWidth / 16))
+        self.setPos(int(self.objx * globals.TileWidth / 16), int(self.objy * globals.TileWidth / 16))
         globals.DirtyOverride -= 1
 
         self.setZValue(25002)
@@ -2043,7 +2043,7 @@ class NabbitPathItem(LevelEditorItem):
         """
         Our x/y was changed, update pathinfo
         """
-        self.pathinfo['nodes'][self.nodeid]['x'] = self.objx
+        self.pathinfo['nodes'][self.nodeid]['x'] = self.objx + 8
         self.pathinfo['nodes'][self.nodeid]['y'] = self.objy
 
     def updateId(self):

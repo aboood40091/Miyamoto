@@ -45,9 +45,11 @@ class TilesetTile:
         """
         Initializes the TilesetTile
         """
+        self.exists = True
         if not main:
             main = QtGui.QPixmap(60, 60)
             main.fill(Qt.transparent)
+            self.exists = False
 
         self.main = main
 
@@ -657,8 +659,6 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
         paintType = idx
 
         # Misc.
-        SLib.Tiles = globals.Tiles
-
         globals.mainWindow.objPicker.LoadFromTilesets()
 
         if not eval('globals.Area.tileset%d' % idx):
@@ -1068,9 +1068,6 @@ def _LoadTileset(idx, name, reload=False):
     globals.ObjectDefinitions[idx] = defs
 
     ProcessOverrides(idx, name)
-
-    # Add Tiles to spritelib
-    SLib.Tiles = globals.Tiles
 
 
 def LoadTexture_NSMBU(tiledata):
