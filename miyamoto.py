@@ -76,7 +76,7 @@ from verifications import *
 from widgets import *
 
 MiyamotoID = 'Miyamoto! Level Editor by AboodXD, Gota7, John10v10, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
-MiyamotoVersion = '22.0'
+MiyamotoVersion = '23.0'
 MiyamotoVersionShort = ''
 UpdateURL = ''
 
@@ -130,7 +130,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # set up the window
         super().__init__(None)
-        self.setWindowTitle('Miyamoto! v%s Bugfix' % MiyamotoVersion)
+        self.setWindowTitle('Miyamoto! v%s' % MiyamotoVersion)
         self.setWindowIcon(QtGui.QIcon('miyamotodata/icon.png'))
         self.setIconSize(QtCore.QSize(16, 16))
         self.setUnifiedTitleAndToolBarOnMac(True)
@@ -5162,7 +5162,7 @@ def main():
 
     # Set the default window icon (used for random popups and stuff)
     globals.app.setWindowIcon(GetIcon('miyamoto'))
-    globals.app.setApplicationDisplayName('Miyamoto! v%s Bugfix' % MiyamotoVersion)
+    globals.app.setApplicationDisplayName('Miyamoto! v%s' % MiyamotoVersion)
 
     gt = setting('GridType')
     if gt == 'checker':
