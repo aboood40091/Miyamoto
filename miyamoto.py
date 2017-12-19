@@ -204,7 +204,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         elif globals.settings.contains(('LastLevel_' + globals.gamedef.name) if globals.gamedef.custom else 'LastLevel'):
             lastlevel = str(globals.gamedef.GetLastLevel())
-            self.LoadLevel(curgame, lastlevel, True, 1)
+            if not self.LoadLevel(curgame, lastlevel, True, 1):
+                self.LoadLevel(curgame, globals.FirstLevels[curgame], False, 1)
 
         else:
             filetypes = ''
@@ -3080,18 +3081,22 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     possibilities.append(os.path.basename(self.fileSavePath).split('.')[0])
                     possibilities.append(os.path.basename(self.fileSavePath).split('_')[0])
                     possibilities.append(globals.levelNameCache)
+
                     for fn in possibilities:
                         if exists(fn):
                             globals.levelNameCache = fn
-                            nonlocal levelFileData, new
                             levelFileData = arc[fn].data
                             new = True
                             break
+
                     else:
                         warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
                                                            'Couldn\'t find the inner level file. Aborting.')
                         warningBox.exec_()
-                        return False
+
+                        return '', False
+
+                    return levelFileData, new
 
                 if exists('levelname'):
                     fn = bytes_to_string(arc['levelname'].data)
@@ -3099,12 +3104,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         globals.levelNameCache = fn
                         levelFileData = arc[fn].data
                     else:
-                        if not guessInnerName():
-                            return False
+                        levelFileData, new = guessInnerName()
 
                 else:
-                    if not guessInnerName():
-                        return False
+                    levelFileData, new = guessInnerName()
+
+                if not levelFileData:
+                    return False
 
                 # Sort the szs data
                 globals.szsData = {}
