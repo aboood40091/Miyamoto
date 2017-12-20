@@ -393,6 +393,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                           globals.trans.string('MenuItems', 129), QtGui.QKeySequence('Ctrl+Shift+R'))
         self.CreateAction('overwritesprite', self.HandleOverwriteSprite, GetIcon('folderpath'),
                           globals.trans.string('MenuItems', 134), globals.trans.string('MenuItems', 135), None, True)
+        self.CreateAction('overridetilesetsaving', self.HandleOverrideTilesetSaving, GetIcon('folderpath'),
+                          globals.trans.string('MenuItems', 140), globals.trans.string('MenuItems', 141), None, True)
 
         # Tilesets
         self.CreateAction('editslot1', self.EditSlot1, GetIcon('animation'), globals.trans.string('MenuItems', 130),
@@ -421,6 +423,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.actions['freezecomments'].setChecked(globals.CommentsFrozen)
 
         self.actions['overwritesprite'].setChecked(not globals.OverwriteSprite)
+        self.actions['overridetilesetsaving'].setChecked(globals.OverrideTilesetSaving)
 
         self.actions['cut'].setEnabled(False)
         self.actions['copy'].setEnabled(False)
@@ -513,6 +516,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         tmenu = menubar.addMenu(globals.trans.string('Menubar', 4))
         tmenu.addAction(self.actions['editslot1'])
+        lmenu.addSeparator()
+        tmenu.addAction(self.actions['overridetilesetsaving'])
 
         hmenu = menubar.addMenu(globals.trans.string('Menubar', 5))
         self.SetupHelpMenu(hmenu)
@@ -1172,7 +1177,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         for selecteditem in self.pathList.selectedItems():
             selecteditem.setSelected(False)
 
-    @QtCore.pyqtSlot()
     def Autosave(self):
         """
         Auto saves the level
@@ -1192,7 +1196,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('AutoSaveFileData', QtCore.QByteArray(data))
         globals.AutoSaveDirty = False
 
-    @QtCore.pyqtSlot()
     def TrackClipboardUpdates(self):
         """
         Catches systemwide clipboard updates
@@ -1210,7 +1213,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 self.clipboard = None
                 self.actions['paste'].setEnabled(False)
 
-    @QtCore.pyqtSlot(int)
     def XScrollChange(self, pos):
         """
         Moves the Overview current position box based on X scroll bar value
@@ -1218,7 +1220,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.levelOverview.Xposlocator = pos
         self.levelOverview.update()
 
-    @QtCore.pyqtSlot(int)
     def YScrollChange(self, pos):
         """
         Moves the Overview current position box based on Y scroll bar value
@@ -1226,7 +1227,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.levelOverview.Yposlocator = pos
         self.levelOverview.update()
 
-    @QtCore.pyqtSlot(int, int)
     def HandleWindowSizeChange(self, w, h):
         self.levelOverview.Hlocator = h
         self.levelOverview.Wlocator = w
@@ -1470,14 +1470,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.stampChooser.update()
             self.stampChooser.repaint()
 
-    @QtCore.pyqtSlot()
     def AboutBox(self):
         """
         Shows the about box
         """
         AboutDialog().exec_()
 
-    @QtCore.pyqtSlot()
     def HandleInfo(self):
         """
         Records the Level Meta Information
@@ -1497,7 +1495,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             dlg.setText(globals.trans.string('InfoDlg', 14))
             dlg.exec_()
 
-    @QtCore.pyqtSlot()
     def HelpBox(self):
         """
         Shows the help box
@@ -1505,7 +1502,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         QtGui.QDesktopServices.openUrl(
             QtCore.QUrl.fromLocalFile(os.path.join(globals.miyamoto_path, 'miyamotodata', 'help', 'index.html')))
 
-    @QtCore.pyqtSlot()
     def TipBox(self):
         """
         Miyamoto! Tips and Commands
@@ -1513,7 +1509,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         QtGui.QDesktopServices.openUrl(
             QtCore.QUrl.fromLocalFile(os.path.join(globals.miyamoto_path, 'miyamotodata', 'help', 'tips.html')))
 
-    @QtCore.pyqtSlot()
     def SelectAll(self):
         """
         Select all objects in the current area
@@ -1522,7 +1517,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         paintRect.addRect(float(0), float(0), float(1024 * globals.TileWidth), float(512 * globals.TileWidth))
         self.scene.setSelectionArea(paintRect)
 
-    @QtCore.pyqtSlot()
     def Deselect(self):
         """
         Deselect all currently selected items
@@ -1531,7 +1525,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         for obj in items:
             obj.setSelected(False)
 
-    @QtCore.pyqtSlot()
     def Cut(self):
         """
         Cuts the selected items
@@ -1570,7 +1563,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.SelectionUpdateFlag = False
         self.ChangeSelectionHandler()
 
-    @QtCore.pyqtSlot()
     def Copy(self):
         """
         Copies the selected items
@@ -1594,7 +1586,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 self.clipboard = self.encodeObjects(clipboard_o, clipboard_s)
                 self.systemClipboard.setText(self.clipboard)
 
-    @QtCore.pyqtSlot()
     def Paste(self):
         """
         Paste the selected items
@@ -1826,7 +1817,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         return layers, sprites
 
-    @QtCore.pyqtSlot()
     def ShiftItems(self):
         """
         Shifts the selected object(s)
@@ -1876,7 +1866,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             SetDirty()
 
-    @QtCore.pyqtSlot()
     def SwapObjectsTilesets(self):
         """
         Swaps objects' tilesets
@@ -1892,7 +1881,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             SetDirty()
 
-    @QtCore.pyqtSlot()
     def SwapObjectsTypes(self):
         """
         Swaps objects' types
@@ -1909,7 +1897,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             SetDirty()
 
-    @QtCore.pyqtSlot()
     def MergeLocations(self):
         """
         Merges selected sprite locations
@@ -1959,7 +1946,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             globals.Area.locations.append(loc)
             loc.setSelected(True)
 
-    @QtCore.pyqtSlot()
     def HandleAddNewArea(self):
         """
         Adds a new area to the level
@@ -1982,7 +1968,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if not self.HandleSaveNewArea(course, L0, L1, L2): return
         self.LoadLevel(None, self.fileSavePath, True, newID)
 
-    @QtCore.pyqtSlot()
     def HandleImportArea(self):
         """
         Imports an area from another level
@@ -2127,7 +2112,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if not self.HandleSaveNewArea(course, L0, L1, L2): return
         self.LoadLevel(None, self.fileSavePath, True, newID)
 
-    @QtCore.pyqtSlot()
     def HandleDeleteArea(self):
         """
         Deletes the current area
@@ -2185,7 +2169,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.LoadLevel(None, self.fileSavePath, True, 1)
 
-    @QtCore.pyqtSlot()
     def HandleChangeGamePath(self, auto=False):
         """
         Change the game path used by the current game definition
@@ -2216,7 +2199,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         return True
 
-    @QtCore.pyqtSlot()
     def HandleChangeObjPath(self):
         """
         Change the Objects path used by "All" tab
@@ -2246,7 +2228,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.folderPicker.currentIndexChanged.connect(UpdateObjFolder)
 
-    @QtCore.pyqtSlot()
     def HandleChangeSavePath(self, auto=False):
         """
         Change the save path used by the current game definition
@@ -2272,7 +2253,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         return True
 
-    @QtCore.pyqtSlot()
     def HandlePreferences(self):
         """
         Edit Miyamoto preferences
@@ -2310,7 +2290,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Warn the user that they may need to restart
         QtWidgets.QMessageBox.warning(None, globals.trans.string('PrefsDlg', 0), globals.trans.string('PrefsDlg', 30))
 
-    @QtCore.pyqtSlot()
     def HandleNewLevel(self):
         """
         Create a new level
@@ -2321,7 +2300,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.LoadLevel(None, None, False, 1)
 
-    @QtCore.pyqtSlot()
     def HandleOpenFromName(self):
         """
         Open a level using the level picker
@@ -2335,7 +2313,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             self.LoadLevel(self.CurrentGame, dlg.currentlevel, False, 1)
 
-    @QtCore.pyqtSlot()
     def HandleOpenFromFile(self):
         """
         Open a level using the filename
@@ -2354,7 +2331,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.LoadLevel(self.CurrentGame, str(fn), True, 1)
 
-    @QtCore.pyqtSlot()
     def HandleSave(self):
         """
         Save a level back to the archive
@@ -2402,13 +2378,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         globals.Dirty = False
         globals.AutoSaveDirty = False
+        globals.TilesetEdited = False
         self.UpdateTitle()
 
         # setSetting('AutoSaveFilePath', self.fileSavePath)
         # setSetting('AutoSaveFileData', 'x')
         return True
 
-    @QtCore.pyqtSlot()
     def HandleSaveNewArea(self, course, L0, L1, L2):
         """
         Save a level back to the archive
@@ -2455,13 +2431,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         globals.Dirty = False
         globals.AutoSaveDirty = False
+        globals.TilesetEdited = False
         self.UpdateTitle()
 
         # setSetting('AutoSaveFilePath', self.fileSavePath)
         # setSetting('AutoSaveFileData', 'x')
         return True
 
-    @QtCore.pyqtSlot()
     def HandleSaveAs(self):
         """
         Save a level back to the archive, with a new filename
@@ -2514,6 +2490,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         globals.Dirty = False
         globals.AutoSaveDirty = False
+        globals.TilesetEdited = False
         self.UpdateTitle()
 
         self.RecentMenu.AddToList(self.fileSavePath)
@@ -2532,14 +2509,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         return name
 
-    @QtCore.pyqtSlot()
     def HandleExit(self):
         """
         Exit the editor. Why would you want to do this anyway?
         """
         self.close()
 
-    @QtCore.pyqtSlot(int)
     def HandleSwitchArea(self, idx):
         """
         Handle activated signals for areaComboBox
@@ -2551,7 +2526,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if globals.Area.areanum != idx + 1:
             self.LoadLevel(self.CurrentGame, self.fileSavePath, True, idx + 1)
 
-    @QtCore.pyqtSlot(bool)
     def HandleUpdateLayer0(self, checked):
         """
         Handle toggling of layer 0 being shown
@@ -2564,7 +2538,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleUpdateLayer1(self, checked):
         """
         Handle toggling of layer 1 being shown
@@ -2577,7 +2550,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleUpdateLayer2(self, checked):
         """
         Handle toggling of layer 2 being shown
@@ -2590,7 +2562,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleTilesetAnimToggle(self, checked):
         """
         Handle toggling of tileset animations
@@ -2601,7 +2572,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleCollisionsToggle(self, checked):
         """
         Handle toggling of tileset collisions viewing
@@ -2611,7 +2581,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('ShowCollisions', globals.CollisionsShown)
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleRealViewToggle(self, checked):
         """
         Handle toggling of Real View
@@ -2622,7 +2591,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('RealViewEnabled', globals.RealViewEnabled)
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleSpritesVisibility(self, checked):
         """
         Handle toggling of sprite visibility
@@ -2636,7 +2604,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('ShowSprites', globals.SpritesShown)
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleSpriteImages(self, checked):
         """
         Handle toggling of sprite images
@@ -2661,7 +2628,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleLocationsVisibility(self, checked):
         """
         Handle toggling of location visibility
@@ -2675,7 +2641,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('ShowLocations', globals.LocationsShown)
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleCommentsVisibility(self, checked):
         """
         Handle toggling of comment visibility
@@ -2689,7 +2654,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('ShowComments', globals.CommentsShown)
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandlePathsVisibility(self, checked):
         """
         Handle toggling of path visibility
@@ -2712,7 +2676,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('ShowPaths', globals.PathsShown)
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleObjectsFreeze(self, checked):
         """
         Handle toggling of objects being frozen
@@ -2730,7 +2693,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('FreezeObjects', globals.ObjectsFrozen)
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleSpritesFreeze(self, checked):
         """
         Handle toggling of sprites being frozen
@@ -2747,7 +2709,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('FreezeSprites', globals.SpritesFrozen)
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleEntrancesFreeze(self, checked):
         """
         Handle toggling of entrances being frozen
@@ -2764,7 +2725,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('FreezeEntrances', globals.EntrancesFrozen)
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleLocationsFreeze(self, checked):
         """
         Handle toggling of locations being frozen
@@ -2781,7 +2741,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('FreezeLocations', globals.LocationsFrozen)
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandlePathsFreeze(self, checked):
         """
         Handle toggling of paths being frozen
@@ -2802,7 +2761,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('FreezePaths', globals.PathsFrozen)
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleCommentsFreeze(self, checked):
         """
         Handle toggling of comments being frozen
@@ -2819,7 +2777,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('FreezeComments', globals.CommentsFrozen)
         self.scene.update()
 
-    @QtCore.pyqtSlot(bool)
     def HandleOverwriteSprite(self, checked):
         """
         Handle setting overwriting sprites
@@ -2828,7 +2785,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         setSetting('OverwriteSprite', globals.OverwriteSprite)
 
-    @QtCore.pyqtSlot(bool)
+    def HandleOverrideTilesetSaving(self, checked):
+        """
+        Handle setting overwriting sprites
+        """
+        globals.OverrideTilesetSaving = checked
+
+        setSetting('OverrideTilesetSaving', globals.OverrideTilesetSaving)
+
     def HandleFullscreen(self, checked):
         """
         Handle fullscreen mode
@@ -2838,7 +2802,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             self.showMaximized()
 
-    @QtCore.pyqtSlot()
     def HandleSwitchGrid(self):
         """
         Handle switching of the grid view
@@ -2853,7 +2816,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('GridType', globals.GridType)
         self.scene.update()
 
-    @QtCore.pyqtSlot()
     def HandleZoomIn(self):
         """
         Handle zooming in
@@ -2864,7 +2826,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if zi < len(self.ZoomLevels):
             self.ZoomTo(self.ZoomLevels[zi])
 
-    @QtCore.pyqtSlot()
     def HandleZoomOut(self):
         """
         Handle zooming out
@@ -2875,21 +2836,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if zi >= 0:
             self.ZoomTo(self.ZoomLevels[zi])
 
-    @QtCore.pyqtSlot()
     def HandleZoomActual(self):
         """
         Handle zooming to the actual size
         """
         self.ZoomTo(100.0)
 
-    @QtCore.pyqtSlot()
     def HandleZoomMin(self):
         """
         Handle zooming to the minimum size
         """
         self.ZoomTo(self.ZoomLevels[0])
 
-    @QtCore.pyqtSlot()
     def HandleZoomMax(self):
         """
         Handle zooming to the maximum size
@@ -2923,7 +2881,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.scene.update()
 
-    @QtCore.pyqtSlot(int, int)
     def HandleOverviewClick(self, x, y):
         """
         Handle position changes from the level overview
@@ -3166,6 +3123,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.Layer1Shown = True
         globals.Layer2Shown = True
         globals.CurrentArea = areaNum
+        globals.TilesetEdited = False
 
         if globals.CurrentArea not in globals.ObjectAddedtoEmbedded:
             globals.ObjectAddedtoEmbedded[globals.CurrentArea] = {}
@@ -3383,7 +3341,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.scene.addItem(com)
             com.UpdateListItem()
 
-    @QtCore.pyqtSlot()
     def ReloadTilesets(self, soft=False):
         """
         Reloads all the tilesets. If soft is True, they will not be reloaded if the filepaths have not changed.
@@ -3401,7 +3358,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.scene.update()
 
-    @QtCore.pyqtSlot()
     def ReloadSpriteData(self):
         globals.Sprites = None
         LoadSpriteData()
@@ -3409,7 +3365,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             sprite.InitializeSprite()
         self.scene.update()
 
-    @QtCore.pyqtSlot()
     def ChangeSelectionHandler(self):
         """
         Update the visible panels whenever the selection changes
@@ -3630,7 +3585,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             SetDirty()
         self.levelOverview.update()
 
-    @QtCore.pyqtSlot(int)
     def CreationTabChanged(self, nt):
         """
         Handles the selected palette tab changing
@@ -3658,7 +3612,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         globals.CurrentPaintType = CPT
 
-    @QtCore.pyqtSlot(int)
     def ObjTabChanged(self, nt):
         """
         Handles the selected slot tab in the object palette changing
@@ -3688,7 +3641,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.defaultPropDock.setVisible(False)
         globals.CurrentPaintType = nt
 
-    @QtCore.pyqtSlot(int)
     def SprTabChanged(self, nt):
         """
         Handles the selected tab in the sprite palette changing
@@ -3699,7 +3651,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             cpt = -1
         globals.CurrentPaintType = cpt
 
-    @QtCore.pyqtSlot(int)
     def LayerChoiceChanged(self, nl):
         """
         Handles the selected layer changing
@@ -3800,6 +3751,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # Add the object to one of the tilesets
         paintType, objNum = addObjToTileset(obj, colls, img, nml)
+        SetDirty()
 
         # Checks if the object fit in one of the tilesets
         if paintType == 11:
@@ -3972,7 +3924,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     continue
 
                 objNum = 0
-                while True:
+                while objNum < 256:
                     if globals.ObjectDefinitions[idx][objNum] is None:
                         break
 
@@ -3990,70 +3942,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         objNum += 1
                         continue
 
-                    # Replace the object's tiles with transparent tiles
-                    obj = globals.ObjectDefinitions[idx][objNum]
-                    usedTiles = []
-                    for row in obj.rows:
-                        for tile in row:
-                            if len(tile) == 3:
-                                randLen = obj.randByte & 0xF
-                                tileNum = tile[1] & 0xFF
-                                if randLen > 0:
-                                    for i in range(randLen):
-                                        if tileNum + i not in usedTiles:
-                                            usedTiles.append(tileNum + i)
-                                else:
-                                    if tileNum not in usedTiles:
-                                        usedTiles.append(tileNum)
-
-                    T = TilesetTile()
-                    T.setCollisions([0] * 8)
-
-                    tileoffset = idx * 256
-
-                    for i in usedTiles:
-                        globals.Tiles[i + tileoffset] = T
-
-                    folderIndex = obj.folderIndex
-
-                    # Completely remove the object's definitions
-                    del globals.ObjectDefinitions[idx][objNum]
-                    globals.ObjectDefinitions[idx].append(None)
-
-                    # Remove the object from globals.ObjectAddedtoEmbedded
-                    if folderIndex > -1 and globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-                        found = False
-                        for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-                            obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-                            if obj == (idx, objNum):
-                                found = True
-                                tempidx, tempobjNum = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-                                del globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-                                break
-
-                        if found:
-                            for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-                                obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-                                if obj[0] == tempidx:
-                                    if obj[1] > tempobjNum:
-                                        globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i] = (obj[0], obj[1] - 1)
-
-                    if globals.ObjectDefinitions[idx] == [None] * 256:
-                        if idx == 1: globals.Area.tileset1 = ''
-                        elif idx == 2: globals.Area.tileset2 = ''
-                        elif idx == 3: globals.Area.tileset3 = ''
-
-                    for layer in globals.Area.layers:
-                        for obj in layer:
-                            if obj.tileset == idx:
-                                if obj.type > objNum:
-                                    obj.SetType(idx, obj.type - 1)
+                    DeleteObject(idx, objNum)
 
                     if noneRemoved:
                         noneRemoved = False
 
             if not noneRemoved:
-                self.objPicker.LoadFromTilesets()
+                HandleTilesetEdited()
 
                 if not (globals.Area.tileset1 or globals.Area.tileset2 or globals.Area.tileset3):
                     globals.CurrentObject = -1
@@ -4061,14 +3956,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 globals.mainWindow.scene.update()
                 SetDirty()
 
-                globals.mainWindow.updateNumUsedTilesLabel()
-
             if instancesFound:
                 dlgTxt = "Some objects couldn't be deleted because there are instances of them in the level scene."
 
                 QtWidgets.QMessageBox.critical(self, 'Cannot Delete', dlgTxt)
 
-    @QtCore.pyqtSlot(int)
     def ObjectChoiceChanged(self, type):
         """
         Handles a new object being chosen
@@ -4089,7 +3981,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             globals.CurrentObject = type
 
-    @QtCore.pyqtSlot(int)
     def ObjectReplace(self, type):
         """
         Handles a new object being chosen to replace the selected objects
@@ -4121,7 +4012,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if changed:
             SetDirty()
 
-    @QtCore.pyqtSlot(int)
     def SpriteChoiceChanged(self, type):
         """
         Handles a new sprite being chosen
@@ -4137,7 +4027,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.defaultPropDock.setVisible(False)
             self.defaultDataEditor.update()
 
-    @QtCore.pyqtSlot(int)
     def SpriteReplace(self, type):
         """
         Handles a new sprite type being chosen to replace the selected sprites
@@ -4158,7 +4047,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.ChangeSelectionHandler()
 
-    @QtCore.pyqtSlot(int)
     def SelectNewSpriteView(self, type):
         """
         Handles a new sprite view being chosen
@@ -4171,14 +4059,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         layout.itemAt(0).widget().setVisible(isSearch)
         layout.itemAt(1).widget().setVisible(isSearch)
 
-    @QtCore.pyqtSlot(str)
     def NewSearchTerm(self, text):
         """
         Handles a new sprite search term being entered
         """
         self.sprPicker.SetSearchString(text)
 
-    @QtCore.pyqtSlot()
     def ShowDefaultProps(self):
         """
         Handles the Show Default Properties button being clicked
@@ -4194,7 +4080,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             obj.UpdateListItem()
             SetDirty()
 
-    @QtCore.pyqtSlot('PyQt_PyObject')
     def SpriteDataUpdated(self, data):
         """
         Handle the current sprite's data being updated
@@ -4248,7 +4133,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.SaveComments()
         SetDirty()
 
-    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleEntranceSelectByList(self, item):
         """
         Handle an entrance being selected from the list
@@ -4268,7 +4152,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.scene.clearSelection()
         ent.setSelected(True)
 
-    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleEntranceToolTipAboutToShow(self, item):
         """
         Handle an entrance being hovered in the list
@@ -4282,7 +4165,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         ent.UpdateListItem(True)
 
-    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleLocationSelectByList(self, item):
         """
         Handle a location being selected from the list
@@ -4302,7 +4184,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.scene.clearSelection()
         loc.setSelected(True)
 
-    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleLocationToolTipAboutToShow(self, item):
         """
         Handle a location being hovered in the list
@@ -4316,7 +4197,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         loc.UpdateListItem(True)
 
-    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleSpriteSelectByList(self, item):
         """
         Handle a sprite being selected from the list
@@ -4336,7 +4216,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.scene.clearSelection()
         spr.setSelected(True)
 
-    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleSpriteToolTipAboutToShow(self, item):
         """
         Handle a sprite being hovered in the list
@@ -4350,7 +4229,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         spr.UpdateListItem(True)
 
-    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandlePathSelectByList(self, item):
         """
         Handle a path node being selected
@@ -4370,7 +4248,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.scene.clearSelection()
         path.setSelected(True)
 
-    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandlePathToolTipAboutToShow(self, item):
         """
         Handle a path node being hovered in the list
@@ -4384,7 +4261,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         path.UpdateListItem(True)
 
-    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleNabbitPathSelectByList(self, item):
         """
         Handle a path node being selected
@@ -4400,7 +4276,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.scene.clearSelection()
         nPath.setSelected(True)
 
-    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleNabbitPathToolTipAboutToShow(self, item):
         """
         Handle a path node being hovered in the list
@@ -4414,7 +4289,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         nPath.UpdateListItem(True)
 
-    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleCommentSelectByList(self, item):
         """
         Handle a comment being selected
@@ -4430,7 +4304,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.scene.clearSelection()
         comment.setSelected(True)
 
-    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def HandleCommentToolTipAboutToShow(self, item):
         """
         Handle a comment being hovered in the list
@@ -4487,7 +4360,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.UpdateFlag = False
 
-    @QtCore.pyqtSlot(int, int)
     def PositionHovered(self, x, y):
         """
         Handle a position being hovered in the view
@@ -4577,7 +4449,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         QtWidgets.QMainWindow.keyPressEvent(self, event)
 
-    @QtCore.pyqtSlot()
     def HandleAreaOptions(self):
         """
         Pops up the options for Area Dialogue
@@ -4627,7 +4498,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             self.scene.update()
 
-    @QtCore.pyqtSlot()
     def HandleZones(self):
         """
         Pops up the options for Zone dialog
@@ -4948,7 +4818,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.levelOverview.update()
 
     # Handles setting the backgrounds
-    @QtCore.pyqtSlot()
     def HandleBG(self):
         """
         Pops up the Background settings Dialog
@@ -4964,7 +4833,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 z.background = (z.id, unk1, to_bytes(name, 16), unk2)
                 print('Zone ' + str(z.id + 1) + ' BG: ' + name)
 
-    @QtCore.pyqtSlot()
     def HandleScreenshot(self):
         """
         Takes a screenshot of the entire level and saves it
@@ -5031,7 +4899,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             ScreenshotImage.save(fn, 'PNG', 50)
 
-    @QtCore.pyqtSlot()
     def EditSlot1(self):
         """
         Edits Slot 1 tileset
@@ -5181,6 +5048,7 @@ def main():
     globals.PathsFrozen = setting('FreezePaths', False)
     globals.CommentsFrozen = setting('FreezeComments', False)
     globals.OverwriteSprite = setting('OverwriteSprite', False)
+    globals.OverrideTilesetSaving = setting('OverrideTilesetSaving', False)
     globals.SpritesShown = setting('ShowSprites', True)
     globals.SpriteImagesShown = setting('ShowSpriteImages', True)
     globals.LocationsShown = setting('ShowLocations', True)

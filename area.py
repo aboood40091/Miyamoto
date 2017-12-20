@@ -639,7 +639,7 @@ class Area_NSMBU(AbstractArea):
         """
         Saves the tileset names back to block 1
         """
-        if not isNewArea:
+        if not isNewArea and (globals.TilesetEdited or globals.OverrideTilesetSaving):
             if self.tileset1:
                 self.tileset1 = ('Pa1_%s_%d' % (innerfilename, globals.CurrentArea))
 

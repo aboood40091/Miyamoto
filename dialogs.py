@@ -369,7 +369,6 @@ class MetaInfoDialog(QtWidgets.QDialog):
 
         self.PasswordEntry('')
 
-    @QtCore.pyqtSlot(str)
     def PasswordEntry(self, text):
         pswd = globals.Area.Metadata.strData('Password')
         if pswd is None: pswd = ''
@@ -448,7 +447,6 @@ class MetaInfoDialog(QtWidgets.QDialog):
                 mainLayout.addWidget(buttonBox)
                 self.setLayout(mainLayout)
 
-            @QtCore.pyqtSlot(str)
             def PasswordMatch(self, text):
                 self.Ok.setDisabled(self.New.text() != self.Verify.text() and self.New.text() != '')
 
@@ -545,7 +543,6 @@ class ZonesDialog(QtWidgets.QDialog):
         mainLayout.addWidget(buttonBox)
         self.setLayout(mainLayout)
 
-    @QtCore.pyqtSlot()
     def NewZone(self):
         if len(self.zoneTabs) >= 15:
             result = QtWidgets.QMessageBox.warning(self, globals.trans.string('ZonesDlg', 6), globals.trans.string('ZonesDlg', 7),
@@ -572,7 +569,6 @@ class ZonesDialog(QtWidgets.QDialog):
 
         self.NewButton.setEnabled(len(self.zoneTabs) < 8)
 
-    @QtCore.pyqtSlot()
     def DeleteZone(self):
         curindex = self.tabWidget.currentIndex()
         tabamount = self.tabWidget.count()
@@ -689,7 +685,6 @@ class ZoneTab(QtWidgets.QWidget):
 
         self.Dimensions.setLayout(verticalLayout)
 
-    @QtCore.pyqtSlot()
     def HandleSnapTo8x8Grid(self, z):
         """
         Snaps the current zone to an 8x8 grid
@@ -740,7 +735,6 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_width.setValue(right)
         self.Zone_height.setValue(bottom)
 
-    @QtCore.pyqtSlot()
     def HandleSnapTo16x16Grid(self, z):
         """
         Snaps the current zone to a 16x16 grid
@@ -899,7 +893,6 @@ class ZoneTab(QtWidgets.QWidget):
         InnerLayout.addLayout(ZoneDirectionLayout)
         self.Visibility.setLayout(InnerLayout)
 
-    @QtCore.pyqtSlot(bool)
     def ChangeList(self):
         VRadioMod = self.zv % 16
 
@@ -1182,7 +1175,6 @@ class BGTab(QtWidgets.QWidget):
         mainLayout.addWidget(self.preview, 0, 0)
         self.BGViewer.setLayout(mainLayout)
 
-    @QtCore.pyqtSlot()
     def handleNameBox(self):
         """
         Handles any name box changing

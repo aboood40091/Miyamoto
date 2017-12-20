@@ -39,6 +39,7 @@ from misc import *
 from quickpaint import *
 import spritelib as SLib
 from stamp import *
+from tileset import DeleteObject, HandleTilesetEdited
 from ui import *
 
 
@@ -1572,14 +1573,12 @@ class ObjectPickerWidget(QtWidgets.QListView):
         else: self.setModel(self.m123)
         self.setCurrentIndex(self.model().index(sel, 0, QtCore.QModelIndex()))
 
-    @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QModelIndex)
     def currentChanged(self, current, previous):
         """
         Throws a signal when the selected object changed
         """
         self.ObjChanged.emit(current.row())
 
-    @QtCore.pyqtSlot(QtCore.QModelIndex)
     def HandleObjReplace(self, index):
         """
         Throws a signal when the selected object is used as a replacement
@@ -1758,74 +1757,14 @@ class ObjectPickerWidget(QtWidgets.QListView):
             QtWidgets.QMessageBox.critical(self, 'Cannot Delete', dlgTxt)
             return
 
-        # Replace the object's tiles with transparent tiles
-        obj = globals.ObjectDefinitions[idx][objNum]
-        usedTiles = []
-        for row in obj.rows:
-            for tile in row:
-                if len(tile) == 3:
-                    randLen = obj.randByte & 0xF
-                    tileNum = tile[1] & 0xFF
-                    if randLen > 0:
-                        for i in range(randLen):
-                            if tileNum + i not in usedTiles:
-                                usedTiles.append(tileNum + i)
-                    else:
-                        if tileNum not in usedTiles:
-                            usedTiles.append(tileNum)
-
-        T = TilesetTile()
-        T.setCollisions([0] * 8)
-
-        tileoffset = idx * 256
-
-        for i in usedTiles:
-            globals.Tiles[i + tileoffset] = T
-
-        folderIndex = obj.folderIndex
-
-        # Completely remove the object's definitions
-        del globals.ObjectDefinitions[idx][objNum]
-        globals.ObjectDefinitions[idx].append(None)
-
-        # Remove the object from globals.ObjectAddedtoEmbedded
-        if folderIndex > -1 and globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-            found = False
-            for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-                obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-                if obj == (idx, objNum):
-                    found = True
-                    tempidx, tempobjNum = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-                    del globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-                    break
-
-            if found:
-                for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-                    obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-                    if obj[0] == tempidx:
-                        if obj[1] > tempobjNum:
-                            globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i] = (obj[0], obj[1] - 1)
-
-        if globals.ObjectDefinitions[idx] == [None] * 256:
-            if idx == 1: globals.Area.tileset1 = ''
-            elif idx == 2: globals.Area.tileset2 = ''
-            elif idx == 3: globals.Area.tileset3 = ''
-
-        for layer in globals.Area.layers:
-            for obj in layer:
-                if obj.tileset == idx:
-                    if obj.type > objNum:
-                        obj.SetType(idx, obj.type - 1)
-
-        self.LoadFromTilesets()
+        DeleteObject(idx, objNum)
+        HandleTilesetEdited()
 
         if not (globals.Area.tileset1 or globals.Area.tileset2 or globals.Area.tileset3):
             globals.CurrentObject = -1
 
         globals.mainWindow.scene.update()
         SetDirty()
-
-        globals.mainWindow.updateNumUsedTilesLabel()
 
     ObjChanged = QtCore.pyqtSignal(int)
     ObjReplace = QtCore.pyqtSignal(int)
@@ -2451,7 +2390,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
                 value |= self.mask
             return self.insertvalue(data, value)
 
-        @QtCore.pyqtSlot(bool)
         def HandleClick(self, clicked=False):
             """
             Handles clicks on the checkbox
@@ -2501,7 +2439,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             """
             return self.insertvalue(data, self.model.entries[self.widget.currentIndex()][0])
 
-        @QtCore.pyqtSlot(int)
         def HandleIndexChanged(self, index):
             """
             Handle the current index changing in the combobox
@@ -2541,7 +2478,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             """
             return self.insertvalue(data, self.widget.value())
 
-        @QtCore.pyqtSlot(int)
         def HandleValueChanged(self, value):
             """
             Handle the value changing in the spinbox
@@ -2628,7 +2564,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
             return bytes(data)
 
-        @QtCore.pyqtSlot(int)
         def HandleValueChanged(self, value):
             """
             Handle any checkbox being changed
@@ -2711,15 +2646,12 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         self.UpdateFlag = False
 
-    @QtCore.pyqtSlot()
     def ShowNoteTooltip(self):
         QtWidgets.QToolTip.showText(QtGui.QCursor.pos(), self.notes, self)
 
-    @QtCore.pyqtSlot()
     def ShowRelatedObjFilesTooltip(self):
         QtWidgets.QToolTip.showText(QtGui.QCursor.pos(), self.relatedObjFiles, self)
 
-    @QtCore.pyqtSlot('PyQt_PyObject')
     def HandleFieldUpdate(self, field):
         """
         Triggered when a field's data is updated
@@ -2738,7 +2670,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         self.DataUpdate.emit(data)
 
-    @QtCore.pyqtSlot(str)
     def HandleRawDataEdited(self, text):
         """
         Triggered when the raw data textbox is edited
@@ -2777,7 +2708,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
     Widget for editing entrance properties
     """
 
-    @QtCore.pyqtSlot()
     def __init__(self, defaultmode=False):
         """
         Constructor
@@ -2901,7 +2831,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent = None
         self.UpdateFlag = False
 
-    @QtCore.pyqtSlot()
     def setEntrance(self, ent):
         """
         Change the entrance being edited by the editor, update all fields
@@ -2930,7 +2859,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
         self.UpdateFlag = False
 
-    @QtCore.pyqtSlot(int)
     def HandleEntranceIDChanged(self, i):
         """
         Handler for the entrance ID changing
@@ -2943,7 +2871,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateListItem()
         self.editingLabel.setText(globals.trans.string('EntranceDataEditor', 23, '[id]', i))
 
-    @QtCore.pyqtSlot(int)
     def HandleEntranceTypeChanged(self, i):
         """
         Handler for the entrance type changing
@@ -2957,7 +2884,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         globals.mainWindow.scene.update()
         self.ent.UpdateListItem()
 
-    @QtCore.pyqtSlot(int)
     def HandleDestAreaChanged(self, i):
         """
         Handler for the destination area changing
@@ -2968,7 +2894,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    @QtCore.pyqtSlot(int)
     def HandleDestEntranceChanged(self, i):
         """
         Handler for the destination entrance changing
@@ -2979,7 +2904,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    @QtCore.pyqtSlot(int)
     def HandleUnk05(self, i):
         if self.UpdateFlag: return
         SetDirty()
@@ -2987,7 +2911,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    @QtCore.pyqtSlot(int)
     def HandleUnk0C(self, i):
         if self.UpdateFlag: return
         SetDirty()
@@ -2995,7 +2918,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    @QtCore.pyqtSlot(int)
     def HandleUnk0F(self, i):
         if self.UpdateFlag: return
         SetDirty()
@@ -3003,7 +2925,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    @QtCore.pyqtSlot(int)
     def HandleUnk12(self, i):
         if self.UpdateFlag: return
         SetDirty()
@@ -3011,7 +2932,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    @QtCore.pyqtSlot(int)
     def HandleCamera(self, i):
         if self.UpdateFlag: return
         SetDirty()
@@ -3019,7 +2939,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    @QtCore.pyqtSlot(int)
     def HandlePathID(self, i):
         if self.UpdateFlag: return
         SetDirty()
@@ -3027,7 +2946,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    @QtCore.pyqtSlot(int)
     def HandlePathNodeIndex(self, i):
         if self.UpdateFlag: return
         SetDirty()
@@ -3035,7 +2953,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    @QtCore.pyqtSlot(int)
     def HandleUnk16(self, i):
         if self.UpdateFlag: return
         SetDirty()
@@ -3043,7 +2960,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    @QtCore.pyqtSlot(bool)
     def HandleAllowEntryClicked(self, checked):
         """
         Handle for the Allow Entry checkbox being clicked
@@ -3057,7 +2973,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    @QtCore.pyqtSlot(bool)
     def HandleUnknownFlagClicked(self, checked):
         """
         Handle for the Unknown Flag checkbox being clicked
@@ -3069,7 +2984,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         else:
             self.ent.entsettings &= ~2
 
-    @QtCore.pyqtSlot(int)
     def HandleActiveLayerChanged(self, i):
         """
         Handle for the active layer changing
@@ -3168,7 +3082,6 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
 
         self.UpdateFlag = False
 
-    @QtCore.pyqtSlot(float)
     def HandleSpeedChanged(self, i):
         """
         Handler for the speed changing
@@ -3177,7 +3090,6 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         SetDirty()
         self.path.nodeinfo['speed'] = i
 
-    @QtCore.pyqtSlot(float)
     def HandleAccelChanged(self, i):
         """
         Handler for the accel changing
@@ -3186,7 +3098,6 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         SetDirty()
         self.path.nodeinfo['accel'] = i
 
-    @QtCore.pyqtSlot(int)
     def HandleDelayChanged(self, i):
         """
         Handler for the delay changing
@@ -3195,7 +3106,6 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         SetDirty()
         self.path.nodeinfo['delay'] = i
 
-    @QtCore.pyqtSlot(int)
     def Handleunk1Changed(self, i):
         """
         Handler for the delay changing
@@ -3204,7 +3114,6 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         SetDirty()
         self.path.nodeinfo['unk1'] = i
 
-    @QtCore.pyqtSlot(int)
     def HandleLoopsChanged(self, i):
         if self.UpdateFlag: return
         SetDirty()
@@ -3290,7 +3199,6 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
 
         self.UpdateFlag = False
 
-    @QtCore.pyqtSlot(int)
     def HandleActionChanged(self, i):
         """
         Handler for the action changing
@@ -3405,7 +3313,6 @@ class LocationEditorWidget(QtWidgets.QWidget):
     def FixTitle(self):
         self.editingLabel.setText(globals.trans.string('LocationDataEditor', 11, '[id]', self.loc.id))
 
-    @QtCore.pyqtSlot(int)
     def HandleLocationIDChanged(self, i):
         """
         Handler for the location ID changing
@@ -3417,7 +3324,6 @@ class LocationEditorWidget(QtWidgets.QWidget):
         self.loc.UpdateTitle()
         self.FixTitle()
 
-    @QtCore.pyqtSlot(int)
     def HandleLocationXChanged(self, i):
         """
         Handler for the location X-pos changing
@@ -3431,7 +3337,6 @@ class LocationEditorWidget(QtWidgets.QWidget):
         self.loc.UpdateRects()
         self.loc.update()
 
-    @QtCore.pyqtSlot(int)
     def HandleLocationYChanged(self, i):
         """
         Handler for the location Y-pos changing
@@ -3445,7 +3350,6 @@ class LocationEditorWidget(QtWidgets.QWidget):
         self.loc.UpdateRects()
         self.loc.update()
 
-    @QtCore.pyqtSlot(int)
     def HandleLocationWidthChanged(self, i):
         """
         Handler for the location width changing
@@ -3456,7 +3360,6 @@ class LocationEditorWidget(QtWidgets.QWidget):
         self.loc.UpdateRects()
         self.loc.update()
 
-    @QtCore.pyqtSlot(int)
     def HandleLocationHeightChanged(self, i):
         """
         Handler for the location height changing
@@ -3467,7 +3370,6 @@ class LocationEditorWidget(QtWidgets.QWidget):
         self.loc.UpdateRects()
         self.loc.update()
 
-    @QtCore.pyqtSlot()
     def HandleSnapToGrid(self):
         """
         Snaps the current location to an 8x8 grid
@@ -3645,7 +3547,6 @@ class TilesetsTab(QtWidgets.QWidget):
         mainLayout.addStretch(1)
         self.setLayout(mainLayout)
 
-    @QtCore.pyqtSlot(int)
     def HandleTileset0Choice(self, index):
         w = self.tile0
 

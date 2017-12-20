@@ -499,6 +499,8 @@ class MiyamotoTranslation():
                 137: 'Show the Properties Window to Configure Quick Paint',
                 138: 'Show Paths',
                 139: 'Toggle viewing of paths',
+                140: 'Always resave the tilesets',
+                141: 'Always resave the tilesets when saving the level, except for when deleting an area',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',

@@ -34,6 +34,7 @@ Qt = QtCore.Qt
 import globals
 import SARC as SarcLib
 import spritelib as SLib
+from verifications import SetDirty
 
 
 class TilesetTile:
@@ -660,24 +661,80 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
         paintType = idx
 
         # Misc.
-        globals.mainWindow.objPicker.LoadFromTilesets()
-
+        HandleTilesetEdited()
         if not eval('globals.Area.tileset%d' % idx):
-            if idx == 1:
-                globals.Area.tileset1 = 'temp1'
-
-            elif idx == 2:
-                globals.Area.tileset2 = 'temp2'
-
-            elif idx == 3:
-                globals.Area.tileset3 = 'temp3'
-
-        globals.mainWindow.updateNumUsedTilesLabel()
+            exec('globals.Area.tileset%d = "temp%d"' % (idx, idx))
 
         break
 
     return paintType, objNum
 
+def HandleTilesetEdited():
+    if not globals.TilesetEdited:
+        globals.TilesetEdited = True
+
+    globals.mainWindow.objPicker.LoadFromTilesets()
+    globals.mainWindow.updateNumUsedTilesLabel()
+
+def DeleteObject(idx, objNum):
+    # Replace the object's tiles with transparent tiles
+    obj = globals.ObjectDefinitions[idx][objNum]
+    usedTiles = []
+    for row in obj.rows:
+        for tile in row:
+            if len(tile) == 3:
+                randLen = obj.randByte & 0xF
+                tileNum = tile[1] & 0xFF
+                if randLen > 0:
+                    for i in range(randLen):
+                        if tileNum + i not in usedTiles:
+                            usedTiles.append(tileNum + i)
+                else:
+                    if tileNum not in usedTiles:
+                        usedTiles.append(tileNum)
+
+    T = TilesetTile()
+    T.setCollisions([0] * 8)
+
+    tileoffset = idx * 256
+
+    for i in usedTiles:
+        globals.Tiles[i + tileoffset] = T
+
+    folderIndex = obj.folderIndex
+
+    # Completely remove the object's definitions
+    del globals.ObjectDefinitions[idx][objNum]
+    globals.ObjectDefinitions[idx].append(None)
+
+    # Remove the object from globals.ObjectAddedtoEmbedded
+    if folderIndex > -1 and globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
+        found = False
+        for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
+            obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
+            if obj == (idx, objNum):
+                found = True
+                tempidx, tempobjNum = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
+                del globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
+                break
+
+        if found:
+            for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
+                obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
+                if obj[0] == tempidx:
+                    if obj[1] > tempobjNum:
+                        globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i] = (obj[0], obj[1] - 1)
+
+    if globals.ObjectDefinitions[idx] == [None] * 256:
+        if idx == 1: globals.Area.tileset1 = ''
+        elif idx == 2: globals.Area.tileset2 = ''
+        elif idx == 3: globals.Area.tileset3 = ''
+
+    for layer in globals.Area.layers:
+        for obj in layer:
+            if obj.tileset == idx:
+                if obj.type > objNum:
+                    obj.SetType(idx, obj.type - 1)
 
 def writeGTX(tex, idx):
     """

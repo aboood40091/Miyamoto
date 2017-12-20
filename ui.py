@@ -110,7 +110,6 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
             nodes.append(node)
         return tuple(nodes)
 
-    @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, QtWidgets.QTreeWidgetItem)
     def HandleItemChange(self, current, previous):
         """
         Catch the selected level and enable/disable OK button as needed
@@ -122,7 +121,6 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
             self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(True)
             self.currentlevel = str(self.currentlevel)
 
-    @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
     def HandleItemActivated(self, item, column):
         """
         Handle a doubleclick on a level
