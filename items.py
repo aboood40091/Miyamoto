@@ -666,7 +666,7 @@ class ZoneItem(LevelEditorItem):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
         # Paint liquids/fog
-        if globals.SpritesShown and globals.SpriteImagesShown:
+        if globals.SpritesShown and globals.RealViewEnabled:
             zoneRect = QtCore.QRectF(self.objx * globals.TileWidth / 16, self.objy * globals.TileWidth / 16, self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)
             viewRect = globals.mainWindow.view.mapToScene(globals.mainWindow.view.viewport().rect()).boundingRect()
 

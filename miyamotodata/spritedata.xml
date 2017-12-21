@@ -5823,15 +5823,20 @@
     <value nybble="21-22" title="Movement ID" comment="Probably."/>
   </sprite>
   <sprite id="702" name="Wiggler - NSLU" notes="Unknown difference from NSMBU wiggler."/>
-  <sprite id="703" name="Boo Circle - NSLU" notes="Boos forming a circle.">
-    <checkbox nybble="5" title="Desync" comment="If ticked, it will desync the circle from regular ones. (Will not be the same as another circle.)"/>
-    <value nybble="6" title="Outer Radius" comment="Count in tiles"/>
-    <value nybble="7" title="Inner Radius" comment="Count in tiles"/>
-    <value nybble="8" title="Number of Boos" comment="How many Boos are in the circle."/>
-    <value nybble="9" title="Gap Position (Bitfield)" comment="Seems to move where the gap is where the player can go through. (Perhaps a bitfield.)"/>
+  <sprite id="703" name="Boo Circle - NSLU" notes="A circle of boos. Can be customizable, does not need a movement controller.">
+    <checkbox nybble="5" title="Desync" comment="When checked, it will desync the circle from regular ones. (Will not be the same as another circle.)"/>
+    <value nybble="6" title="Outer radius" comment="In blocks."/>
+    <value nybble="7" title="Inner radius" comment="In blocks."/>
+    <value nybble="8" title="Number of Boos" comment="How many boos are in the circle."/>
+    <value nybble="9" title="Gap Position (Bitfield)" comment="Seems to move where the gap is where the player can go through. Probably a bitfield."/>
     <value nybble="10" title="Pulse Out Delay" comment="Only used when the Outer radius is bigger than the inner. Delays when the boo circle pulses out again."/>
-    <value nybble="11" title="Spinning Speed" comment="The speed of the Boo Circle."/>
-    <checkbox nybble="12" title="Counterclockwise" comment="When ticked, the boo circle will spin counterclockwise."/>
+    <list nybble="11" title="Spinning Speed" comment="The speed of the circle.">
+      <entry value="0">Slow</entry>
+      <entry value="1">Medium</entry>
+      <entry value="2">Fast</entry>
+      <entry value="3">Very Fast</entry>
+    </list>
+    <checkbox nybble="12" title="Spins counter clockwise" comment="If this is checked, the boos will spin counterclockwise."/>
     <value nybble="20" title="Movement ID" comment="Hooks to a Movement Controller, but is hasn't been tested yet."/>
   </sprite>
   <sprite id="704" name="Brick Block (2) - NSLU" notes="Maybe a there's a checkbox on a nybble to make this contain an acorn mushroom.">
