@@ -740,6 +740,7 @@ def writeGTX(tex, idx):
     """
     Generates a GTX file from a QImage
     """
+    # use nvcompress to compress as BC3 on Windows and Linux
     if platform.system() in ['Windows', 'Linux']:
         if platform.system() == 'Windows':
             tile_path = globals.miyamoto_path + '/Tools'
@@ -781,7 +782,6 @@ def writeGTX(tex, idx):
 
     # nvcompress doesn't want to work on MacOSX
     # so let's use a local BC3 compressor (lossy)
-    # TODO do the same in Puzzle NSMBU for MacOSX
     elif platform.system() == 'Darwin':
         tile_path = globals.miyamoto_path + '/macTools'
 
@@ -807,7 +807,6 @@ def writeGTX(tex, idx):
 
             dataList.append(compressBC3.CompressBC3(data, tex.bytesPerLine(), 2048, 512))
 
-            mipmaps = []
             for i in range(1, numMips):
                 mipTex = QtGui.QImage(tex).scaledToWidth(max(1, 2048 >> i), Qt.SmoothTransformation)
                 mipTex = mipTex.convertToFormat(QtGui.QImage.Format_RGBA8888)
