@@ -9,12 +9,15 @@
 import json
 import os
 import os.path
+import platform
 import struct
 import sys
 
 from ctypes import create_string_buffer
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
+
+sys.path.append(os.path.abspath('..'))
 
 import SARC
 
@@ -35,6 +38,7 @@ import SARC
 
 
 Tileset = None
+PuzzleVersion = '2.5'
 
 miyamoto_path = ''
 
@@ -698,8 +702,8 @@ class displayWidget(QtWidgets.QListView):
     def __init__(self, parent=None):
         super(displayWidget, self).__init__(parent)
 
-        self.setMinimumWidth(424)
-        self.setMaximumWidth(424)
+        self.setMinimumWidth(426)
+        self.setMaximumWidth(426)
         self.setMinimumHeight(404)
         self.setDragEnabled(True)
         self.setViewMode(QtWidgets.QListView.IconMode)
@@ -1999,7 +2003,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tileImage = QtGui.QPixmap()
         self.normalmap = False
 
-        global Tileset
+        global Tileset, PuzzleVersion
         Tileset = TilesetClass()
 
         self.name = name
@@ -2011,6 +2015,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if data == 'None':
             self.newTileset()
+
         else:
             with open(data, 'rb') as fn:
                 self.data = fn.read()
@@ -2018,7 +2023,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed,
                 QtWidgets.QSizePolicy.Fixed))
-        self.setWindowTitle(name)
+        self.setWindowTitle(name + ' - Puzzle NSMBU v%s' % PuzzleVersion)
 
 
     def setuptile(self):
@@ -2598,34 +2603,61 @@ class MainWindow(QtWidgets.QMainWindow):
         painter.end()
 
         # Generate a GTX file from a QImage
+        # nvcompress doesn't want to work on MacOSX
+        # so let's use a local BC3 compressor (lossy)
         tile_path = self.miyamoto_path + '/macTools'
 
-        if self.slot != 0:  # Save as DXT5/BC3
-            tex.save(tile_path + '/tmp.png')
-        
-            os.chdir(tile_path)
+        import dds
 
-            os.system('chmod 777 nvcompress-osx.app')
-            os.system('./nvcompress-osx.app -bc3 tmp.png tmp.dds')
-            
-            os.chdir(self.miyamoto_path)
+        data = tex.bits()
+        data.setsize(tex.byteCount())
+        data = data.asstring()
 
-            os.remove(tile_path + '/tmp.png')
+        dataList = []
+
+        if Tileset.slot != 0:  # Save as DXT5/BC3
+            fmt = 0x33
+            numMips = 12
+
+            try:
+                import pyximport
+
+                pyximport.install()
+                import compressBC3_cy as compressBC3
+            except ImportError:
+                import compressBC3
+
+            dataList.append(compressBC3.CompressBC3(data, tex.bytesPerLine(), 2048, 512))
+
+            for i in range(1, numMips):
+                mipTex = QtGui.QImage(tex).scaledToWidth(max(1, 2048 >> i), Qt.SmoothTransformation)
+                mipTex = mipTex.convertToFormat(QtGui.QImage.Format_RGBA8888)
+
+                mipData = mipTex.bits()
+                mipData.setsize(mipTex.byteCount())
+                mipData = mipData.asstring()
+
+                dataList.append(compressBC3.CompressBC3(mipData, mipTex.bytesPerLine(), max(1, 2048 >> i), max(1, 512 >> i)))
+
+            del compressBC3
 
         else:  # Save as RGBA8
-            import dds
+            fmt = 0x1a
+            numMips = 1
 
-            data = tex.bits()
-            data.setsize(tex.byteCount())
-            data = data.asstring()
+            dataList.append(data)
 
-            with open(tile_path + '/tmp.dds', 'wb+') as out:
-                hdr = dds.generateRGBA8Header(2048, 512)
-                out.write(hdr)
+        with open(tile_path + '/tmp.dds', 'wb+') as out:
+            hdr = dds.generateHeader(2048, 512, fmt, numMips)
+            out.write(hdr)
+            for data in dataList:
                 out.write(data)
+
+        del dds
 
         import gtx
         gtxdata = gtx.DDStoGTX(tile_path + '/tmp.dds')
+        del gtx
 
         os.remove(tile_path + '/tmp.dds')
 
@@ -3524,6 +3556,10 @@ class MainWindow(QtWidgets.QMainWindow):
             curTile.byte3 = palette.parameters2.currentIndex()
 
         curTile.byte4 = palette.collsType.currentIndex()
+
+        if curTile.byte4 in [4, 5]:
+            curTile.byte4 += 0x1D
+
         curTile.byte5 = palette.terrainType.currentIndex()
         curTile.byte6 = 0
         curTile.byte7 = 0
