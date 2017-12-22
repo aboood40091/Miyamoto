@@ -3148,6 +3148,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Load the actual level
         if name is None:
             self.newLevel()
+
         else:
             self.LoadLevel_NSMBU(levelData, areaNum)
 
@@ -3218,9 +3219,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if new:
             SetDirty()
 
-        else:
+        if name is not None:
             # Add the path to Recent Files
-            self.RecentMenu.AddToList(globals.mainWindow.fileSavePath)
+            self.RecentMenu.AddToList(self.fileSavePath)
 
         # If we got this far, everything worked! Return True.
         return True

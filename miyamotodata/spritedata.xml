@@ -4944,7 +4944,7 @@
     <value nybble="10" title="Unknown Value 10"/>
     <value nybble="11" title="Unknown Value 11"/>
     <value nybble="12" title="Unknown Value 12"/>
-    <value nybble="13" title="Unknown Value 13"/>
+    <value nybble="13" title="Height" comment="Value + 2.5"/>
     <checkbox nybble="14" title="Opposite Direction" comment="If this is ticked, the mushroom platform will go in the opposite direction."/>
     <list nybble="15" title="Type" comment="Default initial direction per type:&lt;br&gt;Vertical movement: Up&lt;br&gt;Horizontal wobbling: Right&lt;br&gt;Extreme horizontal wobbling: UNKNOWN">
       <entry value="0">Vertical movement</entry>

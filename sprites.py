@@ -4578,6 +4578,8 @@ class SpriteImage_Clampy(SLib.SpriteImage_StaticMultiple): # 298
     def loadImages():
         if 'ClamEmpty' in ImageCache: return
 
+        SLib.loadIfNotInImageCache('StarCoin', 'star_coin.png')
+
         if 'PSwitch' not in ImageCache:
             p = SLib.GetImg('p_switch.png', True)
             ImageCache['PSwitch'] = QtGui.QPixmap.fromImage(p)
@@ -5132,6 +5134,8 @@ class SpriteImage_BumpPlatform(SLib.SpriteImage): # 407
         super().dataChanged()
 
         self.width = (self.parent.spritedata[8] & 0xF) << 4
+        if not self.width:
+            self.width = 1
 
     def paint(self, painter):
         super().paint(painter)
@@ -6071,6 +6075,7 @@ ImageClasses = {
     50: SpriteImage_GreenCoin,
     51: SpriteImage_MontyMole,
     54: SpriteImage_YoshiBerry,
+    55: SpriteImage_KoopaTroopa,
     59: SpriteImage_QBlock,
     60: SpriteImage_BrickBlock,
     61: SpriteImage_InvisiBlock,
