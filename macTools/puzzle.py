@@ -6,10 +6,10 @@
 # Puzzle 0.6 by Tempus; all improvements for Python 3, PyQt5 and NSMBU by RoadrunnerWMC
 # Heavily modified by AboodXD
 
+from collections import Counter
 import json
 import os
 import os.path
-import platform
 import struct
 import sys
 
@@ -38,18 +38,18 @@ import SARC
 
 
 Tileset = None
-PuzzleVersion = '2.5'
+PuzzleVersion = '2.6'
 
 miyamoto_path = ''
 
 #############################################################################################
 ########################## Tileset Class and Tile/Object Subclasses #########################
 
-class TilesetClass():
+class TilesetClass:
     '''Contains Tileset data. Inits itself to a blank tileset.
     Methods: addTile, removeTile, addObject, removeObject, clear'''
 
-    class Tile():
+    class Tile:
         def __init__(self, image, nml, bytelist):
             '''Tile Constructor'''
 
@@ -65,7 +65,7 @@ class TilesetClass():
             self.byte7 = bytelist[7]
 
 
-    class Object():
+    class Object:
 
         def __init__(self, height, width, randByte, uslope, lslope, tilelist):
             '''Tile Constructor'''
@@ -144,10 +144,14 @@ class TilesetClass():
         for object in self.objects:
             for i in range(len(object.tiles)):
                 for tile in object.tiles[i]:
+                    if not tile[2] & 3 and Tileset.slot:  # Pa0 tile 0 used in another slot, don't count it
+                        continue
+
                     if object.randLen > 0:
                         for i in range(object.randLen):
                             if tile[1] + i not in usedTiles:
                                 usedTiles.append(tile[1] + i)
+
                     else:
                         if tile[1] not in usedTiles:
                             usedTiles.append(tile[1])
@@ -2216,9 +2220,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for object in Tileset.objects:
             for row in object.tiles:
                 for tile in row:
-                    if tile != (0,0,0):
-                        Tileset.objects[cobj].tiles[crow][ctile] = (tile[0], tile[1], (tile[2] & 0xFC) | Tileset.slot)
-                    if tile == (0,0,0) and ctile == 0:
+                    if tile[2] & 3 or not Tileset.slot:
                         Tileset.objects[cobj].tiles[crow][ctile] = (tile[0], tile[1], (tile[2] & 0xFC) | Tileset.slot)
                     ctile += 1
                 crow += 1
@@ -2378,9 +2380,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for object in Tileset.objects:
             for row in object.tiles:
                 for tile in row:
-                    if tile != (0,0,0):
-                        Tileset.objects[cobj].tiles[crow][ctile] = (tile[0], tile[1], (tile[2] & 0xFC) | Tileset.slot)
-                    if tile == (0,0,0) and ctile == 0:
+                    if tile[2] & 3 or not Tileset.slot:
                         Tileset.objects[cobj].tiles[crow][ctile] = (tile[0], tile[1], (tile[2] & 0xFC) | Tileset.slot)
                     ctile += 1
                 crow += 1
@@ -2837,10 +2837,25 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if "randLen" in jsonData:
             randLen = (metaData[5] & 0xF)
-            numTiles = metaData[3] * randLen
+            numTiles = randLen
 
         else:
-            numTiles = metaData[3] * metaData[2]
+            tilesUsed = []
+
+            pos = 0
+            while objstrings[pos] != 0xFF:
+                if objstrings[pos] & 0x80:
+                    pos += 1
+                    continue
+
+                tile = objstrings[pos:pos+3]
+                if tile != b'\0\0\0':
+                    if tile[1] not in tilesUsed:
+                        tilesUsed.append(tile[1])
+
+                pos += 3
+
+            numTiles = len(tilesUsed)
 
         if numTiles + len(usedTiles) > 256:
             QtWidgets.QMessageBox.warning(self, "Open Object",
@@ -2848,9 +2863,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     QtWidgets.QMessageBox.Cancel)
             return
 
-        freeTiles = []
-        for i in range(256):
-            if i not in usedTiles: freeTiles.append(i)
+        freeTiles = [i for i in range(256) if i not in usedTiles]
 
         if randLen:
             found = False
@@ -2872,6 +2885,8 @@ class MainWindow(QtWidgets.QMainWindow):
                         "There isn't enough room for the object.",
                         QtWidgets.QMessageBox.Cancel)
                 return
+
+        tilesUsed = {}
 
         offset = 0
         byte = struct.unpack_from('>B', objstrings, offset)[0]
@@ -2903,16 +2918,25 @@ class MainWindow(QtWidgets.QMainWindow):
                 byte = struct.unpack_from('>B', objstrings, offset)[0]
 
             else:
-                tile = []
-                tile.append(byte)
-
-                if randLen:
-                    tile.append(tileNum + i)
-                    if i < randLen: i += 1
+                tileBytes = objstrings[offset:offset + 3]
+                if tileBytes == b'\0\0\0':
+                    tile = [0, 0, 0]
 
                 else:
-                    tile.append(freeTiles[i])
-                    i += 1
+                    tile = []
+                    tile.append(byte)
+
+                    if randLen:
+                        tile.append(tileNum + i)
+                        if i < randLen: i += 1
+
+                    else:
+                        if tileBytes[1] not in tilesUsed:
+                            tilesUsed[tileBytes[1]] = i
+                            tile.append(freeTiles[i])
+                            i += 1
+                        else:
+                            tile.append(freeTiles[tilesUsed[tileBytes[1]]])
 
                 byte2 = (struct.unpack_from('>B', objstrings, offset + 2)[0]) & 0xFC
                 byte2 |= Tileset.slot
@@ -2975,34 +2999,36 @@ class MainWindow(QtWidgets.QMainWindow):
             Xoffset = 0
             Yoffset = 0
 
-            a = 0
-
             colls_off = 0
 
-            for i in range(len(object.tiles)):
-                for tile in object.tiles[i]:
-                    if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
-                        object.tiles[i][object.tiles[i].index(tile)][1] = tile[1] = freeTiles[a]
-                        Tileset.tiles[tile[1]].image = tileImage.copy(Xoffset,Yoffset,60,60)
-                        Tileset.tiles[tile[1]].normalmap = nmlImage.copy(Xoffset,Yoffset,60,60)
-                        Tileset.tiles[tile[1]].byte0 = colls[colls_off]
-                        colls_off += 1
-                        Tileset.tiles[tile[1]].byte1 = colls[colls_off]
-                        colls_off += 1
-                        Tileset.tiles[tile[1]].byte2 = colls[colls_off]
-                        colls_off += 1
-                        Tileset.tiles[tile[1]].byte3 = colls[colls_off]
-                        colls_off += 1
-                        Tileset.tiles[tile[1]].byte4 = colls[colls_off]
-                        colls_off += 1
-                        Tileset.tiles[tile[1]].byte5 = colls[colls_off]
-                        colls_off += 1
-                        Tileset.tiles[tile[1]].byte6 = colls[colls_off]
-                        colls_off += 1
-                        Tileset.tiles[tile[1]].byte7 = colls[colls_off]
-                        colls_off += 1
+            tilesReplaced = []
+
+            for row in object.tiles:
+                for tile in row:
+                    if tile[2] & 3 or not Tileset.slot:
+                        if tile[1] not in tilesReplaced:
+                            tilesReplaced.append(tile[1])
+
+                            Tileset.tiles[tile[1]].image = tileImage.copy(Xoffset,Yoffset,60,60)
+                            Tileset.tiles[tile[1]].normalmap = nmlImage.copy(Xoffset,Yoffset,60,60)
+                            Tileset.tiles[tile[1]].byte0 = colls[colls_off]
+                            colls_off += 1
+                            Tileset.tiles[tile[1]].byte1 = colls[colls_off]
+                            colls_off += 1
+                            Tileset.tiles[tile[1]].byte2 = colls[colls_off]
+                            colls_off += 1
+                            Tileset.tiles[tile[1]].byte3 = colls[colls_off]
+                            colls_off += 1
+                            Tileset.tiles[tile[1]].byte4 = colls[colls_off]
+                            colls_off += 1
+                            Tileset.tiles[tile[1]].byte5 = colls[colls_off]
+                            colls_off += 1
+                            Tileset.tiles[tile[1]].byte6 = colls[colls_off]
+                            colls_off += 1
+                            Tileset.tiles[tile[1]].byte7 = colls[colls_off]
+                            colls_off += 1
+
                         painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].image)
-                        a += 1
                     Xoffset += 60
                 Xoffset = 0
                 Yoffset += 60
@@ -3576,7 +3602,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         os.chdir(tile_path)
 
-        os.system('open -a "' + tile_path + '/gtx_extract" --args "' + tile_path + '/texture.gtx" "' + tile_path + '/texture.bmp"')
+        os.system(tile_path + '/gtx_extract_bmp texture.gtx')
 
         os.chdir(self.miyamoto_path)
 

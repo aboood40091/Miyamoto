@@ -957,10 +957,10 @@ class SpriteImage_KoopaTroopa(SLib.SpriteImage_StaticMultiple): # 19
         inshell = (self.parent.spritedata[5] >> 4) & 1
 
         if inshell:
-            self.offset = (-(0.5*((66/60)-1)) * 16, 0)
+            self.offset = (-0.5 * (66 / 60 - 1) * 16, 0)
             self.image = ImageCache['KoopaShellR' if shellcolour else 'KoopaShellG']
         else:
-            self.offset = (-8,-8)
+            self.offset = (-16, -16)
             self.image = ImageCache['KoopaR' if shellcolour else 'KoopaG']
             
         super().dataChanged()
@@ -2274,7 +2274,7 @@ class SpriteImage_Pendulum(SLib.SpriteImage): # 117
         width = widths[size]
         height = heights[size]
 
-        self.xOffset = -(0.5*(width-1)) * 16
+        self.xOffset = -0.5 * (width - 1) * 16
 
         self.aux[0].setSize(width * 60, height * 60)
 
@@ -4425,8 +4425,8 @@ class SpriteImage_CoinBubble(SLib.SpriteImage_Static): # 281
             ImageCache['CoinBubble'],
             )
 
-        self.yOffset = -(0.5 * (ImageCache['CoinBubble'].height() / 60 - 1)) * 16
-        self.xOffset = -(0.5 * (ImageCache['CoinBubble'].width() / 60 - 1)) * 16
+        self.yOffset = -0.5 * (ImageCache['CoinBubble'].height() / 60 - 1) * 16
+        self.xOffset = -0.5 * (ImageCache['CoinBubble'].width() / 60 - 1) * 16
 
     @staticmethod
     def loadImages():
@@ -4645,7 +4645,7 @@ class SpriteImage_Thwimp(SLib.SpriteImage_Static): # 303
             )
 
         self.yOffset = (1 - ImageCache['Thwimp'].height() / 60) * 16
-        self.xOffset = -(0.5 * (ImageCache['Thwimp'].width() / 60 - 1)) * 16
+        self.xOffset = -0.5 * (ImageCache['Thwimp'].width() / 60 - 1) * 16
 
     @staticmethod
     def loadImages():
@@ -5783,102 +5783,56 @@ class SpriteImage_MushroomMovingPlatform(SLib.SpriteImage): # 544
         
     @staticmethod
     def loadImages():
-        ImageCache['SkinnyPinkL'] = SLib.GetImg('pink_mushroom_skinny_l.png')
-        ImageCache['SkinnyPinkM'] = SLib.GetImg('pink_mushroom_skinny_m.png')
-        ImageCache['SkinnyPinkR'] = SLib.GetImg('pink_mushroom_skinny_r.png')
-        ImageCache['SkinnyCyanL'] = SLib.GetImg('cyan_mushroom_skinny_l.png')
-        ImageCache['SkinnyCyanM'] = SLib.GetImg('cyan_mushroom_skinny_m.png')
-        ImageCache['SkinnyCyanR'] = SLib.GetImg('cyan_mushroom_skinny_r.png')
-        ImageCache['ThickBlueL'] = SLib.GetImg('blue_mushroom_thick_l.png')
-        ImageCache['ThickBlueM'] = SLib.GetImg('blue_mushroom_thick_m.png')
-        ImageCache['ThickBlueR'] = SLib.GetImg('blue_mushroom_thick_r.png')
-        ImageCache['ThickRedL'] = SLib.GetImg('red_mushroom_thick_l.png')
-        ImageCache['ThickRedM'] = SLib.GetImg('red_mushroom_thick_m.png')
-        ImageCache['ThickRedR'] = SLib.GetImg('red_mushroom_thick_r.png')
-        ImageCache['PinkStem'] = SLib.GetImg('pink_mushroom_stem.png')
-        ImageCache['CyanStem'] = SLib.GetImg('cyan_mushroom_stem.png')
+        ImageCache['PinkL'] = SLib.GetImg('pink_mushroom_skinny_l.png')
+        ImageCache['PinkM'] = SLib.GetImg('pink_mushroom_skinny_m.png')
+        ImageCache['PinkR'] = SLib.GetImg('pink_mushroom_skinny_r.png')
+        ImageCache['CyanL'] = SLib.GetImg('cyan_mushroom_skinny_l.png')
+        ImageCache['CyanM'] = SLib.GetImg('cyan_mushroom_skinny_m.png')
+        ImageCache['CyanR'] = SLib.GetImg('cyan_mushroom_skinny_r.png')
+        ImageCache['PinkStemT'] = SLib.GetImg('pink_mushroom_stem_top.png')
+        ImageCache['PinkStemM'] = SLib.GetImg('pink_mushroom_stem_middle.png')
+        ImageCache['PinkStemB'] = SLib.GetImg('pink_mushroom_stem_bottom.png')
+        ImageCache['CyanStemT'] = SLib.GetImg('cyan_mushroom_stem_top.png')
+        ImageCache['CyanStemM'] = SLib.GetImg('cyan_mushroom_stem_middle.png')
+        ImageCache['CyanStemB'] = SLib.GetImg('cyan_mushroom_stem_bottom.png')
 
     def dataChanged(self):
         super().dataChanged()
 
         self.color = self.parent.spritedata[7]
-
-        if self.color > 0:
+        if self.color:
             self.color = 1
 
-        self.girth = 0
+        self.width = ((self.parent.spritedata[4] >> 4) + 3) * 16
+        self.height = ((self.parent.spritedata[6] >> 4) + 2.5) * 16
 
-
-        self.height = 120
-
-
-        self.width = (self.parent.spritedata[4]/16) + 3
-
-
-
-        self.xOffset = 8 + (-1*((self.width)*8))
-
-
-
-        self.width = self.width * 16
-
-#        self.xOffset = (-1*((self.width/16)*16))
-#        self.xOffset = (-1*((self.width/16)*8))
-#        self.xOffset = self.xOffset + (-8 * (self.parent.spritedata[8]))
-
-#        print(self.parent.spritedata[8], self.xOffset)
+        self.xOffset = -0.5 * (self.width - 16)
 
     def paint(self, painter):
         super().paint(painter)
 
-        # this is coded so horribly
-        
-        if self.width > 32:
-            if self.color == 0 and self.girth == 0:
-                painter.drawTiledPixmap(60, 0, ((self.width * 3.75)-120), 60, ImageCache['SkinnyPinkM'])
-                painter.drawPixmap(((self.width/2)-12) * 3.75, 60, ImageCache['PinkStem'])
-            elif self.color == 1 and self.girth == 0:
-                painter.drawTiledPixmap(60, 0, ((self.width * 3.75)-120), 60, ImageCache['SkinnyCyanM'])
-                painter.drawPixmap(((self.width/2)-12) * 3.75, 60, ImageCache['CyanStem'])
-            elif self.color == 0 and self.girth == 1:
-                painter.drawTiledPixmap(120, 0, ((self.width * 3.75)-240), 120, ImageCache['ThickRedM'])
-            elif self.color == 1 and self.girth == 1:
-                painter.drawTiledPixmap(120, 0, ((self.width * 3.75)-240), 120, ImageCache['ThickBlueM'])                    
-            else:
-                painter.drawTiledPixmap(60, 0, ((self.width * 3.75)-120), 60, ImageCache['SkinnyPinkM'])
+        # Top
+        painter.drawPixmap(0, 0, ImageCache['CyanL' if self.color else 'PinkL'])
+        painter.drawTiledPixmap(60, 0, (self.width - 32) * 3.75, 60, ImageCache['CyanM' if self.color else 'PinkM'])
+        painter.drawPixmap((self.width - 16) * 3.75, 0, 60, 60, ImageCache['CyanR' if self.color else 'PinkR'])
 
-        if self.width == 24:
-            if self.color == 0 and self.girth == 0:
-                painter.drawPixmap(0, 0, ImageCache['SkinnyPinkR'])
-                painter.drawPixmap(8, 0, ImageCache['SkinnyPinkL'])
-            elif self.color == 1 and self.girth == 0:
-                painter.drawPixmap(0, 0, ImageCache['SkinnyCyanR'])
-                painter.drawPixmap(8, 0, ImageCache['SkinnyCyanL'])
-            elif self.color == 0 and self.girth == 1:
-                painter.drawPixmap(0, 0, ImageCache['ThickRedR'])
-                painter.drawPixmap(8, 0, ImageCache['ThickRedL'])
-            elif self.color == 1 and self.girth == 1:
-                painter.drawPixmap(0, 0, ImageCache['ThickBlueR'])
-                painter.drawPixmap(8, 0, ImageCache['ThickBlueL'])                    
+        # Stem
+        for row in range(int((self.height - 24) / 16)):
+            if not row:
+                painter.drawPixmap((-self.xOffset - 16) * 3.75, 60, ImageCache['CyanStemT' if self.color else 'PinkStemT'])
+
+            elif row == 1:
+                painter.drawPixmap(-self.xOffset * 3.75, 150, ImageCache['CyanStemM' if self.color else 'PinkStemM'])
+
             else:
-                painter.drawPixmap(0, 0, ImageCache['SkinnyPinkR'])
-                painter.drawPixmap(8, 0, ImageCache['SkinnyPinkL'])                
+                painter.drawPixmap(-self.xOffset * 3.75, (row * 60) + 90, ImageCache['CyanStemB' if self.color else 'PinkStemB'])
+
+        # trololo
+        if self.height == 40:
+            painter.drawPixmap(-self.xOffset * 3.75, (self.height - 8) * 3.75, ImageCache['CyanStemB' if self.color else 'PinkStemM'])
+
         else:
-            if self.color == 0 and self.girth == 0:
-                painter.drawPixmap((self.width - 16) * 3.75, 0, ImageCache['SkinnyPinkR'])
-                painter.drawPixmap(0, 0, ImageCache['SkinnyPinkL'])
-            elif self.color == 1 and self.girth == 0:
-                painter.drawPixmap((self.width - 16) * 3.75, 0, ImageCache['SkinnyCyanR'])
-                painter.drawPixmap(0, 0, ImageCache['SkinnyCyanL'])
-            elif self.color == 0 and self.girth == 1:
-                painter.drawPixmap((self.width - 32) * 3.75, 0, ImageCache['ThickRedR'])
-                painter.drawPixmap(0, 0, ImageCache['ThickRedL'])
-            elif self.color == 1 and self.girth == 1:
-                painter.drawPixmap((self.width - 32) * 3.75, 0, ImageCache['ThickBlueR'])
-                painter.drawPixmap(0, 0, ImageCache['ThickBlueL'])                 
-            else:
-                painter.drawPixmap((self.width - 16) * 3.75, 0, ImageCache['SkinnyPinkR'])
-                painter.drawPixmap(0, 0, ImageCache['SkinnyPinkL'])
+            painter.drawPixmap(-self.xOffset * 3.75, (self.height - 8) * 3.75, ImageCache['CyanStemB' if self.color else 'PinkStemB'])
 
 
 class SpriteImage_Flowers(SLib.SpriteImage_StaticMultiple): # 546
@@ -5935,7 +5889,7 @@ class SpriteImage_RecordSignboard(SLib.SpriteImage): # 561
         super().dataChanged()
 
         w = ((self.parent.spritedata[2] >> 4) & 0xF) + 1
-        self.xOffset = -(0.5*(w-1)) * 16
+        self.xOffset = -0.5 * (w - 1) * 16
         self.aux[0].setSize(w * 60, 60)
 
 class SpriteImage_NabbitMetal(SLib.SpriteImage_Static): # 566

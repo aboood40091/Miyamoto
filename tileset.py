@@ -482,6 +482,9 @@ def getUsedTiles():
                 for row in obj.rows:
                     for tile in row:
                         if len(tile) == 3:
+                            if tile == [0, 0, 0]:  # Pa0 tile 0 used in another slot, don't count it
+                                continue
+
                             randLen = obj.randByte & 0xF
                             tileNum = tile[1] & 0xFF
                             if randLen > 0:
@@ -521,13 +524,20 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
         else:
             randLen = 0
 
-        numTiles = 0
-        for row in obj.rows:
-            for tile in row:
-                if len(tile) == 3:
-                    numTiles += (randLen if randLen else 1)
+        if randLen:
+            numTiles = randLen
 
-        
+        else:
+            tilesUsed = []
+            for row in obj.rows:
+                for tile in row:
+                    if len(tile) == 3:
+                        if tile != [0, 0, 0]:
+                            if tile[1] & 0xFF not in tilesUsed:
+                                tilesUsed.append(tile[1] & 0xFF)
+
+            numTiles = len(tilesUsed)
+
         if numTiles + len(usedTiles) > 256:
             # Skip to to the next tileset because the free tiles are not enough
             continue
@@ -535,9 +545,7 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
         tileoffset = idx * 256
 
         # Add the free tiles to a list
-        freeTiles = []
-        for i in range(256):
-            if i not in usedTiles: freeTiles.append(i)
+        freeTiles = [i for i in range(256) if i not in usedTiles]
 
         # Handle randomized objects differently
         if randLen:
@@ -592,17 +600,20 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
 
         else:
             # Set the object's tiles' indecies
-            ctile = 0
-            crow = 0
+            tilesUsed = {}
+
             i = 0
             for row in obj.rows:
                 for tile in row:
                     if len(tile) == 3:
-                        obj.rows[crow][ctile][1] = freeTiles[i] | (idx << 8)
-                        i += 1
-                    ctile += 1
-                crow += 1
-                ctile = 0
+                        if tile != [0, 0, 0]:
+                            tileIdx = tile[1] & 0xFF
+                            if tileIdx not in tilesUsed:
+                                tilesUsed[tileIdx] = i
+                                tile[1] = freeTiles[i] | (idx << 8)
+                                i += 1
+                            else:
+                                tile[1] = freeTiles[tilesUsed[tileIdx]] | (idx << 8)
 
             if globals.ObjectDefinitions[idx] is None:
                 # Make us a new ObjectDefinitions for this tileset
@@ -611,14 +622,17 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
             defs = globals.ObjectDefinitions[idx]
 
             # Set the object's number
-            objNum = 0
-            while defs[objNum] is not None and objNum < 256:
-                objNum += 1
+            for objNum, def_ in enumerate(defs):
+                if def_ is None:
+                    break
+            else:
+                continue  # Should never happen
 
             globals.ObjectDefinitions[idx][objNum] = obj
 
             # Checks if the slop is reversed and reverses the rows
             # Also adds the object's tiles to the Tiles dict.
+            tilesReplaced = []
             isSlope = obj.rows[0][0][0]
             if (isSlope & 0x80) and (isSlope & 0x2):
                 x = 0
@@ -628,14 +642,19 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
                 for row in obj.rows:
                     for tile in row:
                         if len(tile) == 3:
-                            tileNum = (tile[1] & 0xFF) + tileoffset
-                            T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
-                            realRow = len(obj.rows) - 1 - crow
-                            colls = struct.unpack_from('>8B', colldata, (8 * obj.width * realRow) + i)
-                            T.setCollisions(colls)
-                            globals.Tiles[tileNum] = T
+                            if tile != [0, 0, 0]:
+                                tileNum = (tile[1] & 0xFF) + tileoffset
+                                if tileNum not in tilesReplaced:
+                                    tilesReplaced.append(tileNum)
+                                    T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
+                                    realRow = len(obj.rows) - 1 - crow
+                                    colls = struct.unpack_from('>8B', colldata, (8 * obj.width * realRow) + i)
+                                    T.setCollisions(colls)
+                                    globals.Tiles[tileNum] = T
+
                             x += 60
                             i += 8
+
                     crow += 1
                     y -= 60
                     x = 0
@@ -648,12 +667,17 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
                 for row in obj.rows:
                     for tile in row:
                         if len(tile) == 3:
-                            tileNum = (tile[1] & 0xFF) + tileoffset
-                            T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
-                            T.setCollisions(struct.unpack_from('>8B', colldata, i))
-                            globals.Tiles[tileNum] = T
+                            if tile != [0, 0, 0]:
+                                tileNum = (tile[1] & 0xFF) + tileoffset
+                                if tileNum not in tilesReplaced:
+                                    tilesReplaced.append(tileNum)
+                                    T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
+                                    T.setCollisions(struct.unpack_from('>8B', colldata, i))
+                                    globals.Tiles[tileNum] = T
+
                             x += 60
                             i += 8
+
                     y += 60
                     x = 0
 
@@ -683,6 +707,9 @@ def DeleteObject(idx, objNum):
     for row in obj.rows:
         for tile in row:
             if len(tile) == 3:
+                if tile == [0, 0, 0]:  # Pa0 tile 0 used in another slot, don't count it
+                    continue
+
                 randLen = obj.randByte & 0xF
                 tileNum = tile[1] & 0xFF
                 if randLen > 0:
@@ -1148,8 +1175,7 @@ def LoadTexture_NSMBU(tiledata):
         os.system('./gtx_extract.elf texture.gtx texture.bmp')
 
     elif platform.system() == 'Darwin':
-        os.system(
-            'open -a "' + tile_path + '/gtx_extract" --args "' + tile_path + '/texture.gtx" "' + tile_path + '/texture.bmp"')
+        os.system(tile_path + '/gtx_extract_bmp texture.gtx')
 
     else:
         warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')

@@ -5049,6 +5049,7 @@ def main():
     globals.CommentsFrozen = setting('FreezeComments', False)
     globals.OverwriteSprite = setting('OverwriteSprite', False)
     globals.OverrideTilesetSaving = setting('OverrideTilesetSaving', False)
+    globals.RealViewEnabled = setting('RealViewEnabled', True)
     globals.SpritesShown = setting('ShowSprites', True)
     globals.SpriteImagesShown = setting('ShowSpriteImages', True)
     globals.LocationsShown = setting('ShowLocations', True)
