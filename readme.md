@@ -22,6 +22,7 @@ GitHub: https://github.com/aboood40091/Miyamoto
 * Kinnay -- Spritedata
 * Luzifer -- Graphics
 * Mayro -- Graphics
+* Meorge -- Testing on macOS
 * MrRean -- Coding, Spritedata, Categories, Graphics
 * NVIDIA -- NVCOMPRESS
 * Toms -- Spritedata, Graphics
