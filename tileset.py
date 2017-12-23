@@ -753,9 +753,8 @@ def DeleteObject(idx, objNum):
                         globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i] = (obj[0], obj[1] - 1)
 
     if globals.ObjectDefinitions[idx] == [None] * 256:
-        if idx == 1: globals.Area.tileset1 = ''
-        elif idx == 2: globals.Area.tileset2 = ''
-        elif idx == 3: globals.Area.tileset3 = ''
+        UnloadTileset(idx)
+        exec("globals.Area.tileset%d = ''" % idx)
 
     for layer in globals.Area.layers:
         for obj in layer:
@@ -1271,10 +1270,11 @@ def UnloadTileset(idx):
     Unload the tileset from a specific slot
     """
     tileoffset = idx * 256
-    for i in range(tileoffset, tileoffset + 256):
-        globals.Tiles[i] = Tiles[4 * 0x200]
+    T = TilesetTile()
+    T.setCollisions([0] * 8)
+    globals.Tiles[tileoffset:tileoffset+256] = [T] * 256
 
-    globals.ObjectDefinitions[idx] = None
+    globals.ObjectDefinitions[idx] = [None] * 256
 
 
 def CountTiles(row):

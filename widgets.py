@@ -3460,27 +3460,27 @@ class LoadingTab(QtWidgets.QWidget):
         self.unk5.setToolTip(globals.trans.string('AreaDlg', 26))
         self.unk5.setValue(globals.Area.unk5)
 
+        self.entrance = QtWidgets.QSpinBox()
+        self.entrance.setRange(0, 255)
+        self.entrance.setToolTip(globals.trans.string('AreaDlg', 39))
+        self.entrance.setValue(globals.Area.startEntrance)
+
         self.unk6 = QtWidgets.QSpinBox()
         self.unk6.setRange(0, 999)
         self.unk6.setToolTip(globals.trans.string('AreaDlg', 26))
         self.unk6.setValue(globals.Area.unk6)
 
-        self.unk7 = QtWidgets.QSpinBox()
-        self.unk7.setRange(0, 999)
-        self.unk7.setToolTip(globals.trans.string('AreaDlg', 26))
-        self.unk7.setValue(globals.Area.unk7)
-
         settingsLayout = QtWidgets.QFormLayout()
-        settingsLayout.addRow(globals.trans.string('AreaDlg', 22), self.unk1)
-        settingsLayout.addRow(globals.trans.string('AreaDlg', 23), self.unk2)
         settingsLayout.addRow(globals.trans.string('AreaDlg', 3), self.timer)
         settingsLayout.addRow(globals.trans.string('AreaDlg', 36), self.timelimit2)
         settingsLayout.addRow(globals.trans.string('AreaDlg', 37), self.timelimit3)
+        settingsLayout.addRow(globals.trans.string('AreaDlg', 34), self.entrance)
+        settingsLayout.addRow(globals.trans.string('AreaDlg', 22), self.unk1)
+        settingsLayout.addRow(globals.trans.string('AreaDlg', 23), self.unk2)
         settingsLayout.addRow(globals.trans.string('AreaDlg', 24), self.unk3)
         settingsLayout.addRow(globals.trans.string('AreaDlg', 32), self.unk4)
         settingsLayout.addRow(globals.trans.string('AreaDlg', 33), self.unk5)
-        settingsLayout.addRow(globals.trans.string('AreaDlg', 34), self.unk6)
-        settingsLayout.addRow(globals.trans.string('AreaDlg', 35), self.unk7)
+        settingsLayout.addRow(globals.trans.string('AreaDlg', 35), self.unk6)
 
         Layout = QtWidgets.QVBoxLayout()
         Layout.addLayout(settingsLayout)
@@ -3516,11 +3516,12 @@ class TilesetsTab(QtWidgets.QWidget):
         self.tile0.addItem(globals.trans.string('AreaDlg', 15), '')  # None
         # - Retail Tilesets
         for tfile, tname in data:
-            text = globals.trans.string('AreaDlg', 19, '[name]', tname, '[file]', tfile)  # [name] ([file])
-            self.tile0.addItem(text, tfile)
-            if name == tfile:
-                ts_index = text
-                custom = ''
+            if tfile in globals.szsData:
+                text = globals.trans.string('AreaDlg', 19, '[name]', tname, '[file]', tfile)  # [name] ([file])
+                self.tile0.addItem(text, tfile)
+                if name == tfile:
+                    ts_index = text
+                    custom = ''
         # - Custom Tileset
         self.tile0.addItem(globals.trans.string('AreaDlg', 18, '[name]', custom), custom_fname)  # Custom filename... [name]
 
@@ -3554,7 +3555,10 @@ class TilesetsTab(QtWidgets.QWidget):
             fname = str(w.itemData(index))
             fname = fname[len(globals.trans.string('AreaDlg', 17, '[name]', '')):]
 
-            dbox = InputBox()
+            import dialogs
+            dbox = dialogs.InputBox()
+            del dialogs
+
             dbox.setWindowTitle(globals.trans.string('AreaDlg', 20))
             dbox.label.setText(globals.trans.string('AreaDlg', 21))
             dbox.textbox.setMaxLength(31)
@@ -4590,6 +4594,181 @@ class InfoPreviewWidget(QtWidgets.QWidget):
             self.Label2.setText(str2)
 
         self.update()
+
+
+class GameDefViewer(QtWidgets.QWidget):
+    """
+    Widget which displays basic info about the current game definition
+    """
+
+    def __init__(self):
+        """
+        Initializes the widget
+        """
+        QtWidgets.QWidget.__init__(self)
+        self.imgLabel = QtWidgets.QLabel()
+        self.imgLabel.setToolTip(globals.trans.string('Gamedefs', 0))
+        self.imgLabel.setPixmap(GetIcon('sprites', False).pixmap(16, 16))
+        self.versionLabel = QtWidgets.QLabel()
+        self.titleLabel = QtWidgets.QLabel()
+        self.descLabel = QtWidgets.QLabel()
+        self.descLabel.setWordWrap(True)
+        self.descLabel.setMinimumHeight(40)
+
+        # Make layouts
+        left = QtWidgets.QVBoxLayout()
+        left.addWidget(self.imgLabel)
+        left.addWidget(self.versionLabel)
+        left.addStretch(1)
+        right = QtWidgets.QVBoxLayout()
+        right.addWidget(self.titleLabel)
+        right.addWidget(self.descLabel)
+        right.addStretch(1)
+        main = QtWidgets.QHBoxLayout()
+        main.addLayout(left)
+        main.addWidget(createVertLine())
+        main.addLayout(right)
+        main.setStretch(2, 1)
+        self.setLayout(main)
+        self.setMaximumWidth(256 + 64)
+
+        self.updateLabels()
+
+    def updateLabels(self):
+        """
+        Updates all labels
+        """
+        empty = QtGui.QPixmap(16, 16)
+        empty.fill(QtGui.QColor(0, 0, 0, 0))
+        img = GetIcon('sprites', False).pixmap(16, 16) if (
+        (globals.gamedef.recursiveFiles('sprites', False, True) != []) or (not globals.gamedef.custom)) else empty
+        ver = '' if globals.gamedef.version is None else '<i><p style="font-size:10px;">v' + str(globals.gamedef.version) + '</p></i>'
+        title = '<b>' + str(globals.gamedef.name) + '</b>'
+        desc = str(globals.gamedef.description)
+
+        self.imgLabel.setPixmap(img)
+        self.versionLabel.setText(ver)
+        self.titleLabel.setText(title)
+        self.descLabel.setText(desc)
+
+
+class GameDefSelector(QtWidgets.QWidget):
+    """
+    Widget which lets you pick a new game definition
+    """
+    gameChanged = QtCore.pyqtSignal()
+
+    def __init__(self):
+        """
+        Initializes the widget
+        """
+        QtWidgets.QWidget.__init__(self)
+
+        # Populate a list of gamedefs
+        import gamedefs
+        self.GameDefs = gamedefs.getAvailableGameDefs()
+
+        # Add them to the main layout
+        self.group = QtWidgets.QButtonGroup()
+        self.group.setExclusive(True)
+        L = QtWidgets.QGridLayout()
+        row = 0
+        col = 0
+        current = setting('LastGameDef')
+        id = 0
+        for folder in self.GameDefs:
+            def_ = gamedefs.MiyamotoGameDefinition(folder)
+            btn = QtWidgets.QRadioButton()
+            if folder == current: btn.setChecked(True)
+            btn.toggled.connect(self.HandleRadioButtonClick)
+            self.group.addButton(btn, id)
+            btn.setToolTip(def_.description)
+            id += 1
+            L.addWidget(btn, row, col)
+
+            name = QtWidgets.QLabel(def_.name)
+            name.setToolTip(def_.description)
+            L.addWidget(name, row, col + 1)
+
+            row += 1
+            if row > 2:
+                row = 0
+                col += 2
+
+        del gamedefs
+
+        self.setLayout(L)
+
+    def HandleRadioButtonClick(self, checked):
+        """
+        Handles radio button clicks
+        """
+        if not checked: return  # this is called twice; one button is checked, another is unchecked
+
+        import gamedefs
+        gamedefs.loadNewGameDef(self.GameDefs[self.group.checkedId()])
+        del gamedefs
+
+        self.gameChanged.emit()
+
+
+class GameDefMenu(QtWidgets.QMenu):
+    """
+    A menu which lets the user pick gamedefs
+    """
+    gameChanged = QtCore.pyqtSignal()
+
+    def __init__(self):
+        """
+        Creates and initializes the menu
+        """
+        QtWidgets.QMenu.__init__(self)
+
+        # Add the gamedef viewer widget
+        self.currentView = GameDefViewer()
+        self.currentView.setMinimumHeight(100)
+        self.gameChanged.connect(self.currentView.updateLabels)
+
+        v = QtWidgets.QWidgetAction(self)
+        v.setDefaultWidget(self.currentView)
+        self.addAction(v)
+        self.addSeparator()
+
+        # Add entries for each gamedef
+        import gamedefs
+        self.GameDefs = gamedefs.getAvailableGameDefs()
+
+        self.actGroup = QtWidgets.QActionGroup(self)
+        loadedDef = setting('LastGameDef')
+        for folder in self.GameDefs:
+            def_ = gamedefs.MiyamotoGameDefinition(folder)
+            act = QtWidgets.QAction(self)
+            act.setText(def_.name)
+            act.setToolTip(def_.description)
+            act.setData(folder)
+            act.setActionGroup(self.actGroup)
+            act.setCheckable(True)
+            if folder == loadedDef:
+                act.setChecked(True)
+                first = False
+            act.toggled.connect(self.handleGameDefClicked)
+            self.addAction(act)
+
+        del gamedefs
+
+    def handleGameDefClicked(self, checked):
+        """
+        Handles the user clicking a gamedef
+        """
+        if not checked: return
+
+        name = self.actGroup.checkedAction().data()
+
+        import gamedefs
+        gamedefs.loadNewGameDef(name)
+        del gamedefs
+
+        self.gameChanged.emit()
 
 
 class RecentFilesMenu(QtWidgets.QMenu):

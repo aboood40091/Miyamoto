@@ -145,7 +145,6 @@ class Area_NSMBU(AbstractArea):
         self.unk4 = 100
         self.unk5 = 100
         self.unk6 = 0
-        self.unk7 = 0
         self.timelimit2 = 300
         self.timelimit3 = 0
 
@@ -372,7 +371,7 @@ class Area_NSMBU(AbstractArea):
         optstruct = struct.Struct('>xxBBxxxxxBHxBBBBxxBHH')
         offset = 0
         data = optstruct.unpack_from(optdata, offset)
-        self.unk1, self.unk2, self.wrapedges, self.timelimit, self.unk3, self.unk4, self.unk5, self.unk6, self.unk7, self.timelimit2, self.timelimit3 = data
+        self.unk1, self.unk2, self.wrapedges, self.timelimit, self.unk3, self.unk4, self.unk5, self.startEntrance, self.unk6, self.timelimit2, self.timelimit3 = data
 
     def LoadEntrances(self):
         """
@@ -660,7 +659,7 @@ class Area_NSMBU(AbstractArea):
         optstruct = struct.Struct('>xxBBxxxxxBHxBBBBxxBHH')
         buffer = bytearray(0x18)
         optstruct.pack_into(buffer, 0, self.unk1, self.unk2, self.wrapedges, self.timelimit, self.unk3, self.unk4,
-                            self.unk5, self.unk6, self.unk7, self.timelimit2, self.timelimit3)
+                            self.unk5, self.startEntrance, self.unk6, self.timelimit2, self.timelimit3)
         self.blocks[1] = bytes(buffer)
 
     def SaveLayer(self, idx):

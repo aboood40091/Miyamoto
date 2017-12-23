@@ -434,7 +434,7 @@ def LoadGameDef(name=None, dlg=None):
 
         # Load the gamedef
         globals.gamedef = MiyamotoGameDefinition(name)
-        if globals.gamedef.custom and (not settings.contains('GamePath_' + globals.gamedef.name)):
+        if globals.gamedef.custom and (not globals.settings.contains('GamePath_' + globals.gamedef.name)):
             # First-time usage of this gamedef. Have the
             # user pick a stage folder so we can load stages
             # and tilesets from there
@@ -510,6 +510,7 @@ def LoadGameDef(name=None, dlg=None):
 
 
     # Success!
+    if dlg: setSetting('LastGameDef', name)
     return True
 
 
@@ -567,9 +568,6 @@ def LoadActionsLists():
         (globals.trans.string('MenuItems', 80), False, 'importarea'),
         (globals.trans.string('MenuItems', 82), False, 'deletearea'),
         (globals.trans.string('MenuItems', 128), False, 'reloaddata'),
-    )
-    globals.TileActions = (
-        (globals.trans.string('MenuItems', 130), False, 'editslot1'),
     )
     globals.HelpActions = (
         (globals.trans.string('MenuItems', 86), False, 'infobox'),

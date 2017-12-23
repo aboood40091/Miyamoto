@@ -609,8 +609,7 @@ def compressWSZST(inf, outf):
         os.chdir(globals.miyamoto_path)
 
     elif platform.system() == 'Darwin':
-        os.system(
-            'open -a "' + globals.miyamoto_path + '/macTools/wszst_mac" --args COMPRESS "' + inf + '" --dest "' + outf + '"')
+        os.system('"' + globals.miyamoto_path + '/macTools/wszst_mac" COMPRESS "' + inf + '" --dest "' + outf + '"')
 
     else:
         warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',

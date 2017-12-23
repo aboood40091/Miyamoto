@@ -997,47 +997,43 @@ class SpriteImage_BuzzyBeetle(SLib.SpriteImage_StaticMultiple): # 22
             3.75,
             )
 
+        self.directions = {
+            0: 'L',
+            1: 'R',
+            }
+
+        self.types = {
+            0: 'U',
+            1: 'D',
+            2: 'US',
+            3: 'DS',
+            }
+
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('BuzzyL', 'buzzy_beetle.png')
-        SLib.loadIfNotInImageCache('BuzzyR', 'buzzy_beetle_right.png')
-        SLib.loadIfNotInImageCache('BuzzyDL', 'buzzy_beetle_down.png')
-        SLib.loadIfNotInImageCache('BuzzyDR', 'buzzy_beetle_down_right.png')
-        SLib.loadIfNotInImageCache('BuzzyS', 'buzzy_beetle_shell.png')
-        SLib.loadIfNotInImageCache('BuzzyDS', 'buzzy_beetle_down_shell.png')
+        if 'BuzzyUL' not in ImageCache:
+            ImageCache['BuzzyUL'] = QtGui.QPixmap.fromImage(SLib.GetImg('buzzy_beetle.png', True))
+            ImageCache['BuzzyUR'] = QtGui.QPixmap.fromImage(SLib.GetImg('buzzy_beetle.png', True).mirrored(True, False))
+            ImageCache['BuzzyDL'] = QtGui.QPixmap.fromImage(SLib.GetImg('buzzy_beetle_down.png', True))
+            ImageCache['BuzzyDR'] = QtGui.QPixmap.fromImage(SLib.GetImg('buzzy_beetle_down.png', True).mirrored(True, False))
+            ImageCache['BuzzyUSL'] = QtGui.QPixmap.fromImage(SLib.GetImg('buzzy_beetle_shell.png', True))
+            ImageCache['BuzzyUSR'] = QtGui.QPixmap.fromImage(SLib.GetImg('buzzy_beetle_shell.png', True).mirrored(True, False))
+            ImageCache['BuzzyDSL'] = QtGui.QPixmap.fromImage(SLib.GetImg('buzzy_beetle_shell_down.png', True))
+            ImageCache['BuzzyDSR'] = QtGui.QPixmap.fromImage(SLib.GetImg('buzzy_beetle_shell_down.png', True).mirrored(True, False))
 
     def dataChanged(self):
         
-        loldirection = self.parent.spritedata[4] & 0xF
-        mytype = self.parent.spritedata[5] & 0xF
+        direction = self.parent.spritedata[4] & 0xF
+        type_ = self.parent.spritedata[5] & 0xF
 
-        direction = left
+        if direction > 1:
+            direction = 0
 
-        if loldirection == 1:
-            direction = right
-        else:
-            direction = left
+        if type_ > 3:
+            type_ = 0
 
-        if mytype == 0:
-            if direction == left:
-                self.image = ImageCache['BuzzyL']
-            else:
-                self.image = ImageCache['BuzzyR']
-
-        elif mytype == 1:
-            if direction == left:
-                self.image = ImageCache['BuzzyDL']
-            else:
-                self.image = ImageCache['BuzzyDR']
-
-        elif mytype == 2:
-            self.image = ImageCache['BuzzyS']
-
-        elif mytype == 3:
-            self.image = ImageCache['BuzzyDS']
-
-        else:
-            self.image = ImageCache['BuzzyL']
+        self.image = ImageCache['Buzzy%s%s' % (self.types[type_], self.directions[direction])]
+        self.xOffset = -0.5 * (self.image.width() / 60 - 1) * 16
 
         super().dataChanged()
 
@@ -4914,6 +4910,23 @@ class SpriteImage_Pokey(SLib.SpriteImage): # 351
             painter.drawPixmap(0, 0+(self.length-120)+60, 100, 91, ImageCache['PokeyTopD'])
             painter.drawTiledPixmap(0, 60, 100, (self.length-120), ImageCache['PokeyMiddleD'])
             painter.drawPixmap(0, 0, 100, 60, ImageCache['PokeyBottomD'])
+   
+class SpriteImage_SpikeTop(SLib.SpriteImage_Static): # 352
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['SpikeTop'],
+            )
+        self.yOffset = -8
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('SpikeTop', 'spike_top.png')
+
+    def dataChanged(self):
+        self.xOffset = -0.5 * (self.image.width() / 60 - 1) * 16
+        super().dataChanged()
 
 class SpriteImage_GoldenYoshi(SLib.SpriteImage_Static): # 365
     def __init__(self, parent):
@@ -6221,6 +6234,7 @@ ImageClasses = {
     347: SpriteImage_StoneBlock, 
     348: SpriteImage_SuperGuide,
     351: SpriteImage_Pokey,
+    352: SpriteImage_SpikeTop,
     355: SpriteImage_Crash,
     357: SpriteImage_Fuzzy,
     358: SpriteImage_Crash,

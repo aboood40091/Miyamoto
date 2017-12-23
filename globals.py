@@ -106,13 +106,4 @@ with open(miyamoto_path + '/miyamotodata/bgTrans.txt', 'r') as txt:
 names_bgTrans = tuple(names_bgTrans)
 
 # Game enums
-NewSuperMarioBrosU = 0
-NewSuperLuigiU = 1
-FileExtentions = {
-    NewSuperMarioBrosU: ('.szs', '.sarc'),
-    NewSuperLuigiU: ('.szs', '.sarc'),
-}
-FirstLevels = {
-    NewSuperMarioBrosU: '1-1',
-    NewSuperLuigiU: '1-1',
-}
+FileExtentions = ('.szs', '.sarc')

@@ -1428,7 +1428,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 if setting('ToolbarActs') in (None, 'None', 'none', '', 0):
                     # Get the default settings
                     toggled = {}
-                    for List in (globals.FileActions, globals.EditActions, globals.ViewActions, globals.SettingsActions, globals.TileActions, globals.HelpActions):
+                    for List in (globals.FileActions, globals.EditActions, globals.ViewActions, globals.SettingsActions, globals.HelpActions):
                         for name, activated, key in List:
                             toggled[key] = activated
                 else:  # Get the registry settings
@@ -1443,19 +1443,16 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.EditBoxes = []
                 self.ViewBoxes = []
                 self.SettingsBoxes = []
-                self.TileBoxes = []
                 self.HelpBoxes = []
                 FL = QtWidgets.QVBoxLayout()
                 EL = QtWidgets.QVBoxLayout()
                 VL = QtWidgets.QVBoxLayout()
                 SL = QtWidgets.QVBoxLayout()
-                TL = QtWidgets.QVBoxLayout()
                 HL = QtWidgets.QVBoxLayout()
                 FB = QtWidgets.QGroupBox(globals.trans.string('Menubar', 0))
                 EB = QtWidgets.QGroupBox(globals.trans.string('Menubar', 1))
                 VB = QtWidgets.QGroupBox(globals.trans.string('Menubar', 2))
                 SB = QtWidgets.QGroupBox(globals.trans.string('Menubar', 3))
-                TB = QtWidgets.QGroupBox(globals.trans.string('Menubar', 4))
                 HB = QtWidgets.QGroupBox(globals.trans.string('Menubar', 5))
 
                 # Arrange this data so it can be iterated over
@@ -1464,7 +1461,6 @@ class PreferencesDialog(QtWidgets.QDialog):
                     (globals.EditActions, self.EditBoxes, EL, EB),
                     (globals.ViewActions, self.ViewBoxes, VL, VB),
                     (globals.SettingsActions, self.SettingsBoxes, SL, SB),
-                    (globals.TileActions, self.TileBoxes, TL, TB),
                     (globals.HelpActions, self.HelpBoxes, HL, HB),
                 )
 
@@ -1497,7 +1493,6 @@ class PreferencesDialog(QtWidgets.QDialog):
                 L.addWidget(EB, 1, 1, 3, 1)
                 L.addWidget(VB, 1, 2, 3, 1)
                 L.addWidget(SB, 1, 3, 1, 1)
-                L.addWidget(TB, 2, 3, 1, 1)
                 L.addWidget(HB, 3, 3, 1, 1)
                 L.addWidget(CurrentArea, 4, 3, 1, 1)
                 self.setLayout(L)
@@ -1511,7 +1506,6 @@ class PreferencesDialog(QtWidgets.QDialog):
                     (self.EditBoxes, globals.EditActions),
                     (self.ViewBoxes, globals.ViewActions),
                     (self.SettingsBoxes, globals.SettingsActions),
-                    (self.TileBoxes, globals.TileActions),
                     (self.HelpBoxes, globals.HelpActions)
                 )
 

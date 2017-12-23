@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<game name="New Super Luigi U" description="Another adventure starring Luigi!">
+
+    <!-- Files -->
+    <file name="levelnames" path="levelnames.xml" patch="False" />
+
+</game>

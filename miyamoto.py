@@ -125,9 +125,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.selObj = None
         self.CurrentSelection = []
 
-        self.CurrentGame = setting('CurrentGame')
-        if self.CurrentGame is None: self.CurrentGame = globals.NewSuperMarioBrosU
-
         # set up the window
         super().__init__(None)
         self.setWindowTitle('Miyamoto! v%s' % MiyamotoVersion)
@@ -191,21 +188,19 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.SetupDocksAndPanels()
 
         # now get stuff ready
-        curgame = self.CurrentGame
+        loaded = False
 
-        # load first level
         if '-level' in sys.argv:
             index = sys.argv.index('-level')
             try:
                 fn = sys.argv[index + 1]
-                self.LoadLevel(curgame, fn, True, 1)
+                loaded = self.LoadLevel(None, fn, True, 1)
             except:
-                self.LoadLevel(curgame, globals.FirstLevels[curgame], False, 1)
+                pass
 
         elif globals.settings.contains(('LastLevel_' + globals.gamedef.name) if globals.gamedef.custom else 'LastLevel'):
             lastlevel = str(globals.gamedef.GetLastLevel())
-            if not self.LoadLevel(curgame, lastlevel, True, 1):
-                self.LoadLevel(curgame, globals.FirstLevels[curgame], False, 1)
+            loaded = self.LoadLevel(None, lastlevel, True, 1)
 
         else:
             filetypes = ''
@@ -215,9 +210,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             filetypes += globals.trans.string('FileDlgs', 2) + ' (*)'
             fn = QtWidgets.QFileDialog.getOpenFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
             if fn:
-                self.LoadLevel(curgame, fn, True, 1)
-            else:
-                self.LoadLevel(curgame, globals.FirstLevels[curgame], False, 1)
+                loaded = self.LoadLevel(None, fn, True, 1)
+
+        if not loaded:
+            self.LoadLevel(None, '1-1', False, 1)
 
         QtCore.QTimer.singleShot(100, self.levelOverview.update)
 
@@ -251,6 +247,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Sets up Miyamoto's actions, menus and toolbars
         """
         self.RecentMenu = RecentFilesMenu()
+        self.GameDefMenu = GameDefMenu()
 
         self.createMenubar()
 
@@ -277,6 +274,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                           globals.trans.string('MenuItems', 11), QtGui.QKeySequence.SaveAs)
         self.CreateAction('metainfo', self.HandleInfo, GetIcon('info'), globals.trans.string('MenuItems', 12),
                           globals.trans.string('MenuItems', 13), QtGui.QKeySequence('Ctrl+Alt+I'))
+        self.CreateAction('changegamedef', None, GetIcon('game'), globals.trans.string('MenuItems', 98),
+                          globals.trans.string('MenuItems', 99), None)
         self.CreateAction('screenshot', self.HandleScreenshot, GetIcon('screenshot'), globals.trans.string('MenuItems', 14),
                           globals.trans.string('MenuItems', 15), QtGui.QKeySequence('Ctrl+Alt+S'))
         self.CreateAction('changegamepath', self.HandleChangeGamePath, GetIcon('folderpath'),
@@ -399,12 +398,19 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Tilesets
         self.CreateAction('editslot1', self.EditSlot1, GetIcon('animation'), globals.trans.string('MenuItems', 130),
                           globals.trans.string('MenuItems', 131), None)
+        self.CreateAction('editslot2', self.EditSlot2, GetIcon('animation'), globals.trans.string('MenuItems', 142, '[slot]', '2'),
+                          globals.trans.string('MenuItems', 143, '[slot]', '2'), None)
+        self.CreateAction('editslot3', self.EditSlot3, GetIcon('animation'), globals.trans.string('MenuItems', 142, '[slot]', '3'),
+                          globals.trans.string('MenuItems', 143, '[slot]', '3'), None)
+        self.CreateAction('editslot4', self.EditSlot4, GetIcon('animation'), globals.trans.string('MenuItems', 142, '[slot]', '4'),
+                          globals.trans.string('MenuItems', 143, '[slot]', '4'), None)
 
         # Help actions are created later
 
 
         # Configure them
         self.actions['openrecent'].setMenu(self.RecentMenu)
+        self.actions['changegamedef'].setMenu(self.GameDefMenu)
 
         self.actions['collisions'].setChecked(globals.CollisionsShown)
         self.actions['realview'].setChecked(globals.RealViewEnabled)
@@ -446,6 +452,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addAction(self.actions['saveas'])
         fmenu.addAction(self.actions['metainfo'])
         fmenu.addSeparator()
+        fmenu.addAction(self.actions['changegamedef'])
         fmenu.addAction(self.actions['screenshot'])
         fmenu.addAction(self.actions['changegamepath'])
         fmenu.addAction(self.actions['changeobjpath'])
@@ -516,7 +523,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         tmenu = menubar.addMenu(globals.trans.string('Menubar', 4))
         tmenu.addAction(self.actions['editslot1'])
-        lmenu.addSeparator()
+        tmenu.addSeparator()
+        tmenu.addAction(self.actions['editslot2'])
+        tmenu.addAction(self.actions['editslot3'])
+        tmenu.addAction(self.actions['editslot4'])
+        tmenu.addSeparator()
         tmenu.addAction(self.actions['overridetilesetsaving'])
 
         hmenu = menubar.addMenu(globals.trans.string('Menubar', 5))
@@ -620,8 +631,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             ), (
                 'reloaddata',
             ), (
-                'editslot1',
-            ), (
                 'infobox',
                 'helpbox',
                 'tipbox',
@@ -630,10 +639,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         )
 
         # Determine which keys are activated
-        if setting('ToolbarActs') in (None, 'None', 'none', '', 0):
+        if globals.FirstRun or setting('ToolbarActs') in (None, 'None', 'none', '', 0):
             # Get the default settings
             toggled = {}
-            for List in (globals.FileActions, globals.EditActions, globals.ViewActions, globals.SettingsActions, globals.TileActions, globals.HelpActions):
+            for List in (globals.FileActions, globals.EditActions, globals.ViewActions, globals.SettingsActions, globals.HelpActions):
                 for name, activated, key in List:
                     toggled[key] = activated
         else:  # Get the registry settings
@@ -2019,43 +2028,42 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 return False
             return True
 
-        if exists('levelname'):
-            fn1 = bytes_to_string(arc['levelname'].data)
-            if exists(fn1):
-                arcdata = arc[fn1].data
-            else:
-                possibilities = []
-                possibilities.append(os.path.basename(fn))
-                possibilities.append(os.path.basename(fn).split(' ')[-1])  # for names like "NSMBU 1-1.szs"
-                possibilities.append(os.path.basename(fn).split(' ')[0])  # for names like "1-1 test.szs"
-                possibilities.append(os.path.basename(fn).split('.')[0])
-                possibilities.append(os.path.basename(fn).split('_')[0])
-                for fn in possibilities:
-                    if exists(fn):
-                        arcdata = arc[fn].data
-                        break
-                else:
-                    warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                       'Couldn\'t find the inner level file. Aborting.')
-                    warningBox.exec_()
-                    return False
-
-        else:
+        def guessInnerName():
             possibilities = []
-            possibilities.append(os.path.basename(fn))
-            possibilities.append(os.path.basename(fn).split(' ')[-1])  # for names like "NSMBU 1-1.szs"
-            possibilities.append(os.path.basename(fn).split(' ')[0])  # for names like "1-1 test.szs"
-            possibilities.append(os.path.basename(fn).split('.')[0])
-            possibilities.append(os.path.basename(fn).split('_')[0])
+            possibilities.append(os.path.basename(self.fileSavePath))
+            possibilities.append(
+                os.path.basename(self.fileSavePath).split(' ')[-1])  # for names like "NSMBU 1-1.szs"
+            possibilities.append(
+                os.path.basename(self.fileSavePath).split(' ')[0])  # for names like "1-1 test.szs"
+            possibilities.append(os.path.basename(self.fileSavePath).split('.')[0])
+            possibilities.append(os.path.basename(self.fileSavePath).split('_')[0])
+
             for fn in possibilities:
                 if exists(fn):
                     arcdata = arc[fn].data
                     break
+
             else:
                 warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
                                                    'Couldn\'t find the inner level file. Aborting.')
                 warningBox.exec_()
-                return False
+
+                return ''
+
+            return arcdata
+
+        if exists('levelname'):
+            fn = bytes_to_string(arc['levelname'].data)
+            if exists(fn):
+                arcdata = arc[fn].data
+            else:
+                arcdata = guessInnerName()
+
+        else:
+            arcdata = guessInnerName()
+
+        if not arcdata:
+            return False
 
         arc = SarcLib.SARC_Archive()
         arc.load(arcdata)
@@ -2175,9 +2183,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         if self.CheckDirty(): return
 
-        path = None
-        # while not isValidGamePath(path):
-        globals.CurrentGame = globals.NewSuperMarioBrosU
         path = QtWidgets.QFileDialog.getExistingDirectory(None,
                                                           globals.trans.string('ChangeGamePath', 0, '[game]', globals.gamedef.name))
         if path == '':
@@ -2195,7 +2200,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if not auto:
             globals.ObjectAddedtoEmbedded = {}
 
-            self.LoadLevel(None, globals.FirstLevels[globals.CurrentGame], False, 1)
+            self.LoadLevel(None, '1-1', False, 1)
 
         return True
 
@@ -2234,9 +2239,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         if self.CheckDirty(): return
 
-        path = None
-        # while not isValidGamePath(path):
-        globals.CurrentGame = globals.NewSuperMarioBrosU
         path = QtWidgets.QFileDialog.getExistingDirectory(None,
                                                           globals.trans.string('ChangeGamePath', 0, '[game]', globals.gamedef.name))
         if path == '':
@@ -2311,7 +2313,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             globals.ObjectAddedtoEmbedded = {}
 
-            self.LoadLevel(self.CurrentGame, dlg.currentlevel, False, 1)
+            self.LoadLevel(None, dlg.currentlevel, False, 1)
 
     def HandleOpenFromFile(self):
         """
@@ -2329,7 +2331,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         globals.ObjectAddedtoEmbedded = {}
 
-        self.LoadLevel(self.CurrentGame, str(fn), True, 1)
+        self.LoadLevel(None, str(fn), True, 1)
 
     def HandleSave(self):
         """
@@ -2524,7 +2526,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             return
 
         if globals.Area.areanum != idx + 1:
-            self.LoadLevel(self.CurrentGame, self.fileSavePath, True, idx + 1)
+            self.LoadLevel(None, self.fileSavePath, True, idx + 1)
 
     def HandleUpdateLayer0(self, checked):
         """
@@ -2948,7 +2950,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Load a level from any game into the editor
         """
-        new = name == None
+        new = name is None
 
         if new:
             # Set the filepath variables
@@ -2964,29 +2966,25 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             globals.levName = os.path.basename(name)
 
-            game = globals.NewSuperMarioBrosU
+            checknames = []
+            if isFullPath:
+                checknames = [name, ]
+            else:
+                for ext in globals.FileExtentions:
+                    checknames.append(os.path.join(globals.gamedef.GetGamePath(), name + ext))
 
-            # Get the file path, if possible
-            if name is not None:
-                checknames = []
-                if isFullPath:
-                    checknames = [name, ]
-                else:
-                    for ext in globals.FileExtentions[game]:
-                        checknames.append(os.path.join(globals.gamedef.GetGamePath(), name + ext))
-
-                for checkname in checknames:
-                    if os.path.isfile(checkname):
-                        break
-                else:
-                    QtWidgets.QMessageBox.warning(self, 'Miyamoto!',
-                                                  globals.trans.string('Err_CantFindLevel', 0, '[name]', checkname),
-                                                  QtWidgets.QMessageBox.Ok)
-                    return False
-                if not IsNSMBLevel(checkname):
-                    QtWidgets.QMessageBox.warning(self, 'Miyamoto!', globals.trans.string('Err_InvalidLevel', 0),
-                                                  QtWidgets.QMessageBox.Ok)
-                    return False
+            for checkname in checknames:
+                if os.path.isfile(checkname):
+                    break
+            else:
+                QtWidgets.QMessageBox.warning(self, 'Miyamoto!',
+                                              globals.trans.string('Err_CantFindLevel', 0, '[name]', checkname),
+                                              QtWidgets.QMessageBox.Ok)
+                return False
+            if not IsNSMBLevel(checkname):
+                QtWidgets.QMessageBox.warning(self, 'Miyamoto!', globals.trans.string('Err_InvalidLevel', 0),
+                                              QtWidgets.QMessageBox.Ok)
+                return False
 
             name = checkname
 
@@ -3043,7 +3041,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         if exists(fn):
                             globals.levelNameCache = fn
                             levelFileData = arc[fn].data
-                            new = True
                             break
 
                     else:
@@ -3051,9 +3048,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                                                            'Couldn\'t find the inner level file. Aborting.')
                         warningBox.exec_()
 
-                        return '', False
+                        return ''
 
-                    return levelFileData, new
+                    return levelFileData
 
                 if exists('levelname'):
                     fn = bytes_to_string(arc['levelname'].data)
@@ -3061,10 +3058,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         globals.levelNameCache = fn
                         levelFileData = arc[fn].data
                     else:
-                        levelFileData, new = guessInnerName()
+                        levelFileData = guessInnerName()
 
                 else:
-                    levelFileData, new = guessInnerName()
+                    levelFileData = guessInnerName()
 
                 if not levelFileData:
                     return False
@@ -3211,10 +3208,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.levelOverview.update()
         QtCore.QTimer.singleShot(20, self.levelOverview.update)
         self.updateNumUsedTilesLabel()
-
-        # Set the Current Game setting
-        self.CurrentGame = game
-        setSetting('CurrentGame', self.CurrentGame)
 
         if new:
             SetDirty()
@@ -4458,15 +4451,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
             globals.Area.timelimit = dlg.LoadingTab.timer.value()
+            globals.Area.timelimit2 = dlg.LoadingTab.timelimit2.value() + 100
+            globals.Area.timelimit3 = dlg.LoadingTab.timelimit3.value() - 200
+            globals.Area.startEntrance = dlg.LoadingTab.entrance.value()
             globals.Area.unk1 = dlg.LoadingTab.unk1.value()
             globals.Area.unk2 = dlg.LoadingTab.unk2.value()
             globals.Area.unk3 = dlg.LoadingTab.unk3.value()
             globals.Area.unk4 = dlg.LoadingTab.unk4.value()
             globals.Area.unk5 = dlg.LoadingTab.unk5.value()
             globals.Area.unk6 = dlg.LoadingTab.unk6.value()
-            globals.Area.unk7 = dlg.LoadingTab.unk7.value()
-            globals.Area.timelimit2 = dlg.LoadingTab.timelimit2.value() + 100
-            globals.Area.timelimit3 = dlg.LoadingTab.timelimit3.value() - 200
 
             fname = dlg.TilesetsTab.value()
 
@@ -4985,6 +4978,109 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             self.scene.update()
 
+    def EditSlot2(self):
+        """
+        Edits Slot 2 tileset
+        """
+        return self.EditSlot2_4(1)
+
+    def EditSlot3(self):
+        """
+        Edits Slot 3 tileset
+        """
+        return self.EditSlot2_4(2)
+
+    def EditSlot4(self):
+        """
+        Edits Slot 4 tileset
+        """
+        return self.EditSlot2_4(3)
+
+    def EditSlot2_4(self, slot):
+        """
+        Edits Slot 2/3/4 tilesets
+        """
+        if globals.TilesetEdited:
+            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Warning',
+                                               'It seems like some changes where made to the Embedded tab!' \
+                                               '\nPlease save the level before editing slots 2/3/4.')
+            warningBox.exec_()
+            return
+
+        con = False
+
+        if platform.system() == 'Windows':
+            tile_path = globals.miyamoto_path + '/Tools'
+
+        elif platform.system() == 'Linux':
+            tile_path = globals.miyamoto_path + '/linuxTools'
+
+        elif platform.system() == 'Darwin':
+            tile_path = globals.miyamoto_path + '/macTools'
+
+        else:
+            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
+                                               'Not a supported platform, sadly...')
+            warningBox.exec_()
+            return
+
+        if (eval('globals.Area.tileset%d' % slot) not in ('', None)) and (eval('globals.Area.tileset%d' % slot) in globals.szsData):
+            sarcdata = globals.szsData[eval('globals.Area.tileset%d' % slot)]
+
+            with open(tile_path + '/tmp.tmp', 'wb') as fn:
+                fn.write(sarcdata)
+            sarcfile = 'tmp.tmp'
+
+        else:
+            if eval('globals.Area.tileset%d' % slot) in ('', None):
+                con = True
+                exec("globals.Area.tileset%d = 'temp%d'" % (slot, slot))
+
+            sarcfile = 'None'
+
+        if eval('globals.Area.tileset%d' % slot) in ('', None): return
+
+        os.chdir(tile_path)
+
+        if platform.system() == 'Windows':
+            os.system('puzzle.exe ' + eval('globals.Area.tileset%d' % slot) + ' ' + sarcfile + ' "' + globals.miyamoto_path + '" %d' % slot)
+
+        elif platform.system() == 'Linux':
+            os.system('chmod +x ./puzzle.elf')
+            os.system('./puzzle.elf ' + eval('globals.Area.tileset%d' % slot) + ' ' + sarcfile + ' "' + globals.miyamoto_path + '" %d' % slot)
+
+        elif platform.system() == 'Darwin':
+            os.system('python3 puzzle.py ' + eval('globals.Area.tileset%d' % slot) + ' ' + sarcfile + ' "' + globals.miyamoto_path + '" %d' % slot)
+
+        os.chdir(globals.miyamoto_path)
+
+
+        if os.path.isfile(tile_path + '/tmp.tmp'):
+            with open(tile_path + '/tmp.tmp', 'rb') as fn:
+                globals.szsData[eval('globals.Area.tileset%d' % slot)] = fn.read()
+            os.remove(tile_path + '/tmp.tmp')
+
+            self.ReloadTilesets()
+
+            self.objPicker.LoadFromTilesets()
+
+            if globals.ObjectDefinitions[slot] == [None] * 256:
+                UnloadTileset(slot)
+                exec("globals.Area.tileset%d = ''" % slot)
+
+            else:
+                SetDirty()
+                self.objAllTab.setCurrentIndex(2)
+
+            for layer in globals.Area.layers:
+                for obj in layer:
+                    obj.updateObjCache()
+
+            self.scene.update()
+
+        elif con:
+            exec("globals.Area.tileset%d = ''" % slot)
+
 
 def main():
     """
@@ -5017,7 +5113,7 @@ def main():
     # load required stuff
     globals.Sprites = None
     globals.SpriteListData = None
-    LoadGameDef()
+    LoadGameDef(setting('LastGameDef'))
     LoadTheme()
     LoadActionsLists()
     LoadTilesetNames()
@@ -5072,8 +5168,16 @@ def main():
             QtWidgets.QMessageBox.information(None, globals.trans.string('ChangeGamePath', 1),
                                               globals.trans.string('ChangeGamePath', 3))
         else:
-            setSetting('GamePath_NSMBU', path)
+            setSetting('GamePath', path)
             break
+
+    # check if this is the first time this version of Miyamoto is ran
+    if setting("FirstRun") is None:
+        globals.FirstRun = True
+        setSetting("FirstRun", "False")
+
+    else:
+        globals.FirstRun = False
 
     # create and show the main window
     globals.mainWindow = MiyamotoWindow()
