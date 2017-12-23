@@ -25,6 +25,7 @@
 ################################################################
 
 import pickle
+import platform
 import sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -609,7 +610,9 @@ def compressWSZST(inf, outf):
         os.chdir(globals.miyamoto_path)
 
     elif platform.system() == 'Darwin':
+        os.chdir(globals.miyamoto_path + '/macTools')
         os.system('"' + globals.miyamoto_path + '/macTools/wszst_mac" COMPRESS "' + inf + '" --dest "' + outf + '"')
+        os.chdir(globals.miyamoto_path)
 
     else:
         warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
