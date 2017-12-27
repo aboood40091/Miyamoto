@@ -3872,7 +3872,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                             byte0 = tile[0]
                             byte1 = tile[1] & 0xFF
                             byte2 = tile[2] << 2
-                            byte2 |= idx  # Slot
+                            byte2 |= (tile[1] >> 8) & 3  # Slot
 
                             deffile += bytes([byte0, byte1, byte2])
 
