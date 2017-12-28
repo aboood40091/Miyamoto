@@ -734,33 +734,32 @@ def DeleteObject(idx, objNum):
     del globals.ObjectDefinitions[idx][objNum]
     globals.ObjectDefinitions[idx].append(None)
 
-    # Remove the object from globals.ObjectAddedtoEmbedded
-    if folderIndex > -1 and globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-        found = False
-        for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-            obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-            if obj == (idx, objNum):
-                found = True
-                tempidx, tempobjNum = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-                del globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-                break
-
-        if found:
-            for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-                obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-                if obj[0] == tempidx:
-                    if obj[1] > tempobjNum:
-                        globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i] = (obj[0], obj[1] - 1)
-
+    # Unload the tileset if it's empty
     if globals.ObjectDefinitions[idx] == [None] * 256:
         UnloadTileset(idx)
         exec("globals.Area.tileset%d = ''" % idx)
+
+    # Remove the object from globals.ObjectAddedtoEmbedded
+    if folderIndex > -1 and globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
+        for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
+            obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
+            if obj == (idx, objNum):
+                del globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
+                break
+
+    # Subtract 1 from the objects' types that after this object and in the same slot
+    for folderIndex in globals.ObjectAddedtoEmbedded[globals.CurrentArea]:
+        for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
+            obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
+            if obj[0] == idx:
+                if obj[1] > objNum:
+                    globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i] = (obj[0], obj[1] - 1)
 
     for layer in globals.Area.layers:
         for obj in layer:
             if obj.tileset == idx:
                 if obj.type > objNum:
-                    obj.SetType(idx, obj.type - 1)
+                    obj.SetType(obj.tileset, obj.type - 1)
 
 def writeGTX(tex, idx):
     """

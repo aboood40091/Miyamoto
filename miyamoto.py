@@ -200,7 +200,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         elif globals.settings.contains(('LastLevel_' + globals.gamedef.name) if globals.gamedef.custom else 'LastLevel'):
             lastlevel = str(globals.gamedef.GetLastLevel())
-            loaded = self.LoadLevel(None, lastlevel, True, 1)
+            if os.path.isfile(lastlevel):
+                loaded = self.LoadLevel(None, lastlevel, True, 1)
 
         else:
             filetypes = ''
@@ -2509,6 +2510,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             warningBox.exec_()
             return ''
 
+        if globals.levelNameCache == "untitled":
+            globals.levelNameCache = name
+
         return name
 
     def HandleExit(self):
@@ -3225,6 +3229,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # Load it
         globals.Level.new()
+        globals.levelNameCache = "untitled"
 
         self.objUseLayer1.setChecked(True)
 
@@ -5034,7 +5039,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             if eval('globals.Area.tileset%d' % slot) in ('', None):
                 con = True
-                exec("globals.Area.tileset%d = 'temp%d'" % (slot, slot))
+                if ('Pa%d_%s_%d' % (slot, globals.levelNameCache, globals.CurrentArea)) in globals.szsData:
+                    i = 0
+                    while ('Pa%d_%s_%d_%d' % (slot, globals.levelNameCache, globals.CurrentArea, i)) in globals.szsData:
+                        i += 1
+                    exec("globals.Area.tileset%d = 'Pa%d_%s_%d_%d'" % (slot, slot, globals.levelNameCache, globals.CurrentArea, i))
+
+                else:
+                    exec("globals.Area.tileset%d = 'Pa%d_%s_%d'" % (slot, slot, globals.levelNameCache, globals.CurrentArea))
 
             sarcfile = 'None'
 
@@ -5062,6 +5074,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             self.ReloadTilesets()
 
+            SetDirty()
             self.objPicker.LoadFromTilesets()
 
             if globals.ObjectDefinitions[slot] == [None] * 256:
@@ -5069,7 +5082,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 exec("globals.Area.tileset%d = ''" % slot)
 
             else:
-                SetDirty()
                 self.objAllTab.setCurrentIndex(2)
 
             for layer in globals.Area.layers:
