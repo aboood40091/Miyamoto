@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # libyaz0
-# Version 0.3
+# Version 0.4
 # Copyright © 2017 MasterVermilli0n / AboodXD
 
 # This file is part of libyaz0.
@@ -20,73 +20,79 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import math
 import struct
+
 
 def DecompressYaz(src):
     dest_end = struct.unpack(">I", src[4:8])[0]
     dest = bytearray(dest_end)
 
-    code = 0
-    code_len = 0
+    src_end = len(src)
 
-    src_pos = 16
+    code = src[16]
+
+    src_pos = 17
     dest_pos = 0
 
-    while src_pos < len(src) and dest_pos < dest_end:
-        if not code_len:
-            code = src[src_pos]
-            src_pos += 1
-            code_len = 8
+    while src_pos < src_end and dest_pos < dest_end:
+        for _ in range(8):
+            if src_pos >= src_end or dest_pos >= dest_end:
+                break
 
-        if code & 0x80:
-            dest[dest_pos] = src[src_pos]
-            src_pos += 1
-            dest_pos += 1
-
-        else:
-            b1 = src[src_pos]
-            src_pos += 1
-            b2 = src[src_pos]
-            src_pos += 1
-
-            copy_src = dest_pos - ((b1 & 0x0f) << 8 | b2) - 1
-
-            n = b1 >> 4
-            if not n:
-                n = src[src_pos] + 0x12
+            if code & 0x80:
+                dest[dest_pos] = src[src_pos]
                 src_pos += 1
-
-            else:
-                n += 2
-
-            assert (3 <= n <= 0x111)
-
-            while n > 0:
-                n -= 1
-                dest[dest_pos] = dest[copy_src]
-                copy_src += 1
                 dest_pos += 1
 
-        code <<= 1
-        code_len -= 1
+            else:
+                b1 = src[src_pos]
+                src_pos += 1
+                b2 = src[src_pos]
+                src_pos += 1
+
+                copy_src = dest_pos - ((b1 & 0x0f) << 8 | b2) - 1
+
+                n = b1 >> 4
+                if not n:
+                    n = src[src_pos] + 0x12
+                    src_pos += 1
+
+                else:
+                    n += 2
+
+                while n > 0:
+                    n -= 1
+                    dest[dest_pos] = dest[copy_src]
+                    copy_src += 1
+                    dest_pos += 1
+
+            code <<= 1
+
+        else:
+            if src_pos >= src_end or dest_pos >= dest_end:
+                break
+
+            code = src[src_pos]
+            src_pos += 1
 
     return dest
 
 
 def CompressYazFast(src):
     pos = 0
-    dest = bytearray()
+    dest = bytearray(b'\xff')
     src_end = len(src)
-    n = 8
 
     while pos < src_end:
-        if n == 8:
-            n = 0
-            dest += b'\xFF'
-        dest += src[pos:pos + 1]
-        pos += 1
-        n += 1
+        for _ in range(8):
+            if pos >= src_end:
+                break
+
+            dest.append(src[pos])
+            pos += 1
+
+        else:
+            dest.append(0xFF)
 
     return dest
 

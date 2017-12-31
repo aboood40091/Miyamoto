@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # libyaz0
-# Version 0.3
+# Version 0.4
 # Copyright © 2017 MasterVermilli0n / AboodXD
 
 # This file is part of libyaz0.
@@ -25,20 +25,18 @@ import struct
 ctypedef unsigned char u8
 ctypedef char s8
 ctypedef unsigned int u32
+ctypedef signed long long s64
 
-cimport libc.math as math
 
-
-cpdef bytearray DecompressYaz(src):
+cpdef bytearray DecompressYaz(bytearray src):
     cdef u32 dest_end = struct.unpack(">I", src[4:8])[0]
     cdef bytearray dest = bytearray(dest_end)
 
     cdef u32 src_end = len(src)
 
-    cdef u8 code = 0
-    cdef int code_len = 0
+    cdef u8 code = src[16]
 
-    cdef u32 src_pos = 16
+    cdef u32 src_pos = 17
     cdef u32 dest_pos = 0
 
     cdef u8 b1, b2
@@ -48,79 +46,92 @@ cpdef bytearray DecompressYaz(src):
     cdef int n
 
     while src_pos < src_end and dest_pos < dest_end:
-        if not code_len:
-            code = src[src_pos]
-            src_pos += 1
-            code_len = 8
+        for _ in range(8):
+            if src_pos >= src_end or dest_pos >= dest_end:
+                break
 
-        if code & 0x80:
-            dest[dest_pos] = src[src_pos]
-            src_pos += 1
-            dest_pos += 1
-
-        else:
-            b1 = src[src_pos]
-            src_pos += 1
-            b2 = src[src_pos]
-            src_pos += 1
-
-            copy_src = dest_pos - ((b1 & 0x0f) << 8 | b2) - 1
-
-            n = b1 >> 4
-            if not n:
-                n = src[src_pos] + 0x12
+            if code & 0x80:
+                dest[dest_pos] = src[src_pos]
                 src_pos += 1
-
-            else:
-                n += 2
-
-            assert (3 <= n <= 0x111)
-
-            while n > 0:
-                n -= 1
-                dest[dest_pos] = dest[copy_src]
-                copy_src += 1
                 dest_pos += 1
 
-        code <<= 1
-        code_len -= 1
+            else:
+                b1 = src[src_pos]
+                src_pos += 1
+                b2 = src[src_pos]
+                src_pos += 1
+
+                copy_src = dest_pos - ((b1 & 0x0f) << 8 | b2) - 1
+
+                n = b1 >> 4
+                if not n:
+                    n = src[src_pos] + 0x12
+                    src_pos += 1
+
+                else:
+                    n += 2
+
+                while n > 0:
+                    n -= 1
+                    dest[dest_pos] = dest[copy_src]
+                    copy_src += 1
+                    dest_pos += 1
+
+            code <<= 1
+
+        else:
+            if src_pos >= src_end or dest_pos >= dest_end:
+                break
+
+            code = src[src_pos]
+            src_pos += 1
 
     return dest
 
 
-cdef bytearray CompressYazFast(src):
+cdef bytearray CompressYazFast(bytes src):
     cdef u32 pos = 0
-    cdef bytearray dest = bytearray()
+    cdef bytearray dest = bytearray(b'\xff')
     cdef u32 src_end = len(src)
-    cdef u8 n = 8
 
     while pos < src_end:
-        if n == 8:
-            n = 0
-            dest += b'\xFF'
-        dest += src[pos:pos + 1]
-        pos += 1
-        n += 1
+        for _ in range(8):
+            if pos >= src_end:
+                break
+
+            dest.append(src[pos])
+            pos += 1
+
+        else:
+            dest.append(0xFF)
 
     return dest
 
 
-cdef compressionSearch(data, pos, maxMatchLen, maxMatchDiff, src_end):
+cdef inline s64 MAX(s64 a, s64 b):
+    return a if a > b else b
+
+
+cdef inline s64 MIN(s64 a, s64 b):
+    return a if a < b else b
+
+
+cdef (u32, u32) compressionSearch(bytes data, s64 pos, s64 maxMatchLen, s64 maxMatchDiff, s64 src_end):
     """
     Find the longest match in `data` at or after `pos`.
     From ndspy, thanks RoadrunnerWMC!
     """
-    cdef u32 start = max(0, pos - maxMatchDiff)
+    cdef u32 start = MAX(0, pos - maxMatchDiff)
 
     cdef u32 lower = 0
-    cdef u32 upper = min(maxMatchLen, src_end - pos)
+    cdef u32 upper = MIN(maxMatchLen, src_end - pos)
 
     cdef u32 recordMatchPos = 0
     cdef u32 recordMatchLen = 0
 
     cdef u32 matchLen
     cdef bytes match
-    cdef int matchPos
+    cdef s64 matchPos
 
     while lower <= upper:
         matchLen = (lower + upper) // 2
@@ -137,7 +148,7 @@ cdef compressionSearch(data, pos, maxMatchLen, maxMatchDiff, src_end):
     return recordMatchPos, recordMatchLen
 
 
-cpdef bytearray CompressYaz(src, level):
+cpdef bytearray CompressYaz(bytes src, u8 level):
     cdef bytearray dest = bytearray()
     cdef u32 src_end = len(src)
 

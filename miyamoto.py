@@ -76,7 +76,7 @@ from verifications import *
 from widgets import *
 
 MiyamotoID = 'Miyamoto! Level Editor by AboodXD, Gota7, John10v10, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
-MiyamotoVersion = '23.0'
+MiyamotoVersion = '24.0'
 MiyamotoVersionShort = ''
 UpdateURL = ''
 
@@ -194,14 +194,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             index = sys.argv.index('-level')
             try:
                 fn = sys.argv[index + 1]
-                loaded = self.LoadLevel(None, fn, True, 1)
+                loaded = self.LoadLevel(None, fn, True, 1, True)
             except:
                 pass
 
         elif globals.settings.contains(('LastLevel_' + globals.gamedef.name) if globals.gamedef.custom else 'LastLevel'):
             lastlevel = str(globals.gamedef.GetLastLevel())
             if os.path.isfile(lastlevel):
-                loaded = self.LoadLevel(None, lastlevel, True, 1)
+                loaded = self.LoadLevel(None, lastlevel, True, 1, True)
 
         else:
             filetypes = ''
@@ -211,10 +211,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             filetypes += globals.trans.string('FileDlgs', 2) + ' (*)'
             fn = QtWidgets.QFileDialog.getOpenFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
             if fn:
-                loaded = self.LoadLevel(None, fn, True, 1)
+                loaded = self.LoadLevel(None, fn, True, 1, True)
 
         if not loaded:
-            self.LoadLevel(None, '1-1', False, 1)
+            self.LoadLevel(None, '1-1', False, 1, True)
 
         QtCore.QTimer.singleShot(100, self.levelOverview.update)
 
@@ -2199,9 +2199,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             # break
 
         if not auto:
-            globals.ObjectAddedtoEmbedded = {}
-
-            self.LoadLevel(None, '1-1', False, 1)
+            self.LoadLevel(None, '1-1', False, 1, True)
 
         return True
 
@@ -2299,9 +2297,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         if self.CheckDirty(): return
 
-        globals.ObjectAddedtoEmbedded = {}
-
-        self.LoadLevel(None, None, False, 1)
+        self.LoadLevel(None, None, False, 1, True)
 
     def HandleOpenFromName(self):
         """
@@ -2312,9 +2308,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         LoadLevelNames()
         dlg = ChooseLevelNameDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
-            globals.ObjectAddedtoEmbedded = {}
-
-            self.LoadLevel(None, dlg.currentlevel, False, 1)
+            self.LoadLevel(None, dlg.currentlevel, False, 1, True)
 
     def HandleOpenFromFile(self):
         """
@@ -2330,9 +2324,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fn = QtWidgets.QFileDialog.getOpenFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
         if fn == '': return
 
-        globals.ObjectAddedtoEmbedded = {}
-
-        self.LoadLevel(None, str(fn), True, 1)
+        self.LoadLevel(None, str(fn), True, 1, True)
 
     def HandleSave(self):
         """
@@ -2950,7 +2942,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             event.accept()
 
-    def LoadLevel(self, game, name, isFullPath, areaNum):
+    def LoadLevel(self, game, name, isFullPath, areaNum, loadLevel=False):
         """
         Load a level from any game into the editor
         """
@@ -3125,6 +3117,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.Layer2Shown = True
         globals.CurrentArea = areaNum
         globals.TilesetEdited = False
+
+        if loadLevel:
+            globals.ObjectAddedtoEmbedded = {}
 
         if globals.CurrentArea not in globals.ObjectAddedtoEmbedded:
             globals.ObjectAddedtoEmbedded[globals.CurrentArea] = {}
@@ -5187,6 +5182,12 @@ def main():
     if setting("FirstRun") is None:
         globals.FirstRun = True
         setSetting("FirstRun", "False")
+
+        path = QtWidgets.QFileDialog.getExistingDirectory(None,
+                                                          'Choose the folder containing Object folders')
+
+        if path:
+            setSetting('ObjPath', path)
 
     else:
         globals.FirstRun = False

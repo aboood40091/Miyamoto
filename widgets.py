@@ -4918,7 +4918,7 @@ class RecentFilesMenu(QtWidgets.QMenu):
         """
         if globals.mainWindow.CheckDirty(): return
 
-        if not globals.mainWindow.LoadLevel(None, self.FileList[number], True, 1): self.RemoveFromList(number)
+        if not globals.mainWindow.LoadLevel(None, self.FileList[number], True, 1, True): self.RemoveFromList(number)
 
 
 class ZoomWidget(QtWidgets.QWidget):

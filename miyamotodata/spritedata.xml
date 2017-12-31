@@ -2246,7 +2246,11 @@
   </sprite>
   <sprite id="181" name="Spike (Stationary)"/>
   <sprite id="182" name="Vertically-moving Platform" notes="A platform that moves up and down. It can be a certain length, move a certain distance, and more.">
-    <checkbox nybble="7" title="Snowy Platform" mask="3" comment="Makes a platform with snow on top. Requires the model from 4-16, or else it will crash!"/>
+    <list nybble="7" title="Type" comment="The type of platform.">
+      <entry value="0">Gold</entry>
+      <entry value="1">Rocky (Unused)</entry>
+      <entry value="3">Snowy</entry>
+    </list>
     <list nybble="8" title="Movement" comment="The movement of the platform.">
       <entry value="0">Up and Down</entry>
       <entry value="1">Down and Up</entry>
@@ -2283,8 +2287,7 @@
     <list nybble="7" title="Type" comment="The type of platform.">
       <entry value="0">Gold</entry>
       <entry value="1">Rocky (Unused)</entry>
-      <entry value="2">CRASH</entry>
-      <entry value="3">???</entry>
+      <entry value="3">Snowy</entry>
     </list>
     <list nybble="8" title="Direction" comment="Determines which way the sprite will move from it's placement.">
       <entry value="0">Right to Left</entry>

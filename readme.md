@@ -25,6 +25,7 @@ GitHub: https://github.com/aboood40091/Miyamoto
 * Meorge -- Testing on macOS
 * MrRean -- Coding, Spritedata, Categories, Graphics
 * NVIDIA -- NVCOMPRESS
+* RicBent -- Graphics
 * Toms -- Spritedata, Graphics
 * Wiimm -- WSZST
 
