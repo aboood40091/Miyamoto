@@ -4930,7 +4930,6 @@ class SpriteImage_Clampy(SLib.SpriteImage_StaticMultiple):  # 298
 
         overlays = (
             (65, 55, 'Star', ImageCache['StarCoin']),
-            (100, 105, 'Coin', SLib.Tiles[30].main),
             (100, 105, '1Up', ImageCache['1Up']),
             (100, 105, 'PSwitch', ImageCache['PSwitch']),
             (100, 105, 'PSwitchU', ImageCache['PSwitchU']),
@@ -4943,6 +4942,15 @@ class SpriteImage_Clampy(SLib.SpriteImage_StaticMultiple):  # 298
             del painter
             ImageCache['Clam' + clamName] = newPix
 
+        # 2 coins special case
+        newPix = QtGui.QPixmap(ImageCache['ClamEmpty'])
+        painter = QtGui.QPainter(newPix)
+        painter.setOpacity(0.6)
+        painter.drawPixmap(70, 105, SLib.Tiles[30].main)
+        painter.drawPixmap(130, 105, SLib.Tiles[30].main)
+        del painter
+        ImageCache['Clam2Coin'] = newPix
+
     def dataChanged(self):
 
         holds = self.parent.spritedata[5] & 0xF
@@ -4952,7 +4960,7 @@ class SpriteImage_Clampy(SLib.SpriteImage_StaticMultiple):  # 298
         if holds == 1:
             holdsStr = 'Star'
         elif holds == 2:
-            holdsStr = 'Coin'
+            holdsStr = '2Coin'
         elif holds == 3:
             holdsStr = '1Up'
         elif holds == 4:
