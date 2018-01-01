@@ -64,6 +64,7 @@ from libyaz0 import decompress as Yaz0Dec
 from libyaz0 import compress as Yaz0Comp
 from loading import *
 from misc import *
+from puzzle import MainWindow as PuzzleWindow
 from quickpaint import *
 import SARC as SarcLib
 import spritelib as SLib
@@ -4893,6 +4894,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             ScreenshotImage.save(fn, 'PNG', 50)
 
+    def showPuzzleWindow(self, name, data, slot, con=False):
+        pw = PuzzleWindow(name, data, slot, con, Qt.Dialog)
+        pw.setWindowModality(Qt.ApplicationModal)
+        pw.setAttribute(Qt.WA_DeleteOnClose)
+        pw.show()
+
     def EditSlot1(self):
         """
         Edits Slot 1 tileset
@@ -4943,40 +4950,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             else:
                 return
 
-        if platform.system() == 'Windows':
-            os.chdir(globals.miyamoto_path + '/Tools')
-            os.system('puzzle.exe ' + globals.Area.tileset0 + ' tmp.tmp "' + globals.miyamoto_path + '" 0')
-            os.chdir(globals.miyamoto_path)
-        elif platform.system() == 'Linux':
-            os.chdir(globals.miyamoto_path + '/linuxTools')
-            os.system('chmod +x ./puzzle.elf')
-            os.system('./puzzle.elf ' + globals.Area.tileset0 + ' tmp.tmp "' + globals.miyamoto_path + '" 0')
-            os.chdir(globals.miyamoto_path)
-        elif platform.system() == 'Darwin':
-            os.chdir(globals.miyamoto_path + '/macTools')
-            os.system('python3 puzzle.py ' + globals.Area.tileset0 + ' tmp.tmp "' + globals.miyamoto_path + '" 0')
-            os.chdir(globals.miyamoto_path)
-        else:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                               'Not a supported platform, sadly...')
-            warningBox.exec_()
-            return
-
-        if os.path.isfile(tile_path + '/tmp.tmp'):
-            with open(tile_path + '/tmp.tmp', 'rb') as fn:
-                globals.szsData[globals.Area.tileset0] = fn.read()
-            os.remove(tile_path + '/tmp.tmp')
-            LoadTileset(0, globals.Area.tileset0)
-            SetDirty()
-            self.objPicker.LoadFromTilesets()
-            self.objAllTab.setCurrentIndex(0)
-            self.objAllTab.setTabEnabled(0, (globals.Area.tileset0 != ''))
-
-            for layer in globals.Area.layers:
-                for obj in layer:
-                    obj.updateObjCache()
-
-            self.scene.update()
+        self.showPuzzleWindow(globals.Area.tileset0, tile_path + '/tmp.tmp', '0')
 
     def EditSlot2(self):
         """
@@ -5029,7 +5003,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             with open(tile_path + '/tmp.tmp', 'wb') as fn:
                 fn.write(sarcdata)
-            sarcfile = 'tmp.tmp'
+            sarcfile = tile_path + '/tmp.tmp'
 
         else:
             if eval('globals.Area.tileset%d' % slot) in ('', None):
@@ -5047,46 +5021,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if eval('globals.Area.tileset%d' % slot) in ('', None): return
 
-        os.chdir(tile_path)
-
-        if platform.system() == 'Windows':
-            os.system('puzzle.exe ' + eval('globals.Area.tileset%d' % slot) + ' ' + sarcfile + ' "' + globals.miyamoto_path + '" %d' % slot)
-
-        elif platform.system() == 'Linux':
-            os.system('chmod +x ./puzzle.elf')
-            os.system('./puzzle.elf ' + eval('globals.Area.tileset%d' % slot) + ' ' + sarcfile + ' "' + globals.miyamoto_path + '" %d' % slot)
-
-        elif platform.system() == 'Darwin':
-            os.system('python3 puzzle.py ' + eval('globals.Area.tileset%d' % slot) + ' ' + sarcfile + ' "' + globals.miyamoto_path + '" %d' % slot)
-
-        os.chdir(globals.miyamoto_path)
-
-
-        if os.path.isfile(tile_path + '/tmp.tmp'):
-            with open(tile_path + '/tmp.tmp', 'rb') as fn:
-                globals.szsData[eval('globals.Area.tileset%d' % slot)] = fn.read()
-            os.remove(tile_path + '/tmp.tmp')
-
-            self.ReloadTilesets()
-
-            SetDirty()
-            self.objPicker.LoadFromTilesets()
-
-            if globals.ObjectDefinitions[slot] == [None] * 256:
-                UnloadTileset(slot)
-                exec("globals.Area.tileset%d = ''" % slot)
-
-            else:
-                self.objAllTab.setCurrentIndex(2)
-
-            for layer in globals.Area.layers:
-                for obj in layer:
-                    obj.updateObjCache()
-
-            self.scene.update()
-
-        elif con:
-            exec("globals.Area.tileset%d = ''" % slot)
+        self.showPuzzleWindow(eval('globals.Area.tileset%d' % slot), sarcfile, str(slot), con)
 
 
 def main():

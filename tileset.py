@@ -720,19 +720,24 @@ def DeleteObject(idx, objNum):
                     if tileNum not in usedTiles:
                         usedTiles.append(tileNum)
 
+    folderIndex = obj.folderIndex
+
+    # Completely remove the object's definition
+    del globals.ObjectDefinitions[idx][objNum]
+    globals.ObjectDefinitions[idx].append(None)
+
+    # Replace the object's tiles with empty tiles
+    # if they are not used by other objects in the save tileset
+    tilesetUsedTiles = getUsedTiles()[idx]
+
     T = TilesetTile()
     T.setCollisions([0] * 8)
 
     tileoffset = idx * 256
 
     for i in usedTiles:
-        globals.Tiles[i + tileoffset] = T
-
-    folderIndex = obj.folderIndex
-
-    # Completely remove the object's definitions
-    del globals.ObjectDefinitions[idx][objNum]
-    globals.ObjectDefinitions[idx].append(None)
+        if i not in tilesetUsedTiles:
+            globals.Tiles[i + tileoffset] = T
 
     # Unload the tileset if it's empty
     if globals.ObjectDefinitions[idx] == [None] * 256:
