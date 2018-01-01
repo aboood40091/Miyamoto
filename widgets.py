@@ -3139,8 +3139,8 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
 
         self.action.addItems(['0: Run to the right',
                               '1: Jump to the next node',
-                              '6: Same as 0?',
-                              '7: Same as 1?',
+                              '6: Unknown, probably the same as 0',
+                              '7: Unknown',
                               '8: Same as 0 and look behind?',
                               '11: Same as 0?',
                               '20: Same as 0 except don\'t look behind?',
