@@ -27,6 +27,7 @@
 import os
 import platform
 import struct
+import subprocess
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
@@ -1171,19 +1172,23 @@ def LoadTexture_NSMBU(tiledata):
     os.chdir(tile_path)
 
     if platform.system() == 'Windows':
-        os.system('gtx_extract_bmp.exe texture.gtx')
+        command = 'gtx_extract_bmp.exe texture.gtx'
 
     elif platform.system() == 'Linux':
         os.system('chmod +x ./gtx_extract.elf')
-        os.system('./gtx_extract.elf texture.gtx texture.bmp')
+        command = './gtx_extract.elf texture.gtx texture.bmp'
 
     elif platform.system() == 'Darwin':
-        os.system(tile_path + '/gtx_extract_bmp texture.gtx')
+        command = tile_path + '/gtx_extract_bmp texture.gtx'
 
     else:
         warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
         warningBox.exec_()
         return
+
+    # https://stackoverflow.com/a/7006424/4797683
+    DETACHED_PROCESS = 0x00000008
+    subprocess.call(command, creationflags=DETACHED_PROCESS)
 
     os.chdir(globals.miyamoto_path)
 

@@ -25,13 +25,17 @@ try:
 
 except:
     try:
-        import pyximport
-
-        pyximport.install()
-        import yaz0_cy as yaz0
+        import yaz0_so as yaz0
 
     except:
-        import yaz0
+        try:
+            import pyximport
+
+            pyximport.install()
+            import yaz0_cy as yaz0
+
+        except:
+            import yaz0
 
 
 def IsYazCompressed(data):

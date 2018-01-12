@@ -20,6 +20,7 @@ Qt = QtCore.Qt
 
 import globals
 import SARC
+from tileset import LoadTexture_NSMBU, writeGTX
 
 
 ########################################################
@@ -2138,8 +2139,8 @@ class MainWindow(QtWidgets.QMainWindow):
         
 
         # Loads the Image Data.
-        dest = self.LoadTexture_NSMBU(Image)
-        destnml = self.LoadTexture_NSMBU(NmlMap)
+        dest = LoadTexture_NSMBU(Image)
+        destnml = LoadTexture_NSMBU(NmlMap)
 
         self.tileImage = QtGui.QPixmap.fromImage(dest)
         self.nmlImage = QtGui.QPixmap.fromImage(destnml)
@@ -2298,8 +2299,8 @@ class MainWindow(QtWidgets.QMainWindow):
         
 
         # Loads the Image Data.
-        dest = self.LoadTexture_NSMBU(Image)
-        destnml = self.LoadTexture_NSMBU(NmlMap)
+        dest = LoadTexture_NSMBU(Image)
+        destnml = LoadTexture_NSMBU(NmlMap)
 
         self.tileImage = QtGui.QPixmap.fromImage(dest)
         self.nmlImage = QtGui.QPixmap.fromImage(destnml)
@@ -2651,107 +2652,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         painter.end()
 
-        # Generate a GTX file from a QImage
-        # use nvcompress to compress as BC3 on Windows and Linux
-        if platform.system() in ['Windows', 'Linux']:
-            if platform.system() == 'Windows':
-                tile_path = globals.miyamoto_path + '/Tools'
-
-            elif platform.system() == 'Linux':
-                tile_path = globals.miyamoto_path + '/linuxTools'
-
-            if Tileset.slot != 0:  # Save as DXT5/BC3
-                tex.save(tile_path + '/tmp.png')
-            
-                os.chdir(tile_path)
-
-                if platform.system() == 'Windows':
-                    exe = 'nvcompress.exe'
-
-                elif platform.system() == 'Linux':
-                    os.system('chmod +x nvcompress.elf')
-                    exe = './nvcompress.elf'
-
-                os.system(exe + ' -bc3 tmp.png tmp.dds')
-            
-                os.chdir(globals.miyamoto_path)
-
-                os.remove(tile_path + '/tmp.png')
-
-            else:  # Save as RGBA8
-                import dds
-
-                data = tex.bits()
-                data.setsize(tex.byteCount())
-                data = data.asstring()
-
-                with open(tile_path + '/tmp.dds', 'wb+') as out:
-                    hdr = dds.generateHeader(2048, 512, 0x1a)
-                    out.write(hdr)
-                    out.write(data)
-
-                del dds
-
-        # nvcompress doesn't want to work on MacOSX
-        # so let's use a local BC3 compressor (lossy)
-        elif platform.system() == 'Darwin':
-            tile_path = globals.miyamoto_path + '/macTools'
-
-            import dds
-
-            data = tex.bits()
-            data.setsize(tex.byteCount())
-            data = data.asstring()
-
-            dataList = []
-
-            if Tileset.slot != 0:  # Save as DXT5/BC3
-                fmt = 0x33
-                numMips = 12
-
-                try:
-                    import pyximport
-
-                    pyximport.install()
-                    import compressBC3_cy as compressBC3
-                except ImportError:
-                    import compressBC3
-
-                dataList.append(compressBC3.CompressBC3(data, tex.bytesPerLine(), 2048, 512))
-
-                for i in range(1, numMips):
-                    mipTex = QtGui.QImage(tex).scaledToWidth(max(1, 2048 >> i), Qt.SmoothTransformation)
-                    mipTex = mipTex.convertToFormat(QtGui.QImage.Format_RGBA8888)
-
-                    mipData = mipTex.bits()
-                    mipData.setsize(mipTex.byteCount())
-                    mipData = mipData.asstring()
-
-                    dataList.append(compressBC3.CompressBC3(mipData, mipTex.bytesPerLine(), max(1, 2048 >> i), max(1, 512 >> i)))
-
-                del compressBC3
-
-            else:  # Save as RGBA8
-                fmt = 0x1a
-                numMips = 1
-
-                dataList.append(data)
-
-            with open(tile_path + '/tmp.dds', 'wb+') as out:
-                hdr = dds.generateHeader(2048, 512, fmt, numMips)
-                out.write(hdr)
-                for data in dataList:
-                    out.write(data)
-
-            del dds
-
-        import gtx
-        gtxdata = gtx.DDStoGTX(tile_path + '/tmp.dds')
-        del gtx
-
-        os.remove(tile_path + '/tmp.dds')
-
-        return gtxdata
+        return writeGTX(tex, Tileset.slot)
 
 
     def PackTiles(self):
@@ -3684,43 +3585,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tileDisplay.update()
 
 
-    def LoadTexture_NSMBU(self, tiledata):
-        if platform.system() == 'Windows':
-            tile_path = globals.miyamoto_path + '/Tools'
-        elif platform.system() == 'Linux':
-            tile_path = globals.miyamoto_path + '/linuxTools'
-        elif platform.system() == 'Darwin':
-            tile_path = globals.miyamoto_path + '/macTools'
-
-        with open(tile_path + '/texture.gtx', 'wb') as binfile:
-            binfile.write(tiledata)
-
-        os.chdir(tile_path)
-
-        if platform.system() == 'Windows':
-            os.system('gtx_extract_bmp.exe texture.gtx')
-
-        elif platform.system() == 'Linux':
-            os.system('chmod +x ./gtx_extract.elf')
-            os.system('./gtx_extract.elf texture.gtx texture.bmp')
-
-        elif platform.system() == 'Darwin':
-            os.system(tile_path + '/gtx_extract_bmp texture.gtx')
-
-        else:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
-            warningBox.exec_()
-            return
-
-        os.chdir(globals.miyamoto_path)
-
-        # Return as a QImage
-        img = QtGui.QImage(tile_path + '/texture.bmp')
-        os.remove(tile_path + '/texture.bmp')
-
-        os.remove(tile_path + '/texture.gtx')
-
-        return img
 
 #############################################################################################
 ######################## Widget for selecting the object to export ##########################

@@ -535,7 +535,6 @@ class SARC_Archive(FileArchive):
         for file_filenameoffset_filedataoffset, filepath_file in zip(files, flatList):
             file, filenameoffset, filedataoffset = file_filenameoffset_filedataoffset
             #filedataoffset -= begOfDat
-            print(hex(filedataoffset))
             filepath, file = filepath_file
             # File ID
             sfat += self.filenameHash(filepath, self.endianness, self.hashMultiplier)
