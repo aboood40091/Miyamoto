@@ -24,18 +24,20 @@
 ################################################################
 ################################################################
 
+############ Imports ############
+
 import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
-if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
-    # enables itemChange being called on QGraphicsItem
-    QtWidgets.QGraphicsItem.ItemSendsGeometryChanges = QtWidgets.QGraphicsItem.GraphicsItemFlag(0x800)
-
+from bytes import bytes_to_string, to_bytes
 import globals
-from ui import *
-from widgets import *
+from misc import setting
+from ui import MiyamotoTheme, toQColor, GetIcon
+from widgets import LoadingTab, TilesetsTab
+
+#################################
 
 
 class InputBox(QtWidgets.QDialog):

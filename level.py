@@ -24,6 +24,8 @@
 ################################################################
 ################################################################
 
+############ Imports ############
+
 import os
 from xml.etree import ElementTree as etree
 
@@ -31,6 +33,8 @@ import globals
 import SARC as SarcLib
 import spritelib as SLib
 from tileset import CreateTilesets, SaveTileset
+
+#################################
 
 
 class AbstractLevel:
@@ -172,9 +176,6 @@ class Level_NSMBU(AbstractLevel):
         """
         Save the level back to a file
         """
-
-        print("")
-        print("Saving level...")
 
         # Make a new archive
         newArchive = SarcLib.SARC_Archive()
@@ -322,21 +323,12 @@ class Level_NSMBU(AbstractLevel):
                 outerArchive.addFile(SarcLib.File(szsThingName, globals.szsData[szsThingName]))
 
         # Save the outer sarc and return it
-        print("")
-        print('\n'.join(sorted([x.name for x in outerArchive.contents], key=str.lower)))
-        print("")
-        print("Saved!")
-        print("")
-
         return outerArchive.save(0x2000)
 
     def saveNewArea(self, innerfilename, course_new, L0_new, L1_new, L2_new):
         """
         Save the level back to a file (when adding a new or deleting an existing Area)
         """
-
-        print("")
-        print("Saving level...")
 
         # Make a new archive
         newArchive = SarcLib.SARC_Archive()
@@ -385,10 +377,4 @@ class Level_NSMBU(AbstractLevel):
             outerArchive.addFile(SarcLib.File(szsThingName, globals.szsData[szsThingName]))
 
         # Save the outer sarc and return it
-        print("")
-        print('\n'.join(sorted([x.name for x in outerArchive.contents], key=str.lower)))
-        print("")
-        print("Saved!")
-        print("")
-
         return outerArchive.save(0x2000)

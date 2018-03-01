@@ -44,13 +44,19 @@ import platform
 import struct
 import sys
 
-# PyQt5: import, and error msg if not installed
+# PyQt5: import
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
 if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
     # enables itemChange being called on QGraphicsItem
     QtWidgets.QGraphicsItem.ItemSendsGeometryChanges = QtWidgets.QGraphicsItem.GraphicsItemFlag(0x800)
+
+# Check if Miyamoto is being run on a supported platform
+if platform.system() not in ['Windows', 'Linux', 'Darwin']:
+    warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
+    warningBox.exec_()
+    raise NotImplementedError("Unsupported platform!")
 
 # Local imports
 from area import *
@@ -165,6 +171,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.AutosaveTimer = QtCore.QTimer()
             self.AutosaveTimer.timeout.connect(self.Autosave)
             self.AutosaveTimer.start(20000)
+
         except TypeError:
             pass
 
@@ -261,154 +268,426 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
 
         # File
-        self.CreateAction('newlevel', self.HandleNewLevel, GetIcon('new'), globals.trans.string('MenuItems', 0),
-                          globals.trans.string('MenuItems', 1), QtGui.QKeySequence.New)
-        self.CreateAction('openfromname', self.HandleOpenFromName, GetIcon('open'), globals.trans.string('MenuItems', 2),
-                          globals.trans.string('MenuItems', 3), QtGui.QKeySequence.Open)
-        self.CreateAction('openfromfile', self.HandleOpenFromFile, GetIcon('openfromfile'),
-                          globals.trans.string('MenuItems', 4), globals.trans.string('MenuItems', 5),
-                          QtGui.QKeySequence('Ctrl+Shift+O'))
-        self.CreateAction('openrecent', None, GetIcon('recent'), globals.trans.string('MenuItems', 6),
-                          globals.trans.string('MenuItems', 7), None)
-        self.CreateAction('save', self.HandleSave, GetIcon('save'), globals.trans.string('MenuItems', 8),
-                          globals.trans.string('MenuItems', 9), QtGui.QKeySequence.Save)
-        self.CreateAction('saveas', self.HandleSaveAs, GetIcon('saveas'), globals.trans.string('MenuItems', 10),
-                          globals.trans.string('MenuItems', 11), QtGui.QKeySequence.SaveAs)
-        self.CreateAction('metainfo', self.HandleInfo, GetIcon('info'), globals.trans.string('MenuItems', 12),
-                          globals.trans.string('MenuItems', 13), QtGui.QKeySequence('Ctrl+Alt+I'))
-        self.CreateAction('changegamedef', None, GetIcon('game'), globals.trans.string('MenuItems', 98),
-                          globals.trans.string('MenuItems', 99), None)
-        self.CreateAction('screenshot', self.HandleScreenshot, GetIcon('screenshot'), globals.trans.string('MenuItems', 14),
-                          globals.trans.string('MenuItems', 15), QtGui.QKeySequence('Ctrl+Alt+S'))
-        self.CreateAction('changegamepath', self.HandleChangeGamePath, GetIcon('folderpath'),
-                          globals.trans.string('MenuItems', 16), globals.trans.string('MenuItems', 17),
-                          QtGui.QKeySequence('Ctrl+Alt+G'))
-        self.CreateAction('changeobjpath', self.HandleChangeObjPath, GetIcon('folderpath'),
-                          globals.trans.string('MenuItems', 132), globals.trans.string('MenuItems', 133),
-                          None)
-        # self.CreateAction('changesavepath', self.HandleChangeSavePath, GetIcon('folderpath'), globals.trans.string('MenuItems', 134), globals.trans.string('MenuItems', 135), QtGui.QKeySequence('Ctrl+Alt+L'))
-        self.CreateAction('preferences', self.HandlePreferences, GetIcon('settings'), globals.trans.string('MenuItems', 18),
-                          globals.trans.string('MenuItems', 19), QtGui.QKeySequence('Ctrl+Alt+P'))
-        self.CreateAction('exit', self.HandleExit, GetIcon('delete'), globals.trans.string('MenuItems', 20),
-                          globals.trans.string('MenuItems', 21), QtGui.QKeySequence('Ctrl+Q'))
+        self.CreateAction(
+            'newlevel', self.HandleNewLevel, GetIcon('new'),
+            globals.trans.string('MenuItems', 0),
+            globals.trans.string('MenuItems', 1),
+            QtGui.QKeySequence.New,
+        )
+
+        self.CreateAction(
+            'openfromname', self.HandleOpenFromName, GetIcon('open'),
+            globals.trans.string('MenuItems', 2),
+            globals.trans.string('MenuItems', 3),
+            QtGui.QKeySequence.Open,
+        )
+
+        self.CreateAction(
+            'openfromfile', self.HandleOpenFromFile, GetIcon('openfromfile'),
+            globals.trans.string('MenuItems', 4),
+            globals.trans.string('MenuItems', 5),
+            QtGui.QKeySequence('Ctrl+Shift+O'),
+        )
+
+        self.CreateAction(
+            'openrecent', None, GetIcon('recent'),
+            globals.trans.string('MenuItems', 6),
+            globals.trans.string('MenuItems', 7),
+            None,
+        )
+
+        self.CreateAction(
+            'save', self.HandleSave, GetIcon('save'),
+            globals.trans.string('MenuItems', 8),
+            globals.trans.string('MenuItems', 9),
+            QtGui.QKeySequence.Save,
+        )
+
+        self.CreateAction(
+            'saveas', self.HandleSaveAs, GetIcon('saveas'),
+            globals.trans.string('MenuItems', 10),
+            globals.trans.string('MenuItems', 11),
+            QtGui.QKeySequence.SaveAs,
+        )
+
+        self.CreateAction(
+            'metainfo', self.HandleInfo, GetIcon('info'),
+            globals.trans.string('MenuItems', 12),
+            globals.trans.string('MenuItems', 13),
+            QtGui.QKeySequence('Ctrl+Alt+I'),
+        )
+
+        self.CreateAction(
+            'changegamedef', None, GetIcon('game'),
+            globals.trans.string('MenuItems', 98),
+            globals.trans.string('MenuItems', 99),
+            None,
+        )
+
+        self.CreateAction(
+            'screenshot', self.HandleScreenshot, GetIcon('screenshot'),
+            globals.trans.string('MenuItems', 14),
+            globals.trans.string('MenuItems', 15),
+            QtGui.QKeySequence('Ctrl+Alt+S'),
+        )
+
+        self.CreateAction(
+            'changegamepath', self.HandleChangeGamePath, GetIcon('folderpath'),
+            globals.trans.string('MenuItems', 16),
+            globals.trans.string('MenuItems', 17),
+            QtGui.QKeySequence('Ctrl+Alt+G'),
+        )
+
+        self.CreateAction(
+            'changeobjpath', self.HandleChangeObjPath, GetIcon('folderpath'),
+            globals.trans.string('MenuItems', 132),
+            globals.trans.string('MenuItems', 133),
+            None,
+        )
+
+        self.CreateAction(
+            'preferences', self.HandlePreferences, GetIcon('settings'),
+            globals.trans.string('MenuItems', 18),
+            globals.trans.string('MenuItems', 19),
+            QtGui.QKeySequence('Ctrl+Alt+P'),
+        )
+
+        self.CreateAction(
+            'exit', self.HandleExit, GetIcon('delete'),
+            globals.trans.string('MenuItems', 20),
+            globals.trans.string('MenuItems', 21),
+            QtGui.QKeySequence('Ctrl+Q'),
+        )
 
         # Edit
-        self.CreateAction('selectall', self.SelectAll, GetIcon('select'), globals.trans.string('MenuItems', 22),
-                          globals.trans.string('MenuItems', 23), QtGui.QKeySequence.SelectAll)
-        self.CreateAction('deselect', self.Deselect, GetIcon('deselect'), globals.trans.string('MenuItems', 24),
-                          globals.trans.string('MenuItems', 25), QtGui.QKeySequence('Ctrl+D'))
-        self.CreateAction('cut', self.Cut, GetIcon('cut'), globals.trans.string('MenuItems', 26), globals.trans.string('MenuItems', 27),
-                          QtGui.QKeySequence.Cut)
-        self.CreateAction('copy', self.Copy, GetIcon('copy'), globals.trans.string('MenuItems', 28),
-                          globals.trans.string('MenuItems', 29), QtGui.QKeySequence.Copy)
-        self.CreateAction('paste', self.Paste, GetIcon('paste'), globals.trans.string('MenuItems', 30),
-                          globals.trans.string('MenuItems', 31), QtGui.QKeySequence.Paste)
-        self.CreateAction('shiftitems', self.ShiftItems, GetIcon('move'), globals.trans.string('MenuItems', 32),
-                          globals.trans.string('MenuItems', 33), QtGui.QKeySequence('Ctrl+Shift+S'))
-        self.CreateAction('mergelocations', self.MergeLocations, GetIcon('merge'), globals.trans.string('MenuItems', 34),
-                          globals.trans.string('MenuItems', 35), QtGui.QKeySequence('Ctrl+Shift+E'))
-        self.CreateAction('swapobjectstilesets', self.SwapObjectsTilesets, GetIcon('swap'),
-                          globals.trans.string('MenuItems', 104), globals.trans.string('MenuItems', 105),
-                          QtGui.QKeySequence('Ctrl+Shift+L'))
-        self.CreateAction('swapobjectstypes', self.SwapObjectsTypes, GetIcon('swap'), globals.trans.string('MenuItems', 106),
-                          globals.trans.string('MenuItems', 107), QtGui.QKeySequence('Ctrl+Shift+Y'))
-        self.CreateAction('freezeobjects', self.HandleObjectsFreeze, GetIcon('objectsfreeze'),
-                          globals.trans.string('MenuItems', 38), globals.trans.string('MenuItems', 39),
-                          QtGui.QKeySequence('Ctrl+Shift+1'), True)
-        self.CreateAction('freezesprites', self.HandleSpritesFreeze, GetIcon('spritesfreeze'),
-                          globals.trans.string('MenuItems', 40), globals.trans.string('MenuItems', 41),
-                          QtGui.QKeySequence('Ctrl+Shift+2'), True)
-        self.CreateAction('freezeentrances', self.HandleEntrancesFreeze, GetIcon('entrancesfreeze'),
-                          globals.trans.string('MenuItems', 42), globals.trans.string('MenuItems', 43),
-                          QtGui.QKeySequence('Ctrl+Shift+3'), True)
-        self.CreateAction('freezelocations', self.HandleLocationsFreeze, GetIcon('locationsfreeze'),
-                          globals.trans.string('MenuItems', 44), globals.trans.string('MenuItems', 45),
-                          QtGui.QKeySequence('Ctrl+Shift+4'), True)
-        self.CreateAction('freezepaths', self.HandlePathsFreeze, GetIcon('pathsfreeze'), globals.trans.string('MenuItems', 46),
-                          globals.trans.string('MenuItems', 47), QtGui.QKeySequence('Ctrl+Shift+5'), True)
-        self.CreateAction('freezecomments', self.HandleCommentsFreeze, GetIcon('commentsfreeze'),
-                          globals.trans.string('MenuItems', 114), globals.trans.string('MenuItems', 115),
-                          QtGui.QKeySequence('Ctrl+Shift+9'), True)
+        self.CreateAction(
+            'selectall', self.SelectAll, GetIcon('select'),
+            globals.trans.string('MenuItems', 22),
+            globals.trans.string('MenuItems', 23),
+            QtGui.QKeySequence.SelectAll,
+        )
+
+        self.CreateAction(
+            'deselect', self.Deselect, GetIcon('deselect'),
+            globals.trans.string('MenuItems', 24),
+            globals.trans.string('MenuItems', 25),
+            QtGui.QKeySequence('Ctrl+D'),
+        )
+
+        self.CreateAction(
+            'cut', self.Cut, GetIcon('cut'),
+            globals.trans.string('MenuItems', 26),
+            globals.trans.string('MenuItems', 27),
+            QtGui.QKeySequence.Cut,
+        )
+
+        self.CreateAction(
+            'copy', self.Copy, GetIcon('copy'),
+            globals.trans.string('MenuItems', 28),
+            globals.trans.string('MenuItems', 29),
+            QtGui.QKeySequence.Copy,
+        )
+
+        self.CreateAction(
+            'paste', self.Paste, GetIcon('paste'),
+            globals.trans.string('MenuItems', 30),
+            globals.trans.string('MenuItems', 31),
+            QtGui.QKeySequence.Paste,
+        )
+
+        self.CreateAction(
+            'shiftitems', self.ShiftItems, GetIcon('move'),
+            globals.trans.string('MenuItems', 32),
+            globals.trans.string('MenuItems', 33),
+            QtGui.QKeySequence('Ctrl+Shift+S'),
+        )
+
+        self.CreateAction(
+            'mergelocations', self.MergeLocations, GetIcon('merge'),
+            globals.trans.string('MenuItems', 34),
+            globals.trans.string('MenuItems', 35),
+            QtGui.QKeySequence('Ctrl+Shift+E'),
+        )
+
+        self.CreateAction(
+            'swapobjectstilesets', self.SwapObjectsTilesets, GetIcon('swap'),
+            globals.trans.string('MenuItems', 104),
+            globals.trans.string('MenuItems', 105),
+            QtGui.QKeySequence('Ctrl+Shift+L'),
+        )
+
+        self.CreateAction(
+            'swapobjectstypes', self.SwapObjectsTypes, GetIcon('swap'),
+            globals.trans.string('MenuItems', 106),
+            globals.trans.string('MenuItems', 107),
+            QtGui.QKeySequence('Ctrl+Shift+Y'),
+        )
+
+        self.CreateAction(
+            'freezeobjects', self.HandleObjectsFreeze, GetIcon('objectsfreeze'),
+            globals.trans.string('MenuItems', 38),
+            globals.trans.string('MenuItems', 39),
+            QtGui.QKeySequence('Ctrl+Shift+1'), True,
+        )
+
+        self.CreateAction(
+            'freezesprites', self.HandleSpritesFreeze, GetIcon('spritesfreeze'),
+            globals.trans.string('MenuItems', 40),
+            globals.trans.string('MenuItems', 41),
+            QtGui.QKeySequence('Ctrl+Shift+2'), True,
+        )
+
+        self.CreateAction(
+            'freezeentrances', self.HandleEntrancesFreeze, GetIcon('entrancesfreeze'),
+            globals.trans.string('MenuItems', 42),
+            globals.trans.string('MenuItems', 43),
+            QtGui.QKeySequence('Ctrl+Shift+3'), True,
+        )
+
+        self.CreateAction(
+            'freezelocations', self.HandleLocationsFreeze, GetIcon('locationsfreeze'),
+            globals.trans.string('MenuItems', 44),
+            globals.trans.string('MenuItems', 45),
+            QtGui.QKeySequence('Ctrl+Shift+4'), True,
+        )
+
+        self.CreateAction(
+            'freezepaths', self.HandlePathsFreeze, GetIcon('pathsfreeze'),
+            globals.trans.string('MenuItems', 46),
+            globals.trans.string('MenuItems', 47),
+            QtGui.QKeySequence('Ctrl+Shift+5'), True,
+        )
+
+        self.CreateAction(
+            'freezecomments', self.HandleCommentsFreeze, GetIcon('commentsfreeze'),
+            globals.trans.string('MenuItems', 114),
+            globals.trans.string('MenuItems', 115),
+            QtGui.QKeySequence('Ctrl+Shift+9'), True,
+        )
 
         # View
-        self.CreateAction('showlay0', self.HandleUpdateLayer0, GetIcon('layer0'), globals.trans.string('MenuItems', 48),
-                          globals.trans.string('MenuItems', 49), QtGui.QKeySequence('Ctrl+1'), True)
-        self.CreateAction('showlay1', self.HandleUpdateLayer1, GetIcon('layer1'), globals.trans.string('MenuItems', 50),
-                          globals.trans.string('MenuItems', 51), QtGui.QKeySequence('Ctrl+2'), True)
-        self.CreateAction('showlay2', self.HandleUpdateLayer2, GetIcon('layer2'), globals.trans.string('MenuItems', 52),
-                          globals.trans.string('MenuItems', 53), QtGui.QKeySequence('Ctrl+3'), True)
-        self.CreateAction('tileanim', self.HandleTilesetAnimToggle, GetIcon('animation'),
-                          globals.trans.string('MenuItems', 108), globals.trans.string('MenuItems', 109),
-                          QtGui.QKeySequence('Ctrl+7'), True)
-        self.CreateAction('collisions', self.HandleCollisionsToggle, GetIcon('collisions'),
-                          globals.trans.string('MenuItems', 110), globals.trans.string('MenuItems', 111),
-                          QtGui.QKeySequence('Ctrl+8'), True)
-        self.CreateAction('realview', self.HandleRealViewToggle, GetIcon('realview'),
-                          globals.trans.string('MenuItems', 118), globals.trans.string('MenuItems', 119),
-                          QtGui.QKeySequence('Ctrl+9'), True)
-        self.CreateAction('showsprites', self.HandleSpritesVisibility, GetIcon('sprites'),
-                          globals.trans.string('MenuItems', 54), globals.trans.string('MenuItems', 55), QtGui.QKeySequence('Ctrl+4'),
-                          True)
-        self.CreateAction('showspriteimages', self.HandleSpriteImages, GetIcon('sprites'),
-                          globals.trans.string('MenuItems', 56), globals.trans.string('MenuItems', 57), QtGui.QKeySequence('Ctrl+6'),
-                          True)
-        self.CreateAction('showlocations', self.HandleLocationsVisibility, GetIcon('locations'),
-                          globals.trans.string('MenuItems', 58), globals.trans.string('MenuItems', 59), QtGui.QKeySequence('Ctrl+5'),
-                          True)
-        self.CreateAction('showcomments', self.HandleCommentsVisibility, GetIcon('comments'),
-                          globals.trans.string('MenuItems', 116), globals.trans.string('MenuItems', 117), QtGui.QKeySequence('Ctrl+0'),
-                          True)
-        self.CreateAction('showpaths', self.HandlePathsVisibility, GetIcon('paths'),
-                          globals.trans.string('MenuItems', 138), globals.trans.string('MenuItems', 139), QtGui.QKeySequence('Ctrl+*'),
-                          True)
-        self.CreateAction('fullscreen', self.HandleFullscreen, GetIcon('fullscreen'), globals.trans.string('MenuItems', 126),
-                          globals.trans.string('MenuItems', 127), QtGui.QKeySequence('Ctrl+U'), True)
-        self.CreateAction('grid', self.HandleSwitchGrid, GetIcon('grid'), globals.trans.string('MenuItems', 60),
-                          globals.trans.string('MenuItems', 61), QtGui.QKeySequence('Ctrl+G'), False)
-        self.CreateAction('zoommax', self.HandleZoomMax, GetIcon('zoommax'), globals.trans.string('MenuItems', 62),
-                          globals.trans.string('MenuItems', 63), QtGui.QKeySequence('Ctrl+PgDown'), False)
-        self.CreateAction('zoomin', self.HandleZoomIn, GetIcon('zoomin'), globals.trans.string('MenuItems', 64),
-                          globals.trans.string('MenuItems', 65), QtGui.QKeySequence.ZoomIn, False)
-        self.CreateAction('zoomactual', self.HandleZoomActual, GetIcon('zoomactual'), globals.trans.string('MenuItems', 66),
-                          globals.trans.string('MenuItems', 67), QtGui.QKeySequence('Ctrl+0'), False)
-        self.CreateAction('zoomout', self.HandleZoomOut, GetIcon('zoomout'), globals.trans.string('MenuItems', 68),
-                          globals.trans.string('MenuItems', 69), QtGui.QKeySequence.ZoomOut, False)
-        self.CreateAction('zoommin', self.HandleZoomMin, GetIcon('zoommin'), globals.trans.string('MenuItems', 70),
-                          globals.trans.string('MenuItems', 71), QtGui.QKeySequence('Ctrl+PgUp'), False)
+        self.CreateAction(
+            'showlay0', self.HandleUpdateLayer0, GetIcon('layer0'),
+            globals.trans.string('MenuItems', 48),
+            globals.trans.string('MenuItems', 49),
+            QtGui.QKeySequence('Ctrl+1'), True,
+        )
+
+        self.CreateAction(
+            'showlay1', self.HandleUpdateLayer1, GetIcon('layer1'),
+            globals.trans.string('MenuItems', 50),
+            globals.trans.string('MenuItems', 51),
+            QtGui.QKeySequence('Ctrl+2'), True,
+        )
+
+        self.CreateAction(
+            'showlay2', self.HandleUpdateLayer2, GetIcon('layer2'),
+            globals.trans.string('MenuItems', 52),
+            globals.trans.string('MenuItems', 53),
+            QtGui.QKeySequence('Ctrl+3'), True,
+        )
+
+        self.CreateAction(
+            'tileanim', self.HandleTilesetAnimToggle, GetIcon('animation'),
+            globals.trans.string('MenuItems', 108),
+            globals.trans.string('MenuItems', 109),
+            QtGui.QKeySequence('Ctrl+7'), True,
+        )
+
+        self.CreateAction(
+            'collisions', self.HandleCollisionsToggle, GetIcon('collisions'),
+            globals.trans.string('MenuItems', 110),
+            globals.trans.string('MenuItems', 111),
+            QtGui.QKeySequence('Ctrl+8'), True,
+        )
+
+        self.CreateAction(
+            'realview', self.HandleRealViewToggle, GetIcon('realview'),
+            globals.trans.string('MenuItems', 118),
+            globals.trans.string('MenuItems', 119),
+            QtGui.QKeySequence('Ctrl+9'), True,
+        )
+
+        self.CreateAction(
+            'showsprites', self.HandleSpritesVisibility, GetIcon('sprites'),
+            globals.trans.string('MenuItems', 54),
+            globals.trans.string('MenuItems', 55),
+            QtGui.QKeySequence('Ctrl+4'), True,
+        )
+
+        self.CreateAction(
+            'showspriteimages', self.HandleSpriteImages, GetIcon('sprites'),
+            globals.trans.string('MenuItems', 56),
+            globals.trans.string('MenuItems', 57),
+            QtGui.QKeySequence('Ctrl+6'), True,
+        )
+
+        self.CreateAction(
+            'showlocations', self.HandleLocationsVisibility, GetIcon('locations'),
+            globals.trans.string('MenuItems', 58),
+            globals.trans.string('MenuItems', 59),
+            QtGui.QKeySequence('Ctrl+5'), True,
+        )
+
+        self.CreateAction(
+            'showcomments', self.HandleCommentsVisibility, GetIcon('comments'),
+            globals.trans.string('MenuItems', 116),
+            globals.trans.string('MenuItems', 117),
+            QtGui.QKeySequence('Ctrl+0'), True,
+        )
+
+        self.CreateAction(
+            'showpaths', self.HandlePathsVisibility, GetIcon('paths'),
+            globals.trans.string('MenuItems', 138),
+            globals.trans.string('MenuItems', 139),
+            QtGui.QKeySequence('Ctrl+*'), True,
+        )
+
+        self.CreateAction(
+            'fullscreen', self.HandleFullscreen, GetIcon('fullscreen'),
+            globals.trans.string('MenuItems', 126),
+            globals.trans.string('MenuItems', 127),
+            QtGui.QKeySequence('Ctrl+U'), True,
+        )
+
+        self.CreateAction(
+            'grid', self.HandleSwitchGrid, GetIcon('grid'),
+            globals.trans.string('MenuItems', 60),
+            globals.trans.string('MenuItems', 61),
+            QtGui.QKeySequence('Ctrl+G'),
+        )
+
+        self.CreateAction(
+            'zoommax', self.HandleZoomMax, GetIcon('zoommax'),
+            globals.trans.string('MenuItems', 62),
+            globals.trans.string('MenuItems', 63),
+            QtGui.QKeySequence('Ctrl+PgDown'),
+        )
+
+        self.CreateAction(
+            'zoomin', self.HandleZoomIn, GetIcon('zoomin'),
+            globals.trans.string('MenuItems', 64),
+            globals.trans.string('MenuItems', 65),
+            QtGui.QKeySequence.ZoomIn,
+        )
+
+        self.CreateAction(
+            'zoomactual', self.HandleZoomActual, GetIcon('zoomactual'),
+            globals.trans.string('MenuItems', 66),
+            globals.trans.string('MenuItems', 67),
+            QtGui.QKeySequence('Ctrl+0'),
+        )
+
+        self.CreateAction(
+            'zoomout', self.HandleZoomOut, GetIcon('zoomout'),
+            globals.trans.string('MenuItems', 68),
+            globals.trans.string('MenuItems', 69),
+            QtGui.QKeySequence.ZoomOut,
+        )
+
+        self.CreateAction(
+            'zoommin', self.HandleZoomMin, GetIcon('zoommin'),
+            globals.trans.string('MenuItems', 70),
+            globals.trans.string('MenuItems', 71),
+            QtGui.QKeySequence('Ctrl+PgUp'),
+        )
+
         # Show Overview and Show Palette are added later
 
         # Settings
-        self.CreateAction('areaoptions', self.HandleAreaOptions, GetIcon('area'), globals.trans.string('MenuItems', 72),
-                          globals.trans.string('MenuItems', 73), QtGui.QKeySequence('Ctrl+Alt+A'))
-        self.CreateAction('zones', self.HandleZones, GetIcon('zones'), globals.trans.string('MenuItems', 74),
-                          globals.trans.string('MenuItems', 75), QtGui.QKeySequence('Ctrl+Alt+Z'))
-        self.CreateAction('backgrounds', self.HandleBG, GetIcon('background'), globals.trans.string('MenuItems', 76),
-                          globals.trans.string('MenuItems', 77), QtGui.QKeySequence('Ctrl+Alt+B'))
-        self.CreateAction('addarea', self.HandleAddNewArea, GetIcon('add'), globals.trans.string('MenuItems', 78),
-                          globals.trans.string('MenuItems', 79), QtGui.QKeySequence('Ctrl+Alt+N'))
-        self.CreateAction('importarea', self.HandleImportArea, GetIcon('import'), globals.trans.string('MenuItems', 80),
-                          globals.trans.string('MenuItems', 81), QtGui.QKeySequence('Ctrl+Alt+O'))
-        self.CreateAction('deletearea', self.HandleDeleteArea, GetIcon('delete'), globals.trans.string('MenuItems', 82),
-                          globals.trans.string('MenuItems', 83), QtGui.QKeySequence('Ctrl+Alt+D'))
-        self.CreateAction('reloaddata', self.ReloadSpriteData, GetIcon('reload'), globals.trans.string('MenuItems', 128),
-                          globals.trans.string('MenuItems', 129), QtGui.QKeySequence('Ctrl+Shift+R'))
-        self.CreateAction('overwritesprite', self.HandleOverwriteSprite, GetIcon('folderpath'),
-                          globals.trans.string('MenuItems', 134), globals.trans.string('MenuItems', 135), None, True)
-        self.CreateAction('overridetilesetsaving', self.HandleOverrideTilesetSaving, GetIcon('folderpath'),
-                          globals.trans.string('MenuItems', 140), globals.trans.string('MenuItems', 141), None, True)
+        self.CreateAction(
+            'areaoptions', self.HandleAreaOptions, GetIcon('area'),
+            globals.trans.string('MenuItems', 72),
+            globals.trans.string('MenuItems', 73),
+            QtGui.QKeySequence('Ctrl+Alt+A'),
+        )
+
+        self.CreateAction(
+            'zones', self.HandleZones, GetIcon('zones'),
+            globals.trans.string('MenuItems', 74),
+            globals.trans.string('MenuItems', 75),
+            QtGui.QKeySequence('Ctrl+Alt+Z'),
+        )
+
+        self.CreateAction(
+            'backgrounds', self.HandleBG, GetIcon('background'),
+            globals.trans.string('MenuItems', 76),
+            globals.trans.string('MenuItems', 77),
+            QtGui.QKeySequence('Ctrl+Alt+B'),
+        )
+
+        self.CreateAction(
+            'addarea', self.HandleAddNewArea, GetIcon('add'),
+            globals.trans.string('MenuItems', 78),
+            globals.trans.string('MenuItems', 79),
+            QtGui.QKeySequence('Ctrl+Alt+N'),
+        )
+
+        self.CreateAction(
+            'importarea', self.HandleImportArea, GetIcon('import'),
+            globals.trans.string('MenuItems', 80),
+            globals.trans.string('MenuItems', 81),
+            QtGui.QKeySequence('Ctrl+Alt+O'),
+        )
+
+        self.CreateAction(
+            'deletearea', self.HandleDeleteArea, GetIcon('delete'),
+            globals.trans.string('MenuItems', 82),
+            globals.trans.string('MenuItems', 83),
+            QtGui.QKeySequence('Ctrl+Alt+D'),
+        )
+
+        self.CreateAction(
+            'reloaddata', self.ReloadSpriteData, GetIcon('reload'),
+            globals.trans.string('MenuItems', 128),
+            globals.trans.string('MenuItems', 129),
+            QtGui.QKeySequence('Ctrl+Shift+R'),
+        )
+
+        self.CreateAction(
+            'overwritesprite', self.HandleOverwriteSprite, GetIcon('folderpath'),
+            globals.trans.string('MenuItems', 134),
+            globals.trans.string('MenuItems', 135),
+            None, True,
+        )
+
+        self.CreateAction(
+            'overridetilesetsaving', self.HandleOverrideTilesetSaving, GetIcon('folderpath'),
+            globals.trans.string('MenuItems', 140),
+            globals.trans.string('MenuItems', 141),
+            None, True,
+        )
 
         # Tilesets
-        self.CreateAction('editslot1', self.EditSlot1, GetIcon('animation'), globals.trans.string('MenuItems', 130),
-                          globals.trans.string('MenuItems', 131), None)
-        self.CreateAction('editslot2', self.EditSlot2, GetIcon('animation'), globals.trans.string('MenuItems', 142, '[slot]', '2'),
-                          globals.trans.string('MenuItems', 143, '[slot]', '2'), None)
-        self.CreateAction('editslot3', self.EditSlot3, GetIcon('animation'), globals.trans.string('MenuItems', 142, '[slot]', '3'),
-                          globals.trans.string('MenuItems', 143, '[slot]', '3'), None)
-        self.CreateAction('editslot4', self.EditSlot4, GetIcon('animation'), globals.trans.string('MenuItems', 142, '[slot]', '4'),
-                          globals.trans.string('MenuItems', 143, '[slot]', '4'), None)
+        self.CreateAction(
+            'editslot1', self.EditSlot1, GetIcon('animation'),
+            globals.trans.string('MenuItems', 130),
+            globals.trans.string('MenuItems', 131),
+            None,
+        )
+
+        self.CreateAction(
+            'editslot2', self.EditSlot2, GetIcon('animation'),
+            globals.trans.string('MenuItems', 142, '[slot]', '2'),
+            globals.trans.string('MenuItems', 143, '[slot]', '2'),
+            None,
+        )
+
+        self.CreateAction(
+            'editslot3', self.EditSlot3, GetIcon('animation'),
+            globals.trans.string('MenuItems', 142, '[slot]', '3'),
+            globals.trans.string('MenuItems', 143, '[slot]', '3'),
+            None,
+        )
+
+        self.CreateAction(
+            'editslot4', self.EditSlot4, GetIcon('animation'),
+            globals.trans.string('MenuItems', 142, '[slot]', '4'),
+            globals.trans.string('MenuItems', 143, '[slot]', '4'),
+            None,
+        )
 
         # Help actions are created later
-
 
         # Configure them
         self.actions['openrecent'].setMenu(self.RecentMenu)
@@ -440,7 +719,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.actions['mergelocations'].setEnabled(False)
         self.actions['deselect'].setEnabled(False)
 
-        ####
         menubar = QtWidgets.QMenuBar()
         self.setMenuBar(menubar)
 
@@ -458,7 +736,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addAction(self.actions['screenshot'])
         fmenu.addAction(self.actions['changegamepath'])
         fmenu.addAction(self.actions['changeobjpath'])
-        # fmenu.addAction(self.actions['changesavepath'])
         fmenu.addAction(self.actions['preferences'])
         fmenu.addSeparator()
         fmenu.addAction(self.actions['exit'])
@@ -586,7 +863,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'screenshot',
                 'changegamepath',
                 'changeobjpath',
-                # 'changesavepath',
                 'preferences',
                 'exit',
             ), (
@@ -2024,10 +2300,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         def exists(fn):
             nonlocal arc
+
             try:
                 arc[fn]
-            except:
+
+            except KeyError:
                 return False
+
             return True
 
         def guessInnerName():
@@ -2058,6 +2337,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             fn = bytes_to_string(arc['levelname'].data)
             if exists(fn):
                 arcdata = arc[fn].data
+
             else:
                 arcdata = guessInnerName()
 
@@ -2232,28 +2512,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         UpdateObjFolder()
 
         self.folderPicker.currentIndexChanged.connect(UpdateObjFolder)
-
-    def HandleChangeSavePath(self, auto=False):
-        """
-        Change the save path used by the current game definition
-        """
-        if self.CheckDirty(): return
-
-        path = QtWidgets.QFileDialog.getExistingDirectory(None,
-                                                          globals.trans.string('ChangeGamePath', 0, '[game]', globals.gamedef.name))
-        if path == '':
-            return False
-
-        path = str(path)
-
-        if (not isValidGamePath(path)) and (not globals.gamedef.custom):  # custom gamedefs can use incomplete folders
-            QtWidgets.QMessageBox.information(None, globals.trans.string('ChangeGamePath', 1),
-                                              globals.trans.string('ChangeGamePath', 2))
-        else:
-            SetSavePath(path)
-            # break
-
-        return True
 
     def HandlePreferences(self):
         """
@@ -3017,10 +3275,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 def exists(fn):
                     nonlocal arc
+
                     try:
                         arc[fn]
-                    except:
+
+                    except KeyError:
                         return False
+
                     return True
 
                 def guessInnerName():
@@ -4906,9 +5167,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         if platform.system() == 'Windows':
             tile_path = globals.miyamoto_path + '/Tools'
+
         elif platform.system() == 'Linux':
             tile_path = globals.miyamoto_path + '/linuxTools'
-        elif platform.system() == 'Darwin':
+
+        else:
             tile_path = globals.miyamoto_path + '/macTools'
 
         if (globals.Area.tileset0 not in ('', None)) and (globals.Area.tileset0 in globals.szsData):
@@ -4989,14 +5252,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Linux':
             tile_path = globals.miyamoto_path + '/linuxTools'
 
-        elif platform.system() == 'Darwin':
-            tile_path = globals.miyamoto_path + '/macTools'
-
         else:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                               'Not a supported platform, sadly...')
-            warningBox.exec_()
-            return
+            tile_path = globals.miyamoto_path + '/macTools'
 
         if (eval('globals.Area.tileset%d' % slot) not in ('', None)) and (eval('globals.Area.tileset%d' % slot) in globals.szsData):
             sarcdata = globals.szsData[eval('globals.Area.tileset%d' % slot)]

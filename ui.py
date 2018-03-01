@@ -24,18 +24,18 @@
 ################################################################
 ################################################################
 
+############ Imports ############
+
+import os
 from xml.etree import ElementTree as etree
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
-if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
-    # enables itemChange being called on QGraphicsItem
-    QtWidgets.QGraphicsItem.ItemSendsGeometryChanges = QtWidgets.QGraphicsItem.GraphicsItemFlag(0x800)
-
 import globals
-from loading import *
-from strings import *
+# from loading import LoadLevelNames
+
+#################################
 
 
 class ChooseLevelNameDialog(QtWidgets.QDialog):
@@ -53,6 +53,7 @@ class ChooseLevelNameDialog(QtWidgets.QDialog):
 
         import loading
         loading.LoadLevelNames()
+        del loading
 
         self.currentlevel = None
 

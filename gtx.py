@@ -30,14 +30,7 @@
 import struct
 
 import dds
-
-try:
-    import pyximport
-
-    pyximport.install()
-    import addrlib_cy as addrlib
-except ImportError:
-    import addrlib
+import addrlib
 
 
 class GFDHeader(struct.Struct):
@@ -91,6 +84,49 @@ class GX2Surface(struct.Struct):
          self.swizzle,
          self.alignment,
          self.pitch) = self.unpack_from(data, pos)
+
+
+def readGFD(f):
+    pos = 0
+    width, height, format = 0, 0, 0
+    data = b''
+
+    header = GFDHeader()
+    header.data(f, pos)
+
+    if header.magic != b'Gfx2':
+        raise ValueError("Invalid file header!")
+
+    pos += header.size
+
+    blkhead = GFDBlockHeader()
+    gx2surf = GX2Surface()
+
+    while pos < len(f):
+        blkhead.data(f, pos)
+
+        if blkhead.magic != b'BLK{':
+            raise ValueError("Invalid block header!")
+
+        pos += blkhead.size
+
+        if blkhead.type_ == 0x0B:
+            gx2surf.data(f, pos)
+            pos += blkhead.dataSize
+
+            width = gx2surf.width
+            height = gx2surf.height
+            format = gx2surf.format_
+
+        elif blkhead.type_ == 0x0C and not data:
+            dataSize = blkhead.dataSize
+            data = bytes(f[pos:pos + dataSize])
+            pos += dataSize
+
+        else:
+            pos += blkhead.dataSize
+
+    return width, height, format,  dataSize, data
 
 
 def writeGFD(f):

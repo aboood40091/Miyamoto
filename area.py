@@ -24,13 +24,23 @@
 ################################################################
 ################################################################
 
+############ Imports ############
+
 import struct
 
-from bytes import *
+from bytes import bytes_to_string, to_bytes
 import globals
-from loading import *
-from misc import *
-from items import *
+
+from items import ObjectItem, ZoneItem, LocationItem
+from items import SpriteItem, EntranceItem, PathItem
+from items import NabbitPathItem, PathEditorLineItem
+from items import NabbitPathEditorLineItem, CommentItem
+
+from loading import LoadTilesetNames, LoadTileset
+from misc import Metadata
+import spritelib as SLib
+
+#################################
 
 
 class AbstractArea:
@@ -715,7 +725,6 @@ class Area_NSMBU(AbstractArea):
             nodecount += len(path['nodes'])
         if self.nPathdata:
             nodecount += len(self.nPathdata['nodes'])
-        nodecount
         nodebuffer = bytearray(nodecount * 20)
         nodeoffset = 0
         nodeindex = 0
@@ -728,7 +737,7 @@ class Area_NSMBU(AbstractArea):
         nPathSaved = False
 
         for path in self.pathdata:
-            if (len(path['nodes']) < 1): continue
+            if len(path['nodes']) < 1: continue
 
             if path['id'] > 90 and not nPathSaved and self.nPathdata:
                 self.WriteNabbitPathNodes(nodebuffer, nodeoffset, self.nPathdata['nodes'])

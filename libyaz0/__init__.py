@@ -5,37 +5,25 @@
 # Version 0.4
 # Copyright © 2017 MasterVermilli0n / AboodXD
 
-# This file is part of libyaz0.
-
-# libyaz0 is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# libyaz0 is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+################################################################
+################################################################
 
 try:
-    import yaz0_pyd as yaz0
+    from . import yaz0_pyd as yaz0
 
 except:
     try:
-        import yaz0_so as yaz0
+        from . import yaz0_so as yaz0
 
     except:
         try:
             import pyximport
 
             pyximport.install()
-            import yaz0_cy as yaz0
+            from . import yaz0_cy as yaz0
 
         except:
-            import yaz0
+            from . import yaz0
 
 
 def IsYazCompressed(data):
@@ -66,7 +54,7 @@ def compress(data, unk=0, level=9):
 
 def guessFileExt(data):
     if data[0:4] == b"BNTX":
-       return ".bntx"
+        return ".bntx"
 
     elif data[0:4] == b"BNSH":
         return ".bnsh"

@@ -3,10 +3,8 @@
 
 # Puzzle NSMBU
 # This is Puzzle 0.6, ported to Python 3 & PyQt5, and then ported to support the New Super Mario Bros. U tileset format.
-# Puzzle 0.6 by Tempus; all improvements for Python 3, PyQt5 and NSMBU by RoadrunnerWMC
-# Heavily modified by AboodXD
+# Puzzle 0.6 by Tempus; all improvements for Python 3, PyQt5 and NSMBU by RoadrunnerWMC and AboodXD
 
-from collections import Counter
 import json
 import os
 import os.path
@@ -20,7 +18,7 @@ Qt = QtCore.Qt
 
 import globals
 import SARC
-from tileset import LoadTexture_NSMBU, writeGTX
+from tileset import loadGTX, writeGTX
 
 
 ########################################################
@@ -2034,11 +2032,25 @@ class MainWindow(QtWidgets.QMainWindow):
         elif platform.system() == 'Linux':
             tile_path = globals.miyamoto_path + '/linuxTools'
 
-        elif platform.system() == 'Darwin':
+        else:
             tile_path = globals.miyamoto_path + '/macTools'
 
         if os.path.isfile(tile_path + '/tmp.tmp'):
             os.remove(tile_path + '/tmp.tmp')
+
+        """
+        # Object-duplicates-related
+        if self.saved:
+            toDelete = []
+            for folderIndex in globals.ObjectAddedtoEmbedded[globals.CurrentArea]:
+                for objNum in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
+                    idx, _ = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][objNum]
+                    if idx == self.slot:
+                        toDelete.append([folderIndex, objNum])
+
+            for (folderIndex, objNum) in toDelete:
+                del globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][objNum]
+        """
 
         if not self.saved and self.con:
             exec("globals.Area.tileset%d = ''" % self.slot)
@@ -2139,8 +2151,8 @@ class MainWindow(QtWidgets.QMainWindow):
         
 
         # Loads the Image Data.
-        dest = LoadTexture_NSMBU(Image)
-        destnml = LoadTexture_NSMBU(NmlMap)
+        dest = loadGTX(Image)
+        destnml = loadGTX(NmlMap)
 
         self.tileImage = QtGui.QPixmap.fromImage(dest)
         self.nmlImage = QtGui.QPixmap.fromImage(destnml)
@@ -2299,8 +2311,8 @@ class MainWindow(QtWidgets.QMainWindow):
         
 
         # Loads the Image Data.
-        dest = LoadTexture_NSMBU(Image)
-        destnml = LoadTexture_NSMBU(NmlMap)
+        dest = loadGTX(Image)
+        destnml = loadGTX(NmlMap)
 
         self.tileImage = QtGui.QPixmap.fromImage(dest)
         self.nmlImage = QtGui.QPixmap.fromImage(destnml)

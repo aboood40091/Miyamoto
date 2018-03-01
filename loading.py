@@ -24,14 +24,27 @@
 ################################################################
 ################################################################
 
+############ Imports ############
+
+from PyQt5 import QtGui, QtWidgets
+import struct
 from xml.etree import ElementTree as etree
 
-from gamedefs import *
 import globals
-from misc import *
-from strings import *
-from tileset import *
-from ui import *
+import spritelib as SLib
+from gamedefs import MiyamotoGameDefinition, GetPath
+from misc import SpriteDefinition, setting, setSetting
+import SARC as SarcLib
+from strings import MiyamotoTranslation
+
+from tileset import TilesetTile, ObjectDef
+from tileset import loadGTX, ProcessOverrides
+from tileset import CascadeTilesetNames_Category
+from tileset import SortTilesetNames_Category
+
+from ui import MiyamotoTheme
+
+#################################
 
 
 def LoadTheme():
@@ -173,7 +186,8 @@ def LoadSpriteData():
 
     # It works this way so that it can overwrite settings based on order of precedence
     paths = [(globals.trans.files['spritedata'], None)]
-    for pathtuple in globals.gamedef.multipleRecursiveFiles('spritedata', 'spritenames'): paths.append(pathtuple)
+    for pathtuple in globals.gamedef.multipleRecursiveFiles('spritedata', 'spritenames'):
+        paths.append(pathtuple)
 
     for sdpath, snpath in paths:
 
@@ -184,7 +198,8 @@ def LoadSpriteData():
             root = tree.getroot()
 
             for sprite in root:
-                if sprite.tag.lower() != 'sprite': continue
+                if sprite.tag.lower() != 'sprite':
+                    continue
 
                 try:
                     spriteid = int(sprite.attrib['id'])
@@ -227,7 +242,8 @@ def LoadSpriteData():
 
             # Split the data
             data = data.split('\n')
-            for i, line in enumerate(data): data[i] = line.split(':')
+            for i, line in enumerate(data):
+                data[i] = line.split(':')
 
             # Apply it
             for spriteid, name in data:
@@ -363,16 +379,158 @@ def LoadEntranceNames(reload_=False):
         idx += 1
 
 
-def LoadTileset(idx, name, reload=False):
+def _LoadTileset(idx, name):
+    """
+    Load in a tileset into a specific slot
+    """
+
+    # if this file's not found, return
+    if name not in globals.szsData: return
+
+    sarcdata = globals.szsData[name]
+    sarc = SarcLib.SARC_Archive()
+    sarc.load(sarcdata)
+
+    tileoffset = idx * 256
+
+    # Decompress the textures
     try:
-        import tileset
-        ans = tileset._LoadTileset(idx, name, reload)
-        del tileset
+        comptiledata = sarc['BG_tex/%s.gtx' % name].data
+        nmldata = sarc['BG_tex/%s_nml.gtx' % name].data
+        colldata = sarc['BG_chk/d_bgchk_%s.bin' % name].data
 
-        return ans
+    except KeyError:
+        QtWidgets.QMessageBox.warning(
+            None, globals.trans.string('Err_CorruptedTilesetData', 0),
+            globals.trans.string('Err_CorruptedTilesetData', 1, '[file]', name),
+        )
 
-    except:
         return False
+
+    # load in the textures
+    img = loadGTX(comptiledata)
+    nml = loadGTX(nmldata)
+
+    # Divide it into individual tiles and
+    # add collisions at the same time
+    def getTileFromImage(tilemap, xtilenum, ytilenum):
+        return tilemap.copy((xtilenum * 64) + 2, (ytilenum * 64) + 2, 60, 60)
+
+    dest = QtGui.QPixmap.fromImage(img)
+    dest2 = QtGui.QPixmap.fromImage(nml)
+    sourcex = 0
+    sourcey = 0
+    for i in range(tileoffset, tileoffset + 256):
+        T = TilesetTile(getTileFromImage(dest, sourcex, sourcey), getTileFromImage(dest2, sourcex, sourcey))
+        T.setCollisions(struct.unpack_from('>8B', colldata, (i - tileoffset) * 8))
+        globals.Tiles[i] = T
+        sourcex += 1
+        if sourcex >= 32:
+            sourcex = 0
+            sourcey += 1
+
+    def exists(fn):
+        nonlocal sarc
+
+        try:
+            sarc[fn]
+
+        except KeyError:
+            return False
+
+        return True
+    
+    # Load the tileset animations, if there are any
+    if idx == 0:
+        tileoffset = idx * 256
+
+        hatena_anime = None
+        block_anime = None
+        tuka_coin_anime = None
+        belt_conveyor_anime = None
+
+        fn = 'BG_tex/hatena_anime.gtx'
+        found = exists(fn)
+
+        if found:
+            hatena_anime = loadGTX(sarc[fn].data)
+
+        fn = 'BG_tex/block_anime.gtx'
+        found = exists(fn)
+
+        if found:
+            block_anime = loadGTX(sarc[fn].data)
+
+        fn = 'BG_tex/tuka_coin_anime.gtx'
+        found = exists(fn)
+
+        if found:
+            tuka_coin_anime = loadGTX(sarc[fn].data)
+
+        fn = 'BG_tex/belt_conveyor_anime.gtx'
+        found = exists(fn)
+
+        if found:
+            belt_conveyor_anime = loadGTX(sarc[fn].data)
+
+        for i in range(tileoffset, tileoffset + 256):
+            if globals.Tiles[i].collData[0] == 7:
+                if hatena_anime:
+                    globals.Tiles[i].addAnimationData(hatena_anime)
+
+            elif globals.Tiles[i].collData[0] == 6:
+                if block_anime:
+                    globals.Tiles[i].addAnimationData(block_anime)
+
+            elif globals.Tiles[i].collData[0] == 2:
+                if tuka_coin_anime:
+                    globals.Tiles[i].addAnimationData(tuka_coin_anime)
+
+            elif globals.Tiles[i].collData[0] == 17:
+                if belt_conveyor_anime:
+                    for x in range(2):
+                        if i == 144 + x * 16:
+                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 0, True)
+
+                        elif i == 145 + x * 16:
+                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 1, True)
+
+                        elif i == 146 + x * 16:
+                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 2, True)
+
+                        elif i == 147 + x * 16:
+                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 0)
+
+                        elif i == 148 + x * 16:
+                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 1)
+
+                        elif i == 149 + x * 16:
+                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 2)
+
+    # Load the object definitions
+    defs = [None] * 256
+
+    indexfile = sarc['BG_unt/%s_hd.bin' % name].data
+    deffile = sarc['BG_unt/%s.bin' % name].data
+    objcount = len(indexfile) // 6
+    indexstruct = struct.Struct('>HBBH')
+
+    for i in range(objcount):
+        data = indexstruct.unpack_from(indexfile, i * 6)
+        obj = ObjectDef()
+        obj.width = data[1]
+        obj.height = data[2]
+        obj.randByte = data[3]
+        obj.load(deffile, data[0])
+        defs[i] = obj
+
+    globals.ObjectDefinitions[idx] = defs
+
+    ProcessOverrides(name)
+
+
+def LoadTileset(idx, name, reload=False):
+    return _LoadTileset(idx, name)
 
 
 def LoadOverrides():
@@ -431,7 +589,6 @@ def LoadGameDef(name=None, dlg=None):
     # Put the whole thing into a try-except clause
     # to catch whatever errors may happen
     try:
-
         # Load the gamedef
         globals.gamedef = MiyamotoGameDefinition(name)
         if globals.gamedef.custom and (not globals.settings.contains('GamePath_' + globals.gamedef.name)):
@@ -510,7 +667,7 @@ def LoadGameDef(name=None, dlg=None):
 
 
     # Success!
-    if dlg: setSetting('LastGameDef', name)
+    if dlg: ('LastGameDef', name)
     return True
 
 

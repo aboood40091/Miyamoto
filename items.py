@@ -24,6 +24,8 @@
 ################################################################
 ################################################################
 
+############ Imports ############
+
 import base64
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -35,9 +37,11 @@ if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
 
 import globals
 import spritelib as SLib
-from tileset import *
-from ui import *
-from verifications import *
+from tileset import RenderObject
+from ui import GetIcon
+from verifications import SetDirty
+
+#################################
 
 
 class LevelEditorItem(QtWidgets.QGraphicsItem):

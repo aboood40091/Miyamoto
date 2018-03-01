@@ -31,7 +31,7 @@
 ################################################################
 ################################################################
 
-# Imports
+############ Imports ############
 
 import math
 
@@ -44,6 +44,8 @@ Qt = QtCore.Qt
 from miyamoto import *
 
 import spritelib as SLib
+
+#################################
 
 ImageCache = SLib.ImageCache
 

@@ -105,11 +105,9 @@ if platform.system() == 'Windows':
 elif platform.system() == 'Linux':
     if os.path.isdir(dir_ + '/linuxTools'): shutil.rmtree(dir_ + '/linuxTools') 
     shutil.copytree('linuxTools', dir_ + '/linuxTools')
-elif platform.system() == 'Darwin':
+else:
     if os.path.isdir(dir_ + '/macTools'): shutil.rmtree(dir_ + '/macTools') 
     shutil.copytree('macTools', dir_ + '/macTools')
-else:
-    raise TypeError("Not a supported platform, sadly...")
 shutil.copy('license.txt', dir_)
 shutil.copy('README.md', dir_)
 print('>> Files copied!')

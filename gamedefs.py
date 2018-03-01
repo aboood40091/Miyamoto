@@ -24,14 +24,19 @@
 ################################################################
 ################################################################
 
-import os
+############ Imports ############
+
 import importlib
+import os
+from PyQt5 import QtWidgets
 import sys
 from xml.etree import ElementTree as etree
 
 import globals
-from misc import *
+from misc import setting, setSetting
 import sprites
+
+#################################
 
 
 class MiyamotoGameDefinition:

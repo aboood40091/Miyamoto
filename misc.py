@@ -24,6 +24,8 @@
 ################################################################
 ################################################################
 
+############ Imports ############
+
 import pickle
 import platform
 import sys
@@ -36,7 +38,9 @@ if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
     QtWidgets.QGraphicsItem.ItemSendsGeometryChanges = QtWidgets.QGraphicsItem.GraphicsItemFlag(0x800)
 
 import globals
-from items import *
+from items import ObjectItem
+
+#################################
 
 
 class LevelScene(QtWidgets.QGraphicsScene):
@@ -249,18 +253,18 @@ class SpriteDefinition:
             """
             Get what we have for a specific row
             """
-            if not index.isValid(): return None
+            if not index.isValid():
+                return None
+
             n = index.row()
-            if n < 0: return None
-            # if n >= self.max: return None
-            if n >= len(self.entries): return None
+
+            if n < 0:
+                return None
+
+            if n >= len(self.entries):
+                return None
 
             if role == Qt.DisplayRole:
-                # entries = self.entries
-                # if n in entries:
-                #    return '%d: %s' % (n, entries[n])
-                # else:
-                #    return '%d: <unknown/unused>' % n
                 return '%d: %s' % self.entries[n]
 
             return None
@@ -283,25 +287,63 @@ class SpriteDefinition:
                 comment = None
 
             if field.tag == 'checkbox':
-                # parameters: title, nybble, mask, comment
-                snybble = attribs['nybble']
-                if '-' not in snybble:
-                    nybble = int(snybble) - 1
-                else:
-                    getit = snybble.split('-')
-                    nybble = (int(getit[0]) - 1, int(getit[1]))
+                # parameters: title, bit, mask, comment
+                if 'nybble' in attribs:
+                    sbit = attribs['nybble']
+                    sft = 2
 
-                fields.append((0, attribs['title'], nybble, int(attribs['mask']) if 'mask' in attribs else 1, comment))
-            elif field.tag == 'list':
-                # parameters: title, nybble, model, comment
-                snybble = attribs['nybble']
-                if '-' not in snybble:
-                    nybble = int(snybble) - 1
-                    max = 16
                 else:
-                    getit = snybble.split('-')
-                    nybble = (int(getit[0]) - 1, int(getit[1]))
-                    max = (16 << ((nybble[1] - nybble[0] - 1) * 4))
+                    sbit = attribs['bit']
+                    sft = 0
+
+                if not '-' in sbit:
+                    if not sft:
+                        # just 1 bit
+                        bit = int(sbit)
+
+                    else:
+                        # just 4 bits
+                        bit = (((int(sbit) - 1) << 2) + 1, (int(sbit) << 2) + 1)
+
+                else:
+                    # different number of bits
+                    getit = sbit.split('-')
+                    bit = (((int(getit[0]) - 1) << sft) + 1, (int(getit[1]) << sft) + 1)
+
+                if 'mask' in attribs:
+                    mask = int(attribs['mask'])
+
+                else:
+                    mask = 1
+
+                fields.append((0, attribs['title'], bit, mask, comment))
+
+            elif field.tag == 'list':
+                # parameters: title, bit, model, comment
+                if 'nybble' in attribs:
+                    sbit = attribs['nybble']
+                    sft = 2
+
+                else:
+                    sbit = attribs['bit']
+                    sft = 0
+
+                if not '-' in sbit:
+                    if not sft:
+                        # just 1 bit
+                        bit = int(sbit)
+                        max = 2
+
+                    else:
+                        # just 4 bits
+                        bit = (((int(sbit) - 1) << 2) + 1, (int(sbit) << 2) + 1)
+                        max = 16
+
+                else:
+                    # different number of bits
+                    getit = sbit.split('-')
+                    bit = (((int(getit[0]) - 1) << sft) + 1, (int(getit[1]) << sft) + 1)
+                    max = 1 << (bit[1] - bit[0] + 1)
 
                 entries = []
                 existing = [None for i in range(max)]
@@ -313,24 +355,37 @@ class SpriteDefinition:
                     existing[i] = True
 
                 fields.append(
-                    (1, attribs['title'], nybble, SpriteDefinition.ListPropertyModel(entries, existing, max), comment))
+                    (1, attribs['title'], bit, SpriteDefinition.ListPropertyModel(entries, existing, max), comment))
+
             elif field.tag == 'value':
-                # parameters: title, nybble, max, comment
-                snybble = attribs['nybble']
+                # parameters: title, bit, max, comment
+                if 'nybble' in attribs:
+                    sbit = attribs['nybble']
+                    sft = 2
 
-                # if it's 5-12 skip it
-                # fixes tobias's crashy 'unknown values'
-                if snybble == '5-12': continue
-
-                if '-' not in snybble:
-                    nybble = int(snybble) - 1
-                    max = 16
                 else:
-                    getit = snybble.split('-')
-                    nybble = (int(getit[0]) - 1, int(getit[1]))
-                    max = (16 << ((nybble[1] - nybble[0] - 1) * 4))
+                    sbit = attribs['bit']
+                    sft = 0
 
-                fields.append((2, attribs['title'], nybble, max, comment))
+                if not '-' in sbit:
+                    if not sft:
+                        # just 1 bit
+                        bit = int(sbit)
+                        max = 2
+
+                    else:
+                        # just 4 bits
+                        bit = (((int(sbit) - 1) << 2) + 1, (int(sbit) << 2) + 1)
+                        max = 16
+
+                else:
+                    # different number of bits
+                    getit = sbit.split('-')
+                    bit = (((int(getit[0]) - 1) << sft) + 1, (int(getit[1]) << sft) + 1)
+                    max = 1 << (bit[1] - bit[0] + 1)
+
+                fields.append((2, attribs['title'], bit, max, comment))
+
             elif field.tag == 'bitfield':
                 # parameters: title, startbit, bitnum, comment
                 startbit = int(attribs['startbit'])
@@ -573,17 +628,6 @@ def setSetting(name, value):
     return globals.settings.setValue(name, value)
 
 
-def module_path():
-    """
-    This will get us the program's directory, even if we are frozen using cx_Freeze
-    """
-    if hasattr(sys, 'frozen'):
-        return os.path.dirname(sys.executable)
-    if __name__ == '__main__':
-        return os.path.dirname(os.path.abspath(sys.argv[0]))
-    return None
-
-
 def SetGamePath(newpath):
     """
     Sets the NSMBU game path
@@ -609,27 +653,12 @@ def compressWSZST(inf, outf):
         os.system('./wszst_linux.elf COMPRESS "' + inf + '" --dest "' + outf + '"')
         os.chdir(globals.miyamoto_path)
 
-    elif platform.system() == 'Darwin':
+    else:
         os.chdir(globals.miyamoto_path + '/macTools')
         os.system('"' + globals.miyamoto_path + '/macTools/wszst_mac" COMPRESS "' + inf + '" --dest "' + outf + '"')
         os.chdir(globals.miyamoto_path)
-
-    else:
-        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                           'Not a supported platform, sadly...')
-        warningBox.exec_()
-
-        return False
 
     if not os.path.isfile(outf):
         return False
 
     return True
-
-
-# USELESS
-def calculateBgAlignmentMode(idA, idB, idC):
-    """
-    Calculates alignment modes using the exact same logic as NSMBW
-    """
-    return 0

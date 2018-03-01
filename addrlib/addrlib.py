@@ -1,25 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
-
-# This file is part of Miyamoto!.
-
-# Miyamoto! is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# Miyamoto! is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
-
 # addrlib.py
 # A Python Address Library for Wii U textures.
 
@@ -1779,29 +1760,3 @@ def getSurfaceInfo(surfaceFormat, surfaceWidth, surfaceHeight, surfaceDepth, sur
         pSurfOut = pOut
 
     return pSurfOut
-
-import pyximport
-pyximport.install()
-import addrlib_cy
-
-surfOut = addrlib_cy.getSurfaceInfo(0x1a, 2048, 512, 1, 1, 4, 0, 0)
-print(surfOut.size)
-print(surfOut.pitch)
-print(surfOut.height)
-print(surfOut.depth)
-print(surfOut.surfSize)
-print(surfOut.tileMode)
-print(surfOut.baseAlign)
-print(surfOut.pitchAlign)
-print(surfOut.heightAlign)
-print(surfOut.depthAlign)
-print(surfOut.bpp)
-print(surfOut.pixelPitch)
-print(surfOut.pixelHeight)
-print(surfOut.pixelBits)
-print(surfOut.sliceSize)
-print(surfOut.pitchTileMax)
-print(surfOut.heightTileMax)
-print(surfOut.sliceTileMax)
-print(surfOut.tileType)
-print(surfOut.tileIndex)

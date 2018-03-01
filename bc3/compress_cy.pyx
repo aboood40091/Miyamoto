@@ -1,34 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
+# BC3 Compressor/Decompressor
+# Version 0.1
+# Copyright © 2018 MasterVermilli0n / AboodXD
 
-# This file is part of Miyamoto!.
-
-# Miyamoto! is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# Miyamoto! is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
-
-# compressBC3.py
-# A Python port of Wexos's Toolbox BC3 compressor.
-
+# compress_cy.pyx
+# A Cython port of Wexos's Toolbox BC3 compressor.
 
 ################################################################
 ################################################################
 
-def CompressAlphaBlock(AlphaBlock, Palette, Width, Height, x, y):
-    Indices = [0] * 16
+ctypedef unsigned char u8
+ctypedef unsigned short u16
+ctypedef unsigned int u32
+ctypedef unsigned long long u64
+
+
+cdef u32 * CompressAlphaBlock(u8 AlphaBlock[16], list Palette, u32 Width, u32 Height, u32 x, u32 y):
+    cdef:
+        u32 Indices[16]
+
+        int y2, x2, Delta, AlphaDelta
+        u8 A
+        u32 Index, i
 
     for y2 in range(4):
         for x2 in range(4):
@@ -38,13 +33,12 @@ def CompressAlphaBlock(AlphaBlock, Palette, Width, Height, x, y):
 
                 A = AlphaBlock[y2 * 4 + x2]
 
-                for i in range(len(Palette)):
+                for i in range(8):
                     if A == Palette[i]:
                         Index = i
                         break
 
-                    AlphaDelta = A - Palette[i]
-                    AlphaDelta = max(AlphaDelta, -AlphaDelta)
+                    AlphaDelta = abs(A - Palette[i])
 
                     if AlphaDelta < Delta:
                         Delta = AlphaDelta
@@ -54,8 +48,9 @@ def CompressAlphaBlock(AlphaBlock, Palette, Width, Height, x, y):
 
     return Indices
 
-def GetAlphaPalette(A0, A1):
-    Palette = bytearray(8)
+
+cdef list GetAlphaPalette(u8 A0, u8 A1):
+    cdef list Palette = [None] * 8
     Palette[0] = A0
     Palette[1] = A1
 
@@ -78,8 +73,13 @@ def GetAlphaPalette(A0, A1):
     return Palette
 
 
-def CompressBlock(ColorBlock, Palette, Width, Height, x, y, ScaleR, ScaleG, ScaleB):
-    Indices = [0] * 16
+cdef u32 * CompressBlock(u32 ColorBlock[16], u32 Palette[4], u32 Width, u32 Height, u32 x, u32 y, int ScaleR, int ScaleG, int ScaleB):
+    cdef:
+        u32 Indices[16]
+
+        int y2, x2, Delta, RedDelta, GreenDelta, BlueDelta, NewDelta
+        u32 Index, Color, i
+        u8 R, G, B, A
 
     for y2 in range(4):
         for x2 in range(4):
@@ -93,18 +93,14 @@ def CompressBlock(ColorBlock, Palette, Width, Height, x, y, ScaleR, ScaleG, Scal
                 B = Color & 0xFF
                 A = (Color >> 24) & 0xFF
 
-                for i in range(len(Palette)):
+                for i in range(4):
                     if Color == Palette[i]:
                         Index = i
                         break
 
-                    RedDelta = R - ((Palette[i] >> 16) & 0xFF)
-                    GreenDelta = G - ((Palette[i] >> 8) & 0xFF)
-                    BlueDelta = B - (Palette[i] & 0xFF)
-
-                    RedDelta = max(RedDelta, -RedDelta)
-                    GreenDelta = max(GreenDelta, -GreenDelta)
-                    BlueDelta = max(BlueDelta, -BlueDelta)
+                    RedDelta = abs(R - ((Palette[i] >> 16) & 0xFF))
+                    GreenDelta = abs(G - ((Palette[i] >> 8) & 0xFF))
+                    BlueDelta = abs(B - (Palette[i] & 0xFF))
 
                     NewDelta = RedDelta * ScaleR + GreenDelta * ScaleG + BlueDelta * ScaleB
 
@@ -116,16 +112,21 @@ def CompressBlock(ColorBlock, Palette, Width, Height, x, y, ScaleR, ScaleG, Scal
 
     return Indices
 
-def FindMinMax(Colors):
-    MaxR = 0
-    MaxG = 0
-    MaxB = 0
 
-    MinR = 255
-    MinG = 255
-    MinB = 255
+cdef (u8, u8, u8, u8, u8, u8, u8) FindMinMax(list Colors):
+    cdef:
+        u8 MaxR = 0
+        u8 MaxG = 0
+        u8 MaxB = 0
 
-    TransparentBlock = True
+        u8 MinR = 255
+        u8 MinG = 255
+        u8 MinB = 255
+
+        u8 TransparentBlock = 1
+
+        u32 Color
+        u8 R, G, B, A
 
     for Color in Colors:
         R = (Color >> 16) & 0xFF
@@ -136,7 +137,7 @@ def FindMinMax(Colors):
         if not A:
             continue
 
-        TransparentBlock = False
+        TransparentBlock = 0
 
         # Max color
         if R > MaxR: MaxR = R
@@ -159,18 +160,24 @@ def FindMinMax(Colors):
 
     return MinR, MinG, MinB, MaxR, MaxG, MaxB, TransparentBlock
 
-def ToARGB8(Red, Green, Blue, Alpha):
-    R = int(Red * 255)
-    G = int(Green * 255)
-    B = int(Blue * 255)
-    A = int(Alpha * 255)
+
+cdef u32 ToARGB8(float Red, float Green, float Blue, float Alpha):
+    cdef:
+        u8 R = int(Red * 255)
+        u8 G = int(Green * 255)
+        u8 B = int(Blue * 255)
+        u8 A = int(Alpha * 255)
 
     return (A << 24) | (R << 16) | (G << 8) | B
 
-def GetPalette(Color0, Color1):
-    Palette = [0] * 4
+
+cdef u32 * GetPalette(Color0, Color1):
+    cdef u32 Palette[4]
+
     Palette[0] = ToARGB8(((Color0 >> 11) & 0b11111) / 31, ((Color0 >> 5) & 0b111111) / 63, (Color0 & 0b11111) / 31, 0)
     Palette[1] = ToARGB8(((Color1 >> 11) & 0b11111) / 31, ((Color1 >> 5) & 0b111111) / 63, (Color1 & 0b11111) / 31, 0)
+    Palette[2] = 0
+    Palette[3] = 0
 
     R0 = (Palette[0] >> 16) & 0xFF
     G0 = (Palette[0] >> 8) & 0xFF
@@ -184,26 +191,30 @@ def GetPalette(Color0, Color1):
 
     return Palette
 
-def ToRGB565(R, G, B):
+
+cdef u16 ToRGB565(u8 R, u8 G, u8 B):
     return ((R >> 3) << 11) | ((G >> 2) << 5) | (B >> 3)
 
 
-def FindColors(Colors):
-    ThresholdMin = 0x02
-    ThresholdMax = 0xFD
+cdef (u8, u8) FindColors(list Colors):
+    cdef:
+        u8 ThresholdMin = 0x02
+        u8 ThresholdMax = 0xFD
 
-    PartMin = 255
-    PartMax = 0
-    Min = 255
-    Max = 0
-    UseLessThanAlgorithm = False  # Used when colors are close to both 0 and 0xFF
+        u8 PartMin = 255
+        u8 PartMax = 0
+        u8 Min = 255
+        u8 Max = 0
+        u8 UseLessThanAlgorithm = 0  # Used when colors are close to both 0 and 0xFF
+
+        u8 Color
 
     for Color in Colors:
         if Color <= ThresholdMin:
-            UseLessThanAlgorithm = True
+            UseLessThanAlgorithm = 1
 
         elif Color >= ThresholdMax:
-            UseLessThanAlgorithm = True
+            UseLessThanAlgorithm = 1
 
         if not UseLessThanAlgorithm and Color < PartMin:
             PartMin = Color
@@ -218,7 +229,7 @@ def FindColors(Colors):
             Max = Color
 
     if Max <= 0x15 or (Min <= 0x05 and Max <= 0x30) or Min >= 0xEA or (Max >= 0xFA and Min >= 0xCF):  # What is good here?
-        UseLessThanAlgorithm = False
+        UseLessThanAlgorithm = 0
 
     else:
         Max = PartMax
@@ -227,32 +238,37 @@ def FindColors(Colors):
     if not UseLessThanAlgorithm and Min == Max:
         Max -= 1
 
-    if Max < 0:
-        Max = 256 + Max
-
     Color0 = Min if UseLessThanAlgorithm else Max
     Color1 = Max if UseLessThanAlgorithm else Min
 
     return Color0, Color1
 
 
-def CompressBC3(SrcPtr, Stride, Width, Height):
-    Stride //= 4
+cpdef bytearray compress(bytes SrcPtr, u32 Width, u32 Height):
+    cdef:
+        bytearray DstPtr = bytearray()
 
-    DstPtr = bytearray()
+        u8 ActualAlphas[16]
+        u8 A, R, G, B, MinR, MinG, MinB, MaxR, MaxG, MaxB, Alpha0, Alpha1
+        u16 Color0, Color1
+        int y2, x2
+        u32 y, x, pos, Color, Indices
+        u32 IndexBlock[16]
+        u32 AlphaIndexBlock[16]
+        u32 Palette[4]
+        u32 ActualColors[16]
+        u64 AlphaIndices
+        list AlphaPalette, Colors, Alphas
 
     for y in range(0, Height, 4):
         for x in range(0, Width, 4):
-            Colors = []
-            Alphas = []
-            ActualColors = [0] * 16
-            ActualAlphas =  bytearray(16)
+            Colors, Alphas = [], []
 
             for y2 in range(4):
                 for x2 in range(4):
                     if y + y2 < Height and x + x2 < Width:
                         # Read RGBA data and convert it to ARGB
-                        pos = (y + y2) * Stride + (x + x2)
+                        pos = (y + y2) * Width + (x + x2)
                         pos *= 4
 
                         A = SrcPtr[pos + 3]
@@ -277,6 +293,7 @@ def CompressBC3(SrcPtr, Stride, Width, Height):
                 Color0 += 1
 
             Palette = GetPalette(Color0, Color1)
+
             AlphaPalette = GetAlphaPalette(Alpha0, Alpha1)
 
             Indices = 0
@@ -296,7 +313,7 @@ def CompressBC3(SrcPtr, Stride, Width, Height):
                 Indices = 0xFFFFFFFF
 
                 TransparentIndex = 0
-                for i in range(len(AlphaPalette)):
+                for i in range(8):
                     if not AlphaPalette[i]:
                         TransparentIndex = i
                         break
@@ -308,24 +325,24 @@ def CompressBC3(SrcPtr, Stride, Width, Height):
                     for x2 in range(4):
                         AlphaIndices |= TransparentIndex << ((y2 * 4 + x2) * 3)
 
-            DstPtr += bytes([Alpha0])
-            DstPtr += bytes([Alpha1])
+            DstPtr.append(Alpha0)
+            DstPtr.append(Alpha1)
 
-            DstPtr += bytes([AlphaIndices & 0xFF])
-            DstPtr += bytes([(AlphaIndices >> 8) & 0xFF])
-            DstPtr += bytes([(AlphaIndices >> 16) & 0xFF])
-            DstPtr += bytes([(AlphaIndices >> 24) & 0xFF])
-            DstPtr += bytes([(AlphaIndices >> 32) & 0xFF])
-            DstPtr += bytes([(AlphaIndices >> 40) & 0xFF])
+            DstPtr.append(AlphaIndices & 0xFF)
+            DstPtr.append((AlphaIndices >> 8) & 0xFF)
+            DstPtr.append((AlphaIndices >> 16) & 0xFF)
+            DstPtr.append((AlphaIndices >> 24) & 0xFF)
+            DstPtr.append((AlphaIndices >> 32) & 0xFF)
+            DstPtr.append((AlphaIndices >> 40) & 0xFF)
 
-            DstPtr += bytes([Color0 & 0xFF])
-            DstPtr += bytes([(Color0 >> 8) & 0xFF])
-            DstPtr += bytes([Color1 & 0xFF])
-            DstPtr += bytes([(Color1 >> 8) & 0xFF])
+            DstPtr.append(Color0 & 0xFF)
+            DstPtr.append((Color0 >> 8) & 0xFF)
+            DstPtr.append(Color1 & 0xFF)
+            DstPtr.append((Color1 >> 8) & 0xFF)
 
-            DstPtr += bytes([Indices & 0xFF])
-            DstPtr += bytes([(Indices >> 8) & 0xFF])
-            DstPtr += bytes([(Indices >> 16) & 0xFF])
-            DstPtr += bytes([(Indices >> 24) & 0xFF])
+            DstPtr.append(Indices & 0xFF)
+            DstPtr.append((Indices >> 8) & 0xFF)
+            DstPtr.append((Indices >> 16) & 0xFF)
+            DstPtr.append((Indices >> 24) & 0xFF)
 
     return DstPtr

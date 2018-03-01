@@ -27,11 +27,14 @@
 ################################################################
 ################################################################
 
-# Imports
+############ Imports ############
+
 import os.path
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
+
+#################################
 
 OutlineColor = None
 OutlinePen = None

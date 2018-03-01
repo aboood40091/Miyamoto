@@ -10,24 +10,32 @@ GitHub: https://github.com/aboood40091/Miyamoto
 ----------------------------------------------------------------
 
 ### Credits
+#### Reggie! & Reggie! Next
 * Treeki -- Creator of Reggie!
-* RoadrunnerWMC -- Creator of Reggie! Next, Spritedata, Graphics
+* RoadrunnerWMC -- Creator of Reggie! Next
   
-* AboodXD -- Coding, Spritedata, Graphics
+#### Miyamoto
+* AboodXD -- Lead Coder, Spritedata, Graphics
 * Gota7 -- Coding, Spritedata, Graphics
-* Grop -- Coding, Spritedata, Graphics
-* Hiccup -- Spritedata
-* Huey -- Spritedata, Graphics
+* Grop -- Coding, Spritedata
 * John10v10 -- Coding the Quick Paint Tool
-* Kinnay -- Spritedata
+* libtxc_dxtn -- Original BC3 Decompressor in C
 * Luzifer -- Graphics
 * Mayro -- Graphics
 * Meorge -- Testing on macOS
-* MrRean -- Coding, Spritedata, Categories, Graphics
 * NVIDIA -- NVCOMPRESS
 * RicBent -- Graphics
+* reece stone -- Spritedata, Graphics
 * Toms -- Spritedata, Graphics
+* Wexos -- Original BC3 Compressor in C#
 * Wiimm -- WSZST
+  
+#### Reggie NSMBU
+* Grop -- Coding, Spritedata, Graphics
+* Hiccup -- Spritedata
+* Kinnay -- Spritedata
+* MrRean -- Coding, Spritedata, Categories, Graphics
+* RoadrunnerWMC -- Coding, Spritedata, Graphics
 
 ----------------------------------------------------------------
 
@@ -35,7 +43,7 @@ GitHub: https://github.com/aboood40091/Miyamoto
 - Get unknown entrance fields figured out
 - Get unknown area fields figured out
 - Sprite images / HD screenshots (a lot of them)
-- Improve Tileset handling
+- Improve Zones and Objects resizing
 
 ----------------------------------------------------------------
 

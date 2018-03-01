@@ -24,23 +24,41 @@
 ################################################################
 ################################################################
 
+############ Imports ############
+
 import json
 from math import sqrt
 import os
+import struct
 import sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
-from bytes import *
 import globals
-from loading import *
-from misc import *
-from quickpaint import *
+
+from items import ObjectItem, LocationItem, SpriteItem
+from items import EntranceItem, PathItem, NabbitPathItem
+from items import PathEditorLineItem, NabbitPathEditorLineItem
+from items import CommentItem
+
+# from loading import LoadSpriteData, LoadSpriteListData
+# from loading import LoadSpriteCategories, LoadEntranceNames
+
+from misc import clipStr, setting, setSetting
+from quickpaint import QuickPaintOperations
 import spritelib as SLib
-from stamp import *
-from tileset import DeleteObject, HandleTilesetEdited
-from ui import *
+from stamp import StampListModel
+
+from tileset import TilesetTile, ObjectDef, addObjToTileset
+from tileset import HandleTilesetEdited, DeleteObject
+from tileset import RenderObject, RenderObjectAll
+from tileset import SimpleTilesetNames
+
+from ui import createHorzLine, createVertLine, GetIcon
+from verifications import SetDirty
+
+#################################
 
 
 class LevelOverviewWidget(QtWidgets.QWidget):
@@ -314,10 +332,10 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         """
         #        self.SlopeModeCheck.setChecked(False)
         self.EraseModeCheck.setChecked(False)
-        
+
         if self.PaintModeCheck.isChecked():
             self.QuickPaintMode = 'PAINT'
-        
+
         else:
             self.QuickPaintMode = None
 
@@ -340,10 +358,10 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         """
         self.PaintModeCheck.setChecked(False)
         # self.SlopeModeCheck.setChecked(False)
-        
+
         if self.EraseModeCheck.isChecked():
             self.QuickPaintMode = 'ERASE'
-        
+
         else:
             self.QuickPaintMode = None
 
@@ -373,18 +391,18 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         self.SaveToPresetButton.setEnabled(index != -1)
         name = self.comboBox_4.currentText()
         no = False
-        
+
         try:
             f = open("miyamotodata/qpsp/" + name + ".qpp", 'r')
-        
+
         except:
             no = True
-        
+
         if not no and globals.ObjectDefinitions is not None:
             try:
                 for line in f.readlines():
                     elements = line.split('\t')
-                    
+
                     if line != '\n':
                         self.scene.object_database[elements[0]]['x'] = int(elements[1])
                         self.scene.object_database[elements[0]]['y'] = int(elements[2])
@@ -392,10 +410,10 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                         self.scene.object_database[elements[0]]['h'] = int(elements[4])
                         self.scene.object_database[elements[0]]['ow'] = int(elements[3])
                         self.scene.object_database[elements[0]]['oh'] = int(elements[4])
-                        
+
                         if elements[5] == '\n':
                             self.scene.object_database[elements[0]]['i'] = None
-                        
+
                         else:
                             ln = globals.CurrentLayer
                             layer = globals.Area.layers[globals.CurrentLayer]
@@ -417,9 +435,9 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
 
             except:
                 print("Preset parse failed.")
-            
+
             f.close()
-        
+
         self.scene.fixAndUpdateObjects()
         self.scene.invalidate()
 
@@ -429,12 +447,12 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         """
         if self.scene.zoom == 1:
             self.scene.zoom = 0.5
-            self.ZoomButton.setIcon(GetIcon("zoomin", True))
-        
+            self.ZoomButton.setIcon(("zoomin", True))
+
         else:
             self.scene.zoom = 1
             self.ZoomButton.setIcon(GetIcon("zoomout", True))
-        
+
         self.scene.invalidate()
 
     def verticalScrollBar_changed(self):
@@ -458,11 +476,11 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         #        self.SlopeModeCheck.setText(_translate("self", "Slope"))
         self.EraseModeCheck.setText(globals.trans.string('QuickPaint', 5))
         self.label_4.setText(globals.trans.string('QuickPaint', 6))
-        
+
         for fname in os.listdir("miyamotodata/qpsp/"):
             if fname.endswith(".qpp"):
                 self.comboBox_4.addItem(fname[:-4])
-        
+
         self.comboBox_4.setCurrentIndex(-1)
         self.SaveToPresetButton.setText(globals.trans.string('QuickPaint', 7))
         self.AddPresetButton.setText(globals.trans.string('QuickPaint', 8))
@@ -637,7 +655,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                         self.parent.scene.object_database[obj]['ts'] = globals.CurrentPaintType
                         self.parent.scene.object_database[obj]['t'] = globals.CurrentObject
                         self.parent.scene.invalidate()
-                
+
                 elif event.button() == Qt.RightButton:
                     self.parent.scene.object_database[obj]['w'] = 1
                     self.parent.scene.object_database[obj]['h'] = 1
@@ -645,7 +663,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                     self.parent.scene.object_database[obj]['oh'] = 1
                     self.parent.scene.object_database[obj]['i'] = None
                     self.parent.scene.invalidate()
-                
+
                 self.parent.scene.fixAndUpdateObjects()
 
     class QuickPaintScene(QtWidgets.QGraphicsScene):
@@ -723,9 +741,9 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                                 'w'] * globals.TileWidth > hitPoint[0] and
                                     self.object_database[obj]['y'] * globals.TileWidth + self.object_database[obj][
                                 'h'] * globals.TileWidth > hitPoint[1]):
-                    
+
                     return obj
-            
+
             return None
 
         def ArrangeMainIsland(self, maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight,
@@ -763,7 +781,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             self.object_database['bottomLeft']['y'] = maxbaseheight + maxtopheight - 1
             self.object_database['bottom']['y'] = maxbaseheight + maxtopheight - 1
             self.object_database['bottomRight']['y'] = maxbaseheight + maxtopheight - 1
-            
+
             displayObjects = []
             for y in range(self.object_database['top']['h']):
                 for x in range(self.object_database['top']['w']):
@@ -800,12 +818,12 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             for y in range(self.object_database['right']['h']):
                 for x in range(self.object_database['right']['w']):
                     displayObjects.append((self.AddDisplayObject('base', self.object_database['right']['x'] + x + 20, self.object_database['right']['y'] + 20 + y, 1,1), self.object_database['right']['i'] is None))
-					
-					
+
+
             for obj in displayObjects:
                 if obj[0] is not None:
                     QuickPaintOperations.autoTileObj(-1, obj[0])
-					
+
             for obj in displayObjects:
                 if obj[0] is not None:
                     QuickPaintOperations.autoTileObj(-1, obj[0])
@@ -827,7 +845,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                     displayObjects.append((self.AddDisplayObject('base', maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + 20 + x, -3 + 20 + y,
                                        1, 1), False))
             tx = 0
-            
+
             for i in range(3 + maxrightwidth + maxleftwidth):
                 for y in range(maxtopheight):
                     displayObjects.append((self.AddDisplayObject('base',
@@ -841,13 +859,13 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                                        -3 + 20 + y, 1,1), False))
                     ty1 = 0
                     ty2 = 0
-            
+
             for i in range(3 + maxtopheight + maxbottomheight):
                 for x in range(maxleftwidth):
                     displayObjects.append((self.AddDisplayObject('base', maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + 20 + x,
                                            -3 + i + maxtopheight + 20, 1, 1), False))
                 ty1 += 1
-            
+
             for i in range(3 + maxtopheight + maxbottomheight):
                 for x in range(maxrightwidth):
                     displayObjects.append((self.AddDisplayObject('base',
@@ -859,7 +877,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                 for x in range(maxleftwidth):
                     displayObjects.append((self.AddDisplayObject('base', maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + 20 + x,
                                        -3 + ty + maxtopheight + 20 + y, 1, 1), False))
-            
+
             for i in range(3 + maxrightwidth + maxleftwidth):
                 for y in range(maxbottomheight):
                     displayObjects.append((self.AddDisplayObject('base',
@@ -871,7 +889,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                                        maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + maxleftwidth + tx + 20 + x,
                                        -3 + ty + maxtopheight + 20 + y, 1,
                                        1), False))
-            
+
             for i in range(3):
                 for y in range(maxtopheight):
                     displayObjects.append((self.AddDisplayObject('base',
@@ -882,19 +900,19 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                     displayObjects.append((self.AddDisplayObject('base',
                                            maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + maxleftwidth + maxrightwidth + i + 20,
                                            -3 + maxtopheight + 20 + y, 1, 1), False))
-            
+
             for i in range(3):
                 for x in range(maxrightwidth):
                     displayObjects.append((self.AddDisplayObject('base',
                                             maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + maxleftwidth + 20 + x,
                                             -3 + maxtopheight + i + maxbottomheight + 20, 1, 1), False))
-            
+
             for i in range(3):
                 for x in range(maxleftwidth):
                     displayObjects.append((self.AddDisplayObject('base',
                                             maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + maxleftwidth + maxrightwidth + 3 + 20 + x,
                                             -3 + maxtopheight + i + maxbottomheight + 20, 1, 1), False))
-            
+
             already_created_corner = False
             for ix in range(maxrightwidth):
                 for iy in range(maxbottomheight):
@@ -903,7 +921,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                         displayObjects.append((self.AddDisplayObject('base',
                                                     maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + maxleftwidth + ix + 20,
                                                     -3 + iy + maxtopheight + 20, 1, 1), False))
-                    
+
                     else:
                         if not already_created_corner:
                             self.object_database['topLeftCorner'][
@@ -913,7 +931,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                         displayObjects.append((self.AddDisplayObject('base',
                                                     maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + maxleftwidth + ix + 20,
                                                     -3 + iy + maxtopheight + 20, 1, 1), self.object_database['topLeftCorner']['i'] is None))
-            
+
             already_created_corner = False
             for ix in range(maxleftwidth):
                 for iy in range(maxbottomheight):
@@ -922,7 +940,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                         displayObjects.append((self.AddDisplayObject('base',
                                                     maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + maxleftwidth + maxrightwidth + 3 + ix + 20,
                                                     -3 + iy + maxtopheight + 20, 1, 1), False))
-                    
+
                     else:
                         if not already_created_corner:
                             self.object_database['topRightCorner'][
@@ -940,7 +958,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                         displayObjects.append((self.AddDisplayObject('base',
                                                     maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + maxleftwidth + ix + 20,
                                                     -3 + iy + maxtopheight + 3 + maxbottomheight + 20, 1, 1), False))
-                    
+
                     else:
                         if not already_created_corner:
                             self.object_database['bottomLeftCorner'][
@@ -950,7 +968,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                         displayObjects.append((self.AddDisplayObject('base',
                                                     maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + maxleftwidth + ix + 20,
                                                      -3 + iy + maxtopheight + 3 + maxbottomheight + 20, 1, 1), self.object_database['bottomLeftCorner']['i'] is None))
-            
+
             already_created_corner = False
             for ix in range(maxleftwidth):
                 for iy in range(maxtopheight):
@@ -959,7 +977,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                         displayObjects.append((self.AddDisplayObject('base',
                                                     maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + maxleftwidth + maxrightwidth + 3 + ix + 20,
                                                     -3 + iy + maxtopheight + 3 + maxbottomheight + 20, 1, 1), False))
-                    
+
                     else:
                         if not already_created_corner:
                             self.object_database['bottomRightCorner'][
@@ -970,11 +988,11 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                         displayObjects.append((self.AddDisplayObject('base',
                                                     maxbasewidth + maxleftwidth - 1 + maxrightwidth + offsetX + maxleftwidth + maxrightwidth + 3 + ix + 20,
                                                     -3 + iy + maxtopheight + 3 + maxbottomheight + 20, 1, 1), self.object_database['bottomRightCorner']['i'] is None))
-					
+
             for obj in displayObjects:
                 if obj[0] is not None:
                     QuickPaintOperations.autoTileObj(-1, obj[0])
-					
+
             for obj in displayObjects:
                 if obj[0] is not None:
                     QuickPaintOperations.autoTileObj(-1, obj[0])
@@ -1068,7 +1086,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             # Set corner setter island...
             self.ArrangeCornerSetterIsland(1, maxbasewidth, maxleftwidth, maxrightwidth, maxbaseheight, maxtopheight,
                                            maxbottomheight)
-            
+
             if len(QuickPaintOperations.object_optimize_database) > 0:
                 QuickPaintOperations.optimizeObjects(True)
 
@@ -1090,7 +1108,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             if self.object_database['base']['i'] is not None:
                 this_type = type  # self.pickObject(type)
                 this_obj = self.object_database[this_type]
-                
+
                 if this_obj.get('ts') is not None and this_obj.get('t') is not None:
                     ln = globals.CurrentLayer
                     layer = globals.Area.layers[globals.CurrentLayer]
@@ -1102,9 +1120,9 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                     obj = ObjectItem(this_obj['ts'], this_obj['t'], -1, x, y, width, height, z, 0)
                     self.display_objects.append(obj)
                     QuickPaintOperations.object_optimize_database.append(obj)
-                    
+
                     return obj
-            
+
             return None
 
         def pickObject(self, type):
@@ -1114,26 +1132,26 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             if (self.object_database[type]['i'] is None):
                 if type == 'top' or type == 'bottom' or type == 'left' or type == 'right':
                     return 'base'
-                
+
                 elif (type == 'topRight' or type == 'topLeft') and self.object_database['top']['i'] is not None:
                     return 'top'
-                
+
                 elif type == 'topLeft' and self.object_database['left']['i'] is not None:
                     return 'left'
-                
+
                 elif type == 'topRight' and self.object_database['right']['i'] is not None:
                     return 'right'
-                
+
                 elif (type == 'bottomRight' or type == 'bottomLeft') and self.object_database['bottom'][
                     'i'] is not None:
                     return 'bottom'
-                
+
                 elif type == 'bottomLeft' and self.object_database['left']['i'] is not None:
                     return 'left'
-                
+
                 elif type == 'bottomRight' and self.object_database['right']['i'] is not None:
                     return 'right'
-                
+
                 else:
                     return 'base'
 
@@ -1160,11 +1178,11 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             if height is None: height = item.height
             if x is None: x = item.objx
             if y is None: y = item.objy
-            
+
             while i < height:
                 tmap.append([None] * width)
                 i += 1
-            
+
             startx = 0
             desty = 0
 
@@ -1174,10 +1192,10 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                     exists = False
                 elif globals.ObjectDefinitions[item.tileset][item.type] is None:
                     exists = False
-            
+
             except IndexError:
                 exists = False
-            
+
             for row in item.objdata:
                 destrow = tmap[desty]
                 destx = startx
@@ -1189,26 +1207,26 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                                  7: 20, 8: 21, 9: 22, 10: 25, 11: 23, 12: 24,
                                  14: 32, 15: 33, 16: 34, 17: 35, 18: 42, 19: 36,
                                  20: 37, 21: 38, 22: 41, 23: 39, 24: 40}
-                        
+
                         if item.data in items:
                             destrow[destx] = offset + items[item.data]
-                        
+
                         else:
                             destrow[destx] = tile
-                    
+
                     elif not exists:
                         destrow[destx] = -1
                         self.BadObjectWarning = True
-                    
+
                     destx += 1
-                
+
                 desty += 1
 
             painter.save()
             painter.translate(x * globals.TileWidth, y * globals.TileWidth)
             drawPixmap = painter.drawPixmap
             desty = 0
-            
+
             for row in tmap:
                 destx = 0
                 for tile in row:
@@ -1216,17 +1234,17 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                     if tile == -1:
                         # Draw unknown tiles
                         pix = tiles[4 * 0x200].getCurrentTile()
-                    
+
                     elif tile is not None:
                         pix = tiles[tile].getCurrentTile()
-                    
+
                     if pix is not None:
                         painter.drawPixmap(destx, desty, pix)
 
                     destx += globals.TileWidth
-                
+
                 desty += globals.TileWidth
-            
+
             painter.restore()
 
         def drawEmptyBox(self, filltype, type, painter, fillbrush):
@@ -1244,23 +1262,23 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             if filltype == 'FULL':
                 painter.fillRect(x * globals.TileWidth, y * globals.TileWidth, width * globals.TileWidth,
                                  height * globals.TileWidth, fillbrush)
-            
+
             elif filltype == 'TOP':
                 painter.fillRect(x * globals.TileWidth, y * globals.TileWidth + 6, width * globals.TileWidth,
                                  height * globals.TileWidth - 6, fillbrush)
-            
+
             elif filltype == 'RIGHT':
                 painter.fillRect(x * globals.TileWidth, y * globals.TileWidth, width * globals.TileWidth - 6,
                                  height * globals.TileWidth, fillbrush)
-            
+
             elif filltype == 'BOTTOM':
                 painter.fillRect(x * globals.TileWidth, y * globals.TileWidth, width * globals.TileWidth,
                                  height * globals.TileWidth - 6, fillbrush)
-            
+
             elif filltype == 'LEFT':
                 painter.fillRect(x * globals.TileWidth + 6, y * globals.TileWidth, width * globals.TileWidth - 6,
                                  height * globals.TileWidth, fillbrush)
-            
+
             elif filltype == 'TOPRIGHT':
                 painter.fillRect(x * globals.TileWidth, y * globals.TileWidth + 6, width * globals.TileWidth - 15,
                                  height * globals.TileWidth - 6, fillbrush)
@@ -1268,7 +1286,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                                  height * globals.TileWidth - 15, fillbrush)
                 painter.fillRect(x * globals.TileWidth + width * globals.TileWidth - 15, y * globals.TileWidth + 9, 6,
                                  height * globals.TileWidth - 9, fillbrush)
-            
+
             elif filltype == 'BOTTOMRIGHT':
                 painter.fillRect(x * globals.TileWidth, y * globals.TileWidth, width * globals.TileWidth - 15,
                                  height * globals.TileWidth - 6, fillbrush)
@@ -1276,7 +1294,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                                  height * globals.TileWidth - 15, fillbrush)
                 painter.fillRect(x * globals.TileWidth + width * globals.TileWidth - 15, y * globals.TileWidth, 6,
                                  height * globals.TileWidth - 9, fillbrush)
-            
+
             elif filltype == 'BOTTOMLEFT':
                 painter.fillRect(x * globals.TileWidth + 15, y * globals.TileWidth, width * globals.TileWidth - 15,
                                  height * globals.TileWidth - 6, fillbrush)
@@ -1284,7 +1302,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                                  fillbrush)
                 painter.fillRect(x * globals.TileWidth + 6, y * globals.TileWidth, 3, height * globals.TileWidth - 15,
                                  fillbrush)
-            
+
             elif filltype == 'TOPLEFT':
                 painter.fillRect(x * globals.TileWidth + 15, y * globals.TileWidth + 6, width * globals.TileWidth - 15,
                                  height * globals.TileWidth - 6, fillbrush)
@@ -1292,31 +1310,31 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                                  height * globals.TileWidth - 9, fillbrush)
                 painter.fillRect(x * globals.TileWidth + 6, y * globals.TileWidth + 15, 3,
                                  height * globals.TileWidth - 15, fillbrush)
-            
+
             elif filltype == 'TOPLEFTCORNER':
                 painter.fillRect(x * globals.TileWidth, y * globals.TileWidth, width * globals.TileWidth - 6,
                                  height * globals.TileWidth, fillbrush)
                 painter.fillRect(x * globals.TileWidth + width * globals.TileWidth - 6, y * globals.TileWidth, 6,
                                  height * globals.TileWidth - 6, fillbrush)
-            
+
             elif filltype == 'TOPRIGHTCORNER':
                 painter.fillRect(x * globals.TileWidth + 6, y * globals.TileWidth, width * globals.TileWidth - 6,
                                  height * globals.TileWidth, fillbrush)
                 painter.fillRect(x * globals.TileWidth, y * globals.TileWidth, 6, height * globals.TileWidth - 6,
                                  fillbrush)
-            
+
             elif filltype == 'BOTTOMLEFTCORNER':
                 painter.fillRect(x * globals.TileWidth, y * globals.TileWidth, width * globals.TileWidth - 6,
                                  height * globals.TileWidth, fillbrush)
                 painter.fillRect(x * globals.TileWidth + width * globals.TileWidth - 6, y * globals.TileWidth + 6, 6,
                                  height * globals.TileWidth - 6, fillbrush)
-            
+
             elif filltype == 'BOTTOMRIGHTCORNER':
                 painter.fillRect(x * globals.TileWidth + 6, y * globals.TileWidth, width * globals.TileWidth - 6,
                                  height * globals.TileWidth, fillbrush)
                 painter.fillRect(x * globals.TileWidth, y * globals.TileWidth + 6, 6, height * globals.TileWidth - 6,
                                  fillbrush)
-            
+
             painter.drawRect(x * globals.TileWidth, y * globals.TileWidth, width * globals.TileWidth,
                              height * globals.TileWidth)
 
@@ -1329,67 +1347,67 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                 # self.drawObject(self.object_database['base'], painter, tiles)
                 self.drawEmptyBox('', 'base', painter, fillbrush)
                 Paint_Level2 = True
-            
+
             else:
                 self.drawEmptyBox('FULL', 'base', painter, fillbrush)
-            
+
             if Paint_Level2:
                 if self.object_database['top']['i'] != None:
                     # self.drawObject(self.object_database['top'], painter, tiles)
                     self.drawEmptyBox('', 'top', painter, fillbrush)
-                
+
                 else:
                     self.drawEmptyBox('TOP', 'top', painter, fillbrush)
-                
+
                 if self.object_database['right']['i'] != None:
                     # self.drawObject(self.object_database['right'], painter, tiles)
                     self.drawEmptyBox('', 'right', painter, fillbrush)
-                
+
                 else:
                     self.drawEmptyBox('RIGHT', 'right', painter, fillbrush)
-                
+
                 if self.object_database['bottom']['i'] != None:
                     # self.drawObject(self.object_database['bottom'], painter, tiles)
                     self.drawEmptyBox('', 'bottom', painter, fillbrush)
-                
+
                 else:
                     self.drawEmptyBox('BOTTOM', 'bottom', painter, fillbrush)
-                
+
                 if self.object_database['left']['i'] != None:
                     # self.drawObject(self.object_database['left'], painter, tiles)
                     self.drawEmptyBox('', 'left', painter, fillbrush)
-                
+
                 else:
                     self.drawEmptyBox('LEFT', 'left', painter, fillbrush)
-                
+
                 if self.object_database['topRight']['i'] != None:
                     # self.drawObject(self.object_database['topRight'], painter, tiles)
                     self.drawEmptyBox('', 'topRight', painter, fillbrush)
-                
+
                 else:
                     self.drawEmptyBox('TOPRIGHT', 'topRight', painter, fillbrush)
-                
+
                 if self.object_database['bottomRight']['i'] != None:
                     # self.drawObject(self.object_database['bottomRight'], painter, tiles)
                     self.drawEmptyBox('', 'bottomRight', painter, fillbrush)
-                
+
                 else:
                     self.drawEmptyBox('BOTTOMRIGHT', 'bottomRight', painter, fillbrush)
-                
+
                 if self.object_database['bottomLeft']['i'] != None:
                     # self.drawObject(self.object_database['bottomLeft'], painter, tiles)
                     self.drawEmptyBox('', 'bottomLeft', painter, fillbrush)
-                
+
                 else:
                     self.drawEmptyBox('BOTTOMLEFT', 'bottomLeft', painter, fillbrush)
-                
+
                 if self.object_database['topLeft']['i'] != None:
                     # self.drawObject(self.object_database['topLeft'], painter, tiles)
                     self.drawEmptyBox('', 'topLeft', painter, fillbrush)
-                
+
                 else:
                     self.drawEmptyBox('TOPLEFT', 'topLeft', painter, fillbrush)
-            
+
             return Paint_Level2
 
         def drawCornerObjects(self, painter, tiles, fillbrush):
@@ -1399,24 +1417,24 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             if self.object_database['topRightCorner']['i'] != None:
                 self.drawObject(self.object_database['topRightCorner'], painter, tiles)
                 self.drawEmptyBox('', 'topRightCorner', painter, fillbrush)
-            
+
             else:
                 self.drawEmptyBox('TOPRIGHTCORNER', 'topRightCorner', painter, fillbrush)
-            
+
             if self.object_database['bottomRightCorner']['i'] != None:
                 self.drawObject(self.object_database['bottomRightCorner'], painter, tiles)
                 self.drawEmptyBox('', 'bottomRightCorner', painter, fillbrush)
-            
+
             else:
                 self.drawEmptyBox('BOTTOMRIGHTCORNER', 'bottomRightCorner', painter, fillbrush)
-            
+
             if self.object_database['bottomLeftCorner']['i'] != None:
                 self.drawObject(self.object_database['bottomLeftCorner'], painter, tiles)
                 self.drawEmptyBox('', 'bottomLeftCorner', painter, fillbrush)
-            
+
             else:
                 self.drawEmptyBox('BOTTOMLEFTCORNER', 'bottomLeftCorner', painter, fillbrush)
-            
+
             if self.object_database['topLeftCorner']['i'] != None:
                 self.drawObject(self.object_database['topLeftCorner'], painter, tiles)
                 self.drawEmptyBox('', 'topLeftCorner', painter, fillbrush)
@@ -1438,10 +1456,10 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             painter.scale(self.zoom, self.zoom)
             # Start Painting
             tiles = globals.Tiles
-            
+
             for obj in self.display_objects:
                 self.drawItem(obj, painter, tiles)
-				
+
             if self.drawMainIsland(painter, tiles, fillbrush):
                 self.drawCornerObjects(painter, tiles, fillbrush)
 
@@ -1485,7 +1503,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         """
         if name is None:
             name = self.comboBox_4.currentText()
-        
+
         with open("miyamotodata/qpsp/" + name + ".qpp", "w") as f:
             for obj in self.scene.object_database:
                 f.write(obj + "\t")
@@ -1493,11 +1511,11 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                 f.write(str(self.scene.object_database[obj]['y']) + "\t")
                 f.write(str(self.scene.object_database[obj]['ow']) + "\t")
                 f.write(str(self.scene.object_database[obj]['oh']) + "\t")
-                
+
                 if self.scene.object_database[obj]['i'] is not None:
                     f.write(str(self.scene.object_database[obj]['i'].tileset) + "\t")
                     f.write(str(self.scene.object_database[obj]['i'].type) + "\t")
-                
+
                 f.write("\n")
 
     def removeCurrentPreset(self):
@@ -1856,7 +1874,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
             if idx != 0:
                 numTileset = range(1, 4)
             else:
-                numTileset = range(1)
+                numTileset = [0]
 
             for idx in numTileset:
                 if globals.ObjectDefinitions[idx] is None:
@@ -2276,7 +2294,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.setLayout(mainLayout)
 
         self.spritetype = -1
-        self.data = to_bytes(0, 12)
+        self.data = b'\0' * 12
         self.fields = []
         self.UpdateFlag = False
         self.DefaultMode = defaultmode
@@ -2292,84 +2310,111 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         def retrieve(self, data):
             """
-            Extracts the value from the specified nybble(s)
+            Extracts the value from the specified bit(s). Bit numbering is ltr BE
+            and starts at 1.
             """
-            nybble = self.nybble
+            bit = self.bit
 
-            if isinstance(nybble, tuple):
-                if nybble[1] == (nybble[0] + 2) and (nybble[0] | 1) == 0:
-                    # optimize if it's just one byte
-                    return data[nybble[0] >> 1]
+            if isinstance(bit, tuple):
+                if bit[1] == bit[0] + 7 and bit[0] & 1 == 1:
+                    # optimise if it's just one byte
+                    return data[bit[0] >> 3]
+
                 else:
                     # we have to calculate it sadly
                     # just do it by looping, shouldn't be that bad
+
                     value = 0
-                    for n in range(nybble[0], nybble[1]):
-                        value <<= 4
-                        value |= (data[n >> 1] >> (0 if (n & 1) == 1 else 4)) & 15
+                    for n in range(bit[0], bit[1]):
+                        n -= 1
+                        value = (value << 1) | ((data[n >> 3] >> (7 - (n & 7))) & 1)
+
                     return value
+
             else:
-                # we just want one nybble
-                if nybble >= (len(data) * 2): return 0
-                return (data[nybble // 2] >> (0 if (nybble & 1) == 1 else 4)) & 15
+                # we just want one bit
+                bit -= 1
+
+                if (bit >> 3) >= len(data):
+                    return 0
+
+                return (data[bit >> 3] >> (7 - (bit & 7))) & 1
 
         def insertvalue(self, data, value):
             """
-            Assigns a value to the specified nybble(s)
+            Assigns a value to the specified bit(s)
             """
-            nybble = self.nybble
+            bit = self.bit
             sdata = list(data)
 
-            if isinstance(nybble, tuple):
-                if nybble[1] == (nybble[0] + 2) and (nybble[0] | 1) == 0:
+            if isinstance(bit, tuple):
+                if bit[1] == bit[0] + 7 and bit[0] & 1 == 1:
                     # just one byte, this is easier
-                    sdata[nybble[0] >> 1] = value & 255
+                    sdata[(bit[0] - 1) >> 3] = value & 0xFF
+
                 else:
-                    # AAAAAAAAAAA
-                    for n in reversed(range(nybble[0], nybble[1])):
-                        cbyte = sdata[n >> 1]
-                        if (n & 1) == 1:
-                            cbyte = (cbyte & 240) | (value & 15)
+                    # complicated stuff
+                    for n in reversed(range(bit[0], bit[1])):
+                        off = 1 << (7 - ((n - 1) & 7))
+
+                        if value & 1:
+                            # set the bit
+                            sdata[(n - 1) >> 3] |= off
+
                         else:
-                            cbyte = ((value & 15) << 4) | (cbyte & 15)
-                        sdata[n >> 1] = cbyte
-                        value >>= 4
+                            # mask the bit out
+                            sdata[(n - 1) >> 3] &= 0xFF ^ off
+
+                        value >>= 1
+
             else:
-                # only overwrite one nybble
-                cbyte = sdata[nybble >> 1]
-                if (nybble & 1) == 1:
-                    cbyte = (cbyte & 240) | (value & 15)
+                # only overwrite one bit
+                byte = (bit - 1) >> 3
+                if byte >= len(data):
+                    return 0
+
+                off = 1 << (7 - ((bit - 1) & 7))
+
+                if value & 1:
+                    # set the bit
+                    sdata[byte] |= off
+
                 else:
-                    cbyte = ((value & 15) << 4) | (cbyte & 15)
-                sdata[nybble >> 1] = cbyte
+                    # mask the bit out
+                    sdata[byte] &= 0xFF ^ off
 
             return bytes(sdata)
 
+    # converted
     class CheckboxPropertyDecoder(PropertyDecoder):
         """
         Class that decodes/encodes sprite data to/from a checkbox
         """
 
-        def __init__(self, title, nybble, mask, comment, layout, row):
+        def __init__(self, title, bit, mask, comment, layout, row):
             """
             Creates the widget
             """
             super().__init__()
 
             self.widget = QtWidgets.QCheckBox(title)
-            if comment is not None: self.widget.setToolTip(comment)
+
+            if comment is not None:
+                self.widget.setToolTip(comment)
+
             self.widget.clicked.connect(self.HandleClick)
 
-            if isinstance(nybble, tuple):
-                length = nybble[1] - nybble[0] + 1
+            if isinstance(bit, tuple):
+                length = bit[1] - bit[0] + 1
+
             else:
                 length = 1
 
             xormask = 0
             for i in range(length):
-                xormask |= 0xF << (i * 4)
+                xormask |= 1 << i
 
-            self.nybble = nybble
+            self.bit = bit
             self.mask = mask
             self.xormask = xormask
             layout.addWidget(self.widget, row, 0, 1, 2)
@@ -2386,8 +2431,10 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             Assigns the selected value to the data
             """
             value = self.retrieve(data) & (self.mask ^ self.xormask)
+
             if self.widget.isChecked():
                 value |= self.mask
+
             return self.insertvalue(data, value)
 
         def HandleClick(self, clicked=False):
@@ -2396,12 +2443,13 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             """
             self.updateData.emit(self)
 
+    # converted
     class ListPropertyDecoder(PropertyDecoder):
         """
         Class that decodes/encodes sprite data to/from a combobox
         """
 
-        def __init__(self, title, nybble, model, comment, layout, row):
+        def __init__(self, title, bit, model, comment, layout, row):
             """
             Creates the widget
             """
@@ -2410,10 +2458,13 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             self.model = model
             self.widget = QtWidgets.QComboBox()
             self.widget.setModel(model)
-            if comment is not None: self.widget.setToolTip(comment)
+
+            if comment is not None:
+                self.widget.setToolTip(comment)
+
             self.widget.currentIndexChanged.connect(self.HandleIndexChanged)
 
-            self.nybble = nybble
+            self.bit = bit
             layout.addWidget(QtWidgets.QLabel(title + ':'), row, 0, Qt.AlignRight)
             layout.addWidget(self.widget, row, 1)
 
@@ -2426,12 +2477,10 @@ class SpriteEditorWidget(QtWidgets.QWidget):
                 self.widget.setCurrentIndex(-1)
                 return
 
-            i = 0
-            for x in self.model.entries:
+            for i, x in enumerate(self.model.entries):
                 if x[0] == value:
                     self.widget.setCurrentIndex(i)
                     break
-                i += 1
 
         def assign(self, data):
             """
@@ -2445,12 +2494,13 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             """
             self.updateData.emit(self)
 
+    # converted
     class ValuePropertyDecoder(PropertyDecoder):
         """
         Class that decodes/encodes sprite data to/from a spinbox
         """
 
-        def __init__(self, title, nybble, max, comment, layout, row):
+        def __init__(self, title, bit, max, comment, layout, row):
             """
             Creates the widget
             """
@@ -2458,10 +2508,13 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
             self.widget = QtWidgets.QSpinBox()
             self.widget.setRange(0, max - 1)
-            if comment is not None: self.widget.setToolTip(comment)
+
+            if comment is not None:
+                self.widget.setToolTip(comment)
+
             self.widget.valueChanged.connect(self.HandleValueChanged)
 
-            self.nybble = nybble
+            self.bit = bit
             layout.addWidget(QtWidgets.QLabel(title + ':'), row, 0, Qt.AlignRight)
             layout.addWidget(self.widget, row, 1)
 
@@ -2499,13 +2552,18 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             self.bitnum = bitnum
 
             self.widgets = []
+
             CheckboxLayout = QtWidgets.QGridLayout()
             CheckboxLayout.setContentsMargins(0, 0, 0, 0)
+
             for i in range(bitnum):
                 c = QtWidgets.QCheckBox()
                 self.widgets.append(c)
                 CheckboxLayout.addWidget(c, 0, i)
-                if comment is not None: c.setToolTip(comment)
+
+                if comment is not None:
+                    c.setToolTip(comment)
+
                 c.toggled.connect(self.HandleValueChanged)
 
                 L = QtWidgets.QLabel(str(i + 1))
@@ -2547,10 +2605,13 @@ class SpriteEditorWidget(QtWidgets.QWidget):
                 origBit = (origByte >> (7 - bitIdx)) & 1
                 newBit = 1 if checkbox.isChecked() else 0
 
-                if origBit == newBit: continue
+                if origBit == newBit:
+                    continue
+
                 if origBit == 0 and newBit == 1:
                     # Turn the byte on by OR-ing it in
                     newByte = (origByte | (1 << (7 - bitIdx))) & 0xFF
+
                 else:
                     # Turn it off by:
                     # inverting it
@@ -2579,6 +2640,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.spritetype = type
         if type != 1000:
             sprite = globals.Sprites[type]
+
         else:
             sprite = None
 
@@ -2598,7 +2660,8 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
             # use the raw editor if nothing is there
             self.raweditor.setVisible(True)
-            if len(self.fields) > 0: self.fields = []
+            if len(self.fields) > 0:
+                self.fields = []
 
         else:
             self.spriteLabel.setText(globals.trans.string('SpriteDataEditor', 6, '[id]', type, '[name]', sprite.name))
@@ -2616,10 +2679,13 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             for f in sprite.fields:
                 if f[0] == 0:
                     nf = SpriteEditorWidget.CheckboxPropertyDecoder(f[1], f[2], f[3], f[4], layout, row)
+
                 elif f[0] == 1:
                     nf = SpriteEditorWidget.ListPropertyDecoder(f[1], f[2], f[3], f[4], layout, row)
+
                 elif f[0] == 2:
                     nf = SpriteEditorWidget.ValuePropertyDecoder(f[1], f[2], f[3], f[4], layout, row)
+
                 elif f[0] == 3:
                     nf = SpriteEditorWidget.BitfieldPropertyDecoder(f[1], f[2], f[3], f[4], layout, row)
 
@@ -2636,8 +2702,13 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.UpdateFlag = True
 
         data = self.data
+
         self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x' % (
-        data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]))
+            data[0], data[1], data[2], data[3],
+            data[4], data[5], data[6], data[7],
+            data[8], data[9], data[10], data[11],
+        ))
+
         self.raweditor.setStyleSheet('')
 
         # Go through all the data
@@ -2662,11 +2733,16 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         self.data = data
 
         self.raweditor.setText('%02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x' % (
-        data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]))
+            data[0], data[1], data[2], data[3],
+            data[4], data[5], data[6], data[7],
+            data[8], data[9], data[10], data[11],
+        ))
+
         self.raweditor.setStyleSheet('')
 
         for f in self.fields:
-            if f != field: f.update(data)
+            if f != field:
+                f.update(data)
 
         self.DataUpdate.emit(data)
 
@@ -2680,28 +2756,28 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         if len(raw) == 24:
             try:
-                data = []
-                for r in range(0, len(raw), 2):
-                    data.append(int(raw[r:r + 2], 16))
-                data = bytes(data)
+                data = bytes([int(raw[r:r + 2], 16) for r in range(0, len(raw), 2)])
                 valid = True
+
             except Exception:
                 pass
 
-        # if it's valid, let it go
-        if valid:
-            self.raweditor.setStyleSheet('')
-            self.data = data
-
-            self.UpdateFlag = True
-            for f in self.fields: f.update(data)
-            self.UpdateFlag = False
-
-            self.DataUpdate.emit(data)
-            self.raweditor.setStyleSheet('QLineEdit { background-color: #ffffff; }')
-        else:
+        # if it's invalid, colour the editor
+        if not valid:
             self.raweditor.setStyleSheet('QLineEdit { background-color: #ffd2d2; }')
+            return
 
+        self.raweditor.setStyleSheet('')
+        self.data = data
+
+        self.UpdateFlag = True
+
+        for f in self.fields:
+            f.update(data)
+
+        self.UpdateFlag = False
+        self.DataUpdate.emit(data)
+        self.raweditor.setStyleSheet('QLineEdit { background-color: #ffffff; }')
 
 class EntranceEditorWidget(QtWidgets.QWidget):
     """
@@ -3633,7 +3709,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 else:
                     z = layer[-1].zValue() + 1
-                
+
                 if mw.quickPaint.QuickPaintMode == 'PAINT':
                     QuickPaintOperations.prePaintObject(ln,layer,int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]-0.5), z)
                     QuickPaintOperations.prePaintObject(ln,layer,int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]-0.5), z)
@@ -4014,7 +4090,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 SetDirty()
 
-            
+
             elif globals.CurrentPaintType == 12:
                 if globals.Area.areanum == 1:
                     # paint a nabbit path node
@@ -4106,7 +4182,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     dlg = QtWidgets.QMessageBox()
                     dlg.setText(globals.trans.string('Paths', 4))
                     dlg.exec_()
-            
+
             event.accept()
         elif (event.button() == Qt.LeftButton) and (QtWidgets.QApplication.keyboardModifiers() == Qt.ShiftModifier):
             mw = globals.mainWindow

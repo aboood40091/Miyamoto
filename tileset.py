@@ -24,6 +24,8 @@
 ################################################################
 ################################################################
 
+############ Imports ############
+
 import os
 import platform
 import struct
@@ -33,9 +35,69 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
 import globals
+
+import bc3
+import gtx
 import SARC as SarcLib
 import spritelib as SLib
 from verifications import SetDirty
+
+try:
+    import pyximport
+    pyximport.install()
+    import gtx_quick_cy
+
+except:
+    gtx_quick_available = False
+
+else:
+    gtx_quick_available = True
+
+#################################
+
+
+def imagesIdentical_py(firstBytes, secondBytes, width, height):
+    """
+    Compare these images to see if they're the same or not.
+    Based on nsmbulib
+    """
+    height = (height + 3) // 4
+    width = (width + 3) // 4
+
+    for y in range(height):
+        for x in range(width):
+            pos = (y * width + x) * 4
+
+            firstRgba = [
+               (firstBytes[pos + 0] + firstBytes[pos + 4] + firstBytes[pos + 0x8] + firstBytes[pos + 0xC] + 3) // 4,
+               (firstBytes[pos + 1] + firstBytes[pos + 5] + firstBytes[pos + 0x9] + firstBytes[pos + 0xD] + 3) // 4,
+               (firstBytes[pos + 2] + firstBytes[pos + 6] + firstBytes[pos + 0xA] + firstBytes[pos + 0xE] + 3) // 4,
+               (firstBytes[pos + 3] + firstBytes[pos + 7] + firstBytes[pos + 0xB] + firstBytes[pos + 0xF] + 3) // 4,
+            ]
+
+            secondRgba = [
+               (secondBytes[pos + 0] + secondBytes[pos + 4] + secondBytes[pos + 0x8] + secondBytes[pos + 0xC] + 3) // 4,
+               (secondBytes[pos + 1] + secondBytes[pos + 5] + secondBytes[pos + 0x9] + secondBytes[pos + 0xD] + 3) // 4,
+               (secondBytes[pos + 2] + secondBytes[pos + 6] + secondBytes[pos + 0xA] + secondBytes[pos + 0xE] + 3) // 4,
+               (secondBytes[pos + 3] + secondBytes[pos + 7] + secondBytes[pos + 0xB] + secondBytes[pos + 0xF] + 3) // 4,
+            ]
+
+            if firstRgba[3] < 2 and secondRgba[3] < 2:
+                # Both pixels are transparent
+                continue
+
+            for channelA, channelB in zip(firstRgba, secondRgba):
+                if abs(channelA - channelB) > 2:
+                    return False
+
+    return True
+
+
+try:
+    from tileset_cy import imagesIdentical_cy as imagesIdentical
+
+except:
+    imagesIdentical = imagesIdentical_py
 
 
 class TilesetTile:
@@ -118,7 +180,6 @@ class TilesetTile:
         """
         Returns the current tile based on the current animation frame
         """
-        result = None
         if (not globals.TilesetsAnimating) or (not self.isAnimated):
             result = self.main
         else:
@@ -165,7 +226,7 @@ class TilesetTile:
         elif CD[5] == 2:  # Snow
             color = QtGui.QColor(120, 120, 255, 120)
         elif CD[5] == 4:  # Sand
-            color = QtGui.QColor(128,64,0, 120)
+            color = QtGui.QColor(128, 64, 0, 120)
         elif CD[5] == 5:  # Grass
             color = QtGui.QColor(0, 255, 0, 120)
         else:
@@ -347,7 +408,7 @@ class TilesetTile:
             painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(globals.TileWidth * 0.625, 0),
                                                 QtCore.QPoint(globals.TileWidth * 0.625, globals.TileWidth * 0.5),
                                                 QtCore.QPoint(globals.TileWidth * 0.75, globals.TileWidth * 0.5),
-                                                QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth * (17/24)),
+                                                QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth * (17 / 24)),
                                                 QtCore.QPoint(globals.TileWidth * 0.25, globals.TileWidth * 0.5),
                                                 QtCore.QPoint(globals.TileWidth * 0.375, globals.TileWidth * 0.5),
                                                 QtCore.QPoint(globals.TileWidth * 0.375, 0)]))
@@ -489,9 +550,9 @@ def getUsedTiles():
                             randLen = obj.randByte & 0xF
                             tileNum = tile[1] & 0xFF
                             if randLen > 0:
-                                for i in range(randLen):
-                                    if tileNum + i not in usedTiles[idx]:
-                                        usedTiles[idx].append(tileNum + i)
+                                for z in range(randLen):
+                                    if tileNum + z not in usedTiles[idx]:
+                                        usedTiles[idx].append(tileNum + z)
                             else:
                                 if tileNum not in usedTiles[idx]:
                                     usedTiles[idx].append(tileNum)
@@ -499,10 +560,273 @@ def getUsedTiles():
     return usedTiles
 
 
+def getObjImg(idx, objNum, def_, randLen, nml=False):
+    obj = RenderObject(idx, objNum, def_.width, def_.height, True)
+
+    if randLen:
+        pm = QtGui.QPixmap(randLen * globals.TileWidth, globals.TileWidth)
+
+    else:
+        pm = QtGui.QPixmap(def_.width * globals.TileWidth, def_.height * globals.TileWidth)
+
+    pm.fill(Qt.transparent)
+
+    p = QtGui.QPainter()
+    p.begin(pm)
+
+    if randLen:
+        tile = obj[0][0]
+        if tile != -1:
+            for z in range(randLen):
+                try:
+                    if isinstance(
+                            globals.Tiles[tile + z].nml if nml else globals.Tiles[tile + z].main,
+                            QtGui.QImage,
+                    ):
+                        p.drawImage(
+                            z * globals.TileWidth,
+                            0,
+                            globals.Tiles[tile + z].nml if nml else globals.Tiles[tile + z].main,
+                        )
+
+                    else:
+                        p.drawPixmap(
+                            z * globals.TileWidth,
+                            0,
+                            globals.Tiles[tile + z].nml if nml else globals.Tiles[tile + z].main,
+                        )
+
+                except AttributeError:
+                    break
+
+    else:
+        for y, row in enumerate(obj):
+            for x, tile in enumerate(row):
+                if tile != -1:
+                    try:
+                        if isinstance(
+                                globals.Tiles[tile].nml if nml else globals.Tiles[tile].main,
+                                QtGui.QImage,
+                        ):
+                            p.drawImage(
+                                x * globals.TileWidth,
+                                y * globals.TileWidth,
+                                globals.Tiles[tile].nml if nml else globals.Tiles[tile].main,
+                            )
+
+                        else:
+                            p.drawPixmap(
+                                x * globals.TileWidth,
+                                y * globals.TileWidth,
+                                globals.Tiles[tile].nml if nml else globals.Tiles[tile].main,
+                            )
+
+                    except AttributeError:
+                        break
+
+    p.end()
+
+    return pm
+
+
+def getObjColls(idx, objNum, def_, randLen):
+    obj = RenderObject(idx, objNum, def_.width, def_.height, True)
+
+    colls = []
+    if randLen:
+        tile = obj[0][0]
+        if tile != -1:
+            for z in range(randLen):
+                colls.append(globals.Tiles[tile + z].collData)
+
+        else:
+            colls.append(() * randLen)
+
+    else:
+        for y, row in enumerate(obj):
+            for x, tile in enumerate(row):
+                if tile != -1:
+                    colls.append(globals.Tiles[tile].collData)
+
+                else:
+                    colls.append(())
+
+    return colls
+
+
+def compareTwoImages(img, img2):
+    if isinstance(img, QtGui.QPixmap):
+        # Convert our first QPixmap to an RGBA8 QImage
+        img_ = img.toImage().convertToFormat(QtGui.QImage.Format_RGBA8888)
+
+    else:
+        # Our first image is already a QImage, convert it to RGBA8
+        img_ = img.convertToFormat(QtGui.QImage.Format_RGBA8888)
+
+    if isinstance(img2, QtGui.QPixmap):
+        # Convert our second QPixmap to an RGBA8 QImage
+        img2_ = img2.toImage().convertToFormat(QtGui.QImage.Format_RGBA8888)
+
+    else:
+        # Our second image is already a QImage, convert it to RGBA8
+        img2_ = img2.convertToFormat(QtGui.QImage.Format_RGBA8888)
+
+    # Get a pointer to the raw data
+    ptr = img_.bits()
+    ptr.setsize(img_.byteCount())
+
+    ptr2 = img2_.bits()
+    ptr2.setsize(img2_.byteCount())
+
+    # Get the raw data using the pointer
+    imgdata = bytes(ptr.asstring())
+    img2data = bytes(ptr2.asstring())
+
+    # Compress the images to increase the chances of finding a match
+    imgdata = bc3.compress(
+        imgdata,
+        imgWidth * globals.TileWidth,
+        imgHeight * globals.TileWidth,
+    )
+
+    img2data = bc3.compress(
+        img2data,
+        imgWidth * globals.TileWidth,
+        imgHeight * globals.TileWidth,
+    )
+
+    imgdata = bc3.decompress(
+        bytes(imgdata),
+        imgWidth * globals.TileWidth,
+        imgHeight * globals.TileWidth,
+    )
+
+    img2data = bc3.decompress(
+        bytes(img2data),
+        imgWidth * globals.TileWidth,
+        imgHeight * globals.TileWidth,
+    )
+
+    imgdata = bytearray(imgdata)
+    img2data = bytearray(img2data)
+
+    # Check if the two images are identical
+    return imagesIdentical(
+        imgdata, img2data,
+        imgWidth * globals.TileWidth,
+        imgHeight * globals.TileWidth,
+    )
+
+
 def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
     """
     Adds a specific object to one of the tilesets
     """
+
+    # uh... this is going unused
+    """
+    # Try to find the object in the tilesets
+    for idx in [1, 2, 3]:
+        if globals.ObjectDefinitions[idx] is None:
+            continue
+
+        defs = globals.ObjectDefinitions[idx]
+
+        for i in range(256):
+            if defs[i] is None:
+                break
+
+            # Alright. We will compare our object with each and every object
+            # in all tilesets and check if it matches with a one
+            # Those steps will be followed:
+            # STEP 1: Randomization check
+            # STEP 2: Dimensions check
+            # Step 3: Collisions check
+            # STEP 4: Image check
+            # Step 5: Normal map check
+
+            ###################################
+            ### STEP 1: Randomization check ###
+            ###################################
+
+            # If our object is randomized but the object we are looking at is not randomized
+            if (obj.randByte & 0xF) > 0 and (defs[i].randByte & 0xF) == 0:
+                continue
+
+            # If our object is not randomized but the object we are looking at is randomized
+            if (obj.randByte & 0xF) == 0 and (defs[i].randByte & 0xF) > 0:
+                continue
+
+            ################################
+            ### STEP 2: Dimensions check ###
+            ################################
+
+            randLen = 0
+            if obj.randByte & 0xF > 0:
+
+                # Both objects are randomized,
+                # read the randLen as the width
+                # and force the height to 1
+                imgWidth = obj.randByte & 0xF
+                img2Width = defs[i].randByte & 0xF
+                imgHeight, img2Height = 1, 1
+
+                randLen = obj.randByte & 0xF
+
+            else:
+
+                # Both objects are not randomized,
+                # read the width and height normally
+                imgWidth = obj.width
+                imgHeight = obj.height
+
+                img2Width = defs[i].width
+                img2Height = defs[i].height
+
+            # If the two objects are not equal in dimensions
+            if (imgWidth, imgHeight) != (img2Width, img2Height):
+                continue
+
+            ################################
+            ### STEP 3: Collisions check ###
+            ################################
+
+            colls = [tuple(struct.unpack_from('>8B', colldata, 8 * i)) for i in range(len(colldata) // 8)]
+            colls2 = getObjColls(idx, i, defs[i], randLen)
+
+            # If our object's collsion data length is not
+            # equal to this object's collsion data length
+            if len(colls) != len(colls2):
+                continue
+
+            for coll, coll2 in zip(colls, colls2):
+                if colls2 == ():
+                    continue
+
+                if coll != coll2:
+                    break
+
+            else:
+
+                ###########################
+                ### STEP 4: Image check ###
+                ###########################
+
+                img2 = getObjImg(idx, i, defs[i], randLen)
+                if compareTwoImages(img, img2):
+
+                    ################################
+                    ### STEP 5: Normal map check ###
+                    ################################
+
+                    nml2 = getObjImg(idx, i, defs[i], randLen, True)
+                    if compareTwoImages(nml, nml2):
+                        # A match was found!
+                        return idx, i
+
+    # The object was not found, try to add to one of the tilesets
+    """
+
     if isfromAll:
         paintType = 10
 
@@ -551,6 +875,7 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
         # Handle randomized objects differently
         if randLen:
             # Look for any "randLen" free tiles in a row
+            tileNum = 0
             found = False
             for i in freeTiles:
                 for z in range(randLen):
@@ -694,12 +1019,14 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
 
     return paintType, objNum
 
+
 def HandleTilesetEdited():
     if not globals.TilesetEdited:
         globals.TilesetEdited = True
 
     globals.mainWindow.objPicker.LoadFromTilesets()
     globals.mainWindow.updateNumUsedTilesLabel()
+
 
 def DeleteObject(idx, objNum):
     # Replace the object's tiles with transparent tiles
@@ -767,6 +1094,7 @@ def DeleteObject(idx, objNum):
                 if obj.type > objNum:
                     obj.SetType(obj.tileset, obj.type - 1)
 
+
 def writeGTX(tex, idx):
     """
     Generates a GTX file from a QImage
@@ -776,23 +1104,21 @@ def writeGTX(tex, idx):
         if platform.system() == 'Windows':
             tile_path = globals.miyamoto_path + '/Tools'
 
-        elif platform.system() == 'Linux':
+        else:
             tile_path = globals.miyamoto_path + '/linuxTools'
 
         if idx != 0:  # Save as DXT5/BC3
             tex.save(tile_path + '/tmp.png')
-        
+
             os.chdir(tile_path)
 
             if platform.system() == 'Windows':
-                exe = 'nvcompress.exe'
+                os.system('nvcompress.exe -bc3 tmp.png tmp.dds')
 
-            elif platform.system() == 'Linux':
+            else:
                 os.system('chmod +x nvcompress.elf')
-                exe = './nvcompress.elf'
+                os.system('./nvcompress.elf -bc3 tmp.png tmp.dds')
 
-            os.system(exe + ' -bc3 tmp.png tmp.dds')
-        
             os.chdir(globals.miyamoto_path)
 
             os.remove(tile_path + '/tmp.png')
@@ -813,7 +1139,7 @@ def writeGTX(tex, idx):
 
     # nvcompress doesn't want to work on MacOSX
     # so let's use a local BC3 compressor (lossy)
-    elif platform.system() == 'Darwin':
+    else:
         tile_path = globals.miyamoto_path + '/macTools'
 
         import dds
@@ -828,15 +1154,7 @@ def writeGTX(tex, idx):
             fmt = 0x33
             numMips = 12
 
-            try:
-                import pyximport
-
-                pyximport.install()
-                import compressBC3_cy as compressBC3
-            except ImportError:
-                import compressBC3
-
-            dataList.append(compressBC3.CompressBC3(data, tex.bytesPerLine(), 2048, 512))
+            dataList.append(bc3.compress(data, 2048, 512))
 
             for i in range(1, numMips):
                 mipTex = QtGui.QImage(tex).scaledToWidth(max(1, 2048 >> i), Qt.SmoothTransformation)
@@ -846,9 +1164,8 @@ def writeGTX(tex, idx):
                 mipData.setsize(mipTex.byteCount())
                 mipData = mipData.asstring()
 
-                dataList.append(compressBC3.CompressBC3(mipData, mipTex.bytesPerLine(), max(1, 2048 >> i), max(1, 512 >> i)))
-
-            del compressBC3
+                dataList.append(
+                    bc3.compress(mipData, max(1, 2048 >> i), max(1, 512 >> i)))
 
         else:  # Save as RGBA8
             fmt = 0x1a
@@ -864,9 +1181,7 @@ def writeGTX(tex, idx):
 
         del dds
 
-    import gtx
     gtxdata = gtx.DDStoGTX(tile_path + '/tmp.dds')
-    del gtx
 
     os.remove(tile_path + '/tmp.dds')
 
@@ -885,29 +1200,29 @@ def PackTexture(idx, nml=False):
     x = 0
     y = 0
 
-    for i in range(tileoffset, tileoffset + 256):
+    for z in range(tileoffset, tileoffset + 256):
         tile = QtGui.QImage(64, 64, QtGui.QImage.Format_RGBA8888)
         tile.fill(Qt.transparent)
         tilePainter = QtGui.QPainter(tile)
 
-        tilePainter.drawPixmap(2, 2, globals.Tiles[i].nml if nml else globals.Tiles[i].main)
+        tilePainter.drawPixmap(2, 2, globals.Tiles[z].nml if nml else globals.Tiles[z].main)
         tilePainter.end()
 
         for i in range(2, 62):
             color = tile.pixel(i, 2)
-            for pix in range(0,2):
+            for pix in range(0, 2):
                 tile.setPixel(i, pix, color)
 
             color = tile.pixel(2, i)
-            for p in range(0,2):
+            for p in range(0, 2):
                 tile.setPixel(p, i, color)
 
             color = tile.pixel(i, 61)
-            for p in range(62,64):
+            for p in range(62, 64):
                 tile.setPixel(i, p, color)
 
             color = tile.pixel(61, i)
-            for p in range(62,64):
+            for p in range(62, 64):
                 tile.setPixel(p, i, color)
 
         color = tile.pixel(2, 2)
@@ -929,7 +1244,6 @@ def PackTexture(idx, nml=False):
         for a in range(62, 64):
             for b in range(62, 64):
                 tile.setPixel(a, b, color)
-
 
         painter.drawImage(x, y, tile)
 
@@ -993,211 +1307,73 @@ def SaveTileset(idx):
 
     arc = SarcLib.SARC_Archive()
 
-    tex = SarcLib.Folder('BG_tex'); arc.addFolder(tex)
+    tex = SarcLib.Folder('BG_tex')
+    arc.addFolder(tex)
     tex.addFile(SarcLib.File('%s.gtx' % name, tiledata))
     tex.addFile(SarcLib.File('%s_nml.gtx' % name, nmldata))
 
-    chk = SarcLib.Folder('BG_chk'); arc.addFolder(chk)
+    chk = SarcLib.Folder('BG_chk')
+    arc.addFolder(chk)
     chk.addFile(SarcLib.File('d_bgchk_%s.bin' % name, colldata))
 
-    unt = SarcLib.Folder('BG_unt'); arc.addFolder(unt)
+    unt = SarcLib.Folder('BG_unt')
+    arc.addFolder(unt)
     unt.addFile(SarcLib.File('%s.bin' % name, deffile))
     unt.addFile(SarcLib.File('%s_hd.bin' % name, indexfile))
 
     return arc.save(0x2000)
 
 
-def _LoadTileset(idx, name, reload=False):
-    """
-    Load in a tileset into a specific slot
-    """
+def loadGTX(gtxdata):
+    if gtx_quick_available:
+        # Use the Cython decoder because it's faster than the C++ (built) decoder
+        # Read the gtx file
+        width, height, format, dataSize, data = gtx.readGFD(gtxdata)
 
-    # if this file's not found, return
-    if name not in globals.szsData: return
+        # Deswizzle the data
+        udata = gtx_quick_cy.decodeGTX(width, height, format, data)
 
-    sarcdata = globals.szsData[name]
-    sarc = SarcLib.SARC_Archive()
-    sarc.load(sarcdata)
-
-    tileoffset = idx * 256
-
-    # Decompress the textures
-    try:
-        comptiledata = sarc['BG_tex/%s.gtx' % name].data
-        nmldata = sarc['BG_tex/%s_nml.gtx' % name].data
-        colldata = sarc['BG_chk/d_bgchk_%s.bin' % name].data
-    except KeyError:
-        QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_CorruptedTilesetData', 0),
-                                      globals.trans.string('Err_CorruptedTilesetData', 1, '[file]', name))
-        return False
-
-    # load in the textures
-    img = LoadTexture_NSMBU(comptiledata)
-    nml = LoadTexture_NSMBU(nmldata)
-
-    # Divide it into individual tiles and
-    # add collisions at the same time
-    def getTileFromImage(tilemap, xtilenum, ytilenum):
-        return tilemap.copy((xtilenum * 64) + 2, (ytilenum * 64) + 2, 60, 60)
-
-    dest = QtGui.QPixmap.fromImage(img)
-    dest2 = QtGui.QPixmap.fromImage(nml)
-    sourcex = 0
-    sourcey = 0
-    for i in range(tileoffset, tileoffset + 256):
-        T = TilesetTile(getTileFromImage(dest, sourcex, sourcey), getTileFromImage(dest2, sourcex, sourcey))
-        T.setCollisions(struct.unpack_from('>8B', colldata, (i - tileoffset) * 8))
-        globals.Tiles[i] = T
-        sourcex += 1
-        if sourcex >= 32:
-            sourcex = 0
-            sourcey += 1
-
-    def exists(fn):
-        nonlocal sarc
-        try:
-            sarc[fn]
-        except:
-            return False
-        return True
-    
-    # Load the tileset animations, if there are any
-    tileoffset = idx*256
-    row = 0
-    col = 0
-
-    hatena_anime = None
-    block_anime = None
-    tuka_coin_anime = None
-    belt_conveyor_anime = None
-
-    fn = 'BG_tex/hatena_anime.gtx'
-    found = exists(fn)
-
-    if found:
-        hatena_anime = LoadTexture_NSMBU(sarc[fn].data)
-
-    fn = 'BG_tex/block_anime.gtx'
-    found = exists(fn)
-
-    if found:
-        block_anime = LoadTexture_NSMBU(sarc[fn].data)
-
-    fn = 'BG_tex/tuka_coin_anime.gtx'
-    found = exists(fn)
-
-    if found:
-        tuka_coin_anime = LoadTexture_NSMBU(sarc[fn].data)
-
-    fn = 'BG_tex/belt_conveyor_anime.gtx'
-    found = exists(fn)
-
-    if found:
-        belt_conveyor_anime = LoadTexture_NSMBU(sarc[fn].data)
-
-    for i in range(tileoffset,tileoffset+256):
-        if idx == 0:
-            if globals.Tiles[i].collData[0] == 7:
-                if hatena_anime:
-                    globals.Tiles[i].addAnimationData(hatena_anime)
-
-            elif globals.Tiles[i].collData[0] == 6:
-                if block_anime:
-                    globals.Tiles[i].addAnimationData(block_anime)
-
-            elif globals.Tiles[i].collData[0] == 2:
-                if tuka_coin_anime:
-                    globals.Tiles[i].addAnimationData(tuka_coin_anime)
-
-            elif globals.Tiles[i].collData[0] == 17:
-                if belt_conveyor_anime:
-                    for x in range(2):
-                        if i == 144+x*16:
-                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 0, True)
-
-                        elif i == 145+x*16:
-                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 1, True)
-
-                        elif i == 146+x*16:
-                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 2, True)
-
-                        elif i == 147+x*16:
-                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 0)
-
-                        elif i == 148+x*16:
-                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 1)
-
-                        elif i == 149+x*16:
-                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 2)
-
-        col += 1
-
-        if col == 16:
-            col = 0
-            row += 1
-
-    # Load the object definitions
-    defs = [None] * 256
-
-    indexfile = sarc['BG_unt/%s_hd.bin' % name].data
-    deffile = sarc['BG_unt/%s.bin' % name].data
-    objcount = len(indexfile) // 6
-    indexstruct = struct.Struct('>HBBH')
-
-    for i in range(objcount):
-        data = indexstruct.unpack_from(indexfile, i * 6)
-        obj = ObjectDef()
-        obj.width = data[1]
-        obj.height = data[2]
-        obj.randByte = data[3]
-        obj.load(deffile, data[0])
-        defs[i] = obj
-
-    globals.ObjectDefinitions[idx] = defs
-
-    ProcessOverrides(idx, name)
-
-
-def LoadTexture_NSMBU(tiledata):
-    if platform.system() == 'Windows':
-        tile_path = globals.miyamoto_path + '/Tools'
-    elif platform.system() == 'Linux':
-        tile_path = globals.miyamoto_path + '/linuxTools'
-    elif platform.system() == 'Darwin':
-        tile_path = globals.miyamoto_path + '/macTools'
-
-    with open(tile_path + '/texture.gtx', 'wb') as binfile:
-        binfile.write(tiledata)
-
-    os.chdir(tile_path)
-
-    if platform.system() == 'Windows':
-        command = 'gtx_extract_bmp.exe texture.gtx'
-
-    elif platform.system() == 'Linux':
-        os.system('chmod +x ./gtx_extract.elf')
-        command = './gtx_extract.elf texture.gtx texture.bmp'
-
-    elif platform.system() == 'Darwin':
-        command = tile_path + '/gtx_extract_bmp texture.gtx'
+        # Return as a QImage
+        img = QtGui.QImage(udata, width, height, QtGui.QImage.Format_RGBA8888)
 
     else:
-        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
-        warningBox.exec_()
-        return
+        # Use the C++ (built) decoder because the Cython decoder is unavailable
+        if platform.system() == 'Windows':
+            tile_path = globals.miyamoto_path + '/Tools'
 
-    # https://stackoverflow.com/a/7006424/4797683
-    DETACHED_PROCESS = 0x00000008
-    subprocess.call(command, creationflags=DETACHED_PROCESS)
+        elif platform.system() == 'Linux':
+            tile_path = globals.miyamoto_path + '/linuxTools'
 
-    os.chdir(globals.miyamoto_path)
+        else:
+            tile_path = globals.miyamoto_path + '/macTools'
 
-    # Return as a QImage
-    img = QtGui.QImage(tile_path + '/texture.bmp')
-    os.remove(tile_path + '/texture.bmp')
+        with open(tile_path + '/texture.gtx', 'wb') as binfile:
+            binfile.write(gtxdata)
 
-    os.remove(tile_path + '/texture.gtx')
+        os.chdir(tile_path)
 
+        if platform.system() == 'Windows':
+            command = 'gtx_extract_bmp.exe texture.gtx'
+
+        elif platform.system() == 'Linux':
+            os.system('chmod +x ./gtx_extract.elf')
+            command = './gtx_extract.elf texture.gtx texture.bmp'
+
+        else:
+            command = tile_path + '/gtx_extract_bmp texture.gtx'
+
+        # https://stackoverflow.com/a/7006424/4797683
+        DETACHED_PROCESS = 0x00000008
+        subprocess.call(command, creationflags=DETACHED_PROCESS)
+
+        os.chdir(globals.miyamoto_path)
+
+        # Return as a QImage
+        img = QtGui.QImage(tile_path + '/texture.bmp')
+        os.remove(tile_path + '/texture.bmp')
+
+        os.remove(tile_path + '/texture.gtx')
+        
     return img
 
 
@@ -1231,7 +1407,8 @@ def CascadeTilesetNames_Category(lower, upper):
                     lower[i][1] = item[1]
                     break
 
-            else: lower.append(item)
+            else:
+                lower.append(item)
     return lower
 
 
@@ -1281,7 +1458,7 @@ def UnloadTileset(idx):
     tileoffset = idx * 256
     T = TilesetTile()
     T.setCollisions([0] * 8)
-    globals.Tiles[tileoffset:tileoffset+256] = [T] * 256
+    globals.Tiles[tileoffset:tileoffset + 256] = [T] * 256
 
     globals.ObjectDefinitions[idx] = [None] * 256
 
@@ -1338,118 +1515,97 @@ def PutObjectArray(dest, xo, yo, block, width, height):
             drow[x] = srow[x - xo][1]
 
 
-def RenderObject(tileset, objnum, width, height, fullslope=False):
+def _RenderObject(dest, obj, width, height, fullslope=False):
     """
     Render a tileset object into an array
     """
+    # ignore non-existent objects
+    if obj is None:
+        return dest
+
+    if len(obj.rows) == 0:
+        return dest
+
+    # diagonal objects are rendered differently
+    if (obj.rows[0][0][0] & 0x80) != 0:
+        RenderDiagonalObject(dest, obj, width, height, fullslope)
+
+    else:
+        # standard object
+        repeatFound = False
+        beforeRepeat = []
+        inRepeat = []
+        afterRepeat = []
+
+        for row in obj.rows:
+            if len(row) == 0:
+                continue
+
+            if (row[0][0] & 2) != 0:
+                repeatFound = True
+                inRepeat.append(row)
+
+            else:
+                if repeatFound:
+                    afterRepeat.append(row)
+
+                else:
+                    beforeRepeat.append(row)
+
+        bc = len(beforeRepeat)
+        ic = len(inRepeat)
+        ac = len(afterRepeat)
+
+        if ic == 0:
+            for y in range(height):
+                RenderStandardRow(dest[y], beforeRepeat[y % bc], width)
+
+        else:
+            afterthreshold = height - ac - 1
+            for y in range(height):
+                if y < bc:
+                    RenderStandardRow(dest[y], beforeRepeat[y], width)
+
+                elif y > afterthreshold:
+                    RenderStandardRow(dest[y], afterRepeat[y - height + ac], width)
+
+                else:
+                    RenderStandardRow(dest[y], inRepeat[(y - bc) % ic], width)
+
+    return dest
+
+
+def RenderObject(tileset, objnum, width, height, fullslope=False):
     # allocate an array
-    dest = []
-    for i in range(height): dest.append([0] * width)
+    dest = [[0] * width for _ in range(height)]
 
     # ignore non-existent objects
     try:
         tileset_defs = globals.ObjectDefinitions[tileset]
+
     except IndexError:
         tileset_defs = None
-    if tileset_defs is None: return dest
+
+    if tileset_defs is None:
+        return dest
+
     try:
         obj = tileset_defs[objnum]
+
     except IndexError:
         obj = None
-    if obj is None: return dest
-    if len(obj.rows) == 0: return dest
 
-    # diagonal objects are rendered differently
-    if (obj.rows[0][0][0] & 0x80) != 0:
-        RenderDiagonalObject(dest, obj, width, height, fullslope)
-    else:
-        # standard object
-        repeatFound = False
-        beforeRepeat = []
-        inRepeat = []
-        afterRepeat = []
-
-        for row in obj.rows:
-            if len(row) == 0: continue
-            if (row[0][0] & 2) != 0:
-                repeatFound = True
-                inRepeat.append(row)
-            else:
-                if repeatFound:
-                    afterRepeat.append(row)
-                else:
-                    beforeRepeat.append(row)
-
-        bc = len(beforeRepeat);
-        ic = len(inRepeat);
-        ac = len(afterRepeat)
-        if ic == 0:
-            for y in range(height):
-                RenderStandardRow(dest[y], beforeRepeat[y % bc], y, width)
-        else:
-            afterthreshold = height - ac - 1
-            for y in range(height):
-                if y < bc:
-                    RenderStandardRow(dest[y], beforeRepeat[y], y, width)
-                elif y > afterthreshold:
-                    RenderStandardRow(dest[y], afterRepeat[y - height + ac], y, width)
-                else:
-                    RenderStandardRow(dest[y], inRepeat[(y - bc) % ic], y, width)
-
-    return dest
+    return _RenderObject(dest, obj, width, height, fullslope)
 
 
 def RenderObjectAll(obj, width, height, fullslope=False):
-    """
-    Used by "All" tab, render a tileset object into an array
-    """
     # allocate an array
-    dest = []
-    for i in range(height): dest.append([0]*width)
+    dest = [[0] * width for _ in range(height)]
 
-    # ignore non-existent objects
-    if obj is None: return dest
-    if len(obj.rows) == 0: return dest
-
-    # diagonal objects are rendered differently
-    if (obj.rows[0][0][0] & 0x80) != 0:
-        RenderDiagonalObject(dest, obj, width, height, fullslope)
-    else:
-        # standard object
-        repeatFound = False
-        beforeRepeat = []
-        inRepeat = []
-        afterRepeat = []
-
-        for row in obj.rows:
-            if len(row) == 0: continue
-            if (row[0][0] & 2) != 0:
-                repeatFound = True
-                inRepeat.append(row)
-            else:
-                if repeatFound:
-                    afterRepeat.append(row)
-                else:
-                    beforeRepeat.append(row)
-
-        bc = len(beforeRepeat); ic = len(inRepeat); ac = len(afterRepeat)
-        if ic == 0:
-            for y in range(height):
-                RenderStandardRow(dest[y], beforeRepeat[y % bc], y, width)
-        else:
-            afterthreshold = height - ac - 1
-            for y in range(height):
-                if y < bc:
-                    RenderStandardRow(dest[y], beforeRepeat[y], y, width)
-                elif y > afterthreshold:
-                    RenderStandardRow(dest[y], afterRepeat[y - height + ac], y, width)
-                else:
-                    RenderStandardRow(dest[y], inRepeat[(y - bc) % ic], y, width)
-
-    return dest
+    return _RenderObject(dest, obj, width, height, fullslope)
 
 
-def RenderStandardRow(dest, row, y, width):
+def RenderStandardRow(dest, row, width):
     """
     Render a row from an object
     """
@@ -1464,14 +1620,16 @@ def RenderStandardRow(dest, row, y, width):
         if tiling:
             repeatFound = True
             inRepeat.append(tile)
+
         else:
             if repeatFound:
                 afterRepeat.append(tile)
+
             else:
                 beforeRepeat.append(tile)
 
-    bc = len(beforeRepeat);
-    ic = len(inRepeat);
+    bc = len(beforeRepeat)
+    ic = len(inRepeat)
     ac = len(afterRepeat)
     if ic == 0:
         for x in range(width):
@@ -1578,12 +1736,13 @@ def GetSlopeSections(obj):
         sections.append(CreateSection(currentSection))
 
     if len(sections) == 1:
-        return (sections[0], None)
+        return sections[0], None
+
     else:
-        return (sections[0], sections[1])
+        return sections[0], sections[1]
 
 
-def ProcessOverrides(idx, name):
+def ProcessOverrides(name):
     """
     Load overridden tiles if there are any
     """
@@ -1598,7 +1757,6 @@ def ProcessOverrides(idx, name):
             # We use the same overrides for all Pa0 tilesets
             offset = 0x200 * 4
 
-            defs = globals.ObjectDefinitions[idx]
             t = globals.Tiles
 
             # Invisible, brick and ? blocks
