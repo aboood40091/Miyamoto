@@ -21,7 +21,7 @@
 # along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
 
 # gtx.py
-# A small script for creating RGBA8 and DXT5 GTX files.
+# A small script for loading and creating RGBA8 and DXT5 GTX files.
 
 
 ################################################################
