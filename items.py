@@ -1240,8 +1240,6 @@ class SpriteItem(LevelEditorItem):
         """
         Creates all the rectangles for the sprite
         """
-        type = self.type
-
         self.prepareGeometryChange()
 
         # Get rects
@@ -1953,8 +1951,6 @@ class PathItem(LevelEditorItem):
             painter.setPen(QtGui.QPen(globals.theme.color('path_lines'), 1 / 24 * globals.TileWidth))
         painter.drawRoundedRect(self.RoundedRect, 4, 4)
 
-        icontype = 0
-
         painter.setFont(self.font)
         margin = globals.TileWidth / 10
         painter.drawText(QtCore.QRectF(margin, margin, globals.TileWidth / 2 - margin, globals.TileWidth / 2 - margin), Qt.AlignCenter,
@@ -2078,8 +2074,6 @@ class NabbitPathItem(LevelEditorItem):
             painter.setPen(QtGui.QPen(globals.theme.color('nabbit_path_lines'), 1 / 24 * globals.TileWidth))
         painter.drawRoundedRect(self.RoundedRect, 4, 4)
 
-        icontype = 0
-
         painter.setFont(self.font)
         painter.drawText(self.RoundedRect, Qt.AlignCenter, str(self.nodeid))
 
@@ -2174,11 +2168,8 @@ class PathEditorLineItem(LevelEditorItem):
         color = globals.theme.color('path_connector')
         painter.setBrush(QtGui.QBrush(color))
         painter.setPen(QtGui.QPen(color, 3 * globals.TileWidth / 24, join=Qt.RoundJoin, cap=Qt.RoundCap))
-        ppath = QtGui.QPainterPath()
 
         lines = []
-
-        firstn = True
 
         snl = self.nodelist
         mult = globals.TileWidth / 16
@@ -2215,11 +2206,8 @@ class NabbitPathEditorLineItem(PathEditorLineItem):
         color = globals.theme.color('nabbit_path_connector')
         painter.setBrush(QtGui.QBrush(color))
         painter.setPen(QtGui.QPen(color, 3 * globals.TileWidth / 24, join=Qt.RoundJoin, cap=Qt.RoundCap))
-        ppath = QtGui.QPainterPath()
 
         lines = []
-
-        firstn = True
 
         snl = self.nodelist
         mult = globals.TileWidth / 16

@@ -110,7 +110,6 @@ class MiyamotoGameDefinition:
         self.custom = True
         name = str(name)
         self.gamepath = name
-        MaxVer = 1.0
 
         # Parse the file (errors are handled by __init__())
         path = 'miyamotodata/patches/' + name + '/main.xml'

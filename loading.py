@@ -33,7 +33,7 @@ from xml.etree import ElementTree as etree
 import globals
 import spritelib as SLib
 from gamedefs import MiyamotoGameDefinition, GetPath
-from misc import SpriteDefinition, setting, setSetting
+from misc import SpriteDefinition, setting
 import SARC as SarcLib
 from strings import MiyamotoTranslation
 
@@ -340,7 +340,6 @@ def LoadSpriteListData(reload_=False):
         for lineidx in range(24):
             line = split[lineidx]
             splitline = line.split(',')
-            splitlinelist = []
 
             # Add them
             for item in splitline:
@@ -579,7 +578,7 @@ def LoadTranslation():
     else:
         globals.trans = MiyamotoTranslation(name)
 
-    if globals.generateStringsXML: trans.generateXML()
+    if globals.generateStringsXML: globals.trans.generateXML()
 
 
 def LoadGameDef(name=None, dlg=None):

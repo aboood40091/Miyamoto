@@ -26,9 +26,9 @@
 
 ############ Imports ############
 
+import os
 import pickle
 import platform
-import sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
@@ -38,7 +38,6 @@ if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
     QtWidgets.QGraphicsItem.ItemSendsGeometryChanges = QtWidgets.QGraphicsItem.GraphicsItemFlag(0x800)
 
 import globals
-from items import ObjectItem
 
 #################################
 
@@ -63,15 +62,9 @@ class LevelScene(QtWidgets.QGraphicsScene):
                                  rect.height() / globals.TileWidth + 1)
         isect = drawrect.intersects
 
-        layer0 = [];
-        l0add = layer0.append
-        layer1 = [];
-        l1add = layer1.append
-        layer2 = [];
-        l2add = layer2.append
-
-        type_obj = ObjectItem
-        ii = isinstance
+        layer0 = []
+        layer1 = []
+        layer2 = []
 
         x1 = 1024
         y1 = 512
@@ -143,7 +136,6 @@ class LevelScene(QtWidgets.QGraphicsScene):
 
                 painter.save()
                 painter.translate(x1 * globals.TileWidth, y1 * globals.TileWidth)
-                drawPixmap = painter.drawPixmap
                 desty = 0
                 for row in tmap:
                     destx = 0
@@ -460,7 +452,6 @@ class Metadata:
                           rawTypeEntries[3]
 
             # Iterate through each type entry
-            typeData = {}
             for entry in range(typeEntries):
                 # Read the next four bytes - the type
                 rawType = data[idx:idx + 4]

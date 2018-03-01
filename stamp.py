@@ -26,7 +26,7 @@
 
 ############ Imports ############
 
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
 import globals
@@ -199,7 +199,6 @@ class Stamp:
         painter = QtGui.QPainter(pix)
 
         # Draw the preview
-        iconWidth = prevIcon.width()
         iconXOffset = (totalWidth - prevIcon.width()) / 2
         painter.drawPixmap(iconXOffset, 0, prevIcon)
 
@@ -306,7 +305,6 @@ class StampListModel(QtCore.QAbstractListModel):
         self.beginResetModel()
 
         # Remove the stamp from self.items
-        idx = self.items.index(stamp)
         self.items.remove(stamp)
 
         # Finish resetting

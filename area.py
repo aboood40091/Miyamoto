@@ -26,6 +26,7 @@
 
 ############ Imports ############
 
+from PyQt5 import QtWidgets
 import struct
 
 from bytes import bytes_to_string, to_bytes
@@ -33,10 +34,9 @@ import globals
 
 from items import ObjectItem, ZoneItem, LocationItem
 from items import SpriteItem, EntranceItem, PathItem
-from items import NabbitPathItem, PathEditorLineItem
-from items import NabbitPathEditorLineItem, CommentItem
+from items import NabbitPathItem, CommentItem
 
-from loading import LoadTilesetNames, LoadTileset
+from loading import LoadTileset
 from misc import Metadata
 import spritelib as SLib
 
@@ -202,11 +202,12 @@ class Area_NSMBU(AbstractArea):
 
         # Load the editor metadata
         if self.block1pos[0] != 0x78:
-            rdsize = self.block1pos[0] - 0x78
             rddata = course[0x78:self.block1pos[0]]
             self.LoadMiyamotoInfo(rddata)
+
         else:
             self.LoadMiyamotoInfo(None)
+
         del self.block1pos
 
         # Now, load the comments

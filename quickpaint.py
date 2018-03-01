@@ -272,7 +272,6 @@ class QuickPaintOperations:
 
                 mw.scene.addItem(obj)
 
-                connected_objects = []
                 # This next function has to repeated multiple times at multiple places in and around this object.
                 # Otherwise, you will leave artifacts when painting with bigger objects.
                 QuickPaintOperations.autoTileObj(ln, obj)
@@ -316,16 +315,6 @@ class QuickPaintOperations:
                 obj = QuickPaintOperations.searchObj(ln, x, y)
 
                 if obj is not None:
-                    surrounding_objects = {
-                        'TopLeft': QuickPaintOperations.searchObj(ln, obj.objx - 1, obj.objy - 1),
-                        'Top': QuickPaintOperations.searchObj(ln, obj.objx, obj.objy - 1),
-                        'TopRight': QuickPaintOperations.searchObj(ln, obj.objx + 1, obj.objy - 1),
-                        'Left': QuickPaintOperations.searchObj(ln, obj.objx - 1, obj.objy),
-                        'Right': QuickPaintOperations.searchObj(ln, obj.objx + 1, obj.objy),
-                        'BottomLeft': QuickPaintOperations.searchObj(ln, obj.objx - 1, obj.objy + 1),
-                        'Bottom': QuickPaintOperations.searchObj(ln, obj.objx, obj.objy + 1),
-                        'BottomRight': QuickPaintOperations.searchObj(ln, obj.objx + 1, obj.objy + 1)
-                    }
                     obj.delete()
                     obj.setSelected(False)
 
@@ -655,8 +644,6 @@ class QuickPaintOperations:
         if globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.scene and obj:
             qpscn = globals.mainWindow.quickPaint.scene
             qp_data = qpscn.object_database
-            startingTileset = obj.tileset
-            startingType = obj.type
             surrounding_objects = {
                 'TopLeft': QuickPaintOperations.searchObj(layer, obj.objx - 1, obj.objy - 1),
                 'Top': QuickPaintOperations.searchObj(layer, obj.objx, obj.objy - 1),

@@ -1615,7 +1615,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Set the text to the event chooser
         currentItem = self.eventChooser.selectedItems()[0]
         currentItem.setText(1, newText)
-        selIdx = self.eventChooserItems.index(currentItem)
 
         # Save all the events to the metadata
         data = []
@@ -1720,8 +1719,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         newdata += '------\n'
 
         for stampobj in self.stampChooser.model.items:
-            name = stampobj.Name
-            rc = stampobj.MiyamotoClip
             newdata += '\n'
             newdata += stampobj.Name + '\n'
             newdata += stampobj.MiyamotoClip + '\n'
@@ -2092,9 +2089,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                                      [split[4], split[5], split[6], split[7], split[8], split[9],
                                       split[10], split[11], split[12], split[13], split[14], split[15]]))
 
-                    x = objx / 16
-                    y = objy / 16
-
                     newitem = SpriteItem(int(split[1]), objx, objy, data)
                     sprites.append(newitem)
 
@@ -2120,7 +2114,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             type_obj = ObjectItem
             type_spr = SpriteItem
             type_ent = EntranceItem
-            type_loc = LocationItem
 
             if ((xoffset % 16) != 0) or ((yoffset % 16) != 0):
                 # warn if any objects exist
@@ -2710,7 +2703,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # we take the name of the level and make sure it's formatted right. if not, crashy
         # this is one of the few ways, if there's no - it will certainly crash
-        failure = False
         name = self.getInnerSarcName()
         if name == "":
             return False
@@ -3917,7 +3909,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if QtWidgets.QApplication.keyboardModifiers() == Qt.AltModifier:
             items = self.scene.selectedItems()
             type_obj = ObjectItem
-            tileset = globals.CurrentPaintType
             area = globals.Area
             change = []
 

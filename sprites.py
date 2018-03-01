@@ -35,7 +35,7 @@
 
 import math
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
@@ -703,7 +703,7 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 92, 198, 201
 
         # (0, 0) is the top-left corner of the zone
 
-        zx, zy, zw, zh = zoneRect.topLeft().x(), zoneRect.topLeft().y(), zoneRect.width(), zoneRect.height()
+        zy, zw, zh = zoneRect.topLeft().y(), zoneRect.width(), zoneRect.height()
 
         drawRise = self.risingHeight != 0
         drawCrest = self.drawCrest
@@ -1671,8 +1671,6 @@ class SpriteImage_ControllerSwaying(SLib.SpriteImage_Static):  # 68
         SLib.loadIfNotInImageCache('ControllerSwaying', 'controller_swaying.png')
 
     def dataChanged(self):
-        rotid = self.parent.spritedata[10]
-
         #        rotation = self.parent.spritedata[4]
 
         """
@@ -1702,7 +1700,7 @@ class SpriteImage_ControllerSwaying(SLib.SpriteImage_Static):  # 68
 
 
 
-class SpriteImage_ControllerSpinning(SLib.SpriteImage_StaticMultiple):  # 69
+class SpriteImage_ControllerSpinning(SLib.SpriteImage_StaticMultiple):  # 69, 484
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -2118,9 +2116,6 @@ class SpriteImage_Fog(SpriteImage_LiquidOrFog):  # 92
         self.paintZone = self.parent.spritedata[5] == 0
 
         self.top = self.parent.objy
-
-        # Get pixmaps
-        mid = ImageCache['Fog']
 
         super().realViewZone(painter, zoneRect, viewRect)
 
@@ -2924,8 +2919,7 @@ class SpriteImage_MovPipe(SpriteImage_PipeAlt):  # 146
 
             # if self.expandable: rawcolour = (self.parent.spritedata[3]) & 3
             # elif self.moving: rawcolour = (self.parent.spritedata[3]) & 3
-            # else:
-            rawcolour = (self.parent.spritedata[3] & 0x0F) & 3
+            # else: rawcolour = (self.parent.spritedata[3] & 0x0F) & 3
 
             if self.typeinfluence and rawtop == 0:
                 # if self.expandable: rawtype = self.parent.spritedata[4] & 3
@@ -3026,9 +3020,6 @@ class SpriteImage_StoneEye(SLib.SpriteImage_StaticMultiple):  # 150
     def dataChanged(self):
 
         direction = self.parent.spritedata[4]
-        movID = self.parent.spritedata[10]
-
-        trueDirection = "Front"
 
         t = QTransform()
 
@@ -3286,7 +3277,6 @@ class SpriteImage_WaterGeyser(SpriteImage_StackedSprite):  # 156
         super().dataChanged()
         rawlengthones = self.parent.spritedata[5]
         rawlengthtwos = self.parent.spritedata[4] & 0xF
-        rawlengthminus = self.parent.spritedata[4]
 
         if rawlengthones == 0:
             rawlengthones = 0
@@ -3328,8 +3318,6 @@ class SpriteImage_WaterGeyser(SpriteImage_StackedSprite):  # 156
         #        if rawlengthtwos > 255: rawlengthtwos = rawlengthtwos - 256
 
         rawlength = rawlengthones + rawlengthtwos
-
-        rawtype = self.parent.spritedata[3] & 3
 
         pipeLength = rawlength
 
@@ -3605,7 +3593,6 @@ class SpriteImage_WaterGeyserLocation(SpriteImage_StackedSprite):  # 163
         super().dataChanged()
         rawlengthones = self.parent.spritedata[5]
         rawlengthtwos = self.parent.spritedata[4] & 0xF
-        rawlengthminus = self.parent.spritedata[4]
 
         if rawlengthones == 0:
             rawlengthones = 0
@@ -3647,8 +3634,6 @@ class SpriteImage_WaterGeyserLocation(SpriteImage_StackedSprite):  # 163
         #        if rawlengthtwos > 255: rawlengthtwos = rawlengthtwos - 256
 
         rawlength = rawlengthones
-
-        rawtype = self.parent.spritedata[3] & 3
 
         pipeLength = rawlength
 
@@ -4582,7 +4567,6 @@ class SpriteImage_GiantBubble(SLib.SpriteImage):  # 251
 
         self.shape = self.parent.spritedata[4] >> 4
         self.direction = self.parent.spritedata[5] & 15
-        arrow = None
 
         if self.shape == 0 or self.shape > 3:
             self.size = (122, 137)
@@ -5894,8 +5878,6 @@ class SpriteImage_MovementControlledStarCoin(SLib.SpriteImage_Static):  # 480
             ImageCache['MovementStarCoin'],
         )
 
-        yOffset = -8
-
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('MovementStarCoin', 'star_coin.png')
@@ -5968,19 +5950,6 @@ class SpriteImage_MultiSpinningFirebar(SLib.SpriteImage):  # 483
     def paint(self, painter):
         super().paint(painter)
         painter.drawPixmap(0, 0, self.image)
-
-
-class SpriteImage_ControllerSpinning(SLib.SpriteImage_Static):  # 484
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['ControllerSpinning'],
-        )
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('ControllerSpinning', 'controller_spinning.png')
 
 
 class SpriteImage_FrameSetting(SLib.SpriteImage_Static):  # 486
@@ -6289,7 +6258,6 @@ class SpriteImage_Flowers(SLib.SpriteImage_StaticMultiple):  # 546
 
     def dataChanged(self):
 
-        id = self.parent.spritedata[3]
         otherid = self.parent.spritedata[5]
 
         if otherid == 33:

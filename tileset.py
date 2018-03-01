@@ -40,7 +40,6 @@ import bc3
 import gtx
 import SARC as SarcLib
 import spritelib as SLib
-from verifications import SetDirty
 
 try:
     import pyximport
@@ -654,7 +653,7 @@ def getObjColls(idx, objNum, def_, randLen):
     return colls
 
 
-def compareTwoImages(img, img2):
+def compareTwoImages(img, img2, imgWidth, imgHeight):
     if isinstance(img, QtGui.QPixmap):
         # Convert our first QPixmap to an RGBA8 QImage
         img_ = img.toImage().convertToFormat(QtGui.QImage.Format_RGBA8888)
@@ -813,7 +812,7 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
                 ###########################
 
                 img2 = getObjImg(idx, i, defs[i], randLen)
-                if compareTwoImages(img, img2):
+                if compareTwoImages(img, img2, imgWidth, imgHeight):
 
                     ################################
                     ### STEP 5: Normal map check ###

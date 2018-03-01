@@ -47,7 +47,6 @@ from items import CommentItem
 
 from misc import clipStr, setting, setSetting
 from quickpaint import QuickPaintOperations
-import spritelib as SLib
 from stamp import StampListModel
 
 from tileset import TilesetTile, ObjectDef, addObjToTileset
@@ -1224,7 +1223,6 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
 
             painter.save()
             painter.translate(x * globals.TileWidth, y * globals.TileWidth)
-            drawPixmap = painter.drawPixmap
             desty = 0
 
             for row in tmap:
@@ -3955,10 +3953,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                     if not pathd: return  # shouldn't happen
 
-                    pathid = pathd['id']
                     newnodedata = {'x': clickedx, 'y': clickedy, 'speed': 0, 'accel': 0, 'delay': 0}
                     pathd['nodes'].append(newnodedata)
-                    nodeid = pathd['nodes'].index(newnodedata)
 
                     newnode = PathItem(clickedx, clickedy, pathd, newnodedata, 0, 0, 0, 0)
 
@@ -4147,7 +4143,6 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                         newnodedata = {'x': clickedx, 'y': clickedy, 'action': 0}
                         pathd['nodes'].append(newnodedata)
-                        nodeid = pathd['nodes'].index(newnodedata)
 
                         newnode = NabbitPathItem(clickedx, clickedy, pathd, newnodedata, 0, 0, 0, 0)
 
@@ -4826,7 +4821,6 @@ class GameDefMenu(QtWidgets.QMenu):
             act.setCheckable(True)
             if folder == loadedDef:
                 act.setChecked(True)
-                first = False
             act.toggled.connect(self.handleGameDefClicked)
             self.addAction(act)
 
@@ -4891,7 +4885,6 @@ class RecentFilesMenu(QtWidgets.QMenu):
 
         self.clear()  # removes any actions already in the menu
         ico = GetIcon('new')
-        currentShortcut = 0
 
         for i, filename in enumerate(self.FileList):
             filename = os.path.basename(filename)

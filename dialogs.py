@@ -33,9 +33,12 @@ Qt = QtCore.Qt
 
 from bytes import bytes_to_string, to_bytes
 import globals
-from misc import setting
+from items import ZoneItem
+from misc import HexSpinBox, setting
+from strings import MiyamotoTranslation
 from ui import MiyamotoTheme, toQColor, GetIcon
 from widgets import LoadingTab, TilesetsTab
+from verifications import SetDirty
 
 #################################
 
@@ -1539,7 +1542,6 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.themes = self.getAvailableThemes
 
                 # Create the theme box
-                i = 0
                 self.themeBox = QtWidgets.QComboBox()
                 for name, themeObj in self.themes:
                     self.themeBox.addItem(name)
