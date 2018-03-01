@@ -216,7 +216,7 @@ def FindColors(Colors):
         Max -= 1
 
     if Max < 0:
-        Max = 255 + Max
+        Max = 256 + Max
 
     Color0 = Min if UseLessThanAlgorithm else Max
     Color1 = Max if UseLessThanAlgorithm else Min
