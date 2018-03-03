@@ -83,7 +83,7 @@ from verifications import *
 from widgets import *
 
 MiyamotoID = 'Miyamoto! Level Editor by AboodXD, Gota7, John10v10, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
-MiyamotoVersion = '24.0'
+MiyamotoVersion = '25.0'
 MiyamotoVersionShort = ''
 UpdateURL = ''
 

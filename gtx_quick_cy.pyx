@@ -49,7 +49,7 @@ cdef u8 EXP5TO8B(u16 packedcol):
     return (((packedcol) << 3) & 0xf8) | (((packedcol) >>  2) & 0x07)
 
 
-cdef (u8, u8, u8, u8) dxt5_decode_imageblock(u8 pixdata[], u32 img_block_src, u8 i, u8 j):
+cdef (u8, u8, u8, u8) dxt5_decode_imageblock(u8 *pixdata, u32 img_block_src, u8 i, u8 j):
     cdef:
         u16 color0 = pixdata[img_block_src] | (pixdata[img_block_src + 1] << 8)
         u16 color1 = pixdata[img_block_src + 2] | (pixdata[img_block_src + 3] << 8)
@@ -85,7 +85,7 @@ cdef (u8, u8, u8, u8) dxt5_decode_imageblock(u8 pixdata[], u32 img_block_src, u8
     return ACOMP, RCOMP, GCOMP, BCOMP
 
 
-cdef (u8, u8, u8, u8) fetch_2d_texel_rgba_dxt5(u32 srcRowStride, u8 pixdata[], u32 i, u32 j):
+cdef (u8, u8, u8, u8) fetch_2d_texel_rgba_dxt5(u32 srcRowStride, u8 *pixdata, u32 i, u32 j):
     cdef:
         u32 blksrc = ((srcRowStride + 3) // 4 * (j // 4) + (i // 4)) * 16
 
@@ -136,7 +136,7 @@ cpdef bytes decodeGTX(u32 width, u32 height, u32 format, data):
         raise NotImplementedError("Unimplemented texture format!")
 
 
-cdef bytes export_RGBA8(u32 width, u32 height, u8 source[]):
+cdef bytes export_RGBA8(u32 width, u32 height, u8 *source):
     cdef:
         u32 pos, x, y, pos_
         u8 *output
@@ -171,7 +171,7 @@ cdef bytes export_RGBA8(u32 width, u32 height, u8 source[]):
         free(output)
 
 
-cdef bytes export_DXT5(u32 width, u32 height, u8 source[]):
+cdef bytes export_DXT5(u32 width, u32 height, u8 *source):
     cdef:
         u32 pos, x, y, pos_
         u8 *work
