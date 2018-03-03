@@ -116,7 +116,7 @@ def readGFD(f):
 
             width = gx2surf.width
             height = gx2surf.height
-            format = gx2surf.format_
+            format = gx2surf.format_ & 0xFF
 
         elif blkhead.type_ == 0x0C and not data:
             dataSize = blkhead.dataSize

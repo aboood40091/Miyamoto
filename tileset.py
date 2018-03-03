@@ -36,6 +36,7 @@ Qt = QtCore.Qt
 
 import globals
 
+import addrlib
 import bc3
 import gtx
 import SARC as SarcLib
@@ -1016,12 +1017,29 @@ def SaveTileset(idx):
     return arc.save(0x2000)
 
 
-def loadGTX(gtxdata):
-    if gtx_quick_available:
-        # Use the Cython decoder because it's faster than the C++ (built) decoder
-        # Read the gtx file
-        width, height, format, dataSize, data = gtx.readGFD(gtxdata)
+def loadGTX(gtxdata, useAddrLib=False):
+    # Read the gtx file
+    width, height, format, _, data = gtx.readGFD(gtxdata)
 
+    if format not in [0x1a, 0x33]:
+        raise NotImplementedError("Unimplemented texture format!")
+
+    if useAddrLib:
+        # Use AddrLib
+        # Get the Surface Info
+        surfOut = addrlib.getSurfaceInfo(format, width, height, 1, 1, 4, 0, 0)
+
+        # Deswizzle the data
+        udata = addrlib.deswizzle(width, height, surfOut.height, format, 4, 0, surfOut.pitch, surfOut.bpp, data)
+
+        if format == 0x33:
+            udata = bc3.decompress(udata, width, height)
+
+        # Return as a QImage
+        img = QtGui.QImage(udata, width, height, QtGui.QImage.Format_RGBA8888)
+
+    elif gtx_quick_available:
+        # Use the Cython decoder because it's faster than the C++ (built) decoder
         # Deswizzle the data
         udata = gtx_quick_cy.decodeGTX(width, height, format, data)
 

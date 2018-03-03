@@ -470,7 +470,7 @@ def _LoadTileset(idx, name):
         found = exists(fn)
 
         if found:
-            belt_conveyor_anime = loadGTX(sarc[fn].data)
+            belt_conveyor_anime = loadGTX(sarc[fn].data, True)
 
         for i in range(tileoffset, tileoffset + 256):
             if globals.Tiles[i].collData[0] == 7:
