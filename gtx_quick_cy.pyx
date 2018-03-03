@@ -123,7 +123,7 @@ cdef (u8, u8, u8, u8) fetch_2d_texel_rgba_dxt5(u32 srcRowStride, u8 pixdata[], u
     return RCOMP, GCOMP, BCOMP, ACOMP
 
 
-cpdef bytes decodeGTX(u32 width, u32 height, u32 format, bytes data):
+cpdef bytes decodeGTX(u32 width, u32 height, u32 format, data):
     cdef array.array dataArr = array.array('B', data)
 
     if format == 0x1a:

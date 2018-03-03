@@ -15,14 +15,15 @@ BCn_formats = [
     ]
 
 
-def swizzleSurf(width, height, height2, format_, tileMode, swizzle_,
+def swizzleSurf(width, height, height_, format_, tileMode, swizzle_,
                 pitch, bpp, data, swizzle):
-
-    result = bytearray(data)
 
     if format_ in BCn_formats:
         width = (width + 3) // 4
         height = (height + 3) // 4
+
+    bytesPerPixel = bitsPerPixel // 8
+    result = bytearray(width * height * bytesPerPixel)
 
     for y in range(height):
         for x in range(width):
@@ -36,31 +37,31 @@ def swizzleSurf(width, height, height2, format_, tileMode, swizzle_,
                 pos = computeSurfaceAddrFromCoordMicroTiled(x, y, bpp, pitch, tileMode)
 
             else:
-                pos = computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height2, tileMode,
+                pos = computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height_, tileMode,
                                                                               pipeSwizzle, bankSwizzle)
 
-            pos_ = (y * width + x) * bpp // 8
+            pos_ = (y * width + x) * bytesPerPixel
 
             if (pos_ < len(data)) and (pos < len(data)):
                 if swizzle == 0:
-                    result[pos_:pos_ + bpp // 8] = data[pos:pos + bpp // 8]
+                    result[pos_:pos_ + bytesPerPixel] = data[pos:pos + bytesPerPixel]
 
                 else:
-                    result[pos:pos + bpp // 8] = data[pos_:pos_ + bpp // 8]
+                    result[pos:pos + bytesPerPixel] = data[pos_:pos_ + bytesPerPixel]
 
-    return result
+    return bytes(result)
 
 
-def deswizzle(width, height, height2, format_, tileMode, swizzle_,
+def deswizzle(width, height, height_, format_, tileMode, swizzle_,
               pitch, bpp, data):
 
-    return swizzleSurf(width, height, height2, format_, tileMode, swizzle_, pitch, bpp, data, 0)
+    return swizzleSurf(width, height, height_, format_, tileMode, swizzle_, pitch, bpp, data, 0)
 
 
-def swizzle(width, height, height2, format_, tileMode, swizzle_,
+def swizzle(width, height, height_, format_, tileMode, swizzle_,
             pitch, bpp, data):
 
-    return swizzleSurf(width, height, height2, format_, tileMode, swizzle_, pitch, bpp, data, 1)
+    return swizzleSurf(width, height, height_, format_, tileMode, swizzle_, pitch, bpp, data, 1)
 
 
 m_banks = 4
@@ -308,6 +309,9 @@ def computeSurfaceAddrFromCoordMicroTiled(x, y, bpp, pitch, tileMode):
     return pixelOffset + microTileOffset
 
 
+bankSwapOrder = [0, 1, 3, 2, 6, 7, 5, 4, 0, 0]
+
+
 def computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height,
                                           tileMode, pipeSwizzle,
                                           bankSwizzle):
@@ -379,7 +383,6 @@ def computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height,
     macroTileOffset = (macroTileIndexX + macroTilesPerRow * macroTileIndexY) * macroTileBytes
 
     if tileMode in [8, 9, 10, 11, 14, 15]:
-        bankSwapOrder = [0, 1, 3, 2, 6, 7, 5, 4, 0, 0]
         bankSwapWidth = computeSurfaceBankSwappedWidth(tileMode, bpp, pitch)
         swapIndex = macroTilePitch * macroTileIndexX // bankSwapWidth
         bank ^= bankSwapOrder[swapIndex & (m_banks - 1)]
@@ -1022,10 +1025,11 @@ def computeSurfaceInfoLinear(tileMode, bpp, numSamples, pitch, height, numSlices
     global expHeight
     global expNumSlices
 
-    valid = 1
     expPitch = pitch
     expHeight = height
     expNumSlices = numSlices
+
+    valid = 1
     microTileThickness = computeSurfaceThickness(tileMode)
 
     baseAlign, pitchAlign, heightAlign = computeSurfaceAlignmentsLinear(tileMode, bpp, flags)
@@ -1095,11 +1099,12 @@ def computeSurfaceInfoMicroTiled(tileMode, bpp, numSamples, pitch, height, numSl
     global expHeight
     global expNumSlices
 
-    valid = 1
     expTileMode = tileMode
     expPitch = pitch
     expHeight = height
     expNumSlices = numSlices
+
+    valid = 1
     microTileThickness = computeSurfaceThickness(tileMode)
 
     if mipLevel:
@@ -1220,12 +1225,11 @@ def computeSurfaceInfoMacroTiled(tileMode, baseTileMode, bpp, numSamples, pitch,
     global expHeight
     global expNumSlices
 
-    valid = 1
-
     expPitch = pitch
     expHeight = height
     expNumSlices = numSlices
 
+    valid = 1
     expTileMode = tileMode
     microTileThickness = computeSurfaceThickness(tileMode)
 
