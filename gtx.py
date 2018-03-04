@@ -88,7 +88,7 @@ class GX2Surface(struct.Struct):
 
 def readGFD(f):
     pos = 0
-    width, height, format = 0, 0, 0
+    dim, width, height, depth, format, tileMode = 0, 0, 0, 0, 0, 0
     data = b''
 
     header = GFDHeader()
@@ -112,21 +112,20 @@ def readGFD(f):
 
         if blkhead.type_ == 0x0B:
             gx2surf.data(f, pos)
-            pos += blkhead.dataSize
 
+            dim = gx2surf.dim
             width = gx2surf.width
             height = gx2surf.height
+            depth = gx2surf.depth
             format = gx2surf.format_ & 0xFF
+            tileMode = gx2surf.tileMode
 
         elif blkhead.type_ == 0x0C and not data:
-            dataSize = blkhead.dataSize
-            data = bytes(f[pos:pos + dataSize])
-            pos += dataSize
+            data = bytes(f[pos:pos + blkhead.dataSize])
 
-        else:
-            pos += blkhead.dataSize
+        pos += blkhead.dataSize
 
-    return width, height, format,  dataSize, data
+    return dim, width, height, depth, format, tileMode, data
 
 
 def writeGFD(f):

@@ -58,12 +58,27 @@ if platform.system() not in ['Windows', 'Linux', 'Darwin']:
     warningBox.exec_()
     raise NotImplementedError("Unsupported platform!")
 
+# Import the "globals" module
+import globals
+
+# Check if Cython is available
+try:
+    import pyximport
+    pyximport.install()
+    import cython_available
+
+except:
+    globals.cython_available = False
+
+else:
+    del cython_available
+    globals.cython_available = True
+
 # Local imports
 from area import *
 from bytes import *
 from dialogs import *
 from gamedefs import *
-import globals
 from items import *
 from level import *
 from libyaz0 import decompress as Yaz0Dec

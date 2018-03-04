@@ -529,7 +529,11 @@ def _LoadTileset(idx, name):
 
 
 def LoadTileset(idx, name, reload=False):
-    return _LoadTileset(idx, name)
+    try:
+        return _LoadTileset(idx, name)
+
+    except:
+        return False
 
 
 def LoadOverrides():

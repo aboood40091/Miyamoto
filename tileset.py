@@ -42,16 +42,8 @@ import gtx
 import SARC as SarcLib
 import spritelib as SLib
 
-try:
-    import pyximport
-    pyximport.install()
+if globals.cython_available:
     import gtx_quick_cy
-
-except:
-    gtx_quick_available = False
-
-else:
-    gtx_quick_available = True
 
 #################################
 
@@ -1017,74 +1009,102 @@ def SaveTileset(idx):
     return arc.save(0x2000)
 
 
-def loadGTX(gtxdata, useAddrLib=False):
-    # Read the gtx file
-    width, height, format, _, data = gtx.readGFD(gtxdata)
+def _loadGTX_gtx_quick(width, height, format, data):
+    """
+    Use `gtx_quick` to decode the texture
+    """
+    return gtx_quick_cy.decodeGTX(width, height, format, data)
 
-    if format not in [0x1a, 0x33]:
-        raise NotImplementedError("Unimplemented texture format!")
 
-    if useAddrLib:
-        # Use AddrLib
-        # Get the Surface Info
-        surfOut = addrlib.getSurfaceInfo(format, width, height, 1, 1, 4, 0, 0)
+def _loadGTX_addrlib(width, height, format, tileMode, data):
+    """
+    Use `AddrLib` to decode the texture (and decompress if needed)
+    """
+    # Get the Surface Info
+    surfOut = addrlib.getSurfaceInfo(format, width, height, 1, 1, tileMode, 0, 0)
 
-        # Deswizzle the data
-        udata = addrlib.deswizzle(width, height, surfOut.height, format, 4, 0, surfOut.pitch, surfOut.bpp, data)
+    # Deswizzle the data
+    udata = addrlib.deswizzle(width, height, surfOut.height, format, tileMode, 0, surfOut.pitch, surfOut.bpp, data)
 
-        if format == 0x33:
-            udata = bc3.decompress(udata, width, height)
+    if format == 0x33:
+        # Decompress the data
+        udata = bc3.decompress(udata, width, height)
 
-        # Return as a QImage
-        img = QtGui.QImage(udata, width, height, QtGui.QImage.Format_RGBA8888)
+    return udata
 
-    elif gtx_quick_available:
-        # Use the Cython decoder because it's faster than the C++ (built) decoder
-        # Deswizzle the data
-        udata = gtx_quick_cy.decodeGTX(width, height, format, data)
 
-        # Return as a QImage
-        img = QtGui.QImage(udata, width, height, QtGui.QImage.Format_RGBA8888)
+def _loadGTX_gtx_extract(gtxdata):
+    """
+    Use `gtx_extract` to decode the texture
+    """
+    if platform.system() == 'Windows':
+        tile_path = globals.miyamoto_path + '/Tools'
+
+    elif platform.system() == 'Linux':
+        tile_path = globals.miyamoto_path + '/linuxTools'
 
     else:
-        # Use the C++ (built) decoder because the Cython decoder is unavailable
-        if platform.system() == 'Windows':
-            tile_path = globals.miyamoto_path + '/Tools'
+        tile_path = globals.miyamoto_path + '/macTools'
 
-        elif platform.system() == 'Linux':
-            tile_path = globals.miyamoto_path + '/linuxTools'
+    with open(tile_path + '/texture.gtx', 'wb') as binfile:
+        binfile.write(gtxdata)
 
-        else:
-            tile_path = globals.miyamoto_path + '/macTools'
+    os.chdir(tile_path)
 
-        with open(tile_path + '/texture.gtx', 'wb') as binfile:
-            binfile.write(gtxdata)
-
-        os.chdir(tile_path)
-
-        if platform.system() == 'Windows':
-            command = 'gtx_extract_bmp.exe texture.gtx'
-
-        elif platform.system() == 'Linux':
-            os.system('chmod +x ./gtx_extract.elf')
-            command = './gtx_extract.elf texture.gtx texture.bmp'
-
-        else:
-            command = tile_path + '/gtx_extract_bmp texture.gtx'
-
+    if platform.system() == 'Windows':
         # https://stackoverflow.com/a/7006424/4797683
         DETACHED_PROCESS = 0x00000008
-        subprocess.call(command, creationflags=DETACHED_PROCESS)
+        subprocess.call('gtx_extract_bmp.exe texture.gtx', creationflags=DETACHED_PROCESS)
 
-        os.chdir(globals.miyamoto_path)
+    elif platform.system() == 'Linux':
+        os.system('chmod +x ./gtx_extract.elf')
+        os.system('./gtx_extract.elf texture.gtx texture.bmp')
 
-        # Return as a QImage
-        img = QtGui.QImage(tile_path + '/texture.bmp')
-        os.remove(tile_path + '/texture.bmp')
+    else:
+        os.system(tile_path + '/gtx_extract_bmp texture.gtx')
 
-        os.remove(tile_path + '/texture.gtx')
-        
+    os.chdir(globals.miyamoto_path)
+
+    # Return as a QImage
+    img = QtGui.QImage(tile_path + '/texture.bmp')
+
+    os.remove(tile_path + '/texture.bmp')
+    os.remove(tile_path + '/texture.gtx')
+
     return img
+
+
+def loadGTX(gtxdata, useAddrLib=False):
+    # Read the gtx file
+    (dim, width, height, depth,
+     format, tileMode, data) = gtx.readGFD(gtxdata)
+
+    if dim != 1:
+        raise NotImplementedError("Unimplemented texture dimension!")
+
+    elif depth != 1:
+        raise NotImplementedError("Unimplemented texture depth!")
+
+    elif format not in [0x1a, 0x33]:
+        raise NotImplementedError("Unimplemented texture format!")
+
+    elif tileMode != 4:
+        useAddrLib = True
+
+    if useAddrLib:
+        udata = _loadGTX_addrlib(width, height, format, tileMode, data)
+
+    elif globals.cython_available:
+        udata = _loadGTX_gtx_quick(width, height, format, data)
+
+    else:
+        try:
+            return _loadGTX_gtx_extract(gtxdata)
+
+        except:
+            udata = _loadGTX_addrlib(width, height, format, data)
+
+    return QtGui.QImage(udata, width, height, QtGui.QImage.Format_RGBA8888)
 
 
 def CascadeTilesetNames_Category(lower, upper):
