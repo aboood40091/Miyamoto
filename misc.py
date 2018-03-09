@@ -629,7 +629,33 @@ def SetGamePath(newpath):
     globals.gamedef.SetGamePath(str(newpath))
 
 
-def compressWSZST(inf, outf):
+def Yaz0Dec_WSZST(inf, outf):
+    if os.path.isfile(outf):
+        os.remove(outf)
+
+    if platform.system() == 'Windows':
+        os.chdir(globals.miyamoto_path + '/Tools')
+        os.system('wszst.exe DECOMPRESS "' + inf + '" --dest "' + outf + '"')
+        os.chdir(globals.miyamoto_path)
+
+    elif platform.system() == 'Linux':
+        os.chdir(globals.miyamoto_path + '/linuxTools')
+        os.system('chmod +x ./wszst_linux.elf')
+        os.system('./wszst_linux.elf DECOMPRESS "' + inf + '" --dest "' + outf + '"')
+        os.chdir(globals.miyamoto_path)
+
+    else:
+        os.chdir(globals.miyamoto_path + '/macTools')
+        os.system('"' + globals.miyamoto_path + '/macTools/wszst_mac" DECOMPRESS "' + inf + '" --dest "' + outf + '"')
+        os.chdir(globals.miyamoto_path)
+
+    if not os.path.isfile(outf):
+        return False
+
+    return True
+
+
+def Yaz0Comp_WSZST(inf, outf):
     if os.path.isfile(outf):
         os.remove(outf)
 

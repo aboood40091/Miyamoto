@@ -90,6 +90,7 @@ TileWidth = 60
 szsData = {}
 levelNameCache = ''
 miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
+cython_available = False
 
 # Sort BG Names
 names_bg = []

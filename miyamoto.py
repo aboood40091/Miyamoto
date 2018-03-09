@@ -68,7 +68,7 @@ try:
     import cython_available
 
 except:
-    globals.cython_available = False
+    pass
 
 else:
     del cython_available
@@ -81,8 +81,8 @@ from dialogs import *
 from gamedefs import *
 from items import *
 from level import *
-from libyaz0 import decompress as Yaz0Dec
-from libyaz0 import compress as Yaz0Comp
+from libyaz0 import decompress as Yaz0Dec_LIBYaz0
+from libyaz0 import compress as Yaz0Comp_LIBYaz0
 from loading import *
 from misc import *
 from puzzle import MainWindow as PuzzleWindow
@@ -2296,10 +2296,29 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Decompress, if needed (Yaz0)
         if data.startswith(b'Yaz0'):
             print('Beginning Yaz0 decompression...')
-            data = Yaz0Dec(data)
+
+            if globals.cython_available:
+                data = Yaz0Dec_LIBYaz0(data)
+
+            else:
+                with open(globals.miyamoto_path + '/tmp.tmp', 'wb+') as f:
+                    f.write(data)
+
+                if not Yaz0Dec_WSZST(globals.miyamoto_path + '/tmp.tmp', globals.miyamoto_path + '/tmp2.tmp'):
+                    os.remove(globals.miyamoto_path + '/tmp.tmp')
+                    return
+
+                with open(globals.miyamoto_path + '/tmp2.tmp', 'rb') as f:
+                    data = f.read()
+
+                os.remove(globals.miyamoto_path + '/tmp.tmp')
+                os.remove(globals.miyamoto_path + '/tmp2.tmp')
+
             print('Decompression finished.')
+
         elif data.startswith(b'SARC'):
             print('Yaz0 decompression skipped.')
+
         else:
             return False  # keep it from crashing by loading things it shouldn't
 
@@ -2441,16 +2460,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # no error checking. if it saved last time, it will probably work now
 
         if self.fileSavePath.endswith('.szs'):
-            if not globals.CompLevel:  # Compress using libyaz0
+            if not globals.CompLevel:  # Compress using libyaz0 and level 0
                 with open(self.fileSavePath, 'wb+') as f:
-                    f.write(Yaz0Comp(globals.Level.saveNewArea(name, None, None, None, None), 0, 0))
+                    f.write(Yaz0Comp_LIBYaz0(globals.Level.saveNewArea(name, None, None, None, None), 0, 0))
+
+            elif globals.cython_available:  # Compress using libyaz0 and level 9
+                with open(self.fileSavePath, 'wb+') as f:
+                    f.write(Yaz0Comp_LIBYaz0(globals.Level.saveNewArea(name, None, None, None, None), 0, 9))
 
             else:  # Compress using WSZST
                 course_name = os.path.splitext(self.fileSavePath)[0]
-                with open(course_name + '.tmp', 'wb') as f:
+                with open(course_name + '.tmp', 'wb+') as f:
                     f.write(globals.Level.saveNewArea(name, None, None, None, None))
 
-                if not compressWSZST(course_name + '.tmp', self.fileSavePath):
+                if not Yaz0Comp_WSZST(course_name + '.tmp', self.fileSavePath):
                     os.remove(course_name + '.tmp')
                     return
 
@@ -2616,14 +2639,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if globals.mainWindow.fileSavePath.endswith('.szs'):
                 if not globals.CompLevel:  # Compress using libyaz0
                     with open(globals.mainWindow.fileSavePath, 'wb+') as f:
-                        f.write(Yaz0Comp(data, 0, 0))
+                        f.write(Yaz0Comp_LIBYaz0(data, 0, 0))
+
+                elif globals.cython_available:  # Compress using libyaz0 and level 9
+                    with open(self.fileSavePath, 'wb+') as f:
+                        f.write(Yaz0Comp_LIBYaz0(data, 0, 9))
 
                 else:  # Compress using WSZST
                     course_name = os.path.splitext(globals.mainWindow.fileSavePath)[0]
-                    with open(course_name + '.tmp', 'wb') as f:
+                    with open(course_name + '.tmp', 'wb+') as f:
                         f.write(data)
 
-                    if not compressWSZST(course_name + '.tmp', globals.mainWindow.fileSavePath):
+                    if not Yaz0Comp_WSZST(course_name + '.tmp', globals.mainWindow.fileSavePath):
                         os.remove(course_name + '.tmp')
                         return
 
@@ -2669,14 +2696,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if globals.mainWindow.fileSavePath.endswith('.szs'):
                 if not globals.CompLevel:  # Compress using libyaz0
                     with open(globals.mainWindow.fileSavePath, 'wb+') as f:
-                        f.write(Yaz0Comp(data, 0, 0))
+                        f.write(Yaz0Comp_LIBYaz0(data, 0, 0))
+
+                elif globals.cython_available:  # Compress using libyaz0 and level 9
+                    with open(self.fileSavePath, 'wb+') as f:
+                        f.write(Yaz0Comp_LIBYaz0(data, 0, 9))
 
                 else:  # Compress using WSZST
                     course_name = os.path.splitext(globals.mainWindow.fileSavePath)[0]
-                    with open(course_name + '.tmp', 'wb') as f:
+                    with open(course_name + '.tmp', 'wb+') as f:
                         f.write(data)
 
-                    if not compressWSZST(course_name + '.tmp', globals.mainWindow.fileSavePath):
+                    if not Yaz0Comp_WSZST(course_name + '.tmp', globals.mainWindow.fileSavePath):
                         os.remove(course_name + '.tmp')
                         return
 
@@ -2732,14 +2763,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if self.fileSavePath.endswith('.szs'):
             if not globals.CompLevel:  # Compress using libyaz0
                 with open(self.fileSavePath, 'wb+') as f:
-                    f.write(Yaz0Comp(data, 0, 0))
+                    f.write(Yaz0Comp_LIBYaz0(data, 0, 0))
+
+            elif globals.cython_available:  # Compress using libyaz0 and level 9
+                with open(self.fileSavePath, 'wb+') as f:
+                    f.write(Yaz0Comp_LIBYaz0(data, 0, 9))
 
             else:  # Compress using WSZST
                 course_name = os.path.splitext(self.fileSavePath)[0]
-                with open(course_name + '.tmp', 'wb') as f:
+                with open(course_name + '.tmp', 'wb+') as f:
                     f.write(data)
 
-                if not compressWSZST(course_name + '.tmp', self.fileSavePath):
+                if not Yaz0Comp_WSZST(course_name + '.tmp', self.fileSavePath):
                     os.remove(course_name + '.tmp')
                     return
 
@@ -3222,7 +3257,23 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             with open(globals.miyamoto_path + "/miyamotoextras/Pa0_jyotyu.szs", "rb") as inf:
                 inb = inf.read()
 
-            data = Yaz0Dec(inb)
+            if globals.cython_available:
+                data = Yaz0Dec_LIBYaz0(inb)
+
+            else:
+                with open(globals.miyamoto_path + '/tmp.tmp', 'wb+') as f:
+                    f.write(inb)
+
+                if not Yaz0Dec_WSZST(globals.miyamoto_path + '/tmp.tmp', globals.miyamoto_path + '/tmp2.tmp'):
+                    os.remove(globals.miyamoto_path + '/tmp.tmp')
+                    return
+
+                with open(globals.miyamoto_path + '/tmp2.tmp', 'rb') as f:
+                    data = f.read()
+
+                os.remove(globals.miyamoto_path + '/tmp.tmp')
+                os.remove(globals.miyamoto_path + '/tmp2.tmp')
+
             globals.szsData = {'Pa0_jyotyu': data}
 
         else:
@@ -3270,10 +3321,29 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 # Decompress, if needed (Yaz0)
                 if levelData.startswith(b'Yaz0'):
                     print('Beginning Yaz0 decompression...')
-                    levelData = Yaz0Dec(levelData)
+
+                    if globals.cython_available:
+                        levelData = Yaz0Dec_LIBYaz0(levelData)
+
+                    else:
+                        with open(globals.miyamoto_path + '/tmp.tmp', 'wb+') as f:
+                            f.write(levelData)
+
+                        if not Yaz0Dec_WSZST(globals.miyamoto_path + '/tmp.tmp', globals.miyamoto_path + '/tmp2.tmp'):
+                            os.remove(globals.miyamoto_path + '/tmp.tmp')
+                            return
+
+                        with open(globals.miyamoto_path + '/tmp2.tmp', 'rb') as f:
+                            levelData = f.read()
+
+                        os.remove(globals.miyamoto_path + '/tmp.tmp')
+                        os.remove(globals.miyamoto_path + '/tmp2.tmp')
+
                     print('Decompression finished.')
+
                 elif levelData.startswith(b'SARC'):
                     print('Yaz0 decompression skipped.')
+
                 else:
                     return False  # keep it from crashing by loading things it shouldn't
 
@@ -4127,7 +4197,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 nml.save(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + "_nml.png", "PNG")
                 jsonData['nml'] = name + "_object_" + str(objNum) + "_nml.png"
 
-                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".colls", "wb+") as colls:
+                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".colls", 'wb+') as colls:
                         colls.write(colldata)
 
                 jsonData['colls'] = name + "_object_" + str(objNum) + ".colls"
@@ -4151,14 +4221,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 deffile += b'\xFF'
 
-                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".objlyt", "wb+") as objlyt:
+                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".objlyt", 'wb+') as objlyt:
                     objlyt.write(deffile)
 
                 jsonData['objlyt'] = name + "_object_" + str(objNum) + ".objlyt"
 
                 indexfile = struct.pack('>HBBxB', 0, obj.width, obj.height, 0)
 
-                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".meta", "wb+") as meta:
+                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".meta", 'wb+') as meta:
                     meta.write(indexfile)
 
                 jsonData['meta'] = name + "_object_" + str(objNum) + ".meta"
@@ -5183,7 +5253,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if (globals.Area.tileset0 not in ('', None)) and (globals.Area.tileset0 in globals.szsData):
             sarcdata = globals.szsData[globals.Area.tileset0]
 
-            with open(tile_path + '/tmp.tmp', 'wb') as fn:
+            with open(tile_path + '/tmp.tmp', 'wb+') as fn:
                 fn.write(sarcdata)
 
         else:
@@ -5264,7 +5334,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if (eval('globals.Area.tileset%d' % slot) not in ('', None)) and (eval('globals.Area.tileset%d' % slot) in globals.szsData):
             sarcdata = globals.szsData[eval('globals.Area.tileset%d' % slot)]
 
-            with open(tile_path + '/tmp.tmp', 'wb') as fn:
+            with open(tile_path + '/tmp.tmp', 'wb+') as fn:
                 fn.write(sarcdata)
             sarcfile = tile_path + '/tmp.tmp'
 

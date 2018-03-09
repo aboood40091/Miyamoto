@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # libyaz0
-# Version 0.4
-# Copyright © 2017 MasterVermilli0n / AboodXD
+# Version 0.5
+# Copyright © 2017-2018 MasterVermilli0n / AboodXD
 
 ################################################################
 ################################################################
@@ -66,51 +66,42 @@ def DecompressYaz(src):
     return dest
 
 
-def CompressYazFast(src):
-    pos = 0
-    dest = bytearray(b'\xff')
-    src_end = len(src)
+def compressionSearch(src, pos, max_len, search_range, src_end):
+    found_len = 1
+    found = 0
 
-    while pos < src_end:
-        for _ in range(8):
-            if pos >= src_end:
+    if pos + 2 < src_end:
+        search = pos - search_range
+        if search < 0:
+             search = 0
+
+        cmp_end = pos + max_len
+        if cmp_end > src_end:
+            cmp_end = src_end
+
+        c1 = src[pos:pos + 1]
+        while search < pos:
+            search = src.find(c1, search, pos)
+            if search == -1:
                 break
 
-            dest.append(src[pos])
-            pos += 1
+            cmp1 = search + 1
+            cmp2 = pos + 1
 
-        else:
-            dest.append(0xFF)
+            while cmp2 < cmp_end and src[cmp1] == src[cmp2]:
+                cmp1 += 1; cmp2 += 1
 
-    return dest
+            len_ = cmp2 - pos
 
+            if found_len < len_:
+                found_len = len_
+                found = search
+                if found_len == max_len:
+                    break
 
-def compressionSearch(data, pos, maxMatchLen, maxMatchDiff, src_end):
-    """
-    Find the longest match in `data` at or after `pos`.
-    From ndspy, thanks RoadrunnerWMC!
-    """
-    start = max(0, pos - maxMatchDiff)
+            search += 1
 
-    lower = 0
-    upper = min(maxMatchLen, src_end - pos)
-
-    recordMatchPos = 0
-    recordMatchLen = 0
-
-    while lower <= upper:
-        matchLen = (lower + upper) // 2
-        match = data[pos : pos + matchLen]
-        matchPos = data.find(match, start, pos)
-
-        if matchPos == -1:
-            upper = matchLen - 1
-        else:
-            if matchLen > recordMatchLen:
-                recordMatchPos, recordMatchLen = matchPos, matchLen
-            lower = matchLen + 1
-
-    return recordMatchPos, recordMatchLen
+    return found, found_len
 
 
 def CompressYaz(src, level):
@@ -118,9 +109,13 @@ def CompressYaz(src, level):
     src_end = len(src)
 
     if not level:
-        return CompressYazFast(src)
+        search_range = 0
 
-    search_range = 0x10e0 * level // 9 - 0x0e0
+    elif level < 9:
+        search_range = 0x10e0 * level // 9 - 0x0e0
+
+    else:
+        search_range = 0x1000
 
     max_len = 0x111
 
@@ -134,7 +129,10 @@ def CompressYaz(src, level):
             if pos >= src_end:
                 break
 
-            found, found_len = compressionSearch(src, pos, max_len, search_range, src_end)
+            found_len = 1
+
+            if search_range:
+                found, found_len = compressionSearch(src, pos, max_len, search_range, src_end)
 
             if found_len > 2:
                 delta = pos - found - 1

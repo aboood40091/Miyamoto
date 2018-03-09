@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # libyaz0
-# Version 0.4
-# Copyright © 2017 MasterVermilli0n / AboodXD
+# Version 0.5
+# Copyright © 2017-2018 MasterVermilli0n / AboodXD
 
 ################################################################
 ################################################################
@@ -40,7 +40,7 @@ def decompress(data):
         raise ValueError("Not Yaz0 compressed!")
 
 
-def compress(data, unk=0, level=9):
+def compress(data, unk=0, level=1):
     compressed_data = yaz0.CompressYaz(bytes(data), level)
 
     result = bytearray(b'Yaz0')
@@ -53,8 +53,14 @@ def compress(data, unk=0, level=9):
 
 
 def guessFileExt(data):
-    if data[0:4] == b"BNTX":
-        return ".bntx"
+    if data[0:4] == b"FRES":
+       return ".bfres"
+
+    elif data[0:4] == b"FFNT":
+       return ".bffnt"
+
+    elif data[0:4] == b"BNTX":
+       return ".bntx"
 
     elif data[0:4] == b"BNSH":
         return ".bnsh"
@@ -72,7 +78,7 @@ def guessFileExt(data):
         return ".sarc"
 
     elif data[0:4] == b"Yaz0":
-        return ".yaz0"
+        return ".szs"
 
     elif data[-0x28:-0x24] == b"FLIM":
         return ".bflim"
