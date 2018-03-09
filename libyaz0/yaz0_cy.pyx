@@ -86,39 +86,6 @@ cpdef bytes DecompressYaz(bytearray src):
         free(dest)
 
 
-cdef bytearray CompressYazFast(bytes src):
-    cdef:
-        array.array dataArr = array.array('B', src)
-        u8 *src_ = dataArr.data.as_uchars
-
-        u32 src_pos = 0
-        u32 src_end = len(src)
-
-        u32 dest_pos = 1
-        u32 dest_end = src_end + (src_end + 8) // 8
-        u8 *dest = <u8 *>malloc(dest_end)
-
-    try:
-        dest[0] = 0xff
-        while src_pos < src_end:
-            for _ in range(8):
-                if src_pos >= src_end:
-                    break
-
-                dest[dest_pos] = src_[src_pos]
-                src_pos += 1
-                dest_pos += 1
-
-            else:
-                dest[dest_pos] = 0xff
-                dest_pos += 1
-
-        return bytearray(<u8[:dest_end]>dest)
-
-    finally:
-        free(dest)
-
-
 cdef (u8 *, u32) compressionSearch(u8 *src, u8 *src_pos, int max_len, u32 range_, u8 *src_end):
     cdef:
         u32 found_len = 1
