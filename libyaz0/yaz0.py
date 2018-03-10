@@ -12,10 +12,10 @@ import struct
 
 
 def DecompressYaz(src):
+    src_end = len(src)
+
     dest_end = struct.unpack(">I", src[4:8])[0]
     dest = bytearray(dest_end)
-
-    src_end = len(src)
 
     code = src[16]
 
@@ -28,31 +28,23 @@ def DecompressYaz(src):
                 break
 
             if code & 0x80:
-                dest[dest_pos] = src[src_pos]
-                src_pos += 1
-                dest_pos += 1
+                dest[dest_pos] = src[src_pos]; dest_pos += 1; src_pos += 1
 
             else:
-                b1 = src[src_pos]
-                src_pos += 1
-                b2 = src[src_pos]
-                src_pos += 1
+                b1 = src[src_pos]; src_pos += 1
+                b2 = src[src_pos]; src_pos += 1
 
                 copy_src = dest_pos - ((b1 & 0x0f) << 8 | b2) - 1
 
                 n = b1 >> 4
                 if not n:
-                    n = src[src_pos] + 0x12
-                    src_pos += 1
+                    n = src[src_pos] + 0x12; src_pos += 1
 
                 else:
                     n += 2
 
-                while n > 0:
-                    n -= 1
-                    dest[dest_pos] = dest[copy_src]
-                    copy_src += 1
-                    dest_pos += 1
+                for _ in range(n)
+                    dest[dest_pos] = dest[copy_src]; dest_pos += 1; copy_src += 1
 
             code <<= 1
 
@@ -60,10 +52,9 @@ def DecompressYaz(src):
             if src_pos >= src_end or dest_pos >= dest_end:
                 break
 
-            code = src[src_pos]
-            src_pos += 1
+            code = src[src_pos]; src_pos += 1
 
-    return dest
+    return bytes(dest)
 
 
 def compressionSearch(src, pos, max_len, search_range, src_end):
@@ -105,9 +96,6 @@ def compressionSearch(src, pos, max_len, search_range, src_end):
 
 
 def CompressYaz(src, level):
-    dest = bytearray()
-    src_end = len(src)
-
     if not level:
         search_range = 0
 
@@ -117,13 +105,17 @@ def CompressYaz(src, level):
     else:
         search_range = 0x1000
 
+    pos = 0
+    src_end = len(src)
+
+    dest = bytearray()
+    code_byte_pos = 0
+
     max_len = 0x111
 
-    pos = 0
-
     while pos < src_end:
-        buffer = bytearray()
-        code_byte = 0
+        code_byte_pos = len(dest)
+        dest.append(0)
 
         for i in range(8):
             if pos >= src_end:
@@ -138,23 +130,18 @@ def CompressYaz(src, level):
                 delta = pos - found - 1
 
                 if found_len < 0x12:
-                    buffer.append(delta >> 8 | (found_len - 2) << 4)
-                    buffer.append(delta & 0xFF)
+                    dest.append(delta >> 8 | (found_len - 2) << 4)
+                    dest.append(delta & 0xFF)
 
                 else:
-                    buffer.append(delta >> 8)
-                    buffer.append(delta & 0xFF)
-                    buffer.append((found_len - 0x12) & 0xFF)
+                    dest.append(delta >> 8)
+                    dest.append(delta & 0xFF)
+                    dest.append((found_len - 0x12) & 0xFF)
 
                 pos += found_len
 
             else:
-                buffer.append(src[pos])
-                pos += 1
+                dest[code_byte_pos] |= 1 << (7 - i)
+                dest.append(src[pos]); pos += 1
 
-                code_byte |= 1 << (7 - i)
-
-        dest.append(code_byte)
-        dest += buffer
-
-    return dest
+    return bytes(dest)

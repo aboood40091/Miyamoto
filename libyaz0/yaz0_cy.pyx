@@ -11,79 +11,70 @@
 from cpython cimport array
 from cython cimport view
 from libc.stdlib cimport malloc, free
+from libc.string cimport memchr
 
 
 ctypedef unsigned char u8
 ctypedef char s8
 ctypedef unsigned int u32
-ctypedef signed long long s64
 
 
-cpdef bytes DecompressYaz(bytearray src):
+cpdef bytes DecompressYaz(bytes src_):
     cdef:
-        array.array dataArr = array.array('B', src)
-        u8 *src_ = dataArr.data.as_uchars
+        array.array dataArr = array.array('B', src_)
+        u8 *src = dataArr.data.as_uchars
+        u8 *src_end = src + len(src_)
 
-        u32 dest_end = (src_[4] << 24 | src_[5] << 16 | src_[6] << 8 | src_[7])
-        u8 *dest = <u8 *>malloc(dest_end)
+        u32 dest_len = (src[4] << 24 | src[5] << 16 | src[6] << 8 | src[7])
+        u8 *dest = <u8 *>malloc(dest_len)
+        u8 *dest_pos = dest
+        u8 *dest_end = dest + dest_len
 
-        u32 src_end = len(src)
-
-        u8 code = src_[16]
-
-        u32 src_pos = 17
-        u32 dest_pos = 0
+        u8 code = src[16]
 
         u8 b1, b2
-        u32 copy_src
+        u8 *copy_src
         int n
 
+    src += 17
+
     try:
-        while src_pos < src_end and dest_pos < dest_end:
+        while src < src_end and dest < dest_end:
             for _ in range(8):
-                if src_pos >= src_end or dest_pos >= dest_end:
+                if src >= src_end or dest >= dest_end:
                     break
 
                 if code & 0x80:
-                    dest[dest_pos] = src_[src_pos]
-                    src_pos += 1
-                    dest_pos += 1
+                    dest[0] = src[0]; dest += 1; src += 1
 
                 else:
-                    b1 = src_[src_pos]
-                    src_pos += 1
-                    b2 = src_[src_pos]
-                    src_pos += 1
+                    b1 = src[0]; src += 1
+                    b2 = src[0]; src += 1
 
-                    copy_src = dest_pos - ((b1 & 0x0f) << 8 | b2) - 1
+                    copy_src = dest - ((b1 & 0x0f) << 8 | b2) - 1
 
                     n = b1 >> 4
                     if not n:
-                        n = src_[src_pos] + 0x12
-                        src_pos += 1
+                        n = src[0] + 0x12; src += 1
 
                     else:
                         n += 2
 
-                    while n > 0:
-                        n -= 1
-                        dest[dest_pos] = dest[copy_src]
-                        copy_src += 1
-                        dest_pos += 1
+                    for _ in range(n):
+                        dest[0] = copy_src[0]; dest += 1; copy_src += 1
 
                 code <<= 1
 
             else:
-                if src_pos >= src_end or dest_pos >= dest_end:
+                if src >= src_end or dest >= dest_end:
                     break
 
-                code = src_[src_pos]
-                src_pos += 1
+                code = src[0]; src += 1
 
-        return bytes(<u8[:dest_end]>dest)
+        return bytes(<u8[:dest - dest_pos]>dest_pos)
 
     finally:
-        free(dest)
+        free(dest_pos)
 
 
 cdef (u8 *, u32) compressionSearch(u8 *src, u8 *src_pos, int max_len, u32 range_, u8 *src_end):
@@ -132,7 +123,7 @@ cdef (u8 *, u32) compressionSearch(u8 *src, u8 *src_pos, int max_len, u32 range_
     return found, found_len
 
 
-cpdef bytearray CompressYaz(bytes src_, u8 opt_compr):
+cpdef bytes CompressYaz(bytes src_, u8 opt_compr):
     cdef u32 range_
 
     if not opt_compr:
@@ -152,48 +143,47 @@ cpdef bytearray CompressYaz(bytes src_, u8 opt_compr):
 
         u8 *dest = <u8 *>malloc(len(src_) + (len(src_) + 8) // 8)
         u8 *dest_pos = dest
-
-        u8 mask = 0
         u8 *code_byte = dest
 
         int max_len = 0x111
-        u32 found_len
+
+        int i
+        u32 found_len, delta
         u8 *found
-        u32 delta
 
     try:
         while src < src_end:
-            if not mask:
-                code_byte = dest
-                dest[0] = 0; dest += 1
-                mask = 0x80
+            code_byte = dest
+            dest[0] = 0; dest += 1
 
-            found_len = 1
+            for i in range(8):
+                if src >= src_end:
+                    break
 
-            if range_:
-                found, found_len = compressionSearch(src, src_pos, max_len, range_, src_end)
+                found_len = 1
 
-            if found_len >= 3:
-                delta = src - found - 1
+                if range_:
+                    found, found_len = compressionSearch(src, src_pos, max_len, range_, src_end)
 
-                if found_len < 0x12:
-                    dest[0] = delta >> 8 | ( found_len - 2 ) << 4; dest += 1
-                    dest[0] = delta; dest += 1
+                if found_len > 2:
+                    delta = src - found - 1
+
+                    if found_len < 0x12:
+                        dest[0] = delta >> 8 | (found_len - 2) << 4; dest += 1
+                        dest[0] = delta & 0xFF; dest += 1
+
+                    else:
+                        dest[0] = delta >> 8; dest += 1
+                        dest[0] = delta & 0xFF; dest += 1
+                        dest[0] = (found_len - 0x12) & 0xFF; dest += 1
+
+                    src += found_len
 
                 else:
-                    dest[0] = delta >> 8; dest += 1
-                    dest[0] = delta; dest += 1
-                    dest[0] = found_len - 0x12; dest += 1
+                    code_byte[0] |= 1 << (7 - i)
+                    dest[0] = src[0]; dest += 1; src += 1
 
-                src += found_len
-
-            else:
-                code_byte[0] |= mask
-                dest[0] = src[0]; dest += 1; src += 1
-
-            mask >>= 1
-
-        return bytearray(<u8[:dest - dest_pos]>dest_pos)
+        return bytes(<u8[:dest - dest_pos]>dest_pos)
 
     finally:
         free(dest_pos)

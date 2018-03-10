@@ -34,7 +34,7 @@ def decompress(data):
     isYaz = IsYazCompressed(data)
 
     if isYaz:
-        return yaz0.DecompressYaz(bytearray(data))
+        return yaz0.DecompressYaz(bytes(data))
 
     else:
         raise ValueError("Not Yaz0 compressed!")
