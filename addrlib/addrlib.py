@@ -16,14 +16,14 @@ BCn_formats = [
 
 
 def swizzleSurf(width, height, height_, format_, tileMode, swizzle_,
-                pitch, bpp, data, swizzle):
+                pitch, bitsPerPixel, data, swizzle):
+
+    bytesPerPixel = bitsPerPixel // 8
+    result = bytearray(len(data))
 
     if format_ in BCn_formats:
         width = (width + 3) // 4
         height = (height + 3) // 4
-
-    bytesPerPixel = bitsPerPixel // 8
-    result = bytearray(width * height * bytesPerPixel)
 
     for y in range(height):
         for x in range(width):
@@ -31,18 +31,18 @@ def swizzleSurf(width, height, height_, format_, tileMode, swizzle_,
             bankSwizzle = (swizzle_ >> 9) & 3
 
             if tileMode in [0, 1]:
-                pos = computeSurfaceAddrFromCoordLinear(x, y, bpp, pitch)
+                pos = computeSurfaceAddrFromCoordLinear(x, y, bitsPerPixel, pitch)
 
             elif tileMode in [2, 3]:
-                pos = computeSurfaceAddrFromCoordMicroTiled(x, y, bpp, pitch, tileMode)
+                pos = computeSurfaceAddrFromCoordMicroTiled(x, y, bitsPerPixel, pitch, tileMode)
 
             else:
-                pos = computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height_, tileMode,
-                                                                              pipeSwizzle, bankSwizzle)
+                pos = computeSurfaceAddrFromCoordMacroTiled(x, y, bitsPerPixel, pitch, height_, tileMode,
+                                                            pipeSwizzle, bankSwizzle)
 
             pos_ = (y * width + x) * bytesPerPixel
 
-            if (pos_ < len(data)) and (pos < len(data)):
+            if pos_ + bytesPerPixel < len(data) and pos + bytesPerPixel < len(data):
                 if swizzle == 0:
                     result[pos_:pos_ + bytesPerPixel] = data[pos:pos + bytesPerPixel]
 
@@ -377,7 +377,7 @@ def computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height,
 
     macroTilesPerRow = pitch // macroTilePitch
     macroTileBytes = (numSamples * microTileThickness * bpp * macroTileHeight
-                               * macroTilePitch + 7) // 8
+                      * macroTilePitch + 7) // 8
     macroTileIndexX = x // macroTilePitch
     macroTileIndexY = y // macroTileHeight
     macroTileOffset = (macroTileIndexX + macroTilesPerRow * macroTileIndexY) * macroTileBytes

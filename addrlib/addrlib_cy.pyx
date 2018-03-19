@@ -11,6 +11,7 @@
 from cpython cimport array
 from cython cimport view
 from libc.stdlib cimport malloc, free
+from libc.string cimport memcpy
 
 
 ctypedef unsigned char u8
@@ -29,16 +30,16 @@ cdef list BCn_formats = [
 cdef bytes swizzleSurf(u32 width, u32 height, u32 height_, u32 format_, u32 tileMode, u32 swizzle_,
                            u32 pitch, u32 bitsPerPixel, u8 *data, u32 dataSize, int swizzle):
 
-    if format_ in BCn_formats:
-        width = (width + 3) // 4
-        height = (height + 3) // 4
-
     cdef:
         u32 bytesPerPixel = bitsPerPixel // 8
-        u8 *result = <u8 *>malloc(width * height * bytesPerPixel)
+        u8 *result = <u8 *>malloc(dataSize)
 
         u32 pipeSwizzle, bankSwizzle, y, x, pos_
         u64 pos
+
+    if format_ in BCn_formats:
+        width = (width + 3) // 4
+        height = (height + 3) // 4
 
     try:
         for y in range(height):
@@ -54,41 +55,38 @@ cdef bytes swizzleSurf(u32 width, u32 height, u32 height_, u32 format_, u32 tile
 
                 else:
                     pos = computeSurfaceAddrFromCoordMacroTiled(x, y, bitsPerPixel, pitch, height_, tileMode,
-                                                                                  pipeSwizzle, bankSwizzle)
+                                                                pipeSwizzle, bankSwizzle)
 
                 pos_ = (y * width + x) * bytesPerPixel
 
-                if pos_ < dataSize and pos < dataSize:
+                if pos_ + bytesPerPixel < dataSize and pos + bytesPerPixel < dataSize:
                     if swizzle == 0:
-                        for _ in range(bytesPerPixel):
-                            result[pos_] = data[pos]
-                            pos_ += 1; pos += 1
+                        memcpy(result + pos_, data + pos, bytesPerPixel)
 
                     else:
-                        for _ in range(bytesPerPixel):
-                            result[pos] = data[pos_]
-                            pos += 1; pos_ += 1
+                        memcpy(result + pos, data + pos_, bytesPerPixel)
 
-
-        return bytes(<u8[:width * height * bytesPerPixel]>result)
+        return bytes(<u8[:dataSize]>result)
 
     finally:
         free(result)
 
 
 cpdef bytes deswizzle(u32 width, u32 height, u32 height_, u32 format_, u32 tileMode, u32 swizzle_,
-                          u32 pitch, u32 bitsPerPixel, data):
+                          u32 pitch, u32 bpp, bytes data):
 
     cdef array.array dataArr = array.array('B', data)
-    return swizzleSurf(width, height, height_, format_, tileMode, swizzle_, pitch, bitsPerPixel,
+
+    return swizzleSurf(width, height, height_, format_, tileMode, swizzle_, pitch, bpp,
                        dataArr.data.as_uchars, len(data), 0)
 
 
 cpdef bytes swizzle(u32 width, u32 height, u32 height_, u32 format_, u32 tileMode, u32 swizzle_,
-                          u32 pitch, u32 bitsPerPixel, data):
+                          u32 pitch, u32 bpp, bytes data):
 
     cdef array.array dataArr = array.array('B', data)
-    return swizzleSurf(width, height, height_, format_, tileMode, swizzle_, pitch, bitsPerPixel,
+
+    return swizzleSurf(width, height, height_, format_, tileMode, swizzle_, pitch, bpp,
                        dataArr.data.as_uchars, len(data), 1)
 
 

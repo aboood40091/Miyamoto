@@ -19,7 +19,7 @@ GitHub: https://github.com/aboood40091/Miyamoto
 * Gota7 -- Coding, Spritedata, Graphics
 * Grop -- Coding, Spritedata
 * John10v10 -- Coding the Quick Paint Tool
-* libtxc_dxtn -- Original BC3 Decompressor in C
+* libtxc_dxtn -- Original DXT5 (De)compressor in C
 * Luzifer -- Graphics
 * Mayro -- Graphics
 * Meorge -- Testing on macOS

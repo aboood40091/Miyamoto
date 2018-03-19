@@ -13,7 +13,7 @@
 
 
 def CompressAlphaBlock(AlphaBlock, Palette, Width, Height, x, y):
-    Indices = [None] * 16
+    Indices = [0] * 16
 
     for y2 in range(4):
         for x2 in range(4):
@@ -40,7 +40,7 @@ def CompressAlphaBlock(AlphaBlock, Palette, Width, Height, x, y):
 
 
 def GetAlphaPalette(A0, A1):
-    Palette = [None] * 8
+    Palette = [0] * 8
     Palette[0] = A0
     Palette[1] = A1
 
@@ -64,7 +64,7 @@ def GetAlphaPalette(A0, A1):
 
 
 def CompressBlock(ColorBlock, Palette, Width, Height, x, y, ScaleR, ScaleG, ScaleB):
-    Indices = [None] * 16
+    Indices = [0] * 16
 
     for y2 in range(4):
         for x2 in range(4):
@@ -152,7 +152,7 @@ def ToARGB8(Red, Green, Blue, Alpha):
 
 
 def GetPalette(Color0, Color1):
-    Palette = [None] * 4
+    Palette = [0] * 4
 
     Palette[0] = ToARGB8(((Color0 >> 11) & 0b11111) / 31, ((Color0 >> 5) & 0b111111) / 63, (Color0 & 0b11111) / 31, 0)
     Palette[1] = ToARGB8(((Color1 >> 11) & 0b11111) / 31, ((Color1 >> 5) & 0b111111) / 63, (Color1 & 0b11111) / 31, 0)
@@ -230,8 +230,8 @@ def compress(SrcPtr, Width, Height):
     for y in range(0, Height, 4):
         for x in range(0, Width, 4):
             Colors, Alphas = [], []
-            ActualColors = [None] * 16
-            ActualAlphas = [None] * 16
+            ActualColors = [0] * 16
+            ActualAlphas = [0] * 16
 
             for y2 in range(4):
                 for x2 in range(4):

@@ -10,8 +10,8 @@
 
 try:
     import pyximport
-
     pyximport.install()
+
     from . import compress_cy as compress_
     from . import decompress_cy as decompress_
 

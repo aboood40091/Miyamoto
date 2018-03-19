@@ -9,8 +9,8 @@
 
 try:
     import pyximport
-
     pyximport.install()
+
     from . import addrlib_cy as addrlib
 
 except:

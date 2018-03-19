@@ -43,7 +43,7 @@ def DecompressYaz(src):
                 else:
                     n += 2
 
-                for _ in range(n)
+                for _ in range(n):
                     dest[dest_pos] = dest[copy_src]; dest_pos += 1; copy_src += 1
 
             code <<= 1

@@ -30,6 +30,7 @@
 from cpython cimport array
 from cython cimport view
 from libc.stdlib cimport malloc, free
+from libc.string cimport memcpy
 
 
 ctypedef unsigned char u8
@@ -161,9 +162,7 @@ cdef bytes export_RGBA8(u32 width, u32 height, u8 *source):
 
                 pos_ = (y * width + x) * 4
 
-                for _ in range(4):
-                    output[pos_] = source[pos]
-                    pos_ += 1; pos += 1
+                memcpy(output + pos_, source + pos, 4)
 
         return bytes(<u8[:width * height * 4]>output)
 
@@ -199,9 +198,7 @@ cdef bytes export_DXT5(u32 width, u32 height, u8 *source):
 
             pos_ = (y * blobWidth + x) * 16
 
-            for _ in range(16):
-                work[pos_] = source[pos]
-                pos_ += 1; pos += 1
+            memcpy(work + pos_, source + pos, 16)
 
     cdef:
         u8 R, G, B, A

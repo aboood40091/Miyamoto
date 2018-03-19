@@ -38,6 +38,7 @@ import globals
 
 import addrlib
 import bc3
+import dds
 import gtx
 import SARC as SarcLib
 import spritelib as SLib
@@ -780,91 +781,95 @@ def DeleteObject(idx, objNum):
                     obj.SetType(obj.tileset, obj.type - 1)
 
 
+def _compressBC3_nvcompress(tex, tile_path):
+    """
+    RGBA8 QPixmap -> BC3 DDS
+    Uses `nvcompress`
+    """
+    if platform.system() == 'Darwin':
+        raise NotImplementedError("MacOSX is not supported yet!")
+
+    tex.save(tile_path + '/tmp.png')
+
+    os.chdir(tile_path)
+
+    if platform.system() == 'Windows':
+        os.system('nvcompress.exe -bc3 tmp.png tmp.dds')
+
+    else:
+        os.system('chmod +x nvcompress.elf')
+        os.system('./nvcompress.elf -bc3 tmp.png tmp.dds')
+
+    os.chdir(globals.miyamoto_path)
+
+    os.remove(tile_path + '/tmp.png')
+
+
+def _compressBC3_libtxc_dxtn(tex, tile_path):
+    """
+    RGBA8 QPixmap -> BC3 DDS
+    Uses our port of `libtxc_dxtn`
+    """
+    data = tex.bits()
+    data.setsize(tex.byteCount())
+    data = data.asstring()
+
+    dataList = []
+    dataList.append(bc3.compress(data, 2048, 512))
+
+    for i in range(1, 12):
+        mipTex = QtGui.QImage(tex).scaledToWidth(max(1, 2048 >> i), Qt.SmoothTransformation)
+        mipTex = mipTex.convertToFormat(QtGui.QImage.Format_RGBA8888)
+
+        mipData = mipTex.bits()
+        mipData.setsize(mipTex.byteCount())
+        mipData = mipData.asstring()
+
+        dataList.append(
+            bc3.compress(mipData, max(1, 2048 >> i), max(1, 512 >> i)))
+
+    with open(tile_path + '/tmp.dds', 'wb+') as out:
+        out.write(dds.generateHeader(2048, 512, 0x33, 12))
+        for data in dataList:
+            out.write(data)
+
+
 def writeGTX(tex, idx):
     """
     Generates a GTX file from a QImage
     """
-    # use nvcompress to compress as BC3 on Windows and Linux
-    if platform.system() in ['Windows', 'Linux']:
-        if platform.system() == 'Windows':
-            tile_path = globals.miyamoto_path + '/Tools'
+    if platform.system() == 'Windows':
+        tile_path = globals.miyamoto_path + '/Tools'
 
-        else:
-            tile_path = globals.miyamoto_path + '/linuxTools'
+    elif platform.system() == 'Linux':
+        tile_path = globals.miyamoto_path + '/linuxTools'
 
-        if idx != 0:  # Save as DXT5/BC3
-            tex.save(tile_path + '/tmp.png')
-
-            os.chdir(tile_path)
-
-            if platform.system() == 'Windows':
-                os.system('nvcompress.exe -bc3 tmp.png tmp.dds')
-
-            else:
-                os.system('chmod +x nvcompress.elf')
-                os.system('./nvcompress.elf -bc3 tmp.png tmp.dds')
-
-            os.chdir(globals.miyamoto_path)
-
-            os.remove(tile_path + '/tmp.png')
-
-        else:  # Save as RGBA8
-            import dds
-
-            data = tex.bits()
-            data.setsize(tex.byteCount())
-            data = data.asstring()
-
-            with open(tile_path + '/tmp.dds', 'wb+') as out:
-                hdr = dds.generateHeader(2048, 512, 0x1a)
-                out.write(hdr)
-                out.write(data)
-
-            del dds
-
-    # nvcompress doesn't want to work on MacOSX
-    # so let's use a local BC3 compressor (lossy)
     else:
         tile_path = globals.miyamoto_path + '/macTools'
 
-        import dds
+    if idx != 0:  # Save as DXT5/BC3
+        if platform.system() == 'Darwin' or globals.cython_available:
+            _compressBC3_libtxc_dxtn(tex, tile_path)
 
+        else:
+            try:
+                _compressBC3_nvcompress(tex, tile_path)
+
+            except:
+                pass
+
+            if not os.path.isfile(tile_path + '/tmp.dds'):
+                _compressBC3_libtxc_dxtn(tex, tile_path)
+
+    else:  # Save as RGBA8
         data = tex.bits()
         data.setsize(tex.byteCount())
         data = data.asstring()
 
-        dataList = []
-
-        if idx != 0:  # Save as DXT5/BC3
-            fmt = 0x33
-            numMips = 12
-
-            dataList.append(bc3.compress(data, 2048, 512))
-
-            for i in range(1, numMips):
-                mipTex = QtGui.QImage(tex).scaledToWidth(max(1, 2048 >> i), Qt.SmoothTransformation)
-                mipTex = mipTex.convertToFormat(QtGui.QImage.Format_RGBA8888)
-
-                mipData = mipTex.bits()
-                mipData.setsize(mipTex.byteCount())
-                mipData = mipData.asstring()
-
-                dataList.append(
-                    bc3.compress(mipData, max(1, 2048 >> i), max(1, 512 >> i)))
-
-        else:  # Save as RGBA8
-            fmt = 0x1a
-            numMips = 1
-
-            dataList.append(data)
-
         with open(tile_path + '/tmp.dds', 'wb+') as out:
-            hdr = dds.generateHeader(2048, 512, fmt, numMips)
+            hdr = dds.generateHeader(2048, 512, 0x1a)
             out.write(hdr)
-            for data in dataList:
-                out.write(data)
-
-        del dds
+            out.write(data)
 
     gtxdata = gtx.DDStoGTX(tile_path + '/tmp.dds')
 
@@ -958,7 +963,8 @@ def SaveTileset(idx):
 
     defs = globals.ObjectDefinitions[idx]
 
-    if defs is None: return False
+    if defs is None:
+        return False
 
     colldata = b''
     deffile = b''
@@ -1009,24 +1015,24 @@ def SaveTileset(idx):
     return arc.save(0x2000)
 
 
-def _loadGTX_gtx_quick(width, height, format, data):
+def _loadGTX_gtx_quick(width, height, format_, data):
     """
     Use `gtx_quick` to decode the texture
     """
-    return gtx_quick_cy.decodeGTX(width, height, format, data)
+    return gtx_quick_cy.decodeGTX(width, height, format_, data)
 
 
-def _loadGTX_addrlib(width, height, format, tileMode, data):
+def _loadGTX_addrlib(width, height, format_, tileMode, data):
     """
     Use `AddrLib` to decode the texture (and decompress if needed)
     """
     # Get the Surface Info
-    surfOut = addrlib.getSurfaceInfo(format, width, height, 1, 1, tileMode, 0, 0)
+    surfOut = addrlib.getSurfaceInfo(format_, width, height, 1, 1, tileMode, 0, 0)
 
     # Deswizzle the data
-    udata = addrlib.deswizzle(width, height, surfOut.height, format, tileMode, 0, surfOut.pitch, surfOut.bpp, data)
+    udata = addrlib.deswizzle(width, height, surfOut.height, format_, tileMode, 0, surfOut.pitch, surfOut.bpp, data)
 
-    if format == 0x33:
+    if format_ == 0x33:
         # Decompress the data
         udata = bc3.decompress(udata, width, height)
 
@@ -1077,7 +1083,7 @@ def _loadGTX_gtx_extract(gtxdata):
 def loadGTX(gtxdata, useAddrLib=False):
     # Read the gtx file
     (dim, width, height, depth,
-     format, tileMode, data) = gtx.readGFD(gtxdata)
+     format_, tileMode, data) = gtx.readGFD(gtxdata)
 
     if dim != 1:
         raise NotImplementedError("Unimplemented texture dimension!")
@@ -1085,24 +1091,25 @@ def loadGTX(gtxdata, useAddrLib=False):
     elif depth != 1:
         raise NotImplementedError("Unimplemented texture depth!")
 
-    elif format not in [0x1a, 0x33]:
+    elif format_ not in [0x1a, 0x33]:
         raise NotImplementedError("Unimplemented texture format!")
 
     elif tileMode != 4:
         useAddrLib = True
 
-    if useAddrLib:
-        udata = _loadGTX_addrlib(width, height, format, tileMode, data)
+    if globals.cython_available:
+        if useAddrLib:
+            udata = _loadGTX_addrlib(width, height, format_, tileMode, data)
 
-    elif globals.cython_available:
-        udata = _loadGTX_gtx_quick(width, height, format, data)
+        else:
+            udata = _loadGTX_gtx_quick(width, height, format_, data)
 
     else:
         try:
             return _loadGTX_gtx_extract(gtxdata)
 
         except:
-            udata = _loadGTX_addrlib(width, height, format, data)
+            udata = _loadGTX_addrlib(width, height, format_, tileMode, data)
 
     return QtGui.QImage(udata, width, height, QtGui.QImage.Format_RGBA8888)
 

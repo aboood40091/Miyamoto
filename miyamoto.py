@@ -65,6 +65,7 @@ import globals
 try:
     import pyximport
     pyximport.install()
+
     import cython_available
 
 except:

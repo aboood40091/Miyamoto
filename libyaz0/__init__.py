@@ -18,8 +18,8 @@ except:
     except:
         try:
             import pyximport
-
             pyximport.install()
+
             from . import yaz0_cy as yaz0
 
         except:
