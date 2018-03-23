@@ -5161,6 +5161,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
 
+            # TODO:
+            # Make a message box appear if "Yougan_2" is selected
+
             for z in globals.Area.zones:
                 name = globals.names_bg[globals.names_bgTrans.index(str(dlg.BGTabs[z.id].bg_name.currentText()))]
                 unk1 = dlg.BGTabs[z.id].unk1.value()

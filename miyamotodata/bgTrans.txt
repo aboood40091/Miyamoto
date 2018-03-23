@@ -55,7 +55,7 @@ Ghost Ship 2
 Ghost Ship 2 (Outside)
 Lava
 Lava (Secondary)
-Lava 2 (Crashes)
+Lava 2
 Lava Goal
 Luigi Clouds (Update)
 Mountain
