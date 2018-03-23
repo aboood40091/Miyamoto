@@ -507,7 +507,6 @@ def useTileIndex(index):
 
 def getBitsPerPixel(format_):
     expandY = 1
-    bitUnused = 0
     elemMode = 3
 
     if format_ == 1:
@@ -568,7 +567,6 @@ def getBitsPerPixel(format_):
 
     elif format_ == 28:
         bpp = 64
-        bitUnused = 24
         expandX = 1
 
     elif format_ == 44:
@@ -1066,7 +1064,6 @@ def computeSurfaceInfoLinear(tileMode, bpp, numSamples, pitch, height, numSlices
     if ((flags.value >> 9) & 1) and not mipLevel:
         expPitch *= 3
 
-    tileSlices = numSamples
     slices = expNumSlices * numSamples // microTileThickness
     pPitchOut = expPitch
     pHeightOut = expHeight
@@ -1200,16 +1197,8 @@ def computeSurfaceAlignmentsMacroTiled(tileMode, bpp, flags, numSamples):
         baseAlign = max(groupBytes, (4 * heightAlign * bpp * pitchAlign + 7) >> 3)
 
     microTileBytes = (thickness * numSamples * (bpp << 6) + 7) >> 3
-
-    if microTileBytes < splitBytes:
-        v11 = 1
-
-    else:
-        v11 = microTileBytes // splitBytes
-
-    numSlicesPerMicroTile = v11
-
-    baseAlign //= v11
+    numSlicesPerMicroTile = 1 if microTileBytes < splitBytes else microTileBytes // splitBytes
+    baseAlign //= numSlicesPerMicroTile
 
     if isDualBaseAlignNeeded(tileMode):
         macroBytes = (bpp * macroTileHeight * macroTileWidth + 7) >> 3
@@ -1527,7 +1516,6 @@ def computeSurfaceInfo(aSurfIn, pSurfOut):
     v10 = 0
     v11 = 0
     v12 = 0
-    v14 = 0
     v18 = 0
     tileInfoNull = tileInfo()
     sliceFlags = 0
@@ -1613,7 +1601,6 @@ def computeSurfaceInfo(aSurfIn, pSurfOut):
                 pOut.sliceSize = pOut.surfSize
 
             else:
-                v14 = pOut.surfSize >> 32
                 pOut.sliceSize = pOut.surfSize // pOut.depth
 
                 if pIn.slice == (pIn.numSlices - 1) and pIn.numSlices > 1:

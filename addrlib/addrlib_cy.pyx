@@ -617,7 +617,6 @@ cdef u32 useTileIndex(u32 index):
 cdef (u32, u32, u32, u32) getBitsPerPixel(u32 format_):
     cdef:
         u32 expandY = 1
-        u32 bitUnused = 0
         u32 elemMode = 3
 
     cdef u32 bpp, expandX
@@ -680,7 +679,6 @@ cdef (u32, u32, u32, u32) getBitsPerPixel(u32 format_):
 
     elif format_ == 28:
         bpp = 64
-        bitUnused = 24
         expandX = 1
 
     elif format_ == 44:
@@ -1171,8 +1169,7 @@ cdef (u32, u32, u32, u32, u32, u32, u32, u32, u32) computeSurfaceInfoLinear(u32 
         u32 valid = 1
         u32 microTileThickness = computeSurfaceThickness(tileMode)
 
-        u32 baseAlign, pitchAlign, heightAlign
-        u32 tileSlices, slices
+        u32 baseAlign, pitchAlign, heightAlign, slices
         u32 pPitchOut, pHeightOut, pNumSlicesOut, pSurfSize, pBaseAlign, pPitchAlign, pHeightAlign, pDepthAlign
 
     baseAlign, pitchAlign, heightAlign = computeSurfaceAlignmentsLinear(tileMode, bpp, flags)
@@ -1209,7 +1206,6 @@ cdef (u32, u32, u32, u32, u32, u32, u32, u32, u32) computeSurfaceInfoLinear(u32 
     if ((flags.value >> 9) & 1) and not mipLevel:
         expPitch *= 3
 
-    tileSlices = numSamples
     slices = expNumSlices * numSamples // microTileThickness
     pPitchOut = expPitch
     pHeightOut = expHeight
@@ -1689,7 +1685,6 @@ cdef void computeSurfaceInfo(surfaceIn aSurfIn, surfaceOut pSurfOut):
         u32 v10 = 0
         u32 v11 = 0
         u32 v12 = 0
-        u32 v14 = 0
         u32 v18 = 0
         tileInfo tileInfoNull = tileInfo()
         u32 sliceFlags = 0
@@ -1780,7 +1775,6 @@ cdef void computeSurfaceInfo(surfaceIn aSurfIn, surfaceOut pSurfOut):
                 pOut.sliceSize = pOut.surfSize
 
             else:
-                v14 = pOut.surfSize >> 32
                 pOut.sliceSize = pOut.surfSize // pOut.depth
 
                 if pIn.slice == (pIn.numSlices - 1) and pIn.numSlices > 1:
