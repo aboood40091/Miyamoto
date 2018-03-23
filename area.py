@@ -62,6 +62,7 @@ class AbstractArea:
         self.L2 = L2
         self.LoadBlocks(course)
         self.LoadTilesetNames()
+        self.LoadBackgrounds()
         self.LoadSprites()
 
     def LoadBlocks(self, course):
@@ -96,6 +97,29 @@ class AbstractArea:
             self.tileset2 = ''
         if self.tileset3 not in globals.szsData:
             self.tileset3 = ''
+
+    def LoadBackgrounds(self):
+        """
+        Loads block 5, the background data
+        """
+        bgData = self.blocks[4]
+        self.bgCount = len(bgData) // 28
+
+        bgStruct = struct.Struct('>HxBxxxx16sHxx')
+
+        offset = 0
+
+        bgs = {}
+        self.bgblockid = []
+
+        for i in range(self.bgCount):
+            bg = bgStruct.unpack_from(bgData, offset)
+            self.bgblockid.append(bg[0])
+            bgs[bg[0]] = bg
+
+            offset += 28
+
+        return bgs
 
     def LoadSprites(self):
         """
@@ -341,39 +365,6 @@ class Area_NSMBU(AbstractArea):
         except Exception:
             self.Metadata = Metadata()  # fallback
 
-    def LoadBlocks(self, course):
-        """
-        Loads self.blocks from the course file
-        """
-        self.blocks = [None] * 15
-        getblock = struct.Struct('>II')
-        for i in range(15):
-            data = getblock.unpack_from(course, i * 8)
-            if data[1] == 0:
-                self.blocks[i] = b''
-            else:
-                self.blocks[i] = course[data[0]:data[0] + data[1]]
-
-        self.block1pos = getblock.unpack_from(course, 0)
-
-    def LoadTilesetNames(self):
-        """
-        Loads block 1, the tileset names
-        """
-        data = struct.unpack_from('32s32s32s32s', self.blocks[0])
-        self.tileset0 = bytes_to_string(data[0])
-        self.tileset1 = bytes_to_string(data[1])
-        self.tileset2 = bytes_to_string(data[2])
-        self.tileset3 = bytes_to_string(data[3])
-        if self.tileset0 not in globals.szsData:
-            self.tileset0 = ''
-        if self.tileset1 not in globals.szsData:
-            self.tileset1 = ''
-        if self.tileset2 not in globals.szsData:
-            self.tileset2 = ''
-        if self.tileset3 not in globals.szsData:
-            self.tileset3 = ''
-
     def LoadOptions(self):
         """
         Loads block 2, the general options
@@ -399,25 +390,6 @@ class Area_NSMBU(AbstractArea):
             offset += 24
         self.entrances = entrances
 
-    def LoadSprites(self):
-        """
-        Loads block 8, the sprites
-        """
-        spritedata = self.blocks[7]
-        sprcount = len(spritedata) // 24
-        sprstruct = struct.Struct('>HHH10sxx2sxxxx')
-        offset = 0
-        sprites = []
-
-        unpack = sprstruct.unpack_from
-        append = sprites.append
-        obj = SpriteItem
-        for i in range(sprcount):
-            data = unpack(spritedata, offset)
-            append(obj(data[0], data[1], data[2], data[3] + data[4]))
-            offset += 24
-        self.sprites = sprites
-
     def LoadZones(self):
         """
         Loads blocks 3, 5 and 10 - the bounding, background and zone data
@@ -436,17 +408,7 @@ class Area_NSMBU(AbstractArea):
         self.bounding = bounding
 
         # Block 5 - Bg data
-        bgData = self.blocks[4]
-        self.bgCount = len(bgData) // 28
-        bgStruct = struct.Struct('>HxBxxxx16sHxx')
-        offset = 0
-        bgs = {}
-        self.bgblockid = []
-        for i in range(self.bgCount):
-            bg = bgStruct.unpack_from(bgData, offset)
-            self.bgblockid.append(bg[0])
-            bgs[bg[0]] = bg
-            offset += 28
+        bgs = self.LoadBackgrounds()
 
         # Block 10 - zone data
         zonedata = self.blocks[9]

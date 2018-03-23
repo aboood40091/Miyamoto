@@ -425,6 +425,7 @@ class ObjectDef:
         self.height = 0
         self.folderIndex = -1
         self.randByte = 0
+        self.reversed = False
         self.rows = []
         self.data = 0
 
@@ -432,14 +433,43 @@ class ObjectDef:
         """
         Load an object definition
         """
+        # Bugs... I love bugs...
+        source = source.replace(b'\xfe\x00\xff', b'\xfe\xff')
+
+        # Check if this is a slope and the rows are reversed
+        if source[0] & 0x80:
+            row_bytes = source.find(b'\xfe', 1) - 1
+
+            # The row must end with 0xFE
+            # Raise a ValueError if it didn't
+            if row_bytes == -2:
+                raise ValueError("Invalid collsion data!")
+
+            if row_bytes % 3 == 0:
+                if source[0] & 2:
+                    self.reversed = True
+
+            else:
+                # I also believe that this is a bug
+                # but we can take advantage of it
+                source = source[:1] + source[2:]
+
+        # The data must end with 0xFF
+        # Raise a ValueError if it didn't
+        if source[-1] != 0xFF:
+            raise ValueError("Invalid collsion data!")
+
         i = offset
         row = []
         cbyte = source[i]
 
-        while cbyte != 0xFF and i < len(source):
+        while i < len(source):
             cbyte = source[i]
 
-            if cbyte == 0xFE:
+            if cbyte == 0xFF:
+                break
+
+            elif cbyte == 0xFE:
                 self.rows.append(row)
                 i += 1
                 row = []
@@ -449,9 +479,6 @@ class ObjectDef:
                 i += 1
 
             else:
-                if i + 1 >= len(source) or i + 2 >= len(source):
-                    break
-
                 extra = source[i + 2]
                 tile = [cbyte, source[i + 1] | ((extra & 3) << 8), extra >> 2]
                 row.append(tile)
@@ -642,11 +669,10 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
 
             globals.ObjectDefinitions[idx][objNum] = obj
 
-            # Checks if the slop is reversed and reverses the rows
+            # Checks if the rows are reversed
             # Also adds the object's tiles to the Tiles dict.
             tilesReplaced = []
-            isSlope = obj.rows[0][0][0]
-            if (isSlope & 0x80) and (isSlope & 0x2):
+            if obj.reversed:
                 x = 0
                 y = (obj.height - 1) * 60
                 i = 0

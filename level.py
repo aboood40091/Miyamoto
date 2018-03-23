@@ -239,7 +239,7 @@ class Level_NSMBU(AbstractLevel):
             tree = etree.parse(globals.miyamoto_path + '/miyamotodata/spriteresources.xml')
             root = tree.getroot()
 
-            # Get all sprites' filenames and add them to a tuple
+            # Get all sprites' filenames and add them to a list
             sprites_xml = {}
             for sprite in root.iter('sprite'):
                 id = int(sprite.get('id'))
@@ -248,7 +248,7 @@ class Level_NSMBU(AbstractLevel):
                 for id2 in sprite:
                     name.append(id2.get('name'))
 
-                sprites_xml[id] = tuple(name)
+                sprites_xml[id] = list(name)
 
             # Look up every sprite and tileset used in each area
             sprites_SARC = []
@@ -269,8 +269,8 @@ class Level_NSMBU(AbstractLevel):
                 if area_SARC.tileset3 not in ('', None):
                     tilesets_names.append(area_SARC.tileset3)
 
-            sprites_SARC = tuple(set(sprites_SARC))
-            tilesets_names = tuple(set(tilesets_names))
+            sprites_SARC = list(set(sprites_SARC))
+            tilesets_names = list(set(tilesets_names))
 
             # Sort the filenames for each "used" sprite
             sprites_names = []
@@ -278,7 +278,7 @@ class Level_NSMBU(AbstractLevel):
                 for sprite_name in sprites_xml[sprite]:
                     sprites_names.append(sprite_name)
 
-            sprites_names = tuple(set(sprites_names))
+            sprites_names = list(set(sprites_names))
 
             # Look up each needed file and add it to our archive
             for sprite_name in sprites_names:

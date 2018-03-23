@@ -2338,14 +2338,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             return True
 
         def guessInnerName():
+            nonlocal fn
+
             possibilities = []
-            possibilities.append(os.path.basename(self.fileSavePath))
+            possibilities.append(os.path.basename(fn))
             possibilities.append(
-                os.path.basename(self.fileSavePath).split(' ')[-1])  # for names like "NSMBU 1-1.szs"
+                os.path.basename(fn).split(' ')[-1])  # for names like "NSMBU 1-1.szs"
             possibilities.append(
-                os.path.basename(self.fileSavePath).split(' ')[0])  # for names like "1-1 test.szs"
-            possibilities.append(os.path.basename(self.fileSavePath).split('.')[0])
-            possibilities.append(os.path.basename(self.fileSavePath).split('_')[0])
+                os.path.basename(fn).split(' ')[0])  # for names like "1-1 test.szs"
+            possibilities.append(os.path.basename(fn).split('.')[0])
+            possibilities.append(os.path.basename(fn).split('_')[0])
 
             for fn in possibilities:
                 if exists(fn):
