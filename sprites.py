@@ -1157,7 +1157,7 @@ class SpriteImage_Spiny(SLib.SpriteImage_StaticMultiple):  # 23
         super().dataChanged()
 
 
-class SpriteImage_MidwayFlag(SLib.SpriteImage_StaticMultiple):  # 25
+class SpriteImage_MidwayFlag(SLib.SpriteImage_Static):  # 25
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -1597,7 +1597,7 @@ class SpriteImage_InvisiBlock(SLib.SpriteImage_Static):  # 61
             painter.drawPixmap(0, 0, 60, 60, SLib.Tiles[self.tilenum].main)
 
 
-class SpriteImage_StalkingPiranha(SLib.SpriteImage_StaticMultiple):  # 63
+class SpriteImage_StalkingPiranha(SLib.SpriteImage_Static):  # 63
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -1700,7 +1700,7 @@ class SpriteImage_ControllerSwaying(SLib.SpriteImage_Static):  # 68
 
 
 
-class SpriteImage_ControllerSpinning(SLib.SpriteImage_StaticMultiple):  # 69, 484
+class SpriteImage_ControllerSpinning(SLib.SpriteImage_Static):  # 69, 484
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -1875,7 +1875,7 @@ class SpriteImage_CoinSpawner(SLib.SpriteImage_Liquid):  # 73
         SLib.loadIfNotInImageCache('CoinSpawner', 'coin_spawner.png')
 
 
-class SpriteImage_HuckitCrab(SLib.SpriteImage_StaticMultiple):  # 74
+class SpriteImage_HuckitCrab(SLib.SpriteImage_Static):  # 74
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -2353,30 +2353,27 @@ class SpriteImage_SpecialExit(SLib.SpriteImage):  # 115
         self.aux[0].setSize(w * 60, h * 60)
 
 
-class SpriteImage_Pendulum(SLib.SpriteImage):  # 117
+class SpriteImage_Spinner(SLib.SpriteImage_StaticMultiple):  # 117
     def __init__(self, parent):
-        super().__init__(parent, 3.75)
-        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
-        self.parent.setZValue(24999)
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+        self.xOffset = -48
+        self.yOffset = -16
+
+    @staticmethod
+    def loadImages():
+        for i in range(16):
+            SLib.loadIfNotInImageCache('Spinner' + str(i), 'big_spinner_s' + str(i) + '.png')
 
     def dataChanged(self):
-        super().dataChanged()
-
         size = self.parent.spritedata[4] & 0xF
 
-        widths = [2, 2.333333333333335, 2.6666666666666665, 3, 3.333333333333335, 3.5, 3.6666666666666665,
-                  3.6666666666666667, 4, 4.333333333333333, 4.666666666666667, 4.666666666666667, 5, 5.333333333333333,
-                  5.666666666666667, 6]
-        heights = [6.21904761904762, 6.666666666666667, 7.21904761904762, 8, 8.5, 9, 9.666666666666667,
-                   10.21904761904762, 11, 11.21904761904762, 12, 12.5, 13.02051282051282, 13.666666666666667,
-                   14.21904761904762, 15.21904761904762]
+        self.image = ImageCache['Spinner' + str(size)]
 
-        width = widths[size]
-        height = heights[size]
-
-        self.xOffset = -0.5 * (width - 1) * 16
-
-        self.aux[0].setSize(width * 60, height * 60)
+        super().dataChanged()
 
 
 class SpriteImage_SpinyCheep(SLib.SpriteImage_Static):  # 120
@@ -2453,7 +2450,7 @@ class SpriteImage_GiantThwomp(SLib.SpriteImage_Static):  # 136
         SLib.loadIfNotInImageCache('GiantThwomp', 'thwomp_giant.png')
 
 
-class SpriteImage_DryBones(SLib.SpriteImage_StaticMultiple):  # 137
+class SpriteImage_DryBones(SLib.SpriteImage_Static):  # 137
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -2469,7 +2466,7 @@ class SpriteImage_DryBones(SLib.SpriteImage_StaticMultiple):  # 137
         SLib.loadIfNotInImageCache('DryBones', 'dry_bones.png')
 
 
-class SpriteImage_BigDryBones(SLib.SpriteImage_StaticMultiple):  # 138
+class SpriteImage_BigDryBones(SLib.SpriteImage_Static):  # 138
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -3692,7 +3689,7 @@ class SpriteImage_ClapCoin(SLib.SpriteImage_Static):  # 168
         SLib.loadIfNotInImageCache('ClapCoin', 'clap_coin.png')
 
 
-class SpriteImage_ControllerIf(SLib.SpriteImage_StaticMultiple):  # 169
+class SpriteImage_ControllerIf(SLib.SpriteImage_Static):  # 169
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -3705,7 +3702,7 @@ class SpriteImage_ControllerIf(SLib.SpriteImage_StaticMultiple):  # 169
         SLib.loadIfNotInImageCache('ControllerIf', 'controller_if.png')
 
 
-class SpriteImage_Parabomb(SLib.SpriteImage_StaticMultiple):  # 170
+class SpriteImage_Parabomb(SLib.SpriteImage_Static):  # 170
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -3721,7 +3718,7 @@ class SpriteImage_Parabomb(SLib.SpriteImage_StaticMultiple):  # 170
         SLib.loadIfNotInImageCache('Parabomb', 'parabomb.png')
 
 
-class SpriteImage_Mechakoopa(SLib.SpriteImage_StaticMultiple):  # 175
+class SpriteImage_Mechakoopa(SLib.SpriteImage_Static):  # 175
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -3967,7 +3964,7 @@ class SpriteImage_LineMovingPlatform(SLib.SpriteImage_StaticMultiple):  # 193
             painter.drawPixmap(30, 0, ImageCache['MovPlat%sR' % self.imgType])
 
 
-class SpriteImage_RouletteBlock(SLib.SpriteImage_StaticMultiple):  # 195
+class SpriteImage_RouletteBlock(SLib.SpriteImage_Static):  # 195
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -4519,7 +4516,7 @@ class SpriteImage_TileGod(SLib.SpriteImage_StaticMultiple):  # 237, 673
         painter.restore()
 
 
-class SpriteImage_PricklyGoomba(SLib.SpriteImage_StaticMultiple):  # 247
+class SpriteImage_PricklyGoomba(SLib.SpriteImage_Static):  # 247
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -4535,7 +4532,7 @@ class SpriteImage_PricklyGoomba(SLib.SpriteImage_StaticMultiple):  # 247
         SLib.loadIfNotInImageCache('PricklyGoomba', 'prickly_goomba.png')
 
 
-class SpriteImage_Wiggler(SLib.SpriteImage_StaticMultiple):  # 249
+class SpriteImage_Wiggler(SLib.SpriteImage_Static):  # 249
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -5306,7 +5303,7 @@ class SpriteImage_Morton(SLib.SpriteImage_Static):  # 368
         SLib.loadIfNotInImageCache('Morton', 'morton.png')
 
 
-class SpriteImage_TorpedoLauncher(SLib.SpriteImage_StaticMultiple):  # 378
+class SpriteImage_TorpedoLauncher(SLib.SpriteImage_Static):  # 378
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -5666,7 +5663,7 @@ class SpriteImage_BonyBeetle(SLib.SpriteImage_Static):  # 443
         SLib.loadIfNotInImageCache('BonyBeetle', 'bony_beetle.png')
 
 
-class SpriteImage_FliprusSnowball(SLib.SpriteImage_StaticMultiple):  # 446
+class SpriteImage_FliprusSnowball(SLib.SpriteImage_Static):  # 446
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -5762,7 +5759,7 @@ class SpriteImage_BowserShutter(SLib.SpriteImage_Static):  # 467
         SLib.loadIfNotInImageCache('BowserShutter', 'bowser_shutter.png')
 
 
-class SpriteImage_BigGoomba(SLib.SpriteImage_StaticMultiple):  # 472
+class SpriteImage_BigGoomba(SLib.SpriteImage_Static):  # 472
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -6044,7 +6041,7 @@ class SpriteImage_PaintGoal(SLib.SpriteImage_StaticMultiple):  # 503
         super().dataChanged()
 
 
-class SpriteImage_Grrrol(SLib.SpriteImage_StaticMultiple):  # 504
+class SpriteImage_Grrrol(SLib.SpriteImage_Static):  # 504
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -6060,7 +6057,7 @@ class SpriteImage_Grrrol(SLib.SpriteImage_StaticMultiple):  # 504
         SLib.loadIfNotInImageCache('GrrrolSmall', 'grrrol_small.png')
 
 
-class SpriteImage_ShootingStar(SLib.SpriteImage_StaticMultiple):  # 507
+class SpriteImage_ShootingStar(SLib.SpriteImage_Static):  # 507
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -6365,7 +6362,7 @@ class SpriteImage_SumoBro(SLib.SpriteImage_Static):  # 593
         SLib.loadIfNotInImageCache('SumoBro', 'sumo_bro.png')
 
 
-class SpriteImage_Goombrat(SLib.SpriteImage_StaticMultiple):  # 595
+class SpriteImage_Goombrat(SLib.SpriteImage_Static):  # 595
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -6381,7 +6378,7 @@ class SpriteImage_Goombrat(SLib.SpriteImage_StaticMultiple):  # 595
         SLib.loadIfNotInImageCache('Goombrat', 'goombrat.png')
 
 
-class SpriteImage_MoonBlock(SLib.SpriteImage_StaticMultiple):  # 600
+class SpriteImage_MoonBlock(SLib.SpriteImage_Static):  # 600
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -6523,7 +6520,7 @@ ImageClasses = {
     109: SpriteImage_TowerBossDoor,
     110: SpriteImage_CastleBossDoor,
     115: SpriteImage_SpecialExit,
-    117: SpriteImage_Pendulum,
+    117: SpriteImage_Spinner,
     120: SpriteImage_SpinyCheep,
     123: SpriteImage_SandPillar,
     134: SpriteImage_Useless,
