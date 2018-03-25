@@ -1367,8 +1367,16 @@ class PreferencesDialog(QtWidgets.QDialog):
                 # Add the compression level setting
                 self.compLevel = QtWidgets.QComboBox()
                 self.compLevel.setMaximumWidth(256)
-                self.compLevel.addItems([globals.trans.string('PrefsDlg', 33), globals.trans.string('PrefsDlg', 34)])
-                self.compLevel.setCurrentIndex(globals.CompLevel)
+
+                if globals.cython_available:
+                    for i in range(33, 43):
+                        self.compLevel.addItem(globals.trans.string('PrefsDlg', i))
+
+                    self.compLevel.setCurrentIndex(globals.CompLevel)
+
+                else:
+                    self.compLevel.addItem(globals.trans.string('PrefsDlg', 42))
+                    self.compLevel.setCurrentIndex(0)
 
                 # Create the main layout
                 L = QtWidgets.QFormLayout()

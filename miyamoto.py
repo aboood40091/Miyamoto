@@ -2464,15 +2464,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # no error checking. if it saved last time, it will probably work now
 
         if self.fileSavePath.endswith('.szs'):
-            if not globals.CompLevel:  # Compress using libyaz0 and level 0
-                with open(self.fileSavePath, 'wb+') as f:
-                    f.write(Yaz0Comp_LIBYaz0(globals.Level.saveNewArea(name, None, None, None, None), 0, 0))
 
-            elif globals.cython_available:  # Compress using libyaz0 and level 9
+            # Compress using libyaz0
+            if globals.cython_available:
                 with open(self.fileSavePath, 'wb+') as f:
-                    f.write(Yaz0Comp_LIBYaz0(globals.Level.saveNewArea(name, None, None, None, None), 0, 9))
+                    f.write(Yaz0Comp_LIBYaz0(
+                        globals.Level.saveNewArea(name, None, None, None, None),
+                        0, globals.CompLevel,
+                    ))
 
-            else:  # Compress using WSZST
+            # Compress using WSZST
+            else:
                 course_name = os.path.splitext(self.fileSavePath)[0]
                 with open(course_name + '.tmp', 'wb+') as f:
                     f.write(globals.Level.saveNewArea(name, None, None, None, None))
@@ -2641,15 +2643,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.levelNameCache = name
         try:
             if globals.mainWindow.fileSavePath.endswith('.szs'):
-                if not globals.CompLevel:  # Compress using libyaz0
-                    with open(globals.mainWindow.fileSavePath, 'wb+') as f:
-                        f.write(Yaz0Comp_LIBYaz0(data, 0, 0))
 
-                elif globals.cython_available:  # Compress using libyaz0 and level 9
+                # Compress using libyaz0
+                if globals.cython_available:
                     with open(self.fileSavePath, 'wb+') as f:
-                        f.write(Yaz0Comp_LIBYaz0(data, 0, 9))
+                        f.write(Yaz0Comp_LIBYaz0(data, 0, globals.CompLevel))
 
-                else:  # Compress using WSZST
+                # Compress using WSZST
+                else:
                     course_name = os.path.splitext(globals.mainWindow.fileSavePath)[0]
                     with open(course_name + '.tmp', 'wb+') as f:
                         f.write(data)
@@ -2698,15 +2699,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.levelNameCache = name
         try:
             if globals.mainWindow.fileSavePath.endswith('.szs'):
-                if not globals.CompLevel:  # Compress using libyaz0
-                    with open(globals.mainWindow.fileSavePath, 'wb+') as f:
-                        f.write(Yaz0Comp_LIBYaz0(data, 0, 0))
 
-                elif globals.cython_available:  # Compress using libyaz0 and level 9
+                # Compress using libyaz0
+                if globals.cython_available:
                     with open(self.fileSavePath, 'wb+') as f:
-                        f.write(Yaz0Comp_LIBYaz0(data, 0, 9))
+                        f.write(Yaz0Comp_LIBYaz0(data, 0, globals.CompLevel))
 
-                else:  # Compress using WSZST
+                # Compress using WSZST
+                else:
                     course_name = os.path.splitext(globals.mainWindow.fileSavePath)[0]
                     with open(course_name + '.tmp', 'wb+') as f:
                         f.write(data)
@@ -2764,16 +2764,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         data = globals.Level.save(name)
         globals.levelNameCache = name
+
         if self.fileSavePath.endswith('.szs'):
-            if not globals.CompLevel:  # Compress using libyaz0
-                with open(self.fileSavePath, 'wb+') as f:
-                    f.write(Yaz0Comp_LIBYaz0(data, 0, 0))
 
-            elif globals.cython_available:  # Compress using libyaz0 and level 9
+            # Compress using libyaz0
+            if globals.cython_available:
                 with open(self.fileSavePath, 'wb+') as f:
-                    f.write(Yaz0Comp_LIBYaz0(data, 0, 9))
+                    f.write(Yaz0Comp_LIBYaz0(data, 0, globals.CompLevel))
 
-            else:  # Compress using WSZST
+            # Compress using WSZST
+            else:
                 course_name = os.path.splitext(self.fileSavePath)[0]
                 with open(course_name + '.tmp', 'wb+') as f:
                     f.write(data)
@@ -5162,15 +5162,19 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
 
-            # TODO:
-            # Make a message box appear if "Yougan_2" is selected
+            ygn2Used = False
 
             for z in globals.Area.zones:
                 name = globals.names_bg[globals.names_bgTrans.index(str(dlg.BGTabs[z.id].bg_name.currentText()))]
                 unk1 = dlg.BGTabs[z.id].unk1.value()
                 unk2 = dlg.BGTabs[z.id].unk2.value()
                 z.background = (z.id, unk1, to_bytes(name, 16), unk2)
-                print('Zone ' + str(z.id + 1) + ' BG: ' + name)
+
+                ygn2Used = name == "Yougan_2"
+
+            if ygn2Used:
+                QtWidgets.QMessageBox.information(None, globals.trans.string('BGDlg', 22),
+                                                  globals.trans.string('BGDlg', 23))
 
     def HandleScreenshot(self):
         """
@@ -5415,10 +5419,13 @@ def main():
     gt = setting('GridType')
     if gt == 'checker':
         globals.GridType = 'checker'
+
     elif gt == 'grid':
         globals.GridType = 'grid'
+
     else:
         globals.GridType = None
+
     globals.CollisionsShown = setting('ShowCollisions', False)
     globals.ObjectsFrozen = setting('FreezeObjects', False)
     globals.SpritesFrozen = setting('FreezeSprites', False)
@@ -5434,7 +5441,13 @@ def main():
     globals.LocationsShown = setting('ShowLocations', True)
     globals.CommentsShown = setting('ShowComments', True)
     globals.PathsShown = setting('ShowPaths', True)
-    globals.CompLevel = setting('CompLevel', 1)
+
+    if globals.cython_available:
+        globals.CompLevel = setting('CompLevel', 9)
+
+    else:
+        globals.CompLevel = 0
+
     SLib.RealViewEnabled = globals.RealViewEnabled
 
     # choose a folder for the game
