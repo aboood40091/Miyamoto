@@ -4519,8 +4519,7 @@
     <checkbox nybble="7" title="Useless Flag 7" comment="Not sure what this nybble was used for, but since this sprite does nothing, it's useless."/>
   </sprite>
   <sprite id="457" name="Wobbly Bone Platform" notes="Wobbles when hit by Bowser jr in flying clown car. ">
-    <value nybble="17" title="Unknown Value 17"/>
-    <value nybble="18" title="Width" comment="Width of the platform."/>
+    <value nybble="17-18" title="Width" comment="Width of the platform."/>
   </sprite>
   <sprite id="458" name="Golden Pipe (Up)">
     <value nybble="5" title="Length" comment="The length of the pipe."/>

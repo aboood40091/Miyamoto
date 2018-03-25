@@ -4723,21 +4723,21 @@ class SpriteImage_SnakeBlock(SLib.SpriteImage):  # 222
         self.scale = (self.parent.spritedata[2] & 0xF) >> 2
         self.direction = self.parent.spritedata[2] & 3
 
-        self.blocksNum = (self.parent.spritedata[5] & 0xF) + 3
+        self.length = (self.parent.spritedata[5] & 0xF) + 3
 
         self.xOffset = 0
         self.yOffset = 0
 
         if self.direction in [0, 1]:
             self.height = (self.scale + 1) * 16
-            self.width = self.height * self.blocksNum
+            self.width = self.height * self.length
 
             if self.direction == 1:
                 self.xOffset = self.height - self.width
 
         elif self.direction in [2, 3]:
             self.width = (self.scale + 1) * 16
-            self.height = self.width * self.blocksNum
+            self.height = self.width * self.length
 
             if self.direction == 3:
                 self.yOffset = self.width - self.height
@@ -6426,6 +6426,46 @@ class SpriteImage_ClapCrowd(SLib.SpriteImage_Static):  # 455
         SLib.loadIfNotInImageCache('ClapCrowd', 'clap_crowd.png')
 
 
+class SpriteImage_WobbyBonePlatform(SLib.SpriteImage):  # 457
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+        self.spritebox.shown = False
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('WobbyBoneL', 'wobby_bone_l.png')
+        SLib.loadIfNotInImageCache('WobbyBoneM', 'wobby_bone_m.png')
+        SLib.loadIfNotInImageCache('WobbyBoneR', 'wobby_bone_r.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        self.length = self.parent.spritedata[8]
+
+        if not self.length:
+            self.spritebox.shown = True
+            self.width, self.height = 16, 16
+
+        else:
+            self.spritebox.shown = False
+            self.width = self.length * 16
+            self.height = 32
+
+    def paint(self, painter):
+        super().paint(painter)
+
+        if self.length == 1:
+            painter.drawPixmap(0, 0, ImageCache['WobbyBoneL'])
+
+        elif self.length:
+            painter.drawPixmap(0, 0, ImageCache['WobbyBoneL'])
+            painter.drawTiledPixmap(60, 0, (self.width - 32) * 3.75, 120, ImageCache['WobbyBoneM'])
+            painter.drawPixmap((self.width - 16) * 3.75, 0, ImageCache['WobbyBoneR'])
+
+
 class SpriteImage_Bowser(SLib.SpriteImage_Static):  # 462
     def __init__(self, parent):
         super().__init__(
@@ -6928,7 +6968,7 @@ class SpriteImage_MushroomMovingPlatform(SLib.SpriteImage):  # 544
     def dataChanged(self):
         super().dataChanged()
 
-        self.color = self.parent.spritedata[7]
+        self.color = self.parent.spritedata[7] & 0xF0
         if self.color:
             self.color = 1
 
@@ -7440,6 +7480,7 @@ ImageClasses = {
     452: SpriteImage_Crash,
     455: SpriteImage_ClapCrowd,
     456: SpriteImage_Useless,
+    457: SpriteImage_WobbyBonePlatform,
     462: SpriteImage_Bowser,
     464: SpriteImage_BowserBridge,
     467: SpriteImage_BowserShutter,
