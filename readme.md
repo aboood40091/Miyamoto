@@ -22,10 +22,12 @@ GitHub: https://github.com/aboood40091/Miyamoto
 * libtxc_dxtn -- Original DXT5 (De)compressor in C
 * Luzifer -- Graphics
 * Mayro -- Graphics
+* mrbengtsson -- Graphics
 * Meorge -- Testing on macOS
 * NVIDIA -- NVCOMPRESS
 * RicBent -- Graphics
 * reece stone -- Spritedata, Graphics
+* Shawn Shea -- Graphics
 * Toms -- Spritedata, Graphics
 * Wexos -- Original BC3 Compressor in C#
 * Wiimm -- WSZST

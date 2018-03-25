@@ -4766,7 +4766,10 @@
     <value nybble="20" title="Unknown Value 20"/>
     <value nybble="23-24" title="Coin ID"/>
   </sprite>
-  <sprite id="497" name="Final Bowser Battle Demo Controller [UNUSED]"/>
+  <sprite id="497" name="Final Bowser Battle Controller">
+    <value nybble="3-4" title="Event ID"/>
+    <value nybble="12" title="Destination Area?"/>
+  </sprite>
   <sprite id="498" name="Fountain Coin Spawner [UNUSED]" notes="Spawns coins">
     <value nybble="3-4" title="Triggering Event ID"/>
     <list nybble="5" title="Mode" comment="If this is set to &quot;Event Triggered&quot;, the coins will only spawn while the event is activeValue 2 ignores the position of the sprite, but instead spawns the coins at the player's position. It also decreases the amount of coins by 1.">

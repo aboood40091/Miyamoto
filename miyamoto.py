@@ -69,7 +69,8 @@ try:
     import cython_available
 
 except:
-    pass
+    print("Cython is not available!")
+    print("Expect Miyamoto to be very slow!\n")
 
 else:
     del cython_available
