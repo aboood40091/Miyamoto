@@ -3726,6 +3726,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     QuickPaintOperations.preEraseObject(ln,layer,int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]+0.5))
                     QuickPaintOperations.preEraseObject(ln,layer,int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]+0.5))
 
+                SetDirty()
+
             elif globals.CurrentPaintType in (0, 1, 2, 3) and globals.CurrentObject != -1:
                 # return if the Embedded tab is empty
                 if (globals.CurrentPaintType in (1, 2, 3)
