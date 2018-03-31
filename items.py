@@ -405,11 +405,19 @@ class ObjectItem(LevelEditorItem):
         Recreates the bounding and selection rects
         """
         self.prepareGeometryChange()
-        GrabberSide = 5 / 24 * globals.TileWidth
         self.BoundingRect = QtCore.QRectF(0, 0, globals.TileWidth * self.width, globals.TileWidth * self.height)
         self.SelectionRect = QtCore.QRectF(0, 0, (globals.TileWidth * self.width) - 1, (globals.TileWidth * self.height) - 1)
-        self.GrabberRect = QtCore.QRectF((globals.TileWidth * self.width) - GrabberSide,
-                                         (globals.TileWidth * self.height) - GrabberSide, GrabberSide, GrabberSide)
+
+        GrabberSide = 4 * (globals.TileWidth / 20)
+        self.GrabberRectTL = QtCore.QRectF(0, 0, GrabberSide, GrabberSide)
+        self.GrabberRectTR = QtCore.QRectF((globals.TileWidth * self.width) - GrabberSide, 0, GrabberSide, GrabberSide)
+        self.GrabberRectBL = QtCore.QRectF(0, (globals.TileWidth * self.height) - GrabberSide, GrabberSide, GrabberSide)
+        self.GrabberRectBR = QtCore.QRectF((globals.TileWidth * self.width) - GrabberSide, (globals.TileWidth * self.height) - GrabberSide, GrabberSide, GrabberSide)
+        self.GrabberRectMT = QtCore.QRectF(((globals.TileWidth * self.width) - GrabberSide) / 2, 0, GrabberSide, GrabberSide)
+        self.GrabberRectML = QtCore.QRectF(0, ((globals.TileWidth * self.height) - GrabberSide) / 2, GrabberSide, GrabberSide)
+        self.GrabberRectMB = QtCore.QRectF(((globals.TileWidth * self.width) - GrabberSide) / 2, (globals.TileWidth * self.height) - GrabberSide, GrabberSide, GrabberSide)
+        self.GrabberRectMR = QtCore.QRectF((globals.TileWidth * self.width) - GrabberSide, ((globals.TileWidth * self.height) - GrabberSide) / 2, GrabberSide, GrabberSide)
+
         self.LevelRect = QtCore.QRectF(self.objx, self.objy, self.width, self.height)
 
     def itemChange(self, change, value):
@@ -470,7 +478,14 @@ class ObjectItem(LevelEditorItem):
             painter.drawRect(self.SelectionRect)
             painter.fillRect(self.SelectionRect, globals.theme.color('object_fill_s'))
 
-            painter.fillRect(self.GrabberRect, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.GrabberRectTL, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.GrabberRectTR, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.GrabberRectBL, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.GrabberRectBR, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.GrabberRectMT, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.GrabberRectML, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.GrabberRectMB, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.GrabberRectMR, globals.theme.color('object_lines_s'))
 
     def mousePressEvent(self, event):
         """
@@ -479,15 +494,19 @@ class ObjectItem(LevelEditorItem):
         if event.button() == Qt.LeftButton:
             if QtWidgets.QApplication.keyboardModifiers() == Qt.ControlModifier:
                 layer = globals.Area.layers[self.layer]
+
                 if len(layer) == 0:
                     newZ = (2 - self.layer) * 8192
+
                 else:
                     newZ = layer[-1].zValue() + 1
 
                 currentZ = self.zValue()
                 self.setZValue(newZ)  # swap the Z values so it doesn't look like the cloned item is the old one
+
                 newitem = ObjectItem(self.tileset, self.type, self.layer, self.objx, self.objy, self.width, self.height,
                                      currentZ, self.data)
+
                 layer.append(newitem)
                 globals.mainWindow.scene.addItem(newitem)
                 globals.mainWindow.scene.clearSelection()
@@ -495,21 +514,59 @@ class ObjectItem(LevelEditorItem):
 
                 SetDirty()
 
-        if self.isSelected() and self.GrabberRect.contains(event.pos()):
+        self.TLGrabbed = self.GrabberRectTL.contains(event.pos())
+        self.TRGrabbed = self.GrabberRectTR.contains(event.pos())
+        self.BLGrabbed = self.GrabberRectBL.contains(event.pos())
+        self.BRGrabbed = self.GrabberRectBR.contains(event.pos())
+        self.MTGrabbed = self.GrabberRectMT.contains(event.pos())
+        self.MLGrabbed = self.GrabberRectML.contains(event.pos())
+        self.MBGrabbed = self.GrabberRectMB.contains(event.pos())
+        self.MRGrabbed = self.GrabberRectMR.contains(event.pos())
+
+        if self.isSelected() and (
+            self.TLGrabbed
+            or self.TRGrabbed
+            or self.BLGrabbed
+            or self.BRGrabbed
+            or self.MTGrabbed
+            or self.MLGrabbed
+            or self.MBGrabbed
+            or self.MRGrabbed
+        ):
             # start dragging
             self.dragging = True
             self.dragstartx = int((event.pos().x() - globals.TileWidth / 2) / globals.TileWidth)
             self.dragstarty = int((event.pos().y() - globals.TileWidth / 2) / globals.TileWidth)
             self.objsDragging = {}
+
             for selitem in globals.mainWindow.scene.selectedItems():
-                if not isinstance(selitem, ObjectItem): continue
+                if not isinstance(selitem, ObjectItem):
+                    continue
+
                 self.objsDragging[selitem] = [selitem.width, selitem.height]
+
             event.accept()
+
         else:
             LevelEditorItem.mousePressEvent(self, event)
             self.dragging = False
             self.objsDragging = {}
+
         self.UpdateTooltip()
+
+    def UpdateObj(self, oldX, oldY):
+        """
+        Updates the object if the width/height/position has been changed
+        """
+        self.updateObjCache()
+
+        oldrect = self.BoundingRect
+        oldrect.translate(oldX * globals.TileWidth, oldY * globals.TileWidth)
+        newrect = QtCore.QRectF(self.x(), self.y(), self.width * globals.TileWidth, self.height * globals.TileWidth)
+        updaterect = oldrect.united(newrect)
+
+        self.UpdateRects()
+        self.scene().update(updaterect)
 
     def mouseMoveEvent(self, event):
         """
@@ -526,38 +583,243 @@ class ObjectItem(LevelEditorItem):
             cx = self.objx
             cy = self.objy
 
-            if clickedx < 0: clickedx = 0
-            if clickedy < 0: clickedy = 0
+            if self.TLGrabbed:
+                if clickedx != dsx or clickedy != dsy:
+                    for obj in self.objsDragging:
+                        oldWidth = self.objsDragging[obj][0] + 0
+                        oldHeight = self.objsDragging[obj][1] + 0
 
-            if clickedx != dsx or clickedy != dsy:
-                self.dragstartx = clickedx
-                self.dragstarty = clickedy
+                        self.objsDragging[obj][0] -= clickedx - dsx
+                        self.objsDragging[obj][1] -= clickedy - dsy
 
-                for obj in self.objsDragging:
+                        newX = obj.objx + clickedx - dsx
+                        newY = obj.objy + clickedy - dsy
 
-                    self.objsDragging[obj][0] += clickedx - dsx
-                    self.objsDragging[obj][1] += clickedy - dsy
-                    newWidth = self.objsDragging[obj][0]
-                    newHeight = self.objsDragging[obj][1]
-                    if newWidth < 1: newWidth = 1
-                    if newHeight < 1: newHeight = 1
-                    obj.width = newWidth
-                    obj.height = newHeight
+                        newWidth = self.objsDragging[obj][0]
+                        newHeight = self.objsDragging[obj][1]
 
-                    obj.updateObjCache()
+                        if newWidth < 1:
+                            newWidth = 1
 
-                    oldrect = obj.BoundingRect
-                    oldrect.translate(cx * globals.TileWidth, cy * globals.TileWidth)
-                    newrect = QtCore.QRectF(obj.x(), obj.y(), obj.width * globals.TileWidth, obj.height * globals.TileWidth)
-                    updaterect = oldrect.united(newrect)
+                        if newHeight < 1:
+                            newHeight = 1
 
-                    obj.UpdateRects()
-                    obj.scene().update(updaterect)
-                SetDirty()
+                        if newX >= 0 and newX + newWidth == obj.objx + obj.width:
+                            obj.objx = newX
+                            obj.width = newWidth
+
+                        else:
+                            self.objsDragging[obj][0] = oldWidth
+
+                        if newY >= 0 and newY + newHeight == obj.objy + obj.height:
+                            obj.objy = newY
+                            obj.height = newHeight
+
+                        else:
+                            self.objsDragging[obj][1] = oldHeight
+
+                        obj.setPos(obj.objx * globals.TileWidth, obj.objy * globals.TileWidth)
+                        obj.UpdateObj(cx, cy)
+
+                    SetDirty()
+
+            elif self.TRGrabbed:
+                if clickedx < 0:
+                    clickedx = 0
+
+                if clickedx != dsx or clickedy != dsy:
+                    self.dragstartx= clickedx
+
+                    for obj in self.objsDragging:
+                        oldHeight = self.objsDragging[obj][1] + 0
+
+                        self.objsDragging[obj][0] += clickedx - dsx
+                        self.objsDragging[obj][1] -= clickedy - dsy
+
+                        newY = obj.objy + clickedy - dsy
+
+                        newWidth = self.objsDragging[obj][0]
+                        newHeight = self.objsDragging[obj][1]
+
+                        if newWidth < 1:
+                            newWidth = 1
+
+                        if newHeight < 1:
+                            newHeight = 1
+
+                        if newY >= 0 and newY + newHeight == obj.objy + obj.height:
+                            obj.objy = newY
+                            obj.height = newHeight
+
+                        else:
+                            self.objsDragging[obj][1] = oldHeight
+
+                        obj.width = newWidth
+
+                        obj.setPos(obj.objx * globals.TileWidth, obj.objy * globals.TileWidth)
+                        obj.UpdateObj(cx, cy)
+
+                    SetDirty()
+
+            elif self.BLGrabbed:
+                if clickedy < 0:
+                    clickedy = 0
+
+                if clickedx != dsx or clickedy != dsy:
+                    self.dragstarty = clickedy
+
+                    for obj in self.objsDragging:
+                        oldWidth = self.objsDragging[obj][0] + 0
+
+                        self.objsDragging[obj][0] -= clickedx - dsx
+                        self.objsDragging[obj][1] += clickedy - dsy
+
+                        newX = obj.objx + clickedx - dsx
+
+                        newWidth = self.objsDragging[obj][0]
+                        newHeight = self.objsDragging[obj][1]
+
+                        if newWidth < 1:
+                            newWidth = 1
+
+                        if newHeight < 1:
+                            newHeight = 1
+
+                        if newX >= 0 and newX + newWidth == obj.objx + obj.width:
+                            obj.objx = newX
+                            obj.width = newWidth
+
+                        else:
+                            self.objsDragging[obj][0] = oldWidth
+
+                        obj.height = newHeight
+
+                        obj.setPos(obj.objx * globals.TileWidth, obj.objy * globals.TileWidth)
+                        obj.UpdateObj(cx, cy)
+
+                    SetDirty()
+
+            elif self.BRGrabbed:
+                if clickedx < 0: clickedx = 0
+                if clickedy < 0: clickedy = 0
+
+                if clickedx != dsx or clickedy != dsy:
+                    self.dragstartx = clickedx
+                    self.dragstarty = clickedy
+
+                    for obj in self.objsDragging:
+                        self.objsDragging[obj][0] += clickedx - dsx
+                        self.objsDragging[obj][1] += clickedy - dsy
+
+                        newWidth = self.objsDragging[obj][0]
+                        newHeight = self.objsDragging[obj][1]
+
+                        if newWidth < 1:
+                            newWidth = 1
+
+                        if newHeight < 1:
+                            newHeight = 1
+
+                        obj.width = newWidth
+                        obj.height = newHeight
+
+                        obj.UpdateObj(cx, cy)
+
+                    SetDirty()
+
+            elif self.MTGrabbed:
+                if clickedy != dsy:
+                    for obj in self.objsDragging:
+                        oldHeight = self.objsDragging[obj][1] + 0
+
+                        self.objsDragging[obj][1] -= clickedy - dsy
+
+                        newY = obj.objy + clickedy - dsy
+
+                        newHeight = self.objsDragging[obj][1]
+                        if newHeight < 1:
+                            newHeight = 1
+
+                        if newY >= 0 and newY + newHeight == obj.objy + obj.height:
+                            obj.objy = newY
+                            obj.height = newHeight
+
+                        else:
+                            self.objsDragging[obj][1] = oldHeight
+
+                        obj.setPos(obj.objx * globals.TileWidth, obj.objy * globals.TileWidth)
+                        obj.UpdateObj(cx, cy)
+
+                    SetDirty()
+
+            elif self.MLGrabbed:
+                if clickedx != dsx:
+                    for obj in self.objsDragging:
+                        oldWidth = self.objsDragging[obj][0] + 0
+
+                        self.objsDragging[obj][0] -= clickedx - dsx
+
+                        newX = obj.objx + clickedx - dsx
+
+                        newWidth = self.objsDragging[obj][0]
+                        if newWidth < 1:
+                            newWidth = 1
+
+                        if newX >= 0 and newX + newWidth == obj.objx + obj.width:
+                            obj.objx = newX
+                            obj.width = newWidth
+
+                        else:
+                            self.objsDragging[obj][0] = oldWidth
+
+                        obj.setPos(obj.objx * globals.TileWidth, obj.objy * globals.TileWidth)
+                        obj.UpdateObj(cx, cy)
+
+                    SetDirty()
+
+            elif self.MBGrabbed:
+                if clickedy < 0:
+                    clickedy = 0
+
+                if clickedy != dsy:
+                    self.dragstarty = clickedy
+
+                    for obj in self.objsDragging:
+                        self.objsDragging[obj][1] += clickedy - dsy
+
+                        newHeight = self.objsDragging[obj][1]
+                        if newHeight < 1:
+                            newHeight = 1
+
+                        obj.height = newHeight
+                        obj.UpdateObj(cx, cy)
+
+                    SetDirty()
+
+            elif self.MRGrabbed:
+                if clickedx < 0:
+                    clickedx = 0
+
+                if clickedx != dsx:
+                    self.dragstartx = clickedx
+
+                    for obj in self.objsDragging:
+                        self.objsDragging[obj][0] += clickedx - dsx
+
+                        newWidth = self.objsDragging[obj][0]
+                        if newWidth < 1:
+                            newWidth = 1
+
+                        obj.width = newWidth
+                        obj.UpdateObj(cx, cy)
+
+                    SetDirty()
 
             event.accept()
+
         else:
             LevelEditorItem.mouseMoveEvent(self, event)
+
         self.UpdateTooltip()
 
     def delete(self):
@@ -645,11 +907,11 @@ class ZoneItem(LevelEditorItem):
         Updates the zone's bounding rectangle
         """
         if hasattr(globals.mainWindow, 'ZoomLevel'):
-            grabberWidth = 500 / globals.mainWindow.ZoomLevel
-            if grabberWidth < 5: grabberWidth = 5
+            grabberWidth = 400 / globals.mainWindow.ZoomLevel
+            if grabberWidth < 4: grabberWidth = 4
         else:
-            grabberWidth = 5
-        grabberWidth *= globals.TileWidth / 24
+            grabberWidth = 4
+        grabberWidth *= globals.TileWidth / 20
 
         self.prepareGeometryChange()
         mult = globals.TileWidth / 16
@@ -898,7 +1160,7 @@ class LocationItem(LevelEditorItem):
         self.prepareGeometryChange()
         if self.width == 0: self.width == 1
         if self.height == 0: self.height == 1
-        GrabberSide = 5 * globals.TileWidth / 24
+        GrabberSide = 4 * (globals.TileWidth / 20)
         self.BoundingRect = QtCore.QRectF(0, 0, self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)
         self.SelectionRect = QtCore.QRectF(self.objx * globals.TileWidth / 16, self.objy * globals.TileWidth / 16,
                                            self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)

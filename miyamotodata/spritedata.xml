@@ -2989,15 +2989,15 @@
   </sprite>
   <sprite id="243" name="Bubble Baby Yoshi [UNUSED]"/>
   <sprite id="244" name="Koopaling Magic [UNUSED]" notes="Spawned by Larry and Ludwig. This is also the parent class of the fireballs spawned by other Koopalings. Useless to spawn by itself as a sprite."/>
-  <sprite id="245" name="Castle Boss Controller" notes="With a nybble to change the world...">
-    <list nybble="12" title="World" comment="Use this to set the world the boss is in.">
-      <entry value="0">1</entry>
-      <entry value="1">2</entry>
-      <entry value="2">3</entry>
-      <entry value="3">4</entry>
-      <entry value="4">5</entry>
-      <entry value="5">6</entry>
-      <entry value="6">7</entry>
+  <sprite id="245" name="Castle Boss Controller">
+    <list nybble="12" title="Boss">
+      <entry value="0">Lemmy</entry>
+      <entry value="1">Morton</entry>
+      <entry value="2">Larry</entry>
+      <entry value="3">Wendy</entry>
+      <entry value="4">Iggy</entry>
+      <entry value="5">Roy</entry>
+      <entry value="6">Ludwig</entry>
     </list>
     <value nybble="20" title="Unknown Value 20"/>
   </sprite>
