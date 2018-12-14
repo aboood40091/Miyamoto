@@ -3600,7 +3600,10 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         Overrides mouse pressing events if needed
         """
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MidButton:
+            self.__prevMousePos = event.pos()
+
+        elif event.button() == Qt.RightButton:
             if globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
                 mw = globals.mainWindow
                 ln = globals.CurrentLayer
@@ -4125,7 +4128,14 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             self.mouseGridPosition = ((pos.x()/globals.TileWidth), (pos.y()/globals.TileWidth))
             inv = True
 
-        if event.buttons() == Qt.RightButton and globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
+        if event.buttons() == Qt.MidButton:
+            offset = self.__prevMousePos - event.pos()
+            self.__prevMousePos = event.pos()
+
+            self.YScrollBar.setValue(self.verticalScrollBar().value() + offset.y())
+            self.XScrollBar.setValue(self.horizontalScrollBar().value() + offset.x())
+
+        elif event.buttons() == Qt.RightButton and globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
                 mw = globals.mainWindow
                 ln = globals.CurrentLayer
                 layer = globals.Area.layers[globals.CurrentLayer]
