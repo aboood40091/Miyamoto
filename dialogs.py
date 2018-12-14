@@ -635,13 +635,13 @@ class ZoneTab(QtWidgets.QWidget):
         self.snapButton16.clicked.connect(lambda: self.HandleSnapTo16x16Grid(z))
 
         self.Zone_width = QtWidgets.QSpinBox()
-        self.Zone_width.setRange(300, 65535)
+        self.Zone_width.setRange(192, 65535)
         self.Zone_width.setToolTip(globals.trans.string('ZonesDlg', 14))
         self.Zone_width.setValue(z.width)
         self.Zone_width.valueChanged.connect(self.PresetDeselected)
 
         self.Zone_height = QtWidgets.QSpinBox()
-        self.Zone_height.setRange(200, 65535)
+        self.Zone_height.setRange(144, 65535)
         self.Zone_height.setToolTip(globals.trans.string('ZonesDlg', 16))
         self.Zone_height.setValue(z.height)
         self.Zone_height.valueChanged.connect(self.PresetDeselected)
@@ -727,8 +727,8 @@ class ZoneTab(QtWidgets.QWidget):
 
         if left < 16: left = 16
         if top < 16: top = 16
-        if right < 304: right = 304
-        if bottom < 200: bottom = 200
+        if right < 192: right = 192
+        if bottom < 144: bottom = 144
 
         if left > 65528: left = 65528
         if top > 65528: top = 65528
@@ -777,8 +777,8 @@ class ZoneTab(QtWidgets.QWidget):
 
         if left < 16: left = 16
         if top < 16: top = 16
-        if right < 304: right = 304
-        if bottom < 208: bottom = 208
+        if right < 192: right = 192
+        if bottom < 144: bottom = 144
 
         if left > 65520: left = 65520
         if top > 65520: top = 65520
@@ -1118,11 +1118,19 @@ class BGDialog(QtWidgets.QDialog):
 
         self.tabWidget = QtWidgets.QTabWidget()
         self.BGTabs = {}
+
         for z in globals.Area.zones:
             BGTabName = 'Zone ' + str(z.id + 1)
-            tab = BGTab(z.background[1], globals.names_bg.index(bytes_to_string(z.background[2])), z.background[3])
-            self.BGTabs[z.id] = tab
-            self.tabWidget.addTab(tab, BGTabName)
+
+            try:
+                tab = BGTab(z.background[1], globals.names_bg.index(bytes_to_string(z.background[2])), z.background[3])
+
+            except ValueError:
+                pass
+
+            else:
+                self.BGTabs[z.id] = tab
+                self.tabWidget.addTab(tab, BGTabName)
 
         buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
 
@@ -1190,10 +1198,17 @@ class BGTab(QtWidgets.QWidget):
         """
         Updates the preview label
         """
+        folders = globals.gamedef.recursiveFiles('bg', False, True)
+        folders.append(os.path.join(globals.miyamoto_path, 'miyamotodata/bg'))
 
-        filename = globals.miyamoto_path + '/miyamotodata/bg/' + str(self.bg_name.currentText()) + '.png'
-        if not os.path.isfile(filename):
+        for folder in folders:
+            filename = os.path.join(folder, str(self.bg_name.currentText()) + '.png')
+            if os.path.isfile(filename):
+                break
+
+        else:
             filename = globals.miyamoto_path + '/miyamotodata/bg/no_preview.png'
+
         pix = QtGui.QPixmap(filename)
         self.preview.setPixmap(pix)
 
@@ -1368,7 +1383,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.compLevel = QtWidgets.QComboBox()
                 self.compLevel.setMaximumWidth(256)
 
-                if globals.cython_available:
+                if globals.libyaz0_available:
                     for i in range(33, 43):
                         self.compLevel.addItem(globals.trans.string('PrefsDlg', i))
 

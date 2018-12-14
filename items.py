@@ -27,6 +27,7 @@
 ############ Imports ############
 
 import base64
+import random
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
@@ -391,13 +392,132 @@ class ObjectItem(LevelEditorItem):
         Updates the rendered object data
         """
         self.objdata = RenderObject(self.tileset, self.type, self.width, self.height)
+        self.randomise()
         self.UpdateSearchDatabase()
+ 
+    def randomise(self, startx=0, starty=0, width=None, height=None):
+        """
+        Randomises (a part of) the self.objdata according to the loaded tileset
+        info
+        """
+        # TODO: Make this work even on the edges of the object. This requires a
+        # function that returns the tile on the block next to the current tile
+        # on a specified layer. Maybe something for the Area class?
+
+        if globals.ObjectDefinitions is None \
+           or globals.ObjectDefinitions[self.tileset] is None \
+           or globals.ObjectDefinitions[self.tileset][self.type] is None \
+           or globals.ObjectDefinitions[self.tileset][self.type].rows is None \
+           or globals.ObjectDefinitions[self.tileset][self.type].rows[0] is None \
+           or globals.ObjectDefinitions[self.tileset][self.type].rows[0][0] is None \
+           or len(globals.ObjectDefinitions[self.tileset][self.type].rows[0][0]) == 1:
+            # no randomisation info -> exit
+            return
+
+        obj = globals.ObjectDefinitions[self.tileset][self.type]
+        if (obj.width, obj.height) != (1, 1) or obj.randByte & 0xF < 2:
+            # cannot randomise -> exit
+            return
+
+        if width is None:
+            width = self.width
+
+        if height is None:
+            height = self.height
+
+        direction = obj.randByte >> 4
+        randLen = obj.randByte & 0xF
+
+        tile = obj.rows[0][0][1] & 0xFF
+
+        tiles = []
+        for z in range(randLen):
+            tiles.append(tile + z)
+
+        # randomise every tile in this thing
+        for y in range(starty, starty + height):
+            for x in range(startx, startx + width):
+                # should we randomise this tile?
+                tiles_ = tiles[:]
+
+                # Take direction into account - chosen tile must be different from
+                # the tile to the left/right/top/bottom. Using try/except here
+                # so the value has to be looked up only once.
+
+                # direction is 2 bits:
+                # highest := vertical direction; lowest := horizontal direction
+                if direction & 0b01:
+                    # only look at the left neighbour, since we will generate the
+                    # right neighbour later
+                    try:
+                        tiles_.remove(self.objdata[y][x-1] & 0xFF)
+                    except:
+                        pass
+
+                if direction & 0b10:
+                    # only look at the above neighbour, since we will generate the
+                    # neighbour below later
+                    try:
+                        tiles_.remove(self.objdata[y-1][x] & 0xFF)
+                    except:
+                        pass
+
+                # if we removed all options, just use the original tiles
+                if len(tiles_) == 0:
+                    tiles_ = tiles
+
+                choice = (self.tileset << 8) | random.choice(tiles_)
+                self.objdata[y][x] = choice
 
     def updateObjCacheWH(self, width, height):
         """
         Updates the rendered object data with custom width and height
         """
-        self.objdata = RenderObject(self.tileset, self.type, width, height)
+        # if we don't have to randomise, simply rerender everything
+        if globals.ObjectDefinitions is None \
+           or globals.ObjectDefinitions[self.tileset] is None \
+           or globals.ObjectDefinitions[self.tileset][self.type] is None \
+           or globals.ObjectDefinitions[self.tileset][self.type].rows is None \
+           or globals.ObjectDefinitions[self.tileset][self.type].rows[0] is None \
+           or globals.ObjectDefinitions[self.tileset][self.type].rows[0][0] is None \
+           or len(globals.ObjectDefinitions[self.tileset][self.type].rows[0][0]) == 1:
+            # no randomisation info -> exit
+            save = (self.width, self.height)
+            self.width, self.height = width, height
+            self.updateObjCache()
+            self.width, self.height = save
+            return
+
+        obj = globals.ObjectDefinitions[self.tileset][self.type]
+        if (obj.width, obj.height) != (1, 1) or obj.randByte & 0xF < 2:
+            # cannot randomise -> exit
+            save = (self.width, self.height)
+            self.width, self.height = width, height
+            self.updateObjCache()
+            self.width, self.height = save
+            return
+
+        if width == self.width and height == self.height:
+            return
+
+        if height < self.height:
+            self.objdata = self.objdata[:height]
+
+        elif height > self.height:
+            self.objdata += RenderObject(self.tileset, self.type, self.width, height - self.height)
+            self.randomise(0, self.height, self.width, height - self.height)
+
+        if width < self.width:
+            for y in range(len(self.objdata)):
+                self.objdata[y] = self.objdata[y][:width]
+
+        elif width > self.width:
+            new = RenderObject(self.tileset, self.type, width - self.width, height)
+            for y in range(len(self.objdata)):
+                self.objdata[y] += new[y]
+
+            self.randomise(self.width, 0, width - self.width, height)
+
         self.UpdateSearchDatabase()
 
     def UpdateRects(self):
@@ -558,8 +678,22 @@ class ObjectItem(LevelEditorItem):
         """
         Updates the object if the width/height/position has been changed
         """
-        self.updateObjCache()
+        # Save the new dimensions for later
+        newWidth = self.width
+        newHeight = self.height
 
+        # Replace the dimensions with the old ones
+        self.width = int(self.BoundingRect.width() / globals.TileWidth)
+        self.height = int(self.BoundingRect.height() / globals.TileWidth)
+
+        # Update the object data
+        self.updateObjCacheWH(newWidth, newHeight)
+
+        # Update the dimensions
+        self.width = newWidth
+        self.height = newHeight
+
+        # Update the object's Rects and scene
         oldrect = self.BoundingRect
         oldrect.translate(oldX * globals.TileWidth, oldY * globals.TileWidth)
         newrect = QtCore.QRectF(self.x(), self.y(), self.width * globals.TileWidth, self.height * globals.TileWidth)
@@ -1423,8 +1557,9 @@ class SpriteItem(LevelEditorItem):
 
     def __lt__(self, other):
         # Sort by objx, then objy, then sprite type
-        return (self.objx * 100000 + self.objy) * 1000 + self.type < (
-                                                                     other.objx * 100000 + other.objy) * 1000 + other.type
+        score = lambda sprite: (sprite.objx * 100000 + sprite.objy) * 1000 + sprite.type
+
+        return score(self) < score(other)
 
     def InitializeSprite(self):
         """
@@ -1710,34 +1845,40 @@ class SpriteItem(LevelEditorItem):
         """
         Overrides mouse pressing events if needed for cloning
         """
-        if event.button() == Qt.LeftButton:
-            if QtWidgets.QApplication.keyboardModifiers() == Qt.ControlModifier:
-                newitem = SpriteItem(self.type, self.objx, self.objy, self.spritedata)
+        if event.button() != Qt.LeftButton or QtWidgets.QApplication.keyboardModifiers() != Qt.ControlModifier:
+            LevelEditorItem.mousePressEvent(self, event)
+            return
 
-                import widgets
-                newitem.listitem = widgets.ListWidgetItem_SortsByOther(newitem, newitem.ListString())
-                del widgets
+        newitem = SpriteItem(self.type, self.objx, self.objy, self.spritedata)
 
-                globals.mainWindow.spriteList.addItem(newitem.listitem)
-                globals.Area.sprites.append(newitem)
-                globals.mainWindow.scene.addItem(newitem)
-                globals.mainWindow.scene.clearSelection()
-                self.setSelected(True)
-                newitem.UpdateListItem()
-                SetDirty()
-                return
+        import widgets
+        newitem.listitem = widgets.ListWidgetItem_SortsByOther(newitem, newitem.ListString())
+        del widgets
 
-        LevelEditorItem.mousePressEvent(self, event)
+        globals.mainWindow.spriteList.addItem(newitem.listitem)
+        globals.Area.sprites.append(newitem)
+
+        globals.mainWindow.scene.addItem(newitem)
+        globals.mainWindow.scene.clearSelection()
+
+        self.setSelected(True)
+
+        newitem.UpdateListItem()
+        SetDirty()
 
     def nearestZone(self, obj=False):
         """
         Calls a modified MapPositionToZoneID (if obj = True, it returns the actual ZoneItem object)
         """
-        if not hasattr(globals.Area, 'zones'): return None
+        if not hasattr(globals.Area, 'zones'):
+            return None
+
         id = SLib.MapPositionToZoneID(globals.Area.zones, self.objx, self.objy, True)
+
         if obj:
             for z in globals.Area.zones:
-                if z.id == id: return z
+                if z.id == id:
+                    return z
         else:
             return id
 
@@ -2507,7 +2648,7 @@ class CommentItem(LevelEditorItem):
         self.objx = x
         self.objy = y
         self.listitem = None
-        self.LevelRect = (QtCore.QRectF(self.objx / 16, self.objy / 16, 5.625, 5.625))
+        self.LevelRect = QtCore.QRectF(self.objx / 16, self.objy / 16, 2.25, 2.25)
 
         self.setFlag(self.ItemIsMovable, not globals.CommentsFrozen)
         self.setFlag(self.ItemIsSelectable, not globals.CommentsFrozen)
@@ -2519,16 +2660,25 @@ class CommentItem(LevelEditorItem):
         self.setZValue(zval + 1)
         self.UpdateTooltip()
 
+        self.CreateTextEdit()
+
+    def CreateTextEdit(self):
+        """
+        Make the text edit
+        """
         self.TextEdit = QtWidgets.QPlainTextEdit()
         self.TextEditProxy = globals.mainWindow.scene.addWidget(self.TextEdit)
         self.TextEditProxy.setZValue(self.zval)
         self.TextEditProxy.setCursor(Qt.IBeamCursor)
-        self.TextEditProxy.boundingRect = lambda self: QtCore.QRectF(0, 0, 4000 * globals.TileWidth / 24, 4000 * globals.TileWidth / 24)
+        self.TextEditProxy.boundingRect = lambda self: QtCore.QRectF(0, 0, 4000, 4000)
         self.TextEdit.setVisible(False)
-        self.TextEdit.setMaximumWidth(192 * globals.TileWidth / 24)
-        self.TextEdit.setMaximumHeight(128 * globals.TileWidth / 24)
+        self.TextEdit.setMinimumWidth(8 * globals.TileWidth)
+        self.TextEdit.setMinimumHeight(16 * globals.TileWidth / 3)
+        self.TextEdit.setMaximumWidth(8 * globals.TileWidth)
+        self.TextEdit.setMaximumHeight(16 * globals.TileWidth / 3)
         self.TextEdit.setPlainText(self.text)
         self.TextEdit.textChanged.connect(self.handleTextChanged)
+        self.TextEdit.zoomIn(13)
         self.reposTextEdit()
 
     def UpdateTooltip(self):
@@ -2576,6 +2726,7 @@ class CommentItem(LevelEditorItem):
             p = QtGui.QPen(globals.theme.color('comment_lines_s'))
             p.setWidth(3 * globals.TileWidth / 24)
             painter.setPen(p)
+
         else:
             painter.setBrush(QtGui.QBrush(globals.theme.color('comment_fill')))
             p = QtGui.QPen(globals.theme.color('comment_lines'))
@@ -2583,31 +2734,27 @@ class CommentItem(LevelEditorItem):
             painter.setPen(p)
 
         painter.drawEllipse(self.Circle)
-        if not self.isSelected(): painter.setOpacity(.5)
+
+        if not self.isSelected():
+            painter.setOpacity(.5)
+
         painter.drawPixmap(4 * globals.TileWidth / 24, 4 * globals.TileWidth / 24, GetIcon('comments', 24).pixmap(globals.TileWidth, globals.TileWidth))
         painter.setOpacity(1)
 
         # Set the text edit visibility
         try:
             shouldBeVisible = (len(globals.mainWindow.scene.selectedItems()) == 1) and self.isSelected()
+
         except RuntimeError:
             shouldBeVisible = False
+
         try:
             self.TextEdit.setVisible(shouldBeVisible)
+
         except RuntimeError:
             # Sometimes Qt deletes my text edit.
             # Therefore, I need to make a new one.
-            self.TextEdit = QtWidgets.QPlainTextEdit()
-            self.TextEditProxy = globals.mainWindow.scene.addWidget(self.TextEdit)
-            self.TextEditProxy.setZValue(self.zval)
-            self.TextEditProxy.setCursor(Qt.IBeamCursor)
-            self.TextEditProxy.BoundingRect = QtCore.QRectF(0, 0, 4000 * globals.TileWidth / 24, 4000 * globals.TileWidth / 24)
-            self.TextEditProxy.boundingRect = lambda self: self.BoundingRect
-            self.TextEdit.setMaximumWidth(192 * globals.TileWidth / 24)
-            self.TextEdit.setMaximumHeight(128 * globals.TileWidth / 24)
-            self.TextEdit.setPlainText(self.text)
-            self.TextEdit.textChanged.connect(self.handleTextChanged)
-            self.reposTextEdit()
+            self.CreateTextEdit()
             self.TextEdit.setVisible(shouldBeVisible)
 
     def handleTextChanged(self):
@@ -2621,7 +2768,7 @@ class CommentItem(LevelEditorItem):
         """
         Repositions the text edit
         """
-        self.TextEditProxy.setPos((self.objx * 3 / 2) + globals.TileWidth, (self.objy * 3 / 2) + globals.TileWidth * 2 / 3)
+        self.TextEditProxy.setPos((self.objx * globals.TileWidth / 16) + globals.TileWidth, (self.objy * globals.TileWidth / 16) + globals.TileWidth)
 
     def handlePosChange(self, oldx, oldy):
         """

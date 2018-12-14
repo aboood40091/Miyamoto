@@ -26,6 +26,7 @@
 
 ############ Imports ############
 
+import json
 import os
 import platform
 import struct
@@ -39,8 +40,9 @@ import globals
 import addrlib
 import bc3
 import dds
+import gibberish
 import gtx
-import SARC as SarcLib
+import SarcLib
 import spritelib as SLib
 
 if globals.cython_available:
@@ -53,12 +55,12 @@ class TilesetTile:
     """
     Class that represents a single tile in a tileset
     """
+    exists = True
 
     def __init__(self, main=None, nml=None):
         """
         Initializes the TilesetTile
         """
-        self.exists = True
         if not main:
             main = QtGui.QPixmap(60, 60)
             main.fill(Qt.transparent)
@@ -99,7 +101,6 @@ class TilesetTile:
         animTiles = []
 
         dest = QtGui.QPixmap.fromImage(data)
-
         for y in range(dest.height() // 64):
             tile = dest.copy((x * 64) + 2, (y * 64) + 2, 60, 60)
             animTiles.append(tile)
@@ -114,7 +115,9 @@ class TilesetTile:
         """
         Increments to the next frame
         """
-        if not self.isAnimated: return
+        if not self.isAnimated:
+            return
+
         self.animFrame += 1
         if self.animFrame == len(self.animTiles):
             self.animFrame = 0
@@ -129,16 +132,16 @@ class TilesetTile:
         """
         Returns the current tile based on the current animation frame
         """
-        if (not globals.TilesetsAnimating) or (not self.isAnimated):
-            result = self.main
-        else:
-            result = self.animTiles[self.animFrame]
-        result = QtGui.QPixmap(result)
+        if not (globals.TilesetsAnimating and self.isAnimated):
+            result = QtGui.QPixmap(self.main)
 
-        p = QtGui.QPainter(result)
+        else:
+            result = QtGui.QPixmap(self.animTiles[self.animFrame])
+
         if globals.CollisionsShown and (self.collOverlay is not None):
-            p.drawPixmap(0, 0, self.collOverlay)
-        del p
+            painter = QtGui.QPainter(result)
+            painter.drawPixmap(0, 0, self.collOverlay)
+            del painter
 
         return result
 
@@ -226,6 +229,24 @@ class TilesetTile:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, globals.TileWidth * 0.5),
                                                     QtCore.QPoint(globals.TileWidth, globals.TileWidth),
                                                     QtCore.QPoint(0, globals.TileWidth)]))
+            elif CD[2] == 6:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, 0)]))
+            elif CD[2] == 7:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth, 0)]))
+            elif CD[2] == 8:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, 0),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth),
+                                                    QtCore.QPoint(0, globals.TileWidth)]))
+            elif CD[2] == 9:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth),
+                                                    QtCore.QPoint(0, globals.TileWidth)]))
             elif CD[2] == 10:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
                                                     QtCore.QPoint(0, globals.TileWidth),
@@ -297,6 +318,24 @@ class TilesetTile:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, globals.TileWidth * 0.5),
                                                     QtCore.QPoint(0, 0),
                                                     QtCore.QPoint(globals.TileWidth, 0)]))
+            elif CD[2] == 6:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth, 0),
+                                                    QtCore.QPoint(0, 0)]))
+            elif CD[2] == 7:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(globals.TileWidth, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, 0)]))
+            elif CD[2] == 8:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
+                                                    QtCore.QPoint(globals.TileWidth, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth),
+                                                    QtCore.QPoint(0, globals.TileWidth)]))
+            elif CD[2] == 9:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(globals.TileWidth * 0.5, 0),
+                                                    QtCore.QPoint(0, 0),
+                                                    QtCore.QPoint(0, globals.TileWidth)]))
             elif CD[2] == 10:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
                                                     QtCore.QPoint(0, globals.TileWidth),
@@ -342,11 +381,93 @@ class TilesetTile:
                                                     QtCore.QPoint(0, globals.TileWidth * 0.25)]))
 
         elif CD[0] == 9:  # Partial
-            if CD[2] == 2:
+            if CD[2] == 0:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(0, globals.TileWidth * 0.5)]))
+            elif CD[2] == 1:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(globals.TileWidth * 0.5, 0),
+                                                    QtCore.QPoint(globals.TileWidth, 0),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth * 0.5)]))
+            elif CD[2] == 2:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
                                                     QtCore.QPoint(globals.TileWidth, 0),
                                                     QtCore.QPoint(globals.TileWidth, globals.TileWidth * 0.5),
                                                     QtCore.QPoint(0, globals.TileWidth * 0.5)]))
+            elif CD[2] == 3:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth),
+                                                    QtCore.QPoint(0, globals.TileWidth)]))
+            elif CD[2] == 4:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth),
+                                                    QtCore.QPoint(0, globals.TileWidth)]))
+            elif CD[2] == 5:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, 0),
+                                                    QtCore.QPoint(globals.TileWidth, 0),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(0, globals.TileWidth * 0.5)]))
+            elif CD[2] == 6:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
+                                                    QtCore.QPoint(globals.TileWidth, 0),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth),
+                                                    QtCore.QPoint(0, globals.TileWidth)]))
+            elif CD[2] == 7:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth)]))
+            elif CD[2] == 8:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(globals.TileWidth, 0),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(0, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(0, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, 0)]))
+            elif CD[2] == 9:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(globals.TileWidth * 0.5, 0),
+                                                    QtCore.QPoint(globals.TileWidth, 0),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth)]))
+            elif CD[2] == 10:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
+                                                    QtCore.QPoint(globals.TileWidth, 0),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(0, globals.TileWidth * 0.5)]))
+            elif CD[2] == 11:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth),
+                                                    QtCore.QPoint(0, globals.TileWidth)]))
+            elif CD[2] == 12:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth),
+                                                    QtCore.QPoint(0, globals.TileWidth)]))
+            elif CD[2] == 13:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(globals.TileWidth, globals.TileWidth),
+                                                    QtCore.QPoint(globals.TileWidth, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, 0),
+                                                    QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(0, globals.TileWidth * 0.5),
+                                                    QtCore.QPoint(0, globals.TileWidth)]))
+            elif CD[2] == 14:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
+                                                    QtCore.QPoint(globals.TileWidth, 0),
+                                                    QtCore.QPoint(globals.TileWidth, globals.TileWidth),
+                                                    QtCore.QPoint(0, globals.TileWidth)]))
 
         elif CD[4] == 3:  # Solid-on-bottom
             painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, globals.TileWidth),
@@ -384,21 +505,21 @@ class TilesetTile:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(globals.TileWidth, globals.TileWidth * 0.5),
                                                     QtCore.QPoint(globals.TileWidth, globals.TileWidth),
                                                     QtCore.QPoint(0, globals.TileWidth * 0.75)]))
-            if CD[2] == 4:
+            elif CD[2] == 4:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
                                                     QtCore.QPoint(0, globals.TileWidth * 0.5),
                                                     QtCore.QPoint(globals.TileWidth, globals.TileWidth * 0.25)]))
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, globals.TileWidth * 0.5),
                                                     QtCore.QPoint(0, globals.TileWidth),
                                                     QtCore.QPoint(globals.TileWidth, globals.TileWidth * 0.75)]))
-            if CD[2] == 5:
+            elif CD[2] == 5:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, globals.TileWidth),
                                                     QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth),
                                                     QtCore.QPoint(globals.TileWidth * 0.25, 0)]))
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(globals.TileWidth * 0.5, globals.TileWidth),
                                                     QtCore.QPoint(globals.TileWidth, globals.TileWidth),
                                                     QtCore.QPoint(globals.TileWidth * 0.75, 0)]))
-            if CD[2] == 6:
+            elif CD[2] == 6:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(0, 0),
                                                     QtCore.QPoint(globals.TileWidth * 0.5, 0),
                                                     QtCore.QPoint(globals.TileWidth * 0.25, globals.TileWidth)]))
@@ -406,7 +527,7 @@ class TilesetTile:
                                                     QtCore.QPoint(globals.TileWidth, 0),
                                                     QtCore.QPoint(globals.TileWidth * 0.75, globals.TileWidth)]))
 
-        elif CD[4] == 1 or CD[0] in [6, 7]:  # Solid
+        elif CD[4] == 1:  # Solid
             painter.drawRect(0, 0, globals.TileWidth, globals.TileWidth)
 
         self.collOverlay = collPix
@@ -424,8 +545,11 @@ class ObjectDef:
         self.width = 0
         self.height = 0
         self.folderIndex = -1
+        self.objAllIndex = -1
         self.randByte = 0
         self.reversed = False
+        self.mainPartAt = -1
+        self.subPartAt = -1
         self.rows = []
         self.data = 0
 
@@ -433,33 +557,12 @@ class ObjectDef:
         """
         Load an object definition
         """
-        # Bugs... I love bugs...
-        source = source.replace(b'\xfe\x00\xff', b'\xfe\xff')
+        source = source[offset:]
 
-        # Check if this is a slope and the rows are reversed
-        if source[0] & 0x80:
-            row_bytes = source.find(b'\xfe', 1) - 1
+        if source[0] & 0x80 and source[0] & 2:
+            self.reversed = True
 
-            # The row must end with 0xFE
-            # Raise a ValueError if it didn't
-            if row_bytes == -2:
-                raise ValueError("Invalid collsion data!")
-
-            if row_bytes % 3 == 0:
-                if source[0] & 2:
-                    self.reversed = True
-
-            else:
-                # I also believe that this is a bug
-                # but we can take advantage of it
-                source = source[:1] + source[2:]
-
-        # The data must end with 0xFF
-        # Raise a ValueError if it didn't
-        if source[-1] != 0xFF:
-            raise ValueError("Invalid collsion data!")
-
-        i = offset
+        i = 0
         row = []
         cbyte = source[i]
 
@@ -475,10 +578,19 @@ class ObjectDef:
                 row = []
 
             elif (cbyte & 0x80) != 0:
+                if self.mainPartAt == -1:
+                    self.mainPartAt = 0
+
+                else:
+                    self.subPartAt = len(self.rows)
+
                 row.append((cbyte,))
                 i += 1
 
             else:
+                if i + 3 > len(source):
+                    source += b'\0' * (i + 3 - len(source)) + b'\xfe\xff'
+
                 extra = source[i + 2]
                 tile = [cbyte, source[i + 1] | ((extra & 3) << 8), extra >> 2]
                 row.append(tile)
@@ -493,45 +605,53 @@ def CreateTilesets():
     T.setCollisions([0] * 8)
     globals.Tiles = [T] * 0x200 * 4
     globals.Tiles += globals.Overrides
-    # globals.TileBehaviours = [0]*1024
+    SLib.Tiles = globals.Tiles
+
     globals.TilesetAnimTimer = QtCore.QTimer()
     globals.TilesetAnimTimer.timeout.connect(IncrementTilesetFrame)
     globals.TilesetAnimTimer.start(90)
+
     globals.ObjectDefinitions = [None] * 4
-    SLib.Tiles = globals.Tiles
 
 
 def getUsedTiles():
     """
     Get the number of used tiles in each tileset
     """
-    usedTiles = {}
+    usedTiles = [[], [], [], []]
 
     for idx in range(1, 4):
-        usedTiles[idx] = []
-
         defs = globals.ObjectDefinitions[idx]
 
-        if defs is not None:
-            for i in range(256):
-                obj = defs[i]
-                if obj is None: break
+        if defs is None:
+            continue
 
-                for row in obj.rows:
-                    for tile in row:
-                        if len(tile) == 3:
-                            if tile == [0, 0, 0]:  # Pa0 tile 0 used in another slot, don't count it
-                                continue
+        for obj in defs:
+            if obj is None:
+                break
 
-                            randLen = obj.randByte & 0xF
-                            tileNum = tile[1] & 0xFF
-                            if randLen > 0:
-                                for z in range(randLen):
-                                    if tileNum + z not in usedTiles[idx]:
-                                        usedTiles[idx].append(tileNum + z)
-                            else:
-                                if tileNum not in usedTiles[idx]:
-                                    usedTiles[idx].append(tileNum)
+            if (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+                randLen = obj.randByte & 0xF
+
+            else:
+                randLen = 0
+
+            for row in obj.rows:
+                for tile in row:
+                    if len(tile) == 3:
+                        if tile == [0, 0, 0]:  # Pa0 tile 0 used in another slot, don't count it
+                            continue
+
+                        tileNum = tile[1] & 0xFF
+                        tilesetIdx = (tile[1] >> 8) & 3
+
+                        if randLen:
+                            for z in range(randLen):
+                                if tileNum + z not in usedTiles[tilesetIdx]:
+                                    usedTiles[tilesetIdx].append(tileNum + z)
+                        else:
+                            if tileNum not in usedTiles[tilesetIdx]:
+                                usedTiles[tilesetIdx].append(tileNum)
 
     return usedTiles
 
@@ -547,6 +667,7 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
         paintType = 11
 
     objNum = -1
+    usedTiles = getUsedTiles()
 
     for idx in range(1, 4):
         # Get the number of used tiles in this tileset
@@ -556,7 +677,7 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
             continue
 
         # Get the number of tiles in this object
-        if len(obj.rows) == 1:
+        if (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
             randLen = obj.randByte & 0xF
 
         else:
@@ -608,14 +729,9 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
                 continue
 
             # Set the object's tiles' indecies
-            ctile = 0
-            z = 0
-            for tile in obj.rows[0]:
+            for ctile, tile in enumerate(obj.rows[0]):
                 if len(tile) == 3:
-                    obj.rows[0][ctile][1] = (tileNum + z) | (idx << 8)
-                    if z < randLen:
-                        z += 1
-                ctile += 1
+                    obj.rows[0][ctile][1] = tileNum | (idx << 8)
 
             if globals.ObjectDefinitions[idx] is None:
                 # Make us a new ObjectDefinitions for this tileset
@@ -624,9 +740,11 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
             defs = globals.ObjectDefinitions[idx]
 
             # Set the object's number
-            objNum = 0
-            while defs[objNum] is not None and objNum < 256:
-                objNum += 1
+            for objNum, def_ in enumerate(defs):
+                if def_ is None:
+                    break
+            else:
+                continue  # Should never happen
 
             globals.ObjectDefinitions[idx][objNum] = obj
 
@@ -651,6 +769,7 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
                                 tilesUsed[tileIdx] = i
                                 tile[1] = freeTiles[i] | (idx << 8)
                                 i += 1
+
                             else:
                                 tile[1] = freeTiles[tilesUsed[tileIdx]] | (idx << 8)
 
@@ -669,15 +788,21 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
 
             globals.ObjectDefinitions[idx][objNum] = obj
 
-            # Checks if the rows are reversed
-            # Also adds the object's tiles to the Tiles dict.
+            # Adds the object's tiles to the Tiles dict.
             tilesReplaced = []
+
             if obj.reversed:
-                x = 0
-                y = (obj.height - 1) * 60
-                i = 0
-                crow = 0
-                for row in obj.rows:
+                for crow, row in enumerate(obj.rows):
+                    if obj.subPartAt != -1:
+                        if crow >= obj.subPartAt:
+                            crow -= obj.subPartAt
+
+                        else:
+                            crow += obj.height - obj.subPartAt
+
+                    x = 0; i = 0
+                    y = crow * 60
+
                     for tile in row:
                         if len(tile) == 3:
                             if tile != [0, 0, 0]:
@@ -685,24 +810,20 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
                                 if tileNum not in tilesReplaced:
                                     tilesReplaced.append(tileNum)
                                     T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
-                                    realRow = len(obj.rows) - 1 - crow
-                                    colls = struct.unpack_from('>8B', colldata, (8 * obj.width * realRow) + i)
+                                    colls = struct.unpack_from('>8B', colldata, (crow * obj.width * 8) + i)
                                     T.setCollisions(colls)
                                     globals.Tiles[tileNum] = T
 
                             x += 60
                             i += 8
 
-                    crow += 1
-                    y -= 60
-                    x = 0
-                    i = 0
-
             else:
-                x = 0
-                y = 0
                 i = 0
-                for row in obj.rows:
+
+                for crow, row in enumerate(obj.rows):
+                    x = 0
+                    y = crow * 60
+
                     for tile in row:
                         if len(tile) == 3:
                             if tile != [0, 0, 0]:
@@ -716,24 +837,179 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
                             x += 60
                             i += 8
 
-                    y += 60
-                    x = 0
-
         # Set the paint type
         paintType = idx
 
         # Misc.
         HandleTilesetEdited()
         if not eval('globals.Area.tileset%d' % idx):
-            exec('globals.Area.tileset%d = "temp%d"' % (idx, idx))
+            exec("globals.Area.tileset%d = generateTilesetNames()[%d]" % (idx, idx - 1))
 
         break
 
     return paintType, objNum
 
 
-def HandleTilesetEdited():
-    if not globals.TilesetEdited:
+def getImgFromObj(obj, randLen):
+    if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+        tex = QtGui.QPixmap(randLen * 60, obj.height * 60)
+        nml = QtGui.QPixmap(randLen * 60, obj.height * 60)
+
+    else:
+        tex = QtGui.QPixmap(obj.width * 60, obj.height * 60)
+        nml = QtGui.QPixmap(obj.width * 60, obj.height * 60)
+
+    tex.fill(Qt.transparent)
+    nml.fill(QtGui.QColor(128, 128, 255))
+    painter = QtGui.QPainter(tex)
+    nmlPainter = QtGui.QPainter(nml)
+
+    # Paint the tiles on the pixmap
+    if obj.reversed:
+        for crow, row in enumerate(obj.rows):
+            if obj.subPartAt != -1:
+                if crow >= obj.subPartAt:
+                    crow -= obj.subPartAt
+
+                else:
+                    crow += obj.height - obj.subPartAt
+
+            x = 0
+            y = crow * 60
+
+            for tile in row:
+                if len(tile) == 3:
+                    if tile != [0, 0, 0]:
+                        tileNum = (tile[1] & 0xFF) + (((tile[1] >> 8) & 3) * 256)
+                        painter.drawPixmap(x, y, globals.Tiles[tileNum].main)
+                        nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum].nml)
+
+                    x += 60
+
+    else:
+        for crow, row in enumerate(obj.rows):
+            x = 0
+            y = crow * 60
+
+            for tile in row:
+                if len(tile) == 3:
+                    if tile != [0, 0, 0]:
+                        tileNum = (tile[1] & 0xFF) + (((tile[1] >> 8) & 3) * 256)
+                        if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+                            for z in range(randLen):
+                                painter.drawPixmap(x, y, globals.Tiles[tileNum + z].main)
+                                nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum + z].nml)
+                                x += 60
+
+                            break
+
+                        else:
+                            painter.drawPixmap(x, y, globals.Tiles[tileNum].main)
+                            nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum].nml)
+
+                    elif randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+                        break
+
+                    x += 60
+
+    painter.end()
+    nmlPainter.end()
+
+    return tex, nml
+
+
+def exportObject(name, baseName, idx, objNum):
+    obj = globals.ObjectDefinitions[idx][objNum]
+    randLen = obj.randByte & 0xF
+    tex, nml = getImgFromObj(obj, randLen)
+
+    # Get the collision data
+    if obj.reversed:
+        colldata = bytearray(obj.width * obj.height * 8)
+        for crow, row in enumerate(obj.rows):
+            if obj.subPartAt != -1:
+                if crow >= obj.subPartAt:
+                    crow -= obj.subPartAt
+
+                else:
+                    crow += obj.height - obj.subPartAt
+
+            ctile = 0
+            for tile in row:
+                if len(tile) == 3:
+                    tileNum = (tile[1] & 0xFF) + (((tile[1] >> 8) & 3) * 256)
+
+                    pos = (crow * obj.width + ctile) * 8
+                    colldata[pos:pos + 8] = bytes(globals.Tiles[tileNum].collData)
+
+                    ctile += 1
+
+    else:
+        colldata = b''
+        for row in obj.rows:
+            for tile in row:
+                if len(tile) == 3:
+                    tileNum = (tile[1] & 0xFF) + (((tile[1] >> 8) & 3) * 256)
+                    if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+                        for z in range(randLen):
+                            colldata += bytes(globals.Tiles[tileNum + z].collData)
+
+                        break
+
+                    else:
+                        colldata += bytes(globals.Tiles[tileNum].collData)
+
+    jsonData = {}
+
+    tex.save(name + ".png", "PNG")
+    jsonData['img'] = baseName + ".png"
+
+    nml.save(name + "_nml.png", "PNG")
+    jsonData['nml'] = baseName + "_nml.png"
+
+    with open(name + ".colls", "wb+") as colls:
+            colls.write(colldata)
+
+    jsonData['colls'] = baseName + ".colls"
+
+    deffile = b''
+
+    for row in obj.rows:
+        for tile in row:
+            if len(tile) == 3:
+                byte2 = tile[2] << 2
+                byte2 |= (tile[1] >> 8) & 3  # Slot
+
+                deffile += bytes([tile[0], tile[1] & 0xFF, byte2])
+
+            else:
+                deffile += bytes(tile)
+
+        deffile += b'\xFE'
+
+    deffile += b'\xFF'
+
+    with open(name + ".objlyt", "wb+") as objlyt:
+        objlyt.write(deffile)
+
+    jsonData['objlyt'] = baseName + ".objlyt"
+
+    indexfile = struct.pack('>HBBxB', 0, obj.width, obj.height, obj.randByte)
+
+    with open(name + ".meta", "wb+") as meta:
+        meta.write(indexfile)
+
+    jsonData['meta'] = baseName + ".meta"
+
+    if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+        jsonData['randLen'] = randLen
+
+    with open(name + ".json", 'w+') as outfile:
+        json.dump(jsonData, outfile)
+
+
+def HandleTilesetEdited(fromPuzzle=False):
+    if not fromPuzzle:
         globals.TilesetEdited = True
 
     globals.mainWindow.objPicker.LoadFromTilesets()
@@ -752,7 +1028,11 @@ def DeleteObject(idx, objNum):
 
                 randLen = obj.randByte & 0xF
                 tileNum = tile[1] & 0xFF
-                if randLen > 0:
+
+                if idx != (tile[1] >> 8) & 3:
+                    continue
+
+                if randLen:
                     for i in range(randLen):
                         if tileNum + i not in usedTiles:
                             usedTiles.append(tileNum + i)
@@ -761,6 +1041,7 @@ def DeleteObject(idx, objNum):
                         usedTiles.append(tileNum)
 
     folderIndex = obj.folderIndex
+    objAllIndex = obj.objAllIndex
 
     # Completely remove the object's definition
     del globals.ObjectDefinitions[idx][objNum]
@@ -786,25 +1067,35 @@ def DeleteObject(idx, objNum):
 
     # Remove the object from globals.ObjectAddedtoEmbedded
     if folderIndex > -1 and globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-        for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-            obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-            if obj == (idx, objNum):
-                del globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-                break
+        globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex].pop(objAllIndex, None)
 
     # Subtract 1 from the objects' types that after this object and in the same slot
     for folderIndex in globals.ObjectAddedtoEmbedded[globals.CurrentArea]:
         for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-            obj = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-            if obj[0] == idx:
-                if obj[1] > objNum:
-                    globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i] = (obj[0], obj[1] - 1)
+            tempIdx, tempNum = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
+            if tempIdx == idx:
+                if tempNum > objNum:
+                    globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i] = (tempIdx, tempNum - 1)
 
     for layer in globals.Area.layers:
         for obj in layer:
             if obj.tileset == idx:
                 if obj.type > objNum:
                     obj.SetType(obj.tileset, obj.type - 1)
+
+
+def generateTilesetNames():
+    """
+    Generate 3 Tileset names
+    """
+    words = gibberish.generate_words(3)
+    tilesetNames = ['Pa%d_%s_%d_%s' % (i + 1, globals.levelNameCache, globals.CurrentArea, word) for i, word in enumerate(words)]
+    for name in tilesetNames:
+        if name in globals.szsData:
+            # Not safe, but... ¯\_(ツ)_/¯
+            return generateTilesetNames()
+
+    return tilesetNames
 
 
 def _compressBC3_nvcompress(tex, tile_path):
@@ -834,7 +1125,7 @@ def _compressBC3_nvcompress(tex, tile_path):
 def _compressBC3_libtxc_dxtn(tex, tile_path):
     """
     RGBA8 QPixmap -> BC3 DDS
-    Uses our port of `libtxc_dxtn`
+    Uses our port of `libtxc_dxtn` (or Wexos's Compressor if Cython is not available)
     """
     data = tex.bits()
     data.setsize(tex.byteCount())
@@ -874,7 +1165,7 @@ def writeGTX(tex, idx):
         tile_path = globals.miyamoto_path + '/macTools'
 
     if idx != 0:  # Save as DXT5/BC3
-        if platform.system() == 'Darwin' or globals.cython_available:
+        if platform.system() == 'Darwin':
             _compressBC3_libtxc_dxtn(tex, tile_path)
 
         else:
@@ -1008,12 +1299,10 @@ def SaveTileset(idx):
         for row in obj.rows:
             for tile in row:
                 if len(tile) == 3:
-                    byte0 = tile[0]
-                    byte1 = tile[1] & 0xFF
                     byte2 = tile[2] << 2
                     byte2 |= (tile[1] >> 8) & 3  # Slot
 
-                    deffile += bytes([byte0, byte1, byte2])
+                    deffile += bytes([tile[0], tile[1] & 0xFF, byte2])
 
                 else:
                     deffile += bytes(tile)
@@ -1038,7 +1327,7 @@ def SaveTileset(idx):
     unt.addFile(SarcLib.File('%s.bin' % name, deffile))
     unt.addFile(SarcLib.File('%s_hd.bin' % name, indexfile))
 
-    return arc.save(0x2000)
+    return arc.save()[0]
 
 
 def _loadGTX_gtx_quick(width, height, format_, data):
@@ -1278,15 +1567,15 @@ def PutObjectArray(dest, xo, yo, block, width, height):
             drow[x] = srow[x - xo][1]
 
 
-def _RenderObject(dest, obj, width, height, fullslope=False):
+def _RenderObject(obj, width, height, fullslope=False):
     """
     Render a tileset object into an array
     """
-    # ignore non-existent objects
-    if obj is None:
-        return dest
+    # allocate an array
+    dest = [[0] * width for _ in range(height)]
 
-    if len(obj.rows) == 0:
+    # ignore non-existent objects
+    if obj is None or len(obj.rows) == 0:
         return dest
 
     # diagonal objects are rendered differently
@@ -1339,9 +1628,6 @@ def _RenderObject(dest, obj, width, height, fullslope=False):
 
 
 def RenderObject(tileset, objnum, width, height, fullslope=False):
-    # allocate an array
-    dest = [[0] * width for _ in range(height)]
-
     # ignore non-existent objects
     try:
         tileset_defs = globals.ObjectDefinitions[tileset]
@@ -1350,7 +1636,7 @@ def RenderObject(tileset, objnum, width, height, fullslope=False):
         tileset_defs = None
 
     if tileset_defs is None:
-        return dest
+        return [[0] * width for _ in range(height)]
 
     try:
         obj = tileset_defs[objnum]
@@ -1358,14 +1644,11 @@ def RenderObject(tileset, objnum, width, height, fullslope=False):
     except IndexError:
         obj = None
 
-    return _RenderObject(dest, obj, width, height, fullslope)
+    return _RenderObject(obj, width, height, fullslope)
 
 
 def RenderObjectAll(obj, width, height, fullslope=False):
-    # allocate an array
-    dest = [[0] * width for _ in range(height)]
-
-    return _RenderObject(dest, obj, width, height, fullslope)
+    return _RenderObject(obj, width, height, fullslope)
 
 
 def RenderStandardRow(dest, row, width):

@@ -30,7 +30,7 @@ import os
 from xml.etree import ElementTree as etree
 
 import globals
-import SARC as SarcLib
+import SarcLib
 import spritelib as SLib
 from tileset import CreateTilesets, SaveTileset
 
@@ -186,7 +186,7 @@ class Level_NSMBU(AbstractLevel):
 
         # Go through the areas, save them and add them back to the archive
         for areanum, area in enumerate(self.areas):
-            course, L0, L1, L2 = area.save(innerfilename)
+            course, L0, L1, L2 = area.save()
 
             if course is not None:
                 courseFolder.addFile(SarcLib.File('course%d.bin' % (areanum + 1), course))
@@ -198,7 +198,7 @@ class Level_NSMBU(AbstractLevel):
                 courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (areanum + 1), L2))
 
         # Here we have the new inner-SARC savedata
-        innersarc = newArchive.save(0x04, 0x170)
+        innersarc = newArchive.save()[0]
         globals.szsData[innerfilename] = innersarc
 
         # Now make an outer SARC
@@ -323,7 +323,7 @@ class Level_NSMBU(AbstractLevel):
                 outerArchive.addFile(SarcLib.File(szsThingName, globals.szsData[szsThingName]))
 
         # Save the outer sarc and return it
-        return outerArchive.save(0x2000)
+        return outerArchive.save()[0]
 
     def saveNewArea(self, innerfilename, course_new, L0_new, L1_new, L2_new):
         """
@@ -339,7 +339,7 @@ class Level_NSMBU(AbstractLevel):
 
         # Go through the areas, save them and add them back to the archive
         for areanum, area in enumerate(self.areas):
-            course, L0, L1, L2 = area.save('', True)
+            course, L0, L1, L2 = area.save(True)
 
             if course is not None:
                 courseFolder.addFile(SarcLib.File('course%d.bin' % (areanum + 1), course))
@@ -360,7 +360,7 @@ class Level_NSMBU(AbstractLevel):
             courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (len(self.areas) + 1), L2_new))
 
         # Here we have the new inner-SARC savedata
-        innersarc = newArchive.save(0x04, 0x170)
+        innersarc = newArchive.save()[0]
 
         # Now make an outer SARC
         outerArchive = SarcLib.SARC_Archive()
@@ -377,4 +377,4 @@ class Level_NSMBU(AbstractLevel):
             outerArchive.addFile(SarcLib.File(szsThingName, globals.szsData[szsThingName]))
 
         # Save the outer sarc and return it
-        return outerArchive.save(0x2000)
+        return outerArchive.save()[0]

@@ -33,8 +33,8 @@ from xml.etree import ElementTree as etree
 import globals
 import spritelib as SLib
 from gamedefs import MiyamotoGameDefinition, GetPath
-from misc import SpriteDefinition, setting
-import SARC as SarcLib
+from misc import SpriteDefinition, setting, setSetting
+import SarcLib
 from strings import MiyamotoTranslation
 
 from tileset import TilesetTile, ObjectDef
@@ -60,6 +60,23 @@ def LoadTheme():
 
     else:
         globals.theme = MiyamotoTheme()
+
+
+def LoadBGNames():
+    """
+    Loads the BG names and their translations
+    """
+    # Sort BG Names
+    globals.names_bg = []
+    globals.names_bgTrans = []
+
+    with open(GetPath('bg'), 'r') as txt:
+        for line in txt.readlines():
+            globals.names_bg.append(line.rstrip())
+
+    with open(GetPath('bgTrans'), 'r') as txt:
+        for line in txt.readlines():
+            globals.names_bgTrans.append(line.rstrip())
 
 
 def LoadLevelNames():
@@ -205,6 +222,7 @@ def LoadSpriteData():
                     spriteid = int(sprite.attrib['id'])
                 except ValueError:
                     continue
+
                 spritename = sprite.attrib['name']
                 notes = None
                 relatedObjFiles = None
@@ -235,10 +253,8 @@ def LoadSpriteData():
         # gamedef is loaded, because spritenames.txt
         # is a file only ever used by custom gamedefs.
         if (snpath is not None) and (snpath.path is not None):
-            snfile = open(snpath.path)
-            data = snfile.read()
-            snfile.close()
-            del snfile
+            with open(snpath.path) as snfile:
+                data = snfile.read()
 
             # Split the data
             data = data.split('\n')
@@ -366,10 +382,14 @@ def LoadEntranceNames(reload_=False):
 
     NameList = {}
     for path in paths:
-        getit = open(path, 'r')
         newNames = {}
-        for line in getit.readlines(): newNames[int(line.split(':')[0])] = line.split(':')[1].replace('\n', '')
-        for idx in newNames: NameList[idx] = newNames[idx]
+        with open(path, 'r') as f:
+            for line in f.readlines():
+                id_ = int(line.split(':')[0])
+                newNames[id_] = line.split(':')[1].replace('\n', '')
+
+        for idx in newNames:
+            NameList[idx] = newNames[idx]
 
     globals.EntranceTypeNames = []
     idx = 0
@@ -529,11 +549,7 @@ def _LoadTileset(idx, name):
 
 
 def LoadTileset(idx, name, reload=False):
-    try:
-        return _LoadTileset(idx, name)
-
-    except:
-        return False
+    return _LoadTileset(idx, name)
 
 
 def LoadOverrides():
@@ -611,6 +627,9 @@ def LoadGameDef(name=None, dlg=None):
                                                   globals.trans.string('Gamedefs', 7, '[game]', globals.gamedef.name),
                                                   QtWidgets.QMessageBox.Ok)
 
+        # Load BG names
+        LoadBGNames()
+
         # Load spritedata.xml and spritecategories.xml
         LoadSpriteData()
         LoadSpriteListData(True)
@@ -670,7 +689,7 @@ def LoadGameDef(name=None, dlg=None):
 
 
     # Success!
-    if dlg: ('LastGameDef', name)
+    if dlg: setSetting('LastGameDef', name)
     return True
 
 

@@ -29,6 +29,7 @@
 import json
 from math import sqrt
 import os
+import re
 import struct
 import sys
 
@@ -50,7 +51,7 @@ from quickpaint import QuickPaintOperations
 from stamp import StampListModel
 
 from tileset import TilesetTile, ObjectDef, addObjToTileset
-from tileset import HandleTilesetEdited, DeleteObject
+from tileset import exportObject, HandleTilesetEdited, DeleteObject
 from tileset import RenderObject, RenderObjectAll
 from tileset import SimpleTilesetNames
 
@@ -1587,7 +1588,9 @@ class ObjectPickerWidget(QtWidgets.QListView):
         if id == 0: self.setModel(self.m0)
         elif id == 1: self.setModel(self.mall)
         else: self.setModel(self.m123)
-        self.setCurrentIndex(self.model().index(sel, 0, QtCore.QModelIndex()))
+
+        globals.CurrentObject = -1
+        self.clearSelection()
 
     def currentChanged(self, current, previous):
         """
@@ -1606,145 +1609,17 @@ class ObjectPickerWidget(QtWidgets.QListView):
         """
         Exports an object from the tileset
         """
-        save_path = QtWidgets.QFileDialog.getExistingDirectory(None, "Choose where to save the Object folder")
-        if not save_path: return
+        file = QtWidgets.QFileDialog.getSaveFileName(None, "Save Objects", "", "Object files (*.json)")[0]
+        if not file:
+            return
+
+        name = os.path.splitext(file)[0]
+        baseName = os.path.basename(name)
 
         idx = globals.CurrentPaintType
         objNum = globals.CurrentObject
 
-        tileoffset = idx * 256
-
-        name = eval('globals.Area.tileset%d' % idx)
-
-        obj = globals.ObjectDefinitions[idx][objNum]
-
-        jsonData = {}
-
-        randLen = obj.randByte & 0xF
-
-        if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
-            tex = QtGui.QPixmap(randLen * 60, obj.height * 60)
-            nml = QtGui.QPixmap(randLen * 60, obj.height * 60)
-
-        else:
-            tex = QtGui.QPixmap(obj.width * 60, obj.height * 60)
-            nml = QtGui.QPixmap(obj.width * 60, obj.height * 60)
-
-        tex.fill(Qt.transparent)
-        nml.fill(QtGui.QColor(128, 128, 255))
-        painter = QtGui.QPainter(tex)
-        nmlPainter = QtGui.QPainter(nml)
-
-        # Checks if the slop is reversed and reverses the rows
-        isSlope = obj.rows[0][0][0]
-        if (isSlope & 0x80) and (isSlope & 0x2):
-            colldata = []
-
-            x = 0
-            y = (obj.height - 1) * 60
-            for row in obj.rows:
-                colls = b''
-                for tile in row:
-                    if len(tile) == 3:
-                        tileNum = (tile[1] & 0xFF) + tileoffset
-                        if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
-                            for z in range(randLen):
-                                painter.drawPixmap(x, y, globals.Tiles[tileNum + z].main)
-                                nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum + z].nml)
-                                colls += bytes(globals.Tiles[tileNum + z].collData)
-                                x += 60
-                            break
-
-                        else:
-                            painter.drawPixmap(x, y, globals.Tiles[tileNum].main)
-                            nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum].nml)
-                            colls += bytes(globals.Tiles[tileNum].collData)
-                            x += 60
-
-                colldata.append(colls)
-                y -= 60
-                x = 0
-
-            colldata = b''.join(reversed(colldata))
-
-        else:
-            colldata = b''
-
-            x = 0
-            y = 0
-            for row in obj.rows:
-                for tile in row:
-                    if len(tile) == 3:
-                        tileNum = (tile[1] & 0xFF) + tileoffset
-                        if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
-                            for z in range(randLen):
-                                painter.drawPixmap(x, y, globals.Tiles[tileNum + z].main)
-                                nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum + z].nml)
-                                colldata += bytes(globals.Tiles[tileNum + z].collData)
-                                x += 60
-                            break
-
-                        else:
-                            painter.drawPixmap(x, y, globals.Tiles[tileNum].main)
-                            nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum].nml)
-                            colldata += bytes(globals.Tiles[tileNum].collData)
-                            x += 60
-                y += 60
-                x = 0
-
-        painter.end()
-        nmlPainter.end()
-
-        if not os.path.exists(save_path + "/" + name + "_objects"):
-            os.makedirs(save_path + "/" + name + "_objects")
-
-        tex.save(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".png", "PNG")
-        jsonData['img'] = name + "_object_" + str(objNum) + ".png"
-
-        nml.save(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + "_nml.png", "PNG")
-        jsonData['nml'] = name + "_object_" + str(objNum) + "_nml.png"
-
-        with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".colls", "wb+") as colls:
-                colls.write(colldata)
-
-        jsonData['colls'] = name + "_object_" + str(objNum) + ".colls"
-
-        deffile = b''
-
-        for row in obj.rows:
-            for tile in row:
-                if len(tile) == 3:
-                    byte0 = tile[0]
-                    byte1 = tile[1] & 0xFF
-                    byte2 = tile[2] << 2
-                    byte2 |= (tile[1] >> 8) & 3  # Slot
-
-                    deffile += bytes([byte0, byte1, byte2])
-
-                else:
-                    deffile += bytes(tile)
-
-            deffile += b'\xFE'
-
-        deffile += b'\xFF'
-
-        with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".objlyt", "wb+") as objlyt:
-            objlyt.write(deffile)
-
-        jsonData['objlyt'] = name + "_object_" + str(objNum) + ".objlyt"
-
-        indexfile = struct.pack('>HBBxB', 0, obj.width, obj.height, 0)
-
-        with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".meta", "wb+") as meta:
-            meta.write(indexfile)
-
-        jsonData['meta'] = name + "_object_" + str(objNum) + ".meta"
-
-        if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
-            jsonData['randLen'] = randLen
-
-        with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".json", 'w+') as outfile:
-            json.dump(jsonData, outfile)
+        exportObject(name, baseName, idx, objNum)
 
     def HandleObjDelete(self, index):
         """
@@ -1884,7 +1759,9 @@ class ObjectPickerWidget(QtWidgets.QListView):
                 defs = globals.ObjectDefinitions[idx]
 
                 for i in range(256):
-                    if defs[i] is None: break
+                    if defs[i] is None:
+                        break
+
                     obj = RenderObject(idx, i, defs[i].width, defs[i].height, True)
                     self.items.append(obj)
 
@@ -1955,66 +1832,84 @@ class ObjectPickerWidget(QtWidgets.QListView):
                 return
 
             z = 0
-
             top_folder = os.path.join(setting('ObjPath'), globals.mainWindow.folderPicker.currentText())
 
-            for file in os.listdir(top_folder):
-                if file.endswith(".json"):
-                    dir = top_folder + "/"
+            files = os.listdir(top_folder)
+            files.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
 
-                    with open(dir + file) as inf:
-                        jsonData = json.load(inf)
+            files_ = [file for file in files if file[-5:] == ".json"]
+            del files
 
-                    with open(dir + jsonData["colls"], "rb") as inf:
-                        globals.ObjectAllCollisions.append(inf.read())
+            for file in files_:
+                dir = top_folder + "/"
 
-                    with open(dir + jsonData["meta"], "rb") as inf:
-                        indexfile = inf.read()
+                with open(dir + file) as inf:
+                    jsonData = json.load(inf)
 
-                    with open(dir + jsonData["objlyt"], "rb") as inf:
-                        deffile = inf.read()
+                if not ("colls" in jsonData and "meta" in jsonData and "objlyt" in jsonData
+                        and "img" in jsonData and "nml" in jsonData):
+                    continue
 
-                    indexstruct = struct.Struct('>HBBH')
+                found = True
+                for f in ["colls", "meta", "objlyt", "img", "nml"]:
+                    if not os.path.isfile(dir + jsonData[f]):
+                        found = False
+                        break
 
-                    data = indexstruct.unpack_from(indexfile, 0)
-                    obj = ObjectDef()
-                    obj.width = data[1]
-                    obj.height = data[2]
-                    obj.folderIndex = globals.mainWindow.folderPicker.currentIndex()
+                if not found:
+                    continue
 
-                    if "randLen" in jsonData:
-                        obj.randByte = data[3]
+                with open(dir + jsonData["colls"], "rb") as inf:
+                    globals.ObjectAllCollisions.append(inf.read())
 
-                    else:
-                        obj.randByte = 0
+                with open(dir + jsonData["meta"], "rb") as inf:
+                    indexfile = inf.read()
 
-                    obj.load(deffile, 0)
+                with open(dir + jsonData["objlyt"], "rb") as inf:
+                    deffile = inf.read()
 
-                    globals.ObjectAllDefinitions.append(obj)
+                indexstruct = struct.Struct('>HBBH')
 
-                    obj = RenderObjectAll(obj, obj.width, obj.height, True)
-                    self.items.append(obj)
+                data = indexstruct.unpack_from(indexfile, 0)
+                def_ = ObjectDef()
+                def_.width = data[1]
+                def_.height = data[2]
+                def_.folderIndex = globals.mainWindow.folderPicker.currentIndex()
+                def_.objAllIndex = z
 
-                    globals.ObjectAllImages.append([QtGui.QPixmap(dir + jsonData["img"]),
-                                            QtGui.QPixmap(dir + jsonData["nml"])])
+                if "randLen" in jsonData:
+                    def_.randByte = data[3]
 
-                    if "randLen" in jsonData:
-                        pm = globals.ObjectAllImages[-1][0].copy(0, 0, 60, 60)
+                else:
+                    def_.randByte = 0
 
-                    else:
-                        pm = globals.ObjectAllImages[-1][0]
+                def_.load(deffile, 0)
 
-                    pm = pm.scaledToWidth(pm.width() * 32/globals.TileWidth, Qt.SmoothTransformation)
-                    if pm.width() > 256:
-                        pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
-                    if pm.height() > 256:
-                        pm = pm.scaledToHeight(256, Qt.SmoothTransformation)
+                globals.ObjectAllDefinitions.append(def_)
 
-                    self.ritems.append(pm)
-                    self.itemsize.append(QtCore.QSize(pm.width() + 4, pm.height() + 4))
-                    self.tooltips.append(globals.trans.string('Objects', 5, '[id]', z))
+                obj = RenderObjectAll(def_, def_.width, def_.height, True)
+                self.items.append(obj)
 
-                    z += 1
+                globals.ObjectAllImages.append([QtGui.QPixmap(dir + jsonData["img"]),
+                                        QtGui.QPixmap(dir + jsonData["nml"])])
+
+                if "randLen" in jsonData:
+                    pm = globals.ObjectAllImages[-1][0].copy(0, 0, 60, 60)
+
+                else:
+                    pm = globals.ObjectAllImages[-1][0]
+
+                pm = pm.scaledToWidth(pm.width() * 32 / globals.TileWidth, Qt.SmoothTransformation)
+                if pm.width() > 256:
+                    pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
+                if pm.height() > 256:
+                    pm = pm.scaledToHeight(256, Qt.SmoothTransformation)
+
+                self.ritems.append(pm)
+                self.itemsize.append(QtCore.QSize(pm.width() + 4, pm.height() + 4))
+                self.tooltips.append(globals.trans.string('Objects', 5, '[id]', z))
+
+                z += 1
 
             self.endResetModel()
 
@@ -2389,7 +2284,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
             return bytes(sdata)
 
-    # converted
     class CheckboxPropertyDecoder(PropertyDecoder):
         """
         Class that decodes/encodes sprite data to/from a checkbox
@@ -2447,7 +2341,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             """
             self.updateData.emit(self)
 
-    # converted
     class ListPropertyDecoder(PropertyDecoder):
         """
         Class that decodes/encodes sprite data to/from a combobox
@@ -2496,9 +2389,11 @@ class SpriteEditorWidget(QtWidgets.QWidget):
             """
             Handle the current index changing in the combobox
             """
+            if index < 0:
+                return
+
             self.updateData.emit(self)
 
-    # converted
     class ValuePropertyDecoder(PropertyDecoder):
         """
         Class that decodes/encodes sprite data to/from a spinbox
@@ -3216,7 +3111,6 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
 
         # create widgets
         self.action = QtWidgets.QComboBox()
-
         self.action.addItems(['0: Run to the right',
                               '1: Jump to the next node',
                               '6: Unknown, probably the same as 0',
@@ -3249,6 +3143,34 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
         self.path = None
         self.UpdateFlag = False
 
+        self.indecies = {
+            0: 0,
+            1: 1,
+            6: 2,
+            7: 3,
+            8: 4,
+            11: 5,
+            20: 6,
+            23: 7,
+            24: 8,
+            25: 9,
+            26: 10,
+        }
+
+        self.rIndecies = {
+            0: 0,
+            1: 1,
+            2: 6,
+            3: 7,
+            4: 8,
+            5: 11,
+            6: 20,
+            7: 23,
+            8: 24,
+            9: 25,
+            10: 26,
+        }
+
     def setPath(self, path):
         """
         Change the path node being edited by the editor, update the action field
@@ -3258,20 +3180,8 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
         self.path = path
         self.UpdateFlag = True
 
-        indecies = {0: 0,
-                    1: 1,
-                    6: 2,
-                    7: 3,
-                    8: 4,
-                    11: 5,
-                    20: 6,
-                    23: 7,
-                    24: 8,
-                    25: 9,
-                    26: 10}
-
-        if path.nodeinfo['action'] in indecies:
-            self.action.setCurrentIndex(indecies[path.nodeinfo['action']])
+        if path.nodeinfo['action'] in self.indecies:
+            self.action.setCurrentIndex(self.indecies[path.nodeinfo['action']])
 
         else:
             print("Unknown nabbit path node action found: %d" % path.nodeinfo['action'])
@@ -3286,19 +3196,7 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
         if self.UpdateFlag: return
         SetDirty()
 
-        indecies = {0: 0,
-                    1: 1,
-                    2: 6,
-                    3: 7,
-                    4: 8,
-                    5: 11,
-                    6: 20,
-                    7: 23,
-                    8: 24,
-                    9: 25,
-                    10: 26}
-
-        self.path.nodeinfo['action'] = indecies[i]
+        self.path.nodeinfo['action'] = self.rIndecies[i]
 
 
 class LocationEditorWidget(QtWidgets.QWidget):
@@ -3762,7 +3660,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 SetDirty()
 
             elif globals.CurrentPaintType == 10 and globals.CurrentObject != -1:
+                assert globals.CurrentObject == globals.ObjectAllDefinitions[globals.CurrentObject].objAllIndex
                 type_ = globals.CurrentObject
+
                 # Check if the object is already in one of the tilesets
                 if globals.CurrentObject in globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()]:
                     (globals.CurrentPaintType,
@@ -4304,9 +4204,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                     # if the size changed, recache it and update the area
                     if cwidth != width or cheight != height:
+                        obj.updateObjCacheWH(width, height)
                         obj.width = width
                         obj.height = height
-                        obj.updateObjCache()
 
                         oldrect = obj.BoundingRect
                         oldrect.translate(cx * globals.TileWidth, cy * globals.TileWidth)
@@ -4369,7 +4269,6 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                         obj.UpdateRects()
                         obj.scene().update(updaterect)
-
 
                 elif isinstance(obj, type_spr):
                     # move the created sprite

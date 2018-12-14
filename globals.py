@@ -26,7 +26,9 @@
 
 import os, sys
 
-# Globals
+MiyamotoID = 'Miyamoto! Level Editor by AboodXD, Gota7, John10v10, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
+MiyamotoVersion = '26.0 Beta - 29/7/2018'
+
 generateStringsXML = False
 app = None
 mainWindow = None
@@ -85,26 +87,17 @@ RestoredFromAutoSave = False
 AutoSavePath = ''
 AutoSaveData = b''
 AutoOpenScriptEnabled = False
+ExceptionRaised = False
 CurrentLevelNameForAutoOpenScript = 'AAAAAAAAAAAAAAAAAAAAAAAAAA'
 TileWidth = 60
 szsData = {}
 levelNameCache = ''
 miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
 cython_available = False
-
-# Sort BG Names
+libyaz0_available = False
+err_msg = ''
 names_bg = []
 names_bgTrans = []
-
-with open(miyamoto_path + '/miyamotodata/bg.txt', 'r') as txt:
-    for line in txt.readlines():
-        names_bg.append(line.rstrip())
-names_bg = tuple(names_bg)
-
-with open(miyamoto_path + '/miyamotodata/bgTrans.txt', 'r') as txt:
-    for line in txt.readlines():
-        names_bgTrans.append(line.rstrip())
-names_bgTrans = tuple(names_bgTrans)
 
 # Game enums
 FileExtentions = ('.szs', '.sarc')

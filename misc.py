@@ -26,9 +26,7 @@
 
 ############ Imports ############
 
-import os
 import pickle
-import platform
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
@@ -238,7 +236,6 @@ class SpriteDefinition:
             """
             Required by Qt
             """
-            # return self.max
             return len(self.entries)
 
         def data(self, index, role=Qt.DisplayRole):
@@ -249,11 +246,7 @@ class SpriteDefinition:
                 return None
 
             n = index.row()
-
-            if n < 0:
-                return None
-
-            if n >= len(self.entries):
+            if n < 0 or n >= len(self.entries):
                 return None
 
             if role == Qt.DisplayRole:
@@ -627,55 +620,3 @@ def SetGamePath(newpath):
     # isValidGamePath crashes in os.path.join if QString is used..
     # so we must change it to a Python string manually
     globals.gamedef.SetGamePath(str(newpath))
-
-
-def Yaz0Dec_WSZST(inf, outf):
-    if os.path.isfile(outf):
-        os.remove(outf)
-
-    if platform.system() == 'Windows':
-        os.chdir(globals.miyamoto_path + '/Tools')
-        os.system('wszst.exe DECOMPRESS "' + inf + '" --dest "' + outf + '"')
-        os.chdir(globals.miyamoto_path)
-
-    elif platform.system() == 'Linux':
-        os.chdir(globals.miyamoto_path + '/linuxTools')
-        os.system('chmod +x ./wszst_linux.elf')
-        os.system('./wszst_linux.elf DECOMPRESS "' + inf + '" --dest "' + outf + '"')
-        os.chdir(globals.miyamoto_path)
-
-    else:
-        os.chdir(globals.miyamoto_path + '/macTools')
-        os.system('"' + globals.miyamoto_path + '/macTools/wszst_mac" DECOMPRESS "' + inf + '" --dest "' + outf + '"')
-        os.chdir(globals.miyamoto_path)
-
-    if not os.path.isfile(outf):
-        return False
-
-    return True
-
-
-def Yaz0Comp_WSZST(inf, outf):
-    if os.path.isfile(outf):
-        os.remove(outf)
-
-    if platform.system() == 'Windows':
-        os.chdir(globals.miyamoto_path + '/Tools')
-        os.system('wszst.exe COMPRESS "' + inf + '" --dest "' + outf + '"')
-        os.chdir(globals.miyamoto_path)
-
-    elif platform.system() == 'Linux':
-        os.chdir(globals.miyamoto_path + '/linuxTools')
-        os.system('chmod +x ./wszst_linux.elf')
-        os.system('./wszst_linux.elf COMPRESS "' + inf + '" --dest "' + outf + '"')
-        os.chdir(globals.miyamoto_path)
-
-    else:
-        os.chdir(globals.miyamoto_path + '/macTools')
-        os.system('"' + globals.miyamoto_path + '/macTools/wszst_mac" COMPRESS "' + inf + '" --dest "' + outf + '"')
-        os.chdir(globals.miyamoto_path)
-
-    if not os.path.isfile(outf):
-        return False
-
-    return True

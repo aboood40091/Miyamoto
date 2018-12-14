@@ -745,7 +745,7 @@ cpdef bytearray compress(bytes src, int width, int height):
         u8 *dest = <u8 *>malloc(dest_len)
         u8 *blkaddr = dest
 
-        int dstRowStride = 4 * ((width * 32 + 31) // 32)
+        int dstRowStride = ((width + 3) // 4) * 16
 
         u8 srcpixels[4][4][4]
         int numxpixels, numypixels

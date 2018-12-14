@@ -35,6 +35,7 @@ currentRunningVersion = sys.version_info.major + (.1 * sys.version_info.minor)
 if currentRunningVersion < minimum:
     errormsg = 'Please update your copy of Python to ' + str(minimum) + \
                ' or greater. Currently running on: ' + sys.version[:5]
+
     raise Exception(errormsg)
 
 # Stdlib imports
@@ -42,11 +43,26 @@ import json
 import os
 import platform
 import struct
-import sys
+import time
+import traceback
 
 # PyQt5: import
+pqt_min = map(int, "5.4.1".split('.'))
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
+
+version = map(int, QtCore.QT_VERSION_STR.split('.'))
+for v, c in zip(version, pqt_min):
+    if c > v:
+        # lower version
+        errormsg = 'Please update your copy of PyQt to 5.4.1' + \
+                   ' or greater. Currently running on: ' + QtCore.QT_VERSION_STR
+
+        raise Exception(errormsg) from None
+    else:
+        # higher version
+        break
 
 if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
     # enables itemChange being called on QGraphicsItem
@@ -83,13 +99,11 @@ from dialogs import *
 from gamedefs import *
 from items import *
 from level import *
-from libyaz0 import decompress as Yaz0Dec_LIBYaz0
-from libyaz0 import compress as Yaz0Comp_LIBYaz0
 from loading import *
 from misc import *
 from puzzle import MainWindow as PuzzleWindow
 from quickpaint import *
-import SARC as SarcLib
+import SarcLib
 import spritelib as SLib
 import sprites
 from stamp import *
@@ -99,10 +113,46 @@ from ui import *
 from verifications import *
 from widgets import *
 
-MiyamotoID = 'Miyamoto! Level Editor by AboodXD, Gota7, John10v10, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
-MiyamotoVersion = '25.0'
-MiyamotoVersionShort = ''
-UpdateURL = ''
+from yaz0 import determineCompressionMethod
+CompYaz0, DecompYaz0 = determineCompressionMethod()
+
+
+def _excepthook(*exc_info):
+    """
+    Custom unhandled exceptions handler
+    """
+    separator = '-' * 80
+    logFile = "log.txt"
+    notice = \
+        """An unhandled exception occurred. Please report the problem """\
+        """to @MasterVermilli0n#7241 on Discord.\n"""\
+        """A log will be written to "%s".\n\nIt is recommended that you restart Miyamoto immediately!"""\
+        """\n\nError information:\n""" % logFile
+
+    timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
+
+    e = "".join(traceback.format_exception(*exc_info))
+    sections = [separator, timeString, separator, e]
+    msg = '\n'.join(sections)
+
+    globals.err_msg += msg
+
+    try:
+        with open(logFile, "w") as f:
+            f.write(globals.err_msg)
+
+    except IOError:
+        pass
+
+    errorbox = QtWidgets.QMessageBox()
+    errorbox.setText(notice + msg)
+    errorbox.exec_()
+
+    globals.DirtyOverride = 0
+
+
+# Override the exception handler with ours
+sys.excepthook = _excepthook
 
 
 class MiyamotoWindow(QtWidgets.QMainWindow):
@@ -138,7 +188,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.ObjectAddedtoEmbedded = {1: {}}
 
         # Miyamoto Version number goes below here. 64 char max (32 if non-ascii).
-        self.MiyamotoInfo = MiyamotoID
+        self.MiyamotoInfo = globals.MiyamotoID
 
         self.ZoomLevels = [7.5, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0,
                            85.0, 90.0, 95.0, 100.0, 125.0, 150.0, 175.0, 200.0, 250.0, 300.0, 350.0, 400.0]
@@ -151,7 +201,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # set up the window
         super().__init__(None)
-        self.setWindowTitle('Miyamoto! v%s' % MiyamotoVersion)
+        self.setWindowTitle('Miyamoto! v%s' % globals.MiyamotoVersion)
         self.setWindowIcon(QtGui.QIcon('miyamotodata/icon.png'))
         self.setIconSize(QtCore.QSize(16, 16))
         self.setUnifiedTitleAndToolBarOnMac(True)
@@ -215,31 +265,39 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # now get stuff ready
         loaded = False
 
-        if '-level' in sys.argv:
-            index = sys.argv.index('-level')
-            try:
-                fn = sys.argv[index + 1]
-                loaded = self.LoadLevel(None, fn, True, 1, True)
-            except:
-                pass
+        try:
+            if '-level' in sys.argv:
+                index = sys.argv.index('-level')
+                try:
+                    fn = sys.argv[index + 1]
+                    loaded = self.LoadLevel(None, fn, True, 1, True)
+                except:
+                    pass
 
-        elif globals.settings.contains(('LastLevel_' + globals.gamedef.name) if globals.gamedef.custom else 'LastLevel'):
-            lastlevel = str(globals.gamedef.GetLastLevel())
-            if os.path.isfile(lastlevel):
-                loaded = self.LoadLevel(None, lastlevel, True, 1, True)
+            elif '-newLevel' in sys.argv:
+                loaded = self.LoadLevel(None, None, False, 1, True)
 
-        else:
-            filetypes = ''
-            filetypes += globals.trans.string('FileDlgs', 1) + ' (*.sarc *.szs);;'
-            filetypes += globals.trans.string('FileDlgs', 8) + ' (*.szs);;'
-            filetypes += globals.trans.string('FileDlgs', 9) + ' (*.sarc);;'
-            filetypes += globals.trans.string('FileDlgs', 2) + ' (*)'
-            fn = QtWidgets.QFileDialog.getOpenFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
-            if fn:
-                loaded = self.LoadLevel(None, fn, True, 1, True)
+            elif globals.settings.contains(('LastLevel_' + globals.gamedef.name) if globals.gamedef.custom else 'LastLevel'):
+                lastlevel = str(globals.gamedef.GetLastLevel())
+                if os.path.isfile(lastlevel):
+                    loaded = self.LoadLevel(None, lastlevel, True, 1, True)
 
-        if not loaded:
-            self.LoadLevel(None, '1-1', False, 1, True)
+            else:
+                filetypes = ''
+                filetypes += globals.trans.string('FileDlgs', 1) + ' (*.sarc *.szs);;'
+                filetypes += globals.trans.string('FileDlgs', 8) + ' (*.szs);;'
+                filetypes += globals.trans.string('FileDlgs', 9) + ' (*.sarc);;'
+                filetypes += globals.trans.string('FileDlgs', 2) + ' (*)'
+                fn = QtWidgets.QFileDialog.getOpenFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
+                if fn:
+                    loaded = self.LoadLevel(None, fn, True, 1, True)
+
+            if not loaded:
+                self.LoadLevel(None, '1-1', False, 1, True)
+
+        except:
+            globals.DirtyOverride = 0
+            self.LoadLevel(None, None, False, 1, True)
 
         QtCore.QTimer.singleShot(100, self.levelOverview.update)
 
@@ -1164,12 +1222,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.objAllTab.setTabEnabled(1, False)
 
         else:
-            i = 0
-            for folder in os.listdir(top_folder):
-                if os.path.isdir(top_folder + "/" + folder):
-                    globals.ObjectAddedtoEmbedded[globals.CurrentArea][i] = {}
-                    self.folderPicker.addItem(folder)
-                    i += 1
+            folders = os.listdir(top_folder)
+            folders.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
+
+            folders_ = [folder for folder in folders if os.path.isdir(top_folder + "/" + folder)]
+            del folders
+
+            for i, folder in enumerate(folders_):
+                globals.ObjectAddedtoEmbedded[globals.CurrentArea][i] = {}
+                self.folderPicker.addItem(folder)
 
         self.folderPicker.setVisible(False)
         oel.addWidget(self.folderPicker, 1)
@@ -1198,12 +1259,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         oel.addWidget(self.objPicker, 1)
 
         if top_folder and os.path.isdir(top_folder):
-            def UpdateObjFolder():
-                self.objPicker.mall.LoadFromFolder()
-
-            UpdateObjFolder()
-
-            self.folderPicker.currentIndexChanged.connect(UpdateObjFolder)
+            self.folderPicker.currentIndexChanged.connect(self.objPicker.mall.LoadFromFolder)
 
         # sprite tab
         self.sprAllTab = QtWidgets.QTabWidget()
@@ -1454,7 +1510,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.commentsTab = QtWidgets.QWidget()
         tabs.addTab(self.commentsTab, GetIcon('comments'), '')
         tabs.setTabToolTip(8, globals.trans.string('Palette', 33))
-        tabs.setTabEnabled(8, False)
 
         cel = QtWidgets.QVBoxLayout()
         self.commentsTab.setLayout(cel)
@@ -2258,6 +2313,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         with open('miyamotodata/blankcourse.bin', 'rb') as blank:
             course = blank.read()
+
         L0 = None
         L1 = None
         L2 = None
@@ -2298,24 +2354,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Decompress, if needed (Yaz0)
         if data.startswith(b'Yaz0'):
             print('Beginning Yaz0 decompression...')
-
-            if globals.cython_available:
-                data = Yaz0Dec_LIBYaz0(data)
-
-            else:
-                with open(globals.miyamoto_path + '/tmp.tmp', 'wb+') as f:
-                    f.write(data)
-
-                if not Yaz0Dec_WSZST(globals.miyamoto_path + '/tmp.tmp', globals.miyamoto_path + '/tmp2.tmp'):
-                    os.remove(globals.miyamoto_path + '/tmp.tmp')
-                    return
-
-                with open(globals.miyamoto_path + '/tmp2.tmp', 'rb') as f:
-                    data = f.read()
-
-                os.remove(globals.miyamoto_path + '/tmp.tmp')
-                os.remove(globals.miyamoto_path + '/tmp2.tmp')
-
+            data = DecompYaz0(data)
             print('Decompression finished.')
 
         elif data.startswith(b'SARC'):
@@ -2378,14 +2417,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if not arcdata:
             return False
 
-        arc = SarcLib.SARC_Archive()
-        arc.load(arcdata)
+        arc_ = SarcLib.SARC_Archive()
+        arc_.load(arcdata)
 
         # get the area count
         areacount = 0
 
         try:
-            courseFolder = arc['course']
+            courseFolder = arc_['course']
         except:
             return False
 
@@ -2427,6 +2466,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 elif fname == reqL2:
                     L2 = val
 
+        # import the tilesets with the area
+        getblock = struct.Struct('>II')
+        data = getblock.unpack_from(course, 0)
+        if data[1]:
+            block = course[data[0]:data[0] + data[1]]
+            tilesetNames = list(map(bytes_to_string, struct.unpack_from('32s32s32s32s', block)))
+            for name in tilesetNames:
+                if name not in globals.szsData:
+                    try:
+                        globals.szsData[name] = arc[name].data
+
+                    except:
+                        pass
+
         # add them to our level
         newID = len(globals.Level.areas) + 1
 
@@ -2464,26 +2517,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # no error checking. if it saved last time, it will probably work now
 
         if self.fileSavePath.endswith('.szs'):
-
-            # Compress using libyaz0
-            if globals.cython_available:
-                with open(self.fileSavePath, 'wb+') as f:
-                    f.write(Yaz0Comp_LIBYaz0(
-                        globals.Level.saveNewArea(name, None, None, None, None),
-                        0, globals.CompLevel,
-                    ))
-
-            # Compress using WSZST
-            else:
-                course_name = os.path.splitext(self.fileSavePath)[0]
-                with open(course_name + '.tmp', 'wb+') as f:
-                    f.write(globals.Level.saveNewArea(name, None, None, None, None))
-
-                if not Yaz0Comp_WSZST(course_name + '.tmp', self.fileSavePath):
-                    os.remove(course_name + '.tmp')
-                    return
-
-                os.remove(course_name + '.tmp')
+            CompYaz0(
+                globals.Level.saveNewArea(name, None, None, None, None),
+                self.fileSavePath, globals.CompLevel,
+            )
 
         else:
             with open(self.fileSavePath, 'wb+') as f:
@@ -2536,19 +2573,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.folderPicker.clear()
 
-        i = 0
-        for folder in os.listdir(path):
-            if os.path.isdir(path + "/" + folder):
-                globals.ObjectAddedtoEmbedded[globals.CurrentArea][i] = {}
-                self.folderPicker.addItem(folder)
-                i += 1
+        folders = os.listdir(path)
+        folders.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
 
-        def UpdateObjFolder():
-            self.objPicker.mall.LoadFromFolder()
+        folders_ = [folder for folder in folders if os.path.isdir(path + "/" + folder)]
+        del folders
 
-        UpdateObjFolder()
+        for i, folder in enumerate(folders_):
+            globals.ObjectAddedtoEmbedded[globals.CurrentArea][i] = {}
+            self.folderPicker.addItem(folder)
 
-        self.folderPicker.currentIndexChanged.connect(UpdateObjFolder)
+        self.folderPicker.currentIndexChanged.connect(self.objPicker.mall.LoadFromFolder)
 
     def HandlePreferences(self):
         """
@@ -2568,7 +2603,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('Translation', name)
 
         # Get the compression level
-        globals.CompLevel = dlg.generalTab.compLevel.currentIndex()
+        globals.CompLevel = int(dlg.generalTab.compLevel.currentIndex())
         setSetting('CompLevel', globals.CompLevel)
 
         # Get the Toolbar tab settings
@@ -2643,23 +2678,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.levelNameCache = name
         try:
             if globals.mainWindow.fileSavePath.endswith('.szs'):
-
-                # Compress using libyaz0
-                if globals.cython_available:
-                    with open(self.fileSavePath, 'wb+') as f:
-                        f.write(Yaz0Comp_LIBYaz0(data, 0, globals.CompLevel))
-
-                # Compress using WSZST
-                else:
-                    course_name = os.path.splitext(globals.mainWindow.fileSavePath)[0]
-                    with open(course_name + '.tmp', 'wb+') as f:
-                        f.write(data)
-
-                    if not Yaz0Comp_WSZST(course_name + '.tmp', globals.mainWindow.fileSavePath):
-                        os.remove(course_name + '.tmp')
-                        return
-
-                    os.remove(course_name + '.tmp')
+                CompYaz0(data, self.fileSavePath, globals.CompLevel)
 
             else:
                 with open(globals.mainWindow.fileSavePath, 'wb+') as f:
@@ -2699,23 +2718,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.levelNameCache = name
         try:
             if globals.mainWindow.fileSavePath.endswith('.szs'):
-
-                # Compress using libyaz0
-                if globals.cython_available:
-                    with open(self.fileSavePath, 'wb+') as f:
-                        f.write(Yaz0Comp_LIBYaz0(data, 0, globals.CompLevel))
-
-                # Compress using WSZST
-                else:
-                    course_name = os.path.splitext(globals.mainWindow.fileSavePath)[0]
-                    with open(course_name + '.tmp', 'wb+') as f:
-                        f.write(data)
-
-                    if not Yaz0Comp_WSZST(course_name + '.tmp', globals.mainWindow.fileSavePath):
-                        os.remove(course_name + '.tmp')
-                        return
-
-                    os.remove(course_name + '.tmp')
+                CompYaz0(data, self.fileSavePath, globals.CompLevel)
 
             else:
                 with open(globals.mainWindow.fileSavePath, 'wb+') as f:
@@ -2766,23 +2769,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.levelNameCache = name
 
         if self.fileSavePath.endswith('.szs'):
-
-            # Compress using libyaz0
-            if globals.cython_available:
-                with open(self.fileSavePath, 'wb+') as f:
-                    f.write(Yaz0Comp_LIBYaz0(data, 0, globals.CompLevel))
-
-            # Compress using WSZST
-            else:
-                course_name = os.path.splitext(self.fileSavePath)[0]
-                with open(course_name + '.tmp', 'wb+') as f:
-                    f.write(data)
-
-                if not Yaz0Comp_WSZST(course_name + '.tmp', self.fileSavePath):
-                    os.remove(course_name + '.tmp')
-                    return
-
-                os.remove(course_name + '.tmp')
+            CompYaz0(data, self.fileSavePath, globals.CompLevel)
 
         else:
             with open(self.fileSavePath, 'wb+') as f:
@@ -3261,23 +3248,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             with open(globals.miyamoto_path + "/miyamotoextras/Pa0_jyotyu.szs", "rb") as inf:
                 inb = inf.read()
 
-            if globals.cython_available:
-                data = Yaz0Dec_LIBYaz0(inb)
-
-            else:
-                with open(globals.miyamoto_path + '/tmp.tmp', 'wb+') as f:
-                    f.write(inb)
-
-                if not Yaz0Dec_WSZST(globals.miyamoto_path + '/tmp.tmp', globals.miyamoto_path + '/tmp2.tmp'):
-                    os.remove(globals.miyamoto_path + '/tmp.tmp')
-                    return
-
-                with open(globals.miyamoto_path + '/tmp2.tmp', 'rb') as f:
-                    data = f.read()
-
-                os.remove(globals.miyamoto_path + '/tmp.tmp')
-                os.remove(globals.miyamoto_path + '/tmp2.tmp')
-
+            data = DecompYaz0(inb)
             globals.szsData = {'Pa0_jyotyu': data}
 
         else:
@@ -3325,24 +3296,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 # Decompress, if needed (Yaz0)
                 if levelData.startswith(b'Yaz0'):
                     print('Beginning Yaz0 decompression...')
-
-                    if globals.cython_available:
-                        levelData = Yaz0Dec_LIBYaz0(levelData)
-
-                    else:
-                        with open(globals.miyamoto_path + '/tmp.tmp', 'wb+') as f:
-                            f.write(levelData)
-
-                        if not Yaz0Dec_WSZST(globals.miyamoto_path + '/tmp.tmp', globals.miyamoto_path + '/tmp2.tmp'):
-                            os.remove(globals.miyamoto_path + '/tmp.tmp')
-                            return
-
-                        with open(globals.miyamoto_path + '/tmp2.tmp', 'rb') as f:
-                            levelData = f.read()
-
-                        os.remove(globals.miyamoto_path + '/tmp.tmp')
-                        os.remove(globals.miyamoto_path + '/tmp2.tmp')
-
+                    levelData = DecompYaz0(levelData)
                     print('Decompression finished.')
 
                 elif levelData.startswith(b'SARC'):
@@ -3475,12 +3429,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             else:
                 self.folderPicker.clear()
 
-                i = 0
-                for folder in os.listdir(top_folder):
-                        if os.path.isdir(top_folder + "/" + folder):
-                            globals.ObjectAddedtoEmbedded[globals.CurrentArea][i] = {}
-                            self.folderPicker.addItem(folder)
-                            i += 1 
+                folders = os.listdir(top_folder)
+                folders.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
+
+                folders_ = [folder for folder in folders if os.path.isdir(top_folder + "/" + folder)]
+                del folders
+
+                for i, folder in enumerate(folders_):
+                    globals.ObjectAddedtoEmbedded[globals.CurrentArea][i] = {}
+                    self.folderPicker.addItem(folder)
 
         globals.OverrideSnapping = True
 
@@ -4099,149 +4056,21 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Handles exporting all the objects
         """
         save_path = QtWidgets.QFileDialog.getExistingDirectory(None, "Choose where to save the Object folder")
-        if not save_path: return
+        if not save_path:
+            return
 
         for idx in [1, 2, 3]:
             if globals.ObjectDefinitions[idx] is None:
                 continue
 
-            tileoffset = idx * 256
-
-            name = eval('globals.Area.tileset%d' % idx)
-
             for objNum in range(256):
                 if globals.ObjectDefinitions[idx][objNum] is None:
                     break
 
-                obj = globals.ObjectDefinitions[idx][objNum]
+                baseName = "tileset_%d_object_%d" % (idx + 1, objNum)
+                name = os.path.join(save_path, baseName)
 
-                jsonData = {}
-
-                randLen = obj.randByte & 0xF
-
-                if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
-                    tex = QtGui.QPixmap(randLen * 60, obj.height * 60)
-                    nml = QtGui.QPixmap(randLen * 60, obj.height * 60)
-
-                else:
-                    tex = QtGui.QPixmap(obj.width * 60, obj.height * 60)
-                    nml = QtGui.QPixmap(obj.width * 60, obj.height * 60)
-
-                tex.fill(Qt.transparent)
-                nml.fill(QtGui.QColor(128, 128, 255))
-                painter = QtGui.QPainter(tex)
-                nmlPainter = QtGui.QPainter(nml)
-
-                # Checks if the slop is reversed and reverses the rows
-                isSlope = obj.rows[0][0][0]
-                if (isSlope & 0x80) and (isSlope & 0x2):
-                    colldata = []
-
-                    x = 0
-                    y = (obj.height - 1) * 60
-                    for row in obj.rows:
-                        colls = b''
-                        for tile in row:
-                            if len(tile) == 3:
-                                tileNum = (tile[1] & 0xFF) + tileoffset
-                                if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
-                                    for z in range(randLen):
-                                        painter.drawPixmap(x, y, globals.Tiles[tileNum + z].main)
-                                        nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum + z].nml)
-                                        colls += bytes(globals.Tiles[tileNum + z].collData)
-                                        x += 60
-                                    break
-
-                                else:
-                                    painter.drawPixmap(x, y, globals.Tiles[tileNum].main)
-                                    nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum].nml)
-                                    colls += bytes(globals.Tiles[tileNum].collData)
-                                    x += 60
-
-                        colldata.append(colls)
-                        y -= 60
-                        x = 0
-
-                    colldata = b''.join(reversed(colldata))
-
-                else:
-                    colldata = b''
-
-                    x = 0
-                    y = 0
-                    for row in obj.rows:
-                        for tile in row:
-                            if len(tile) == 3:
-                                tileNum = (tile[1] & 0xFF) + tileoffset
-                                if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
-                                    for z in range(randLen):
-                                        painter.drawPixmap(x, y, globals.Tiles[tileNum + z].main)
-                                        nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum + z].nml)
-                                        colldata += bytes(globals.Tiles[tileNum + z].collData)
-                                        x += 60
-                                    break
-
-                                else:
-                                    painter.drawPixmap(x, y, globals.Tiles[tileNum].main)
-                                    nmlPainter.drawPixmap(x, y, globals.Tiles[tileNum].nml)
-                                    colldata += bytes(globals.Tiles[tileNum].collData)
-                                    x += 60
-                        y += 60
-                        x = 0
-
-                painter.end()
-                nmlPainter.end()
-
-                if not os.path.exists(save_path + "/" + name + "_objects"):
-                    os.makedirs(save_path + "/" + name + "_objects")
-
-                tex.save(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".png", "PNG")
-                jsonData['img'] = name + "_object_" + str(objNum) + ".png"
-
-                nml.save(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + "_nml.png", "PNG")
-                jsonData['nml'] = name + "_object_" + str(objNum) + "_nml.png"
-
-                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".colls", 'wb+') as colls:
-                        colls.write(colldata)
-
-                jsonData['colls'] = name + "_object_" + str(objNum) + ".colls"
-
-                deffile = b''
-
-                for row in obj.rows:
-                    for tile in row:
-                        if len(tile) == 3:
-                            byte0 = tile[0]
-                            byte1 = tile[1] & 0xFF
-                            byte2 = tile[2] << 2
-                            byte2 |= (tile[1] >> 8) & 3  # Slot
-
-                            deffile += bytes([byte0, byte1, byte2])
-
-                        else:
-                            deffile += bytes(tile)
-
-                    deffile += b'\xFE'
-
-                deffile += b'\xFF'
-
-                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".objlyt", 'wb+') as objlyt:
-                    objlyt.write(deffile)
-
-                jsonData['objlyt'] = name + "_object_" + str(objNum) + ".objlyt"
-
-                indexfile = struct.pack('>HBBxB', 0, obj.width, obj.height, 0)
-
-                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".meta", 'wb+') as meta:
-                    meta.write(indexfile)
-
-                jsonData['meta'] = name + "_object_" + str(objNum) + ".meta"
-
-                if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
-                    jsonData['randLen'] = randLen
-
-                with open(save_path + "/" + name + "_objects" + "/" + name + "_object_" + str(objNum) + ".json", 'w+') as outfile:
-                    json.dump(jsonData, outfile)
+                exportObject(name, baseName, idx, objNum)
 
     def HandleDeleteAllObj(self):
         """
@@ -5244,9 +5073,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
     def showPuzzleWindow(self, name, data, slot, con=False):
         pw = PuzzleWindow(name, data, slot, con, Qt.Dialog)
-        pw.setWindowModality(Qt.ApplicationModal)
-        pw.setAttribute(Qt.WA_DeleteOnClose)
-        pw.show()
+        if pw.forceClose:
+            del pw
+
+        else:
+            pw.setWindowModality(Qt.ApplicationModal)
+            pw.setAttribute(Qt.WA_DeleteOnClose)
+            pw.show()
 
     def EditSlot1(self):
         """
@@ -5342,28 +5175,23 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             tile_path = globals.miyamoto_path + '/macTools'
 
-        if (eval('globals.Area.tileset%d' % slot) not in ('', None)) and (eval('globals.Area.tileset%d' % slot) in globals.szsData):
+        if eval('globals.Area.tileset%d' % slot) and eval('globals.Area.tileset%d' % slot) in globals.szsData:
             sarcdata = globals.szsData[eval('globals.Area.tileset%d' % slot)]
 
             with open(tile_path + '/tmp.tmp', 'wb+') as fn:
                 fn.write(sarcdata)
+
             sarcfile = tile_path + '/tmp.tmp'
 
         else:
-            if eval('globals.Area.tileset%d' % slot) in ('', None):
+            if not eval('globals.Area.tileset%d' % slot):
+                exec("globals.Area.tileset%d = generateTilesetNames()[%d]" % (slot, slot - 1))
                 con = True
-                if ('Pa%d_%s_%d' % (slot, globals.levelNameCache, globals.CurrentArea)) in globals.szsData:
-                    i = 0
-                    while ('Pa%d_%s_%d_%d' % (slot, globals.levelNameCache, globals.CurrentArea, i)) in globals.szsData:
-                        i += 1
-                    exec("globals.Area.tileset%d = 'Pa%d_%s_%d_%d'" % (slot, slot, globals.levelNameCache, globals.CurrentArea, i))
-
-                else:
-                    exec("globals.Area.tileset%d = 'Pa%d_%s_%d'" % (slot, slot, globals.levelNameCache, globals.CurrentArea))
 
             sarcfile = 'None'
 
-        if eval('globals.Area.tileset%d' % slot) in ('', None): return
+        if not eval('globals.Area.tileset%d' % slot):
+            return
 
         self.showPuzzleWindow(eval('globals.Area.tileset%d' % slot), sarcfile, str(slot), con)
 
@@ -5373,13 +5201,11 @@ def main():
     Main startup function for Miyamoto
     """
 
-    global MiyamotoVersion
-
     # create an application
     globals.app = QtWidgets.QApplication(sys.argv)
 
     # load the settings
-    globals.settings = QtCore.QSettings('Miyamoto', MiyamotoVersion)
+    globals.settings = QtCore.QSettings('Miyamoto', globals.MiyamotoVersion)
 
     # load the translation (needs to happen first)
     LoadTranslation()
@@ -5414,7 +5240,7 @@ def main():
 
     # Set the default window icon (used for random popups and stuff)
     globals.app.setWindowIcon(GetIcon('miyamoto'))
-    globals.app.setApplicationDisplayName('Miyamoto! v%s' % MiyamotoVersion)
+    globals.app.setApplicationDisplayName('Miyamoto! v%s' % globals.MiyamotoVersion)
 
     gt = setting('GridType')
     if gt == 'checker':
@@ -5442,8 +5268,8 @@ def main():
     globals.CommentsShown = setting('ShowComments', True)
     globals.PathsShown = setting('ShowPaths', True)
 
-    if globals.cython_available:
-        globals.CompLevel = setting('CompLevel', 9)
+    if globals.libyaz0_available:
+        globals.CompLevel = setting('CompLevel', 1)
 
     else:
         globals.CompLevel = 0

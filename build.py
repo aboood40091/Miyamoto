@@ -24,7 +24,7 @@
 # Builds Miyamoto! to a binary
 # Use the values below to configure the release:
 
-from miyamoto import MiyamotoVersion
+from globals import MiyamotoVersion
 
 PackageName = 'miyamoto_v%s' % MiyamotoVersion
 Version = MiyamotoVersion

@@ -1,6 +1,6 @@
 # Miyamoto!
 ## The New Super Mario Bros. U / New Super Luigi U Editor
-A level editor for NSMBU and NSLU by AboodXD and Gota7, based on Reggie! Next by RoadrunnerWMC, which is based on Reggie by Treeki, Tempus et al. Uses Python 3, PyQt5 and libyaz0.
+A level editor for NSMBU and NSLU by AboodXD and Gota7, based on Reggie! Next by RoadrunnerWMC, which is based on Reggie by Treeki, Tempus et al. Uses Python 3, PyQt5, SarcLib and libyaz0.
 
 ----------------------------------------------------------------
 
@@ -18,7 +18,8 @@ GitHub: https://github.com/aboood40091/Miyamoto
 * AboodXD -- Lead Coder, Spritedata, Graphics
 * Gota7 -- Coding, Spritedata, Graphics
 * Grop -- Coding, Spritedata
-* John10v10 -- Coding the Quick Paint Tool
+* Gregory Haskins -- Gibberish
+* John10v10 -- Quick Paint Tool
 * libtxc_dxtn -- Original DXT5 (De)compressor in C
 * Luzifer -- Graphics
 * Mayro -- Graphics
@@ -57,6 +58,8 @@ Second, you need the filesystem for New Super Mario Bros. U. You can get it by d
 Thirdly, Download and install the following:
  * Python 3.4 (or newer) - http://www.python.org
  * PyQt 5.3 (or newer) - http://www.riverbankcomputing.co.uk/software/pyqt/intro
+ * SarcLib (pip3 install SarcLib)
+ * libyaz0 (pip3 install libyaz0)
  * cx_Freeze 4.3 (or newer) (optional) - http://cx-freeze.sourceforge.net  
 
 Run the following in a command prompt:  

@@ -83,12 +83,14 @@ class MiyamotoGameDefinition:
         self.base = None  # gamedef to use as a base
         self.gamepath = None
         self.name = globals.trans.string('Gamedefs', 13)  # 'New Super Mario Bros. U'
-        self.description = globals.trans.string('Gamedefs', 14)  # 'A new adventure, and in HD!<br>' and the date
-        self.version = '2'
+        self.description = globals.trans.string('Gamedefs', 14)  # 'A new adventure, and in HD!' and the date
+        self.version = '1.0'
 
         self.sprites = sprites
 
         self.files = {
+            'bg': gdf(None, False),
+            'bgTrans': gdf(None, False),
             'entrancetypes': gdf(None, False),
             'levelnames': gdf(None, False),
             'music': gdf(None, False),
@@ -100,6 +102,7 @@ class MiyamotoGameDefinition:
             'ts1_descriptions': gdf(None, False),
         }
         self.folders = {
+            'bg': gdf(None, False),
             'sprites': gdf(None, False),
         }
 

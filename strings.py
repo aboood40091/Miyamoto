@@ -58,9 +58,11 @@ class MiyamotoTranslation:
         """
         self.name = 'English'
         self.version = 1.0
-        self.translator = 'Treeki, Tempus'
+        self.translator = 'Treeki, Tempus, AboodXD'
 
         self.files = {
+            'bg': 'miyamotodata/bg.txt',
+            'bgTrans': 'miyamotodata/bgTrans.txt',
             'entrancetypes': 'miyamotodata/entrancetypes.txt',
             'levelnames': 'miyamotodata/levelnames.xml',
             'music': 'miyamotodata/music.txt',

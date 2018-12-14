@@ -39,6 +39,7 @@ from items import NabbitPathItem, CommentItem
 from loading import LoadTileset
 from misc import Metadata
 import spritelib as SLib
+from tileset import generateTilesetNames
 
 #################################
 
@@ -140,7 +141,7 @@ class AbstractArea:
             offset += 24
         self.sprites = sprites
 
-    def save(self, innerfilename='', isNewArea=False):
+    def save(self, isNewArea=False):
         return (self.course, self.L0, self.L1, self.L2)
 
 
@@ -261,7 +262,7 @@ class Area_NSMBU(AbstractArea):
 
         return True
 
-    def save(self, innerfilename='', isNewArea=False):
+    def save(self, isNewArea=False):
         """
         Save the area back to a file
         """
@@ -270,7 +271,7 @@ class Area_NSMBU(AbstractArea):
 
         # We don't parse blocks 4, 6, 12, 13
         # Save the other blocks
-        self.SaveTilesetNames(innerfilename, isNewArea)  # block 1
+        self.SaveTilesetNames(isNewArea)  # block 1
         self.SaveOptions()  # block 2
         self.SaveEntrances()  # block 7
         self.SaveSprites()  # block 8
@@ -607,19 +608,20 @@ class Area_NSMBU(AbstractArea):
 
             com.UpdateListItem()
 
-    def SaveTilesetNames(self, innerfilename, isNewArea):
+    def SaveTilesetNames(self, isNewArea):
         """
         Saves the tileset names back to block 1
         """
         if not isNewArea and (globals.TilesetEdited or globals.OverrideTilesetSaving):
+            tilesetNames = generateTilesetNames()
             if self.tileset1:
-                self.tileset1 = ('Pa1_%s_%d' % (innerfilename, globals.CurrentArea))
+                self.tileset1 = tilesetNames[0]
 
             if self.tileset2:
-                self.tileset2 = ('Pa2_%s_%d' % (innerfilename, globals.CurrentArea))
+                self.tileset2 = tilesetNames[1]
 
             if self.tileset3:
-                self.tileset3 = ('Pa3_%s_%d' % (innerfilename, globals.CurrentArea))
+                self.tileset3 = tilesetNames[2]
 
         self.blocks[0] = ''.join(
             [self.tileset0.ljust(32, '\0'), self.tileset1.ljust(32, '\0'), self.tileset2.ljust(32, '\0'),
