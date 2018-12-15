@@ -86,7 +86,7 @@ class AboutDialog(QtWidgets.QDialog):
         """
         super().__init__()
         self.setWindowTitle(globals.trans.string('AboutDlg', 0))
-        self.setWindowIcon(GetIcon('miyamoto'))
+        self.setWindowIcon(GetIcon('help'))
 
         # Set the palette to the default
         # defaultPalette is a global

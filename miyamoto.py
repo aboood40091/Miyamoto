@@ -903,7 +903,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Creates the help menu. This is separate because both the menubar uses this
         """
-        self.CreateAction('infobox', self.AboutBox, GetIcon('miyamoto'), globals.trans.string('MenuItems', 86),
+        self.CreateAction('infobox', self.AboutBox, GetIcon('help'), globals.trans.string('MenuItems', 86),
                           globals.trans.string('MenuItems', 87), QtGui.QKeySequence('Ctrl+Shift+I'))
         self.CreateAction('helpbox', self.HelpBox, GetIcon('contents'), globals.trans.string('MenuItems', 88),
                           globals.trans.string('MenuItems', 89), QtGui.QKeySequence('Ctrl+Shift+H'))
