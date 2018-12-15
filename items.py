@@ -1103,31 +1103,34 @@ class ZoneItem(LevelEditorItem):
         if self.GrabberRectTL.contains(event.pos()):
             # start dragging
             self.dragging = True
-            self.dragstartx = int(event.pos().x() / globals.TileWidth * 16)
-            self.dragstarty = int(event.pos().y() / globals.TileWidth * 16)
             self.dragcorner = 1
-            event.accept()
+
         elif self.GrabberRectTR.contains(event.pos()):
             self.dragging = True
-            self.dragstartx = int(event.pos().x() / globals.TileWidth * 16)
-            self.dragstarty = int(event.pos().y() / globals.TileWidth * 16)
             self.dragcorner = 2
-            event.accept()
+
         elif self.GrabberRectBL.contains(event.pos()):
             self.dragging = True
-            self.dragstartx = int(event.pos().x() / globals.TileWidth * 16)
-            self.dragstarty = int(event.pos().y() / globals.TileWidth * 16)
             self.dragcorner = 3
-            event.accept()
+
         elif self.GrabberRectBR.contains(event.pos()):
             self.dragging = True
+            self.dragcorner = 4
+
+        else:
+            self.dragging = False
+
+        if self.dragging:
             self.dragstartx = int(event.pos().x() / globals.TileWidth * 16)
             self.dragstarty = int(event.pos().y() / globals.TileWidth * 16)
-            self.dragcorner = 4
+            self.draginitialx1 = self.objx
+            self.draginitialy1 = self.objy
+            self.draginitialx2 = self.objx + self.width
+            self.draginitialy2 = self.objy + self.height
             event.accept()
+            
         else:
             LevelEditorItem.mousePressEvent(self, event)
-            self.dragging = False
 
     def mouseMoveEvent(self, event):
         """
@@ -1136,95 +1139,80 @@ class ZoneItem(LevelEditorItem):
 
         if event.buttons() != Qt.NoButton and self.dragging:
             # resize it
-            dsx = self.dragstartx
-            dsy = self.dragstarty
             clickedx = int(event.pos().x() / globals.TileWidth * 16)
             clickedy = int(event.pos().y() / globals.TileWidth * 16)
-            corner = self.dragcorner
 
-            cx = self.objx
-            cy = self.objy
+            x1 = self.draginitialx1
+            y1 = self.draginitialy1
+            x2 = self.draginitialx2
+            y2 = self.draginitialy2
 
-            checkwidth = self.width - 128
-            checkheight = self.height - 128
-            if corner == 1:
-                if clickedx >= checkwidth: clickedx = checkwidth - 1
-                if clickedy >= checkheight: clickedy = checkheight - 1
-            elif corner == 2:
-                if clickedx < 0: clickedx = 0
-                if clickedy >= checkheight: clickedy = checkheight - 1
-            elif corner == 3:
-                if clickedx >= checkwidth: clickedx = checkwidth - 1
-                if clickedy < 0: clickedy = 0
-            elif corner == 4:
-                if clickedx < 0: clickedx = 0
-                if clickedy < 0: clickedy = 0
+            oldx = self.x()
+            oldy = self.y()
+            oldw = self.width * globals.TileWidth / 16
+            oldh = self.height * globals.TileWidth / 16
 
-            if clickedx != dsx or clickedy != dsy:
-                # if (cx + clickedx - dsx) < 16: clickedx += (16 - (cx + clickedx - dsx))
-                # if (cy + clickedy - dsy) < 16: clickedy += (16 - (cy + clickedy - dsy))
+            deltax = clickedx - self.dragstartx
+            deltay = clickedy - self.dragstarty
 
-                self.dragstartx = clickedx
-                self.dragstarty = clickedy
-                xdelta = clickedx - dsx
-                ydelta = clickedy - dsy
+            MIN_X = 16
+            MIN_Y = 16
+            MIN_W = 192
+            MIN_H = 144
 
-                if corner == 1:
-                    self.objx += xdelta
-                    self.objy += ydelta
-                    self.dragstartx -= xdelta
-                    self.dragstarty -= ydelta
-                    self.width -= xdelta
-                    self.height -= ydelta
-                elif corner == 2:
-                    self.objy += ydelta
-                    self.dragstarty -= ydelta
-                    self.width += xdelta
-                    self.height -= ydelta
-                elif corner == 3:
-                    self.objx += xdelta
-                    self.dragstartx -= xdelta
-                    self.width -= xdelta
-                    self.height += ydelta
-                elif corner == 4:
-                    self.width += xdelta
-                    self.height += ydelta
+            if self.dragcorner == 1: # TL
+                x1 += deltax
+                y1 += deltay
+                if x1 < MIN_X: x1 = MIN_X
+                if y1 < MIN_Y: y1 = MIN_Y
+                if x2 - x1 < MIN_W: x1 = x2 - MIN_W
+                if y2 - y1 < MIN_H: y1 = y2 - MIN_H
 
-                if self.width < 16 * globals.TileWidth / 24:
-                    self.objx -= (16 * globals.TileWidth / 24 - self.width)
-                    self.width = 16 * globals.TileWidth / 24
-                if self.height < 16 * globals.TileWidth / 24:
-                    self.objy -= (16 * globals.TileWidth / 24 - self.height)
-                    self.height = 16 * globals.TileWidth / 24
+            elif self.dragcorner == 2: # TR
+                x2 += deltax
+                y1 += deltay
+                if y1 < MIN_Y: y1 = MIN_Y
+                if x2 - x1 < MIN_W: x2 = x1 + MIN_W
+                if y2 - y1 < MIN_H: y1 = y2 - MIN_H
 
-                if self.objx < 16 * globals.TileWidth / 24:
-                    self.width -= (16 * globals.TileWidth / 24 - self.objx)
-                    self.objx = 16 * globals.TileWidth / 24
-                if self.objy < 16 * globals.TileWidth / 24:
-                    self.height -= (16 * globals.TileWidth / 24 - self.objy)
-                    self.objy = 16 * globals.TileWidth / 24
+            elif self.dragcorner == 3: # BL
+                x1 += deltax
+                y2 += deltay
+                if x1 < MIN_X: x1 = MIN_X
+                if x2 - x1 < MIN_W: x1 = x2 - MIN_W
+                if y2 - y1 < MIN_H: y2 = y1 + MIN_H
 
-                oldrect = self.BoundingRect
-                oldrect.translate(cx * globals.TileWidth / 16, cy * globals.TileWidth / 16)
-                newrect = QtCore.QRectF(self.x(), self.y(), self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)
-                updaterect = oldrect.united(newrect)
-                updaterect.setTop(updaterect.top() - 3)
-                updaterect.setLeft(updaterect.left() - 3)
-                updaterect.setRight(updaterect.right() + 3)
-                updaterect.setBottom(updaterect.bottom() + 3)
+            elif self.dragcorner == 4: # BR
+                x2 += deltax
+                y2 += deltay
+                if x2 - x1 < MIN_W: x2 = x1 + MIN_W
+                if y2 - y1 < MIN_H: y2 = y1 + MIN_H
 
-                self.UpdateRects()
-                self.setPos(int(self.objx * globals.TileWidth / 16), int(self.objy * globals.TileWidth / 16))
-                self.scene().update(updaterect)
+            self.objx = x1
+            self.objy = y1
+            self.width = x2 - x1
+            self.height = y2 - y1
 
-                globals.mainWindow.levelOverview.update()
+            oldrect = QtCore.QRectF(oldx, oldy, oldw, oldh)
+            newrect = QtCore.QRectF(self.x(), self.y(), self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)
+            updaterect = oldrect.united(newrect)
+            updaterect.setTop(updaterect.top() - 3)
+            updaterect.setLeft(updaterect.left() - 3)
+            updaterect.setRight(updaterect.right() + 3)
+            updaterect.setBottom(updaterect.bottom() + 3)
 
-                # Call the zoneRepositioned function of all
-                # the sprite auxs for this zone
-                for a in self.aux:
-                    a.zoneRepositioned()
+            self.UpdateRects()
+            self.setPos(int(self.objx * globals.TileWidth / 16), int(self.objy * globals.TileWidth / 16))
+            self.scene().update(updaterect)
 
-                SetDirty()
+            globals.mainWindow.levelOverview.update()
+
+            # Call the zoneRepositioned function of all
+            # the sprite auxs for this zone
+            for a in self.aux:
+                a.zoneRepositioned()
+
+            SetDirty()
 
             event.accept()
         else:

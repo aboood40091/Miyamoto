@@ -821,6 +821,8 @@ class Area_NSMBU(AbstractArea):
         buffer4 = bytearray(28 * zcount)
         buffer9 = bytearray(28 * zcount)
         for z in globals.Area.zones:
+            if z.objx < 0: z.objx = 0
+            if z.objy < 0: z.objy = 0
             bdngstruct.pack_into(buffer2, offset, z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, i,
                                  z.unknownbnf)
             bgStruct.pack_into(buffer4, offset, z.id, z.background[1], z.background[2], z.background[3])
