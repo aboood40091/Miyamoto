@@ -348,7 +348,8 @@ class paletteWidget(QtWidgets.QWidget):
                        ['Glitchy', QtGui.QIcon(path + 'Unknown.png')],
                        ['Left-Facing Spikes', QtGui.QIcon(path + 'Spikes/SpikeLeft.png')],
                        ['Right-Facing Spikes', QtGui.QIcon(path + 'Spikes/SpikeRight.png')],
-                       ['Up-Facing Spikes', QtGui.QIcon(path + 'Spikes/Spike.png')]]
+                       ['Up-Facing Spikes', QtGui.QIcon(path + 'Spikes/Spike.png')],
+                       ['Down-Facing Spikes', QtGui.QIcon(path + 'Spikes/SpikeDown.png')]]
 
         PipeParams = [['Vert. Top Entrance Left', QtGui.QIcon(path + 'Pipes/UpLeft.png')],
                       ['Vert. Top Entrance Right', QtGui.QIcon(path + 'Pipes/UpRight.png')],
@@ -2232,24 +2233,14 @@ class MainWindow(QtWidgets.QMainWindow):
             ctile = 0
 
 
-    def openTileset(self):
-        '''Opens a Nintendo tileset sarc and parses the heck out of it.'''
-
-        data = self.data
-
-        if not data.startswith(b'SARC'):
-            QtWidgets.QMessageBox.warning(None, 'Error',  'Error - this is not a SARC file.\n\nNot a valid tileset, sadly.')
-            return
-
-        arc = SarcLib.SARC_Archive(data)
-
+    @staticmethod
+    def getData(arc):
         Image = None
         NmlMap = None
         behaviourdata = None
         objstrings = None
         metadata = None
 
-        self.arc = arc
         for folder in arc.contents:
             if folder.name == 'BG_tex':
                 for file in folder.contents:
@@ -2269,6 +2260,22 @@ class MainWindow(QtWidgets.QMainWindow):
                     elif file.name.endswith('.bin'):
                         objstrings = file.data
 
+        return Image, NmlMap, behaviourdata, objstrings, metadata
+
+
+    def openTileset(self):
+        '''Opens a Nintendo tileset sarc and parses the heck out of it.'''
+
+        data = self.data
+
+        if not data.startswith(b'SARC'):
+            QtWidgets.QMessageBox.warning(None, 'Error',  'Error - this is not a SARC file.\n\nNot a valid tileset, sadly.')
+            return
+
+        arc = SarcLib.SARC_Archive(data)
+        self.arc = arc
+
+        Image, NmlMap, behaviourdata, objstrings, metadata = self.getData(arc)
 
         if not Image:
             QtWidgets.QMessageBox.warning(None, 'Error',  'Error - Couldn\'t load the image data')
@@ -2414,32 +2421,9 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         arc = SarcLib.SARC_Archive(data)
-
-        Image = None
-        NmlMap = None
-        behaviourdata = None
-        objstrings = None
-        metadata = None
-
         self.arc = arc
-        for folder in arc.contents:
-            if folder.name == 'BG_tex':
-                for file in folder.contents:
-                    if file.name.endswith('_nml.gtx'):
-                        NmlMap = file.data
-                    elif file.name.endswith('.gtx') and len(file.data) in (1421344, 4196384):
-                        Image = file.data
-            elif folder.name == 'BG_chk':
-                for file in folder.contents:
-                    if file.name.startswith('d_bgchk_') and file.name.endswith('.bin'):
-                        behaviourdata = file.data
-            elif folder.name == 'BG_unt':
-                for file in folder.contents:
-                    if file.name.endswith('_hd.bin'):
-                        metadata = file.data
-                    elif file.name.endswith('.bin'):
-                        objstrings = file.data
 
+        Image, NmlMap, behaviourdata, objstrings, metadata = self.getData(arc)
 
         if not Image:
             QtWidgets.QMessageBox.warning(None, 'Error',  'Error - Couldn\'t load the image data')

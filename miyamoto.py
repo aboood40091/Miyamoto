@@ -39,6 +39,7 @@ if currentRunningVersion < minimum:
     raise Exception(errormsg)
 
 # Stdlib imports
+from collections import Counter
 import json
 import os
 import platform
@@ -3250,6 +3251,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             data = DecompYaz0(inb)
             globals.szsData = {'Pa0_jyotyu': data}
+            self.tilesets = [['Pa0_jyotyu'], [], [], []]
 
         else:
             globals.levName = os.path.basename(name)
@@ -3364,6 +3366,51 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 for file in arc.contents:
                     globals.szsData[file.name] = file.data
 
+                # Get all tilesets in the level
+                self.tilesets = [[], [], [], []]
+                for fname in globals.szsData:
+                    data = globals.szsData[fname]
+                    if data[:4] != b'SARC':
+                        continue
+
+                    arc = SarcLib.SARC_Archive(data)
+
+                    try:
+                        arc['BG_tex/%s.gtx' % fname]
+                        arc['BG_tex/%s_nml.gtx' % fname]
+                        arc['BG_chk/d_bgchk_%s.bin' % fname]
+                        indexfile = arc['BG_unt/%s_hd.bin' % fname].data
+                        deffile = arc['BG_unt/%s.bin' % fname].data
+
+                    except KeyError:
+                        continue
+
+                    objs = []
+                    slots = []
+                    objcount = len(indexfile) // 6
+                    indexstruct = struct.Struct('>HBBH')
+
+                    for i in range(objcount):
+                        data = indexstruct.unpack_from(indexfile, i * 6)
+                        obj = ObjectDef()
+                        obj.load(deffile, data[0])
+
+                        for row in obj.rows:
+                            for tile in row:
+                                if len(tile) == 3:
+                                    slot = (tile[1] >> 8) & 3
+                                    if slot:
+                                        slots.append(slot)
+                    if slots:
+                        data = Counter(slots)
+                        slot = max(slots, key=data.get)
+
+                    else:
+                        slot = 0
+
+                    self.tilesets[slot].append(fname)
+
+                print(self.tilesets)
                 levelData = levelFileData
 
             else:

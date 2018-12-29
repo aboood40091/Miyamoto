@@ -533,6 +533,7 @@ def computeSurfaceMipLevelTileMode(baseTileMode, bpp, level, width, height, numS
     macroTileWidth = 32
     macroTileHeight = 16
     tileSlices = computeSurfaceTileSlices(baseTileMode, bpp, numSamples)
+    expTileMode = baseTileMode
 
     if baseTileMode == 7:
         if numSamples > 1 or tileSlices > 1 or isDepth:
@@ -560,9 +561,6 @@ def computeSurfaceMipLevelTileMode(baseTileMode, bpp, level, width, height, numS
 
         if numSamples in [2, 4]:
             expTileMode = 7
-
-    else:
-        expTileMode = baseTileMode
 
     if not noRecursive:
         if bpp in [24, 48, 96]:
@@ -1012,7 +1010,6 @@ def ComputeSurfaceInfoEx():
             numSamples,
             (flags.value >> 1) & 1,
             0)
-        print(tileMode)
 
     if tileMode in [0, 1]:
         valid, pPitchOut, pHeightOut, pNumSlicesOut, pSurfSize, pBaseAlign, pPitchAlign, pHeightAlign, pDepthAlign = computeSurfaceInfoLinear(
