@@ -195,7 +195,7 @@ class Area_NSMBU(AbstractArea):
         self.bgCount = 1
         self.bgs = {}
         self.bgblockid = []
-        bg = struct.unpack('<HxBxxxx16sxBxx', self.blocks[4])
+        bg = struct.unpack('>HxBxxxx16sxBxx', self.blocks[4])
         self.bgblockid.append(bg[0])
         self.bgs[bg[0]] = bg
 
