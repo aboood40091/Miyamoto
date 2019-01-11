@@ -4123,23 +4123,27 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             globals.Area.unk5 = dlg.LoadingTab.unk5.value()
             globals.Area.unk6 = dlg.LoadingTab.unk6.value()
 
-            fname = dlg.TilesetsTab.value()
+            oldnames = [globals.Area.tileset0, globals.Area.tileset1, globals.Area.tileset2, globals.Area.tileset3]
+            assignments = ['globals.Area.tileset0', 'globals.Area.tileset1', 'globals.Area.tileset2', 'globals.Area.tileset3']
+            newnames = dlg.TilesetsTab.values()
 
-            toUnload = False
+            toUnload = []
 
-            if fname in ('', None):
-                toUnload = True
-            else:
-                if fname.startswith(globals.trans.string('AreaDlg', 16)):
+            for idx, oldname, assignment, fname in zip(range(4), oldnames, assignments, newnames):
+
+                if fname in ('', None):
+                    toUnload.append(idx)
+                    continue
+                elif fname.startswith(globals.trans.string('AreaDlg', 16)):
                     fname = fname[len(globals.trans.string('AreaDlg', 17, '[name]', '')):]
+                    if fname == '': continue
 
-                if fname not in ('', None):
-                    globals.Area.tileset0 = fname
-                    LoadTileset(0, fname)
+                exec(assignment + ' = fname')
+                LoadTileset(idx, fname)
 
-            if toUnload:
-                globals.Area.tileset0 = ''
-                UnloadTileset(0)
+            for idx in toUnload:
+                exec('globals.Area.tileset%d = \'\'' % idx)
+                UnloadTileset(idx)
 
             self.objPicker.LoadFromTilesets()
             self.objAllTab.setCurrentIndex(0)

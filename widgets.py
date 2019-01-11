@@ -3442,7 +3442,7 @@ class TilesetsTab(QtWidgets.QWidget):
 
         self.currentChoices[tileset] = index
 
-    def value(self):
+    def values(self):
         """
         Returns all 4 tileset choices
         """
