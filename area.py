@@ -106,7 +106,7 @@ class AbstractArea:
         bgData = self.blocks[4]
         self.bgCount = len(bgData) // 28
 
-        bgStruct = struct.Struct('>HxBxxxx16sHxx')
+        bgStruct = struct.Struct('>HxBxxxx16sxBxx')
 
         offset = 0
 
@@ -128,7 +128,7 @@ class AbstractArea:
         """
         spritedata = self.blocks[7]
         sprcount = len(spritedata) // 24
-        sprstruct = struct.Struct('>HHH10sxx2sxxxx')
+        sprstruct = struct.Struct('>HHHHIIxx2sxxxx')
         offset = 0
         sprites = []
 
@@ -137,7 +137,7 @@ class AbstractArea:
         obj = SpriteItem
         for i in range(sprcount):
             data = unpack(spritedata, offset)
-            append(obj(data[0], data[1], data[2], data[3] + data[4]))
+            append(obj(data[0], data[1], data[2], to_bytes(data[3], 2) + to_bytes(data[4], 4) + to_bytes(data[5], 4) + data[6]))
             offset += 24
         self.sprites = sprites
 
@@ -204,7 +204,7 @@ class Area_NSMBU(AbstractArea):
         self.bgCount = 1
         self.bgs = {}
         self.bgblockid = []
-        bg = struct.unpack('>HxBxxxx16sHxx', self.blocks[4])
+        bg = struct.unpack('>HxBxxxx16sxBxx', self.blocks[4])
         self.bgblockid.append(bg[0])
         self.bgs[bg[0]] = bg
 
@@ -382,7 +382,7 @@ class Area_NSMBU(AbstractArea):
         """
         entdata = self.blocks[6]
         entcount = len(entdata) // 24
-        entstruct = struct.Struct('>HHxBxxBBBBBBxBxBBBBBBx')
+        entstruct = struct.Struct('>HHxBxxBBBBBBxBHBBBBBx')
         offset = 0
         entrances = []
         for i in range(entcount):
@@ -468,8 +468,8 @@ class Area_NSMBU(AbstractArea):
         for i in range(objcount):
             data = unpack(layerdata, offset)
             # Just for clarity, assigning these things to variables explaining what they are
-            tileset = data[0] >> 12
-            type = data[0] & 4095
+            tileset = (data[0] >> 12) & 3
+            type = data[0] & 255
             layer = idx
             x = data[1]
             y = data[2]
@@ -667,7 +667,7 @@ class Area_NSMBU(AbstractArea):
         Saves the entrances back to block 7
         """
         offset = 0
-        entstruct = struct.Struct('>HHxBxxBBBBBBxBxBBBBBBx')
+        entstruct = struct.Struct('>HHxBxxBBBBBBxBHBBBBBx')
         buffer = bytearray(len(self.entrances) * 24)
         zonelist = self.zones
         for entrance in self.entrances:
@@ -762,15 +762,15 @@ class Area_NSMBU(AbstractArea):
         Saves the sprites back to block 8
         """
         offset = 0
-        sprstruct = struct.Struct('>HHH10sBB3sxxx')
+        sprstruct = struct.Struct('>HHHHLLBx2sxxxx')
         buffer = bytearray((len(self.sprites) * 24) + 4)
         f_int = int
         for sprite in self.sprites:
             try:
                 sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy),
-                                    sprite.spritedata[:10],
-                                    SLib.MapPositionToZoneID(self.zones, sprite.objx, sprite.objy, True), 0,
-                                    sprite.spritedata[10:] + to_bytes(0, 1))
+                                    struct.unpack(">H", sprite.spritedata[:2])[0], struct.unpack(">I", sprite.spritedata[2:6])[0], struct.unpack(">I", sprite.spritedata[6:10])[0],
+                                    SLib.MapPositionToZoneID(self.zones, sprite.objx, sprite.objy, True),
+                                    sprite.spritedata[10:])
             except struct.error:
                 # Hopefully this will solve the mysterious bug, and will
                 # soon no longer be necessary.
@@ -812,7 +812,7 @@ class Area_NSMBU(AbstractArea):
         Saves blocks 10, 3, and 5; the zone data, boundings, and background data respectively
         """
         bdngstruct = struct.Struct('>llllHHxxxxxxxx')
-        bgStruct = struct.Struct('>HxBxxxx16sHxx')
+        bgStruct = struct.Struct('>HxBxxxx16sxBxx')
         zonestruct = struct.Struct('>HHHHxBxBBBBBxBBxBxBBxBxx')
         offset = 0
         i = 0
