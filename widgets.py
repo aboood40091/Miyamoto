@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# Miyamoto! DX Level Editor - New Super Mario Bros. U Deluxe Level Editor
+# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
 # MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
-# This file is part of Miyamoto!.
+# This file is part of Miyamoto! DX.
 
-# Miyamoto! is free software: you can redistribute it and/or modify
+# Miyamoto! DX is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Miyamoto! is distributed in the hope that it will be useful,
+# Miyamoto! DX is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
+# along with Miyamoto! DX.  If not, see <http://www.gnu.org/licenses/>.
 
 
 ################################################################
@@ -50,9 +50,8 @@ from misc import clipStr, setting, setSetting
 from quickpaint import QuickPaintOperations
 from stamp import StampListModel
 
-from tileset import TilesetTile, ObjectDef, addObjToTileset
-from tileset import exportObject, HandleTilesetEdited, DeleteObject
-from tileset import RenderObject, RenderObjectAll
+from tileset import TilesetTile, ObjectDef
+from tileset import exportObject, RenderObject
 from tileset import SimpleTilesetNames
 
 from ui import createHorzLine, createVertLine, GetIcon
@@ -639,7 +638,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             obj = self.parent.scene.HitObject(event.x(), event.y(), self.width(), self.height())
             if obj is not None:
                 if event.button() == Qt.LeftButton:
-                    if globals.CurrentPaintType not in [-1, 10] and globals.CurrentObject != -1:
+                    if globals.CurrentPaintType != -1 and globals.CurrentObject != -1:
                         odef = globals.ObjectDefinitions[globals.CurrentPaintType][globals.CurrentObject]
                         self.parent.scene.object_database[obj]['w'] = odef.width
                         self.parent.scene.object_database[obj]['h'] = odef.height
@@ -1545,7 +1544,6 @@ class ObjectPickerWidget(QtWidgets.QListView):
         self.setWrapping(True)
 
         self.m0 = self.ObjectListModel()
-        self.mall = self.ObjectListModel()
         self.m123 = self.ObjectListModel()
         self.setModel(self.m0)
 
@@ -1557,19 +1555,14 @@ class ObjectPickerWidget(QtWidgets.QListView):
         """
         Creates and shows the right-click menu
         """
-        if globals.CurrentPaintType in [0, 10]:
+        if globals.CurrentPaintType == 0:
             return QtWidgets.QListView.contextMenuEvent(self, event)
 
         self.menu = QtWidgets.QMenu(self)
 
         export = QtWidgets.QAction('Export', self)
         export.triggered.connect(self.HandleObjExport)
-
-        delete = QtWidgets.QAction('Delete', self)
-        delete.triggered.connect(self.HandleObjDelete)
-
         self.menu.addAction(export)
-        self.menu.addAction(delete)
 
         self.menu.popup(QtGui.QCursor.pos())
 
@@ -1586,7 +1579,6 @@ class ObjectPickerWidget(QtWidgets.QListView):
         """
         sel = self.currentIndex().row()
         if id == 0: self.setModel(self.m0)
-        elif id == 1: self.setModel(self.mall)
         else: self.setModel(self.m123)
 
         globals.CurrentObject = -1
@@ -1620,42 +1612,6 @@ class ObjectPickerWidget(QtWidgets.QListView):
         objNum = globals.CurrentObject
 
         exportObject(name, baseName, idx, objNum)
-
-    def HandleObjDelete(self, index):
-        """
-        Deletes an object from the tileset
-        """
-        idx = globals.CurrentPaintType
-        objNum = globals.CurrentObject
-
-        if objNum == -1: return
-
-        # From Satoru
-        ## Checks if the object is deletable
-        matchingObjs = []
-
-        for layer in globals.Area.layers:
-            for obj in layer:
-                if obj.tileset == idx and obj.type == objNum:
-                    matchingObjs.append(obj)
-
-        if matchingObjs:
-            where = [('(%d, %d)' % (obj.objx, obj.objy)) for obj in matchingObjs]
-            dlgTxt = "You can't delete this object because there are instances of it at the following coordinates:\n"
-            dlgTxt += ', '.join(where)
-            dlgTxt += '\nPlease remove or replace them before deleting this object.'
-
-            QtWidgets.QMessageBox.critical(self, 'Cannot Delete', dlgTxt)
-            return
-
-        DeleteObject(idx, objNum)
-        HandleTilesetEdited()
-
-        if not (globals.Area.tileset1 or globals.Area.tileset2 or globals.Area.tileset3):
-            globals.CurrentObject = -1
-
-        globals.mainWindow.scene.update()
-        SetDirty()
 
     ObjChanged = QtCore.pyqtSignal(int)
     ObjReplace = QtCore.pyqtSignal(int)
@@ -1808,108 +1764,6 @@ class ObjectPickerWidget(QtWidgets.QListView):
                     z += 1
 
                 globals.numObj.append(z)
-
-            self.endResetModel()
-
-        def LoadFromFolder(self):
-            """
-            Renders all the object previews for the model from a folder
-            """
-            globals.ObjectAllDefinitions = []
-            globals.ObjectAllCollisions = []
-            globals.ObjectAllImages = []
-
-            self.items = []
-            self.ritems = []
-            self.itemsize = []
-            self.tooltips = []
-
-            self.beginResetModel()
-
-            # Fixes issues if the user selects the wrong Objects Folder
-            if not globals.mainWindow.folderPicker.currentText():
-                self.endResetModel()
-                return
-
-            z = 0
-            top_folder = os.path.join(setting('ObjPath'), globals.mainWindow.folderPicker.currentText())
-
-            files = os.listdir(top_folder)
-            files.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
-
-            files_ = [file for file in files if file[-5:] == ".json"]
-            del files
-
-            for file in files_:
-                dir = top_folder + "/"
-
-                with open(dir + file) as inf:
-                    jsonData = json.load(inf)
-
-                if not ("colls" in jsonData and "meta" in jsonData and "objlyt" in jsonData
-                        and "img" in jsonData and "nml" in jsonData):
-                    continue
-
-                found = True
-                for f in ["colls", "meta", "objlyt", "img", "nml"]:
-                    if not os.path.isfile(dir + jsonData[f]):
-                        found = False
-                        break
-
-                if not found:
-                    continue
-
-                with open(dir + jsonData["colls"], "rb") as inf:
-                    globals.ObjectAllCollisions.append(inf.read())
-
-                with open(dir + jsonData["meta"], "rb") as inf:
-                    indexfile = inf.read()
-
-                with open(dir + jsonData["objlyt"], "rb") as inf:
-                    deffile = inf.read()
-
-                indexstruct = struct.Struct('>HBBH')
-
-                data = indexstruct.unpack_from(indexfile, 0)
-                def_ = ObjectDef()
-                def_.width = data[1]
-                def_.height = data[2]
-                def_.folderIndex = globals.mainWindow.folderPicker.currentIndex()
-                def_.objAllIndex = z
-
-                if "randLen" in jsonData:
-                    def_.randByte = data[3]
-
-                else:
-                    def_.randByte = 0
-
-                def_.load(deffile, 0)
-
-                globals.ObjectAllDefinitions.append(def_)
-
-                obj = RenderObjectAll(def_, def_.width, def_.height, True)
-                self.items.append(obj)
-
-                globals.ObjectAllImages.append([QtGui.QPixmap(dir + jsonData["img"]),
-                                        QtGui.QPixmap(dir + jsonData["nml"])])
-
-                if "randLen" in jsonData:
-                    pm = globals.ObjectAllImages[-1][0].copy(0, 0, 60, 60)
-
-                else:
-                    pm = globals.ObjectAllImages[-1][0]
-
-                pm = pm.scaledToWidth(pm.width() * 32 / globals.TileWidth, Qt.SmoothTransformation)
-                if pm.width() > 256:
-                    pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
-                if pm.height() > 256:
-                    pm = pm.scaledToHeight(256, Qt.SmoothTransformation)
-
-                self.ritems.append(pm)
-                self.itemsize.append(QtCore.QSize(pm.width() + 4, pm.height() + 4))
-                self.tooltips.append(globals.trans.string('Objects', 5, '[id]', z))
-
-                z += 1
 
             self.endResetModel()
 
@@ -3471,63 +3325,96 @@ class TilesetsTab(QtWidgets.QWidget):
         super().__init__()
 
         self.tile0 = QtWidgets.QComboBox()
+        self.tile1 = QtWidgets.QComboBox()
+        self.tile2 = QtWidgets.QComboBox()
+        self.tile3 = QtWidgets.QComboBox()
 
-        name = globals.Area.tileset0
-        slot = self.HandleTileset0Choice
+        self.widgets = [self.tile0, self.tile1, self.tile2, self.tile3]
+        names = [globals.Area.tileset0, globals.Area.tileset1, globals.Area.tileset2, globals.Area.tileset3]
+        slots = [self.HandleTileset0Choice, self.HandleTileset1Choice, self.HandleTileset2Choice,
+                 self.HandleTileset3Choice]
 
-        self.currentChoice = None
+        self.currentChoices = [None, None, None, None]
 
-        data = SimpleTilesetNames()
+        TilesetNamesIterable = SimpleTilesetNames()
 
-        # First, find the current index and custom-tileset strings
-        if name == '':  # No tileset selected, the current index should be None
-            ts_index = globals.trans.string('AreaDlg', 15)  # None
-            custom = ''
-            custom_fname = globals.trans.string('AreaDlg', 16)  # [CUSTOM]
-        else:  # Tileset selected
-            ts_index = globals.trans.string('AreaDlg', 18, '[name]', name)  # Custom filename... [name]
-            custom = name
-            custom_fname = globals.trans.string('AreaDlg', 17, '[name]', name)  # [CUSTOM] [name]
+        for idx, widget, name, data, slot in zip(range(4), self.widgets, names, TilesetNamesIterable, slots):
+            # This loop runs once for each tileset.
+            # First, find the current index and custom-tileset strings
+            if name == '':  # No tileset selected, the current index should be None
+                ts_index = globals.trans.string('AreaDlg', 15)  # None
+                custom = ''
+                custom_fname = globals.trans.string('AreaDlg', 16)  # [CUSTOM]
+            else:  # Tileset selected
+                ts_index = globals.trans.string('AreaDlg', 18, '[name]', name)  # Custom filename... [name]
+                custom = name
+                custom_fname = globals.trans.string('AreaDlg', 17, '[name]', name)  # [CUSTOM] [name]
 
-        # Add items to the widget:
-        # - None
-        self.tile0.addItem(globals.trans.string('AreaDlg', 15), '')  # None
-        # - Retail Tilesets
-        for tfile, tname in data:
-            if tfile in globals.szsData:
+            # Add items to the widget:
+            # - None
+            widget.addItem(globals.trans.string('AreaDlg', 15), '')  # None
+            # - Retail Tilesets
+            for tfile, tname in data:
                 text = globals.trans.string('AreaDlg', 19, '[name]', tname, '[file]', tfile)  # [name] ([file])
-                self.tile0.addItem(text, tfile)
+                widget.addItem(text, tfile)
                 if name == tfile:
                     ts_index = text
                     custom = ''
-        # - Custom Tileset
-        self.tile0.addItem(globals.trans.string('AreaDlg', 18, '[name]', custom), custom_fname)  # Custom filename... [name]
+            # - Custom Tileset
+            widget.addItem(globals.trans.string('AreaDlg', 18, '[name]', custom), custom_fname)  # Custom filename... [name]
 
-        # Set the current index
-        item_idx = self.tile0.findText(ts_index)
-        self.currentChoice = item_idx
-        self.tile0.setCurrentIndex(item_idx)
+            # Set the current index
+            item_idx = widget.findText(ts_index)
+            self.currentChoices[idx] = item_idx
+            widget.setCurrentIndex(item_idx)
 
-        # Handle combobox changes
-        self.tile0.activated.connect(slot)
+            # Handle combobox changes
+            widget.activated.connect(slot)
 
         # don't allow ts0 to be removable
         self.tile0.removeItem(0)
 
         mainLayout = QtWidgets.QVBoxLayout()
         tile0Box = QtWidgets.QGroupBox(globals.trans.string('AreaDlg', 11))
+        tile1Box = QtWidgets.QGroupBox(globals.trans.string('AreaDlg', 12))
+        tile2Box = QtWidgets.QGroupBox(globals.trans.string('AreaDlg', 13))
+        tile3Box = QtWidgets.QGroupBox(globals.trans.string('AreaDlg', 14))
 
         t0 = QtWidgets.QVBoxLayout()
         t0.addWidget(self.tile0)
+        t1 = QtWidgets.QVBoxLayout()
+        t1.addWidget(self.tile1)
+        t2 = QtWidgets.QVBoxLayout()
+        t2.addWidget(self.tile2)
+        t3 = QtWidgets.QVBoxLayout()
+        t3.addWidget(self.tile3)
 
         tile0Box.setLayout(t0)
+        tile1Box.setLayout(t1)
+        tile2Box.setLayout(t2)
+        tile3Box.setLayout(t3)
 
         mainLayout.addWidget(tile0Box)
+        mainLayout.addWidget(tile1Box)
+        mainLayout.addWidget(tile2Box)
+        mainLayout.addWidget(tile3Box)
         mainLayout.addStretch(1)
         self.setLayout(mainLayout)
 
     def HandleTileset0Choice(self, index):
-        w = self.tile0
+        self.HandleTilesetChoice(0, index)
+
+    def HandleTileset1Choice(self, index):
+        self.HandleTilesetChoice(1, index)
+
+    def HandleTileset2Choice(self, index):
+        self.HandleTilesetChoice(2, index)
+
+    def HandleTileset3Choice(self, index):
+        self.HandleTilesetChoice(3, index)
+
+    def HandleTilesetChoice(self, tileset, index):
+        w = self.widgets[tileset]
 
         if index == (w.count() - 1):
             fname = str(w.itemData(index))
@@ -3545,7 +3432,7 @@ class TilesetsTab(QtWidgets.QWidget):
 
             if result == QtWidgets.QDialog.Accepted:
                 fname = str(dbox.textbox.text())
-                if fname.endswith('.szs') or fname.endswith('.sarc'): fname = fname[:-3]
+                if fname.endswith('.szs'): fname = fname[:-4]
 
                 w.setItemText(index, globals.trans.string('AreaDlg', 18, '[name]', fname))
                 w.setItemData(index, globals.trans.string('AreaDlg', 17, '[name]', fname))
@@ -3553,15 +3440,19 @@ class TilesetsTab(QtWidgets.QWidget):
                 w.setCurrentIndex(self.currentChoice)
                 return
 
-        self.currentChoice = index
+        self.currentChoices[tileset] = index
 
     def value(self):
         """
-        Returns the main tileset choice
+        Returns all 4 tileset choices
         """
-        idx = self.tile0.currentIndex()
-        name = str(self.tile0.itemData(idx))
-        return name
+        result = []
+        for i in range(4):
+            widget = eval('self.tile%d' % i)
+            idx = widget.currentIndex()
+            name = str(widget.itemData(idx))
+            result.append(name)
+        return tuple(result)
 
 
 class LevelViewWidget(QtWidgets.QGraphicsView):
@@ -3661,68 +3552,6 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 self.dragstartx = clickedx
                 self.dragstarty = clickedy
                 SetDirty()
-
-            elif globals.CurrentPaintType == 10 and globals.CurrentObject != -1:
-                assert globals.CurrentObject == globals.ObjectAllDefinitions[globals.CurrentObject].objAllIndex
-                type_ = globals.CurrentObject
-
-                # Check if the object is already in one of the tilesets
-                if globals.CurrentObject in globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()]:
-                    (globals.CurrentPaintType,
-                     globals.CurrentObject) = globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][
-                         globals.CurrentObject]
-
-                # Try to add the object to one of the tilesets
-                else:
-                    # Get the object definition, collision data, image and normal map
-                    obj = globals.ObjectAllDefinitions[globals.CurrentObject]
-                    colldata = globals.ObjectAllCollisions[globals.CurrentObject]
-                    img, nml = globals.ObjectAllImages[globals.CurrentObject]
-
-                    # Add the object to one of the tilesets and set CurrentPaintType and CurrentObject
-                    (globals.CurrentPaintType,
-                     globals.CurrentObject) = addObjToTileset(obj, colldata, img, nml, True)
-
-                    # Checks if the object fit in one of the tilesets
-                    if globals.CurrentPaintType == 10:
-                        # Revert CurrentObject back to what it was
-                        globals.CurrentObject = type_
-
-                        # Throw a messagebox because the object didn't fit
-                        QtWidgets.QMessageBox.critical(None, 'Cannot Paint', "There isn't enough room left for this object!")
-                        return
-
-                    # Add the object to ObjectAddedtoEmbedded
-                    globals.ObjectAddedtoEmbedded[globals.CurrentArea][obj.folderIndex][type_] = (globals.CurrentPaintType, globals.CurrentObject)
-
-                # paint an object
-                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
-                if clicked.x() < 0: clicked.setX(0)
-                if clicked.y() < 0: clicked.setY(0)
-                clickedx = int(clicked.x() / globals.TileWidth)
-                clickedy = int(clicked.y() / globals.TileWidth)
-
-                ln = globals.CurrentLayer
-                layer = globals.Area.layers[globals.CurrentLayer]
-                if len(layer) == 0:
-                    z = (2 - ln) * 8192
-                else:
-                    z = layer[-1].zValue() + 1
-
-                obj = ObjectItem(globals.CurrentPaintType, globals.CurrentObject, ln, clickedx, clickedy, 1, 1, z, 0)
-                layer.append(obj)
-                mw = globals.mainWindow
-                obj.positionChanged = mw.HandleObjPosChange
-                mw.scene.addItem(obj)
-
-                self.dragstamp = False
-                self.currentobj = obj
-                self.dragstartx = clickedx
-                self.dragstarty = clickedy
-                SetDirty()
-
-                globals.CurrentPaintType = 10
-                globals.CurrentObject = type_
 
             elif globals.CurrentPaintType == 4 and globals.CurrentSprite != -1:
                 # paint a sprite

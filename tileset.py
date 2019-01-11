@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# Miyamoto! DX Level Editor - New Super Mario Bros. U Deluxe Level Editor
+# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
 # MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
-# This file is part of Miyamoto!.
+# This file is part of Miyamoto! DX.
 
-# Miyamoto! is free software: you can redistribute it and/or modify
+# Miyamoto! DX is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Miyamoto! is distributed in the hope that it will be useful,
+# Miyamoto! DX is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
+# along with Miyamoto! DX.  If not, see <http://www.gnu.org/licenses/>.
 
 
 ################################################################
@@ -37,16 +37,10 @@ Qt = QtCore.Qt
 
 import globals
 
-import addrlib
-import bc3
-import dds
+import bntx as BNTX
 import gibberish
-import gtx
 import SarcLib
 import spritelib as SLib
-
-if globals.cython_available:
-    import gtx_quick_cy
 
 #################################
 
@@ -656,200 +650,6 @@ def getUsedTiles():
     return usedTiles
 
 
-def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
-    """
-    Adds a specific object to one of the tilesets
-    """
-    if isfromAll:
-        paintType = 10
-
-    else:
-        paintType = 11
-
-    objNum = -1
-    usedTiles = getUsedTiles()
-
-    for idx in range(1, 4):
-        # Get the number of used tiles in this tileset
-        usedTiles = getUsedTiles()[idx]
-        if len(usedTiles) >= 256:  # It can't be more than 256, oh well
-            # Skip to to the next tileset because no free tiles were found
-            continue
-
-        # Get the number of tiles in this object
-        if (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
-            randLen = obj.randByte & 0xF
-
-        else:
-            randLen = 0
-
-        if randLen:
-            numTiles = randLen
-
-        else:
-            tilesUsed = []
-            for row in obj.rows:
-                for tile in row:
-                    if len(tile) == 3:
-                        if tile != [0, 0, 0]:
-                            if tile[1] & 0xFF not in tilesUsed:
-                                tilesUsed.append(tile[1] & 0xFF)
-
-            numTiles = len(tilesUsed)
-
-        if numTiles + len(usedTiles) > 256:
-            # Skip to to the next tileset because the free tiles are not enough
-            continue
-
-        tileoffset = idx * 256
-
-        # Add the free tiles to a list
-        freeTiles = [i for i in range(256) if i not in usedTiles]
-
-        # Handle randomized objects differently
-        if randLen:
-            # Look for any "randLen" free tiles in a row
-            tileNum = 0
-            found = False
-            for i in freeTiles:
-                for z in range(randLen):
-                    if i + z not in freeTiles:
-                        break
-
-                    if z == randLen - 1:
-                        tileNum = i
-                        found = True
-                        break
-
-                if found:
-                    break
-
-            if not found:
-                # Skip to to the next tileset because no "randLen" free tiles in a row were found
-                continue
-
-            # Set the object's tiles' indecies
-            for ctile, tile in enumerate(obj.rows[0]):
-                if len(tile) == 3:
-                    obj.rows[0][ctile][1] = tileNum | (idx << 8)
-
-            if globals.ObjectDefinitions[idx] is None:
-                # Make us a new ObjectDefinitions for this tileset
-                globals.ObjectDefinitions[idx] = [None] * 256
-
-            defs = globals.ObjectDefinitions[idx]
-
-            # Set the object's number
-            for objNum, def_ in enumerate(defs):
-                if def_ is None:
-                    break
-            else:
-                continue  # Should never happen
-
-            globals.ObjectDefinitions[idx][objNum] = obj
-
-            # Adds the object's tiles to the Tiles dict.
-            tileNum += tileoffset
-            for z in range(randLen):
-                T = TilesetTile(img.copy(z * 60, 0, 60, 60), nml.copy(z * 60, 0, 60, 60))
-                T.setCollisions(struct.unpack_from('>8B', colldata, z * 8))
-                globals.Tiles[tileNum + z] = T
-
-        else:
-            # Set the object's tiles' indecies
-            tilesUsed = {}
-
-            i = 0
-            for row in obj.rows:
-                for tile in row:
-                    if len(tile) == 3:
-                        if tile != [0, 0, 0]:
-                            tileIdx = tile[1] & 0xFF
-                            if tileIdx not in tilesUsed:
-                                tilesUsed[tileIdx] = i
-                                tile[1] = freeTiles[i] | (idx << 8)
-                                i += 1
-
-                            else:
-                                tile[1] = freeTiles[tilesUsed[tileIdx]] | (idx << 8)
-
-            if globals.ObjectDefinitions[idx] is None:
-                # Make us a new ObjectDefinitions for this tileset
-                globals.ObjectDefinitions[idx] = [None] * 256
-
-            defs = globals.ObjectDefinitions[idx]
-
-            # Set the object's number
-            for objNum, def_ in enumerate(defs):
-                if def_ is None:
-                    break
-            else:
-                continue  # Should never happen
-
-            globals.ObjectDefinitions[idx][objNum] = obj
-
-            # Adds the object's tiles to the Tiles dict.
-            tilesReplaced = []
-
-            if obj.reversed:
-                for crow, row in enumerate(obj.rows):
-                    if obj.subPartAt != -1:
-                        if crow >= obj.subPartAt:
-                            crow -= obj.subPartAt
-
-                        else:
-                            crow += obj.height - obj.subPartAt
-
-                    x = 0; i = 0
-                    y = crow * 60
-
-                    for tile in row:
-                        if len(tile) == 3:
-                            if tile != [0, 0, 0]:
-                                tileNum = (tile[1] & 0xFF) + tileoffset
-                                if tileNum not in tilesReplaced:
-                                    tilesReplaced.append(tileNum)
-                                    T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
-                                    colls = struct.unpack_from('>8B', colldata, (crow * obj.width * 8) + i)
-                                    T.setCollisions(colls)
-                                    globals.Tiles[tileNum] = T
-
-                            x += 60
-                            i += 8
-
-            else:
-                i = 0
-
-                for crow, row in enumerate(obj.rows):
-                    x = 0
-                    y = crow * 60
-
-                    for tile in row:
-                        if len(tile) == 3:
-                            if tile != [0, 0, 0]:
-                                tileNum = (tile[1] & 0xFF) + tileoffset
-                                if tileNum not in tilesReplaced:
-                                    tilesReplaced.append(tileNum)
-                                    T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
-                                    T.setCollisions(struct.unpack_from('>8B', colldata, i))
-                                    globals.Tiles[tileNum] = T
-
-                            x += 60
-                            i += 8
-
-        # Set the paint type
-        paintType = idx
-
-        # Misc.
-        HandleTilesetEdited()
-        if not eval('globals.Area.tileset%d' % idx):
-            exec("globals.Area.tileset%d = generateTilesetNames()[%d]" % (idx, idx - 1))
-
-        break
-
-    return paintType, objNum
-
-
 def getImgFromObj(obj, randLen):
     if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
         tex = QtGui.QPixmap(randLen * 60, obj.height * 60)
@@ -1008,425 +808,166 @@ def exportObject(name, baseName, idx, objNum):
         json.dump(jsonData, outfile)
 
 
-def HandleTilesetEdited(fromPuzzle=False):
-    if not fromPuzzle:
-        globals.TilesetEdited = True
+def loadBNTXFromBFRES(inb):
+    assert inb[:8] == b'FRES    '
+    bom = ">" if inb[0xC:0xE] == b'\xFE\xFF' else "<"
+    startoff = struct.unpack(bom + "q", inb[0x98:0xA0])[0]
+    count = struct.unpack(bom + "q", inb[0xC8:0xD0])[0]
 
-    globals.mainWindow.objPicker.LoadFromTilesets()
-    globals.mainWindow.updateNumUsedTilesLabel()
-
-
-def DeleteObject(idx, objNum):
-    # Replace the object's tiles with transparent tiles
-    obj = globals.ObjectDefinitions[idx][objNum]
-    usedTiles = []
-    for row in obj.rows:
-        for tile in row:
-            if len(tile) == 3:
-                if tile == [0, 0, 0]:  # Pa0 tile 0 used in another slot, don't count it
-                    continue
-
-                randLen = obj.randByte & 0xF
-                tileNum = tile[1] & 0xFF
-
-                if idx != (tile[1] >> 8) & 3:
-                    continue
-
-                if randLen:
-                    for i in range(randLen):
-                        if tileNum + i not in usedTiles:
-                            usedTiles.append(tileNum + i)
-                else:
-                    if tileNum not in usedTiles:
-                        usedTiles.append(tileNum)
-
-    folderIndex = obj.folderIndex
-    objAllIndex = obj.objAllIndex
-
-    # Completely remove the object's definition
-    del globals.ObjectDefinitions[idx][objNum]
-    globals.ObjectDefinitions[idx].append(None)
-
-    # Replace the object's tiles with empty tiles
-    # if they are not used by other objects in the save tileset
-    tilesetUsedTiles = getUsedTiles()[idx]
-
-    T = TilesetTile()
-    T.setCollisions([0] * 8)
-
-    tileoffset = idx * 256
-
-    for i in usedTiles:
-        if i not in tilesetUsedTiles:
-            globals.Tiles[i + tileoffset] = T
-
-    # Unload the tileset if it's empty
-    if globals.ObjectDefinitions[idx] == [None] * 256:
-        UnloadTileset(idx)
-        exec("globals.Area.tileset%d = ''" % idx)
-
-    # Remove the object from globals.ObjectAddedtoEmbedded
-    if folderIndex > -1 and globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-        globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex].pop(objAllIndex, None)
-
-    # Subtract 1 from the objects' types that after this object and in the same slot
-    for folderIndex in globals.ObjectAddedtoEmbedded[globals.CurrentArea]:
-        for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
-            tempIdx, tempNum = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
-            if tempIdx == idx:
-                if tempNum > objNum:
-                    globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i] = (tempIdx, tempNum - 1)
-
-    for layer in globals.Area.layers:
-        for obj in layer:
-            if obj.tileset == idx:
-                if obj.type > objNum:
-                    obj.SetType(obj.tileset, obj.type - 1)
-
-
-def generateTilesetNames():
-    """
-    Generate 3 Tileset names
-    """
-    words = gibberish.generate_words(3)
-    tilesetNames = ['Pa%d_%s_%d_%s' % (i + 1, globals.levelNameCache, globals.CurrentArea, word) for i, word in enumerate(words)]
-    for name in tilesetNames:
-        if name in globals.szsData:
-            # Not safe, but... ¯\_(ツ)_/¯
-            return generateTilesetNames()
-
-    return tilesetNames
-
-
-def _compressBC3_nvcompress(tex, tile_path):
-    """
-    RGBA8 QPixmap -> BC3 DDS
-    Uses `nvcompress`
-    """
-    if platform.system() == 'Darwin':
-        raise NotImplementedError("MacOSX is not supported yet!")
-
-    tex.save(tile_path + '/tmp.png')
-
-    os.chdir(tile_path)
-
-    if platform.system() == 'Windows':
-        os.system('nvcompress.exe -bc3 tmp.png tmp.dds')
+    if not count:
+        raise RuntimeError("Tileset not found")
 
     else:
-        os.system('chmod +x nvcompress.elf')
-        os.system('./nvcompress.elf -bc3 tmp.png tmp.dds')
+        # Not sure if this is correct, I hope it is.
+        # If you face any problems, try replacing "0x20" with "0x10 * count".
+        namesoff = struct.unpack(bom + "q", inb[0xA0:0xA8])[0] + 0x20
 
-    os.chdir(globals.miyamoto_path)
+        for i in range(count):
+            fileoff = struct.unpack(bom + "q", inb[startoff + i * 16:startoff + 8 + i * 16])[0]
+            dataSize = struct.unpack(bom + "q", inb[startoff + 8 + i * 16:startoff + 16 + i * 16])[0]
 
-    os.remove(tile_path + '/tmp.png')
+            data = inb[fileoff:fileoff + dataSize]
+            nameoff = struct.unpack(bom + "q", inb[namesoff + i * 16:namesoff + 8 + i * 16])[0]
+            nameSize = struct.unpack(bom + 'H', inb[nameoff:nameoff + 2])[0]
+            name = inb[nameoff + 2:nameoff + 2 + nameSize].decode('utf-8')
 
-
-def _compressBC3_libtxc_dxtn(tex, tile_path):
-    """
-    RGBA8 QPixmap -> BC3 DDS
-    Uses our port of `libtxc_dxtn` (or Wexos's Compressor if Cython is not available)
-    """
-    data = tex.bits()
-    data.setsize(tex.byteCount())
-    data = data.asstring()
-
-    dataList = []
-    dataList.append(bc3.compress(data, 2048, 512))
-
-    for i in range(1, 12):
-        mipTex = QtGui.QImage(tex).scaledToWidth(max(1, 2048 >> i), Qt.SmoothTransformation)
-        mipTex = mipTex.convertToFormat(QtGui.QImage.Format_RGBA8888)
-
-        mipData = mipTex.bits()
-        mipData.setsize(mipTex.byteCount())
-        mipData = mipData.asstring()
-
-        dataList.append(
-            bc3.compress(mipData, max(1, 2048 >> i), max(1, 512 >> i)))
-
-    with open(tile_path + '/tmp.dds', 'wb+') as out:
-        out.write(dds.generateHeader(2048, 512, 0x33, 12))
-        for data in dataList:
-            out.write(data)
-
-
-def writeGTX(tex, idx):
-    """
-    Generates a GTX file from a QImage
-    """
-    if platform.system() == 'Windows':
-        tile_path = globals.miyamoto_path + '/Tools'
-
-    elif platform.system() == 'Linux':
-        tile_path = globals.miyamoto_path + '/linuxTools'
-
-    else:
-        tile_path = globals.miyamoto_path + '/macTools'
-
-    if idx != 0:  # Save as DXT5/BC3
-        if platform.system() == 'Darwin':
-            _compressBC3_libtxc_dxtn(tex, tile_path)
+            if name == "textures.bntx":
+                bntx = BNTX.File(); bntx.load(data, 0)
+                break
 
         else:
-            try:
-                _compressBC3_nvcompress(tex, tile_path)
+            raise RuntimeError("Tileset not found")
 
-            except:
-                pass
-
-            if not os.path.isfile(tile_path + '/tmp.dds'):
-                _compressBC3_libtxc_dxtn(tex, tile_path)
-
-    else:  # Save as RGBA8
-        data = tex.bits()
-        data.setsize(tex.byteCount())
-        data = data.asstring()
-
-        with open(tile_path + '/tmp.dds', 'wb+') as out:
-            hdr = dds.generateHeader(2048, 512, 0x1a)
-            out.write(hdr)
-            out.write(data)
-
-    gtxdata = gtx.DDStoGTX(tile_path + '/tmp.dds')
-
-    os.remove(tile_path + '/tmp.dds')
-
-    return gtxdata
+    return bntx
 
 
-def PackTexture(idx, nml=False):
-    """
-    Packs the tiles into a GTX file
-    """
-    tex = QtGui.QImage(2048, 512, QtGui.QImage.Format_RGBA8888)
-    tex.fill(Qt.transparent)
-    painter = QtGui.QPainter(tex)
-
-    tileoffset = idx * 256
-    x = 0
-    y = 0
-
-    for z in range(tileoffset, tileoffset + 256):
-        tile = QtGui.QImage(64, 64, QtGui.QImage.Format_RGBA8888)
-        tile.fill(Qt.transparent)
-        tilePainter = QtGui.QPainter(tile)
-
-        tilePainter.drawPixmap(2, 2, globals.Tiles[z].nml if nml else globals.Tiles[z].main)
-        tilePainter.end()
-
-        for i in range(2, 62):
-            color = tile.pixel(i, 2)
-            for pix in range(0, 2):
-                tile.setPixel(i, pix, color)
-
-            color = tile.pixel(2, i)
-            for p in range(0, 2):
-                tile.setPixel(p, i, color)
-
-            color = tile.pixel(i, 61)
-            for p in range(62, 64):
-                tile.setPixel(i, p, color)
-
-            color = tile.pixel(61, i)
-            for p in range(62, 64):
-                tile.setPixel(p, i, color)
-
-        color = tile.pixel(2, 2)
-        for a in range(0, 2):
-            for b in range(0, 2):
-                tile.setPixel(a, b, color)
-
-        color = tile.pixel(61, 2)
-        for a in range(62, 64):
-            for b in range(0, 2):
-                tile.setPixel(a, b, color)
-
-        color = tile.pixel(2, 61)
-        for a in range(0, 2):
-            for b in range(62, 64):
-                tile.setPixel(a, b, color)
-
-        color = tile.pixel(61, 61)
-        for a in range(62, 64):
-            for b in range(62, 64):
-                tile.setPixel(a, b, color)
-
-        painter.drawImage(x, y, tile)
-
-        x += 64
-
-        if x >= 2048:
-            x = 0
-            y += 64
-
-    painter.end()
-
-    outData = writeGTX(tex, idx)
-
-    return outData
-
-
-def SaveTileset(idx):
-    """
-    Saves a tileset from a specific slot
-    """
-    name = eval('globals.Area.tileset%d' % idx)
-
-    tileoffset = idx * 256
-
-    tiledata = PackTexture(idx)
-    nmldata = PackTexture(idx, True)
-
-    defs = globals.ObjectDefinitions[idx]
-
-    if defs is None:
-        return False
-
-    colldata = b''
-    deffile = b''
-    indexfile = b''
-
-    for i in range(tileoffset, tileoffset + 256):
-        colldata += bytes(globals.Tiles[i].collData)
-
-    for obj in defs:
-        if obj is None:
+def loadTexFromBNTX(bntx, name):
+    for texture in bntx.textures:
+        if name == texture.name:
             break
 
-        indexfile += struct.pack('>HBBxB', len(deffile), obj.width, obj.height, obj.randByte)
-
-        for row in obj.rows:
-            for tile in row:
-                if len(tile) == 3:
-                    byte2 = tile[2] << 2
-                    byte2 |= (tile[1] >> 8) & 3  # Slot
-
-                    deffile += bytes([tile[0], tile[1] & 0xFF, byte2])
-
-                else:
-                    deffile += bytes(tile)
-
-            deffile += b'\xFE'
-
-        deffile += b'\xFF'
-
-    arc = SarcLib.SARC_Archive()
-
-    tex = SarcLib.Folder('BG_tex')
-    arc.addFolder(tex)
-    tex.addFile(SarcLib.File('%s.gtx' % name, tiledata))
-    tex.addFile(SarcLib.File('%s_nml.gtx' % name, nmldata))
-
-    chk = SarcLib.Folder('BG_chk')
-    arc.addFolder(chk)
-    chk.addFile(SarcLib.File('d_bgchk_%s.bin' % name, colldata))
-
-    unt = SarcLib.Folder('BG_unt')
-    arc.addFolder(unt)
-    unt.addFile(SarcLib.File('%s.bin' % name, deffile))
-    unt.addFile(SarcLib.File('%s_hd.bin' % name, indexfile))
-
-    return arc.save()[0]
-
-
-def _loadGTX_gtx_quick(width, height, format_, data):
-    """
-    Use `gtx_quick` to decode the texture
-    """
-    return gtx_quick_cy.decodeGTX(width, height, format_, data)
-
-
-def _loadGTX_addrlib(width, height, format_, tileMode, data):
-    """
-    Use `AddrLib` to decode the texture (and decompress if needed)
-    """
-    # Get the Surface Info
-    surfOut = addrlib.getSurfaceInfo(format_, width, height, 1, 1, tileMode, 0, 0)
-
-    # Deswizzle the data
-    udata = addrlib.deswizzle(width, height, surfOut.height, format_, tileMode, 0, surfOut.pitch, surfOut.bpp, data)
-
-    if format_ == 0x33:
-        # Decompress the data
-        udata = bc3.decompress(udata, width, height)
-
-    return udata
-
-
-def _loadGTX_gtx_extract(gtxdata):
-    """
-    Use `gtx_extract` to decode the texture
-    """
-    if platform.system() == 'Windows':
-        tile_path = globals.miyamoto_path + '/Tools'
-
-    elif platform.system() == 'Linux':
-        tile_path = globals.miyamoto_path + '/linuxTools'
-
     else:
-        tile_path = globals.miyamoto_path + '/macTools'
+        raise RuntimeError("Tileset not found")
 
-    with open(tile_path + '/texture.gtx', 'wb') as binfile:
-        binfile.write(gtxdata)
+    if texture.format_ in [0x101, 0x201, 0x301, 0x401, 0x501, 0x601, 0x701,
+                           0x801, 0x901, 0xb01, 0xb06, 0xc01, 0xc06, 0xe01,
+                           0x1a01, 0x1a06, 0x1b01, 0x1b06, 0x1c01, 0x1c06,
+                           0x1d01, 0x1d02, 0x1e01, 0x1e02, 0x3b01] and texture.dim == 2:
 
-    os.chdir(tile_path)
+        result, _, _ = bntx.rawData(texture)
 
-    if platform.system() == 'Windows':
-        # https://stackoverflow.com/a/7006424/4797683
-        DETACHED_PROCESS = 0x00000008
-        subprocess.call('gtx_extract_bmp.exe texture.gtx', creationflags=DETACHED_PROCESS)
+        if texture.format_ == 0x101:
+            data = result[0]
 
-    elif platform.system() == 'Linux':
-        os.system('chmod +x ./gtx_extract.elf')
-        os.system('./gtx_extract.elf texture.gtx texture.bmp')
+            format_ = 'la4'
+            bpp = 1
 
-    else:
-        os.system(tile_path + '/gtx_extract_bmp texture.gtx')
+        elif texture.format_ == 0x201:
+            data = result[0]
 
-    os.chdir(globals.miyamoto_path)
+            format_ = 'l8'
+            bpp = 1
 
-    # Return as a QImage
-    img = QtGui.QImage(tile_path + '/texture.bmp')
+        elif texture.format_ == 0x301:
+            data = result[0]
 
-    os.remove(tile_path + '/texture.bmp')
-    os.remove(tile_path + '/texture.gtx')
+            format_ = 'rgba4'
+            bpp = 2
 
-    return img
+        elif texture.format_ == 0x401:
+            data = result[0]
 
+            format_ = 'abgr4'
+            bpp = 2
 
-def loadGTX(gtxdata, useAddrLib=False):
-    # Read the gtx file
-    (dim, width, height, depth,
-     format_, tileMode, data) = gtx.readGFD(gtxdata)
+        elif texture.format_ == 0x501:
+            data = result[0]
 
-    if dim != 1:
-        raise NotImplementedError("Unimplemented texture dimension!")
+            format_ = 'rgb5a1'
+            bpp = 2
 
-    elif depth != 1:
-        raise NotImplementedError("Unimplemented texture depth!")
+        elif texture.format_ == 0x601:
+            data = result[0]
 
-    elif format_ not in [0x1a, 0x33]:
-        raise NotImplementedError("Unimplemented texture format!")
+            format_ = 'a1bgr5'
+            bpp = 2
 
-    elif tileMode != 4:
-        useAddrLib = True
+        elif texture.format_ == 0x701:
+            data = result[0]
 
-    if globals.cython_available:
-        if useAddrLib:
-            udata = _loadGTX_addrlib(width, height, format_, tileMode, data)
+            format_ = 'rgb565'
+            bpp = 2
 
-        else:
-            udata = _loadGTX_gtx_quick(width, height, format_, data)
+        elif texture.format_ == 0x801:
+            data = result[0]
 
-    else:
-        try:
-            return _loadGTX_gtx_extract(gtxdata)
+            format_ = 'bgr565'
+            bpp = 2
 
-        except:
-            udata = _loadGTX_addrlib(width, height, format_, tileMode, data)
+        elif texture.format_ == 0x901:
+            data = result[0]
 
-    return QtGui.QImage(udata, width, height, QtGui.QImage.Format_RGBA8888)
+            format_ = 'la8'
+            bpp = 2
+
+        elif (texture.format_ >> 8) == 0xb:
+            data = result[0]
+
+            format_ = 'rgba8'
+            bpp = 4
+
+        elif (texture.format_ >> 8) == 0xc:
+            data = result[0]
+
+            format_ = 'bgra8'
+            bpp = 4
+
+        elif texture.format_ == 0xe01:
+            data = result[0]
+
+            format_ = 'bgr10a2'
+            bpp = 4
+
+        elif (texture.format_ >> 8) == 0x1a:
+            data = BNTX.bcn.decompressDXT1(result[0], texture.width, texture.height)
+
+            format_ = 'rgba8'
+            bpp = 4
+
+        elif (texture.format_ >> 8) == 0x1b:
+            data = BNTX.bcn.decompressDXT3(result[0], texture.width, texture.height)
+
+            format_ = 'rgba8'
+            bpp = 4
+
+        elif (texture.format_ >> 8) == 0x1c:
+            data = BNTX.bcn.decompressDXT5(result[0], texture.width, texture.height)
+
+            format_ = 'rgba8'
+            bpp = 4
+
+        elif (texture.format_ >> 8) == 0x1d:
+            data = BNTX.bcn.decompressBC4(result[0], texture.width, texture.height, 0 if texture.format_ & 3 == 1 else 1)
+
+            format_ = 'rgba8'
+            bpp = 4
+
+        elif (texture.format_ >> 8) == 0x1e:
+            data = BNTX.bcn.decompressBC5(result[0], texture.width, texture.height, 0 if texture.format_ & 3 == 1 else 1)
+
+            format_ = 'rgba8'
+            bpp = 4
+
+        elif texture.format_ == 0x3b01:
+            data = result[0]
+
+            format_ = 'bgr5a1'
+            bpp = 2
+
+        data = BNTX.dds.formConv.torgba8(texture.width, texture.height, bytearray(data), format_, bpp, texture.compSel)
+        return QtGui.QImage(data, texture.width, texture.height, QtGui.QImage.Format_RGBA8888)
+
+    raise RuntimeError("%s could not be loaded" % name)
 
 
 def CascadeTilesetNames_Category(lower, upper):
@@ -1644,10 +1185,6 @@ def RenderObject(tileset, objnum, width, height, fullslope=False):
     except IndexError:
         obj = None
 
-    return _RenderObject(obj, width, height, fullslope)
-
-
-def RenderObjectAll(obj, width, height, fullslope=False):
     return _RenderObject(obj, width, height, fullslope)
 
 
@@ -2007,4 +1544,7 @@ def SimpleTilesetNames():
         return result
 
     pa0 = sorted(ParseCategory(globals.TilesetNames[0][0]), key=lambda entry: entry[1])
-    return pa0
+    pa1 = sorted(ParseCategory(globals.TilesetNames[1][0]), key=lambda entry: entry[1])
+    pa2 = sorted(ParseCategory(globals.TilesetNames[2][0]), key=lambda entry: entry[1])
+    pa3 = sorted(ParseCategory(globals.TilesetNames[3][0]), key=lambda entry: entry[1])
+    return (pa0, pa1, pa2, pa3)

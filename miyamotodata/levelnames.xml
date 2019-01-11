@@ -262,7 +262,7 @@
             <level file="9-8" name="Cashless Castle Crawl [Alias]" />
         </category>
 
-        <category name="Boost Mode">
+        <category name="Boost Mode (Unused)">
             <level file="18-8" name="Piranha Plant Hideaway" />
             <level file="18-7" name="Coins in the Forecast" />
             <level file="16-7" name="When Waddlewings Attack" />
@@ -278,16 +278,6 @@
             <level file="16-8" name="Ultimate Boost Blast" />
         </category>
 
-    </category>
-
-    <category name="Unused Levels">
-        <level file="4-25" name="Toad House Type 4" />
-        <level file="13-2" name="A W1 climbing level with corrupted tilesets" />
-        <level file="13-4" name="An underground forest level with a long coin-filled path for a shell" />
-        <level file="13-7" name="A level with colored blocks, paragoombas and line-following platforms" />
-        <level file="16-1" name="A nearly-empty level with nothing but four bricks, a Koopa, and some other sprites" />
-        <level file="16-2" name="Beta &quot;Fuzzy Cliff Climb&quot;" />
-        <level file="18-1" name="Beta Desert Challenge Mode Stage" />
     </category>
 
 </levels>

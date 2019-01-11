@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7
+# Miyamoto! DX Level Editor - New Super Mario Bros. U Deluxe Level Editor
+# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
-# This file is part of Miyamoto!.
+# This file is part of Miyamoto! DX.
 
-# Miyamoto! is free software: you can redistribute it and/or modify
+# Miyamoto! DX is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Miyamoto! is distributed in the hope that it will be useful,
+# Miyamoto! DX is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
+# along with Miyamoto! DX.  If not, see <http://www.gnu.org/licenses/>.
 
 # strings.py
 # Strings for labels, tooltips, and more
@@ -106,7 +106,7 @@ class MiyamotoTranslation:
                 18: 'Custom filename... [name]',
                 19: '[name] ([file])',
                 20: 'Enter a Filename',
-                21: 'Enter the name of a custom tileset file to use. It must be placed in the game\'s Stage\\Texture or Unit folder in order for Miyamoto to recognize it. Do not add the \'.arc\' or \'.sarc\' extension at the end of the filename.',
+                21: 'Enter the name of a custom tileset file to use. It must be placed in the game\'s Unit folder in order for Miyamoto to recognize it. Do not add the \'.szs\' extension at the end of the filename.',
                 22: 'Unknown Value 1:',
                 23: 'Unknown Value 2:',
                 24: 'Unknown Value 3:', # Currently unused
@@ -191,7 +191,7 @@ class MiyamotoTranslation:
                 0: 'Choose the Course folder from [game]',
                 1: 'Error',
                 2: 'This folder doesn\'t have all of the files from the extracted NSMBU course_res_pack folder.',
-                3: 'This folder doesn\'t seem to have the required files. In order to use Miyamoto, you need the Stage folder from the game, including the Texture folder and the level files contained within it.',
+                3: 'This folder doesn\'t seem to have the required files. In order to use Miyamoto, you need the Course and Unit folders from the game, including the level files and tilesets contained within them.',
                 },
             'Comments': {
                 0: '[x], [y]: [text]',
@@ -274,11 +274,11 @@ class MiyamotoTranslation:
                 },
             'Err_MissingLevel': {
                 0: 'Error',
-                1: 'Cannot find the required level file [file].arc. Check your Stage folder and make sure it exists.',
+                1: 'Cannot find the required level file [file].sarc. Check your Course folder and make sure it exists.',
                 },
             'Err_MissingTileset': {
                 0: 'Error',
-                1: 'Cannot find the required tileset file [file].arc. Check your Stage folder and make sure it exists.',
+                1: 'Cannot find the required tileset file [file].sarc. Check your Course folder and make sure it exists.',
                 },
             'Err_Save': {
                 0: 'Error',
@@ -300,7 +300,7 @@ class MiyamotoTranslation:
                 0: 'This game has custom sprite images',
                 1: 'Loading patch...',
                 2: 'New Game Patch',
-                3: 'It appears that this is your first time using the game patch for [game]. Please select its Stage folder so custom tilesets and levels can be loaded.',
+                3: 'It appears that this is your first time using the game patch for [game]. Please select its Course folder so tilesets and levels can be loaded.',
                 4: 'Aborted Game Path Selection',
                 5: 'Since you did not select the stage folder for [game], stages and tilesets will not load correctly. You can try again by choosing Change Game Path while the [game] patch is loaded.',
                 6: 'New Game Patch',

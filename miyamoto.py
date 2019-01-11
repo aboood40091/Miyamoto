@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# Miyamoto! DX Level Editor - New Super Mario Bros. U Deluxe Level Editor
+# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
 # MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
-# This file is part of Miyamoto!.
+# This file is part of Miyamoto! DX.
 
-# Miyamoto! is free software: you can redistribute it and/or modify
+# Miyamoto! DX is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Miyamoto! is distributed in the hope that it will be useful,
+# Miyamoto! DX is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
+# along with Miyamoto! DX.  If not, see <http://www.gnu.org/licenses/>.
 
 # miyamoto.py
-# This is the main executable for Miyamoto!
+# This is the main executable for Miyamoto! DX
 
 
 ################################################################
@@ -87,7 +87,7 @@ try:
 
 except:
     print("Cython is not available!")
-    print("Expect Miyamoto to be very slow!\n")
+    print("Expect Miyamoto DX to be very slow!\n")
 
 else:
     del cython_available
@@ -102,7 +102,6 @@ from items import *
 from level import *
 from loading import *
 from misc import *
-from puzzle import MainWindow as PuzzleWindow
 from quickpaint import *
 import SarcLib
 import spritelib as SLib
@@ -114,9 +113,6 @@ from ui import *
 from verifications import *
 from widgets import *
 
-from yaz0 import determineCompressionMethod
-CompYaz0, DecompYaz0 = determineCompressionMethod()
-
 
 def _excepthook(*exc_info):
     """
@@ -127,7 +123,7 @@ def _excepthook(*exc_info):
     notice = \
         """An unhandled exception occurred. Please report the problem """\
         """to @MasterVermilli0n#7241 on Discord.\n"""\
-        """A log will be written to "%s".\n\nIt is recommended that you restart Miyamoto immediately!"""\
+        """A log will be written to "%s".\n\nIt is recommended that you restart Miyamoto DX immediately!"""\
         """\n\nError information:\n""" % logFile
 
     timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
@@ -185,8 +181,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Editor window constructor
         """
         globals.Initializing = True
-
-        globals.ObjectAddedtoEmbedded = {1: {}}
 
         # Miyamoto Version number goes below here. 64 char max (32 if non-ascii).
         self.MiyamotoInfo = globals.MiyamotoID
@@ -285,8 +279,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             else:
                 filetypes = ''
-                filetypes += globals.trans.string('FileDlgs', 1) + ' (*.sarc *.szs);;'
-                filetypes += globals.trans.string('FileDlgs', 8) + ' (*.szs);;'
                 filetypes += globals.trans.string('FileDlgs', 9) + ' (*.sarc);;'
                 filetypes += globals.trans.string('FileDlgs', 2) + ' (*)'
                 fn = QtWidgets.QFileDialog.getOpenFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
@@ -412,13 +404,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             globals.trans.string('MenuItems', 16),
             globals.trans.string('MenuItems', 17),
             QtGui.QKeySequence('Ctrl+Alt+G'),
-        )
-
-        self.CreateAction(
-            'changeobjpath', self.HandleChangeObjPath, GetIcon('folderpath'),
-            globals.trans.string('MenuItems', 132),
-            globals.trans.string('MenuItems', 133),
-            None,
         )
 
         self.CreateAction(
@@ -734,35 +719,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             None, True,
         )
 
-        # Tilesets
-        self.CreateAction(
-            'editslot1', self.EditSlot1, GetIcon('animation'),
-            globals.trans.string('MenuItems', 130),
-            globals.trans.string('MenuItems', 131),
-            None,
-        )
-
-        self.CreateAction(
-            'editslot2', self.EditSlot2, GetIcon('animation'),
-            globals.trans.string('MenuItems', 142, '[slot]', '2'),
-            globals.trans.string('MenuItems', 143, '[slot]', '2'),
-            None,
-        )
-
-        self.CreateAction(
-            'editslot3', self.EditSlot3, GetIcon('animation'),
-            globals.trans.string('MenuItems', 142, '[slot]', '3'),
-            globals.trans.string('MenuItems', 143, '[slot]', '3'),
-            None,
-        )
-
-        self.CreateAction(
-            'editslot4', self.EditSlot4, GetIcon('animation'),
-            globals.trans.string('MenuItems', 142, '[slot]', '4'),
-            globals.trans.string('MenuItems', 143, '[slot]', '4'),
-            None,
-        )
-
         # Help actions are created later
 
         # Configure them
@@ -811,7 +767,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addAction(self.actions['changegamedef'])
         fmenu.addAction(self.actions['screenshot'])
         fmenu.addAction(self.actions['changegamepath'])
-        fmenu.addAction(self.actions['changeobjpath'])
         fmenu.addAction(self.actions['preferences'])
         fmenu.addSeparator()
         fmenu.addAction(self.actions['exit'])
@@ -876,15 +831,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         lmenu.addSeparator()
         lmenu.addAction(self.actions['overwritesprite'])
 
-        tmenu = menubar.addMenu(globals.trans.string('Menubar', 4))
-        tmenu.addAction(self.actions['editslot1'])
-        tmenu.addSeparator()
-        tmenu.addAction(self.actions['editslot2'])
-        tmenu.addAction(self.actions['editslot3'])
-        tmenu.addAction(self.actions['editslot4'])
-        tmenu.addSeparator()
-        tmenu.addAction(self.actions['overridetilesetsaving'])
-
         hmenu = menubar.addMenu(globals.trans.string('Menubar', 5))
         self.SetupHelpMenu(hmenu)
 
@@ -938,7 +884,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'metainfo',
                 'screenshot',
                 'changegamepath',
-                'changeobjpath',
                 'preferences',
                 'exit',
             ), (
@@ -1185,10 +1130,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         tabs.setTabToolTip(0, globals.trans.string('Palette', 13))
 
         self.objTS0Tab = QtWidgets.QWidget()
-        self.objTSAllTab = QtWidgets.QWidget()
         self.objTS123Tab = QtWidgets.QWidget()
         self.objAllTab.addTab(self.objTS0Tab, tsicon, 'Main')
-        self.objAllTab.addTab(self.objTSAllTab, tsicon, 'All')
         self.objAllTab.addTab(self.objTS123Tab, tsicon, 'Embedded')
 
         oel = QtWidgets.QVBoxLayout(self.objTS0Tab)
@@ -1215,52 +1158,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         lbg.buttonClicked[int].connect(self.LayerChoiceChanged)
         self.LayerButtonGroup = lbg
 
-        self.folderPicker = QtWidgets.QComboBox()
-
-        top_folder = setting('ObjPath')
-
-        if not (top_folder and os.path.isdir(top_folder)):
-            self.objAllTab.setTabEnabled(1, False)
-
-        else:
-            folders = os.listdir(top_folder)
-            folders.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
-
-            folders_ = [folder for folder in folders if os.path.isdir(top_folder + "/" + folder)]
-            del folders
-
-            for i, folder in enumerate(folders_):
-                globals.ObjectAddedtoEmbedded[globals.CurrentArea][i] = {}
-                self.folderPicker.addItem(folder)
-
-        self.folderPicker.setVisible(False)
-        oel.addWidget(self.folderPicker, 1)
-
-        self.importObj = QtWidgets.QPushButton()
-        self.importObj.setText("Import")
-        self.importObj.clicked.connect(self.ImportObjFromFile)
-        self.importObj.setVisible(False)
-        oel.addWidget(self.importObj, 1)
-
         self.exportAll = QtWidgets.QPushButton()
         self.exportAll.setText("Export All")
         self.exportAll.clicked.connect(self.HandleExportAllObj)
         self.exportAll.setVisible(False)
         oel.addWidget(self.exportAll, 1)
 
-        self.deleteAll = QtWidgets.QPushButton()
-        self.deleteAll.setText("Delete All")
-        self.deleteAll.clicked.connect(self.HandleDeleteAllObj)
-        self.deleteAll.setVisible(False)
-        oel.addWidget(self.deleteAll, 1)
-
         self.objPicker = ObjectPickerWidget()
         self.objPicker.ObjChanged.connect(self.ObjectChoiceChanged)
         self.objPicker.ObjReplace.connect(self.ObjectReplace)
         oel.addWidget(self.objPicker, 1)
-
-        if top_folder and os.path.isdir(top_folder):
-            self.folderPicker.currentIndexChanged.connect(self.objPicker.mall.LoadFromFolder)
 
         # sprite tab
         self.sprAllTab = QtWidgets.QTabWidget()
@@ -1544,14 +1451,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         return
         if not globals.AutoSaveDirty: return
 
-        name = self.getInnerSarcName()
-        if "-" not in name:
-            print('HEY THERE IS NO -, THIS WILL NOT WORK!')
-        if name == '':
-            return
-
-        data = globals.Level.save(name)
-        globals.levelNameCache = name
+        data = globals.Level.save()
         setSetting('AutoSaveFilePath', self.fileSavePath)
         setSetting('AutoSaveFileData', QtCore.QByteArray(data))
         globals.AutoSaveDirty = False
@@ -2341,8 +2241,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 return
 
         filetypes = ''
-        filetypes += globals.trans.string('FileDlgs', 1) + ' (*.sarc *.szs);;'
-        filetypes += globals.trans.string('FileDlgs', 8) + ' (*.szs);;'
         filetypes += globals.trans.string('FileDlgs', 9) + ' (*.sarc);;'
         filetypes += globals.trans.string('FileDlgs', 2) + ' (*)'
         fn = QtWidgets.QFileDialog.getOpenFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
@@ -2352,80 +2250,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         with open(fn, 'rb') as fileobj:
             data = fileobj.read()
 
-        # Decompress, if needed (Yaz0)
-        if data.startswith(b'Yaz0'):
-            print('Beginning Yaz0 decompression...')
-            data = DecompYaz0(data)
-            print('Decompression finished.')
-
-        elif data.startswith(b'SARC'):
-            print('Yaz0 decompression skipped.')
-
-        else:
+        if not data.startswith(b'SARC'):
             return False  # keep it from crashing by loading things it shouldn't
 
         arc = SarcLib.SARC_Archive()
         arc.load(data)
 
-        def exists(fn):
-            nonlocal arc
-
-            try:
-                arc[fn]
-
-            except KeyError:
-                return False
-
-            return True
-
-        def guessInnerName():
-            nonlocal fn
-
-            possibilities = []
-            possibilities.append(os.path.basename(fn))
-            possibilities.append(
-                os.path.basename(fn).split(' ')[-1])  # for names like "NSMBU 1-1.szs"
-            possibilities.append(
-                os.path.basename(fn).split(' ')[0])  # for names like "1-1 test.szs"
-            possibilities.append(os.path.basename(fn).split('.')[0])
-            possibilities.append(os.path.basename(fn).split('_')[0])
-
-            for fn in possibilities:
-                if exists(fn):
-                    arcdata = arc[fn].data
-                    break
-
-            else:
-                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                   'Couldn\'t find the inner level file. Aborting.')
-                warningBox.exec_()
-
-                return ''
-
-            return arcdata
-
-        if exists('levelname'):
-            fn = bytes_to_string(arc['levelname'].data)
-            if exists(fn):
-                arcdata = arc[fn].data
-
-            else:
-                arcdata = guessInnerName()
-
-        else:
-            arcdata = guessInnerName()
-
-        if not arcdata:
-            return False
-
-        arc_ = SarcLib.SARC_Archive()
-        arc_.load(arcdata)
-
         # get the area count
         areacount = 0
 
         try:
-            courseFolder = arc_['course']
+            courseFolder = arc['course']
         except:
             return False
 
@@ -2467,20 +2302,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 elif fname == reqL2:
                     L2 = val
 
-        # import the tilesets with the area
-        getblock = struct.Struct('>II')
-        data = getblock.unpack_from(course, 0)
-        if data[1]:
-            block = course[data[0]:data[0] + data[1]]
-            tilesetNames = list(map(bytes_to_string, struct.unpack_from('32s32s32s32s', block)))
-            for name in tilesetNames:
-                if name not in globals.szsData:
-                    try:
-                        globals.szsData[name] = arc[name].data
-
-                    except:
-                        pass
-
         # add them to our level
         newID = len(globals.Level.areas) + 1
 
@@ -2507,30 +2328,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             else:
                 return
 
-        name = self.getInnerSarcName()
-        if "-" not in name:
-            print('HEY THERE IS NO -, THIS WILL NOT WORK!')
-        if name == '':
-            return
-
         globals.Level.deleteArea(globals.Area.areanum)
 
         # no error checking. if it saved last time, it will probably work now
-
-        if self.fileSavePath.endswith('.szs'):
-            CompYaz0(
-                globals.Level.saveNewArea(name, None, None, None, None),
-                self.fileSavePath, globals.CompLevel,
-            )
-
-        else:
-            with open(self.fileSavePath, 'wb+') as f:
-                f.write(globals.Level.saveNewArea(name, None, None, None, None))
-
-        globals.levelNameCache = name
-
-        if globals.CurrentArea in globals.ObjectAddedtoEmbedded:  # Should always be true
-            del globals.ObjectAddedtoEmbedded[globals.CurrentArea]
+        with open(self.fileSavePath, 'wb+') as f:
+            f.write(globals.Level.saveNewArea(None, None, None, None))
 
         self.LoadLevel(None, self.fileSavePath, True, 1)
 
@@ -2558,33 +2360,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.LoadLevel(None, '1-1', False, 1, True)
 
         return True
-
-    def HandleChangeObjPath(self):
-        """
-        Change the Objects path used by "All" tab
-        """
-        path = QtWidgets.QFileDialog.getExistingDirectory(None,
-                                                          'Choose the folder containing Object folders')
-
-        if not path: return
-
-        setSetting('ObjPath', path)
-
-        self.objAllTab.setTabEnabled(1, True)
-
-        self.folderPicker.clear()
-
-        folders = os.listdir(path)
-        folders.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
-
-        folders_ = [folder for folder in folders if os.path.isdir(path + "/" + folder)]
-        del folders
-
-        for i, folder in enumerate(folders_):
-            globals.ObjectAddedtoEmbedded[globals.CurrentArea][i] = {}
-            self.folderPicker.addItem(folder)
-
-        self.folderPicker.currentIndexChanged.connect(self.objPicker.mall.LoadFromFolder)
 
     def HandlePreferences(self):
         """
@@ -2649,8 +2424,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if self.CheckDirty(): return
 
         filetypes = ''
-        filetypes += globals.trans.string('FileDlgs', 1) + ' (*.sarc *.szs);;'
-        filetypes += globals.trans.string('FileDlgs', 8) + ' (*.szs);;'
         filetypes += globals.trans.string('FileDlgs', 9) + ' (*.sarc);;'
         filetypes += globals.trans.string('FileDlgs', 2) + ' (*)'
         fn = QtWidgets.QFileDialog.getOpenFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
@@ -2669,21 +2442,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             else:
                 return True
 
-        name = self.getInnerSarcName()
-        if "-" not in name:
-            print('HEY THERE IS NO -, THIS WILL NOT WORK!')
-        if name == '':
-            return False
+        data = globals.Level.save()
 
-        data = globals.Level.save(name)
-        globals.levelNameCache = name
         try:
-            if globals.mainWindow.fileSavePath.endswith('.szs'):
-                CompYaz0(data, self.fileSavePath, globals.CompLevel)
-
-            else:
-                with open(globals.mainWindow.fileSavePath, 'wb+') as f:
-                    f.write(data)
+            with open(globals.mainWindow.fileSavePath, 'wb+') as f:
+                f.write(data)
 
         except IOError as e:
             QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 0),
@@ -2692,7 +2455,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         globals.Dirty = False
         globals.AutoSaveDirty = False
-        globals.TilesetEdited = False
         self.UpdateTitle()
 
         # setSetting('AutoSaveFilePath', self.fileSavePath)
@@ -2709,21 +2471,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             else:
                 return True
 
-        name = self.getInnerSarcName()
-        if "-" not in name:
-            print('HEY THERE IS NO -, THIS WILL NOT WORK!')
-        if name == '':
-            return False
+        data = globals.Level.saveNewArea(course, L0, L1, L2)
 
-        data = globals.Level.saveNewArea(name, course, L0, L1, L2)
-        globals.levelNameCache = name
         try:
-            if globals.mainWindow.fileSavePath.endswith('.szs'):
-                CompYaz0(data, self.fileSavePath, globals.CompLevel)
-
-            else:
-                with open(globals.mainWindow.fileSavePath, 'wb+') as f:
-                    f.write(data)
+            with open(globals.mainWindow.fileSavePath, 'wb+') as f:
+                f.write(data)
 
         except IOError as e:
             QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 0),
@@ -2732,7 +2484,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         globals.Dirty = False
         globals.AutoSaveDirty = False
-        globals.TilesetEdited = False
         self.UpdateTitle()
 
         # setSetting('AutoSaveFilePath', self.fileSavePath)
@@ -2744,8 +2495,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Save a level back to the archive, with a new filename
         """
         filetypes = ''
-        filetypes += globals.trans.string('FileDlgs', 1) + ' (*.sarc *.szs);;'
-        filetypes += globals.trans.string('FileDlgs', 8) + ' (*.szs);;'
         filetypes += globals.trans.string('FileDlgs', 9) + ' (*.sarc);;'
         filetypes += globals.trans.string('FileDlgs', 2) + ' (*)'
         fn = QtWidgets.QFileDialog.getSaveFileName(self, globals.trans.string('FileDlgs', 0), '', filetypes)[0]
@@ -2755,50 +2504,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.fileSavePath = fn
         self.fileTitle = os.path.basename(fn)
 
-        # we take the name of the level and make sure it's formatted right. if not, crashy
-        # this is one of the few ways, if there's no - it will certainly crash
-        name = self.getInnerSarcName()
-        if name == "":
-            return False
-        # oh noes there's no - !!!
-        elif "-" not in name:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning',
-                                               'The input name does not include a -, which is what retail levels use. \nThis may crash, because it does not fit the proper format.')
-            warningBox.exec_()
+        data = globals.Level.save()
 
-        data = globals.Level.save(name)
-        globals.levelNameCache = name
-
-        if self.fileSavePath.endswith('.szs'):
-            CompYaz0(data, self.fileSavePath, globals.CompLevel)
-
-        else:
-            with open(self.fileSavePath, 'wb+') as f:
-                f.write(data)
+        with open(self.fileSavePath, 'wb+') as f:
+            f.write(data)
 
         globals.Dirty = False
         globals.AutoSaveDirty = False
-        globals.TilesetEdited = False
         self.UpdateTitle()
 
         self.RecentMenu.AddToList(self.fileSavePath)
 
         return True
-
-    def getInnerSarcName(self):
-        name = QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
-                                              "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):",
-                                              QtWidgets.QLineEdit.Normal)[0]
-
-        if "/" in name or "\\" in name:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning', r'The input name included "/" or "\", aborting...')
-            warningBox.exec_()
-            return ''
-
-        if globals.levelNameCache == "untitled":
-            globals.levelNameCache = name
-
-        return name
 
     def HandleExit(self):
         """
@@ -3246,13 +2963,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.fileSavePath = False
             self.fileTitle = 'untitled'
 
-            with open(globals.miyamoto_path + "/miyamotoextras/Pa0_jyotyu.szs", "rb") as inf:
-                inb = inf.read()
-
-            data = DecompYaz0(inb)
-            globals.szsData = {'Pa0_jyotyu': data}
-            self.tilesets = [['Pa0_jyotyu'], [], [], []]
-
         else:
             globals.levName = os.path.basename(name)
 
@@ -3295,123 +3005,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 with open(self.fileSavePath, 'rb') as fileobj:
                     levelData = fileobj.read()
 
-                # Decompress, if needed (Yaz0)
-                if levelData.startswith(b'Yaz0'):
-                    print('Beginning Yaz0 decompression...')
-                    levelData = DecompYaz0(levelData)
-                    print('Decompression finished.')
-
-                elif levelData.startswith(b'SARC'):
-                    print('Yaz0 decompression skipped.')
-
-                else:
+                if not levelData.startswith(b'SARC'):
                     return False  # keep it from crashing by loading things it shouldn't
-
-                arc = SarcLib.SARC_Archive()
-                arc.load(levelData)
-
-                def exists(fn):
-                    nonlocal arc
-
-                    try:
-                        arc[fn]
-
-                    except KeyError:
-                        return False
-
-                    return True
-
-                def guessInnerName():
-                    possibilities = []
-                    possibilities.append(os.path.basename(self.fileSavePath))
-                    possibilities.append(
-                        os.path.basename(self.fileSavePath).split(' ')[-1])  # for names like "NSMBU 1-1.szs"
-                    possibilities.append(
-                        os.path.basename(self.fileSavePath).split(' ')[0])  # for names like "1-1 test.szs"
-                    possibilities.append(os.path.basename(self.fileSavePath).split('.')[0])
-                    possibilities.append(os.path.basename(self.fileSavePath).split('_')[0])
-                    possibilities.append(globals.levelNameCache)
-
-                    for fn in possibilities:
-                        if exists(fn):
-                            globals.levelNameCache = fn
-                            levelFileData = arc[fn].data
-                            break
-
-                    else:
-                        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                           'Couldn\'t find the inner level file. Aborting.')
-                        warningBox.exec_()
-
-                        return ''
-
-                    return levelFileData
-
-                if exists('levelname'):
-                    fn = bytes_to_string(arc['levelname'].data)
-                    if exists(fn):
-                        globals.levelNameCache = fn
-                        levelFileData = arc[fn].data
-                    else:
-                        levelFileData = guessInnerName()
-
-                else:
-                    levelFileData = guessInnerName()
-
-                if not levelFileData:
-                    return False
-
-                # Sort the szs data
-                globals.szsData = {}
-                for file in arc.contents:
-                    globals.szsData[file.name] = file.data
-
-                # Get all tilesets in the level
-                self.tilesets = [[], [], [], []]
-                for fname in globals.szsData:
-                    data = globals.szsData[fname]
-                    if data[:4] != b'SARC':
-                        continue
-
-                    arc = SarcLib.SARC_Archive(data)
-
-                    try:
-                        arc['BG_tex/%s.gtx' % fname]
-                        arc['BG_tex/%s_nml.gtx' % fname]
-                        arc['BG_chk/d_bgchk_%s.bin' % fname]
-                        indexfile = arc['BG_unt/%s_hd.bin' % fname].data
-                        deffile = arc['BG_unt/%s.bin' % fname].data
-
-                    except KeyError:
-                        continue
-
-                    objs = []
-                    slots = []
-                    objcount = len(indexfile) // 6
-                    indexstruct = struct.Struct('>HBBH')
-
-                    for i in range(objcount):
-                        data = indexstruct.unpack_from(indexfile, i * 6)
-                        obj = ObjectDef()
-                        obj.load(deffile, data[0])
-
-                        for row in obj.rows:
-                            for tile in row:
-                                if len(tile) == 3:
-                                    slot = (tile[1] >> 8) & 3
-                                    if slot:
-                                        slots.append(slot)
-                    if slots:
-                        data = Counter(slots)
-                        slot = max(slots, key=data.get)
-
-                    else:
-                        slot = 0
-
-                    self.tilesets[slot].append(fname)
-
-                print(self.tilesets)
-                levelData = levelFileData
 
             else:
                 # Auto-saved level. Check if there's a path associated with it:
@@ -3460,31 +3055,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.Layer1Shown = True
         globals.Layer2Shown = True
         globals.CurrentArea = areaNum
-        globals.TilesetEdited = False
-
-        if loadLevel:
-            globals.ObjectAddedtoEmbedded = {}
-
-        if globals.CurrentArea not in globals.ObjectAddedtoEmbedded:
-            globals.ObjectAddedtoEmbedded[globals.CurrentArea] = {}
-
-            top_folder = setting('ObjPath')
-
-            if not (top_folder and os.path.isdir(top_folder)):
-                self.objAllTab.setTabEnabled(1, False)
-
-            else:
-                self.folderPicker.clear()
-
-                folders = os.listdir(top_folder)
-                folders.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
-
-                folders_ = [folder for folder in folders if os.path.isdir(top_folder + "/" + folder)]
-                del folders
-
-                for i, folder in enumerate(folders_):
-                    globals.ObjectAddedtoEmbedded[globals.CurrentArea][i] = {}
-                    self.folderPicker.addItem(folder)
 
         globals.OverrideSnapping = True
 
@@ -3571,7 +3141,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # Load it
         globals.Level.new()
-        globals.levelNameCache = "untitled"
 
         self.objUseLayer1.setChecked(True)
 
@@ -3934,8 +3503,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         CPT = -1
         if idx == 0:  # objects
             CPT = self.objAllTab.currentIndex()
-            if CPT == 1:
-                CPT = 10 # "All" objects
         elif idx == 1:  # sprites
             if self.sprAllTab.currentIndex() != 1: CPT = 4
         elif idx == 2:
@@ -3958,27 +3525,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Handles the selected slot tab in the object palette changing
         """
         if hasattr(self, 'objPicker'):
-            if nt >= 0 and nt <= 3:
+            if nt in [0, 1]:
                 self.objPicker.ShowTileset(nt)
                 if nt == 0:
                     self.objTS0Tab.setLayout(self.createObjectLayout)
-                    self.folderPicker.setVisible(False)
-                    self.importObj.setVisible(False)
                     self.exportAll.setVisible(False)
-                    self.deleteAll.setVisible(False)
-                elif nt == 1:
-                    self.objTSAllTab.setLayout(self.createObjectLayout)
-                    self.folderPicker.setVisible(True)
-                    self.importObj.setVisible(False)
-                    self.exportAll.setVisible(False)
-                    self.deleteAll.setVisible(False)
-                    nt = 10
                 else:
                     self.objTS123Tab.setLayout(self.createObjectLayout)
-                    self.folderPicker.setVisible(False)
-                    self.importObj.setVisible(True)
                     self.exportAll.setVisible(True)
-                    self.deleteAll.setVisible(True)
             self.defaultPropDock.setVisible(False)
         globals.CurrentPaintType = nt
 
@@ -4044,60 +3598,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.scene.update()
             SetDirty()
 
-    def ImportObjFromFile(self):
-        """
-        Handles importing an object
-        """
-        # Get the json file
-        file = QtWidgets.QFileDialog.getOpenFileName(self, "Open Object", '',
-                    "Object files (*.json)")[0]
-
-        if not file: return
-
-        with open(file) as inf:
-            jsonData = json.load(inf)
-
-        dir = os.path.dirname(file)
-
-        # Read the other files
-        with open(dir + "/" + jsonData["meta"], "rb") as inf:
-            indexfile = inf.read()
-
-        with open(dir + "/" + jsonData["objlyt"], "rb") as inf:
-            deffile = inf.read()
-
-        with open(dir + "/" + jsonData["colls"], "rb") as inf:
-            colls = inf.read()
-
-        # Get the object's definition
-        indexstruct = struct.Struct('>HBBH')
-
-        data = indexstruct.unpack_from(indexfile, 0)
-        obj = ObjectDef()
-        obj.width = data[1]
-        obj.height = data[2]
-
-        if "randLen" in jsonData:
-            obj.randByte = data[3]
-
-        else:
-            obj.randByte = 0
-
-        obj.load(deffile, 0)
-
-        # Get the image and normal map
-        img = QtGui.QPixmap(dir + "/" + jsonData["img"])
-        nml = QtGui.QPixmap(dir + "/" + jsonData["nml"])
-
-        # Add the object to one of the tilesets
-        paintType, objNum = addObjToTileset(obj, colls, img, nml)
-        SetDirty()
-
-        # Checks if the object fit in one of the tilesets
-        if paintType == 11:
-            # Throw a message that the object didn't fit
-            QtWidgets.QMessageBox.critical(None, 'Cannot Import', "There isn't enough room left for this object!")
-
     def HandleExportAllObj(self):
         """
         Handles exporting all the objects
@@ -4119,65 +3619,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 exportObject(name, baseName, idx, objNum)
 
-    def HandleDeleteAllObj(self):
-        """
-        Handles deleting all objects
-        """
-        dlgTxt = "Do you really want to delete all the objects?\nThis can't be undone!"
-        reply = QtWidgets.QMessageBox.question(self, 'Warning',
-                                               dlgTxt, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-        if reply == QtWidgets.QMessageBox.Yes:
-            instancesFound = False
-            noneRemoved = True
-
-            for idx in [1, 2, 3]:
-                if globals.ObjectDefinitions[idx] is None:
-                    continue
-
-                objNum = 0
-                while objNum < 256:
-                    if globals.ObjectDefinitions[idx][objNum] is None:
-                        break
-
-                    instanceFound = False
-                    for layer in globals.Area.layers:
-                        for obj in layer:
-                            if obj.tileset == idx and obj.type == objNum:
-                                if not instanceFound:
-                                    instanceFound = True
-
-                                if not instancesFound:
-                                    instancesFound = True
-
-                    if instanceFound:
-                        objNum += 1
-                        continue
-
-                    DeleteObject(idx, objNum)
-
-                    if noneRemoved:
-                        noneRemoved = False
-
-            if not noneRemoved:
-                HandleTilesetEdited()
-
-                if not (globals.Area.tileset1 or globals.Area.tileset2 or globals.Area.tileset3):
-                    globals.CurrentObject = -1
-
-                globals.mainWindow.scene.update()
-                SetDirty()
-
-            if instancesFound:
-                dlgTxt = "Some objects couldn't be deleted because there are instances of them in the level scene."
-
-                QtWidgets.QMessageBox.critical(self, 'Cannot Delete', dlgTxt)
-
     def ObjectChoiceChanged(self, type):
         """
         Handles a new object being chosen
         """
-        if globals.CurrentPaintType not in [0, 10]:
+        if globals.CurrentPaintType != 0:
             type += 1
             if type > globals.numObj[1]:
                 globals.CurrentPaintType = 3
@@ -4197,8 +3643,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Handles a new object being chosen to replace the selected objects
         """
-        if globals.CurrentPaintType == 10: return
-
         items = self.scene.selectedItems()
         type_obj = ObjectItem
         tileset = globals.CurrentPaintType
@@ -4690,11 +4134,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     fname = fname[len(globals.trans.string('AreaDlg', 17, '[name]', '')):]
 
                 if fname not in ('', None):
-                    if fname not in globals.szsData:
-                        toUnload = True
-                    else:
-                        globals.Area.tileset0 = fname
-                        LoadTileset(0, fname)
+                    globals.Area.tileset0 = fname
+                    LoadTileset(0, fname)
 
             if toUnload:
                 globals.Area.tileset0 = ''
@@ -5118,130 +4559,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             ScreenshotImage.save(fn, 'PNG', 50)
 
-    def showPuzzleWindow(self, name, data, slot, con=False):
-        pw = PuzzleWindow(name, data, slot, con, Qt.Dialog)
-        if pw.forceClose:
-            del pw
-
-        else:
-            pw.setWindowModality(Qt.ApplicationModal)
-            pw.setAttribute(Qt.WA_DeleteOnClose)
-            pw.show()
-
-    def EditSlot1(self):
-        """
-        Edits Slot 1 tileset
-        """
-        if platform.system() == 'Windows':
-            tile_path = globals.miyamoto_path + '/Tools'
-
-        elif platform.system() == 'Linux':
-            tile_path = globals.miyamoto_path + '/linuxTools'
-
-        else:
-            tile_path = globals.miyamoto_path + '/macTools'
-
-        if (globals.Area.tileset0 not in ('', None)) and (globals.Area.tileset0 in globals.szsData):
-            sarcdata = globals.szsData[globals.Area.tileset0]
-
-            with open(tile_path + '/tmp.tmp', 'wb+') as fn:
-                fn.write(sarcdata)
-
-        else:
-            con_msg = "This Tileset doesn't exist, do you want to import it?"
-            reply = QtWidgets.QMessageBox.question(self, 'Message',
-                                                   con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-            if reply == QtWidgets.QMessageBox.Yes:
-                fn = QtWidgets.QFileDialog.getOpenFileName(self, globals.trans.string('FileDlgs', 0), '',
-                                                           globals.trans.string('FileDlgs', 2) + ' (*)')[0]
-                if fn == '': return
-                fn = str(fn)
-
-                globals.Area.tileset0 = os.path.basename(fn)
-                if globals.Area.tileset0 in ('', None): return
-                with open(fn, 'rb') as fileobj:
-                    globals.szsData[globals.Area.tileset0] = fileobj.read()
-
-                LoadTileset(0, globals.Area.tileset0)
-                SetDirty()
-                self.objPicker.LoadFromTilesets()
-                self.objAllTab.setCurrentIndex(0)
-                self.objAllTab.setTabEnabled(0, (globals.Area.tileset0 != ''))
-
-                for layer in globals.Area.layers:
-                    for obj in layer:
-                        obj.updateObjCache()
-
-                self.scene.update()
-
-                return
-
-            else:
-                return
-
-        self.showPuzzleWindow(globals.Area.tileset0, tile_path + '/tmp.tmp', '0')
-
-    def EditSlot2(self):
-        """
-        Edits Slot 2 tileset
-        """
-        return self.EditSlot2_4(1)
-
-    def EditSlot3(self):
-        """
-        Edits Slot 3 tileset
-        """
-        return self.EditSlot2_4(2)
-
-    def EditSlot4(self):
-        """
-        Edits Slot 4 tileset
-        """
-        return self.EditSlot2_4(3)
-
-    def EditSlot2_4(self, slot):
-        """
-        Edits Slot 2/3/4 tilesets
-        """
-        if globals.TilesetEdited:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Warning',
-                                               'It seems like some changes where made to the Embedded tab!' \
-                                               '\nPlease save the level before editing slots 2/3/4.')
-            warningBox.exec_()
-            return
-
-        con = False
-
-        if platform.system() == 'Windows':
-            tile_path = globals.miyamoto_path + '/Tools'
-
-        elif platform.system() == 'Linux':
-            tile_path = globals.miyamoto_path + '/linuxTools'
-
-        else:
-            tile_path = globals.miyamoto_path + '/macTools'
-
-        if eval('globals.Area.tileset%d' % slot) and eval('globals.Area.tileset%d' % slot) in globals.szsData:
-            sarcdata = globals.szsData[eval('globals.Area.tileset%d' % slot)]
-
-            with open(tile_path + '/tmp.tmp', 'wb+') as fn:
-                fn.write(sarcdata)
-
-            sarcfile = tile_path + '/tmp.tmp'
-
-        else:
-            if not eval('globals.Area.tileset%d' % slot):
-                exec("globals.Area.tileset%d = generateTilesetNames()[%d]" % (slot, slot - 1))
-                con = True
-
-            sarcfile = 'None'
-
-        if not eval('globals.Area.tileset%d' % slot):
-            return
-
-        self.showPuzzleWindow(eval('globals.Area.tileset%d' % slot), sarcfile, str(slot), con)
-
 
 def main():
     """
@@ -5343,12 +4660,6 @@ def main():
     if setting("FirstRun") is None:
         globals.FirstRun = True
         setSetting("FirstRun", "False")
-
-        path = QtWidgets.QFileDialog.getExistingDirectory(None,
-                                                          'Choose the folder containing Object folders')
-
-        if path:
-            setSetting('ObjPath', path)
 
     else:
         globals.FirstRun = False

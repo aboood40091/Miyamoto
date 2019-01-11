@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# Miyamoto! DX Level Editor - New Super Mario Bros. U Deluxe Level Editor
+# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
 # MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
-# This file is part of Miyamoto!.
+# This file is part of Miyamoto! DX.
 
-# Miyamoto! is free software: you can redistribute it and/or modify
+# Miyamoto! DX is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Miyamoto! is distributed in the hope that it will be useful,
+# Miyamoto! DX is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
+# along with Miyamoto! DX.  If not, see <http://www.gnu.org/licenses/>.
 
 
 ################################################################
@@ -26,6 +26,7 @@
 
 ############ Imports ############
 
+import os.path
 from PyQt5 import QtGui, QtWidgets
 import struct
 from xml.etree import ElementTree as etree
@@ -38,11 +39,15 @@ import SarcLib
 from strings import MiyamotoTranslation
 
 from tileset import TilesetTile, ObjectDef
-from tileset import loadGTX, ProcessOverrides
+from tileset import loadBNTXFromBFRES, loadTexFromBNTX
+from tileset import ProcessOverrides
 from tileset import CascadeTilesetNames_Category
 from tileset import SortTilesetNames_Category
 
 from ui import MiyamotoTheme
+
+from yaz0 import determineCompressionMethod
+_, DecompYaz0 = determineCompressionMethod()
 
 #################################
 
@@ -403,50 +408,35 @@ def _LoadTileset(idx, name):
     Load in a tileset into a specific slot
     """
 
-    # if this file's not found, return
-    if name not in globals.szsData: return
+    TilesetPaths = reversed(globals.gamedef.GetGamePaths())
 
-    sarcdata = globals.szsData[name]
-    sarc = SarcLib.SARC_Archive()
-    sarc.load(sarcdata)
+    found = False
+    for path in TilesetPaths:
+        if path is None:
+            break
 
-    tileoffset = idx * 256
+        sarcname = os.path.join(os.path.dirname(path), 'Unit', name + '.szs')
+        if os.path.isfile(sarcname):
+            found = True
+            break
 
-    # Decompress the textures
-    try:
-        comptiledata = sarc['BG_tex/%s.gtx' % name].data
-        nmldata = sarc['BG_tex/%s_nml.gtx' % name].data
-        colldata = sarc['BG_chk/d_bgchk_%s.bin' % name].data
-
-    except KeyError:
-        QtWidgets.QMessageBox.warning(
-            None, globals.trans.string('Err_CorruptedTilesetData', 0),
-            globals.trans.string('Err_CorruptedTilesetData', 1, '[file]', name),
-        )
-
+    # warning if not found
+    if not found:
+        QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_MissingTileset', 0),
+                                      globals.trans.string('Err_MissingTileset', 1, '[file]', name))
         return False
 
-    # load in the textures
-    img = loadGTX(comptiledata)
-    nml = loadGTX(nmldata)
+    # get the data
+    with open(sarcname, 'rb') as fileobj:
+        sarcdata = fileobj.read()
 
-    # Divide it into individual tiles and
-    # add collisions at the same time
-    def getTileFromImage(tilemap, xtilenum, ytilenum):
-        return tilemap.copy((xtilenum * 64) + 2, (ytilenum * 64) + 2, 60, 60)
+    if sarcdata[:4] != b'Yaz0':
+        raise RuntimeError("Tileset is not Yaz0 compressed!")
 
-    dest = QtGui.QPixmap.fromImage(img)
-    dest2 = QtGui.QPixmap.fromImage(nml)
-    sourcex = 0
-    sourcey = 0
-    for i in range(tileoffset, tileoffset + 256):
-        T = TilesetTile(getTileFromImage(dest, sourcex, sourcey), getTileFromImage(dest2, sourcex, sourcey))
-        T.setCollisions(struct.unpack_from('>8B', colldata, (i - tileoffset) * 8))
-        globals.Tiles[i] = T
-        sourcex += 1
-        if sourcex >= 32:
-            sourcex = 0
-            sourcey += 1
+    sarcdata = DecompYaz0(sarcdata)
+
+    sarc = SarcLib.SARC_Archive()
+    sarc.load(sarcdata)
 
     def exists(fn):
         nonlocal sarc
@@ -458,6 +448,43 @@ def _LoadTileset(idx, name):
             return False
 
         return True
+
+    # Decompress the textures
+    try:
+        bfresdata = sarc['output.bfres'].data
+        colldata = sarc['BG_chk/d_bgchk_%s.bin' % name].data
+
+    except KeyError:
+        QtWidgets.QMessageBox.warning(
+            None, globals.trans.string('Err_CorruptedTilesetData', 0),
+            globals.trans.string('Err_CorruptedTilesetData', 1, '[file]', name),
+        )
+
+        return False
+
+    # load in the textures
+    bntx = loadBNTXFromBFRES(bfresdata)
+    img = loadTexFromBNTX(bntx, name)
+    nml = loadTexFromBNTX(bntx, name + "_nml")
+
+    # Divide it into individual tiles and
+    # add collisions at the same time
+    def getTileFromImage(tilemap, xtilenum, ytilenum):
+        return tilemap.copy((xtilenum * 64) + 2, (ytilenum * 64) + 2, 60, 60)
+
+    dest = QtGui.QPixmap.fromImage(img)
+    dest2 = QtGui.QPixmap.fromImage(nml)
+    sourcex = 0
+    sourcey = 0
+    tileoffset = idx * 256
+    for i in range(tileoffset, tileoffset + 256):
+        T = TilesetTile(getTileFromImage(dest, sourcex, sourcey), getTileFromImage(dest2, sourcex, sourcey))
+        T.setCollisions(struct.unpack_from('<8B', colldata, (i - tileoffset) * 8))
+        globals.Tiles[i] = T
+        sourcex += 1
+        if sourcex >= 32:
+            sourcex = 0
+            sourcey += 1
     
     # Load the tileset animations, if there are any
     if idx == 0:
@@ -468,29 +495,29 @@ def _LoadTileset(idx, name):
         tuka_coin_anime = None
         belt_conveyor_anime = None
 
-        fn = 'BG_tex/hatena_anime.gtx'
-        found = exists(fn)
+        try:
+            hatena_anime = loadTexFromBNTX(bntx, "hatena_anime")
 
-        if found:
-            hatena_anime = loadGTX(sarc[fn].data)
+        except:
+            pass
 
-        fn = 'BG_tex/block_anime.gtx'
-        found = exists(fn)
+        try:
+            block_anime = loadTexFromBNTX(bntx, "block_anime")
 
-        if found:
-            block_anime = loadGTX(sarc[fn].data)
+        except:
+            pass
 
-        fn = 'BG_tex/tuka_coin_anime.gtx'
-        found = exists(fn)
+        try:
+            tuka_coin_anime = loadTexFromBNTX(bntx, "tuka_coin_anime")
 
-        if found:
-            tuka_coin_anime = loadGTX(sarc[fn].data)
+        except:
+            pass
 
-        fn = 'BG_tex/belt_conveyor_anime.gtx'
-        found = exists(fn)
+        try:
+            belt_conveyor_anime = loadTexFromBNTX(bntx, "belt_conveyor_anime")
 
-        if found:
-            belt_conveyor_anime = loadGTX(sarc[fn].data, True)
+        except:
+            pass
 
         for i in range(tileoffset, tileoffset + 256):
             if globals.Tiles[i].collData[0] == 7:
@@ -532,7 +559,7 @@ def _LoadTileset(idx, name):
     indexfile = sarc['BG_unt/%s_hd.bin' % name].data
     deffile = sarc['BG_unt/%s.bin' % name].data
     objcount = len(indexfile) // 6
-    indexstruct = struct.Struct('>HBBH')
+    indexstruct = struct.Struct('<HBBH')
 
     for i in range(objcount):
         data = indexstruct.unpack_from(indexfile, i * 6)
@@ -705,7 +732,6 @@ def LoadActionsLists():
         (globals.trans.string('MenuItems', 12), False, 'metainfo'),
         (globals.trans.string('MenuItems', 14), True, 'screenshot'),
         (globals.trans.string('MenuItems', 16), False, 'changegamepath'),
-        (globals.trans.string('MenuItems', 132), False, 'changeobjpath'),
         # (globals.trans.string('MenuItems', 16), False, 'changesavepath'),
         (globals.trans.string('MenuItems', 18), False, 'preferences'),
         (globals.trans.string('MenuItems', 20), False, 'exit'),

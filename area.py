@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# Miyamoto! DX Level Editor - New Super Mario Bros. U Deluxe Level Editor
+# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
 # MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
-# This file is part of Miyamoto!.
+# This file is part of Miyamoto! DX.
 
-# Miyamoto! is free software: you can redistribute it and/or modify
+# Miyamoto! DX is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Miyamoto! is distributed in the hope that it will be useful,
+# Miyamoto! DX is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Miyamoto!.  If not, see <http://www.gnu.org/licenses/>.
+# along with Miyamoto! DX.  If not, see <http://www.gnu.org/licenses/>.
 
 
 ################################################################
@@ -39,7 +39,6 @@ from items import NabbitPathItem, CommentItem
 from loading import LoadTileset
 from misc import Metadata
 import spritelib as SLib
-from tileset import generateTilesetNames
 
 #################################
 
@@ -71,7 +70,7 @@ class AbstractArea:
         Loads self.blocks from the course file
         """
         self.blocks = [None] * 15
-        getblock = struct.Struct('>II')
+        getblock = struct.Struct('<II')
         for i in range(15):
             data = getblock.unpack_from(course, i * 8)
             if data[1] == 0:
@@ -90,14 +89,6 @@ class AbstractArea:
         self.tileset1 = bytes_to_string(data[1])
         self.tileset2 = bytes_to_string(data[2])
         self.tileset3 = bytes_to_string(data[3])
-        if self.tileset0 not in globals.szsData:
-            self.tileset0 = ''
-        if self.tileset1 not in globals.szsData:
-            self.tileset1 = ''
-        if self.tileset2 not in globals.szsData:
-            self.tileset2 = ''
-        if self.tileset3 not in globals.szsData:
-            self.tileset3 = ''
 
     def LoadBackgrounds(self):
         """
@@ -106,7 +97,7 @@ class AbstractArea:
         bgData = self.blocks[4]
         self.bgCount = len(bgData) // 28
 
-        bgStruct = struct.Struct('>HxBxxxx16sxBxx')
+        bgStruct = struct.Struct('<HxBxxxx16sxBxx')
 
         offset = 0
 
@@ -128,7 +119,7 @@ class AbstractArea:
         """
         spritedata = self.blocks[7]
         sprcount = len(spritedata) // 24
-        sprstruct = struct.Struct('>HHHHIIxx2sxxxx')
+        sprstruct = struct.Struct('<HHHHIIxx2sxxxx')
         offset = 0
         sprites = []
 
@@ -204,7 +195,7 @@ class Area_NSMBU(AbstractArea):
         self.bgCount = 1
         self.bgs = {}
         self.bgblockid = []
-        bg = struct.unpack('>HxBxxxx16sxBxx', self.blocks[4])
+        bg = struct.unpack('<HxBxxxx16sxBxx', self.blocks[4])
         self.bgblockid.append(bg[0])
         self.bgs[bg[0]] = bg
 
@@ -298,7 +289,7 @@ class Area_NSMBU(AbstractArea):
 
         course = bytearray()
         for i in range(FileLength): course.append(0)
-        saveblock = struct.Struct('>II')
+        saveblock = struct.Struct('<II')
 
         HeaderOffset = 0
         FileOffset = (15 * 8) + len(rdata)
@@ -371,7 +362,7 @@ class Area_NSMBU(AbstractArea):
         Loads block 2, the general options
         """
         optdata = self.blocks[1]
-        optstruct = struct.Struct('>xxBBxxxxxBHxBBBBxxBHH')
+        optstruct = struct.Struct('<xxBBxxxxxBHxBBBBxxBHH')
         offset = 0
         data = optstruct.unpack_from(optdata, offset)
         self.unk1, self.unk2, self.wrapedges, self.timelimit, self.unk3, self.unk4, self.unk5, self.startEntrance, self.unk6, self.timelimit2, self.timelimit3 = data
@@ -382,7 +373,7 @@ class Area_NSMBU(AbstractArea):
         """
         entdata = self.blocks[6]
         entcount = len(entdata) // 24
-        entstruct = struct.Struct('>HHxBxxBBBBBBxBHBBBBBx')
+        entstruct = struct.Struct('<HHxBxxBBBBBBxBHBBBBBx')
         offset = 0
         entrances = []
         for i in range(entcount):
@@ -399,7 +390,7 @@ class Area_NSMBU(AbstractArea):
         # Block 3 - bounding data
         bdngdata = self.blocks[2]
         count = len(bdngdata) // 28
-        bdngstruct = struct.Struct('>llllHHxxxxxxxx')
+        bdngstruct = struct.Struct('<llllHHxxxxxxxx')
         offset = 0
         bounding = []
         for i in range(count):
@@ -413,7 +404,7 @@ class Area_NSMBU(AbstractArea):
 
         # Block 10 - zone data
         zonedata = self.blocks[9]
-        zonestruct = struct.Struct('>HHHHxBxBBBBBxBBxBxBBxBxx')
+        zonestruct = struct.Struct('<HHHHxBxBBBBBxBBxBxBBxBxx')
         count = len(zonedata) // 28
         offset = 0
         zones = []
@@ -443,7 +434,7 @@ class Area_NSMBU(AbstractArea):
         Loads block 11, the locations
         """
         locdata = self.blocks[10]
-        locstruct = struct.Struct('>HHHHBxxx')
+        locstruct = struct.Struct('<HHHHBxxx')
         count = len(locdata) // 12
         offset = 0
         locations = []
@@ -458,7 +449,7 @@ class Area_NSMBU(AbstractArea):
         Loads a specific object layer from a bytes object
         """
         objcount = len(layerdata) // 16
-        objstruct = struct.Struct('>HhhHHB')
+        objstruct = struct.Struct('<HhhHHB')
         offset = 0
         z = (2 - idx) * 8192
 
@@ -487,7 +478,7 @@ class Area_NSMBU(AbstractArea):
         """
         pathdata = self.blocks[13]
         pathcount = len(pathdata) // 12
-        pathstruct = struct.Struct('>BbHHxBxxxx')  # updated struct -- MrRean
+        pathstruct = struct.Struct('<BbHHxBxxxx')  # updated struct -- MrRean
         offset = 0
         unpack = pathstruct.unpack_from
         pathinfo = []
@@ -536,7 +527,7 @@ class Area_NSMBU(AbstractArea):
         """
         ret = []
         nodedata = self.blocks[14]
-        nodestruct = struct.Struct('>HHffhHBBBx')  # updated struct -- MrRean
+        nodestruct = struct.Struct('<HHffhHBBBx')  # updated struct -- MrRean
         offset = startindex * 20
         unpack = nodestruct.unpack_from
         for i in range(count):
@@ -560,7 +551,7 @@ class Area_NSMBU(AbstractArea):
         """
         ret = []
         nodedata = self.blocks[14]
-        nodestruct = struct.Struct('>HHffhHBBBx')  # updated struct -- MrRean
+        nodestruct = struct.Struct('<HHffhHBBBx')  # updated struct -- MrRean
         offset = startindex * 20
         unpack = nodestruct.unpack_from
         for i in range(count):
@@ -612,17 +603,6 @@ class Area_NSMBU(AbstractArea):
         """
         Saves the tileset names back to block 1
         """
-        if not isNewArea and (globals.TilesetEdited or globals.OverrideTilesetSaving):
-            tilesetNames = generateTilesetNames()
-            if self.tileset1:
-                self.tileset1 = tilesetNames[0]
-
-            if self.tileset2:
-                self.tileset2 = tilesetNames[1]
-
-            if self.tileset3:
-                self.tileset3 = tilesetNames[2]
-
         self.blocks[0] = ''.join(
             [self.tileset0.ljust(32, '\0'), self.tileset1.ljust(32, '\0'), self.tileset2.ljust(32, '\0'),
              self.tileset3.ljust(32, '\0')]).encode('latin-1')
@@ -631,7 +611,7 @@ class Area_NSMBU(AbstractArea):
         """
         Saves block 2, the general options
         """
-        optstruct = struct.Struct('>xxBBxxxxxBHxBBBBxxBHH')
+        optstruct = struct.Struct('<xxBBxxxxxBHxBBBBxxBHH')
         buffer = bytearray(0x18)
         optstruct.pack_into(buffer, 0, self.unk1, self.unk2, self.wrapedges, self.timelimit, self.unk3, self.unk4,
                             self.unk5, self.startEntrance, self.unk6, self.timelimit2, self.timelimit3)
@@ -645,7 +625,7 @@ class Area_NSMBU(AbstractArea):
         if not layer: return None
 
         offset = 0
-        objstruct = struct.Struct('>HhhHHB')
+        objstruct = struct.Struct('<HhhHHB')
         buffer = bytearray((len(layer) * 16) + 2)
         f_int = int
         for obj in layer:
@@ -667,7 +647,7 @@ class Area_NSMBU(AbstractArea):
         Saves the entrances back to block 7
         """
         offset = 0
-        entstruct = struct.Struct('>HHxBxxBBBBBBxBHBBBBBx')
+        entstruct = struct.Struct('<HHxBxxBBBBBBxBHBBBBBx')
         buffer = bytearray(len(self.entrances) * 24)
         zonelist = self.zones
         for entrance in self.entrances:
@@ -684,7 +664,7 @@ class Area_NSMBU(AbstractArea):
         """
         Saves the paths back to block 14 and 15
         """
-        pathstruct = struct.Struct('>BbHHxBxxxx')
+        pathstruct = struct.Struct('<BbHHxBxxxx')
         nodecount = 0
         for path in self.pathdata:
             nodecount += len(path['nodes'])
@@ -739,7 +719,7 @@ class Area_NSMBU(AbstractArea):
         """
         offset = int(offst)
 
-        nodestruct = struct.Struct('>HHffhHBBBx')
+        nodestruct = struct.Struct('<HHffhHBBBx')
         for node in nodes:
             nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), float(node['speed']),
                                  float(node['accel']), int(node['delay']), 0, 0, 0, 0)
@@ -751,7 +731,7 @@ class Area_NSMBU(AbstractArea):
         """
         offset = int(offst)
 
-        nodestruct = struct.Struct('>HHffhHBBBx')
+        nodestruct = struct.Struct('<HHffhHBBBx')
         for node in nodes:
             nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), 0.0,
                                  0.0, int(node['action']), 0, 0, 0, 0)
@@ -762,7 +742,7 @@ class Area_NSMBU(AbstractArea):
         Saves the sprites back to block 8
         """
         offset = 0
-        sprstruct = struct.Struct('>HHHHLLBx2sxxxx')
+        sprstruct = struct.Struct('<HHHHLLBx2sxxxx')
         buffer = bytearray((len(self.sprites) * 24) + 4)
         f_int = int
         for sprite in self.sprites:
@@ -800,7 +780,7 @@ class Area_NSMBU(AbstractArea):
         ls.sort()
 
         offset = 0
-        sprstruct = struct.Struct('>Hxx')
+        sprstruct = struct.Struct('<Hxx')
         buffer = bytearray(len(ls) * 4)
         for s in ls:
             sprstruct.pack_into(buffer, offset, int(s))
@@ -811,9 +791,9 @@ class Area_NSMBU(AbstractArea):
         """
         Saves blocks 10, 3, and 5; the zone data, boundings, and background data respectively
         """
-        bdngstruct = struct.Struct('>llllHHxxxxxxxx')
-        bgStruct = struct.Struct('>HxBxxxx16sxBxx')
-        zonestruct = struct.Struct('>HHHHxBxBBBBBxBBxBxBBxBxx')
+        bdngstruct = struct.Struct('<llllHHxxxxxxxx')
+        bgStruct = struct.Struct('<HxBxxxx16sxBxx')
+        zonestruct = struct.Struct('<HHHHxBxBBBBBxBBxBxBBxBxx')
         offset = 0
         i = 0
         zcount = len(globals.Area.zones)
@@ -842,7 +822,7 @@ class Area_NSMBU(AbstractArea):
         """
         Saves block 11, the location data
         """
-        locstruct = struct.Struct('>HHHHBxxx')
+        locstruct = struct.Struct('<HHHHBxxx')
         offset = 0
         zcount = len(globals.Area.locations)
         buffer = bytearray(12 * zcount)
