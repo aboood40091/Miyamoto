@@ -1,4 +1,4 @@
-# Miyamoto! Dx
+# Miyamoto! DX
 ## The New Super Mario Bros. U Deluxe Editor
 A level editor for NSMBUDX by AboodXD and Gota7, based on Reggie! Next by RoadrunnerWMC, which is based on Reggie by Treeki, Tempus et al. Uses Python 3, PyQt5, SarcLib and libyaz0.
 
@@ -70,8 +70,8 @@ py -3 -m pip install SarcLib`
 Make sure you have a compatible C compiler with Cython. For Linux and Mac OSX, you want "gcc". (which is usually preinstalled)  
 
 ##### STEP 4.5 (C compiler for Windows):
-Download the Build Tools for Visual Studio 2017 installer:
-https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2017
+Download the Build Tools for Visual Studio 2017 installer:  
+https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2017  
 After you get the installer running, go to the `Workloads` tab and check `Visual C++ Build Tools` and then proceed with the installation process.   
 
 Run the following in a command prompt:  
