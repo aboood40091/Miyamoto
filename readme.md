@@ -1,11 +1,11 @@
-# Miyamoto!
-## The New Super Mario Bros. U / New Super Luigi U Editor
-A level editor for NSMBU and NSLU by AboodXD and Gota7, based on Reggie! Next by RoadrunnerWMC, which is based on Reggie by Treeki, Tempus et al. Uses Python 3, PyQt5, SarcLib and libyaz0.
+# Miyamoto! Dx
+## The New Super Mario Bros. U Deluxe Editor
+A level editor for NSMBUDX by AboodXD and Gota7, based on Reggie! Next by RoadrunnerWMC, which is based on Reggie by Treeki, Tempus et al. Uses Python 3, PyQt5, SarcLib and libyaz0.
 
 ----------------------------------------------------------------
 
 Discord: https://discord.gg/AvFEHpp  
-GitHub: https://github.com/aboood40091/Miyamoto  
+GitHub: https://github.com/aboood40091/Miyamoto/tree/deluxe  
 
 ----------------------------------------------------------------
 
@@ -20,17 +20,14 @@ GitHub: https://github.com/aboood40091/Miyamoto
 * Grop -- Coding, Spritedata
 * Gregory Haskins -- Gibberish
 * John10v10 -- Quick Paint Tool
-* libtxc_dxtn -- Original DXT5 (De)compressor in C
 * Luzifer -- Graphics
 * Mayro -- Graphics
 * mrbengtsson -- Graphics
 * Meorge -- Testing on macOS
-* NVIDIA -- NVCOMPRESS
 * RicBent -- Graphics
 * reece stone -- Spritedata, Graphics
 * Shawn Shea -- Graphics
 * Toms -- Spritedata, Graphics
-* Wexos -- Original BC3 Compressor in C#
 * Wiimm -- WSZST
   
 #### Reggie NSMBU
@@ -51,21 +48,36 @@ GitHub: https://github.com/aboood40091/Miyamoto
 ----------------------------------------------------------------
 
 ### How To Use
-First, download this repo (either by using ```git clone``` or ```git pull``` if you've already cloned it), or by downloading a release, or by just downloading this repo as a whole.
+#### STEP 1:
+Download the source code from here:  
+https://github.com/aboood40091/Miyamoto/tree/deluxe  
 
-Second, you need the filesystem for New Super Mario Bros. U. You can get it by dumping the game using ddd: https://gbatemp.net/threads/ddd-wiiu-title-dumper.418492/
+Or using `git` with the following command:  
+`git clone -b deluxe --single-branch https://github.com/aboood40091/Miyamoto.git`  
 
-Thirdly, Download and install the following:
- * Python 3.4 (or newer) - http://www.python.org
- * PyQt 5.3 (or newer) - http://www.riverbankcomputing.co.uk/software/pyqt/intro
- * SarcLib (pip3 install SarcLib)
- * libyaz0 (pip3 install libyaz0)
- * cx_Freeze 4.3 (or newer) (optional) - http://cx-freeze.sourceforge.net  
+#### STEP 2:
+Install the latest version of Python 3 (make sure you install pip and add it to PATH):
+https://www.python.org/downloads/
+
+STEP 3:
+Open Command Prompt (or PowerShell) and type the following:  
+`py -3 -m pip install PyQt5  
+py -3 -m pip install Cython  
+py -3 -m pip install libyaz0  
+py -3 -m pip install SarcLib`  
+
+#### STEP 4:
+Make sure you have a compatible C compiler with Cython. For Linux and Mac OSX, you want "gcc". (which is usually preinstalled)  
+
+##### STEP 4.5 (C compiler for Windows):
+Download the Build Tools for Visual Studio 2017 installer:
+https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2017
+After you get the installer running, go to the `Workloads` tab and check `Visual C++ Build Tools` and then proceed with the installation process.   
 
 Run the following in a command prompt:  
 `python3 miyamoto.py`  
 You can replace `python3` with the path to python.exe (including "python.exe" at the end) and `miyamoto.py` with the path to miyamoto.py (including "miyamoto.py" at the end)  
   
-It should ask you to choose a folder. Choose the course_res_pack folder, or where you've stored the levels (1-1.szs, at least).
+It should ask you to choose a folder. Choose the `Course` folder, or where you've stored the levels (1-1.sarc, at least). (The `Unit` folder is also required and must be placed next to the `Course` folder)
 
 Enjoy.
