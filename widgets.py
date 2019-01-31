@@ -2544,6 +2544,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         super().__init__()
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
+        self.CanUseFlag8 = {3, 4, 5, 6, 16, 17, 18, 19}
+        self.CanUseFlag4 = {3, 4, 5, 6}
+
         # create widgets
         self.entranceID = QtWidgets.QSpinBox()
         self.entranceID.setRange(0, 255)
@@ -2574,34 +2577,50 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.allowEntryCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 9))
         self.allowEntryCheckbox.clicked.connect(self.HandleAllowEntryClicked)
 
-        self.unk05 = QtWidgets.QSpinBox()
-        self.unk05.setRange(0, 255)
-        self.unk05.setToolTip('Unknown 0x05')
-        self.unk05.valueChanged.connect(self.HandleUnk05)
+        self.unknownFlagCheckbox = QtWidgets.QCheckBox(globals.trans.string('EntranceDataEditor', 10))
+        self.unknownFlagCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 11))
+        self.unknownFlagCheckbox.clicked.connect(self.HandleUnknownFlagClicked)
+
+        self.connectedPipeCheckbox = QtWidgets.QCheckBox(globals.trans.string('EntranceDataEditor', 12))
+        self.connectedPipeCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 13))
+        self.connectedPipeCheckbox.clicked.connect(self.HandleConnectedPipeClicked)
+
+        self.connectedPipeReverseCheckbox = QtWidgets.QCheckBox(globals.trans.string('EntranceDataEditor', 14))
+        self.connectedPipeReverseCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 15))
+        self.connectedPipeReverseCheckbox.clicked.connect(self.HandleConnectedPipeReverseClicked)
+
+        self.pathID = QtWidgets.QSpinBox()
+        self.pathID.setRange(0, 255)
+        self.pathID.setToolTip(globals.trans.string('EntranceDataEditor', 17))
+        self.pathID.valueChanged.connect(self.HandlePathIDChanged)
+
+        self.forwardPipeCheckbox = QtWidgets.QCheckBox(globals.trans.string('EntranceDataEditor', 18))
+        self.forwardPipeCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 19))
+        self.forwardPipeCheckbox.clicked.connect(self.HandleForwardPipeClicked)
+
+        self.activeLayer = QtWidgets.QComboBox()
+        self.activeLayer.addItems(globals.trans.stringList('EntranceDataEditor', 21))
+        self.activeLayer.setToolTip(globals.trans.string('EntranceDataEditor', 22))
+        self.activeLayer.activated.connect(self.HandleActiveLayerChanged)
+
+        self.cpDirection = QtWidgets.QComboBox()
+        self.cpDirection.addItems(globals.trans.stringList('EntranceDataEditor', 27))
+        self.cpDirection.setToolTip(globals.trans.string('EntranceDataEditor', 26))
+        self.cpDirection.activated.connect(self.HandleCpDirectionChanged)
+
         self.unk0C = QtWidgets.QSpinBox()
         self.unk0C.setRange(0, 255)
-        self.unk0C.setToolTip('Ambush related')
-        self.unk0C.setToolTip('Related to ambushes...')
+        self.unk0C.setToolTip('Unknown 0x0C')
         self.unk0C.valueChanged.connect(self.HandleUnk0C)
-        self.unk0F = QtWidgets.QSpinBox()
-        self.unk0F.setRange(0, 255)
-        self.unk0F.setToolTip('Multiplayer Related')
-        self.unk0F.setToolTip('Possibly related to multiplayer?')
-        self.unk0F.valueChanged.connect(self.HandleUnk0F)
         self.unk12 = QtWidgets.QSpinBox()
         self.unk12.setRange(0, 255)
         self.unk12.setToolTip('Unknown 0x12')
         self.unk12.valueChanged.connect(self.HandleUnk12)
-        self.camera = QtWidgets.QSpinBox()
-        self.camera.setRange(0, 255)
-        self.camera.setToolTip(
-            "Related to camera movement. Value of 1 makes the camera zoom in if the value is < 0, or out if it's >= 0.")
-        self.camera.valueChanged.connect(self.HandleCamera)
 
-        self.pathID = QtWidgets.QSpinBox()
-        self.pathID.setRange(0, 255)
-        self.pathID.setToolTip('The Path ID, for autoscroll purposes.')
-        self.pathID.valueChanged.connect(self.HandlePathID)
+        self.scrollPathID = QtWidgets.QSpinBox()
+        self.scrollPathID.setRange(0, 255)
+        self.scrollPathID.setToolTip('The Path ID, for autoscroll purposes.')
+        self.scrollPathID.valueChanged.connect(self.HandleScrollPathID)
 
         self.pathnodeindex = QtWidgets.QSpinBox()
         self.pathnodeindex.setRange(0, 255)
@@ -2630,6 +2649,11 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 4)), 3, 2, 1, 1, Qt.AlignRight)
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 6)), 4, 2, 1, 1, Qt.AlignRight)
 
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 20)), 4, 0, 1, 1, Qt.AlignRight)
+
+        self.pathIDLabel = QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 16))
+        self.cpDirectionLabel = QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 25))
+
         # add the widgets
         layout.addWidget(self.entranceType, 1, 1, 1, 3)
         layout.addWidget(self.entranceID, 3, 1, 1, 1)
@@ -2638,24 +2662,34 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         layout.addWidget(self.destArea, 4, 3, 1, 1)
         layout.addWidget(createHorzLine(), 5, 0, 1, 4)
         layout.addWidget(self.allowEntryCheckbox, 6, 0, 1, 2)  # , Qt.AlignRight)
-        layout.addWidget(createHorzLine(), 7, 0, 1, 4)
+        layout.addWidget(self.unknownFlagCheckbox, 6, 2, 1, 2)  # , Qt.AlignRight)
+        layout.addWidget(self.forwardPipeCheckbox, 7, 0, 1, 2)  # , Qt.AlignRight)
+        layout.addWidget(self.connectedPipeCheckbox, 7, 2, 1, 2)  # , Qt.AlignRight)
 
-        layout.addWidget(QtWidgets.QLabel('Unknown 0x05:'), 8, 0)
-        layout.addWidget(QtWidgets.QLabel('Ambush Related:'), 9, 0)
-        layout.addWidget(QtWidgets.QLabel('Multiplayer Related:'), 10, 0)
-        layout.addWidget(QtWidgets.QLabel('Unknown 0x12:'), 11, 0)
-        layout.addWidget(QtWidgets.QLabel('Camera Related:'), 12, 0)
-        layout.addWidget(QtWidgets.QLabel('Path ID:'), 13, 0)
-        layout.addWidget(QtWidgets.QLabel('Path Node Index:'), 14, 0)
-        layout.addWidget(QtWidgets.QLabel('Unknown 0x16:'), 15, 0)
-        layout.addWidget(self.unk05, 8, 1)
-        layout.addWidget(self.unk0C, 9, 1)
-        layout.addWidget(self.unk0F, 10, 1)
-        layout.addWidget(self.unk12, 11, 1)
-        layout.addWidget(self.camera, 12, 1)
-        layout.addWidget(self.pathID, 13, 1)
-        layout.addWidget(self.pathnodeindex, 14, 1)
-        layout.addWidget(self.unk16, 15, 1)
+        self.cpHorzLine = createHorzLine()
+        layout.addWidget(self.cpHorzLine, 8, 0, 1, 4)
+        layout.addWidget(self.connectedPipeReverseCheckbox, 9, 0, 1, 2)  # , Qt.AlignRight)
+        layout.addWidget(self.pathID, 9, 3, 1, 1)
+        layout.addWidget(self.pathIDLabel, 9, 2, 1, 1, Qt.AlignRight)
+
+        layout.addWidget(self.pathID, 9, 3, 1, 1)
+        layout.addWidget(self.pathIDLabel, 9, 2, 1, 1, Qt.AlignRight)
+
+        layout.addWidget(self.activeLayer, 4, 1, 1, 1)
+        layout.addWidget(self.cpDirectionLabel, 10, 0, 1, 2, Qt.AlignRight)
+        layout.addWidget(self.cpDirection, 10, 2, 1, 2)
+
+        layout.addWidget(createHorzLine(), 11, 0, 1, 4)
+        layout.addWidget(QtWidgets.QLabel('Unknown 0x0C:'), 13, 0)
+        layout.addWidget(QtWidgets.QLabel('Unknown 0x12:'), 15, 0)
+        layout.addWidget(QtWidgets.QLabel('Path ID:'), 17, 0)
+        layout.addWidget(QtWidgets.QLabel('Path Node Index:'), 18, 0)
+        layout.addWidget(QtWidgets.QLabel('Unknown 0x16:'), 19, 0)
+        layout.addWidget(self.unk0C, 13, 1)
+        layout.addWidget(self.unk12, 15, 1)
+        layout.addWidget(self.scrollPathID, 17, 1)
+        layout.addWidget(self.pathnodeindex, 18, 1)
+        layout.addWidget(self.unk16, 19, 1)
 
         self.ent = None
         self.UpdateFlag = False
@@ -2675,16 +2709,34 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.destArea.setValue(ent.destarea)
         self.destEntrance.setValue(ent.destentrance)
 
-        self.unk05.setValue(ent.unk05)
         self.unk0C.setValue(ent.unk0C)
-        self.unk0F.setValue(ent.unk0F)
         self.unk12.setValue(ent.unk12)
-        self.camera.setValue(ent.camera)
-        self.pathID.setValue(ent.pathID)
+        self.scrollPathID.setValue(ent.pathID)
         self.pathnodeindex.setValue(ent.pathnodeindex)
         self.unk16.setValue(ent.unk16)
 
         self.allowEntryCheckbox.setChecked(((ent.entsettings & 0x80) == 0))
+        self.unknownFlagCheckbox.setChecked(((ent.entsettings & 2) != 0))
+
+        self.connectedPipeCheckbox.setVisible(ent.enttype in self.CanUseFlag8)
+        self.connectedPipeCheckbox.setChecked(((ent.entsettings & 8) != 0))
+
+        self.connectedPipeReverseCheckbox.setVisible(ent.enttype in self.CanUseFlag8 and ((ent.entsettings & 8) != 0))
+        self.connectedPipeReverseCheckbox.setChecked(((ent.entsettings & 1) != 0))
+
+        self.forwardPipeCheckbox.setVisible(ent.enttype in self.CanUseFlag4)
+        self.forwardPipeCheckbox.setChecked(((ent.entsettings & 4) != 0))
+
+        self.pathID.setVisible(ent.enttype in self.CanUseFlag8 and ((ent.entsettings & 8) != 0))
+        self.pathID.setValue(ent.entpath)
+        self.pathIDLabel.setVisible(ent.enttype in self.CanUseFlag8 and ((ent.entsettings & 8) != 0))
+
+        self.cpDirection.setVisible(ent.enttype in self.CanUseFlag8 and ((ent.entsettings & 8) != 0))
+        self.cpDirection.setCurrentIndex(ent.cpdirection)
+        self.cpDirectionLabel.setVisible(ent.enttype in self.CanUseFlag8 and ((ent.entsettings & 8) != 0))
+        self.cpHorzLine.setVisible(ent.enttype in self.CanUseFlag8 and ((ent.entsettings & 8) != 0))
+
+        self.activeLayer.setCurrentIndex(ent.entlayer)
 
         self.UpdateFlag = False
 
@@ -2704,6 +2756,14 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         """
         Handler for the entrance type changing
         """
+        self.connectedPipeCheckbox.setVisible(i in self.CanUseFlag8)
+        self.connectedPipeReverseCheckbox.setVisible(i in self.CanUseFlag8 and ((self.ent.entsettings & 8) != 0))
+        self.pathIDLabel.setVisible(i and ((self.ent.entsettings & 8) != 0))
+        self.pathID.setVisible(i and ((self.ent.entsettings & 8) != 0))
+        self.cpDirection.setVisible(self.ent.enttype in self.CanUseFlag8 and ((self.ent.entsettings & 8) != 0))
+        self.cpDirectionLabel.setVisible(self.ent.enttype in self.CanUseFlag8 and ((self.ent.entsettings & 8) != 0))
+        self.cpHorzLine.setVisible(self.ent.enttype in self.CanUseFlag8 and ((self.ent.entsettings & 8) != 0))
+        self.forwardPipeCheckbox.setVisible(i in self.CanUseFlag4)
         if self.UpdateFlag: return
         SetDirty()
         self.ent.enttype = i
@@ -2733,24 +2793,10 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    def HandleUnk05(self, i):
-        if self.UpdateFlag: return
-        SetDirty()
-        self.ent.unk05 = i
-        self.ent.UpdateTooltip()
-        self.ent.UpdateListItem()
-
     def HandleUnk0C(self, i):
         if self.UpdateFlag: return
         SetDirty()
         self.ent.unk0C = i
-        self.ent.UpdateTooltip()
-        self.ent.UpdateListItem()
-
-    def HandleUnk0F(self, i):
-        if self.UpdateFlag: return
-        SetDirty()
-        self.ent.unk0F = i
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
@@ -2761,14 +2807,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    def HandleCamera(self, i):
-        if self.UpdateFlag: return
-        SetDirty()
-        self.ent.camera = i
-        self.ent.UpdateTooltip()
-        self.ent.UpdateListItem()
-
-    def HandlePathID(self, i):
+    def HandleScrollPathID(self, i):
         if self.UpdateFlag: return
         SetDirty()
         self.ent.pathID = i
@@ -2813,6 +2852,53 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         else:
             self.ent.entsettings &= ~2
 
+    def HandleConnectedPipeClicked(self, checked):
+        """
+        Handle for the connected pipe checkbox being clicked
+        """
+        self.connectedPipeReverseCheckbox.setVisible(checked)
+        self.pathID.setVisible(checked)
+        self.pathIDLabel.setVisible(checked)
+        self.cpDirection.setVisible(checked)
+        self.cpDirectionLabel.setVisible(checked)
+        self.cpHorzLine.setVisible(checked)
+        if self.UpdateFlag: return
+        SetDirty()
+        if checked:
+            self.ent.entsettings |= 8
+        else:
+            self.ent.entsettings &= ~8
+
+    def HandleConnectedPipeReverseClicked(self, checked):
+        """
+        Handle for the connected pipe reverse checkbox being clicked
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+        if checked:
+            self.ent.entsettings |= 1
+        else:
+            self.ent.entsettings &= ~1
+
+    def HandlePathIDChanged(self, i):
+        """
+        Handler for the path ID changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+        self.ent.entpath = i
+
+    def HandleForwardPipeClicked(self, checked):
+        """
+        Handle for the forward pipe checkbox being clicked
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+        if checked:
+            self.ent.entsettings |= 4
+        else:
+            self.ent.entsettings &= ~4
+
     def HandleActiveLayerChanged(self, i):
         """
         Handle for the active layer changing
@@ -2820,6 +2906,14 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         if self.UpdateFlag: return
         SetDirty()
         self.ent.entlayer = i
+
+    def HandleCpDirectionChanged(self, i):
+        """
+        Handle for CP Direction changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+        self.ent.cpdirection = i
 
 
 class PathNodeEditorWidget(QtWidgets.QWidget):
@@ -3252,15 +3346,35 @@ class LoadingTab(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
-        self.unk1 = QtWidgets.QSpinBox()
-        self.unk1.setRange(0, 0x255)
-        self.unk1.setToolTip(globals.trans.string('AreaDlg', 25))
-        self.unk1.setValue(globals.Area.unk1)
+        self.entrance = QtWidgets.QSpinBox()
+        self.entrance.setRange(0, 255)
+        self.entrance.setToolTip(globals.trans.string('AreaDlg', 6))
+        self.entrance.setValue(globals.Area.startEntrance)
 
-        self.unk2 = QtWidgets.QSpinBox()
-        self.unk2.setRange(0, 255)
-        self.unk2.setToolTip(globals.trans.string('AreaDlg', 25))
-        self.unk2.setValue(globals.Area.unk2)
+        self.entranceCoinBoost = QtWidgets.QSpinBox()
+        self.entranceCoinBoost.setRange(0, 255)
+        self.entranceCoinBoost.setToolTip(globals.trans.string('AreaDlg', 39))
+        self.entranceCoinBoost.setValue(globals.Area.startEntranceCoinBoost)
+
+        self.wrap = QtWidgets.QCheckBox(globals.trans.string('AreaDlg', 7))
+        self.wrap.setToolTip(globals.trans.string('AreaDlg', 8))
+        self.wrap.setChecked(globals.Area.wrapFlag)
+
+        self.unk1 = QtWidgets.QCheckBox(globals.trans.string('AreaDlg', 40))
+        self.unk1.setToolTip(globals.trans.string('AreaDlg', 41))
+        self.unk1.setChecked(globals.Area.unkFlag1)
+
+        self.unk2 = QtWidgets.QCheckBox(globals.trans.string('AreaDlg', 42))
+        self.unk2.setToolTip(globals.trans.string('AreaDlg', 43))
+        self.unk2.setChecked(globals.Area.unkFlag2)
+
+        self.unk3 = QtWidgets.QCheckBox(globals.trans.string('AreaDlg', 44))
+        self.unk3.setToolTip(globals.trans.string('AreaDlg', 45))
+        self.unk3.setChecked(globals.Area.unkFlag3)
+
+        self.unk4 = QtWidgets.QCheckBox(globals.trans.string('AreaDlg', 46))
+        self.unk4.setToolTip(globals.trans.string('AreaDlg', 47))
+        self.unk4.setChecked(globals.Area.unkFlag4)
 
         self.timer = QtWidgets.QSpinBox()
         self.timer.setRange(0, 999)
@@ -3277,42 +3391,17 @@ class LoadingTab(QtWidgets.QWidget):
         self.timelimit3.setToolTip(globals.trans.string('AreaDlg', 38))
         self.timelimit3.setValue(globals.Area.timelimit3 + 200)
 
-        self.unk3 = QtWidgets.QSpinBox()
-        self.unk3.setRange(0, 999)
-        self.unk3.setToolTip(globals.trans.string('AreaDlg', 26))
-        self.unk3.setValue(globals.Area.unk3)
-
-        self.unk4 = QtWidgets.QSpinBox()
-        self.unk4.setRange(0, 999)
-        self.unk4.setToolTip(globals.trans.string('AreaDlg', 26))
-        self.unk4.setValue(globals.Area.unk4)
-
-        self.unk5 = QtWidgets.QSpinBox()
-        self.unk5.setRange(0, 999)
-        self.unk5.setToolTip(globals.trans.string('AreaDlg', 26))
-        self.unk5.setValue(globals.Area.unk5)
-
-        self.entrance = QtWidgets.QSpinBox()
-        self.entrance.setRange(0, 255)
-        self.entrance.setToolTip(globals.trans.string('AreaDlg', 39))
-        self.entrance.setValue(globals.Area.startEntrance)
-
-        self.unk6 = QtWidgets.QSpinBox()
-        self.unk6.setRange(0, 999)
-        self.unk6.setToolTip(globals.trans.string('AreaDlg', 26))
-        self.unk6.setValue(globals.Area.unk6)
-
         settingsLayout = QtWidgets.QFormLayout()
         settingsLayout.addRow(globals.trans.string('AreaDlg', 3), self.timer)
         settingsLayout.addRow(globals.trans.string('AreaDlg', 36), self.timelimit2)
         settingsLayout.addRow(globals.trans.string('AreaDlg', 37), self.timelimit3)
-        settingsLayout.addRow(globals.trans.string('AreaDlg', 34), self.entrance)
-        settingsLayout.addRow(globals.trans.string('AreaDlg', 22), self.unk1)
-        settingsLayout.addRow(globals.trans.string('AreaDlg', 23), self.unk2)
-        settingsLayout.addRow(globals.trans.string('AreaDlg', 24), self.unk3)
-        settingsLayout.addRow(globals.trans.string('AreaDlg', 32), self.unk4)
-        settingsLayout.addRow(globals.trans.string('AreaDlg', 33), self.unk5)
-        settingsLayout.addRow(globals.trans.string('AreaDlg', 35), self.unk6)
+        settingsLayout.addRow(globals.trans.string('AreaDlg', 5), self.entrance)
+        settingsLayout.addRow(globals.trans.string('AreaDlg', 34), self.entranceCoinBoost)
+        settingsLayout.addRow(self.wrap)
+        settingsLayout.addRow(self.unk1)
+        settingsLayout.addRow(self.unk2)
+        settingsLayout.addRow(self.unk3)
+        settingsLayout.addRow(self.unk4)
 
         Layout = QtWidgets.QVBoxLayout()
         Layout.addLayout(settingsLayout)
@@ -3602,7 +3691,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 for ent in globals.Area.entrances: getids[ent.entid] = True
                 minimumID = getids.index(False)
 
-                ent = EntranceItem(clickedx, clickedy, 0, minimumID, 0, 0, 0, 0, 0, 0, 0x80, 0, 0, 0, 0, 0)
+                ent = EntranceItem(clickedx, clickedy, 0, 0, minimumID, 0, 0, 0, 0, 0, 0, 0, 0x80, 0, 0, 0, 0, 0)
                 mw = globals.mainWindow
                 ent.positionChanged = mw.HandleEntPosChange
                 mw.scene.addItem(ent)

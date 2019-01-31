@@ -161,16 +161,16 @@ class Area_NSMBU(AbstractArea):
                           + to_bytes(0, 15))
 
         # Settings
-        self.defEvents = 0
-        self.startEntrance = 0
-        self.unk1 = 0
-        self.unk2 = 0
-        self.wrapedges = 0
+        self.eventBits32 = 0
+        self.eventBits64 = 0
+        self.wrapFlag = False
+        self.unkFlag1 = False
         self.timelimit = 400
-        self.unk3 = 100
-        self.unk4 = 100
-        self.unk5 = 100
-        self.unk6 = 0
+        self.unkFlag2 = True
+        self.unkFlag3 = True
+        self.unkFlag4 = True
+        self.startEntrance = 0
+        self.startEntranceCoinBoost = 0
         self.timelimit2 = 300
         self.timelimit3 = 0
 
@@ -362,10 +362,15 @@ class Area_NSMBU(AbstractArea):
         Loads block 2, the general options
         """
         optdata = self.blocks[1]
-        optstruct = struct.Struct('<xxBBxxxxxBHxBBBBxxBHH')
+        optstruct = struct.Struct('<IIHHxBBBBxxBHH')
         offset = 0
         data = optstruct.unpack_from(optdata, offset)
-        self.unk1, self.unk2, self.wrapedges, self.timelimit, self.unk3, self.unk4, self.unk5, self.startEntrance, self.unk6, self.timelimit2, self.timelimit3 = data
+        self.eventBits32, self.eventBits64, wrapByte, self.timelimit, unk1, unk2, unk3, self.startEntrance, self.startEntranceCoinBoost, self.timelimit2, self.timelimit3 = data
+        self.wrapFlag = bool(wrapByte & 1)
+        self.unkFlag1 = bool(wrapByte >> 3)
+        self.unkFlag2 = bool(unk1 == 100)
+        self.unkFlag3 = bool(unk2 == 100)
+        self.unkFlag4 = bool(unk3 == 100)
 
     def LoadEntrances(self):
         """
@@ -373,7 +378,7 @@ class Area_NSMBU(AbstractArea):
         """
         entdata = self.blocks[6]
         entcount = len(entdata) // 24
-        entstruct = struct.Struct('<HHxBxxBBBBBBxBHBBBBBx')
+        entstruct = struct.Struct('<HHHHBBBBBBBBHBBBBBx')
         offset = 0
         entrances = []
         for i in range(entcount):
@@ -611,10 +616,16 @@ class Area_NSMBU(AbstractArea):
         """
         Saves block 2, the general options
         """
-        optstruct = struct.Struct('<xxBBxxxxxBHxBBBBxxBHH')
+        wrapByte = 1 if self.wrapFlag else 0
+        if self.unkFlag1: wrapByte |= 8
+        unk1 = 100 if self.unkFlag2 else 0
+        unk2 = 100 if self.unkFlag3 else 0
+        unk3 = 100 if self.unkFlag4 else 0
+
+        optstruct = struct.Struct('<IIHHxBBBBxxBHH')
         buffer = bytearray(0x18)
-        optstruct.pack_into(buffer, 0, self.unk1, self.unk2, self.wrapedges, self.timelimit, self.unk3, self.unk4,
-                            self.unk5, self.startEntrance, self.unk6, self.timelimit2, self.timelimit3)
+        optstruct.pack_into(buffer, 0, self.eventBits32, self.eventBits64, wrapByte, self.timelimit,
+                            unk1, unk2, unk3, self.startEntrance, self.startEntranceCoinBoost, self.timelimit2, self.timelimit3)
         self.blocks[1] = bytes(buffer)
 
     def SaveLayer(self, idx):
@@ -647,15 +658,15 @@ class Area_NSMBU(AbstractArea):
         Saves the entrances back to block 7
         """
         offset = 0
-        entstruct = struct.Struct('<HHxBxxBBBBBBxBHBBBBBx')
+        entstruct = struct.Struct('<HHHHBBBBBBBBHBBBBBx')
         buffer = bytearray(len(self.entrances) * 24)
         zonelist = self.zones
         for entrance in self.entrances:
             zoneID = SLib.MapPositionToZoneID(zonelist, entrance.objx, entrance.objy)
-            entstruct.pack_into(buffer, offset, int(entrance.objx), int(entrance.objy), int(entrance.unk05),
-                                int(entrance.entid), int(entrance.destarea), int(entrance.destentrance),
-                                int(entrance.enttype), int(entrance.unk0C), zoneID, int(entrance.unk0F),
-                                int(entrance.entsettings), int(entrance.unk12), int(entrance.camera),
+            entstruct.pack_into(buffer, offset, int(entrance.objx), int(entrance.objy), int(entrance.camerax),
+                                int(entrance.cameray), int(entrance.entid), int(entrance.destarea), int(entrance.destentrance),
+                                int(entrance.enttype), int(entrance.unk0C), int(entrance.entzone), int(entrance.entlayer),
+                                int(entrance.entpath), int(entrance.entsettings), int(entrance.unk12), int(entrance.cpdirection),
                                 int(entrance.pathID), int(entrance.pathnodeindex), int(entrance.unk16))
             offset += 24
         self.blocks[6] = bytes(buffer)
