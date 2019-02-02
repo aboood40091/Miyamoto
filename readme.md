@@ -59,7 +59,7 @@ Or using `git` with the following command:
 Install the latest version of Python 3 (make sure you install pip and add it to PATH):
 https://www.python.org/downloads/
 
-STEP 3:
+#### STEP 3:
 Open Command Prompt (or PowerShell) and type the following:  
 `py -3 -m pip install PyQt5`  
 `py -3 -m pip install Cython`  
