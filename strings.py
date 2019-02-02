@@ -247,6 +247,8 @@ class MiyamotoTranslation:
                     ),
                 28: '([id]) [name]',
                 29: '[b]Players to spawn:[/b][br]Players to spawn at this entrance. Used in ambush levels.',
+                30: '[b]Camera X Position:[/b][br]Used to offset the point the camera will center on. Position relative to the entrance\'s.[br]16 = 1 block.',
+                31: '[b]Camera Y Position:[/b][br]Used to offset the point the camera will center on. Position relative to the entrance\'s.[br]16 = 1 block.',
                 },
             'Entrances': {
                 0: '[b]Entrance [ent]:[/b][br]Type: [type][br][i][dest][/i]',
