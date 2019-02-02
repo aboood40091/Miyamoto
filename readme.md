@@ -61,10 +61,10 @@ https://www.python.org/downloads/
 
 STEP 3:
 Open Command Prompt (or PowerShell) and type the following:  
-`py -3 -m pip install PyQt5  
-py -3 -m pip install Cython  
-py -3 -m pip install libyaz0  
-py -3 -m pip install SarcLib`  
+`py -3 -m pip install PyQt5`  
+`py -3 -m pip install Cython`  
+`py -3 -m pip install libyaz0`  
+`py -3 -m pip install SarcLib`  
 
 #### STEP 4:
 Make sure you have a compatible C compiler with Cython. For Linux and Mac OSX, you want "gcc". (which is usually preinstalled)  
