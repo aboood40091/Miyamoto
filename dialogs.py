@@ -77,7 +77,7 @@ class InputBox(QtWidgets.QDialog):
 
 class AboutDialog(QtWidgets.QDialog):
     """
-    Shows the About info for Miyamoto
+    The About info for Miyamoto
     """
 
     def __init__(self):
