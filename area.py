@@ -378,7 +378,7 @@ class Area_NSMBU(AbstractArea):
         """
         entdata = self.blocks[6]
         entcount = len(entdata) // 24
-        entstruct = struct.Struct('<HHHHBBBBBBBBHBBBBBx')
+        entstruct = struct.Struct('<HHhhBBBBBBxBHBBBBBx')
         offset = 0
         entrances = []
         for i in range(entcount):
@@ -658,15 +658,15 @@ class Area_NSMBU(AbstractArea):
         Saves the entrances back to block 7
         """
         offset = 0
-        entstruct = struct.Struct('<HHHHBBBBBBBBHBBBBBx')
+        entstruct = struct.Struct('<HHhhBBBBBBxBHBBBBBx')
         buffer = bytearray(len(self.entrances) * 24)
         zonelist = self.zones
         for entrance in self.entrances:
             zoneID = SLib.MapPositionToZoneID(zonelist, entrance.objx, entrance.objy)
             entstruct.pack_into(buffer, offset, int(entrance.objx), int(entrance.objy), int(entrance.camerax),
                                 int(entrance.cameray), int(entrance.entid), int(entrance.destarea), int(entrance.destentrance),
-                                int(entrance.enttype), int(entrance.unk0C), int(entrance.entzone), int(entrance.entlayer),
-                                int(entrance.entpath), int(entrance.entsettings), int(entrance.unk12), int(entrance.cpdirection),
+                                int(entrance.enttype), int(entrance.ambushPlayers), int(entrance.entzone), int(entrance.unk0F),
+                                int(entrance.entsettings), int(entrance.otherID), int(entrance.unk13),
                                 int(entrance.pathID), int(entrance.pathnodeindex), int(entrance.unk16))
             offset += 24
         self.blocks[6] = bytes(buffer)

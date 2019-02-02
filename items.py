@@ -2041,7 +2041,7 @@ class EntranceItem(LevelEditorItem):
             """
             return self.BoundingRect
 
-    def __init__(self, x, y, cameraX, cameraY, id, destarea, destentrance, type, unk0C, zone, layer, path, settings, unk12, cpd,
+    def __init__(self, x, y, cameraX, cameraY, id, destarea, destentrance, type, ambushPlayers, zone, unk0F, settings, otherID, unk13,
                  pathID, pathnodeindex, unk16):
         """
         Creates an entrance with specific data
@@ -2064,18 +2064,17 @@ class EntranceItem(LevelEditorItem):
         self.destarea = destarea
         self.destentrance = destentrance
         self.enttype = type
-        self.unk0C = unk0C
+        self.ambushPlayers = ambushPlayers
         self.entzone = zone
+        self.unk0F = unk0F
         self.entsettings = settings
-        self.entlayer = layer
-        self.entpath = path
-        self.unk12 = unk12
+        self.otherID = otherID
+        self.unk13 = unk13
         self.pathID = pathID
         self.pathnodeindex = pathnodeindex
         self.unk16 = unk16
         self.listitem = None
         self.LevelRect = QtCore.QRectF(self.objx / 16, self.objy / 16, 1, 1)
-        self.cpdirection = cpd
 
         self.setFlag(self.ItemIsMovable, not globals.EntrancesFrozen)
         self.setFlag(self.ItemIsSelectable, not globals.EntrancesFrozen)

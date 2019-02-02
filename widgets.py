@@ -2544,9 +2544,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         super().__init__()
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
-        self.CanUseFlag8 = {3, 4, 5, 6, 16, 17, 18, 19}
-        self.CanUseFlag4 = {3, 4, 5, 6}
-
         # create widgets
         self.entranceID = QtWidgets.QSpinBox()
         self.entranceID.setRange(0, 255)
@@ -2577,45 +2574,51 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.allowEntryCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 9))
         self.allowEntryCheckbox.clicked.connect(self.HandleAllowEntryClicked)
 
-        self.unknownFlagCheckbox = QtWidgets.QCheckBox(globals.trans.string('EntranceDataEditor', 10))
-        self.unknownFlagCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 11))
-        self.unknownFlagCheckbox.clicked.connect(self.HandleUnknownFlagClicked)
+        self.faceLeftCheckbox = QtWidgets.QCheckBox("Face left")
+        self.faceLeftCheckbox.setToolTip("Makes the player face left when spawning")
+        self.faceLeftCheckbox.clicked.connect(self.HandleFaceLeftClicked)
 
-        self.connectedPipeCheckbox = QtWidgets.QCheckBox(globals.trans.string('EntranceDataEditor', 12))
-        self.connectedPipeCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 13))
-        self.connectedPipeCheckbox.clicked.connect(self.HandleConnectedPipeClicked)
+        self.allPlayersCheckbox = QtWidgets.QCheckBox("All players")
+        self.allPlayersCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
+        self.allPlayersCheckbox.clicked.connect(self.HandleAllPlayersClicked)
 
-        self.connectedPipeReverseCheckbox = QtWidgets.QCheckBox(globals.trans.string('EntranceDataEditor', 14))
-        self.connectedPipeReverseCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 15))
-        self.connectedPipeReverseCheckbox.clicked.connect(self.HandleConnectedPipeReverseClicked)
+        self.player1Checkbox = QtWidgets.QCheckBox("Player 1")
+        self.allPlayersCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
+        self.player1Checkbox.clicked.connect(self.HandlePlayer1Clicked)
+        self.player1Checkbox.setEnabled(False)
 
-        self.pathID = QtWidgets.QSpinBox()
-        self.pathID.setRange(0, 255)
-        self.pathID.setToolTip(globals.trans.string('EntranceDataEditor', 17))
-        self.pathID.valueChanged.connect(self.HandlePathIDChanged)
+        self.player2Checkbox = QtWidgets.QCheckBox("Player 2")
+        self.allPlayersCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
+        self.player2Checkbox.clicked.connect(self.HandlePlayer2Clicked)
+        self.player2Checkbox.setEnabled(False)
 
-        self.forwardPipeCheckbox = QtWidgets.QCheckBox(globals.trans.string('EntranceDataEditor', 18))
-        self.forwardPipeCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 19))
-        self.forwardPipeCheckbox.clicked.connect(self.HandleForwardPipeClicked)
+        self.player3Checkbox = QtWidgets.QCheckBox("Player 3")
+        self.allPlayersCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
+        self.player3Checkbox.clicked.connect(self.HandlePlayer3Clicked)
+        self.player3Checkbox.setEnabled(False)
 
-        self.activeLayer = QtWidgets.QComboBox()
-        self.activeLayer.addItems(globals.trans.stringList('EntranceDataEditor', 21))
-        self.activeLayer.setToolTip(globals.trans.string('EntranceDataEditor', 22))
-        self.activeLayer.activated.connect(self.HandleActiveLayerChanged)
+        self.player4Checkbox = QtWidgets.QCheckBox("Player 4")
+        self.allPlayersCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
+        self.player4Checkbox.clicked.connect(self.HandlePlayer4Clicked)
+        self.player4Checkbox.setEnabled(False)
 
-        self.cpDirection = QtWidgets.QComboBox()
-        self.cpDirection.addItems(globals.trans.stringList('EntranceDataEditor', 27))
-        self.cpDirection.setToolTip(globals.trans.string('EntranceDataEditor', 26))
-        self.cpDirection.activated.connect(self.HandleCpDirectionChanged)
+        self.unk0F = QtWidgets.QSpinBox()
+        self.unk0F.setRange(0, 2)
+        self.unk0F.setToolTip('Ambush related?')
+        self.unk0F.valueChanged.connect(self.HandleUnk0F)
 
-        self.unk0C = QtWidgets.QSpinBox()
-        self.unk0C.setRange(0, 255)
-        self.unk0C.setToolTip('Unknown 0x0C')
-        self.unk0C.valueChanged.connect(self.HandleUnk0C)
-        self.unk12 = QtWidgets.QSpinBox()
-        self.unk12.setRange(0, 255)
-        self.unk12.setToolTip('Unknown 0x12')
-        self.unk12.valueChanged.connect(self.HandleUnk12)
+        self.otherID = QtWidgets.QSpinBox()
+        self.otherID.setRange(0, 255)
+        self.otherID.setToolTip('Links this entrance with another entrance. Purpose is unknown.')
+        self.otherID.valueChanged.connect(self.HandleOtherID)
+
+        self.goto = QtWidgets.QPushButton("Goto")
+        self.goto.clicked.connect(self.GotoOtherEntrance)
+
+        self.unk13 = QtWidgets.QSpinBox()
+        self.unk13.setRange(0, 255)
+        self.unk13.setToolTip('Related to camera movement. Value of 1 makes the camera zoom in if the zone zoom is < 0, or out if it\'s >= 0.')
+        self.unk13.valueChanged.connect(self.HandleUnk13)
 
         self.scrollPathID = QtWidgets.QSpinBox()
         self.scrollPathID.setRange(0, 255)
@@ -2628,7 +2631,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.pathnodeindex.valueChanged.connect(self.HandlePathNodeIndex)
 
         self.unk16 = QtWidgets.QSpinBox()
-        self.unk16.setRange(0, 255)
+        self.unk16.setRange(0, 10)
         self.unk16.setToolTip('Unknown 0x16')
         self.unk16.valueChanged.connect(self.HandleUnk16)
 
@@ -2644,52 +2647,46 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 2)), 1, 0, 1, 1, Qt.AlignRight)
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 0)), 3, 0, 1, 1, Qt.AlignRight)
 
-        layout.addWidget(createHorzLine(), 2, 0, 1, 4)
+        layout.addWidget(createHorzLine(), 2, 0, 1, 6)
 
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 4)), 3, 2, 1, 1, Qt.AlignRight)
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 6)), 4, 2, 1, 1, Qt.AlignRight)
 
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 20)), 4, 0, 1, 1, Qt.AlignRight)
-
-        self.pathIDLabel = QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 16))
-        self.cpDirectionLabel = QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 25))
-
         # add the widgets
         layout.addWidget(self.entranceType, 1, 1, 1, 3)
         layout.addWidget(self.entranceID, 3, 1, 1, 1)
-
         layout.addWidget(self.destEntrance, 3, 3, 1, 1)
         layout.addWidget(self.destArea, 4, 3, 1, 1)
-        layout.addWidget(createHorzLine(), 5, 0, 1, 4)
+
+        layout.addWidget(createHorzLine(), 5, 0, 1, 6)
+
         layout.addWidget(self.allowEntryCheckbox, 6, 0, 1, 2)  # , Qt.AlignRight)
-        layout.addWidget(self.unknownFlagCheckbox, 6, 2, 1, 2)  # , Qt.AlignRight)
-        layout.addWidget(self.forwardPipeCheckbox, 7, 0, 1, 2)  # , Qt.AlignRight)
-        layout.addWidget(self.connectedPipeCheckbox, 7, 2, 1, 2)  # , Qt.AlignRight)
+        layout.addWidget(self.faceLeftCheckbox, 6, 2, 1, 2)  # , Qt.AlignRight)
 
-        self.cpHorzLine = createHorzLine()
-        layout.addWidget(self.cpHorzLine, 8, 0, 1, 4)
-        layout.addWidget(self.connectedPipeReverseCheckbox, 9, 0, 1, 2)  # , Qt.AlignRight)
-        layout.addWidget(self.pathID, 9, 3, 1, 1)
-        layout.addWidget(self.pathIDLabel, 9, 2, 1, 1, Qt.AlignRight)
+        layout.addWidget(createHorzLine(), 7, 0, 1, 6)
 
-        layout.addWidget(self.pathID, 9, 3, 1, 1)
-        layout.addWidget(self.pathIDLabel, 9, 2, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel('Players to spawn (ambush):'), 9, 0)
+        layout.addWidget(self.allPlayersCheckbox, 9, 1)
+        layout.addWidget(self.player1Checkbox, 9, 2)
+        layout.addWidget(self.player2Checkbox, 9, 3)
+        layout.addWidget(self.player3Checkbox, 9, 4)
+        layout.addWidget(self.player4Checkbox, 9, 5)
+        layout.addWidget(QtWidgets.QLabel('Unknown 0x0F:'), 10, 0)
+        layout.addWidget(self.unk0F, 10, 1)
 
-        layout.addWidget(self.activeLayer, 4, 1, 1, 1)
-        layout.addWidget(self.cpDirectionLabel, 10, 0, 1, 2, Qt.AlignRight)
-        layout.addWidget(self.cpDirection, 10, 2, 1, 2)
+        layout.addWidget(createHorzLine(), 11, 0, 1, 6)
 
-        layout.addWidget(createHorzLine(), 11, 0, 1, 4)
-        layout.addWidget(QtWidgets.QLabel('Unknown 0x0C:'), 13, 0)
-        layout.addWidget(QtWidgets.QLabel('Unknown 0x12:'), 15, 0)
-        layout.addWidget(QtWidgets.QLabel('Path ID:'), 17, 0)
-        layout.addWidget(QtWidgets.QLabel('Path Node Index:'), 18, 0)
-        layout.addWidget(QtWidgets.QLabel('Unknown 0x16:'), 19, 0)
-        layout.addWidget(self.unk0C, 13, 1)
-        layout.addWidget(self.unk12, 15, 1)
-        layout.addWidget(self.scrollPathID, 17, 1)
-        layout.addWidget(self.pathnodeindex, 18, 1)
-        layout.addWidget(self.unk16, 19, 1)
+        layout.addWidget(QtWidgets.QLabel('Other Entrance ID:'), 12, 0)
+        layout.addWidget(QtWidgets.QLabel('Camera related:'), 13, 0)
+        layout.addWidget(QtWidgets.QLabel('Path ID:'), 14, 0)
+        layout.addWidget(QtWidgets.QLabel('Path Node Index:'), 15, 0)
+        layout.addWidget(QtWidgets.QLabel('Unknown 0x16:'), 16, 0)
+        layout.addWidget(self.otherID, 12, 1)
+        layout.addWidget(self.goto, 12, 2)
+        layout.addWidget(self.unk13, 13, 1)
+        layout.addWidget(self.scrollPathID, 14, 1)
+        layout.addWidget(self.pathnodeindex, 15, 1)
+        layout.addWidget(self.unk16, 16, 1)
 
         self.ent = None
         self.UpdateFlag = False
@@ -2708,35 +2705,28 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.entranceType.setCurrentIndex(ent.enttype)
         self.destArea.setValue(ent.destarea)
         self.destEntrance.setValue(ent.destentrance)
-
-        self.unk0C.setValue(ent.unk0C)
-        self.unk12.setValue(ent.unk12)
+        self.unk0F.setValue(ent.unk0F)
+        self.otherID.setValue(ent.otherID)
+        self.unk13.setValue(ent.unk13)
         self.scrollPathID.setValue(ent.pathID)
         self.pathnodeindex.setValue(ent.pathnodeindex)
         self.unk16.setValue(ent.unk16)
 
+        self.allPlayersCheckbox.setChecked(((ent.ambushPlayers & 0xF) == 0))
         self.allowEntryCheckbox.setChecked(((ent.entsettings & 0x80) == 0))
-        self.unknownFlagCheckbox.setChecked(((ent.entsettings & 2) != 0))
+        self.faceLeftCheckbox.setChecked(((ent.entsettings & 1) != 0))
 
-        self.connectedPipeCheckbox.setVisible(ent.enttype in self.CanUseFlag8)
-        self.connectedPipeCheckbox.setChecked(((ent.entsettings & 8) != 0))
+        self.player1Checkbox.setChecked(((ent.ambushPlayers & 1) != 0))
+        self.player1Checkbox.setEnabled(((ent.ambushPlayers & 0xF) != 0))
 
-        self.connectedPipeReverseCheckbox.setVisible(ent.enttype in self.CanUseFlag8 and ((ent.entsettings & 8) != 0))
-        self.connectedPipeReverseCheckbox.setChecked(((ent.entsettings & 1) != 0))
+        self.player2Checkbox.setChecked(((ent.ambushPlayers & 2) != 0))
+        self.player2Checkbox.setEnabled(((ent.ambushPlayers & 0xF) != 0))
 
-        self.forwardPipeCheckbox.setVisible(ent.enttype in self.CanUseFlag4)
-        self.forwardPipeCheckbox.setChecked(((ent.entsettings & 4) != 0))
+        self.player3Checkbox.setChecked(((ent.ambushPlayers & 4) != 0))
+        self.player3Checkbox.setEnabled(((ent.ambushPlayers & 0xF) != 0))
 
-        self.pathID.setVisible(ent.enttype in self.CanUseFlag8 and ((ent.entsettings & 8) != 0))
-        self.pathID.setValue(ent.entpath)
-        self.pathIDLabel.setVisible(ent.enttype in self.CanUseFlag8 and ((ent.entsettings & 8) != 0))
-
-        self.cpDirection.setVisible(ent.enttype in self.CanUseFlag8 and ((ent.entsettings & 8) != 0))
-        self.cpDirection.setCurrentIndex(ent.cpdirection)
-        self.cpDirectionLabel.setVisible(ent.enttype in self.CanUseFlag8 and ((ent.entsettings & 8) != 0))
-        self.cpHorzLine.setVisible(ent.enttype in self.CanUseFlag8 and ((ent.entsettings & 8) != 0))
-
-        self.activeLayer.setCurrentIndex(ent.entlayer)
+        self.player4Checkbox.setChecked(((ent.ambushPlayers & 8) != 0))
+        self.player4Checkbox.setEnabled(((ent.ambushPlayers & 0xF) != 0))
 
         self.UpdateFlag = False
 
@@ -2756,14 +2746,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         """
         Handler for the entrance type changing
         """
-        self.connectedPipeCheckbox.setVisible(i in self.CanUseFlag8)
-        self.connectedPipeReverseCheckbox.setVisible(i in self.CanUseFlag8 and ((self.ent.entsettings & 8) != 0))
-        self.pathIDLabel.setVisible(i and ((self.ent.entsettings & 8) != 0))
-        self.pathID.setVisible(i and ((self.ent.entsettings & 8) != 0))
-        self.cpDirection.setVisible(self.ent.enttype in self.CanUseFlag8 and ((self.ent.entsettings & 8) != 0))
-        self.cpDirectionLabel.setVisible(self.ent.enttype in self.CanUseFlag8 and ((self.ent.entsettings & 8) != 0))
-        self.cpHorzLine.setVisible(self.ent.enttype in self.CanUseFlag8 and ((self.ent.entsettings & 8) != 0))
-        self.forwardPipeCheckbox.setVisible(i in self.CanUseFlag4)
         if self.UpdateFlag: return
         SetDirty()
         self.ent.enttype = i
@@ -2793,17 +2775,36 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    def HandleUnk0C(self, i):
+    def HandleUnk0F(self, i):
         if self.UpdateFlag: return
         SetDirty()
-        self.ent.unk0C = i
+        self.ent.unk0F = i
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    def HandleUnk12(self, i):
+    def HandleOtherID(self, i):
         if self.UpdateFlag: return
         SetDirty()
-        self.ent.unk12 = i
+        self.ent.otherID = i
+        self.ent.UpdateTooltip()
+        self.ent.UpdateListItem()
+
+    def GotoOtherEntrance(self):
+        otherID = self.ent.otherID
+        otherEnt = None
+        for ent in globals.Area.entrances:
+            if ent.entid == otherID:
+                otherEnt = ent
+                break
+
+        if otherEnt:
+            globals.mainWindow.view.centerOn(otherEnt.objx * (globals.TileWidth / 16), otherEnt.objy * (globals.TileWidth / 16))
+        
+
+    def HandleUnk13(self, i):
+        if self.UpdateFlag: return
+        SetDirty()
+        self.ent.unk13 = i
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
@@ -2841,79 +2842,90 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    def HandleUnknownFlagClicked(self, checked):
+    def HandleFaceLeftClicked(self, checked):
         """
-        Handle for the Unknown Flag checkbox being clicked
-        """
-        if self.UpdateFlag: return
-        SetDirty()
-        if checked:
-            self.ent.entsettings |= 2
-        else:
-            self.ent.entsettings &= ~2
-
-    def HandleConnectedPipeClicked(self, checked):
-        """
-        Handle for the connected pipe checkbox being clicked
-        """
-        self.connectedPipeReverseCheckbox.setVisible(checked)
-        self.pathID.setVisible(checked)
-        self.pathIDLabel.setVisible(checked)
-        self.cpDirection.setVisible(checked)
-        self.cpDirectionLabel.setVisible(checked)
-        self.cpHorzLine.setVisible(checked)
-        if self.UpdateFlag: return
-        SetDirty()
-        if checked:
-            self.ent.entsettings |= 8
-        else:
-            self.ent.entsettings &= ~8
-
-    def HandleConnectedPipeReverseClicked(self, checked):
-        """
-        Handle for the connected pipe reverse checkbox being clicked
+        Handle for the Face Left checkbox being clicked
         """
         if self.UpdateFlag: return
         SetDirty()
-        if checked:
+        if not checked:
             self.ent.entsettings |= 1
         else:
             self.ent.entsettings &= ~1
+        self.ent.UpdateTooltip()
+        self.ent.UpdateListItem()
 
-    def HandlePathIDChanged(self, i):
+    def HandleAllPlayersClicked(self, checked):
         """
-        Handler for the path ID changing
-        """
-        if self.UpdateFlag: return
-        SetDirty()
-        self.ent.entpath = i
-
-    def HandleForwardPipeClicked(self, checked):
-        """
-        Handle for the forward pipe checkbox being clicked
+        Handle for the All Players checkbox being clicked
         """
         if self.UpdateFlag: return
         SetDirty()
         if checked:
-            self.ent.entsettings |= 4
+            self.ent.ambushPlayers &= ~0xF
+            self.player1Checkbox.setEnabled(False)
+            self.player2Checkbox.setEnabled(False)
+            self.player3Checkbox.setEnabled(False)
+            self.player4Checkbox.setEnabled(False)
         else:
-            self.ent.entsettings &= ~4
+            self.player1Checkbox.setEnabled(True)
+            self.player2Checkbox.setEnabled(True)
+            self.player3Checkbox.setEnabled(True)
+            self.player4Checkbox.setEnabled(True)
+        self.ent.UpdateTooltip()
+        self.ent.UpdateListItem()
 
-    def HandleActiveLayerChanged(self, i):
+    def HandlePlayer1Clicked(self, checked):
         """
-        Handle for the active layer changing
+        Handle for the Player 1 checkbox being clicked
         """
         if self.UpdateFlag: return
         SetDirty()
-        self.ent.entlayer = i
+        if checked:
+            self.ent.ambushPlayers |= 1
+        else:
+            self.ent.ambushPlayers &= ~1
+        self.ent.UpdateTooltip()
+        self.ent.UpdateListItem()
 
-    def HandleCpDirectionChanged(self, i):
+    def HandlePlayer2Clicked(self, checked):
         """
-        Handle for CP Direction changing
+        Handle for the Player 2 checkbox being clicked
         """
         if self.UpdateFlag: return
         SetDirty()
-        self.ent.cpdirection = i
+        if checked:
+            self.ent.ambushPlayers |= 2
+        else:
+            self.ent.ambushPlayers &= ~2
+        self.ent.UpdateTooltip()
+        self.ent.UpdateListItem()
+
+    def HandlePlayer3Clicked(self, checked):
+        """
+        Handle for the Player 3 checkbox being clicked
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+        if checked:
+            self.ent.ambushPlayers |= 4
+        else:
+            self.ent.ambushPlayers &= ~4
+        self.ent.UpdateTooltip()
+        self.ent.UpdateListItem()
+
+    def HandlePlayer4Clicked(self, checked):
+        """
+        Handle for the Player 4 checkbox being clicked
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+        if checked:
+            self.ent.ambushPlayers |= 8
+        else:
+            self.ent.ambushPlayers &= ~8
+        self.ent.UpdateTooltip()
+        self.ent.UpdateListItem()
 
 
 class PathNodeEditorWidget(QtWidgets.QWidget):
