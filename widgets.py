@@ -2545,6 +2545,16 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
         # create widgets
+        self.cameraX = QtWidgets.QSpinBox()
+        self.cameraX.setRange(-32768, 32767)
+        self.cameraX.setToolTip(globals.trans.string('EntranceDataEditor', 30))
+        self.cameraX.valueChanged.connect(self.HandleCameraXChanged)
+
+        self.cameraY = QtWidgets.QSpinBox()
+        self.cameraY.setRange(-32768, 32767)
+        self.cameraY.setToolTip(globals.trans.string('EntranceDataEditor', 31))
+        self.cameraY.valueChanged.connect(self.HandleCameraYChanged)
+
         self.entranceID = QtWidgets.QSpinBox()
         self.entranceID.setRange(0, 255)
         self.entranceID.setToolTip(globals.trans.string('EntranceDataEditor', 1))
@@ -2688,6 +2698,13 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         layout.addWidget(self.pathnodeindex, 15, 1)
         layout.addWidget(self.unk16, 16, 1)
 
+        layout.addWidget(createHorzLine(), 17, 0, 1, 6)
+
+        layout.addWidget(QtWidgets.QLabel('Camera X:'), 18, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel('Camera Y:'), 18, 2, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.cameraX, 18, 1)
+        layout.addWidget(self.cameraY, 18, 3)
+
         self.ent = None
         self.UpdateFlag = False
 
@@ -2701,6 +2718,8 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent = ent
         self.UpdateFlag = True
 
+        self.cameraX.setValue(ent.camerax)
+        self.cameraY.setValue(ent.cameray)
         self.entranceID.setValue(ent.entid)
         self.entranceType.setCurrentIndex(ent.enttype)
         self.destArea.setValue(ent.destarea)
@@ -2729,6 +2748,26 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.player4Checkbox.setEnabled(((ent.ambushPlayers & 0xF) != 0))
 
         self.UpdateFlag = False
+
+    def HandleCameraXChanged(self, i):
+        """
+        Handler for the camera x pos changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+        self.ent.camerax = i
+        self.ent.UpdateTooltip()
+        self.ent.UpdateListItem()
+
+    def HandleCameraYChanged(self, i):
+        """
+        Handler for the camera y pos changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+        self.ent.cameray = i
+        self.ent.UpdateTooltip()
+        self.ent.UpdateListItem()
 
     def HandleEntranceIDChanged(self, i):
         """
