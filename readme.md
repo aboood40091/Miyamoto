@@ -56,7 +56,7 @@ Or using `git` with the following command:
 `git clone -b deluxe --single-branch https://github.com/aboood40091/Miyamoto.git`  
 
 #### STEP 2:
-Install the latest version of Python 3 (make sure you install pip and add it to PATH):
+Install the latest version of Python 3 (make sure you install pip and add it to PATH):  
 https://www.python.org/downloads/
 
 #### STEP 3:

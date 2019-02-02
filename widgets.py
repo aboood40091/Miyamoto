@@ -1520,7 +1520,11 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         """
         Removes the current preset.
         """
-        os.remove("miyamotodata/qpsp/" + self.comboBox_4.currentText() + ".qpp")
+        try:
+            os.remove("miyamotodata/qpsp/" + self.comboBox_4.currentText() + ".qpp")
+        except FileNotFoundError:
+            return
+
         index = self.comboBox_4.currentIndex()
         self.comboBox_4.removeItem(index)
 
@@ -2692,7 +2696,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         layout.addWidget(QtWidgets.QLabel('Path Node Index:'), 15, 0)
         layout.addWidget(QtWidgets.QLabel('Unknown 0x16:'), 16, 0)
         layout.addWidget(self.otherID, 12, 1)
-        layout.addWidget(self.goto, 12, 2)
+        layout.addWidget(self.goto, 12, 3)
         layout.addWidget(self.unk13, 13, 1)
         layout.addWidget(self.scrollPathID, 14, 1)
         layout.addWidget(self.pathnodeindex, 15, 1)

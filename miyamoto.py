@@ -1568,8 +1568,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         noteText = item.text(1)
         self.eventNotesEditor.setText(noteText)
+
         selIdx = self.eventChooserItems.index(item)
-        if item.checkState(0):
+        if selIdx > 31:
+            _selIdx = selIdx - 32
+            isOn = (globals.Area.eventBits64 & 1 << _selIdx) == 1 << _selIdx
+
+        else:
+            isOn = (globals.Area.eventBits32 & 1 << selIdx) == 1 << selIdx
+
+        if item.checkState(0) == Qt.Checked and not isOn:
             # Turn a bit on
             if selIdx > 31:
                 selIdx -= 32
@@ -1577,7 +1585,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             else:
                 globals.Area.eventBits32 |= 1 << selIdx
-        else:
+            SetDirty()
+        elif item.checkState(0) == Qt.Unchecked and isOn:
             # Turn a bit off (invert, turn on, invert)
             if selIdx > 31:
                 selIdx -= 32
@@ -1589,6 +1598,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 globals.Area.eventBits32 = ~globals.Area.eventBits32
                 globals.Area.eventBits32 |= 1 << selIdx
                 globals.Area.eventBits32 = ~globals.Area.eventBits32
+            SetDirty()
 
     def handleEventNotesEdit(self):
         """
@@ -2632,6 +2642,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('ShowSpriteImages', globals.SpriteImagesShown)
 
         if globals.Area is not None:
+            globals.DirtyOverride += 1
             for spr in globals.Area.sprites:
                 spr.UpdateRects()
                 if globals.SpriteImagesShown:
@@ -2644,6 +2655,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         spr.objx * (globals.TileWidth / 16),
                         spr.objy * (globals.TileWidth / 16),
                     )
+            globals.DirtyOverride -= 1
 
         self.scene.update()
 
@@ -3500,7 +3512,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             self.actions['deselect'].setEnabled(False)
 
-        if updateModeInfo: self.UpdateModeInfo()
+        if updateModeInfo:
+            globals.DirtyOverride += 1
+            self.UpdateModeInfo()
+            globals.DirtyOverride -= 1
 
     def HandleObjPosChange(self, obj, oldx, oldy, x, y):
         """

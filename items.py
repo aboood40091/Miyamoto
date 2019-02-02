@@ -1420,10 +1420,16 @@ class SpriteItem(LevelEditorItem):
         self.setFlag(self.ItemIsSelectable, not globals.SpritesFrozen)
 
         globals.DirtyOverride += 1
-        self.setPos(
-            int((self.objx + self.ImageObj.xOffset) * globals.TileWidth / 16),
-            int((self.objy + self.ImageObj.yOffset) * globals.TileWidth / 16),
-        )
+        if globals.SpriteImagesShown:
+            self.setPos(
+                int((self.objx + self.ImageObj.xOffset) * globals.TileWidth / 16),
+                int((self.objy + self.ImageObj.yOffset) * globals.TileWidth / 16),
+            )
+        else:
+            self.setPos(
+                int(self.objx * globals.TileWidth / 16),
+                int(self.objy * globals.TileWidth / 16),
+            )
         globals.DirtyOverride -= 1
 
     def SetType(self, type):
@@ -1581,6 +1587,9 @@ class SpriteItem(LevelEditorItem):
             SLib.SpriteImagesLoaded.add(self.type)
         self.ImageObj = obj(self)
 
+        if not globals.SpriteImagesShown:
+            return
+
         self.UpdateDynamicSizing()
         self.UpdateRects()
         self.ChangingPos = True
@@ -1589,7 +1598,7 @@ class SpriteItem(LevelEditorItem):
             int((self.objy + self.ImageObj.yOffset) * globals.TileWidth / 16),
         )
         self.ChangingPos = False
-        if self.scene() is not None: self.scene().update()
+        self.updateScene()
 
     def UpdateDynamicSizing(self):
         """
@@ -1829,12 +1838,29 @@ class SpriteItem(LevelEditorItem):
 
         return QtWidgets.QGraphicsItem.itemChange(self, change, value)
 
+    def setNewObjPos(self, newobjx, newobjy):
+        """
+        Sets a new position, through objx and objy
+        """
+        self.objx, self.objy = newobjx, newobjy
+        if globals.SpriteImagesShown:
+            self.setPos((newobjx + self.ImageObj.xOffset) * globals.TileWidth / 16, (newobjy + self.ImageObj.yOffset) * globals.TileWidth / 16)
+        else:
+            self.setPos(newobjx * globals.TileWidth / 16, newobjy * globals.TileWidth / 16)
+
     def mousePressEvent(self, event):
         """
         Overrides mouse pressing events if needed for cloning
         """
         if event.button() != Qt.LeftButton or QtWidgets.QApplication.keyboardModifiers() != Qt.ControlModifier:
+            if not globals.SpriteImagesShown:
+                oldpos = (self.objx, self.objy)
+
             LevelEditorItem.mousePressEvent(self, event)
+
+            if not globals.SpriteImagesShown:
+                self.setNewObjPos(oldpos[0], oldpos[1])
+
             return
 
         newitem = SpriteItem(self.type, self.objx, self.objy, self.spritedata)
