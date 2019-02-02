@@ -27,9 +27,9 @@
 26:Boss Entrance (Falling Right)
 27:Door Entrance
 28:Unknown (Crash)
-29:Unknown (Freeze)
-30:Unknown
-31:Unknown
-32:Unknown
+29:Credits (Player 1)
+30:Credits (Player 2)
+31:Credits (Player 3)
+32:Credits (Player 4)
 33:Title Screen
-34:Ambush entrance (center)
+34:Ambush entrance (Center)
