@@ -40,7 +40,6 @@ GitHub: https://github.com/aboood40091/Miyamoto/tree/deluxe
 ----------------------------------------------------------------
 
 ### TODO
-- Get unknown entrance fields figured out
 - Get unknown area fields figured out
 - Sprite images / HD screenshots (a lot of them)
 - Improve Zones and Objects resizing

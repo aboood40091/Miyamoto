@@ -2592,47 +2592,39 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.faceLeftCheckbox.setToolTip("Makes the player face left when spawning")
         self.faceLeftCheckbox.clicked.connect(self.HandleFaceLeftClicked)
 
-        self.allPlayersCheckbox = QtWidgets.QCheckBox("All players")
-        self.allPlayersCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
-        self.allPlayersCheckbox.clicked.connect(self.HandleAllPlayersClicked)
-
         self.player1Checkbox = QtWidgets.QCheckBox("Player 1")
-        self.allPlayersCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
+        self.player1Checkbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
         self.player1Checkbox.clicked.connect(self.HandlePlayer1Clicked)
-        self.player1Checkbox.setEnabled(False)
 
         self.player2Checkbox = QtWidgets.QCheckBox("Player 2")
-        self.allPlayersCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
+        self.player2Checkbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
         self.player2Checkbox.clicked.connect(self.HandlePlayer2Clicked)
-        self.player2Checkbox.setEnabled(False)
 
         self.player3Checkbox = QtWidgets.QCheckBox("Player 3")
-        self.allPlayersCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
+        self.player3Checkbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
         self.player3Checkbox.clicked.connect(self.HandlePlayer3Clicked)
-        self.player3Checkbox.setEnabled(False)
 
         self.player4Checkbox = QtWidgets.QCheckBox("Player 4")
-        self.allPlayersCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
+        self.player4Checkbox.setToolTip(globals.trans.string('EntranceDataEditor', 29))
         self.player4Checkbox.clicked.connect(self.HandlePlayer4Clicked)
-        self.player4Checkbox.setEnabled(False)
 
-        self.unk0F = QtWidgets.QSpinBox()
-        self.unk0F.setRange(0, 2)
-        self.unk0F.setToolTip('Ambush related?')
-        self.unk0F.valueChanged.connect(self.HandleUnk0F)
+        self.playerDistance = QtWidgets.QComboBox()
+        self.playerDistance.addItems(["1 block", "1.5 blocks", "2 blocks"])
+        self.playerDistance.setToolTip('Distance between players. Only works with entrance types 25 and 34.')
+        self.playerDistance.activated.connect(self.HandlePlayerDistanceChanged)
 
         self.otherID = QtWidgets.QSpinBox()
         self.otherID.setRange(0, 255)
-        self.otherID.setToolTip('Links this entrance with another entrance. Purpose is unknown.')
+        self.otherID.setToolTip('The ID of the entrance where Baby Yoshis spawn when entering the level (or area?).\nValue of 0 makes the Baby Yoshis spawn at the same entrance.')
         self.otherID.valueChanged.connect(self.HandleOtherID)
 
         self.goto = QtWidgets.QPushButton("Goto")
         self.goto.clicked.connect(self.GotoOtherEntrance)
 
-        self.unk13 = QtWidgets.QSpinBox()
-        self.unk13.setRange(0, 255)
-        self.unk13.setToolTip('Related to camera movement. Value of 1 makes the camera zoom in if the zone zoom is < 0, or out if it\'s >= 0.')
-        self.unk13.valueChanged.connect(self.HandleUnk13)
+        self.coinOrder = QtWidgets.QSpinBox()
+        self.coinOrder.setRange(0, 255)
+        self.coinOrder.setToolTip('Used in coin edit to determine the order of entrances.\nIf there are multiple entrances with the same order, the game picks the first one it finds.')
+        self.coinOrder.valueChanged.connect(self.HandleCoinOrder)
 
         self.scrollPathID = QtWidgets.QSpinBox()
         self.scrollPathID.setRange(0, 255)
@@ -2644,10 +2636,10 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.pathnodeindex.setToolTip('The Path Node Index, for autoscroll purposes.')
         self.pathnodeindex.valueChanged.connect(self.HandlePathNodeIndex)
 
-        self.unk16 = QtWidgets.QSpinBox()
-        self.unk16.setRange(0, 10)
-        self.unk16.setToolTip('Unknown 0x16')
-        self.unk16.valueChanged.connect(self.HandleUnk16)
+        self.transition = QtWidgets.QComboBox()
+        self.transition.addItems(["Default", "Fade", "Mario face", "Circle towards center", "Bowser face", "Circle towards entrance", "Waves (always down)", "Waves (down on fadeout, up on fadein)", "Waves (up on fadeout, down on fadein)", "Mushroom", "Circle towards entrance", "No transition"])
+        self.transition.setToolTip('The screen fades out with the transition mode of the source entrance, and fades in with the transition mode of the destination entrance.')
+        self.transition.activated.connect(self.HandleTransitionChanged)
 
         # create a layout
         layout = QtWidgets.QGridLayout()
@@ -2661,7 +2653,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 2)), 1, 0, 1, 1, Qt.AlignRight)
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 0)), 3, 0, 1, 1, Qt.AlignRight)
 
-        layout.addWidget(createHorzLine(), 2, 0, 1, 6)
+        layout.addWidget(createHorzLine(), 2, 0, 1, 5)
 
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 4)), 3, 2, 1, 1, Qt.AlignRight)
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 6)), 4, 2, 1, 1, Qt.AlignRight)
@@ -2672,37 +2664,36 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         layout.addWidget(self.destEntrance, 3, 3, 1, 1)
         layout.addWidget(self.destArea, 4, 3, 1, 1)
 
-        layout.addWidget(createHorzLine(), 5, 0, 1, 6)
+        layout.addWidget(createHorzLine(), 5, 0, 1, 5)
 
-        layout.addWidget(self.allowEntryCheckbox, 6, 0, 1, 2)  # , Qt.AlignRight)
-        layout.addWidget(self.faceLeftCheckbox, 6, 2, 1, 2)  # , Qt.AlignRight)
+        layout.addWidget(self.allowEntryCheckbox, 6, 1, 1, 2)  # , Qt.AlignRight)
+        layout.addWidget(self.faceLeftCheckbox, 6, 3, 1, 2)  # , Qt.AlignRight)
 
-        layout.addWidget(createHorzLine(), 7, 0, 1, 6)
+        layout.addWidget(createHorzLine(), 7, 0, 1, 5)
 
-        layout.addWidget(QtWidgets.QLabel('Players to spawn (ambush):'), 9, 0)
-        layout.addWidget(self.allPlayersCheckbox, 9, 1)
-        layout.addWidget(self.player1Checkbox, 9, 2)
-        layout.addWidget(self.player2Checkbox, 9, 3)
-        layout.addWidget(self.player3Checkbox, 9, 4)
-        layout.addWidget(self.player4Checkbox, 9, 5)
-        layout.addWidget(QtWidgets.QLabel('Unknown 0x0F:'), 10, 0)
-        layout.addWidget(self.unk0F, 10, 1)
+        layout.addWidget(QtWidgets.QLabel('Players to spawn:'), 9, 0)
+        layout.addWidget(self.player1Checkbox, 9, 1)
+        layout.addWidget(self.player2Checkbox, 9, 2)
+        layout.addWidget(self.player3Checkbox, 9, 3)
+        layout.addWidget(self.player4Checkbox, 9, 4)
+        layout.addWidget(QtWidgets.QLabel('Players Distance:'), 10, 0)
+        layout.addWidget(self.playerDistance, 10, 1, 1, 3)
 
-        layout.addWidget(createHorzLine(), 11, 0, 1, 6)
+        layout.addWidget(createHorzLine(), 11, 0, 1, 5)
 
-        layout.addWidget(QtWidgets.QLabel('Other Entrance ID:'), 12, 0)
-        layout.addWidget(QtWidgets.QLabel('Camera related:'), 13, 0)
+        layout.addWidget(QtWidgets.QLabel('Baby Yoshi Entrance ID:'), 12, 0)
+        layout.addWidget(QtWidgets.QLabel('Entrance Order:'), 13, 0)
         layout.addWidget(QtWidgets.QLabel('Path ID:'), 14, 0)
         layout.addWidget(QtWidgets.QLabel('Path Node Index:'), 15, 0)
-        layout.addWidget(QtWidgets.QLabel('Unknown 0x16:'), 16, 0)
+        layout.addWidget(QtWidgets.QLabel('Transition:'), 16, 0)
         layout.addWidget(self.otherID, 12, 1)
         layout.addWidget(self.goto, 12, 3)
-        layout.addWidget(self.unk13, 13, 1)
+        layout.addWidget(self.coinOrder, 13, 1)
         layout.addWidget(self.scrollPathID, 14, 1)
         layout.addWidget(self.pathnodeindex, 15, 1)
-        layout.addWidget(self.unk16, 16, 1)
+        layout.addWidget(self.transition, 16, 1)
 
-        layout.addWidget(createHorzLine(), 17, 0, 1, 6)
+        layout.addWidget(createHorzLine(), 17, 0, 1, 5)
 
         layout.addWidget(QtWidgets.QLabel('Camera X:'), 18, 0, 1, 1, Qt.AlignRight)
         layout.addWidget(QtWidgets.QLabel('Camera Y:'), 18, 2, 1, 1, Qt.AlignRight)
@@ -2728,28 +2719,19 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.entranceType.setCurrentIndex(ent.enttype)
         self.destArea.setValue(ent.destarea)
         self.destEntrance.setValue(ent.destentrance)
-        self.unk0F.setValue(ent.unk0F)
+        self.playerDistance.setCurrentIndex(ent.playerDistance)
         self.otherID.setValue(ent.otherID)
-        self.unk13.setValue(ent.unk13)
+        self.coinOrder.setValue(ent.coinOrder)
         self.scrollPathID.setValue(ent.pathID)
         self.pathnodeindex.setValue(ent.pathnodeindex)
-        self.unk16.setValue(ent.unk16)
+        self.transition.setCurrentIndex(ent.transition)
 
-        self.allPlayersCheckbox.setChecked(((ent.ambushPlayers & 0xF) == 0))
         self.allowEntryCheckbox.setChecked(((ent.entsettings & 0x80) == 0))
         self.faceLeftCheckbox.setChecked(((ent.entsettings & 1) != 0))
-
-        self.player1Checkbox.setChecked(((ent.ambushPlayers & 1) != 0))
-        self.player1Checkbox.setEnabled(((ent.ambushPlayers & 0xF) != 0))
-
-        self.player2Checkbox.setChecked(((ent.ambushPlayers & 2) != 0))
-        self.player2Checkbox.setEnabled(((ent.ambushPlayers & 0xF) != 0))
-
-        self.player3Checkbox.setChecked(((ent.ambushPlayers & 4) != 0))
-        self.player3Checkbox.setEnabled(((ent.ambushPlayers & 0xF) != 0))
-
-        self.player4Checkbox.setChecked(((ent.ambushPlayers & 8) != 0))
-        self.player4Checkbox.setEnabled(((ent.ambushPlayers & 0xF) != 0))
+        self.player1Checkbox.setChecked(((ent.players & 1) != 0))
+        self.player2Checkbox.setChecked(((ent.players & 2) != 0))
+        self.player3Checkbox.setChecked(((ent.players & 4) != 0))
+        self.player4Checkbox.setChecked(((ent.players & 8) != 0))
 
         self.UpdateFlag = False
 
@@ -2818,10 +2800,10 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    def HandleUnk0F(self, i):
+    def HandlePlayerDistanceChanged(self, i):
         if self.UpdateFlag: return
         SetDirty()
-        self.ent.unk0F = i
+        self.ent.playerDistance = i
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
@@ -2844,10 +2826,10 @@ class EntranceEditorWidget(QtWidgets.QWidget):
             globals.mainWindow.view.centerOn(otherEnt.objx * (globals.TileWidth / 16), otherEnt.objy * (globals.TileWidth / 16))
         
 
-    def HandleUnk13(self, i):
+    def HandleCoinOrder(self, i):
         if self.UpdateFlag: return
         SetDirty()
-        self.ent.unk13 = i
+        self.ent.coinOrder = i
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
@@ -2865,10 +2847,10 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    def HandleUnk16(self, i):
+    def HandleTransitionChanged(self, i):
         if self.UpdateFlag: return
         SetDirty()
-        self.ent.unk16 = i
+        self.ent.transition = i
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
@@ -2898,26 +2880,6 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
-    def HandleAllPlayersClicked(self, checked):
-        """
-        Handle for the All Players checkbox being clicked
-        """
-        if self.UpdateFlag: return
-        SetDirty()
-        if checked:
-            self.ent.ambushPlayers &= ~0xF
-            self.player1Checkbox.setEnabled(False)
-            self.player2Checkbox.setEnabled(False)
-            self.player3Checkbox.setEnabled(False)
-            self.player4Checkbox.setEnabled(False)
-        else:
-            self.player1Checkbox.setEnabled(True)
-            self.player2Checkbox.setEnabled(True)
-            self.player3Checkbox.setEnabled(True)
-            self.player4Checkbox.setEnabled(True)
-        self.ent.UpdateTooltip()
-        self.ent.UpdateListItem()
-
     def HandlePlayer1Clicked(self, checked):
         """
         Handle for the Player 1 checkbox being clicked
@@ -2925,9 +2887,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         if self.UpdateFlag: return
         SetDirty()
         if checked:
-            self.ent.ambushPlayers |= 1
+            self.ent.players |= 1
         else:
-            self.ent.ambushPlayers &= ~1
+            self.ent.players &= ~1
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
@@ -2938,9 +2900,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         if self.UpdateFlag: return
         SetDirty()
         if checked:
-            self.ent.ambushPlayers |= 2
+            self.ent.players |= 2
         else:
-            self.ent.ambushPlayers &= ~2
+            self.ent.players &= ~2
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
@@ -2951,9 +2913,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         if self.UpdateFlag: return
         SetDirty()
         if checked:
-            self.ent.ambushPlayers |= 4
+            self.ent.players |= 4
         else:
-            self.ent.ambushPlayers &= ~4
+            self.ent.players &= ~4
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
@@ -2964,9 +2926,9 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         if self.UpdateFlag: return
         SetDirty()
         if checked:
-            self.ent.ambushPlayers |= 8
+            self.ent.players |= 8
         else:
-            self.ent.ambushPlayers &= ~8
+            self.ent.players &= ~8
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
