@@ -3746,7 +3746,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 for ent in globals.Area.entrances: getids[ent.entid] = True
                 minimumID = getids.index(False)
 
-                ent = EntranceItem(clickedx, clickedy, 0, 0, minimumID, 0, 0, 0, 0, 0, 0, 0, 0x80, 0, 0, 0, 0, 0)
+                ent = EntranceItem(clickedx, clickedy, 0, 0, minimumID, 0, 0, 0, 0, 0, 0, 0x80, 0, 0, 0, 0, 0)
                 mw = globals.mainWindow
                 ent.positionChanged = mw.HandleEntPosChange
                 mw.scene.addItem(ent)
