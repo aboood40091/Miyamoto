@@ -2928,12 +2928,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             globals.DirtyOverride += 1
             for spr in globals.Area.sprites:
                 spr.UpdateRects()
-                if globals.SpriteImagesShown:
+                if globals.SpriteImagesShown and not globals.Initializing:
                     spr.setPos(
                         (spr.objx + spr.ImageObj.xOffset) * (globals.TileWidth / 16),
                         (spr.objy + spr.ImageObj.yOffset) * (globals.TileWidth / 16),
                     )
-                else:
+                elif not globals.Initializing:
                     spr.setPos(
                         spr.objx * (globals.TileWidth / 16),
                         spr.objy * (globals.TileWidth / 16),

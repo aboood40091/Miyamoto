@@ -1585,20 +1585,9 @@ class SpriteItem(LevelEditorItem):
         if (self.type in globals.gamedef.getImageClasses()) and (self.type not in SLib.SpriteImagesLoaded):
             globals.gamedef.getImageClasses()[self.type].loadImages()
             SLib.SpriteImagesLoaded.add(self.type)
+
         self.ImageObj = obj(self)
-
-        if not globals.SpriteImagesShown:
-            return
-
         self.UpdateDynamicSizing()
-        self.UpdateRects()
-        self.ChangingPos = True
-        self.setPos(
-            int((self.objx + self.ImageObj.xOffset) * globals.TileWidth / 16),
-            int((self.objy + self.ImageObj.yOffset) * globals.TileWidth / 16),
-        )
-        self.ChangingPos = False
-        self.updateScene()
 
     def UpdateDynamicSizing(self):
         """
@@ -1615,14 +1604,15 @@ class SpriteItem(LevelEditorItem):
             ))
 
         self.ImageObj.dataChanged()
-        self.UpdateRects()
 
-        self.ChangingPos = True
-        self.setPos(
-            int((self.objx + self.ImageObj.xOffset) * globals.TileWidth / 16),
-            int((self.objy + self.ImageObj.yOffset) * globals.TileWidth / 16),
-        )
-        self.ChangingPos = False
+        if globals.SpriteImagesShown:
+            self.UpdateRects()
+            self.ChangingPos = True
+            self.setPos(
+                int((self.objx + self.ImageObj.xOffset) * globals.TileWidth / 16),
+                int((self.objy + self.ImageObj.yOffset) * globals.TileWidth / 16),
+            )
+            self.ChangingPos = False
 
         if self.scene() is not None:
             self.scene().update(CurrentRect)
