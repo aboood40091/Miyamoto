@@ -1759,6 +1759,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Handles the "Remove Stamp" btn being clicked
         """
         self.stampChooser.removeStamp(self.stampChooser.currentlySelectedStamp())
+        self.handleStampSelectionChanged()
 
     def handleStampsOpen(self):
         """
@@ -1790,13 +1791,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     i += 3
 
                 except IndexError:
-                    # Meh. Malformed stamps file.
-                    i += 9999  # avoid infinite loops
-                    continue
+                    return
 
-                stamps.append(Stamp(rc, name))
-
-        for stamp in stamps: self.stampChooser.addStamp(stamp)
+                else:
+                    self.stampChooser.addStamp(Stamp(rc, name))
 
     def handleStampsSave(self):
         """
@@ -1837,6 +1835,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Called when the user edits the name of the current stamp
         """
         stamp = self.stampChooser.currentlySelectedStamp()
+        if not stamp:
+            return
+
         text = self.stampNameEdit.text()
         stamp.Name = text
         stamp.update()
@@ -2016,7 +2017,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if len(clip) > 300:
             result = QtWidgets.QMessageBox.warning(self, 'Miyamoto!', globals.trans.string('MainWindow', 1),
                                                    QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-            if result == QtWidgets.QMessageBox.No: return
+            if result != QtWidgets.QMessageBox.Yes: return
 
         layers, sprites = self.getEncodedObjects(encoded)
 
@@ -2084,7 +2085,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 z += 1
 
         # now center everything
-        zoomscaler = (self.ZoomLevel / 100.0)
+        zoomscaler = ((self.ZoomLevel / globals.TileWidth * 24) / 100.0)
         width = x2 - x1 + 1
         height = y2 - y1 + 1
         viewportx = (self.view.XScrollBar.value() / zoomscaler) / globals.TileWidth
@@ -2313,7 +2314,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             loc = LocationItem(newx, newy, neww - newx, newh - newy, newID)
 
-            mw = globals.mainWindow
+            mw = self
             loc.positionChanged = mw.HandleObjPosChange
             mw.scene.addItem(loc)
 
@@ -2683,7 +2684,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Save a level back to the archive
         """
-        if not globals.mainWindow.fileSavePath:
+        if not self.fileSavePath:
             if not self.HandleSaveAs():
                 return False
 
@@ -2699,11 +2700,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         data = globals.Level.save(name)
         globals.levelNameCache = name
         try:
-            if globals.mainWindow.fileSavePath.endswith('.szs'):
+            if self.fileSavePath.endswith('.szs'):
                 CompYaz0(data, self.fileSavePath, globals.CompLevel)
 
             else:
-                with open(globals.mainWindow.fileSavePath, 'wb+') as f:
+                with open(self.fileSavePath, 'wb+') as f:
                     f.write(data)
 
         except IOError as e:
@@ -2724,7 +2725,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Save a level back to the archive
         """
-        if not globals.mainWindow.fileSavePath:
+        if not self.fileSavePath:
             if not self.HandleSaveAs():
                 return False
             else:
@@ -2739,11 +2740,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         data = globals.Level.saveNewArea(name, course, L0, L1, L2)
         globals.levelNameCache = name
         try:
-            if globals.mainWindow.fileSavePath.endswith('.szs'):
+            if self.fileSavePath.endswith('.szs'):
                 CompYaz0(data, self.fileSavePath, globals.CompLevel)
 
             else:
-                with open(globals.mainWindow.fileSavePath, 'wb+') as f:
+                with open(self.fileSavePath, 'wb+') as f:
                     f.write(data)
 
         except IOError as e:
@@ -3534,8 +3535,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         QuickPaintOperations.object_search_database = {}
 
         # Set the level overview settings
-        globals.mainWindow.levelOverview.maxX = 100
-        globals.mainWindow.levelOverview.maxY = 40
+        self.levelOverview.maxX = 100
+        self.levelOverview.maxY = 40
 
         # Fill up the area list
         self.areaComboBox.clear()
@@ -3983,6 +3984,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             CPT = 9  # comment
 
         globals.CurrentPaintType = CPT
+        globals.CurrentObject = -1
 
     def ObjTabChanged(self, nt):
         """
@@ -4171,7 +4173,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     if globals.ObjectDefinitions[idx][objNum] is None:
                         break
 
+                    # Check if the object is deletable
                     instanceFound = False
+
+                    ## Check if the object is in the scene
                     for layer in globals.Area.layers:
                         for obj in layer:
                             if obj.tileset == idx and obj.type == objNum:
@@ -4180,6 +4185,31 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                                 if not instancesFound:
                                     instancesFound = True
+
+                    ## Check if the object is used as a stamp
+                    for stamp in self.stampChooser.model.items:
+                        layers, _ = self.getEncodedObjects(stamp.MiyamotoClip)
+                        for layer in layers:
+                            for obj in layer:
+                                if obj.tileset == idx and obj.type == objNum:
+                                    if not instanceFound:
+                                        instanceFound = True
+
+                                    if not instancesFound:
+                                        instancesFound = True
+
+                    ## Check if the object is in the clipboard
+                    if self.clipboard is not None:
+                        if self.clipboard.startswith('MiyamotoClip|') and self.clipboard.endswith('|%'):
+                            layers, _ = self.getEncodedObjects(self.clipboard)
+                            for layer in layers:
+                                for obj in layer:
+                                    if obj.tileset == idx and obj.type == objNum:
+                                        if not instanceFound:
+                                            instanceFound = True
+
+                                        if not instancesFound:
+                                            instancesFound = True
 
                     if instanceFound:
                         objNum += 1
@@ -4196,11 +4226,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if not (globals.Area.tileset1 or globals.Area.tileset2 or globals.Area.tileset3):
                     globals.CurrentObject = -1
 
-                globals.mainWindow.scene.update()
+                self.scene.update()
                 SetDirty()
 
             if instancesFound:
-                dlgTxt = "Some objects couldn't be deleted because there are instances of them in the level scene."
+                dlgTxt = "Some objects couldn't be deleted because either there are instances of them in the level scene, they are used as stamps or they are in the clipboard."
 
                 QtWidgets.QMessageBox.critical(self, 'Cannot Delete', dlgTxt)
 
@@ -5090,21 +5120,21 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         dlg = ScreenCapChoiceDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
-            fn = QtWidgets.QFileDialog.getSaveFileName(globals.mainWindow, globals.trans.string('FileDlgs', 3), '/untitled.png',
+            fn = QtWidgets.QFileDialog.getSaveFileName(self, globals.trans.string('FileDlgs', 3), '/untitled.png',
                                                        globals.trans.string('FileDlgs', 4) + ' (*.png)')[0]
             if fn == '': return
             fn = str(fn)
 
             if dlg.zoneCombo.currentIndex() == 0:
-                ScreenshotImage = QtGui.QImage(globals.mainWindow.view.width(), globals.mainWindow.view.height(),
+                ScreenshotImage = QtGui.QImage(self.view.width(), self.view.height(),
                                                QtGui.QImage.Format_ARGB32)
                 ScreenshotImage.fill(Qt.transparent)
 
                 RenderPainter = QtGui.QPainter(ScreenshotImage)
-                globals.mainWindow.view.render(RenderPainter,
-                                       QtCore.QRectF(0, 0, globals.mainWindow.view.width(), globals.mainWindow.view.height()),
+                self.view.render(RenderPainter,
+                                       QtCore.QRectF(0, 0, self.view.width(), self.view.height()),
                                        QtCore.QRect(QtCore.QPoint(0, 0),
-                                                    QtCore.QSize(globals.mainWindow.view.width(), globals.mainWindow.view.height())))
+                                                    QtCore.QSize(self.view.width(), self.view.height())))
                 RenderPainter.end()
             elif dlg.zoneCombo.currentIndex() == 1:
                 maxX = maxY = 0
@@ -5127,7 +5157,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 ScreenshotImage.fill(Qt.transparent)
 
                 RenderPainter = QtGui.QPainter(ScreenshotImage)
-                globals.mainWindow.scene.render(RenderPainter, QtCore.QRectF(0, 0, int(maxX - minX), int(maxY - minY)),
+                self.scene.render(RenderPainter, QtCore.QRectF(0, 0, int(maxX - minX), int(maxY - minY)),
                                         QtCore.QRectF(int(minX), int(minY), int(maxX - minX), int(maxY - minY)))
                 RenderPainter.end()
 
@@ -5139,7 +5169,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 ScreenshotImage.fill(Qt.transparent)
 
                 RenderPainter = QtGui.QPainter(ScreenshotImage)
-                globals.mainWindow.scene.render(RenderPainter, QtCore.QRectF(0, 0, globals.Area.zones[i].width * globals.TileWidth / 16,
+                self.scene.render(RenderPainter, QtCore.QRectF(0, 0, globals.Area.zones[i].width * globals.TileWidth / 16,
                                                                      globals.Area.zones[i].height * globals.TileWidth / 16),
                                         QtCore.QRectF(int(globals.Area.zones[i].objx) * globals.TileWidth / 16,
                                                       int(globals.Area.zones[i].objy) * globals.TileWidth / 16,

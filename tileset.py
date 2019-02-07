@@ -1017,7 +1017,7 @@ def HandleTilesetEdited(fromPuzzle=False):
 
 
 def DeleteObject(idx, objNum):
-    # Replace the object's tiles with transparent tiles
+    # Get the tiles used by this object
     obj = globals.ObjectDefinitions[idx][objNum]
     usedTiles = []
     for row in obj.rows:
@@ -1082,6 +1082,35 @@ def DeleteObject(idx, objNum):
             if obj.tileset == idx:
                 if obj.type > objNum:
                     obj.SetType(obj.tileset, obj.type - 1)
+
+    for stamp in globals.mainWindow.stampChooser.model.items:
+        layers, sprites = globals.mainWindow.getEncodedObjects(stamp.MiyamotoClip)
+        objects = []
+
+        for layer in layers:
+            for obj in layer:
+                if obj.tileset == idx:
+                    if obj.type > objNum:
+                        obj.SetType(obj.tileset, obj.type - 1)
+
+                objects.append(obj)
+
+        stamp.MiyamotoClip = globals.mainWindow.encodeObjects(objects, sprites)
+
+    if globals.mainWindow.clipboard is not None:
+        if globals.mainWindow.clipboard.startswith('MiyamotoClip|') and globals.mainWindow.clipboard.endswith('|%'):
+            layers, sprites = globals.mainWindow.getEncodedObjects(globals.mainWindow.clipboard)
+            objects = []
+
+            for layer in layers:
+                for obj in layer:
+                    if obj.tileset == idx:
+                        if obj.type > objNum:
+                            obj.SetType(obj.tileset, obj.type - 1)
+
+                    objects.append(obj)
+
+            globals.mainWindow.clipboard = globals.mainWindow.encodeObjects(objects, sprites)
 
 
 def generateTilesetNames():

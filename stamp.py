@@ -91,8 +91,8 @@ class Stamp:
 
         # Go through the things again and shift them by the offset amount
         for spr in sprites:
-            spr.objx -= offsetX / globals.TileWidth / 16
-            spr.objy -= offsetY / globals.TileWidth / 16
+            spr.objx -= offsetX / (globals.TileWidth / 16)
+            spr.objy -= offsetY / (globals.TileWidth / 16)
         for layer in layers:
             for obj in layer:
                 obj.objx -= offsetX // globals.TileWidth

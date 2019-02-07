@@ -1634,10 +1634,10 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
         if objNum == -1: return
 
-        # From Satoru
-        ## Checks if the object is deletable
+        # Check if the object is deletable
         matchingObjs = []
 
+        ## Check if the object is in the scene
         for layer in globals.Area.layers:
             for obj in layer:
                 if obj.tileset == idx and obj.type == objNum:
@@ -1651,6 +1651,61 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
             QtWidgets.QMessageBox.critical(self, 'Cannot Delete', dlgTxt)
             return
+
+        ## Check if the object is used as a stamp
+        usedAsStamp = False
+        for stamp in globals.mainWindow.stampChooser.model.items:
+            layers, _ = globals.mainWindow.getEncodedObjects(stamp.MiyamotoClip)
+            for layer in layers:
+                for obj in layer:
+                    if obj.tileset == idx and obj.type == objNum:
+                        usedAsStamp = True
+                        break
+                if usedAsStamp: break
+            if usedAsStamp: break
+
+        if usedAsStamp:
+            dlgTxt = "You can't delete this object because it is used as a stamp."
+            dlgTxt += '\nPlease remove the stamp before deleting this object.'
+
+            QtWidgets.QMessageBox.critical(self, 'Cannot Delete', dlgTxt)
+            return
+
+        ## Check if the object is in the clipboard
+        inClipboard = False
+        if globals.mainWindow.clipboard is not None:
+            if globals.mainWindow.clipboard.startswith('MiyamotoClip|') and globals.mainWindow.clipboard.endswith('|%'):
+                layers, _ = globals.mainWindow.getEncodedObjects(globals.mainWindow.clipboard)
+                for layer in layers:
+                    for obj in layer:
+                        if obj.tileset == idx and obj.type == objNum:
+                            inClipboard = True
+                            break
+                    if inClipboard:
+                        break
+
+        if inClipboard:
+            dlgTxt = "You can't delete this object because it is in the clipboard."
+            dlgTxt += '\nDo you want to empty the clipboard?.'
+
+            result = QtWidgets.QMessageBox.warning(self, 'Cannot Delete', dlgTxt,
+                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if result != QtWidgets.QMessageBox.Yes:
+                return
+
+            # Empty the clipboard
+            globals.mainWindow.clipboard = None
+            globals.mainWindow.actions['paste'].setEnabled(False)
+
+            dlgTxt = "The clipboard has been emptied."
+            dlgTxt += '\nDo you want to proceed with deleting the object?'
+
+            result = QtWidgets.QMessageBox.warning(self, 'Cannot Delete', dlgTxt,
+                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if result != QtWidgets.QMessageBox.Yes:
+                return
 
         DeleteObject(idx, objNum)
         HandleTilesetEdited()
