@@ -33,6 +33,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
 import globals
+from misc import setting
 # from loading import LoadLevelNames
 
 #################################
@@ -142,13 +143,14 @@ class MiyamotoTheme:
         Initializes the theme
         """
         self.initAsClassic()
-        if folder is not None: self.initFromFolder(folder)
+        if folder and folder != "Classic": self.initFromFolder(folder)
 
     def initAsClassic(self):
         """
         Initializes the theme as the hardcoded Classic theme
         """
         self.fileName = 'Classic'
+        self.styleSheet = ''
         self.formatver = 1.0
         self.version = 1.0
         self.themeName = globals.trans.string('Themes', 0)
@@ -157,6 +159,8 @@ class MiyamotoTheme:
         self.iconCacheSm = {}
         self.iconCacheLg = {}
         self.style = None
+        self.forceUiColor = False
+        self.forceStyleSheet = False
 
         # Add the colours                                             # Descriptions:
         self.colors = {
@@ -234,6 +238,12 @@ class MiyamotoTheme:
                 # Load the colors XML
                 self.loadColorsXml(os.path.join(folder, node.attrib['file']))
 
+            elif node.tag.lower() == 'qss':
+                if 'file' not in node.attrib: continue
+
+                # Load the style sheet
+                self.loadStyleSheet(os.path.join(folder, node.attrib['file']))
+
             elif node.tag.lower() == 'icons':
                 if not all(thing in node.attrib for thing in ['size', 'folder']): continue
 
@@ -278,6 +288,7 @@ class MiyamotoTheme:
         Parses the main attributes of main.xml
         """
         MaxSupportedXMLVersion = 1.0
+        self.styleSheet = ''
 
         # Check for required attributes
         if root.tag.lower() != 'theme': return False
@@ -290,7 +301,9 @@ class MiyamotoTheme:
         else:
             return False
 
-        if self.formatver > MaxSupportedXMLVersion: return False
+        if self.formatver > MaxSupportedXMLVersion:
+            return False
+
         if 'name' in root.attrib:
             self.themeName = root.attrib['name']
         else:
@@ -300,10 +313,14 @@ class MiyamotoTheme:
         self.creator = globals.trans.string('Themes', 3)
         self.description = globals.trans.string('Themes', 4)
         self.style = None
+        self.forceUiColor = False
+        self.forceStyleSheet = False
         self.version = 1.0
         if 'creator' in root.attrib: self.creator = root.attrib['creator']
         if 'description' in root.attrib: self.description = root.attrib['description']
         if 'style' in root.attrib: self.style = root.attrib['style']
+        if 'forceUiColor' in root.attrib: self.forceUiColor = True if root.attrib['forceUiColor'] == "true" else False
+        if 'forceStyleSheet' in root.attrib: self.forceStyleSheet = True if root.attrib['forceStyleSheet'] == "true" else False
         if 'version' in root.attrib:
             try:
                 self.version = float(root.attrib['version'])
@@ -363,6 +380,15 @@ class MiyamotoTheme:
         # Merge dictionaries
         self.colors.update(colorDict)
 
+    def loadStyleSheet(self, file):
+        """
+        Loads a style.qss file
+        """
+        with open(file) as inf:
+            style = inf.read()
+
+        self.styleSheet = style
+
     def color(self, name):
         """
         Returns a color
@@ -404,6 +430,33 @@ def toQColor(*args):
     b = args[2]
     a = args[3] if len(args) == 4 else 255
     return QtGui.QColor(r, g, b, a)
+
+
+def SetAppStyle(styleKey=''):
+    """
+    Set the application window color
+    """
+    # Change the color if applicable
+    if globals.theme.color('ui') is not None and not globals.theme.forceStyleSheet:
+        globals.app.setPalette(QtGui.QPalette(globals.theme.color('ui')))
+
+    # Change the style
+    if not styleKey: styleKey = setting('uiStyle', "Fusion")
+    style = QtWidgets.QStyleFactory.create(styleKey)
+    globals.app.setStyle(style)
+
+    # Apply the style sheet, if exists
+    if globals.theme.styleSheet:
+        globals.app.setStyleSheet(globals.theme.styleSheet)
+
+    # Manually set the background color
+    if globals.theme.forceUiColor and not globals.theme.forceStyleSheet:
+        color = globals.theme.color('ui').getRgb()
+        bgColor = "#%02x%02x%02x" % tuple(map(lambda x: x // 2, color[:3]))
+        globals.app.setStyleSheet("""
+            QListView, QTreeWidget, QTextEdit, QPlainTextEdit{
+                background-color: %s;
+            }""" % bgColor)
 
 
 def createHorzLine():

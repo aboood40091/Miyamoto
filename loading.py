@@ -59,12 +59,7 @@ def LoadTheme():
     id = setting('Theme')
     if id is None: id = 'Classic'
     print('THEME ID: ' + str(id))
-
-    if id != 'Classic':
-        globals.theme = MiyamotoTheme(id)
-
-    else:
-        globals.theme = MiyamotoTheme()
+    globals.theme = MiyamotoTheme(id)
 
 
 def LoadBGNames():
