@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
 # MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
 # This file is part of Miyamoto!.
@@ -87,10 +87,6 @@ class AboutDialog(QtWidgets.QDialog):
         super().__init__()
         self.setWindowTitle(globals.trans.string('AboutDlg', 0))
         self.setWindowIcon(GetIcon('help'))
-
-        # Set the palette to the default
-        # defaultPalette is a global
-        self.setPalette(QtGui.QPalette(globals.app.palette()))
 
         # Open the readme file
         f = open('readme.md', 'r')
@@ -1327,7 +1323,7 @@ class PreferencesDialog(QtWidgets.QDialog):
         self.infoLabel = QtWidgets.QLabel()
         self.generalTab = self.getGeneralTab()
         self.toolbarTab = self.getToolbarTab()
-        self.themesTab = self.getThemesTab()
+        self.themesTab = self.getThemesTab(QtWidgets.QWidget)()
         self.tabWidget.addTab(self.generalTab, globals.trans.string('PrefsDlg', 1))
         self.tabWidget.addTab(self.toolbarTab, globals.trans.string('PrefsDlg', 2))
         self.tabWidget.addTab(self.themesTab, globals.trans.string('PrefsDlg', 3))
@@ -1543,12 +1539,13 @@ class PreferencesDialog(QtWidgets.QDialog):
 
         return ToolbarTab()
 
-    def getThemesTab(self):
+    @staticmethod
+    def getThemesTab(parent):
         """
         Returns the Themes Tab
         """
 
-        class ThemesTab(QtWidgets.QWidget):
+        class ThemesTab(parent):
             """
             Themes Tab
             """
@@ -1592,10 +1589,27 @@ class PreferencesDialog(QtWidgets.QDialog):
                 previewGB = QtWidgets.QGroupBox(globals.trans.string('PrefsDlg', 22))
                 previewGB.setLayout(L)
 
+                # Create the options box options
+                keys = QtWidgets.QStyleFactory().keys()
+                self.NonWinStyle = QtWidgets.QComboBox()
+                self.NonWinStyle.setToolTip(globals.trans.string('PrefsDlg', 24))
+                self.NonWinStyle.addItems(keys)
+                uistyle = setting('uiStyle', "Fusion")
+                if uistyle is not None:
+                    self.NonWinStyle.setCurrentIndex(keys.index(setting('uiStyle', "Fusion")))
+
+                # Create the options groupbox
+                L = QtWidgets.QVBoxLayout()
+                L.addWidget(self.NonWinStyle)
+                optionsGB = QtWidgets.QGroupBox(globals.trans.string('PrefsDlg', 25))
+                optionsGB.setLayout(L)
+
                 # Create a main layout
                 Layout = QtWidgets.QGridLayout()
                 Layout.addWidget(boxGB, 0, 0)
-                Layout.addWidget(previewGB, 0, 1)
+                Layout.addWidget(optionsGB, 0, 1)
+                Layout.addWidget(previewGB, 1, 1)
+                Layout.setRowStretch(1, 1)
                 self.setLayout(Layout)
 
                 # Update the preview things
@@ -1619,8 +1633,28 @@ class PreferencesDialog(QtWidgets.QDialog):
 
             def UpdatePreview(self):
                 """
-                Updates the preview
+                Updates the preview and theme box
                 """
+                theme = self.themeBox.currentText()
+                style = self.NonWinStyle.currentText()
+
+                themeObj = MiyamotoTheme(theme)
+                keys = QtWidgets.QStyleFactory().keys()
+
+                if themeObj.color('ui') is not None and not themeObj.forceStyleSheet:
+                    if "WindowsXP" in keys:
+                        keys.remove("WindowsXP")
+
+                    if "WindowsVista" in keys:
+                        keys.remove("WindowsVista")
+
+                    if style in ["WindowsXP", "WindowsVista"]:
+                        style = "Fusion"
+
+                self.NonWinStyle.clear()
+                self.NonWinStyle.addItems(keys)
+                self.NonWinStyle.setCurrentIndex(keys.index(style))
+
                 for name, themeObj in self.themes:
                     if name == self.themeBox.currentText():
                         t = themeObj
@@ -1708,4 +1742,4 @@ class PreferencesDialog(QtWidgets.QDialog):
                 paint.end()
                 return px
 
-        return ThemesTab()
+        return ThemesTab

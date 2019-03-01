@@ -6,6 +6,7 @@
 		version="1.0"
 		description="This theme can help you visualize underground levels."
 		style="Fusion"
+		forceUiColor="true"
 		>
 		
 	<colors file="levelview.xml" />

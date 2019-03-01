@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<theme
+		format="1.0"
+		name="Night Mode"
+		creator="Explos"
+		version="2.0"
+		description="Night Mode from CoinKiller."
+		forceStyleSheet="true"
+		>
+		
+	<qss file="style.qss" />
+	
+</theme>

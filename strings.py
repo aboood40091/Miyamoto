@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7
+# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
 # This file is part of Miyamoto!.
 

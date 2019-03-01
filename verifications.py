@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
 # MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
 # This file is part of Miyamoto!.
@@ -26,10 +26,12 @@
 
 ############ Imports ############
 
+import json
 import os
 from PyQt5 import QtWidgets
 
 import globals
+from misc import setting
 
 #################################
 
@@ -113,3 +115,40 @@ def isValidGamePath(check='ug'):
         os.path.isfile(os.path.join(check, '1-1.szs')) or os.path.isfile(os.path.join(check, '1-1.sarc'))): return False
 
     return True
+
+
+def isValidObjectsPath(path='ug'):
+    if path == 'ug': path = setting('ObjPath')
+    if not (path and os.path.isdir(path)):
+        return False
+
+    folders = os.listdir(path)
+    for folder in folders:
+        folderPath = os.path.join(path, folder)
+        if not os.path.isdir(folderPath):
+            continue
+
+        files = [file for file in os.listdir(folderPath) if file[-5:] == ".json"]
+
+        for file in files:
+            filePath = os.path.join(folderPath, file)
+            if not os.path.isfile(filePath):
+                continue
+
+            with open(filePath) as inf:
+                jsonData = json.load(inf)
+
+            if not ("colls" in jsonData and "meta" in jsonData and "objlyt" in jsonData
+                    and "img" in jsonData and "nml" in jsonData):
+                continue
+            
+            found = True
+            for f in ["colls", "meta", "objlyt", "img", "nml"]:
+                if not os.path.isfile(os.path.join(folderPath, jsonData[f])):
+                    found = False
+                    break
+
+            if found:
+                return True
+
+    return False

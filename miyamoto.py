@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2017 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
 # MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
 
 # This file is part of Miyamoto!.
@@ -97,6 +97,7 @@ else:
 from area import *
 from bytes import *
 from dialogs import *
+#from firstRunWizard import Wizard <- is executed later
 from gamedefs import *
 from items import *
 from level import *
@@ -2589,11 +2590,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                                                           'Choose the folder containing Object folders')
 
         if not path: return
+        if not isValidObjectsPath(path):
+            return
 
         setSetting('ObjPath', path)
 
         self.objAllTab.setTabEnabled(1, True)
-
         self.folderPicker.clear()
 
         folders = os.listdir(path)
@@ -2641,6 +2643,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # Get the theme settings
         setSetting('Theme', dlg.themesTab.themeBox.currentText())
+        setSetting('uiStyle', dlg.themesTab.NonWinStyle.currentText())
 
         # Warn the user that they may need to restart
         QtWidgets.QMessageBox.warning(None, globals.trans.string('PrefsDlg', 0), globals.trans.string('PrefsDlg', 30))
@@ -5334,7 +5337,6 @@ def main():
     globals.Sprites = None
     globals.SpriteListData = None
     LoadGameDef(setting('LastGameDef'))
-    LoadTheme()
     LoadActionsLists()
     LoadTilesetNames()
     LoadObjDescriptions()
@@ -5384,32 +5386,43 @@ def main():
 
     SLib.RealViewEnabled = globals.RealViewEnabled
 
-    # choose a folder for the game
-    # let the user pick a folder without restarting the editor if they fail
-    while not isValidGamePath():
-        path = QtWidgets.QFileDialog.getExistingDirectory(None,
-                                                          globals.trans.string('ChangeGamePath', 0, '[game]', globals.gamedef.name))
-        if path == '':
+    if not isValidGamePath():
+        from firstRunWizard import Wizard
+        wizard = Wizard()
+        wizard.setWindowModality(Qt.ApplicationModal)
+        wizard.setAttribute(Qt.WA_DeleteOnClose, False)
+        wizard.exec()
+
+        if not wizard.finished:
             sys.exit(0)
 
+        gamePathPage = wizard.page(0)
+        path = gamePathPage.pathLineEdit.text()
         SetGamePath(path)
-        if not isValidGamePath():
-            QtWidgets.QMessageBox.information(None, globals.trans.string('ChangeGamePath', 1),
-                                              globals.trans.string('ChangeGamePath', 3))
+        setSetting('GamePath', path)
+
+        objectsPathPage = wizard.page(1)
+        if objectsPathPage.isValid:
+            path = objectsPathPage.pathLineEdit.text()
+            setSetting('ObjPath', path)
+
         else:
-            setSetting('GamePath', path)
-            break
+            setSetting('ObjPath', None)
+
+        themesPage = wizard.page(2)
+        setSetting('Theme', themesPage.themeBox.currentText())
+        setSetting('uiStyle', themesPage.NonWinStyle.currentText())
+
+    elif not isValidObjectsPath():
+        setSetting('ObjPath', None)
+
+    LoadTheme()
+    SetAppStyle()
 
     # check if this is the first time this version of Miyamoto is ran
     if setting("FirstRun") is None:
         globals.FirstRun = True
         setSetting("FirstRun", "False")
-
-        path = QtWidgets.QFileDialog.getExistingDirectory(None,
-                                                          'Choose the folder containing Object folders')
-
-        if path:
-            setSetting('ObjPath', path)
 
     else:
         globals.FirstRun = False
