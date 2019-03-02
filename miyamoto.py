@@ -4625,6 +4625,10 @@ def main():
     if FilesAreMissing():
         sys.exit(1)
 
+    # Set the UI style to Fusion by default
+    if setting("FirstRun") is None:
+        setSetting('uiStyle', "Fusion")
+
     # load required stuff
     globals.Sprites = None
     globals.SpriteListData = None
