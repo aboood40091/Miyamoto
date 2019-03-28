@@ -228,7 +228,12 @@
 			<entry value="6">Same as view</entry>
 			<entry value="7">Zoom 0*</entry>
 		</list>
-		<value nybble="6" title="Multiplayer?"/>
+		<list nybble="6" title="Triggered if">
+			<entry value="0">One player at least is in the zoom area</entry>
+			<entry value="1">Same as 0 but only works in single player mode</entry>
+			<entry value="2">Same as 0 but only works in multiplayer mode</entry>
+			<entry value="3">A koopa/buzzy beetle shell enters the zoom area</entry>
+		</list>
 		<value nybble="9-10" title="Height" comment="The height of the zoom area"/>
 		<value nybble="11-12" title="Width" comment="The width of the zoom area"/>
 	</sprite>
@@ -246,7 +251,7 @@
 		<checkbox nybble="7" title="Only limit entrance?" comment="Will only position the camera for the initial entrance and then stop limiting"/>
 		<checkbox nybble="8" title="Disabled by Zoom Area"/>
 		<checkbox nybble="9" title="Allow disable" comment="If this is checked, the sprite will only limit the camera if the player is not past the boundary. If used in conjunction with Nybbles 11 or 12, the limit can also be disabled if the player touches the area between the sprite's location and where the limit is."/>
-		<value nybble="10" title="Priority?"/>
+		<value nybble="10" title="Pair ID"/>
 		<value nybble="11-12" title="Shift limit" comment="The limit will start this far past the sprite's position. The height of a block is 16."/>
 		<checkbox nybble="13" title="Don't limit PAcorn"/>
 		<value nybble="17-18" title="Only limit entrance ID" comment="The limit will work only if the zone is entered using one of these entrances."/>
@@ -266,7 +271,7 @@
 		<checkbox nybble="7" title="Only limit entrance?" comment="Will only position the camera for the initial entrance and then stop limiting"/>
 		<checkbox nybble="8" title="Disabled by Zoom Area"/>
 		<checkbox nybble="9" title="Allow disable" comment="If this is checked, the sprite will only limit the camera if the player is not past the boundary. If used in conjunction with Nybbles 11 or 12, the limit can also be disabled if the player touches the area between the sprite's location and where the limit is."/>
-		<value nybble="10" title="Priority?"/>
+		<value nybble="10" title="Pair ID"/>
 		<value nybble="11-12" title="Shift limit" comment="The limit will start this far past the sprite's position. The height of a block is 16."/>
 		<checkbox nybble="13" title="Don't limit P-Acorn"/>
 		<value nybble="17-18" title="Only limit entrance ID" comment="The limit will work only if the zone is entered using one of these entrances."/>
@@ -286,7 +291,7 @@
 		<checkbox nybble="7" title="Unknown Flag 7"/>
 		<checkbox nybble="8" title="Disabled by Zoom Area"/>
 		<checkbox nybble="9" title="Allow disable" comment="If this is checked, the sprite will only limit the camera if the player is not past the boundary. If used in conjunction with Nybbles 11 or 12, the limit can also be disabled if the player touches the area between the sprite's location and where the limit is."/>
-		<value nybble="10" title="Priority?"/>
+		<value nybble="10" title="Pair ID"/>
 		<value nybble="11-12" title="Shift limit" comment="The limit will start this far past the sprite's position. The width of a block is 16."/>
 		<checkbox nybble="13" title="Don't limit P-Acorn" comment="The sprite will not limit scrolling if the player has a P-acorn. Used in conjunction with 612."/>
 		<value nybble="17-18" title="Only limit entrance ID"/>
@@ -306,7 +311,7 @@
 		<checkbox nybble="7" title="Unknown Flag 7"/>
 		<checkbox nybble="8" title="Disabled by Zoom Area"/>
 		<checkbox nybble="9" title="Allow disable" comment="If this is checked, the sprite will only limit the camera if the player is not past the boundary. If used in conjunction with Nybbles 11 or 12, the limit can also be disabled if the player touches the area between the sprite's location and where the limit is."/>
-		<value nybble="10" title="Priority?"/>
+		<value nybble="10" title="Pair ID"/>
 		<value nybble="11-12" title="Shift limit" comment="The limit will start this far past the sprite's position. The width of a block is 16."/>
 		<checkbox nybble="13" title="Don't limit P-Acorn" comment="The sprite will not limit scrolling if the player has a P-acorn. Used in conjunction with 612."/>
 		<value nybble="17-18" title="Only limit entrance ID" comment="The limit will work only if the zone is entered using one of these entrances."/>
@@ -1014,7 +1019,9 @@
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
 	<sprite id="71" name="Two-way Movement-controlled Iron Tower Platform [UNUSED]">
-		<value nybble="21-22" title="Movement ID" comment="Use this to connect it to a two-way controller (sprite 70)"/>
+		<value nybble="18" title="Width" comment="Width of the block. Value + 1."/>
+		<value nybble="20" title="Height" comment="Height of the block. Value + 1."/>
+		<value nybble="21-22" title="Movement ID" comment="The movement ID of the sprite. "/>
 	</sprite>
 	<sprite id="72" name="Moving Acorn Plains Land Block" notes="Overworld-styled moving block of land. Needs to be hooked to a Two-Way Movement Controller (sprite 70) to show up ingame.">
 		<value nybble="18" title="Width" comment="Width of the block. Value + 1."/>
@@ -1468,88 +1475,20 @@
 	</sprite>
 	<sprite id="102" name="Nothing. (&quot;Environmental phenomena kun&quot;) [UNUSED]" notes="Does nothing."/>
 	<sprite id="103" name="Bill Blaster Turret (Bullet Bill Cannon, Bullet Bill Launcher)" notes="A Bill Blaster with multiple parts that switch directions.">
-		<list nybble="8" title="Number of Pieces" comment="The height of the Bill Blaster Turret. Height is Value+1.">
-			<entry value="0">1</entry>
-			<entry value="1">2</entry>
-			<entry value="2">3</entry>
-			<entry value="3">4</entry>
-			<entry value="4">5</entry>
-			<entry value="5">6</entry>
-			<entry value="6">7</entry>
-			<entry value="7">8</entry>
+		<checkbox nybble="5" title="Randomise Spawn Delay" comment="&lt;br&gt;Makes each individual Cannon use a different Delay"/>
+		<list nybble="8" title="Number of Pieces" comment="&lt;br&gt;Value + 1, Maximum 8 (0-7). Determines the number of pieces for the Rotating Bullet Bill Launcher (Cannon Pieces plus Rotating Pivots). The lowest piece will appear at the Sprite's placement.">
+			<entry value="0">1 Piece</entry>
+			<entry value="1">2 Pieces</entry>
+			<entry value="2">3 Pieces</entry>
+			<entry value="3">4 Pieces</entry>
+			<entry value="4">5 Pieces</entry>
+			<entry value="5">6 Pieces</entry>
+			<entry value="6">7 Pieces</entry>
+			<entry value="7">8 Pieces</entry>
 		</list>
-		<list nybble="9" title="Upper Four Pieces Modifier (Bitfield)" comment="This nybble affects what the turret looks like on the upper/last four pieces. Pieces will be labeled as numbers 1-4, from bottom to top. Numbers with a * are &quot;rotators&quot; instead of the blasters.">
-			<entry value="0">1 2 3 4 (All blasters)</entry>
-			<entry value="1">1* 2 3 4</entry>
-			<entry value="2">1 2* 3 4</entry>
-			<entry value="3">1* 2* 3 4</entry>
-			<entry value="4">1 2 3* 4</entry>
-			<entry value="5"> 1* 2 3* 4</entry>
-			<entry value="6"> 1 2* 3* 4</entry>
-			<entry value="7">1* 2* 3* 4</entry>
-			<entry value="8">1 2 3 4*</entry>
-			<entry value="9">1* 2 3 4*</entry>
-			<entry value="10">1 2* 3 4*</entry>
-			<entry value="11">1* 2* 3 4*</entry>
-			<entry value="12">1 2 3* 4*</entry>
-			<entry value="13">1* 2 3* 4*</entry>
-			<entry value="14">1 2* 3* 4*</entry>
-			<entry value="15">1* 2* 3* 4* (All rotators)</entry>
-		</list>
-		<list nybble="10" title="Lower Four Pieces Modifier (Bitfield)" comment="This nybble affects what the turret looks like on the lower/first four pieces. Pieces will be labeled as numbers 1-4, from bottom to top. Numbers with a * are &quot;rotators&quot; instead of the blasters.">
-			<entry value="0">1 2 3 4 (All blasters)</entry>
-			<entry value="1">1* 2 3 4</entry>
-			<entry value="2">1 2* 3 4</entry>
-			<entry value="3">1* 2* 3 4</entry>
-			<entry value="4">1 2 3* 4</entry>
-			<entry value="5"> 1* 2 3* 4</entry>
-			<entry value="6"> 1 2* 3* 4</entry>
-			<entry value="7">1* 2* 3* 4</entry>
-			<entry value="8">1 2 3 4*</entry>
-			<entry value="9">1* 2 3 4*</entry>
-			<entry value="10">1 2* 3 4*</entry>
-			<entry value="11">1* 2* 3 4*</entry>
-			<entry value="12">1 2 3* 4*</entry>
-			<entry value="13">1* 2 3* 4*</entry>
-			<entry value="14">1 2* 3* 4*</entry>
-			<entry value="15">1* 2* 3* 4* (All rotators)</entry>
-		</list>
-		<list nybble="11" title="Upper Four Pieces Starting Directions" comment="This nybble affects the directions of the upper/last four pieces. Pieces will be labeled as numbers 1-4, from bottom to top. Numbers with a * start left instead of right.">
-			<entry value="0">1 2 3 4 (All start right)</entry>
-			<entry value="1">1* 2 3 4</entry>
-			<entry value="2">1 2* 3 4</entry>
-			<entry value="3">1* 2* 3 4</entry>
-			<entry value="4">1 2 3* 4</entry>
-			<entry value="5"> 1* 2 3* 4</entry>
-			<entry value="6"> 1 2* 3* 4</entry>
-			<entry value="7">1* 2* 3* 4</entry>
-			<entry value="8">1 2 3 4*</entry>
-			<entry value="9">1* 2 3 4*</entry>
-			<entry value="10">1 2* 3 4*</entry>
-			<entry value="11">1* 2* 3 4*</entry>
-			<entry value="12">1 2 3* 4*</entry>
-			<entry value="13">1* 2 3* 4*</entry>
-			<entry value="14">1 2* 3* 4*</entry>
-			<entry value="15">1* 2* 3* 4* (All start left)</entry>
-		</list>
-		<list nybble="12" title="Lower Four Pieces Starting Directions" comment="This nybble affects the directions of the lower/first four pieces. Pieces will be labeled as numbers 1-4, from bottom to top. Numbers with a * start left instead of right.">
-			<entry value="0">1 2 3 4 (All start right)</entry>
-			<entry value="1">1* 2 3 4</entry>
-			<entry value="2">1 2* 3 4</entry>
-			<entry value="3">1* 2* 3 4</entry>
-			<entry value="4">1 2 3* 4</entry>
-			<entry value="5"> 1* 2 3* 4</entry>
-			<entry value="6"> 1 2* 3* 4</entry>
-			<entry value="7">1* 2* 3* 4</entry>
-			<entry value="8">1 2 3 4*</entry>
-			<entry value="9">1* 2 3 4*</entry>
-			<entry value="10">1 2* 3 4*</entry>
-			<entry value="11">1* 2* 3 4*</entry>
-			<entry value="12">1 2 3* 4*</entry>
-			<entry value="13">1* 2 3* 4*</entry>
-			<entry value="14">1 2* 3* 4*</entry>
-			<entry value="15">1* 2* 3* 4* (All start left)</entry>
-		</list>
+		<bitfield startbit="32" bitnum="8" title="Piece Type" comment="&lt;br&gt;Each checkbox will cause the piece type to change from Cannon to Rotating Pivot."/>
+		<bitfield startbit="40" bitnum="8" title="Start Direction" comment="&lt;br&gt;Determines each Piece's initial Direction."/>
+		<bitfield startbit="20" bitnum="8" title="Rotate Anim Direction" comment="&lt;br&gt;Determines, if each Piece will rotate clockwise or counterclockwise (birds-eye view). Clockwise means, the Piece will rotate from right to left 'around the front'. Pieces that rotate counterclockwise will move 'around the back' from left to right."/>
 		<checkbox nybble="17" title="Unknown Checkbox 17" comment="No visual effects"/>
 		<checkbox nybble="19" title="Unknown Checkbox 19" comment="No visual effects"/>
 	</sprite>
@@ -1606,11 +1545,22 @@
 	</sprite>
 	<sprite id="111" name="Bowser Boss Door" notes="Actor: 0x210"/>
 	<sprite id="112" name="Bill Blaster Turret (Bullet Bill Cannon, Bullet Bill Launcher) [UNUSED]" notes="A duplicate, seems useless. It almost is a direct port from NSMBW, but it only lacks the checkbox for a value of 4 in nybble 5.">
-		<checkbox nybble="5" title="Random Firing Delay"/>
-		<value nybble="6-7" title="Rotation Animation (Bitfield)" comment="Either rotates left or right for each cannon. (0=Left, 1=Right"/>
-		<value nybble="8" title="Number Of Pieces" comment="Max of 7."/>
-		<value nybble="9-10" title="Piece Type (Bitfield)" comment="Sets the piece type. (0=Bullet cannon, 1=Pivot Piece)"/>
-		<value nybble="11-12" title="Start Direction (Bitfield)" comment="Initial direction each cannon is set in. (0=Left, 1=Right)"/>
+		<checkbox nybble="5" title="Randomise Spawn Delay" comment="&lt;br&gt;Makes each individual Cannon use a different Delay"/>
+		<list nybble="8" title="Number of Pieces" comment="&lt;br&gt;Value + 1, Maximum 8 (0-7). Determines the number of pieces for the Rotating Bullet Bill Launcher (Cannon Pieces plus Rotating Pivots). The lowest piece will appear at the Sprite's placement.">
+			<entry value="0">1 Piece</entry>
+			<entry value="1">2 Pieces</entry>
+			<entry value="2">3 Pieces</entry>
+			<entry value="3">4 Pieces</entry>
+			<entry value="4">5 Pieces</entry>
+			<entry value="5">6 Pieces</entry>
+			<entry value="6">7 Pieces</entry>
+			<entry value="7">8 Pieces</entry>
+		</list>
+		<bitfield startbit="32" bitnum="8" title="Piece Type" comment="&lt;br&gt;Each checkbox will cause the piece type to change from Cannon to Rotating Pivot."/>
+		<bitfield startbit="40" bitnum="8" title="Start Direction" comment="&lt;br&gt;Determines each Piece's initial Direction."/>
+		<bitfield startbit="20" bitnum="8" title="Rotate Anim Direction" comment="&lt;br&gt;Determines, if each Piece will rotate clockwise or counterclockwise (birds-eye view). Clockwise means, the Piece will rotate from right to left 'around the front'. Pieces that rotate counterclockwise will move 'around the back' from left to right."/>
+		<checkbox nybble="17" title="Unknown Checkbox 17" comment="No visual effects"/>
+		<checkbox nybble="19" title="Unknown Checkbox 19" comment="No visual effects"/>
 	</sprite>
 	<sprite id="113" name="Medium-sized Cheep Cheep">
 		<checkbox nybble="5" title="Obey Backtrack" mask="8" comment="The Cheep-Cheep will not turn around and swim in the opposite direction when you backtrack."/>
@@ -1816,10 +1766,7 @@
 	</sprite>
 	<sprite id="132" name="Shifting Rectangle Platforms">
 		<value nybble="5-6" title="Movement ID 1" comment="Links with 149."/>
-		<list nybble="8" title="Color" comment="Color of the platforms. Value of 1 also makes the screw in the middle darker.">
-			<entry value="0">Blue</entry>
-			<entry value="1">Gray</entry>
-		</list>
+		<checkbox nybble="8" title="Desaturate" comment="Desaturates the platforms."/>
 		<checkbox nybble="9" title="Unused Flag 9"/>
 		<list nybble="10" title="Starting Position">
 			<entry value="0"/>
@@ -1829,15 +1776,15 @@
 		</list>
 		<checkbox nybble="11" title="Moves Clockwise" comment="Ticking this will make the platform go counter-clockwise rather than clockwise."/>
 		<list nybble="12" title="Type">
-			<entry value="0"> Blue Rectangles</entry>
-			<entry value="1">Tall and Skinny (Green)</entry>
-			<entry value="2">Short and Chubby (Red)</entry>
-			<entry value="3">Orange Rectangle</entry>
-			<entry value="4">Pink Rectangle</entry>
-			<entry value="5">Duplicate of 2</entry>
+			<entry value="0">Blue Rectangles</entry>
+			<entry value="1">Green Rectangles</entry>
+			<entry value="2">Red Rectangles</entry>
+			<entry value="3">Orange Rectangles</entry>
+			<entry value="4">Pink Rectangles</entry>
+			<entry value="5">Same as 2</entry>
 		</list>
-		<value nybble="13-14" title="Unknown Value 13-14"/>
-		<value nybble="21-22" title="Movement ID 2" comment="Links with 149."/>
+		<value nybble="13-14" title="Pair ID"/>
+		<value nybble="21-22" title="Movement ID 2" comment="Links with sprite 149."/>
 	</sprite>
 	<sprite id="133" name="Spine Coaster">
 		<value nybble="1-2" title="Target Event ID" comment="When this ID is activated, the coaster will start moving."/>
@@ -1987,7 +1934,7 @@
 	</sprite>
 	<sprite id="146" name="Movement-controlled Pipe" notes="A separate, movement-controlled pipe.">
 		<checkbox nybble="5" title="Expels bubbles"/>
-		<value nybble="6" title="Unknown Value 6"/>
+		<value nybble="6" title="Z-Order"/>
 		<list nybble="7" title="Direction">
 			<entry value="0">Right</entry>
 			<entry value="1">Left</entry>
@@ -2000,15 +1947,14 @@
 			<entry value="2">Yellow</entry>
 			<entry value="3">Purple/Blue</entry>
 		</list>
-		<value nybble="9" title="Unknown Value 9"/>
-		<value nybble="10" title="Length" comment="Value + 2"/>
+		<value nybble="9-10" title="Length" comment="Value + 2. Maximum value is 63."/>
 		<list nybble="11" title="Type">
 			<entry value="0">Normal</entry>
 			<entry value="1">Painted</entry>
 			<entry value="2">Big?</entry>
 		</list>
 		<value nybble="12" title="Unknown Value 12"/>
-		<value nybble="15" title="Unknown Value 15"/>
+		<value nybble="14-15" title="Unknown Value 14-15" comment="Any non-zero value would probably show the same behavior."/>
 		<value nybble="21-22" title="Movement ID" comment="Oddly, 1-2 A1 used the swayer instead of the spinner like one would expect..."/>
 	</sprite>
 	<sprite id="147" name="Question Block - Uses Lines" notes="A question block that runs on a line. To make it work, place it a block above the line.">
@@ -2466,7 +2412,7 @@
 	</sprite>
 	<sprite id="177" name="4-Way Cannon - Crashes [UNUSED]" notes="The files it tries to load don't exist."/>
 	<sprite id="178" name="Giant 4-Way Cannon - Crashes [UNUSED]" notes="Files it tries to load don't exist."/>
-	<sprite id="179" name="Cannonball [UNUSED]" notes="Notes: Presumebly spawned by Cannon.&#13;&#10;Actor: 0x21F">
+	<sprite id="179" name="Cannonball [UNUSED]" notes="Requires sprite 176 to be in the area (or zone?).&#13;&#10;Actor: 0x21F">
 		<value nybble="7" title="Unknown Value 7"/>
 		<value nybble="9" title="Unknown Value 9"/>
 		<value nybble="10" title="Unknown Value 10"/>
@@ -2511,19 +2457,24 @@
 		<value nybble="18" title="Length" comment="The length of the platform."/>
 	</sprite>
 	<sprite id="183" name="Falling Icicle" notes="An icicle that falls when a player goes under it, or almost under it.">
-		<value nybble="7" title="Unknown Value 7"/>
-		<value nybble="8" title="Unknown Value 8"/>
+		<checkbox nybble="5" title="Don't Fall" comment="&lt;br&gt;Makes the Icicle not fall down."/>
+		<checkbox nybble="6" title="Load in Small (Growing)" comment="&lt;br&gt;This makes the Icicle first appear small, then grow to it's normal size."/>
+		<value nybble="7" title="Vertical Distance" comment="When set, the horizontal distance from the player is ignored and the icicle will only fall when the player is 'value*2' blocks below at most. When the value is 0, the vertical distance is ignored and the icicle will only fall when the player is 4 blocks away at most. (Horizontally)"/>
+		<value nybble="8" title="Respawn Delay" comment="If 'Vertical Distance' is not set, the delay is set to 30 frames (0.5 sec)"/>
 		<list nybble="12" title="Length">
 			<entry value="0">1x1</entry>
 			<entry value="1">1x2</entry>
 		</list>
 	</sprite>
 	<sprite id="184" name="Giant Falling Icicle" notes="A giant version of the Falling Icicle, which falls once the player gets close enough under it. Its top and sides are solid, and it acts as a slippery platform.&#13;&#10;The triggering location extends exactly 7.5 tiles to the left of the icicle's actual position (that is, 8 tiles from a vertical line going right down the middle of the icicle).">
-		<checkbox nybble="5" title="Don't fall" comment="When this is checked, the icicle never falls."/>
-		<value nybble="7" title="Range?" comment="Seems to fall the second they get on screen with this value."/>
+		<checkbox nybble="5" title="Don't Fall" comment="&lt;br&gt;Makes the Icicle not fall down."/>
+		<checkbox nybble="6" title="Load in Small (Growing)" comment="&lt;br&gt;This makes the Icicle first appear small, then grow to it's normal size."/>
+		<value nybble="7" title="Vertical Distance" comment="When set, the horizontal distance from the player is ignored and the icicle will only fall when the player is 'value*2' blocks below at most. When the value is 0, the vertical distance is ignored and the icicle will only fall when the player is 4 blocks away at most. (Horizontally)"/>
+		<value nybble="8" title="Unknown Value 8"/>
 		<value nybble="9" title="Unknown Value 9"/>
-		<checkbox nybble="11" title="Falls Under Block Train" comment="Unused port from NSMBW. When this is checked, it will only fall when a block train is underneath it."/>
-		<checkbox nybble="12" title="Tilt after falling" comment="Unused, but ported from NSMBW. The icicle will tilt to the right after falling."/>
+		<value nybble="10" title="Block Train Distance" comment="If 'Falls Onto Block Train' is checked, the icicle will only fall if the block train is 'value+8' blocks away at most. (Horizontally)"/>
+		<checkbox nybble="11" title="Falls Onto Block Train" comment="Unused port from NSMBW. When this is checked, it will only fall when a block train is underneath it."/>
+		<checkbox nybble="12" title="Tilt after falling" comment="Unused port from NSMBW. The icicle will tilt to the right after falling."/>
 	</sprite>
 	<sprite id="185" name="Stationary Icicle" notes="A stationary icicle. Meant to be placed on the ceiling of icy and snowy levels. Doesn't fall.">
 		<list nybble="12" title="Size" comment="The size of the icicle in blocks. Width by Length.">
@@ -2793,7 +2744,27 @@
 		<checkbox nybble="12" title="Upside-Down" comment="Unused. Makes the P-Switch spawn upside-down out of the brick block."/>
 		<value nybble="16" title="Unknown Value 16"/>
 	</sprite>
-	<sprite id="210" name="Colored Mushroom Lift [UNUSED]" notes="This sprite's inherits sprite 544."/>
+	<sprite id="210" name="Moving Mushroom Platform [UNUSED]" notes="This sprite's inherits sprite 544; see notes for that sprite as well. This sprite is almost identical to sprite 544, except it can also be used as a movement controller.">
+		<list nybble="7" title="Stem Length" comment="0 and 1 are unused, and are the same thing. This might connect to another nybble for further length.">
+			<entry value="0">Long</entry>
+			<entry value="1">Long</entry>
+			<entry value="2">Short</entry>
+		</list>
+		<value nybble="8" title="Stretch Distance"/>
+		<value nybble="9" title="Width" comment="Value + 3"/>
+		<value nybble="10" title="Unknown Value 10"/>
+		<value nybble="11" title="Unknown Value 11"/>
+		<value nybble="12" title="Unknown Value 12"/>
+		<value nybble="13" title="Height" comment="Value + 2.5"/>
+		<checkbox nybble="14" title="Opposite Direction" comment="If this is ticked, the mushroom platform will go in the opposite direction."/>
+		<list nybble="15" title="Type" comment="Default initial direction per type:&lt;br&gt;Vertical movement: Up&lt;br&gt;Horizontal wobbling: Right&lt;br&gt;Extreme horizontal wobbling: UNKNOWN">
+			<entry value="0">Vertical movement</entry>
+			<entry value="1">Horizontal wobbling</entry>
+			<entry value="2">Extreme horizontal wobbling</entry>
+		</list>
+		<value nybble="16" title="Unknown Value 16"/>
+		<value nybble="21-22" title="Movement ID" comment="Assigns the sprite to a movement controller."/>
+	</sprite>
 	<sprite id="211" name="Rotation-controlled/Path-controlled Test Platform [UNUSED]">
 		<value nybble="17-18" title="Width" comment="This value can go up to 31."/>
 		<value nybble="21-22" title="Movement ID" comment="Can attatch to 68, 69, 116, and 118."/>
@@ -2947,53 +2918,74 @@
 	<sprite id="223" name="Boom Boom (W2 - flailing, spinning and jumping)" notes="The Layer Cake Desert version of Boom boom."/>
 	<sprite id="224" name="Balloon Baby Yoshi [UNUSED]" notes="Functions great."/>
 	<sprite id="225" name="Boom Boom (W6 Tower)" notes="Has no collision.&#13;&#10;Actor: 0x24F"/>
-	<sprite id="226" name="Moving Ice Block Spawner [UNUSED]" notes="An ice block that spawns and defaults to sliding to the left.">
-		<checkbox nybble="11" title="Moves Right" comment="Makes the ice block go right."/>
-		<list nybble="12" title="Type To Spawn" comment="The type of ice block to spawn.">
-			<entry value="1">3x3</entry>
-			<entry value="2">4x4</entry>
-			<entry value="3">3x4</entry>
-			<entry value="4">4x5</entry>
-			<entry value="5">6x7</entry>
-			<entry value="6">11x16</entry>
-			<entry value="7">8x11</entry>
-			<entry value="8">4x2</entry>
-			<entry value="9">?</entry>
-		</list>
-	</sprite>
-	<sprite id="227" name="Moving Chunk of Ice [UNUSED]">
-		<checkbox nybble="11" title="Unused Checkbox 11"/>
-		<list nybble="12" title="Size" comment="The size of the ice chunk.">
+	<sprite id="226" name="Moving Ice Floe Spawner [UNUSED]" notes="An ice floe that spawns and defaults to sliding to the left.">
+		<checkbox nybble="11" title="Moves Right" comment="Makes the ice floe go right."/>
+		<list nybble="12" title="Type" comment="The type of ice floe.">
 			<entry value="0">3x3</entry>
 			<entry value="1">4x4</entry>
 			<entry value="2">5x5</entry>
 			<entry value="3">3x4</entry>
-			<entry value="4">4x5</entry>
-			<entry value="5">6x7</entry>
-			<entry value="6">11x16</entry>
-			<entry value="7">8x11</entry>
-			<entry value="8">4x2</entry>
-			<entry value="9">4x3</entry>
-			<entry value="10">7x6</entry>
-			<entry value="11">5x2</entry>
-			<entry value="12">5x3</entry>
-			<entry value="13">6x14</entry>
+			<entry value="4">5x4</entry>
+			<entry value="5">7x6</entry>
+			<entry value="6">16x11</entry>
+			<entry value="7">11x8</entry>
+			<entry value="8">2x4</entry>
+			<entry value="9">3x4</entry>
+			<entry value="10">5x7</entry>
+			<entry value="11">2x5</entry>
+			<entry value="12">3x5</entry>
+			<entry value="13">5x14</entry>
+		</list>
+	</sprite>
+	<sprite id="227" name="Moving Ice Floe [UNUSED]" notes="Looks to be a duplicate of sprite 226">
+		<checkbox nybble="11" title="Moves Right" comment="Makes the ice floe go right."/>
+		<list nybble="12" title="Type" comment="The type of ice floe.">
+			<entry value="0">3x3</entry>
+			<entry value="1">4x4</entry>
+			<entry value="2">5x5</entry>
+			<entry value="3">3x4</entry>
+			<entry value="4">5x4</entry>
+			<entry value="5">7x6</entry>
+			<entry value="6">16x11</entry>
+			<entry value="7">11x8</entry>
+			<entry value="8">2x4</entry>
+			<entry value="9">3x4</entry>
+			<entry value="10">5x7</entry>
+			<entry value="11">2x5</entry>
+			<entry value="12">3x5</entry>
+			<entry value="13">5x14</entry>
 		</list>
 	</sprite>
 	<sprite id="228" name="Movement-controlled Scaffold Platform">
-		<checkbox nybble="17" title="Unknown Value 17"/>
+		<checkbox nybble="17" title="Big"/>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
 	<sprite id="229" name="Foo" notes="Actor: 0x2ad">
 		<checkbox nybble="12" title="No cloud" comment="Unused, but when checked, the Foo will blow no clouds."/>
 	</sprite>
 	<sprite id="230" name="Larry Koopa"/>
-	<sprite id="231" name="Ice Floe">
-		<value nybble="6" title="Unknown Value 6"/>
-		<value nybble="7" title="Unknown Value 7"/>
+	<sprite id="231" name="Path-controlled Ice Floe">
+		<value nybble="5-6" title="Starting Node"/>
+		<value nybble="7" title="Path ID" comment="Use this to specify the path the ice floe follows."/>
+		<checkbox nybble="8" title="Unknown Checkbox 8"/>
 		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="11" title="Unknown Value 11"/>
-		<value nybble="12" title="Something with width/height"/>
+		<checkbox nybble="11" title="Moves Right" comment="Makes the ice floe go right."/>
+		<list nybble="12" title="Type" comment="The type of ice floe.">
+			<entry value="0">3x3</entry>
+			<entry value="1">4x4</entry>
+			<entry value="2">5x5</entry>
+			<entry value="3">3x4</entry>
+			<entry value="4">5x4</entry>
+			<entry value="5">7x6</entry>
+			<entry value="6">16x11</entry>
+			<entry value="7">11x8</entry>
+			<entry value="8">2x4</entry>
+			<entry value="9">3x4</entry>
+			<entry value="10">5x7</entry>
+			<entry value="11">2x5</entry>
+			<entry value="12">3x5</entry>
+			<entry value="13">5x14</entry>
+		</list>
 	</sprite>
 	<sprite id="232" name="Big Glow Block" notes="A very complicated sprite. It will not light up unless it gets attached to a rotation controller (such as 68 or 70), but does not need to move. Seems to need zone unknown 0x0E to be set to 4 for all blocks that are not on the first screen to show up. Sadly, this setting makes it impossible to make horizontal levels with this sprite in it, unless you add in a bunch of scroll stops.">
 		<value nybble="3-4" title="Triggering Event ID" comment="See the comment for &quot;Type&quot; for an explanation."/>
