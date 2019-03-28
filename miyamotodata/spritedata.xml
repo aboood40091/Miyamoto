@@ -208,13 +208,13 @@
 			<entry value="1">Only if midway flag is not yet touched</entry>
 			<entry value="2">Only if midway flag is already touched</entry>
 		</list>
-		<value nybble="11" title="Unknown Value 11"/>
+		<checkbox nybble="11" title="Affected by gravity" mask="2"/>
 		<list nybble="12" title="Time limit" comment="These are the time limits that can be set in the area settings. Time limit 1 is field 0x14 of the area settings, time limit 2 is field 0x16, and time limit 3 is field 0x0A. This might enable multiple midway points with different time settings!">
 			<entry value="0">Time limit 1</entry>
 			<entry value="1">Time limit 2</entry>
 			<entry value="2">Time limit 3</entry>
 		</list>
-		<checkbox nybble="20" title="Affected by gravity" comment="If this is ticked, the midway point flag is affected by gravity. So if the blocks underneath it move or break, this flagpole will move along, or fall down. Can bounce on Bouncy Clouds."/>
+		<checkbox nybble="20" title="Unknown Value 20" comment="Related to &quot;Affected by gravity&quot;."/>
 	</sprite>
 	<sprite id="26" name="Zoom Area" notes="Screen width and height (in blocks) with the different zoom values are: -2 = H:7 W:12.4, -1 = H:10.5 W:18.7, 0 = H:14 W:24.9, 1 = H:17 W:30.2, 2 = H:19 W:33.8, 3 = H:20 W:35.6, 4 = H:24 W:42.7, 5 = H:28 W:49.8">
 		<checkbox bit="17" title="Disables Scroll Limit" comment="When the player enters this zoom area if there are any scroll limit sprites that have 'Disabled by Zoom Area' checked it will deactivate them."/>
@@ -352,7 +352,7 @@
 			<entry value="3">Down</entry>
 		</list>
 		<checkbox nybble="11" title="Place behind other sprites" comment="Changes z-order to -2500 if the other z-order nybble is 0"/>
-		<checkbox nybble="11" title="Is affected by gravity" mask="2"/>
+		<checkbox nybble="11" title="Affected by gravity" mask="2"/>
 		<checkbox nybble="11" title="Is bolt controlled" mask="4"/>
 		<list nybble="12" title="Inscription" comment="Sets the inscription of the signboard.">
 			<entry value="0">Right</entry>
@@ -902,21 +902,21 @@
 		<value nybble="13" title="Sway Delay" comment="Delays the movement of the sprite."/>
 		<list nybble="15" title="Sway arc" comment="Arc.">
 			<entry value="0">0</entry>
-			<entry value="1">UNKNOWN</entry>
-			<entry value="2">UNKNOWN</entry>
-			<entry value="3">UNKNOWN</entry>
-			<entry value="4">UNKNOWN</entry>
-			<entry value="5">UNKNOWN</entry>
-			<entry value="6">UNKNOWN</entry>
-			<entry value="7">UNUSED</entry>
-			<entry value="8">90&#xB0;</entry>
-			<entry value="9">UNUSED</entry>
-			<entry value="10">UNUSED</entry>
-			<entry value="11">UNUSED</entry>
-			<entry value="12">UNUSED</entry>
-			<entry value="13">UNUSED</entry>
-			<entry value="14">UNKNOWN</entry>
-			<entry value="15">UNKNOWN</entry>
+			<entry value="1">22.5</entry>
+			<entry value="2">45</entry>
+			<entry value="3">67.5</entry>
+			<entry value="4">90</entry>
+			<entry value="5">112.5</entry>
+			<entry value="6">135</entry>
+			<entry value="7">157.5</entry>
+			<entry value="8">180</entry>
+			<entry value="9">202.5</entry>
+			<entry value="10">225</entry>
+			<entry value="11">247.5</entry>
+			<entry value="12">270</entry>
+			<entry value="13">292.5</entry>
+			<entry value="14">315</entry>
+			<entry value="15">337.5</entry>
 		</list>
 		<value nybble="16" title="Swaying Speed" comment="The speed it sways."/>
 		<value nybble="18" title="Unknown Value 18"/>
@@ -1356,8 +1356,8 @@
 		<value nybble="11-12" title="Location ID"/>
 	</sprite>
 	<sprite id="91" name="Quicksand" notes="Once Mario steps in, he will start sinking. Doesn't hurt him to stay inside of it, though.&#13;&#10;&#13;&#10;If you use a location, make sure it sticks 5 blocks below the zone, or else it will not make the player die.">
-		<checkbox nybble="10" title="Has a top" mask="4" comment="Setting this to 4 seems to make it have a functional top. &quot;This value being 0 causes the top to disappear, except for the leftmost tile.&quot; &lt;- Seems to be untrue, as it is unchecked on a lot of places where the quicksand does have a top."/>
-		<value nybble="12" title="Location ID" comment="The location in which the quicksand will be spawned."/>
+		<checkbox nybble="10" title="Flat Top" mask="8" comment="&lt;br&gt;Checking this removes the animated crest effect on the top portion of the Sprite. Creates a 'square' look. &lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; Only use with a flat ceiling or else will look strange."/>
+		<value nybble="11-12" title="Location ID" comment="&lt;br&gt;Match with a Location to set the Area of this Sprite."/>
 	</sprite>
 	<sprite id="92" name="Fog" notes="Name translates to &quot;Cloud terrain actor&quot;. ">
 		<value nybble="12" title="Location ID" comment="The location of the fog."/>
