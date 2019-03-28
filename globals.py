@@ -27,7 +27,7 @@
 import os, sys
 
 MiyamotoID = 'Miyamoto! Level Editor by AboodXD, Gota7, John10v10, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
-MiyamotoVersion = '26.0 Beta - 1/3/2019'
+MiyamotoVersion = '26.0'
 
 generateStringsXML = False
 app = None
