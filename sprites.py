@@ -358,6 +358,9 @@ class SpriteImage_PipeAlt(SLib.SpriteImage):
             pipeLength = rawlength
             self.colour = "Green"
 
+        self.setImage(pipeLength)
+
+    def setImage(self, pipeLength):
         if self.direction in 'LR':  # horizontal
             self.pipeWidth = pipeLength * 60
             self.width = (self.pipeWidth / 3.75)
@@ -3382,8 +3385,9 @@ class SpriteImage_MovPipe(SpriteImage_PipeAlt):  # 146
         self.typeinfluence = True
 
     def dataChanged(self):
+        super().dataChanged()
 
-        rawlength = (self.parent.spritedata[4] & 0x0F) + 1
+        rawlength = self.parent.spritedata[4] + 1
 
         if not self.mini:
             # rawtop = (self.parent.spritedata[2] >> 4) & 3
@@ -3394,7 +3398,8 @@ class SpriteImage_MovPipe(SpriteImage_PipeAlt):  # 146
 
             # if self.expandable: rawcolour = (self.parent.spritedata[3]) & 3
             # elif self.moving: rawcolour = (self.parent.spritedata[3]) & 3
-            # else: rawcolour = (self.parent.spritedata[3] & 0x0F) & 3
+            # else:
+            rawcolour = (self.parent.spritedata[3] & 0x0F) & 3
 
             if self.typeinfluence and rawtop == 0:
                 # if self.expandable: rawtype = self.parent.spritedata[4] & 3
@@ -3413,6 +3418,8 @@ class SpriteImage_MovPipe(SpriteImage_PipeAlt):  # 146
                     pipeLength = rawlength + rawtype + self.extraLength
             else:
                 pipeLength = rawlength + rawtype + self.extraLength
+        else:
+            pipeLength = rawlength
 
         size = self.parent.spritedata[5] >> 4
         direction = self.parent.spritedata[3] >> 4
@@ -3467,7 +3474,7 @@ class SpriteImage_MovPipe(SpriteImage_PipeAlt):  # 146
             self.width = 32
             self.xOffset = 0
 
-        super().dataChanged()
+        super().setImage(pipeLength)
 
 
 class SpriteImage_StoneEye(SLib.SpriteImage_StaticMultiple):  # 150
