@@ -685,7 +685,7 @@ class Area_NSMBU(AbstractArea):
             zoneID = SLib.MapPositionToZoneID(zonelist, entrance.objx, entrance.objy)
             entstruct.pack_into(buffer, offset, int(entrance.objx), int(entrance.objy), int(entrance.camerax),
                                 int(entrance.cameray), int(entrance.entid), int(entrance.destarea), int(entrance.destentrance),
-                                int(entrance.enttype), int(entrance.players), int(entrance.entzone), int(entrance.playerDistance),
+                                int(entrance.enttype), int(entrance.players), zoneID, int(entrance.playerDistance),
                                 int(entrance.entsettings), int(entrance.otherID), int(entrance.coinOrder),
                                 int(entrance.pathID), int(entrance.pathnodeindex), int(entrance.transition))
             offset += 24
