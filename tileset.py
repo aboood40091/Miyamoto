@@ -1366,7 +1366,7 @@ def _loadGTX_gtx_quick(width, height, format_, data):
     return gtx_quick_cy.decodeGTX(width, height, format_, data)
 
 
-def _loadGTX_addrlib(width, height, format_, tileMode, data):
+def _loadGTX_addrlib(width, height, format_, use, tileMode, swizzle_, data):
     """
     Use `AddrLib` to decode the texture (and decompress if needed)
     """
@@ -1374,7 +1374,7 @@ def _loadGTX_addrlib(width, height, format_, tileMode, data):
     surfOut = addrlib.getSurfaceInfo(format_, width, height, 1, 1, tileMode, 0, 0)
 
     # Deswizzle the data
-    udata = addrlib.deswizzle(width, height, surfOut.height, format_, tileMode, 0, surfOut.pitch, surfOut.bpp, data)
+    udata = addrlib.deswizzle(width, height, 1, format_, 0, use, tileMode, swizzle_, surfOut.pitch, surfOut.bpp, 0, 0, data)
 
     if format_ == 0x33:
         # Decompress the data
@@ -1426,8 +1426,8 @@ def _loadGTX_gtx_extract(gtxdata):
 
 def loadGTX(gtxdata, useAddrLib=False):
     # Read the gtx file
-    (dim, width, height, depth,
-     format_, tileMode, data) = gtx.readGFD(gtxdata)
+    (dim, width, height, depth, format_,
+     use, tileMode, swizzle_, data) = gtx.readGFD(gtxdata)
 
     if dim != 1:
         raise NotImplementedError("Unimplemented texture dimension!")
@@ -1438,12 +1438,12 @@ def loadGTX(gtxdata, useAddrLib=False):
     elif format_ not in [0x1a, 0x33]:
         raise NotImplementedError("Unimplemented texture format!")
 
-    elif tileMode != 4:
+    elif tileMode != 4 or use != 1 or swizzle_ & 0x700:
         useAddrLib = True
 
     if globals.cython_available:
         if useAddrLib:
-            udata = _loadGTX_addrlib(width, height, format_, tileMode, data)
+            udata = _loadGTX_addrlib(width, height, format_, use, tileMode, swizzle_, data)
 
         else:
             udata = _loadGTX_gtx_quick(width, height, format_, data)
@@ -1453,7 +1453,7 @@ def loadGTX(gtxdata, useAddrLib=False):
             return _loadGTX_gtx_extract(gtxdata)
 
         except:
-            udata = _loadGTX_addrlib(width, height, format_, tileMode, data)
+            udata = _loadGTX_addrlib(width, height, format_, use, tileMode, swizzle_, data)
 
     return QtGui.QImage(udata, width, height, QtGui.QImage.Format_RGBA8888)
 
