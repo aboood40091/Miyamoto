@@ -1893,9 +1893,12 @@ class ObjectPickerWidget(QtWidgets.QListView):
             z = 0
             top_folder = os.path.join(setting('ObjPath'), globals.mainWindow.folderPicker.currentText())
 
+            # Get the list of files in the folder
             files = os.listdir(top_folder)
+            ## Sort the files through "Natural sorting" (opposite of "Lexicographic sorting")
             files.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
 
+            # Discard files not enging with ".json" from the list
             files_ = [file for file in files if file[-5:] == ".json"]
             del files
 
@@ -1907,15 +1910,20 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
                 if not ("colls" in jsonData and "meta" in jsonData and "objlyt" in jsonData
                         and "img" in jsonData and "nml" in jsonData):
+
+                    # Invalid object JSON
                     continue
 
+                # Check for the required files
                 found = True
                 for f in ["colls", "meta", "objlyt", "img", "nml"]:
                     if not os.path.isfile(dir + jsonData[f]):
+                        print("%s not found!" % (dir + jsonData[f]))
                         found = False
                         break
 
                 if not found:
+                    # One of the required files is missing
                     continue
 
                 with open(dir + jsonData["colls"], "rb") as inf:
@@ -1927,6 +1935,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
                 with open(dir + jsonData["objlyt"], "rb") as inf:
                     deffile = inf.read()
 
+                # Read the object definition file into Object instances
                 indexstruct = struct.Struct('>HBBH')
 
                 data = indexstruct.unpack_from(indexfile, 0)
@@ -1946,18 +1955,80 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
                 globals.ObjectAllDefinitions.append(def_)
 
+                # Get the properly rendered object definition
                 obj = RenderObjectAll(def_, def_.width, def_.height, True)
                 self.items.append(obj)
 
                 globals.ObjectAllImages.append([QtGui.QPixmap(dir + jsonData["img"]),
                                         QtGui.QPixmap(dir + jsonData["nml"])])
 
-                if "randLen" in jsonData:
-                    pm = globals.ObjectAllImages[-1][0].copy(0, 0, 60, 60)
+                img, nml = globals.ObjectAllImages[-1]
+
+                # Render said object definition for the preview
+                tilesUsed = {}
+                tiles = [None] * def_.width * def_.height
+
+                # Load the tiles of the object for the preview
+                ## Start by creating a TilesetTile instance for each tile
+                if def_.reversed:
+                    for crow, row in enumerate(def_.rows):
+                        if def_.subPartAt != -1:
+                            if crow >= def_.subPartAt:
+                                crow -= def_.subPartAt
+
+                            else:
+                                crow += def_.height - def_.subPartAt
+
+                        x = 0
+                        y = crow
+
+                        for tile in row:
+                            if len(tile) == 3:
+                                if tile != [0, 0, 0]:
+                                    tilesUsed[tile[1] & 0x3FF] = y * def_.width + x
+                                    tiles[y * def_.width + x] = TilesetTile(img.copy(x * 60, y * 60, 60, 60), nml.copy(x * 60, y * 60, 60, 60))
+
+                                x += 1
 
                 else:
-                    pm = globals.ObjectAllImages[-1][0]
+                    for crow, row in enumerate(def_.rows):
+                        x = 0
+                        y = crow
 
+                        for tile in row:
+                            if len(tile) == 3:
+                                if tile != [0, 0, 0]:
+                                    tilesUsed[tile[1] & 0x3FF] = y * def_.width + x
+                                    tiles[y * def_.width + x] = TilesetTile(img.copy(x * 60, y * 60, 60, 60), nml.copy(x * 60, y * 60, 60, 60))
+
+                                x += 1
+
+                # Start painting the preview
+                pm = QtGui.QPixmap(def_.width * 60, def_.height * 60)
+                pm.fill(Qt.transparent)
+                p = QtGui.QPainter()
+                p.begin(pm)
+                y = 0
+
+                for row in obj:
+                    x = 0
+                    for tile in row:
+                        if tile != -1:
+                            if tile in tilesUsed:
+                                p.drawPixmap(x, y, tiles[tilesUsed[tile]].main)
+                            else:
+                                try:
+                                    if isinstance(globals.Tiles[tile].main, QtGui.QImage):
+                                        p.drawImage(x, y, globals.Tiles[tile].main)
+                                    else:
+                                        p.drawPixmap(x, y, globals.Tiles[tile].main)
+                                except AttributeError:
+                                    break
+                        x += 60
+                    y += 60
+                p.end()
+
+                # Resize the preview for a good looking layout
                 pm = pm.scaledToWidth(pm.width() * 32 / globals.TileWidth, Qt.SmoothTransformation)
                 if pm.width() > 256:
                     pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
