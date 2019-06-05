@@ -46,6 +46,7 @@ import platform
 import struct
 import time
 import traceback
+import ftplib
 
 # PyQt5: import
 pqt_min = map(int, "5.4.1".split('.'))
@@ -113,6 +114,7 @@ from tileset import *
 from ui import *
 from verifications import *
 from widgets import *
+from ftp_config import *
 
 
 def _excepthook(*exc_info):
@@ -377,6 +379,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             globals.trans.string('MenuItems', 10),
             globals.trans.string('MenuItems', 11),
             QtGui.QKeySequence.SaveAs,
+        )
+
+        self.CreateAction(
+            'saveftp', self.HandleSaveFtp, GetIcon('save'),
+            globals.trans.string('MenuItems', 144),
+            globals.trans.string('MenuItems', 145),
+            QtGui.QKeySequence('Ctrl+Shift+F'),
         )
 
         self.CreateAction(
@@ -763,6 +772,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addSeparator()
         fmenu.addAction(self.actions['save'])
         fmenu.addAction(self.actions['saveas'])
+        fmenu.addAction(self.actions['saveftp'])
         fmenu.addAction(self.actions['metainfo'])
         fmenu.addSeparator()
         fmenu.addAction(self.actions['changegamedef'])
@@ -882,6 +892,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'openrecent',
                 'save',
                 'saveas',
+                'saveftp',
                 'metainfo',
                 'screenshot',
                 'changegamepath',
@@ -2484,6 +2495,33 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # setSetting('AutoSaveFilePath', self.fileSavePath)
         # setSetting('AutoSaveFileData', 'x')
         return True
+
+    def HandleSaveFtp(self):
+        """
+        Save a level back to an FTP server
+        """
+        if not self.HandleSave():
+            return False
+
+        try:
+            ftp_session = ftplib.FTP()
+            ftp_session.connect(ftp_host, ftp_port)
+            print(ftp_session.getwelcome())
+
+            ftp_session.login(ftp_usr, ftp_pwd)
+
+            ftp_session.cwd(ftp_romfs + 'Course')
+
+            level_file = open(self.fileSavePath, 'rb')
+            ftp_session.storbinary('STOR %s' % self.fileTitle, level_file)
+
+            ftp_session.quit()
+
+            return True
+        except ftplib.all_errors:
+            QtWidgets.QMessageBox.warning(None, globals.trans.string('FtpDlg', 0),
+                                                              globals.trans.string('FtpDlg', 1))
+            return False
 
     def HandleSaveNewArea(self, course, L0, L1, L2):
         """
