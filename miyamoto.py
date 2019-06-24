@@ -4533,16 +4533,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if tab.Zone_boss.isChecked():
                     z.sfxmod = z.sfxmod + 1
 
-                if tab.Zone_type.currentIndex() == 0:
-                    z.type = 0
-                elif tab.Zone_type.currentIndex() == 1:
-                    z.type = 1
-                elif tab.Zone_type.currentIndex() == 2:
-                    z.type = 5
-                elif tab.Zone_type.currentIndex() == 3:
-                    z.type = 12
-                elif tab.Zone_type.currentIndex() == 4:
-                    z.type = 160
+                for i in range(0, 8):
+                    if tab.Zone_settings[i].isChecked():
+                        z.type = z.type + (2 ** i)
 
                 i = i + 1
         self.levelOverview.update()
