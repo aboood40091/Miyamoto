@@ -17,6 +17,7 @@ except:
     from . import addrlib
 
 # Define the functions that can be used
+getDefaultGX2TileMode = addrlib.getDefaultGX2TileMode
 deswizzle = addrlib.deswizzle
 swizzle = addrlib.swizzle
 surfaceGetBitsPerPixel = addrlib.surfaceGetBitsPerPixel
