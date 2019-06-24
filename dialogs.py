@@ -608,7 +608,7 @@ class ZoneTab(QtWidgets.QWidget):
         mainLayout.addWidget(self.Visibility)
         mainLayout.addWidget(self.Bounds)
         mainLayout.addWidget(self.Audio)
-        mainLayout.addWidget(self.Type)
+        mainLayout.addWidget(self.Settings)
         self.setLayout(mainLayout)
 
     def createDimensions(self, z):
@@ -998,38 +998,28 @@ class ZoneTab(QtWidgets.QWidget):
         self.Audio.setLayout(ZoneAudioLayout)
 
     def createType(self, z):
-        # It took me less than 10 minutes to implement this... :P
-        self.Type = QtWidgets.QGroupBox('Zone Type')
+        self.Settings = QtWidgets.QGroupBox(globals.trans.string('ZonesDlg', 76))
+        self.Zone_settings = []
+        
+        ZoneSettingsLeft = QtWidgets.QFormLayout()
+        ZoneSettingsRight = QtWidgets.QFormLayout()
+        settingsNames = globals.trans.stringList('ZonesDlg', 77)
+        
+        for i in range(0, 8):
+            self.Zone_settings.append(QtWidgets.QCheckBox())
+            self.Zone_settings[i].setChecked(z.type & (2 ** i))
 
-        self.Zone_type = QtWidgets.QComboBox()
-        self.Zone_type.setToolTip(globals.trans.string('ZonesDlg', 77))
-
-        types = (0, 1, 5, 12, 160)
-        zone_types = ['Normal', 'Special Zone (Boss, credits, minigame, etc...)', 'Final Boss', 'Launch to the Airship',
-                      'Power-Up Panels Toad House']
-
-        if z.type not in types:
-            zone_types.append('Unknown')
-
-        self.Zone_type.addItems(zone_types)
-
-        if z.type == 0:
-            self.Zone_type.setCurrentIndex(0)
-        elif z.type == 1:
-            self.Zone_type.setCurrentIndex(1)
-        elif z.type == 5:
-            self.Zone_type.setCurrentIndex(2)
-        elif z.type == 12:
-            self.Zone_type.setCurrentIndex(3)
-        elif z.type == 160:
-            self.Zone_type.setCurrentIndex(4)
-        else:
-            self.Zone_type.setCurrentIndex(5)
-
-        ZoneTypeLayout = QtWidgets.QFormLayout()
-        ZoneTypeLayout.addRow(globals.trans.string('ZonesDlg', 76), self.Zone_type)
-
-        self.Type.setLayout(ZoneTypeLayout)
+            if i < 4:
+                ZoneSettingsLeft.addRow(settingsNames[i], self.Zone_settings[i])
+            else:
+                ZoneSettingsRight.addRow(settingsNames[i], self.Zone_settings[i])
+            
+        ZoneSettingsLayout = QtWidgets.QHBoxLayout()
+        ZoneSettingsLayout.addLayout(ZoneSettingsLeft)
+        ZoneSettingsLayout.addStretch()
+        ZoneSettingsLayout.addLayout(ZoneSettingsRight)
+        
+        self.Settings.setLayout(ZoneSettingsLayout)
 
     def handleMusicListSelect(self):
         """
