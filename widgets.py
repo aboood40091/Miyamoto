@@ -1572,8 +1572,12 @@ class ObjectPickerWidget(QtWidgets.QListView):
         delete = QtWidgets.QAction('Delete', self)
         delete.triggered.connect(self.HandleObjDelete)
 
+        delIns = QtWidgets.QAction('Delete instances', self)
+        delIns.triggered.connect(self.HandleObjDeleteInstances)
+
         self.menu.addAction(export)
         self.menu.addAction(delete)
+        self.menu.addAction(delIns)
 
         self.menu.popup(QtGui.QCursor.pos())
 
@@ -1715,6 +1719,46 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
         globals.mainWindow.scene.update()
         SetDirty()
+
+    def HandleObjDeleteInstances(self, index):
+        """
+        Deletes all instances of an object from the level scene
+        """
+        idx = globals.CurrentPaintType
+        objNum = globals.CurrentObject
+
+        if objNum == -1: return
+
+        # Check if the object is in the scene
+        matchingObjs = []
+        for i, layer in enumerate(globals.Area.layers):
+            for j, obj in enumerate(layer):
+                if obj.tileset == idx and obj.type == objNum:
+                    matchingObjs.append((i, j))
+
+        if not matchingObjs:
+            return
+
+        dlgTxt = "Are you sure you want to remove all instances of this object from the scene?"
+        dlgTxt += '\nThis cannot be undone!'
+
+        result = QtWidgets.QMessageBox.warning(self, 'Confirm', dlgTxt,
+                                               QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+        if result != QtWidgets.QMessageBox.Yes:
+            return
+
+        for i, j in matchingObjs:
+            obj = globals.Area.layers[i][j]
+            obj.delete()
+            obj.setSelected(False)
+            globals.mainWindow.scene.removeItem(obj)
+            globals.mainWindow.levelOverview.update()
+
+        globals.mainWindow.scene.update()
+        SetDirty()
+        globals.mainWindow.SelectionUpdateFlag = False
+        globals.mainWindow.ChangeSelectionHandler()
 
     ObjChanged = QtCore.pyqtSignal(int)
     ObjReplace = QtCore.pyqtSignal(int)
