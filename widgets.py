@@ -1734,7 +1734,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         for i, layer in enumerate(globals.Area.layers):
             for j, obj in enumerate(layer):
                 if obj.tileset == idx and obj.type == objNum:
-                    matchingObjs.append((i, j))
+                    matchingObjs.append(obj)
 
         if not matchingObjs:
             return
@@ -1748,12 +1748,12 @@ class ObjectPickerWidget(QtWidgets.QListView):
         if result != QtWidgets.QMessageBox.Yes:
             return
 
-        for i, j in matchingObjs:
-            obj = globals.Area.layers[i][j]
+        for obj in matchingObjs:
             obj.delete()
             obj.setSelected(False)
             globals.mainWindow.scene.removeItem(obj)
             globals.mainWindow.levelOverview.update()
+            del obj
 
         globals.mainWindow.scene.update()
         SetDirty()
