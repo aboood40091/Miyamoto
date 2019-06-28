@@ -195,7 +195,7 @@ def LoadSpriteData():
     errors = []
     errortext = []
 
-    spriteIds = [0]
+    spriteIds = [-1]
 
     # It works this way so that it can overwrite settings based on order of precedence
     paths = [(globals.trans.files['spritedata'], None)]
