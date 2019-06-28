@@ -92,6 +92,7 @@ CurrentLevelNameForAutoOpenScript = 'AAAAAAAAAAAAAAAAAAAAAAAAAA'
 TileWidth = 60
 szsData = {}
 levelNameCache = ''
+UseRGBA8 = False
 miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
 cython_available = False
 libyaz0_available = False

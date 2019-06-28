@@ -728,13 +728,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             None, True,
         )
 
-        self.CreateAction(
-            'overridetilesetsaving', self.HandleOverrideTilesetSaving, GetIcon('folderpath'),
-            globals.trans.string('MenuItems', 140),
-            globals.trans.string('MenuItems', 141),
-            None, True,
-        )
-
         # Tilesets
         self.CreateAction(
             'editslot1', self.EditSlot1, GetIcon('animation'),
@@ -764,6 +757,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             None,
         )
 
+        self.CreateAction(
+            'overridetilesetsaving', self.HandleOverrideTilesetSaving, GetIcon('folderpath'),
+            globals.trans.string('MenuItems', 140),
+            globals.trans.string('MenuItems', 141),
+            None, True,
+        )
+
+        self.CreateAction(
+            'usergba8', self.HandleUseRGBA8, GetIcon('folderpath'),
+            globals.trans.string('MenuItems', 144),
+            globals.trans.string('MenuItems', 145),
+            None, True,
+        )
+
         # Help actions are created later
 
         # Configure them
@@ -788,6 +795,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.actions['overwritesprite'].setChecked(not globals.OverwriteSprite)
         self.actions['overridetilesetsaving'].setChecked(globals.OverrideTilesetSaving)
+        self.actions['usergba8'].setChecked(globals.UseRGBA8)
 
         self.actions['cut'].setEnabled(False)
         self.actions['copy'].setEnabled(False)
@@ -885,6 +893,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         tmenu.addAction(self.actions['editslot4'])
         tmenu.addSeparator()
         tmenu.addAction(self.actions['overridetilesetsaving'])
+        tmenu.addAction(self.actions['usergba8'])
 
         hmenu = menubar.addMenu(globals.trans.string('Menubar', 5))
         self.SetupHelpMenu(hmenu)
@@ -3110,6 +3119,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.OverrideTilesetSaving = checked
 
         setSetting('OverrideTilesetSaving', globals.OverrideTilesetSaving)
+
+    def HandleUseRGBA8(self, checked):
+        """
+        Handle setting overwriting sprites
+        """
+        globals.UseRGBA8 = checked
+
+        setSetting('UseRGBA8', globals.UseRGBA8)
 
     def HandleFullscreen(self, checked):
         """
@@ -5375,6 +5392,7 @@ def main():
     globals.CommentsFrozen = setting('FreezeComments', False)
     globals.OverwriteSprite = setting('OverwriteSprite', False)
     globals.OverrideTilesetSaving = setting('OverrideTilesetSaving', False)
+    globals.UseRGBA8 = setting('UseRGBA8', False)
     globals.RealViewEnabled = setting('RealViewEnabled', True)
     globals.SpritesShown = setting('ShowSprites', True)
     globals.SpriteImagesShown = setting('ShowSpriteImages', True)

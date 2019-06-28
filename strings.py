@@ -523,6 +523,8 @@ class MiyamotoTranslation:
                 141: 'Always resave the tilesets when saving the level, except for when deleting an area',
                 142: 'Edit Slot [slot] Tileset',
                 143: 'Edit Slot [slot] Tileset',
+                144: 'Use RGBA8',
+                145: 'Use RGBA8 instead of BC3 when encoding tilesets',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
