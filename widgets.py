@@ -2716,11 +2716,14 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
         layout.addWidget(createHorzLine(), 7, 0, 1, 5)
 
+        horizontalLayout = QtWidgets.QHBoxLayout()
+        horizontalLayout.addWidget(self.player1Checkbox)
+        horizontalLayout.addWidget(self.player2Checkbox)
+        horizontalLayout.addWidget(self.player3Checkbox)
+        horizontalLayout.addWidget(self.player4Checkbox)
+
         layout.addWidget(QtWidgets.QLabel('Players to spawn:'), 9, 0)
-        layout.addWidget(self.player1Checkbox, 9, 1)
-        layout.addWidget(self.player2Checkbox, 9, 2)
-        layout.addWidget(self.player3Checkbox, 9, 3)
-        layout.addWidget(self.player4Checkbox, 9, 4)
+        layout.addLayout(horizontalLayout, 9, 1)
         layout.addWidget(QtWidgets.QLabel('Players Distance:'), 10, 0)
         layout.addWidget(self.playerDistance, 10, 1, 1, 3)
 
