@@ -683,11 +683,17 @@ class Area_NSMBU(AbstractArea):
         zonelist = self.zones
         for entrance in self.entrances:
             zoneID = SLib.MapPositionToZoneID(zonelist, entrance.objx, entrance.objy)
-            entstruct.pack_into(buffer, offset, int(entrance.objx), int(entrance.objy), int(entrance.camerax),
-                                int(entrance.cameray), int(entrance.entid), int(entrance.destarea), int(entrance.destentrance),
-                                int(entrance.enttype), int(entrance.players), zoneID, int(entrance.playerDistance),
-                                int(entrance.entsettings), int(entrance.otherID), int(entrance.coinOrder),
-                                int(entrance.pathID), int(entrance.pathnodeindex), int(entrance.transition))
+            try:
+                entstruct.pack_into(buffer, offset, int(entrance.objx), int(entrance.objy), int(entrance.camerax),
+                                    int(entrance.cameray), int(entrance.entid), int(entrance.destarea), int(entrance.destentrance),
+                                    int(entrance.enttype), int(entrance.players), zoneID, int(entrance.playerDistance),
+                                    int(entrance.entsettings), int(entrance.otherID), int(entrance.coinOrder),
+                                    int(entrance.pathID), int(entrance.pathnodeindex), int(entrance.transition))
+            except struct.error:
+                if zoneID < 0:
+                    raise ValueError('Entrance %d at (%d, %d) is too far from any zone\'s boundaries!\nPlease place it near a zone.' % (entrance.entid, int(entrance.objx), int(entrance.objy))) from None
+                else:
+                    raise ValueError('SaveEntrances struct.error.')
             offset += 24
         self.blocks[6] = bytes(buffer)
 
@@ -777,23 +783,26 @@ class Area_NSMBU(AbstractArea):
         buffer = bytearray((len(self.sprites) * 24) + 4)
         f_int = int
         for sprite in self.sprites:
+            zoneID = SLib.MapPositionToZoneID(self.zones, sprite.objx, sprite.objy, True)
             try:
                 sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy),
                                     struct.unpack(">H", sprite.spritedata[:2])[0], struct.unpack(">I", sprite.spritedata[2:6])[0], struct.unpack(">I", sprite.spritedata[6:10])[0],
-                                    SLib.MapPositionToZoneID(self.zones, sprite.objx, sprite.objy, True),
-                                    sprite.spritedata[10:])
+                                    zoneID, sprite.spritedata[10:])
             except struct.error:
                 # Hopefully this will solve the mysterious bug, and will
                 # soon no longer be necessary.
-                raise ValueError('SaveSprites struct.error. Current sprite data dump:\n' + \
-                                 str(offset) + '\n' + \
-                                 str(sprite.type) + '\n' + \
-                                 str(sprite.objx) + '\n' + \
-                                 str(sprite.objy) + '\n' + \
-                                 str(sprite.spritedata[:6]) + '\n' + \
-                                 str(sprite.zoneID) + '\n' + \
-                                 str(bytes([sprite.spritedata[7], ])) + '\n',
-                                 )
+                if zoneID < 0:
+                    raise ValueError('Sprite %d at (%d, %d) is too far from any zone\'s boundaries!\nPlease place it near a zone.' % (sprite.type, sprite.objx, sprite.objy)) from None
+                else:
+                    raise ValueError('SaveSprites struct.error. Current sprite data dump:\n' + \
+                                     str(offset) + '\n' + \
+                                     str(sprite.type) + '\n' + \
+                                     str(sprite.objx) + '\n' + \
+                                     str(sprite.objy) + '\n' + \
+                                     str(sprite.spritedata[:10]) + '\n' + \
+                                     str(zoneID) + '\n' + \
+                                     str(sprite.spritedata[10:]) + '\n',
+                                     )
             offset += 24
         buffer[offset] = 0xFF
         buffer[offset + 1] = 0xFF
