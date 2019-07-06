@@ -800,7 +800,7 @@ class ZoneTab(QtWidgets.QWidget):
 
         if self.zv & 16 == 16:
             self.Zone_vspotlight.setChecked(True)
-        elif self.zv & 32 == 32:
+        if self.zv & 32 == 32:
             self.Zone_vfulldark.setChecked(True)
 
         self.ChangeList()
