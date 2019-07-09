@@ -608,7 +608,7 @@ class ZoneTab(QtWidgets.QWidget):
         mainLayout.addWidget(self.Visibility)
         mainLayout.addWidget(self.Bounds)
         mainLayout.addWidget(self.Audio)
-        mainLayout.addWidget(self.Type)
+        mainLayout.addWidget(self.Settings)
         self.setLayout(mainLayout)
 
     def createDimensions(self, z):
@@ -789,31 +789,21 @@ class ZoneTab(QtWidgets.QWidget):
     def createVisibility(self, z):
         self.Visibility = QtWidgets.QGroupBox(globals.trans.string('ZonesDlg', 19))
 
-        self.Zone_vnormal = QtWidgets.QRadioButton(globals.trans.string('ZonesDlg', 24))
-        self.Zone_vnormal.setToolTip(globals.trans.string('ZonesDlg', 25))
-
-        self.Zone_vspotlight = QtWidgets.QRadioButton(globals.trans.string('ZonesDlg', 26))
+        self.Zone_vspotlight = QtWidgets.QCheckBox(globals.trans.string('ZonesDlg', 26))
         self.Zone_vspotlight.setToolTip(globals.trans.string('ZonesDlg', 27))
 
-        self.Zone_vfulldark = QtWidgets.QRadioButton(globals.trans.string('ZonesDlg', 28))
+        self.Zone_vfulldark = QtWidgets.QCheckBox(globals.trans.string('ZonesDlg', 28))
         self.Zone_vfulldark.setToolTip(globals.trans.string('ZonesDlg', 29))
 
         self.Zone_visibility = QtWidgets.QComboBox()
-
         self.zv = z.visibility
-        VRadioDiv = self.zv // 16
 
-        if VRadioDiv == 0:
-            self.Zone_vnormal.setChecked(True)
-        elif VRadioDiv == 1:
+        if self.zv & 16 == 16:
             self.Zone_vspotlight.setChecked(True)
-        elif VRadioDiv == 2:
-            self.Zone_vfulldark.setChecked(True)
-        elif VRadioDiv == 3:
+        if self.zv & 32 == 32:
             self.Zone_vfulldark.setChecked(True)
 
         self.ChangeList()
-        self.Zone_vnormal.clicked.connect(self.ChangeList)
         self.Zone_vspotlight.clicked.connect(self.ChangeList)
         self.Zone_vfulldark.clicked.connect(self.ChangeList)
 
@@ -860,11 +850,11 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_directionmode = QtWidgets.QComboBox()
         self.Zone_directionmode.addItems(directionmodeValues)
         self.Zone_directionmode.setToolTip(globals.trans.string('ZonesDlg', 40))
-        if z.camtrack < 0: z.camtrack = 0
-        if z.camtrack >= 6: z.camtrack = 6
-        idx = z.camtrack / 2
-        if z.camtrack == 1: idx = 1
-        self.Zone_directionmode.setCurrentIndex(idx)
+        
+        if z.camtrack < 8:
+            self.Zone_directionmode.setCurrentIndex(z.camtrack)
+        else:
+            self.Zone_directionmode.setCurrentIndex(0)
 
         # Layouts
         ZoneZoomLayout = QtWidgets.QFormLayout()
@@ -876,7 +866,6 @@ class ZoneTab(QtWidgets.QWidget):
         ZoneCameraLayout.addRow(globals.trans.string('ZonesDlg', 36), self.Zone_camerabias)
 
         ZoneVisibilityLayout = QtWidgets.QHBoxLayout()
-        ZoneVisibilityLayout.addWidget(self.Zone_vnormal)
         ZoneVisibilityLayout.addWidget(self.Zone_vspotlight)
         ZoneVisibilityLayout.addWidget(self.Zone_vfulldark)
 
@@ -895,26 +884,27 @@ class ZoneTab(QtWidgets.QWidget):
         self.Visibility.setLayout(InnerLayout)
 
     def ChangeList(self):
-        VRadioMod = self.zv % 16
+        SelectedIndex = self.zv & 15
+        self.Zone_visibility.clear()
 
-        if self.Zone_vnormal.isChecked():
-            self.Zone_visibility.clear()
-            addList = globals.trans.stringList('ZonesDlg', 41)
-            self.Zone_visibility.addItems(addList)
+        if not self.Zone_vspotlight.isChecked() and not self.Zone_vfulldark.isChecked():
+            self.Zone_visibility.addItem(globals.trans.string('ZonesDlg', 41))
             self.Zone_visibility.setToolTip(globals.trans.string('ZonesDlg', 42))
-            self.Zone_visibility.setCurrentIndex(VRadioMod)
+            SelectedIndex = 0
+        elif self.Zone_vspotlight.isChecked() and self.Zone_vfulldark.isChecked():
+            self.Zone_visibility.addItem(globals.trans.string('ZonesDlg', 80))
+            self.Zone_visibility.setToolTip(globals.trans.string('ZonesDlg', 81))
+            SelectedIndex = 0
         elif self.Zone_vspotlight.isChecked():
-            self.Zone_visibility.clear()
-            addList = globals.trans.stringList('ZonesDlg', 43)
-            self.Zone_visibility.addItems(addList)
+            self.Zone_visibility.addItems(globals.trans.stringList('ZonesDlg', 43))
             self.Zone_visibility.setToolTip(globals.trans.string('ZonesDlg', 44))
-            self.Zone_visibility.setCurrentIndex(VRadioMod)
+            if SelectedIndex > 2: SelectedIndex = 0
         elif self.Zone_vfulldark.isChecked():
-            self.Zone_visibility.clear()
-            addList = globals.trans.stringList('ZonesDlg', 45)
-            self.Zone_visibility.addItems(addList)
+            self.Zone_visibility.addItems(globals.trans.stringList('ZonesDlg', 45))
             self.Zone_visibility.setToolTip(globals.trans.string('ZonesDlg', 46))
-            self.Zone_visibility.setCurrentIndex(VRadioMod)
+            if SelectedIndex > 5: SelectedIndex = 5
+        
+        self.Zone_visibility.setCurrentIndex(SelectedIndex)
 
     def createBounds(self, z):
         self.Bounds = QtWidgets.QGroupBox(globals.trans.string('ZonesDlg', 47))
@@ -998,38 +988,28 @@ class ZoneTab(QtWidgets.QWidget):
         self.Audio.setLayout(ZoneAudioLayout)
 
     def createType(self, z):
-        # It took me less than 10 minutes to implement this... :P
-        self.Type = QtWidgets.QGroupBox('Zone Type')
+        self.Settings = QtWidgets.QGroupBox(globals.trans.string('ZonesDlg', 76))
+        self.Zone_settings = []
+        
+        ZoneSettingsLeft = QtWidgets.QFormLayout()
+        ZoneSettingsRight = QtWidgets.QFormLayout()
+        settingsNames = globals.trans.stringList('ZonesDlg', 77)
+        
+        for i in range(0, 8):
+            self.Zone_settings.append(QtWidgets.QCheckBox())
+            self.Zone_settings[i].setChecked(z.type & (2 ** i))
 
-        self.Zone_type = QtWidgets.QComboBox()
-        self.Zone_type.setToolTip(globals.trans.string('ZonesDlg', 77))
-
-        types = (0, 1, 5, 12, 160)
-        zone_types = ['Normal', 'Special Zone (Boss, credits, minigame, etc...)', 'Final Boss', 'Launch to the Airship',
-                      'Power-Up Panels Toad House']
-
-        if z.type not in types:
-            zone_types.append('Unknown')
-
-        self.Zone_type.addItems(zone_types)
-
-        if z.type == 0:
-            self.Zone_type.setCurrentIndex(0)
-        elif z.type == 1:
-            self.Zone_type.setCurrentIndex(1)
-        elif z.type == 5:
-            self.Zone_type.setCurrentIndex(2)
-        elif z.type == 12:
-            self.Zone_type.setCurrentIndex(3)
-        elif z.type == 160:
-            self.Zone_type.setCurrentIndex(4)
-        else:
-            self.Zone_type.setCurrentIndex(5)
-
-        ZoneTypeLayout = QtWidgets.QFormLayout()
-        ZoneTypeLayout.addRow(globals.trans.string('ZonesDlg', 76), self.Zone_type)
-
-        self.Type.setLayout(ZoneTypeLayout)
+            if i < 4:
+                ZoneSettingsLeft.addRow(settingsNames[i], self.Zone_settings[i])
+            else:
+                ZoneSettingsRight.addRow(settingsNames[i], self.Zone_settings[i])
+            
+        ZoneSettingsLayout = QtWidgets.QHBoxLayout()
+        ZoneSettingsLayout.addLayout(ZoneSettingsLeft)
+        ZoneSettingsLayout.addStretch()
+        ZoneSettingsLayout.addLayout(ZoneSettingsRight)
+        
+        self.Settings.setLayout(ZoneSettingsLayout)
 
     def handleMusicListSelect(self):
         """
