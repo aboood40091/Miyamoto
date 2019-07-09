@@ -4508,19 +4508,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                                 QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
                                                               globals.trans.string('ZonesDlg', 67))
 
-                if tab.Zone_vnormal.isChecked():
-                    z.visibility = 0
-                    z.visibility = z.visibility + tab.Zone_visibility.currentIndex()
+                z.visibility = tab.Zone_visibility.currentIndex()
                 if tab.Zone_vspotlight.isChecked():
-                    z.visibility = 16
-                    z.visibility = z.visibility + tab.Zone_visibility.currentIndex()
+                    z.visibility = z.visibility + 16
                 if tab.Zone_vfulldark.isChecked():
-                    z.visibility = 32
-                    z.visibility = z.visibility + tab.Zone_visibility.currentIndex()
+                    z.visibility = z.visibility + 32
 
-                val = tab.Zone_directionmode.currentIndex() * 2
-                if val == 2: val = 1
-                z.camtrack = val
+                z.camtrack = tab.Zone_directionmode.currentIndex()
 
                 z.yupperbound = tab.Zone_yboundup.value()
                 z.ylowerbound = tab.Zone_ybounddown.value()
@@ -4533,16 +4527,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if tab.Zone_boss.isChecked():
                     z.sfxmod = z.sfxmod + 1
 
-                if tab.Zone_type.currentIndex() == 0:
-                    z.type = 0
-                elif tab.Zone_type.currentIndex() == 1:
-                    z.type = 1
-                elif tab.Zone_type.currentIndex() == 2:
-                    z.type = 5
-                elif tab.Zone_type.currentIndex() == 3:
-                    z.type = 12
-                elif tab.Zone_type.currentIndex() == 4:
-                    z.type = 160
+                z.type = 0
+                for i in range(0, 8):
+                    if tab.Zone_settings[i].isChecked():
+                        z.type = z.type + (2 ** i)
 
                 i = i + 1
         self.levelOverview.update()
