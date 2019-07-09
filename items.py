@@ -1121,8 +1121,8 @@ class ZoneItem(LevelEditorItem):
             self.dragging = False
 
         if self.dragging:
-            self.dragstartx = int(event.pos().x() / globals.TileWidth * 16)
-            self.dragstarty = int(event.pos().y() / globals.TileWidth * 16)
+            self.dragstartx = int(event.scenePos().x() / globals.TileWidth * 16)
+            self.dragstarty = int(event.scenePos().y() / globals.TileWidth * 16)
             self.draginitialx1 = self.objx
             self.draginitialy1 = self.objy
             self.draginitialx2 = self.objx + self.width
@@ -1139,8 +1139,8 @@ class ZoneItem(LevelEditorItem):
 
         if event.buttons() != Qt.NoButton and self.dragging:
             # resize it
-            clickedx = int(event.pos().x() / globals.TileWidth * 16)
-            clickedy = int(event.pos().y() / globals.TileWidth * 16)
+            clickedx = int(event.scenePos().x() / globals.TileWidth * 16)
+            clickedy = int(event.scenePos().y() / globals.TileWidth * 16)
 
             x1 = self.draginitialx1
             y1 = self.draginitialy1
