@@ -4391,6 +4391,13 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         event.accept()
         QtWidgets.QGraphicsView.resizeEvent(self, event)
 
+    @staticmethod
+    def translateRect(rect, x, y):
+        """
+        Returns a translated copy of the rect
+        """
+        return rect.translated(x*globals.TileWidth, y*globals.TileWidth)
+
     def mouseMoveEvent(self, event):
         """
         Overrides mouse movement events if needed
@@ -4638,6 +4645,44 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             self.scene().update()
 
         else:
+            type_obj = ObjectItem
+            objlist = [obj for obj in self.scene().selectedItems() if isinstance(obj, type_obj)]
+
+            for obj in objlist:
+                if not obj.dragging:
+                    if self.translateRect(obj.GrabberRectTL, obj.objx, obj.objy).contains(pos):
+                        globals.app.setOverrideCursor(Qt.SizeFDiagCursor)
+                        break
+
+                    elif self.translateRect(obj.GrabberRectTR, obj.objx, obj.objy).contains(pos):
+                        globals.app.setOverrideCursor(Qt.SizeBDiagCursor)
+                        break
+
+                    elif self.translateRect(obj.GrabberRectBL, obj.objx, obj.objy).contains(pos):
+                        globals.app.setOverrideCursor(Qt.SizeBDiagCursor)
+                        break
+
+                    elif self.translateRect(obj.GrabberRectBR, obj.objx, obj.objy).contains(pos):
+                        globals.app.setOverrideCursor(Qt.SizeFDiagCursor)
+                        break
+
+                    elif (self.translateRect(obj.GrabberRectMT, obj.objx, obj.objy).contains(pos)
+                          or self.translateRect(obj.GrabberRectMB, obj.objx, obj.objy).contains(pos)):
+                        globals.app.setOverrideCursor(Qt.SizeVerCursor)
+                        break
+
+                    elif (self.translateRect(obj.GrabberRectML, obj.objx, obj.objy).contains(pos)
+                          or self.translateRect(obj.GrabberRectMR, obj.objx, obj.objy).contains(pos)):
+                        globals.app.setOverrideCursor(Qt.SizeHorCursor)
+                        break
+
+                    elif obj.LevelRect.contains(pos.x()/globals.TileWidth,pos.y()/globals.TileWidth):
+                        globals.app.setOverrideCursor(Qt.SizeAllCursor)
+                        break
+
+                    else:
+                        globals.app.setOverrideCursor(Qt.ArrowCursor)
+
             QtWidgets.QGraphicsView.mouseMoveEvent(self, event)
 
         if inv: self.scene().invalidate()
