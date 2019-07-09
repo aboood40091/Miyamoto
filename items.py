@@ -956,6 +956,13 @@ class ObjectItem(LevelEditorItem):
 
         self.UpdateTooltip()
 
+    def mouseReleaseEvent(self, event):
+        """
+        Disables "dragging" when the mouse is released
+        """
+        self.dragging = False
+        LevelEditorItem.mouseReleaseEvent(self, event)
+
     def delete(self):
         """
         Delete the object from the level

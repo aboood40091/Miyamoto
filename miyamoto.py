@@ -4644,6 +4644,7 @@ def main():
 
     # create an application
     globals.app = QtWidgets.QApplication(sys.argv)
+    globals.app.setOverrideCursor(Qt.ArrowCursor)
 
     # load the settings
     globals.settings = QtCore.QSettings('Miyamoto', globals.MiyamotoVersion)
