@@ -1193,7 +1193,7 @@ def writeGTX(tex, idx):
     else:
         tile_path = globals.miyamoto_path + '/macTools'
 
-    if idx != 0:  # Save as DXT5/BC3
+    if idx != 0 and not globals.UseRGBA8:  # Save as DXT5/BC3
         if platform.system() == 'Darwin':
             _compressBC3_libtxc_dxtn(tex, tile_path)
 

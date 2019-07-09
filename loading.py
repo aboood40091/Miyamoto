@@ -192,14 +192,35 @@ def LoadSpriteData():
     """
     Ensures that the sprite data info is loaded
     """
-    globals.Sprites = [None] * 724
     errors = []
     errortext = []
+
+    spriteIds = [-1]
 
     # It works this way so that it can overwrite settings based on order of precedence
     paths = [(globals.trans.files['spritedata'], None)]
     for pathtuple in globals.gamedef.multipleRecursiveFiles('spritedata', 'spritenames'):
         paths.append(pathtuple)
+
+    for sdpath, snpath in paths:
+
+        # Add XML sprite data, if there is any
+        if sdpath not in (None, ''):
+            path = sdpath if isinstance(sdpath, str) else sdpath.path
+            tree = etree.parse(path)
+            root = tree.getroot()
+
+            for sprite in root:
+                if sprite.tag.lower() != 'sprite':
+                    continue
+
+                try:
+                    spriteIds.append(int(sprite.attrib['id']))
+                except ValueError:
+                    continue
+
+    globals.NumSprites = max(spriteIds) + 1
+    globals.Sprites = [None] * globals.NumSprites
 
     for sdpath, snpath in paths:
 
@@ -324,7 +345,7 @@ def LoadSpriteCategories(reload_=False):
                                 CurrentCategory.append(i)
 
     # Add a Search category
-    globals.SpriteCategories.append((globals.trans.string('Sprites', 19), [(globals.trans.string('Sprites', 16), list(range(0, 724)))], []))
+    globals.SpriteCategories.append((globals.trans.string('Sprites', 19), [(globals.trans.string('Sprites', 16), list(range(globals.NumSprites)))], []))
     globals.SpriteCategories[-1][1][0][1].append(9999)  # 'no results' special case
 
 
