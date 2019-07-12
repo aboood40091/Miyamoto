@@ -3691,20 +3691,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.scene.addItem(location)
             location.UpdateListItem()
 
-        for path in globals.Area.paths:
-            path.positionChanged = self.HandlePathPosChange
-            path.listitem = ListWidgetItem_SortsByOther(path)
-            self.pathList.addItem(path.listitem)
-            self.scene.addItem(path)
-            path.UpdateListItem()
-
-        for path in globals.Area.nPaths:
-            path.positionChanged = self.HandlePathPosChange
-            path.listitem = ListWidgetItem_SortsByOther(path)
-            self.nabbitPathList.addItem(path.listitem)
-            self.scene.addItem(path)
-            path.UpdateListItem()
-
         for path in globals.Area.pathdata:
             peline = PathEditorLineItem(path['nodes'])
             path['peline'] = peline
@@ -3718,9 +3704,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.scene.addItem(peline)
 
         for path in globals.Area.paths:
+            path.positionChanged = self.HandlePathPosChange
+            path.listitem = ListWidgetItem_SortsByOther(path)
+            self.pathList.addItem(path.listitem)
+            self.scene.addItem(path)
             path.UpdateListItem()
 
         for path in globals.Area.nPaths:
+            path.positionChanged = self.HandlePathPosChange
+            path.listitem = ListWidgetItem_SortsByOther(path)
+            self.nabbitPathList.addItem(path.listitem)
+            self.scene.addItem(path)
             path.UpdateListItem()
 
         for com in globals.Area.comments:

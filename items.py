@@ -2417,7 +2417,7 @@ class NabbitPathItem(LevelEditorItem):
 
         self.font = globals.NumberFont
         self.objx = objx - 8
-        self.objy = objy
+        self.objy = objy - 8
         self.unk1 = unk1
         self.unk2 = unk2
         self.unk3 = unk3
@@ -2462,7 +2462,7 @@ class NabbitPathItem(LevelEditorItem):
         Our x/y was changed, update pathinfo
         """
         self.pathinfo['nodes'][self.nodeid]['x'] = self.objx + 8
-        self.pathinfo['nodes'][self.nodeid]['y'] = self.objy
+        self.pathinfo['nodes'][self.nodeid]['y'] = self.objy + 8
 
     def updateId(self):
         """
@@ -2563,8 +2563,8 @@ class PathEditorLineItem(LevelEditorItem):
         xcoords = []
         ycoords = []
         for node in self.nodelist:
-            xcoords.append(int(node['x']))
-            ycoords.append(int(node['y']))
+            xcoords.append(int(node['x']) + 8)
+            ycoords.append(int(node['y']) + 8)
         self.objx = (min(xcoords) - 4)
         self.objy = (min(ycoords) - 4)
 
@@ -2593,12 +2593,12 @@ class PathEditorLineItem(LevelEditorItem):
         mult = globals.TileWidth / 16
         for j, node in enumerate(snl):
             if ((j + 1) < len(snl)):
-                a = QtCore.QPointF(float(snl[j]['x'] * mult) - self.x(), float(snl[j]['y'] * mult) - self.y())
-                b = QtCore.QPointF(float(snl[j + 1]['x'] * mult) - self.x(), float(snl[j + 1]['y'] * mult) - self.y())
+                a = QtCore.QPointF(float((snl[j]['x'] + 8) * mult) - self.x(), float((snl[j]['y'] + 8) * mult) - self.y())
+                b = QtCore.QPointF(float((snl[j + 1]['x'] + 8) * mult) - self.x(), float((snl[j + 1]['y'] + 8) * mult) - self.y())
                 lines.append(QtCore.QLineF(a, b))
             elif self.loops and (j + 1) == len(snl):
-                a = QtCore.QPointF(float(snl[j]['x'] * mult) - self.x(), float(snl[j]['y'] * mult) - self.y())
-                b = QtCore.QPointF(float(snl[0]['x'] * mult) - self.x(), float(snl[0]['y'] * mult) - self.y())
+                a = QtCore.QPointF(float((snl[j]['x'] + 8) * mult) - self.x(), float((snl[j]['y'] + 8) * mult) - self.y())
+                b = QtCore.QPointF(float((snl[0]['x'] + 8) * mult) - self.x(), float((snl[0]['y'] + 8) * mult) - self.y())
                 lines.append(QtCore.QLineF(a, b))
 
         painter.drawLines(lines)
@@ -2614,6 +2614,23 @@ class NabbitPathEditorLineItem(PathEditorLineItem):
     """
     Level editor item to draw a line between two nabbit path nodes
     """
+    def computeBoundRectAndPos(self):
+        xcoords = []
+        ycoords = []
+        for node in self.nodelist:
+            xcoords.append(int(node['x']))
+            ycoords.append(int(node['y']))
+        self.objx = (min(xcoords) - 4)
+        self.objy = (min(ycoords) - 4)
+
+        mywidth = (8 + (max(xcoords) - self.objx)) * (globals.TileWidth / 16)
+        myheight = (8 + (max(ycoords) - self.objy)) * (globals.TileWidth / 16)
+        globals.DirtyOverride += 1
+        self.setPos(self.objx * (globals.TileWidth / 16), self.objy * (globals.TileWidth / 16))
+        globals.DirtyOverride -= 1
+        self.prepareGeometryChange()
+        self.BoundingRect = QtCore.QRectF(-4, -4, mywidth, myheight)
+
     def paint(self, painter, option, widget):
         """
         Paints the path lines
