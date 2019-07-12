@@ -4354,7 +4354,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
             if objlist:
                 for obj in objlist:
-                    if not obj.dragging:
+                    if self.translateRect(obj.SelectionRect, obj.objx, obj.objy).contains(pos) and not obj.dragging:
                         if self.translateRect(obj.GrabberRectTL, obj.objx, obj.objy).contains(pos):
                             globals.app.setOverrideCursor(Qt.SizeFDiagCursor)
                             break
@@ -4385,8 +4385,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                             globals.app.setOverrideCursor(Qt.SizeAllCursor)
                             break
 
-                        else:
-                            globals.app.setOverrideCursor(Qt.ArrowCursor)
+                    elif not obj.dragging:
+                        globals.app.setOverrideCursor(Qt.ArrowCursor)
             else:
                 # Prevent visual bugs
                 globals.app.setOverrideCursor(Qt.ArrowCursor)
