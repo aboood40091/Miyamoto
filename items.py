@@ -528,15 +528,25 @@ class ObjectItem(LevelEditorItem):
         self.BoundingRect = QtCore.QRectF(0, 0, globals.TileWidth * self.width, globals.TileWidth * self.height)
         self.SelectionRect = QtCore.QRectF(0, 0, (globals.TileWidth * self.width) - 1, (globals.TileWidth * self.height) - 1)
 
-        GrabberSide = 4 * (globals.TileWidth / 20)
+        GrabberSide = 4 * (globals.TileWidth / 15)
         self.GrabberRectTL = QtCore.QRectF(0, 0, GrabberSide, GrabberSide)
         self.GrabberRectTR = QtCore.QRectF((globals.TileWidth * self.width) - GrabberSide, 0, GrabberSide, GrabberSide)
         self.GrabberRectBL = QtCore.QRectF(0, (globals.TileWidth * self.height) - GrabberSide, GrabberSide, GrabberSide)
         self.GrabberRectBR = QtCore.QRectF((globals.TileWidth * self.width) - GrabberSide, (globals.TileWidth * self.height) - GrabberSide, GrabberSide, GrabberSide)
-        self.GrabberRectMT = QtCore.QRectF(((globals.TileWidth * self.width) - GrabberSide) / 2, 0, GrabberSide, GrabberSide)
-        self.GrabberRectML = QtCore.QRectF(0, ((globals.TileWidth * self.height) - GrabberSide) / 2, GrabberSide, GrabberSide)
-        self.GrabberRectMB = QtCore.QRectF(((globals.TileWidth * self.width) - GrabberSide) / 2, (globals.TileWidth * self.height) - GrabberSide, GrabberSide, GrabberSide)
-        self.GrabberRectMR = QtCore.QRectF((globals.TileWidth * self.width) - GrabberSide, ((globals.TileWidth * self.height) - GrabberSide) / 2, GrabberSide, GrabberSide)
+        self.GrabberRectMT = QtCore.QRectF(GrabberSide, 0, (globals.TileWidth * self.width) - GrabberSide * 2, GrabberSide)
+        self.GrabberRectML = QtCore.QRectF(0, GrabberSide, GrabberSide, (globals.TileWidth * self.height) - GrabberSide * 2)
+        self.GrabberRectMB = QtCore.QRectF(GrabberSide, (globals.TileWidth * self.height) - GrabberSide, (globals.TileWidth * self.width) - GrabberSide * 2, GrabberSide)
+        self.GrabberRectMR = QtCore.QRectF((globals.TileWidth * self.width) - GrabberSide, GrabberSide, GrabberSide, (globals.TileWidth * self.height) - GrabberSide * 2)
+
+        DrawGrabberSide = 4 * (globals.TileWidth / 20)
+        self.DrawGrabberRectTL = QtCore.QRectF(0, 0, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectTR = QtCore.QRectF((globals.TileWidth * self.width) - DrawGrabberSide, 0, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectBL = QtCore.QRectF(0, (globals.TileWidth * self.height) - DrawGrabberSide, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectBR = QtCore.QRectF((globals.TileWidth * self.width) - DrawGrabberSide, (globals.TileWidth * self.height) - DrawGrabberSide, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectMT = QtCore.QRectF(((globals.TileWidth * self.width) - DrawGrabberSide) / 2, 0, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectML = QtCore.QRectF(0, ((globals.TileWidth * self.height) - DrawGrabberSide) / 2, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectMB = QtCore.QRectF(((globals.TileWidth * self.width) - DrawGrabberSide) / 2, (globals.TileWidth * self.height) - DrawGrabberSide, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectMR = QtCore.QRectF((globals.TileWidth * self.width) - DrawGrabberSide, ((globals.TileWidth * self.height) - DrawGrabberSide) / 2, DrawGrabberSide, DrawGrabberSide)
 
         self.LevelRect = QtCore.QRectF(self.objx, self.objy, self.width, self.height)
 
@@ -598,14 +608,14 @@ class ObjectItem(LevelEditorItem):
             painter.drawRect(self.SelectionRect)
             painter.fillRect(self.SelectionRect, globals.theme.color('object_fill_s'))
 
-            painter.fillRect(self.GrabberRectTL, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectTR, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectBL, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectBR, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectMT, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectML, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectMB, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectMR, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectTL, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectTR, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectBL, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectBR, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectMT, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectML, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectMB, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectMR, globals.theme.color('object_lines_s'))
 
     def mousePressEvent(self, event):
         """
