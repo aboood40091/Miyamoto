@@ -103,6 +103,69 @@ class File:
 
         return self.load(inb, 0)
 
+    def new(self, name, endianness='<', target="NX  "):
+        header = BNTXHeader()
+        header.endianness = endianness
+        header.bom = 0xFEFF
+        header._setFormat()
+        header.magic = b'BNTX\0\0\0\0'
+        header.version = 0x40000
+        header.alignmentShift = 0xC if target == "NX  " else 3
+        header.targetAddrSize = 0x40
+        header.fileNameAddr = 0
+        header.flag = 0
+        header.firstBlkAddr = 0
+        header.relocAddr = 0
+        header.fileSize = 0
+        header.nameIdx = 0
+
+        texContainer = TexContainer(endianness)
+        texContainer.target = target.encode("utf-8")
+        texContainer.count = 0
+        texContainer.infoPtrsAddr = 0
+        texContainer.dataBlkAddr = 0
+        texContainer.dictAddr = 0
+        texContainer.memPoolAddr = 0
+        texContainer.currMemPoolAddr = 0
+        texContainer.baseMemPoolAddr = 0
+
+        strTblHeader = BlockHeader(endianness)
+        strTblHeader.magic = b'_STR'
+        strTblHeader.nextBlkAddr = 0
+        strTblHeader.blockSize = 0
+
+        strTbl = StringTable(endianness)
+        strTbl.pos = 0
+        strTbl.count = 0
+        strTbl.entries = []
+        strTbl.add(name)
+
+        texNameDict = StringTable.TexNameDict(endianness, strTbl)
+        texNameDict.pos = 0
+        texNameDict.magic = b'_DIC'
+        texNameDict.loadFromNameList([])
+
+        relocTblHeader = BlockHeader(endianness)
+        relocTblHeader.magic = b'_RLT'
+        relocTblHeader.nextBlkAddr = 0
+        relocTblHeader.blockSize = 0
+
+        relocTbl = RelocTBL(endianness)
+        relocTbl.blocks = []
+        relocTbl.entries = []
+
+        self.header = header
+        self.texContainer = texContainer
+        self.target = target
+        self.strTblHeader = strTblHeader
+        self.strTbl = strTbl
+        self.name = name
+        self.texNameDict = texNameDict
+        self.texNames = []
+        self.textures = []
+        self.relocTblHeader = relocTblHeader
+        self.relocTbl = relocTbl
+
     def load(self, data, pos):
         self.header = BNTXHeader()
         returnCode = self.header.load(data, pos)
@@ -122,7 +185,6 @@ class File:
         self.strTblHeader.load(data, self.header.firstBlkAddr)
         returnCode = self.strTblHeader.isValid(b'_STR')
         if returnCode:
-            print("a")
             return returnCode
 
         self.strTbl = StringTable(self.header.endianness)
@@ -134,6 +196,10 @@ class File:
         pos = self.texContainer.dictAddr
         self.texNameDict = self.strTbl.TexNameDict(self.header.endianness, self.strTbl)
         self.texNameDict.load(data, pos)
+
+        self.texNames = []
+        for entry in self.texNameDict.entries[1:]:
+            self.texNames.append(self.strTbl[entry.strIdx])
 
         infoPtrsAddr = self.texContainer.infoPtrsAddr
         self.textures = []
@@ -161,6 +227,61 @@ class File:
         self.relocTbl.load(data, pos + 16, self.relocTblHeader.blockSize)
 
         return 0
+
+    def addTexture(self, tileMode, SRGB, sparseBinding, sparseResidency, importMips, f):
+        name = os.path.splitext(os.path.basename(f))[0]
+        if name in self.texNames:
+            for texture in self.textures:
+                if name == texture.name:
+                    break
+
+            else:
+                raise RuntimeError("Texture name in Texture Names Dictionary, but texture doesn't exist!")
+
+        else:
+            texture = TextureInfo(self.header.endianness)
+            texture.pos = 0
+            texture.flags = 0
+            texture.dim = 0
+            texture.tileMode = 0
+            texture.swizzle = 0
+            texture.numMips = 0
+            texture.numSamples = 0
+            texture.format_ = 0
+            texture.accessFlags = 0
+            texture.width = 0
+            texture.height = 0
+            texture.depth = 0
+            texture.arrayLength = 0
+            texture.textureLayout = 0
+            texture.textureLayout2 = 0
+            texture.imageSize = 0
+            texture.alignment = 0
+            texture._compSel = 0
+            texture.imgDim = 0
+            texture.nameAddr = 0
+            texture.parentAddr = 0
+            texture.ptrsAddr = 0
+            texture.userDataAddr = 0
+            texture.texPtr = 0
+            texture.texViewPtr = 0
+            texture.descSlotDataAddr = 0
+            texture.userDictAddr = 0
+            texture.compSel = [0 for i in range(4)]
+            texture.readTexLayout = 0
+            texture.sparseBinding = 0
+            texture.sparseResidency = 0
+            texture.blockHeightLog2 = 0
+            texture.mipOffsets = [0]
+            texture.data = b''
+
+            texture.name = name; self.strTbl.add(name)
+            texture.nameIdx = self.strTbl.index(name)
+
+            self.texNames.append(name)
+            self.textures.append(texture)
+
+        texture = self.replace(texture, tileMode, SRGB, sparseBinding, sparseResidency, importMips, f)
 
     def rawData(self, texture):
         global blk_dims, bpps
@@ -474,7 +595,7 @@ class File:
         self.relocTbl.entries[1].paddingCount = 0
 
         pos = 0x198
-        count = self.texContainer.count
+        count = self.texContainer.count = len(self.textures)
         while count > 0:
             self.relocTbl.entries.append(self.relocTbl.Entry(self.header.endianness))
             self.relocTbl.entries[-1].pos = pos
@@ -498,7 +619,7 @@ class File:
         self.texNameDict.pos = self.strTbl.pos + len(strTbl)
         texNameDictAlignBytes = b'\0' * (round_up(self.texNameDict.pos, 8) - self.texNameDict.pos)
         self.texNameDict.pos += len(texNameDictAlignBytes)
-        texNameDict = b''.join([texNameDictAlignBytes, self.texNameDict.save()])
+        texNameDict = b''.join([texNameDictAlignBytes, self.texNameDict.saveFromNameList(self.texNames)])
 
         pos = self.texNameDict.pos + 16
         count = self.texNameDict.count + 1

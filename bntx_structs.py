@@ -28,6 +28,7 @@
 ################################################################
 ################################################################
 
+import dic
 import struct
 
 
@@ -198,18 +199,45 @@ class StringTable:
 
             return bytes(outBuffer)
 
+        def loadFromNameList(self, names):
+            tree = dic.Tree()
+            for name in names:
+                tree.insert(name)
+
+            indexTable = tree.get_index_table()
+            self.count = len(indexTable) - 1
+
+            self.entries = []
+
+            for i, entry in enumerate(indexTable):
+                self.entries.append(self.Entry(self.endianness))
+                self.entries[-1].referenceBit = entry.reference_bit
+                self.entries[-1].leftIdx = entry.left_idx
+                self.entries[-1].rightIdx = entry.right_idx
+                self.entries[-1].strTblEntryAddr = 0
+
+                if not i:
+                    self.entries[-1].strIdx = -1
+
+                else:
+                    self.entries[-1].strIdx = self.strTbl.index(entry.name)
+
+        def saveFromNameList(self, names):
+            self.loadFromNameList(names)
+            return self.save()
+
     class Entry:
         def __init__(self, endianness):
             self.format = endianness + 'H'
 
         def load(self, data, pos):
             self.pos = pos
-            self.size_ = struct.unpack_from(self.format, data, pos)[0]
-            self.string = data[pos + 2:pos + 2 + self.size_].decode('utf-8')
+            self.strLen = struct.unpack_from(self.format, data, pos)[0]
+            self.string = data[pos + 2:pos + 2 + self.strLen].decode('utf-8')
 
         def save(self):
             return b''.join([
-                struct.pack(self.format, self.size_),
+                struct.pack(self.format, self.strLen),
                 self.string.encode('utf-8'), b'\0',
             ])
 
@@ -238,8 +266,7 @@ class StringTable:
             self.entries.append(self.Entry(self.endianness))
             self.entries[-1].load(data, entriesPos)
 
-            entriesPos += self.entries[-1].size_ + 3
-            entriesPos = ((entriesPos - 1) | 1) + 1
+            entriesPos = ((entriesPos + self.entries[-1].strLen + 2) | 1) + 1
 
     def getStringFromPos(self, pos):
         if isinstance(pos, int):
@@ -264,6 +291,19 @@ class StringTable:
         else:
             return self.entries[index].pos
 
+    def add(self, string):
+        try:
+            self.index(string)
+            return
+
+        except ValueError:
+            self.entries.append(StringTable.Entry(self.endianness))
+            self.entries[-1].pos = 0
+            self.entries[-1].strLen = len(string.encode("utf-8"))
+            self.entries[-1].string = string
+
+            self.count += 1
+
     def index(self, item):
         if isinstance(item, str):
             for i, entry in enumerate(self.entries):
@@ -286,7 +326,7 @@ class StringTable:
             self.entries[i].pos = entriesPos
             outBuffer += self.entries[i].save()
 
-            entriesPos += self.entries[i].size_ + 3
+            entriesPos += self.entries[i].strLen + 3
             entryAlignBytes = b'\0' * ((((entriesPos - 1) | 1) + 1) - entriesPos)
             entriesPos += len(entryAlignBytes)
             outBuffer += entryAlignBytes
