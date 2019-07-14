@@ -52,6 +52,66 @@ round_up = swizzle.round_up
 pow2_round_up = swizzle.pow2_round_up
 
 
+formats = {
+    0x0101: 'R4_G4_UNORM',
+    0x0201: 'R8_UNORM',
+    0x0301: 'R4_G4_B4_A4_UNORM',
+    0x0401: 'A4_B4_G4_R4_UNORM',
+    0x0501: 'R5_G5_B5_A1_UNORM',
+    0x0601: 'A1_B5_G5_R5_UNORM',
+    0x0701: 'R5_G6_B5_UNORM',
+    0x0801: 'B5_G6_R5_UNORM',
+    0x0901: 'R8_G8_UNORM',
+    0x0b01: 'R8_G8_B8_A8_UNORM',
+    0x0b06: 'R8_G8_B8_A8_SRGB',
+    0x0c01: 'B8_G8_R8_A8_UNORM',
+    0x0c06: 'B8_G8_R8_A8_SRGB',
+    0x0e01: 'R10_G10_B10_A2_UNORM',
+    0x1a01: 'BC1_UNORM',
+    0x1a06: 'BC1_SRGB',
+    0x1b01: 'BC2_UNORM',
+    0x1b06: 'BC2_SRGB',
+    0x1c01: 'BC3_UNORM',
+    0x1c06: 'BC3_SRGB',
+    0x1d01: 'BC4_UNORM',
+    0x1d02: 'BC4_SNORM',
+    0x1e01: 'BC5_UNORM',
+    0x1e02: 'BC5_SNORM',
+    0x1f05: 'BC6_FLOAT',
+    0x1f0a: 'BC6_UFLOAT',
+    0x2001: 'BC7_UNORM',
+    0x2006: 'BC7_SRGB',
+    0x2d01: 'ASTC_4x4_UNORM',
+    0x2d06: 'ASTC_4x4_SRGB',
+    0x2e01: 'ASTC_5x4_UNORM',
+    0x2e06: 'ASTC_5x4_SRGB',
+    0x2f01: 'ASTC_5x5_UNORM',
+    0x2f06: 'ASTC_5x5_SRGB',
+    0x3001: 'ASTC_6x5_UNORM',
+    0x3006: 'ASTC_6x5_SRGB',
+    0x3101: 'ASTC_6x6_UNORM',
+    0x3106: 'ASTC_6x6_SRGB',
+    0x3201: 'ASTC_8x5_UNORM',
+    0x3206: 'ASTC_8x5_SRGB',
+    0x3301: 'ASTC_8x6_UNORM',
+    0x3306: 'ASTC_8x6_SRGB',
+    0x3401: 'ASTC_8x8_UNORM',
+    0x3406: 'ASTC_8x8_SRGB',
+    0x3501: 'ASTC_10x5_UNORM',
+    0x3506: 'ASTC_10x5_SRGB',
+    0x3601: 'ASTC_10x6_UNORM',
+    0x3606: 'ASTC_10x6_SRGB',
+    0x3701: 'ASTC_10x8_UNORM',
+    0x3706: 'ASTC_10x8_SRGB',
+    0x3801: 'ASTC_10x10_UNORM',
+    0x3806: 'ASTC_10x10_SRGB',
+    0x3901: 'ASTC_12x10_UNORM',
+    0x3906: 'ASTC_12x10_SRGB',
+    0x3a01: 'ASTC_12x12_UNORM',
+    0x3a06: 'ASTC_12x12_SRGB',
+    0x3b01: 'B5_G5_R5_A1_UNORM',
+}
+
 tileModes = {
     0: "Optimal",
     1: "Linear",
@@ -566,6 +626,8 @@ class File:
         texture.width = width
         texture.height = height
         texture.format_ = format_
+        texture.numSamples = 1
+        texture.depth = 1
         texture.accessFlags = 0x20
         texture.arrayLength = 1
         texture.blockHeightLog2 = blockHeightLog2
@@ -626,8 +688,8 @@ class File:
         while count > 0:
             self.relocTbl.entries.append(self.relocTbl.Entry(self.header.endianness))
             self.relocTbl.entries[-1].pos = pos
-            self.relocTbl.entries[-1].structs = [[pos + i * 8 for i in range(min(count, 0xFF))]]
-            self.relocTbl.entries[-1].paddingCount = 0
+            self.relocTbl.entries[-1].structs = [[pos + i * 8] for i in range(min(count, 0xFF))]
+            self.relocTbl.entries[-1].paddingCount = 1
 
             pos += min(count, 0xFF) * 8
             count -= 0xFF

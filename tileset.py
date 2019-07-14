@@ -38,9 +38,11 @@ Qt = QtCore.Qt
 import globals
 
 import bntx as BNTX
-import gibberish
 import SarcLib
 import spritelib as SLib
+
+from yaz0 import determineCompressionMethod
+CompYaz0, _ = determineCompressionMethod()
 
 #################################
 
@@ -650,6 +652,200 @@ def getUsedTiles():
     return usedTiles
 
 
+def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
+    """
+    Adds a specific object to one of the tilesets
+    """
+    if isfromAll:
+        paintType = 10
+
+    else:
+        paintType = 11
+
+    objNum = -1
+    usedTiles = getUsedTiles()
+
+    for idx in range(1, 4):
+        # Get the number of used tiles in this tileset
+        usedTiles = getUsedTiles()[idx]
+        if len(usedTiles) >= 256:  # It can't be more than 256, oh well
+            # Skip to to the next tileset because no free tiles were found
+            continue
+
+        # Get the number of tiles in this object
+        if (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
+            randLen = obj.randByte & 0xF
+
+        else:
+            randLen = 0
+
+        if randLen:
+            numTiles = randLen
+
+        else:
+            tilesUsed = []
+            for row in obj.rows:
+                for tile in row:
+                    if len(tile) == 3:
+                        if tile != [0, 0, 0]:
+                            if tile[1] & 0xFF not in tilesUsed:
+                                tilesUsed.append(tile[1] & 0xFF)
+
+            numTiles = len(tilesUsed)
+
+        if numTiles + len(usedTiles) > 256:
+            # Skip to to the next tileset because the free tiles are not enough
+            continue
+
+        tileoffset = idx * 256
+
+        # Add the free tiles to a list
+        freeTiles = [i for i in range(256) if i not in usedTiles]
+
+        # Handle randomized objects differently
+        if randLen:
+            # Look for any "randLen" free tiles in a row
+            tileNum = 0
+            found = False
+            for i in freeTiles:
+                for z in range(randLen):
+                    if i + z not in freeTiles:
+                        break
+
+                    if z == randLen - 1:
+                        tileNum = i
+                        found = True
+                        break
+
+                if found:
+                    break
+
+            if not found:
+                # Skip to to the next tileset because no "randLen" free tiles in a row were found
+                continue
+
+            # Set the object's tiles' indecies
+            for ctile, tile in enumerate(obj.rows[0]):
+                if len(tile) == 3:
+                    obj.rows[0][ctile][1] = tileNum | (idx << 8)
+
+            if globals.ObjectDefinitions[idx] is None:
+                # Make us a new ObjectDefinitions for this tileset
+                globals.ObjectDefinitions[idx] = [None] * 256
+
+            defs = globals.ObjectDefinitions[idx]
+
+            # Set the object's number
+            for objNum, def_ in enumerate(defs):
+                if def_ is None:
+                    break
+            else:
+                continue  # Should never happen
+
+            globals.ObjectDefinitions[idx][objNum] = obj
+
+            # Adds the object's tiles to the Tiles dict.
+            tileNum += tileoffset
+            for z in range(randLen):
+                T = TilesetTile(img.copy(z * 60, 0, 60, 60), nml.copy(z * 60, 0, 60, 60))
+                T.setCollisions(struct.unpack_from('>8B', colldata, z * 8))
+                globals.Tiles[tileNum + z] = T
+
+        else:
+            # Set the object's tiles' indecies
+            tilesUsed = {}
+
+            i = 0
+            for row in obj.rows:
+                for tile in row:
+                    if len(tile) == 3:
+                        if tile != [0, 0, 0]:
+                            tileIdx = tile[1] & 0xFF
+                            if tileIdx not in tilesUsed:
+                                tilesUsed[tileIdx] = i
+                                tile[1] = freeTiles[i] | (idx << 8)
+                                i += 1
+
+                            else:
+                                tile[1] = freeTiles[tilesUsed[tileIdx]] | (idx << 8)
+
+            if globals.ObjectDefinitions[idx] is None:
+                # Make us a new ObjectDefinitions for this tileset
+                globals.ObjectDefinitions[idx] = [None] * 256
+
+            defs = globals.ObjectDefinitions[idx]
+
+            # Set the object's number
+            for objNum, def_ in enumerate(defs):
+                if def_ is None:
+                    break
+            else:
+                continue  # Should never happen
+
+            globals.ObjectDefinitions[idx][objNum] = obj
+
+            # Adds the object's tiles to the Tiles dict.
+            tilesReplaced = []
+
+            if obj.reversed:
+                for crow, row in enumerate(obj.rows):
+                    if obj.subPartAt != -1:
+                        if crow >= obj.subPartAt:
+                            crow -= obj.subPartAt
+
+                        else:
+                            crow += obj.height - obj.subPartAt
+
+                    x = 0; i = 0
+                    y = crow * 60
+
+                    for tile in row:
+                        if len(tile) == 3:
+                            if tile != [0, 0, 0]:
+                                tileNum = (tile[1] & 0xFF) + tileoffset
+                                if tileNum not in tilesReplaced:
+                                    tilesReplaced.append(tileNum)
+                                    T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
+                                    colls = struct.unpack_from('>8B', colldata, (crow * obj.width * 8) + i)
+                                    T.setCollisions(colls)
+                                    globals.Tiles[tileNum] = T
+
+                            x += 60
+                            i += 8
+
+            else:
+                i = 0
+
+                for crow, row in enumerate(obj.rows):
+                    x = 0
+                    y = crow * 60
+
+                    for tile in row:
+                        if len(tile) == 3:
+                            if tile != [0, 0, 0]:
+                                tileNum = (tile[1] & 0xFF) + tileoffset
+                                if tileNum not in tilesReplaced:
+                                    tilesReplaced.append(tileNum)
+                                    T = TilesetTile(img.copy(x, y, 60, 60), nml.copy(x, y, 60, 60))
+                                    T.setCollisions(struct.unpack_from('>8B', colldata, i))
+                                    globals.Tiles[tileNum] = T
+
+                            x += 60
+                            i += 8
+
+        # Set the paint type
+        paintType = idx
+
+        # Misc.
+        HandleTilesetEdited()
+        if not eval('globals.Area.tileset%d' % idx):
+            exec("globals.Area.tileset%d = generateTilesetNames()[%d]" % (idx, idx - 1))
+
+        break
+
+    return paintType, objNum
+
+
 def getImgFromObj(obj, randLen):
     if randLen and (obj.width, obj.height) == (1, 1) and len(obj.rows) == 1:
         tex = QtGui.QPixmap(randLen * 60, obj.height * 60)
@@ -794,7 +990,7 @@ def exportObject(name, baseName, idx, objNum):
 
     jsonData['objlyt'] = baseName + ".objlyt"
 
-    indexfile = struct.pack('>HBBxB', 0, obj.width, obj.height, obj.randByte)
+    indexfile = struct.pack('>HBBH', 0, obj.width, obj.height, obj.randByte)
 
     with open(name + ".meta", "wb+") as meta:
         meta.write(indexfile)
@@ -806,6 +1002,341 @@ def exportObject(name, baseName, idx, objNum):
 
     with open(name + ".json", 'w+') as outfile:
         json.dump(jsonData, outfile)
+
+
+def HandleTilesetEdited(fromPuzzle=False):
+    if not fromPuzzle:
+        globals.TilesetEdited = True
+
+    globals.mainWindow.objPicker.LoadFromTilesets()
+    globals.mainWindow.updateNumUsedTilesLabel()
+
+
+def DeleteObject(idx, objNum):
+    # Get the tiles used by this object
+    obj = globals.ObjectDefinitions[idx][objNum]
+    usedTiles = []
+    for row in obj.rows:
+        for tile in row:
+            if len(tile) == 3:
+                if tile == [0, 0, 0]:  # Pa0 tile 0 used in another slot, don't count it
+                    continue
+
+                randLen = obj.randByte & 0xF
+                tileNum = tile[1] & 0xFF
+
+                if idx != (tile[1] >> 8) & 3:
+                    continue
+
+                if randLen:
+                    for i in range(randLen):
+                        if tileNum + i not in usedTiles:
+                            usedTiles.append(tileNum + i)
+                else:
+                    if tileNum not in usedTiles:
+                        usedTiles.append(tileNum)
+
+    folderIndex = obj.folderIndex
+    objAllIndex = obj.objAllIndex
+
+    # Completely remove the object's definition
+    del globals.ObjectDefinitions[idx][objNum]
+    globals.ObjectDefinitions[idx].append(None)
+
+    # Replace the object's tiles with empty tiles
+    # if they are not used by other objects in the save tileset
+    tilesetUsedTiles = getUsedTiles()[idx]
+
+    T = TilesetTile()
+    T.setCollisions([0] * 8)
+
+    tileoffset = idx * 256
+
+    for i in usedTiles:
+        if i not in tilesetUsedTiles:
+            globals.Tiles[i + tileoffset] = T
+
+    # Unload the tileset if it's empty
+    if globals.ObjectDefinitions[idx] == [None] * 256:
+        UnloadTileset(idx)
+        exec("globals.Area.tileset%d = ''" % idx)
+
+    # Remove the object from globals.ObjectAddedtoEmbedded
+    if folderIndex > -1 and globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
+        globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex].pop(objAllIndex, None)
+
+    # Subtract 1 from the objects' types that after this object and in the same slot
+    for folderIndex in globals.ObjectAddedtoEmbedded[globals.CurrentArea]:
+        for i in globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex]:
+            tempIdx, tempNum = globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i]
+            if tempIdx == idx:
+                if tempNum > objNum:
+                    globals.ObjectAddedtoEmbedded[globals.CurrentArea][folderIndex][i] = (tempIdx, tempNum - 1)
+
+    for layer in globals.Area.layers:
+        for obj in layer:
+            if obj.tileset == idx:
+                if obj.type > objNum:
+                    obj.SetType(obj.tileset, obj.type - 1)
+
+    for stamp in globals.mainWindow.stampChooser.model.items:
+        layers, sprites = globals.mainWindow.getEncodedObjects(stamp.MiyamotoClip)
+        objects = []
+
+        for layer in layers:
+            for obj in layer:
+                if obj.tileset == idx:
+                    if obj.type > objNum:
+                        obj.SetType(obj.tileset, obj.type - 1)
+
+                objects.append(obj)
+
+        stamp.MiyamotoClip = globals.mainWindow.encodeObjects(objects, sprites)
+
+    if globals.mainWindow.clipboard is not None:
+        if globals.mainWindow.clipboard.startswith('MiyamotoClip|') and globals.mainWindow.clipboard.endswith('|%'):
+            layers, sprites = globals.mainWindow.getEncodedObjects(globals.mainWindow.clipboard)
+            objects = []
+
+            for layer in layers:
+                for obj in layer:
+                    if obj.tileset == idx:
+                        if obj.type > objNum:
+                            obj.SetType(obj.tileset, obj.type - 1)
+
+                    objects.append(obj)
+
+            globals.mainWindow.clipboard = globals.mainWindow.encodeObjects(objects, sprites)
+
+
+def generateTilesetNames():
+    """
+    Generate 3 Tileset names
+    """
+    tilesetNames = ['Pa%d_%s_%d' % (i, os.path.splitext(globals.mainWindow.fileTitle)[0], globals.CurrentArea) for i in range(1, 4)]
+    return tilesetNames
+
+
+def writeBNTX(images):
+    """
+    Generates a BNTX file from our two QImages
+    """
+    if platform.system() == 'Windows':
+        tile_path = globals.miyamoto_path + '/Tools'
+
+    elif platform.system() == 'Linux':
+        tile_path = globals.miyamoto_path + '/linuxTools'
+
+    else:
+        tile_path = globals.miyamoto_path + '/macTools'
+
+    bntx = BNTX.File()
+    bntx.new('textures')
+
+    for name, img, width, height in images:
+        hdr = BNTX.dds.generateHeader(1, width, height, "rgba8", [2, 3, 4, 5], 0, False)
+
+        data = img.bits()
+        data.setsize(img.byteCount())
+        data = data.asstring()
+
+        with open(tile_path + '/%s.dds' % name, 'wb+') as out:
+            out.write(hdr)
+            out.write(data)
+
+        bntx.addTexture(0, False, False, False, False, tile_path + '/%s.dds' % name)
+        os.remove(tile_path + '/%s.dds' % name)
+
+    return bntx.save()
+
+
+def writeBFRES(bfresdata, bntx):
+    bom = ">" if bfresdata[0xC:0xE] == b'\xFE\xFF' else "<"
+
+    alignmentShift = bfresdata[0xE]
+    relocTbloff = struct.unpack(bom + "I", bfresdata[0x18:0x1C])[0]
+    relocTbl = bytearray(bfresdata[relocTbloff:])
+
+    assert struct.unpack(bom + "I", bfresdata[relocTbloff + 8:relocTbloff + 12])[0] == 5
+
+    bfresdata = bytearray(bfresdata[:relocTbloff])
+
+    startoff = struct.unpack(bom + "q", bfresdata[0x98:0xA0])[0]
+    count = struct.unpack(bom + "q", bfresdata[0xC8:0xD0])[0]
+
+    assert count > 0
+    i = count - 1
+
+    fileoff = struct.unpack(bom + "q", bfresdata[startoff + i * 16:startoff + 8 + i * 16])[0]
+    dataSize = struct.unpack(bom + "q", bfresdata[startoff + 8 + i * 16:startoff + 16 + i * 16])[0]
+
+    assert bfresdata[fileoff:fileoff + 4] == b'BNTX' and relocTbloff - fileoff - dataSize < 1 << alignmentShift
+
+    round_up = lambda x, y: ((x - 1) | (y - 1)) + 1
+
+    bfresdata[startoff + 8 + i * 16:startoff + 16 + i * 16] = struct.pack(bom + "q", len(bntx))
+    bfresdata[fileoff:] = bntx
+
+    relocAlignBytes = b'\0' * (round_up(len(bfresdata), 1 << alignmentShift) - len(bfresdata))
+    bfresdata += relocAlignBytes
+
+    bRelocTbloff = struct.pack(bom + "I", len(bfresdata))
+    relocTbl[4:8] = bRelocTbloff
+
+    sec5Size = struct.unpack(bom + "I", relocTbl[0x7C:0x80])[0]
+    sec5Size += len(bfresdata) - relocTbloff
+    relocTbl[0x7C:0x80] = struct.pack(bom + "I", sec5Size)
+
+    bfresdata += relocTbl
+
+    bfresdata[0x18:0x1C] = bRelocTbloff
+    bfresdata[0x1C:0x20] = struct.pack(bom + "I", len(bfresdata))
+
+    return bfresdata
+
+
+def PackTexture(idx, nml=False):
+    """
+    Packs the tiles into a GTX file
+    """
+    tex = QtGui.QImage(2048, 512, QtGui.QImage.Format_RGBA8888)
+    tex.fill(Qt.transparent)
+    painter = QtGui.QPainter(tex)
+
+    tileoffset = idx * 256
+    x = 0
+    y = 0
+
+    for z in range(tileoffset, tileoffset + 256):
+        tile = QtGui.QImage(64, 64, QtGui.QImage.Format_RGBA8888)
+        tile.fill(Qt.transparent)
+        tilePainter = QtGui.QPainter(tile)
+
+        tilePainter.drawPixmap(2, 2, globals.Tiles[z].nml if nml else globals.Tiles[z].main)
+        tilePainter.end()
+
+        for i in range(2, 62):
+            color = tile.pixel(i, 2)
+            for pix in range(0, 2):
+                tile.setPixel(i, pix, color)
+
+            color = tile.pixel(2, i)
+            for p in range(0, 2):
+                tile.setPixel(p, i, color)
+
+            color = tile.pixel(i, 61)
+            for p in range(62, 64):
+                tile.setPixel(i, p, color)
+
+            color = tile.pixel(61, i)
+            for p in range(62, 64):
+                tile.setPixel(p, i, color)
+
+        color = tile.pixel(2, 2)
+        for a in range(0, 2):
+            for b in range(0, 2):
+                tile.setPixel(a, b, color)
+
+        color = tile.pixel(61, 2)
+        for a in range(62, 64):
+            for b in range(0, 2):
+                tile.setPixel(a, b, color)
+
+        color = tile.pixel(2, 61)
+        for a in range(0, 2):
+            for b in range(62, 64):
+                tile.setPixel(a, b, color)
+
+        color = tile.pixel(61, 61)
+        for a in range(62, 64):
+            for b in range(62, 64):
+                tile.setPixel(a, b, color)
+
+        painter.drawImage(x, y, tile)
+
+        x += 64
+
+        if x >= 2048:
+            x = 0
+            y += 64
+
+    painter.end()
+    return tex
+
+
+def SaveTileset(idx):
+    """
+    Saves a tileset from a specific slot
+    """
+    name = eval('globals.Area.tileset%d' % idx)
+
+    tileoffset = idx * 256
+
+    img = PackTexture(idx)
+    nml = PackTexture(idx, True)
+    bntx = writeBNTX([(name, img, 2048, 512), ('%s_nml' % name, nml, 2048, 512)])
+
+    with open(globals.miyamoto_path + '/miyamotodata/output.bfres', 'rb') as file:
+        bfresdata = file.read()
+
+    bfresdata = writeBFRES(bfresdata, bntx)
+
+    defs = globals.ObjectDefinitions[idx]
+
+    if defs is None:
+        return False
+
+    colldata = b''
+    deffile = b''
+    indexfile = b''
+
+    for i in range(tileoffset, tileoffset + 256):
+        colldata += bytes(globals.Tiles[i].collData)
+
+    for obj in defs:
+        if obj is None:
+            break
+
+        indexfile += struct.pack('<HBBH', len(deffile), obj.width, obj.height, obj.randByte)
+
+        for row in obj.rows:
+            for tile in row:
+                if len(tile) == 3:
+                    byte2 = tile[2] << 2
+                    byte2 |= (tile[1] >> 8) & 3  # Slot
+
+                    deffile += bytes([tile[0], tile[1] & 0xFF, byte2])
+
+                else:
+                    deffile += bytes(tile)
+
+            deffile += b'\xFE'
+
+        deffile += b'\xFF'
+
+    arc = SarcLib.SARC_Archive(endianness='<')
+    arc.addFile(SarcLib.File('output.bfres', bfresdata))
+
+    chk = SarcLib.Folder('BG_chk')
+    arc.addFolder(chk)
+    chk.addFile(SarcLib.File('d_bgchk_%s.bin' % name, colldata))
+
+    unt = SarcLib.Folder('BG_unt')
+    arc.addFolder(unt)
+    unt.addFile(SarcLib.File('%s.bin' % name, deffile))
+    unt.addFile(SarcLib.File('%s_hd.bin' % name, indexfile))
+
+    paths = reversed(globals.gamedef.GetGamePaths())
+    for path in paths:
+        if not os.path.isdir(os.path.join(os.path.dirname(path), 'Unit')):
+            continue
+
+        sarcname = os.path.join(os.path.dirname(path), 'Unit', name + '.szs')
+        CompYaz0(arc.save()[0], sarcname, globals.CompLevel)
+        break
+
+    else:
+        raise RuntimeError("Could not save tileset!")
 
 
 def loadBNTXFromBFRES(inb):
@@ -1185,6 +1716,10 @@ def RenderObject(tileset, objnum, width, height, fullslope=False):
     except IndexError:
         obj = None
 
+    return _RenderObject(obj, width, height, fullslope)
+
+
+def RenderObjectAll(obj, width, height, fullslope=False):
     return _RenderObject(obj, width, height, fullslope)
 
 

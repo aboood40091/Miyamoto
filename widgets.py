@@ -50,8 +50,9 @@ from misc import clipStr, setting, setSetting
 from quickpaint import QuickPaintOperations
 from stamp import StampListModel
 
-from tileset import TilesetTile, ObjectDef
-from tileset import exportObject, RenderObject
+from tileset import TilesetTile, ObjectDef, addObjToTileset
+from tileset import exportObject, HandleTilesetEdited, DeleteObject
+from tileset import RenderObject, RenderObjectAll
 from tileset import SimpleTilesetNames
 
 from ui import createHorzLine, createVertLine, GetIcon
@@ -638,7 +639,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             obj = self.parent.scene.HitObject(event.x(), event.y(), self.width(), self.height())
             if obj is not None:
                 if event.button() == Qt.LeftButton:
-                    if globals.CurrentPaintType != -1 and globals.CurrentObject != -1:
+                    if globals.CurrentPaintType not in [-1, 10] and globals.CurrentObject != -1:
                         odef = globals.ObjectDefinitions[globals.CurrentPaintType][globals.CurrentObject]
                         self.parent.scene.object_database[obj]['w'] = odef.width
                         self.parent.scene.object_database[obj]['h'] = odef.height
@@ -1548,6 +1549,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         self.setWrapping(True)
 
         self.m0 = self.ObjectListModel()
+        self.mall = self.ObjectListModel()
         self.m123 = self.ObjectListModel()
         self.setModel(self.m0)
 
@@ -1559,7 +1561,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         """
         Creates and shows the right-click menu
         """
-        if globals.CurrentPaintType == 0:
+        if globals.CurrentPaintType in [0, 10]:
             return QtWidgets.QListView.contextMenuEvent(self, event)
 
         self.menu = QtWidgets.QMenu(self)
@@ -1567,10 +1569,14 @@ class ObjectPickerWidget(QtWidgets.QListView):
         export = QtWidgets.QAction('Export', self)
         export.triggered.connect(self.HandleObjExport)
 
+        delete = QtWidgets.QAction('Delete', self)
+        delete.triggered.connect(self.HandleObjDelete)
+
         delIns = QtWidgets.QAction('Delete instances', self)
         delIns.triggered.connect(self.HandleObjDeleteInstances)
 
         self.menu.addAction(export)
+        self.menu.addAction(delete)
         self.menu.addAction(delIns)
 
         self.menu.popup(QtGui.QCursor.pos())
@@ -1588,6 +1594,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         """
         sel = self.currentIndex().row()
         if id == 0: self.setModel(self.m0)
+        elif id == 1: self.setModel(self.mall)
         else: self.setModel(self.m123)
 
         globals.CurrentObject = -1
@@ -1621,6 +1628,97 @@ class ObjectPickerWidget(QtWidgets.QListView):
         objNum = globals.CurrentObject
 
         exportObject(name, baseName, idx, objNum)
+
+    def HandleObjDelete(self, index):
+        """
+        Deletes an object from the tileset
+        """
+        idx = globals.CurrentPaintType
+        objNum = globals.CurrentObject
+
+        if objNum == -1: return
+
+        # Check if the object is deletable
+        matchingObjs = []
+
+        ## Check if the object is in the scene
+        for layer in globals.Area.layers:
+            for obj in layer:
+                if obj.tileset == idx and obj.type == objNum:
+                    matchingObjs.append(obj)
+
+        if matchingObjs:
+            where = [('(%d, %d)' % (obj.objx, obj.objy)) for obj in matchingObjs]
+            dlgTxt = "You can't delete this object because there are instances of it at the following coordinates:\n"
+            dlgTxt += ', '.join(where)
+            dlgTxt += '\nPlease remove or replace them before deleting this object.'
+
+            QtWidgets.QMessageBox.critical(self, 'Cannot Delete', dlgTxt)
+            return
+
+        ## Check if the object is used as a stamp
+        usedAsStamp = False
+        for stamp in globals.mainWindow.stampChooser.model.items:
+            layers, _ = globals.mainWindow.getEncodedObjects(stamp.MiyamotoClip)
+            for layer in layers:
+                for obj in layer:
+                    if obj.tileset == idx and obj.type == objNum:
+                        usedAsStamp = True
+                        break
+                if usedAsStamp: break
+            if usedAsStamp: break
+
+        if usedAsStamp:
+            dlgTxt = "You can't delete this object because it is used as a stamp."
+            dlgTxt += '\nPlease remove the stamp before deleting this object.'
+
+            QtWidgets.QMessageBox.critical(self, 'Cannot Delete', dlgTxt)
+            return
+
+        ## Check if the object is in the clipboard
+        inClipboard = False
+        if globals.mainWindow.clipboard is not None:
+            if globals.mainWindow.clipboard.startswith('MiyamotoClip|') and globals.mainWindow.clipboard.endswith('|%'):
+                layers, _ = globals.mainWindow.getEncodedObjects(globals.mainWindow.clipboard)
+                for layer in layers:
+                    for obj in layer:
+                        if obj.tileset == idx and obj.type == objNum:
+                            inClipboard = True
+                            break
+                    if inClipboard:
+                        break
+
+        if inClipboard:
+            dlgTxt = "You can't delete this object because it is in the clipboard."
+            dlgTxt += '\nDo you want to empty the clipboard?.'
+
+            result = QtWidgets.QMessageBox.warning(self, 'Cannot Delete', dlgTxt,
+                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if result != QtWidgets.QMessageBox.Yes:
+                return
+
+            # Empty the clipboard
+            globals.mainWindow.clipboard = None
+            globals.mainWindow.actions['paste'].setEnabled(False)
+
+            dlgTxt = "The clipboard has been emptied."
+            dlgTxt += '\nDo you want to proceed with deleting the object?'
+
+            result = QtWidgets.QMessageBox.warning(self, 'Cannot Delete', dlgTxt,
+                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if result != QtWidgets.QMessageBox.Yes:
+                return
+
+        DeleteObject(idx, objNum)
+        HandleTilesetEdited()
+
+        if not (globals.Area.tileset1 or globals.Area.tileset2 or globals.Area.tileset3):
+            globals.CurrentObject = -1
+
+        globals.mainWindow.scene.update()
+        SetDirty()
 
     def HandleObjDeleteInstances(self, index):
         """
@@ -1813,6 +1911,179 @@ class ObjectPickerWidget(QtWidgets.QListView):
                     z += 1
 
                 globals.numObj.append(z)
+
+            self.endResetModel()
+
+        def LoadFromFolder(self):
+            """
+            Renders all the object previews for the model from a folder
+            """
+            globals.ObjectAllDefinitions = []
+            globals.ObjectAllCollisions = []
+            globals.ObjectAllImages = []
+
+            self.items = []
+            self.ritems = []
+            self.itemsize = []
+            self.tooltips = []
+
+            self.beginResetModel()
+
+            # Fixes issues if the user selects the wrong Objects Folder
+            if not globals.mainWindow.folderPicker.currentText():
+                self.endResetModel()
+                return
+
+            z = 0
+            top_folder = os.path.join(setting('ObjPath'), globals.mainWindow.folderPicker.currentText())
+
+            # Get the list of files in the folder
+            files = os.listdir(top_folder)
+            ## Sort the files through "Natural sorting" (opposite of "Lexicographic sorting")
+            files.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
+
+            # Discard files not enging with ".json" from the list
+            files_ = [file for file in files if file[-5:] == ".json"]
+            del files
+
+            for file in files_:
+                dir = top_folder + "/"
+
+                with open(dir + file) as inf:
+                    jsonData = json.load(inf)
+
+                if not ("colls" in jsonData and "meta" in jsonData and "objlyt" in jsonData
+                        and "img" in jsonData and "nml" in jsonData):
+
+                    # Invalid object JSON
+                    continue
+
+                # Check for the required files
+                found = True
+                for f in ["colls", "meta", "objlyt", "img", "nml"]:
+                    if not os.path.isfile(dir + jsonData[f]):
+                        print("%s not found!" % (dir + jsonData[f]))
+                        found = False
+                        break
+
+                if not found:
+                    # One of the required files is missing
+                    continue
+
+                with open(dir + jsonData["colls"], "rb") as inf:
+                    globals.ObjectAllCollisions.append(inf.read())
+
+                with open(dir + jsonData["meta"], "rb") as inf:
+                    indexfile = inf.read()
+
+                with open(dir + jsonData["objlyt"], "rb") as inf:
+                    deffile = inf.read()
+
+                # Read the object definition file into Object instances
+                indexstruct = struct.Struct('>HBBH')
+
+                data = indexstruct.unpack_from(indexfile, 0)
+                def_ = ObjectDef()
+                def_.width = data[1]
+                def_.height = data[2]
+                def_.folderIndex = globals.mainWindow.folderPicker.currentIndex()
+                def_.objAllIndex = z
+
+                if "randLen" in jsonData:
+                    def_.randByte = data[3]
+
+                else:
+                    def_.randByte = 0
+
+                def_.load(deffile, 0)
+
+                globals.ObjectAllDefinitions.append(def_)
+
+                # Get the properly rendered object definition
+                obj = RenderObjectAll(def_, def_.width, def_.height, True)
+                self.items.append(obj)
+
+                globals.ObjectAllImages.append([QtGui.QPixmap(dir + jsonData["img"]),
+                                        QtGui.QPixmap(dir + jsonData["nml"])])
+
+                img, nml = globals.ObjectAllImages[-1]
+
+                # Render said object definition for the preview
+                tilesUsed = {}
+                tiles = [None] * def_.width * def_.height
+
+                # Load the tiles of the object for the preview
+                ## Start by creating a TilesetTile instance for each tile
+                if def_.reversed:
+                    for crow, row in enumerate(def_.rows):
+                        if def_.subPartAt != -1:
+                            if crow >= def_.subPartAt:
+                                crow -= def_.subPartAt
+
+                            else:
+                                crow += def_.height - def_.subPartAt
+
+                        x = 0
+                        y = crow
+
+                        for tile in row:
+                            if len(tile) == 3:
+                                if tile != [0, 0, 0]:
+                                    tilesUsed[tile[1] & 0x3FF] = y * def_.width + x
+                                    tiles[y * def_.width + x] = TilesetTile(img.copy(x * 60, y * 60, 60, 60), nml.copy(x * 60, y * 60, 60, 60))
+
+                                x += 1
+
+                else:
+                    for crow, row in enumerate(def_.rows):
+                        x = 0
+                        y = crow
+
+                        for tile in row:
+                            if len(tile) == 3:
+                                if tile != [0, 0, 0]:
+                                    tilesUsed[tile[1] & 0x3FF] = y * def_.width + x
+                                    tiles[y * def_.width + x] = TilesetTile(img.copy(x * 60, y * 60, 60, 60), nml.copy(x * 60, y * 60, 60, 60))
+
+                                x += 1
+
+                # Start painting the preview
+                pm = QtGui.QPixmap(def_.width * 60, def_.height * 60)
+                pm.fill(Qt.transparent)
+                p = QtGui.QPainter()
+                p.begin(pm)
+                y = 0
+
+                for row in obj:
+                    x = 0
+                    for tile in row:
+                        if tile != -1:
+                            if tile in tilesUsed:
+                                p.drawPixmap(x, y, tiles[tilesUsed[tile]].main)
+                            else:
+                                try:
+                                    if isinstance(globals.Tiles[tile].main, QtGui.QImage):
+                                        p.drawImage(x, y, globals.Tiles[tile].main)
+                                    else:
+                                        p.drawPixmap(x, y, globals.Tiles[tile].main)
+                                except AttributeError:
+                                    break
+                        x += 60
+                    y += 60
+                p.end()
+
+                # Resize the preview for a good looking layout
+                pm = pm.scaledToWidth(pm.width() * 32 / globals.TileWidth, Qt.SmoothTransformation)
+                if pm.width() > 256:
+                    pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
+                if pm.height() > 256:
+                    pm = pm.scaledToHeight(256, Qt.SmoothTransformation)
+
+                self.ritems.append(pm)
+                self.itemsize.append(QtCore.QSize(pm.width() + 4, pm.height() + 4))
+                self.tooltips.append(globals.trans.string('Objects', 5, '[id]', z))
+
+                z += 1
 
             self.endResetModel()
 
@@ -3706,6 +3977,68 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 self.dragstartx = clickedx
                 self.dragstarty = clickedy
                 SetDirty()
+
+            elif globals.CurrentPaintType == 10 and globals.CurrentObject != -1:
+                assert globals.CurrentObject == globals.ObjectAllDefinitions[globals.CurrentObject].objAllIndex
+                type_ = globals.CurrentObject
+
+                # Check if the object is already in one of the tilesets
+                if globals.CurrentObject in globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()]:
+                    (globals.CurrentPaintType,
+                     globals.CurrentObject) = globals.ObjectAddedtoEmbedded[globals.CurrentArea][globals.mainWindow.folderPicker.currentIndex()][
+                         globals.CurrentObject]
+
+                # Try to add the object to one of the tilesets
+                else:
+                    # Get the object definition, collision data, image and normal map
+                    obj = globals.ObjectAllDefinitions[globals.CurrentObject]
+                    colldata = globals.ObjectAllCollisions[globals.CurrentObject]
+                    img, nml = globals.ObjectAllImages[globals.CurrentObject]
+
+                    # Add the object to one of the tilesets and set CurrentPaintType and CurrentObject
+                    (globals.CurrentPaintType,
+                     globals.CurrentObject) = addObjToTileset(obj, colldata, img, nml, True)
+
+                    # Checks if the object fit in one of the tilesets
+                    if globals.CurrentPaintType == 10:
+                        # Revert CurrentObject back to what it was
+                        globals.CurrentObject = type_
+
+                        # Throw a messagebox because the object didn't fit
+                        QtWidgets.QMessageBox.critical(None, 'Cannot Paint', "There isn't enough room left for this object!")
+                        return
+
+                    # Add the object to ObjectAddedtoEmbedded
+                    globals.ObjectAddedtoEmbedded[globals.CurrentArea][obj.folderIndex][type_] = (globals.CurrentPaintType, globals.CurrentObject)
+
+                # paint an object
+                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                if clicked.x() < 0: clicked.setX(0)
+                if clicked.y() < 0: clicked.setY(0)
+                clickedx = int(clicked.x() / globals.TileWidth)
+                clickedy = int(clicked.y() / globals.TileWidth)
+
+                ln = globals.CurrentLayer
+                layer = globals.Area.layers[globals.CurrentLayer]
+                if len(layer) == 0:
+                    z = (2 - ln) * 8192
+                else:
+                    z = layer[-1].zValue() + 1
+
+                obj = ObjectItem(globals.CurrentPaintType, globals.CurrentObject, ln, clickedx, clickedy, 1, 1, z, 0)
+                layer.append(obj)
+                mw = globals.mainWindow
+                obj.positionChanged = mw.HandleObjPosChange
+                mw.scene.addItem(obj)
+
+                self.dragstamp = False
+                self.currentobj = obj
+                self.dragstartx = clickedx
+                self.dragstarty = clickedy
+                SetDirty()
+
+                globals.CurrentPaintType = 10
+                globals.CurrentObject = type_
 
             elif globals.CurrentPaintType == 4 and globals.CurrentSprite != -1:
                 # paint a sprite

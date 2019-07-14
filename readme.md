@@ -18,7 +18,6 @@ GitHub: https://github.com/aboood40091/Miyamoto/tree/deluxe
 * AboodXD -- Lead Coder, Spritedata, Graphics
 * Gota7 -- Coding, Spritedata, Graphics
 * Grop -- Coding, Spritedata
-* Gregory Haskins -- Gibberish
 * John10v10 -- Quick Paint Tool
 * Luzifer -- Graphics
 * Mayro -- Graphics
@@ -69,9 +68,9 @@ Open Command Prompt (or PowerShell) and type the following:
 Make sure you have a compatible C compiler with Cython. For Linux and Mac OSX, you want "gcc". (which is usually preinstalled)  
 
 ##### STEP 4.5 (C compiler for Windows):
-Download the Build Tools for Visual Studio 2017 installer:  
-https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2017  
-After you get the installer running, go to the `Workloads` tab and check `Visual C++ Build Tools` and then proceed with the installation process.   
+Download the Microsoft Build Tools 2015 installer:  
+http://download.microsoft.com/download/5/F/7/5F7ACAEB-8363-451F-9425-68A90F98B238/visualcppbuildtools_full.exe  
+
 
 Run the following in a command prompt:  
 `python3 miyamoto.py`  

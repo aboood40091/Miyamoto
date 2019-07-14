@@ -27,14 +27,16 @@
 ################################################################
 ################################################################
 
+import json
 import os
 from PyQt5 import QtGui, QtWidgets
 import sys
 
 from dialogs import PreferencesDialog
 import globals
+from misc import setting
 from ui import SetAppStyle
-from verifications import isValidGamePath
+from verifications import isValidGamePath, isValidObjectsPath
 
 
 class PathPage(QtWidgets.QWizardPage):
@@ -117,6 +119,21 @@ class GamePathPage(PathPage):
             self.pathLineEdit.setText(path)
 
 
+class ObjectsPathPage(PathPage):
+    def __init__(self):
+        super().__init__()
+
+        self.setTitle("Objects Path (optional)")
+        self.setSubTitle("Choose the folder containing object folders")
+
+        self.requireFinish = False
+        self.isValidPathMethod = isValidObjectsPath
+
+        path = setting('ObjPath')
+        if path:
+            self.pathLineEdit.setText(path)
+
+
 ThemesTab = PreferencesDialog.getThemesTab(QtWidgets.QWizardPage)
 class ThemesPage(ThemesTab):
     def __init__(self):
@@ -139,9 +156,11 @@ class Wizard(QtWidgets.QWizard):
         self.setOptions(QtWidgets.QWizard.IndependentPages|QtWidgets.QWizard.NoBackButtonOnStartPage)
 
         self.gamePathPage = GamePathPage()
+        self.objectsPathPage = ObjectsPathPage()
         self.themesPage = ThemesPage()
 
         self.addPage(self.gamePathPage)
+        self.addPage(self.objectsPathPage)
         self.addPage(self.themesPage)
 
         self.finished = False

@@ -389,9 +389,12 @@ class TextureInfo:
 
         if not self.readTexLayout:
             textureLayout = 0
+            self.textureLayout2 = 0
 
         else:
             textureLayout = self.sparseResidency << 5 | self.sparseBinding << 4 | self.blockHeightLog2
+            if not self.textureLayout2:
+                self.textureLayout2 = 0x10007  # temporarily
 
         self.textureLayout = textureLayout
         self.flags = self.sparseResidency << 2 | self.sparseBinding << 1 | self.readTexLayout

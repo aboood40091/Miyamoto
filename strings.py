@@ -289,7 +289,7 @@ class MiyamotoTranslation:
                 },
             'Err_MissingTileset': {
                 0: 'Error',
-                1: 'Cannot find the required tileset file [file].sarc. Check your Course folder and make sure it exists.',
+                1: 'Cannot find the required tileset file [file].szs. Check your Unit folder and make sure it exists.',
                 },
             'Err_Save': {
                 0: 'Error',

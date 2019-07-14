@@ -32,7 +32,7 @@ from xml.etree import ElementTree as etree
 import globals
 import SarcLib
 import spritelib as SLib
-from tileset import CreateTilesets
+from tileset import CreateTilesets, SaveTileset
 
 #################################
 
@@ -196,6 +196,17 @@ class Level_NSMBU(AbstractLevel):
                 courseFolder.addFile(SarcLib.File('course%d_bgdatL1.bin' % (areanum + 1), L1))
             if L2 is not None:
                 courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (areanum + 1), L2))
+
+        # Save all the tilesets
+        if globals.TilesetEdited or globals.OverrideTilesetSaving:
+            if globals.Area.tileset1:
+                tilesetData = SaveTileset(1)
+
+            if globals.Area.tileset2:
+                tilesetData = SaveTileset(2)
+
+            if globals.Area.tileset3:
+                tilesetData = SaveTileset(3)
 
         return newArchive.save()[0]
 
