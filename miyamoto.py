@@ -2599,12 +2599,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                                                           'Choose the folder containing Object folders')
 
         if not path: return
-        if not isValidObjectsPath(path):
-            return
+        if not isValidObjectsPath(path): return
 
         setSetting('ObjPath', path)
 
-        self.objAllTab.setTabEnabled(1, True)
+        if not self.objAllTab.isTabEnabled(1):
+            QtWidgets.QMessageBox.warning(None, 'Warning', 'A restart of Miyamoto is required for the All tab to be enabled!')
+
         self.folderPicker.clear()
 
         folders = os.listdir(path)

@@ -994,7 +994,7 @@ def exportObject(name, baseName, idx, objNum):
 
     jsonData['objlyt'] = baseName + ".objlyt"
 
-    indexfile = struct.pack('>HBBxB', 0, obj.width, obj.height, obj.randByte)
+    indexfile = struct.pack('>HBBH', 0, obj.width, obj.height, obj.randByte)
 
     with open(name + ".meta", "wb+") as meta:
         meta.write(indexfile)
@@ -1323,7 +1323,7 @@ def SaveTileset(idx):
         if obj is None:
             break
 
-        indexfile += struct.pack('>HBBxB', len(deffile), obj.width, obj.height, obj.randByte)
+        indexfile += struct.pack('>HBBH', len(deffile), obj.width, obj.height, obj.randByte)
 
         for row in obj.rows:
             for tile in row:

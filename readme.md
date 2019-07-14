@@ -50,16 +50,34 @@ GitHub: https://github.com/aboood40091/Miyamoto
 ----------------------------------------------------------------
 
 ### How To Use
-First, download this repo (either by using ```git clone``` or ```git pull``` if you've already cloned it), or by downloading a release, or by just downloading this repo as a whole.
+#### STEP 1:
+Download the source code from here:  
+https://github.com/aboood40091/Miyamoto  
 
-Second, you need the filesystem for New Super Mario Bros. U. You can get it by dumping the game using ddd: https://gbatemp.net/threads/ddd-wiiu-title-dumper.418492/
+Or using `git` with the following command:  
+`git clone --single-branch https://github.com/aboood40091/Miyamoto.git`  
 
-Thirdly, Download and install the following:
- * Python 3.4 (or newer) - http://www.python.org
- * PyQt 5.3 (or newer) - http://www.riverbankcomputing.co.uk/software/pyqt/intro
- * SarcLib (pip3 install SarcLib)
- * libyaz0 (pip3 install libyaz0)
- * cx_Freeze 4.3 (or newer) (optional) - http://cx-freeze.sourceforge.net  
+#### STEP 2:
+Install the latest version of Python 3 (make sure you install pip and add it to PATH):  
+https://www.python.org/downloads/
+
+#### STEP 3:
+Open Command Prompt (or PowerShell) and type the following:  
+`py -3 -m pip install PyQt5`  
+`py -3 -m pip install Cython`  
+`py -3 -m pip install libyaz0`  
+`py -3 -m pip install SarcLib`  
+
+#### STEP 4:
+Make sure you have a compatible C compiler with Cython. For Linux and Mac OSX, you want "gcc". (which is usually preinstalled)  
+
+##### STEP 4.5 (C compiler for Windows):
+Download the Microsoft Build Tools 2015 installer:  
+http://download.microsoft.com/download/5/F/7/5F7ACAEB-8363-451F-9425-68A90F98B238/visualcppbuildtools_full.exe  
+
+#### STEP 5:
+You need the filesystem for New Super Mario Bros. U. You can get it by dumping the game using ddd: https://gbatemp.net/threads/ddd-wiiu-title-dumper.418492/  
+
 
 Run the following in a command prompt:  
 `python3 miyamoto.py`  

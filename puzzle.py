@@ -2324,7 +2324,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         meta = []
         for i in range(len(metadata) // 6):
-            meta.append(struct.unpack_from('>HBBxB', metadata, i * 6))
+            meta.append(struct.unpack_from('>HBBH', metadata, i * 6))
 
         tilelist = [[]]
         upperslope = [0, 0]
@@ -2472,7 +2472,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         meta = []
         for i in range(len(metadata) // 6):
-            meta.append(struct.unpack_from('>HBBxB', metadata, i * 6))
+            meta.append(struct.unpack_from('>HBBH', metadata, i * 6))
 
         tilelist = [[]]
         upperslope = [0, 0]
@@ -2893,7 +2893,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Metabuffer = b''
         i = 0
         for a in objectStrings:
-            Metabuffer += struct.pack('>HBBxB', len(Objbuffer), Tileset.objects[i].width, Tileset.objects[i].height, Tileset.objects[i].getRandByte())
+            Metabuffer += struct.pack('>HBBH', len(Objbuffer), Tileset.objects[i].width, Tileset.objects[i].height, Tileset.objects[i].getRandByte())
             Objbuffer += a
 
             i += 1
@@ -3301,7 +3301,7 @@ class MainWindow(QtWidgets.QMainWindow):
             a += b'\xff'
 
         Objbuffer = a
-        Metabuffer = struct.pack('>HBBxB', (0 if n == 0 else len(Objbuffer)), object.width, object.height, object.getRandByte())
+        Metabuffer = struct.pack('>HBBH', (0 if n == 0 else len(Objbuffer)), object.width, object.height, object.getRandByte())
 
         tex.save(name + ".png", "PNG")
 
