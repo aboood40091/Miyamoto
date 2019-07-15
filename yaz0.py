@@ -130,7 +130,7 @@ def compressLIBYAZ0(inb, outf, level=1):
     Compress the file using libyaz0
     """
     try:
-        data = compress(inb, 0, level)
+        data = compress(inb, 0, int(level))
 
         with open(outf, "wb+") as out:
             out.write(data)

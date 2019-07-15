@@ -24,6 +24,9 @@ from tileset import loadTexFromBNTX, writeBNTX, writeBFRES
 from yaz0 import determineCompressionMethod
 CompYaz0, DecompYaz0 = determineCompressionMethod()
 
+import ftplib
+import ftp_config
+
 
 ########################################################
 # To Do:
@@ -2609,7 +2612,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.saveImage(True)
 
 
-    def saveTileset(self):
+    def saveTileset(self, close=False):
         outdata = self.saving(os.path.basename(self.name))
 
         paths = reversed(globals.gamedef.GetGamePaths())
@@ -2663,7 +2666,42 @@ class MainWindow(QtWidgets.QMainWindow):
         globals.mainWindow.scene.update()
 
         self.saved = True
-        self.close()
+
+        if close:
+            self.close()
+
+
+    def saveTilesetFtp(self, close=False):
+        self.saveTileset(False)
+
+        try:
+            ftpSession = ftplib.FTP(timeout = ftp_config.timeout)
+            ftpSession.connect(ftp_config.host, ftp_config.port)
+            print(ftpSession.getwelcome())
+
+            ftpSession.login(ftp_config.usr, ftp_config.pwd)
+
+            paths = reversed(globals.gamedef.GetGamePaths())
+            for path in paths:
+                if not os.path.isdir(os.path.join(os.path.dirname(path), 'Unit')):
+                    continue
+
+                tilesetName = eval('globals.Area.tileset%d' % self.slot)
+                tilesetFilePath = os.path.join(os.path.dirname(path), 'Unit', tilesetName + '.szs')
+
+                ftpSession.cwd(ftp_config.romfs + 'Unit')
+                tilesetFile = open(tilesetFilePath, 'rb')
+                ftpSession.storbinary('STOR %s.szs' % tilesetName, tilesetFile)
+                tilesetFile.close()
+
+                break
+        
+        except ftplib.all_errors:
+            QtWidgets.QMessageBox.warning(None, globals.trans.string('FtpDlg', 0),
+                                                globals.trans.string('FtpDlg', 2))
+
+        if close:
+            self.close()
 
 
     def saveTilesetAs(self):
@@ -2919,7 +2957,8 @@ class MainWindow(QtWidgets.QMainWindow):
         fileMenu.addAction("Export Image...", self.saveImage, QtGui.QKeySequence('Ctrl+E'))
         fileMenu.addAction("Import Normal Map...", self.openNml, QtGui.QKeySequence('Ctrl+Shift+I'))
         fileMenu.addAction("Export Normal Map...", self.saveNml, QtGui.QKeySequence('Ctrl+Shift+E'))
-        fileMenu.addAction("Save and Quit", self.saveTileset, QtGui.QKeySequence.Save)
+        fileMenu.addAction("Save and Quit", lambda: self.saveTileset(close=True), QtGui.QKeySequence.Save)
+        fileMenu.addAction("Save to FTP server and Quit", lambda: self.saveTilesetFtp(close=True), QtGui.QKeySequence('Ctrl+Shift+F'))
         fileMenu.addAction("Quit", self.close, QtGui.QKeySequence('Ctrl-Q'))
 
         taskMenu = self.menuBar().addMenu("&Tasks")

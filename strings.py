@@ -806,8 +806,9 @@ class MiyamotoTranslation:
                 0: 'Untitled',
                 },
             'FtpDlg' : {
-                    0: 'Transfer Failed',
-                    1: 'Transfering the level to the FTP server failed.',
+                0: 'Transfer Failed',
+                1: 'Transfering the level to the FTP server failed.',
+                2: 'Transfering the tileset to the FTP server failed.',
                 },
             'ZonesDlg': {
                 0: 'Zones',
