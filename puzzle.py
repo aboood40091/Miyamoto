@@ -2671,7 +2671,7 @@ class MainWindow(QtWidgets.QMainWindow):
         fn = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose a new filename', '', 'NSMBUDX tileset files (*.szs)')[0]
         if fn == '': return
 
-        outdata = self.saving(os.path.basename(str(fn)))
+        outdata = self.saving(os.path.basename('.'.join(os.path.basename(str(fn)).split('.')[:-1])))
         CompYaz0(outdata, fn, globals.CompLevel)
 
 
