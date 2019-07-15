@@ -207,14 +207,14 @@ class Level_NSMBU(AbstractLevel):
                 tilesetData = SaveTileset(1)
 
             if globals.Area.tileset2:
-                if globals.Area.tileset1 == "Pa2_untitled_%d" % globals.CurrentArea:
-                    globals.Area.tileset1 = tilesetNames[1]
+                if globals.Area.tileset2 == "Pa2_untitled_%d" % globals.CurrentArea:
+                    globals.Area.tileset2 = tilesetNames[1]
 
                 tilesetData = SaveTileset(2)
 
             if globals.Area.tileset3:
-                if globals.Area.tileset1 == "Pa3_untitled_%d" % globals.CurrentArea:
-                    globals.Area.tileset1 = tilesetNames[2]
+                if globals.Area.tileset3 == "Pa3_untitled_%d" % globals.CurrentArea:
+                    globals.Area.tileset3 = tilesetNames[2]
 
                 tilesetData = SaveTileset(3)
 
