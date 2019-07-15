@@ -525,6 +525,7 @@ class MiyamotoTranslation:
                 143: 'Edit Slot [slot] Tileset',
                 144: 'Save Level to FTP server',
                 145: 'Saves the Level to an FTP server',
+                146: 'FTP Preferences...',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',

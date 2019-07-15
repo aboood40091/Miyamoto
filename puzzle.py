@@ -25,7 +25,9 @@ from yaz0 import determineCompressionMethod
 CompYaz0, DecompYaz0 = determineCompressionMethod()
 
 import ftplib
-import ftp_config
+from ftpDialog import *
+
+import misc
 
 
 ########################################################
@@ -2672,14 +2674,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def saveTilesetFtp(self, close=False):
-        self.saveTileset(False)
+        
+        if not FtpDialog.checkShow():
+            return
+
+        self.saveTileset()
 
         try:
-            ftpSession = ftplib.FTP(timeout = ftp_config.timeout)
-            ftpSession.connect(ftp_config.host, ftp_config.port)
+            ftpSession = ftplib.FTP(timeout = int(misc.setting('FtpTimeout')))
+            ftpSession.connect(misc.setting('FtpHost'), int(misc.setting('FtpPort')))
             print(ftpSession.getwelcome())
 
-            ftpSession.login(ftp_config.usr, ftp_config.pwd)
+            ftpSession.login(misc.setting('FtpUser'), misc.setting('FtpPwd'))
 
             paths = reversed(globals.gamedef.GetGamePaths())
             for path in paths:
@@ -2689,7 +2695,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 tilesetName = eval('globals.Area.tileset%d' % self.slot)
                 tilesetFilePath = os.path.join(os.path.dirname(path), 'Unit', tilesetName + '.szs')
 
-                ftpSession.cwd(ftp_config.romfs + 'Unit')
+                ftpSession.cwd(misc.setting('FtpRomfs') + 'Unit')
                 tilesetFile = open(tilesetFilePath, 'rb')
                 ftpSession.storbinary('STOR %s.szs' % tilesetName, tilesetFile)
                 tilesetFile.close()
