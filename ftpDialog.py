@@ -1,7 +1,38 @@
-import globals
-import misc
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Miyamoto! DX Level Editor - New Super Mario Bros. U Deluxe Level Editor
+# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
+
+# This file is part of Miyamoto! DX.
+
+# Miyamoto! DX is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Miyamoto! DX is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with Miyamoto! DX.  If not, see <http://www.gnu.org/licenses/>.
+
+
+################################################################
+################################################################
+
+############ Imports ############
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
+import globals
+import misc from setting, setSetting
+
+#################################
+
 
 class FtpDialog(QtWidgets.QDialog):
     def __init__(self, parent = None):
@@ -53,11 +84,11 @@ class FtpDialog(QtWidgets.QDialog):
 
     @staticmethod
     def checkShow():
-        if misc.setting('FtpHost', '') == '':
+        if setting('FtpHost', '') == '':
             dlg = FtpDialog()
             dlg.exec()
         
-        return misc.setting('FtpHost', '') != ''
+        return setting('FtpHost', '') != ''
 
         
     def accept(self):
@@ -65,19 +96,19 @@ class FtpDialog(QtWidgets.QDialog):
         super().accept()
 
     def loadSettings(self):
-        self.host.setText(misc.setting('FtpHost', ''))
-        self.port.setValue(int(misc.setting('FtpPort', '20')))
-        self.user.setText(misc.setting('FtpUser', ''))
-        self.pwd.setText(misc.setting('FtpPwd', ''))
-        self.timeout.setValue(int(misc.setting('FtpTimeout', '3')))
-        self.romfs.setText(misc.setting('FtpRomfs', '/atmosphere/titles/0100EA80032EA000/romfs/'))
+        self.host.setText(setting('FtpHost', ''))
+        self.port.setValue(int(setting('FtpPort', '20')))
+        self.user.setText(setting('FtpUser', ''))
+        self.pwd.setText(setting('FtpPwd', ''))
+        self.timeout.setValue(int(setting('FtpTimeout', '3')))
+        self.romfs.setText(setting('FtpRomfs', '/atmosphere/titles/0100EA80032EA000/romfs/'))
 
     def saveSettings(self):
-        misc.setSetting('FtpHost', self.host.text())
-        misc.setSetting('FtpPort', self.port.value())
-        misc.setSetting('FtpUser', self.user.text())
-        misc.setSetting('FtpPwd', self.pwd.text())
-        misc.setSetting('FtpTimeout', self.timeout.value())
+        setSetting('FtpHost', self.host.text())
+        setSetting('FtpPort', self.port.value())
+        setSetting('FtpUser', self.user.text())
+        setSetting('FtpPwd', self.pwd.text())
+        setSetting('FtpTimeout', self.timeout.value())
 
         romfsPath = self.romfs.text()
         if not romfsPath.startswith('/'):
@@ -85,4 +116,4 @@ class FtpDialog(QtWidgets.QDialog):
         if not romfsPath.endswith('/'):
             romfsPath += '/'
 
-        misc.setSetting('FtpRomfs', romfsPath)
+        setSetting('FtpRomfs', romfsPath)
