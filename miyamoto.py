@@ -115,7 +115,7 @@ from tileset import *
 from ui import *
 from verifications import *
 from widgets import *
-from ftp_config import *
+from ftpDialog import *
 
 
 def _excepthook(*exc_info):
@@ -431,6 +431,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             globals.trans.string('MenuItems', 18),
             globals.trans.string('MenuItems', 19),
             QtGui.QKeySequence('Ctrl+Alt+P'),
+        )
+
+        self.CreateAction(
+            'ftpconfig', self.HandleFtpConfig, GetIcon('settings'),
+            globals.trans.string('MenuItems', 146),
+            globals.trans.string('MenuItems', 146),
+            None,
         )
 
         self.CreateAction(
@@ -819,6 +826,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addAction(self.actions['changegamepath'])
         fmenu.addAction(self.actions['changeobjpath'])
         fmenu.addAction(self.actions['preferences'])
+        fmenu.addAction(self.actions['ftpconfig'])
         fmenu.addSeparator()
         fmenu.addAction(self.actions['exit'])
 
@@ -1595,7 +1603,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Sets the window title accordingly
         """
-        self.setWindowTitle('You Make Good Level Now! - %s%s' % (
+        self.setWindowTitle('%s%s' % (
         self.fileTitle, (' ' + globals.trans.string('MainWindow', 0)) if globals.Dirty else ''))
 
     def CheckDirty(self):
@@ -2553,6 +2561,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Warn the user that they may need to restart
         QtWidgets.QMessageBox.warning(None, globals.trans.string('PrefsDlg', 0), globals.trans.string('PrefsDlg', 30))
 
+    def HandleFtpConfig(self):
+        """
+        Edit FTP configuration
+        """
+        dlg = FtpDialog()
+        dlg.exec()
+
     def HandleNewLevel(self):
         """
         Create a new level
@@ -2621,27 +2636,58 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Save a level back to an FTP server
         """
+
+        if not FtpDialog.checkShow():
+            return False
+
+        sendTilesets = globals.TilesetEdited or globals.OverrideTilesetSaving
+
         if not self.HandleSave():
             return False
 
         try:
-            ftp_session = ftplib.FTP()
-            ftp_session.connect(ftp_host, ftp_port)
-            print(ftp_session.getwelcome())
+            ftpSession = ftplib.FTP(timeout = int(setting('FtpTimeout')))
+            ftpSession.connect(setting('FtpHost'), int(setting('FtpPort')))
+            print(ftpSession.getwelcome())
 
-            ftp_session.login(ftp_usr, ftp_pwd)
+            ftpSession.login(setting('FtpUser'), setting('FtpPwd'))
 
-            ftp_session.cwd(ftp_romfs + 'Course')
+            # Save level file
+            ftpSession.cwd(setting('FtpRomfs') + 'Course')
+            levelFile = open(self.fileSavePath, 'rb')
+            ftpSession.storbinary('STOR %s' % self.fileTitle, levelFile)
+            levelFile.close()
 
-            level_file = open(self.fileSavePath, 'rb')
-            ftp_session.storbinary('STOR %s' % self.fileTitle, level_file)
+            # Save tileset files
+            if sendTilesets:
+                ftpSession.cwd(setting('FtpRomfs') + 'Unit')
 
-            ftp_session.quit()
+                # Find Unit folder
+                paths = reversed(globals.gamedef.GetGamePaths())
+                for path in paths:
+                    if not os.path.isdir(os.path.join(os.path.dirname(path), 'Unit')):
+                        continue
+
+                    # Unit folder found, send all used tilesets
+                    for tilesetName in [globals.Area.tileset1, globals.Area.tileset2, globals.Area.tileset3]:
+                        if not tilesetName:
+                            continue
+
+                        tilesetFilePath = os.path.join(os.path.dirname(path), 'Unit', tilesetName + '.szs')
+
+                        tilesetFile = open(tilesetFilePath, 'rb')
+                        ftpSession.storbinary('STOR %s.szs' % tilesetName, tilesetFile)
+                        tilesetFile.close()
+
+                    break
+
+            ftpSession.quit()
 
             return True
+
         except ftplib.all_errors:
             QtWidgets.QMessageBox.warning(None, globals.trans.string('FtpDlg', 0),
-                                                              globals.trans.string('FtpDlg', 1))
+                                                globals.trans.string('FtpDlg', 1))
             return False
 
     def HandleSaveNewArea(self, course, L0, L1, L2):
@@ -5117,7 +5163,7 @@ def main():
     globals.PathsShown = setting('ShowPaths', True)
 
     if globals.libyaz0_available:
-        globals.CompLevel = setting('CompLevel', 1)
+        globals.CompLevel = int(setting('CompLevel', 1))
 
     else:
         globals.CompLevel = 0

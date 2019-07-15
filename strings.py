@@ -525,6 +525,7 @@ class MiyamotoTranslation:
                 143: 'Edit Slot [slot] Tileset',
                 144: 'Save Level to FTP server',
                 145: 'Saves the Level to an FTP server',
+                146: 'FTP Preferences...',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
@@ -806,8 +807,9 @@ class MiyamotoTranslation:
                 0: 'Untitled',
                 },
             'FtpDlg' : {
-                    0: 'Transfer Failed',
-                    1: 'Transfering the level to the FTP server failed.',
+                0: 'Transfer Failed',
+                1: 'Transfering the level to the FTP server failed.',
+                2: 'Transfering the tileset to the FTP server failed.',
                 },
             'ZonesDlg': {
                 0: 'Zones',
