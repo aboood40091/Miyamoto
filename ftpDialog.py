@@ -29,7 +29,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 import globals
-import misc from setting, setSetting
+from misc import setting, setSetting
 
 #################################
 
