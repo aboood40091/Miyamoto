@@ -528,15 +528,25 @@ class ObjectItem(LevelEditorItem):
         self.BoundingRect = QtCore.QRectF(0, 0, globals.TileWidth * self.width, globals.TileWidth * self.height)
         self.SelectionRect = QtCore.QRectF(0, 0, (globals.TileWidth * self.width) - 1, (globals.TileWidth * self.height) - 1)
 
-        GrabberSide = 4 * (globals.TileWidth / 20)
+        GrabberSide = 4 * (globals.TileWidth / 15)
         self.GrabberRectTL = QtCore.QRectF(0, 0, GrabberSide, GrabberSide)
         self.GrabberRectTR = QtCore.QRectF((globals.TileWidth * self.width) - GrabberSide, 0, GrabberSide, GrabberSide)
         self.GrabberRectBL = QtCore.QRectF(0, (globals.TileWidth * self.height) - GrabberSide, GrabberSide, GrabberSide)
         self.GrabberRectBR = QtCore.QRectF((globals.TileWidth * self.width) - GrabberSide, (globals.TileWidth * self.height) - GrabberSide, GrabberSide, GrabberSide)
-        self.GrabberRectMT = QtCore.QRectF(((globals.TileWidth * self.width) - GrabberSide) / 2, 0, GrabberSide, GrabberSide)
-        self.GrabberRectML = QtCore.QRectF(0, ((globals.TileWidth * self.height) - GrabberSide) / 2, GrabberSide, GrabberSide)
-        self.GrabberRectMB = QtCore.QRectF(((globals.TileWidth * self.width) - GrabberSide) / 2, (globals.TileWidth * self.height) - GrabberSide, GrabberSide, GrabberSide)
-        self.GrabberRectMR = QtCore.QRectF((globals.TileWidth * self.width) - GrabberSide, ((globals.TileWidth * self.height) - GrabberSide) / 2, GrabberSide, GrabberSide)
+        self.GrabberRectMT = QtCore.QRectF(GrabberSide, 0, (globals.TileWidth * self.width) - GrabberSide * 2, GrabberSide)
+        self.GrabberRectML = QtCore.QRectF(0, GrabberSide, GrabberSide, (globals.TileWidth * self.height) - GrabberSide * 2)
+        self.GrabberRectMB = QtCore.QRectF(GrabberSide, (globals.TileWidth * self.height) - GrabberSide, (globals.TileWidth * self.width) - GrabberSide * 2, GrabberSide)
+        self.GrabberRectMR = QtCore.QRectF((globals.TileWidth * self.width) - GrabberSide, GrabberSide, GrabberSide, (globals.TileWidth * self.height) - GrabberSide * 2)
+
+        DrawGrabberSide = 4 * (globals.TileWidth / 20)
+        self.DrawGrabberRectTL = QtCore.QRectF(0, 0, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectTR = QtCore.QRectF((globals.TileWidth * self.width) - DrawGrabberSide, 0, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectBL = QtCore.QRectF(0, (globals.TileWidth * self.height) - DrawGrabberSide, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectBR = QtCore.QRectF((globals.TileWidth * self.width) - DrawGrabberSide, (globals.TileWidth * self.height) - DrawGrabberSide, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectMT = QtCore.QRectF(((globals.TileWidth * self.width) - DrawGrabberSide) / 2, 0, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectML = QtCore.QRectF(0, ((globals.TileWidth * self.height) - DrawGrabberSide) / 2, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectMB = QtCore.QRectF(((globals.TileWidth * self.width) - DrawGrabberSide) / 2, (globals.TileWidth * self.height) - DrawGrabberSide, DrawGrabberSide, DrawGrabberSide)
+        self.DrawGrabberRectMR = QtCore.QRectF((globals.TileWidth * self.width) - DrawGrabberSide, ((globals.TileWidth * self.height) - DrawGrabberSide) / 2, DrawGrabberSide, DrawGrabberSide)
 
         self.LevelRect = QtCore.QRectF(self.objx, self.objy, self.width, self.height)
 
@@ -598,14 +608,14 @@ class ObjectItem(LevelEditorItem):
             painter.drawRect(self.SelectionRect)
             painter.fillRect(self.SelectionRect, globals.theme.color('object_fill_s'))
 
-            painter.fillRect(self.GrabberRectTL, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectTR, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectBL, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectBR, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectMT, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectML, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectMB, globals.theme.color('object_lines_s'))
-            painter.fillRect(self.GrabberRectMR, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectTL, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectTR, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectBL, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectBR, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectMT, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectML, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectMB, globals.theme.color('object_lines_s'))
+            painter.fillRect(self.DrawGrabberRectMR, globals.theme.color('object_lines_s'))
 
     def mousePressEvent(self, event):
         """
@@ -955,6 +965,13 @@ class ObjectItem(LevelEditorItem):
             LevelEditorItem.mouseMoveEvent(self, event)
 
         self.UpdateTooltip()
+
+    def mouseReleaseEvent(self, event):
+        """
+        Disables "dragging" when the mouse is released
+        """
+        self.dragging = False
+        LevelEditorItem.mouseReleaseEvent(self, event)
 
     def delete(self):
         """
@@ -2400,7 +2417,7 @@ class NabbitPathItem(LevelEditorItem):
 
         self.font = globals.NumberFont
         self.objx = objx - 8
-        self.objy = objy
+        self.objy = objy - 8
         self.unk1 = unk1
         self.unk2 = unk2
         self.unk3 = unk3
@@ -2445,7 +2462,7 @@ class NabbitPathItem(LevelEditorItem):
         Our x/y was changed, update pathinfo
         """
         self.pathinfo['nodes'][self.nodeid]['x'] = self.objx + 8
-        self.pathinfo['nodes'][self.nodeid]['y'] = self.objy
+        self.pathinfo['nodes'][self.nodeid]['y'] = self.objy + 8
 
     def updateId(self):
         """
@@ -2546,8 +2563,8 @@ class PathEditorLineItem(LevelEditorItem):
         xcoords = []
         ycoords = []
         for node in self.nodelist:
-            xcoords.append(int(node['x']))
-            ycoords.append(int(node['y']))
+            xcoords.append(int(node['x']) + 8)
+            ycoords.append(int(node['y']) + 8)
         self.objx = (min(xcoords) - 4)
         self.objy = (min(ycoords) - 4)
 
@@ -2576,12 +2593,12 @@ class PathEditorLineItem(LevelEditorItem):
         mult = globals.TileWidth / 16
         for j, node in enumerate(snl):
             if ((j + 1) < len(snl)):
-                a = QtCore.QPointF(float(snl[j]['x'] * mult) - self.x(), float(snl[j]['y'] * mult) - self.y())
-                b = QtCore.QPointF(float(snl[j + 1]['x'] * mult) - self.x(), float(snl[j + 1]['y'] * mult) - self.y())
+                a = QtCore.QPointF(float((snl[j]['x'] + 8) * mult) - self.x(), float((snl[j]['y'] + 8) * mult) - self.y())
+                b = QtCore.QPointF(float((snl[j + 1]['x'] + 8) * mult) - self.x(), float((snl[j + 1]['y'] + 8) * mult) - self.y())
                 lines.append(QtCore.QLineF(a, b))
             elif self.loops and (j + 1) == len(snl):
-                a = QtCore.QPointF(float(snl[j]['x'] * mult) - self.x(), float(snl[j]['y'] * mult) - self.y())
-                b = QtCore.QPointF(float(snl[0]['x'] * mult) - self.x(), float(snl[0]['y'] * mult) - self.y())
+                a = QtCore.QPointF(float((snl[j]['x'] + 8) * mult) - self.x(), float((snl[j]['y'] + 8) * mult) - self.y())
+                b = QtCore.QPointF(float((snl[0]['x'] + 8) * mult) - self.x(), float((snl[0]['y'] + 8) * mult) - self.y())
                 lines.append(QtCore.QLineF(a, b))
 
         painter.drawLines(lines)
@@ -2597,6 +2614,23 @@ class NabbitPathEditorLineItem(PathEditorLineItem):
     """
     Level editor item to draw a line between two nabbit path nodes
     """
+    def computeBoundRectAndPos(self):
+        xcoords = []
+        ycoords = []
+        for node in self.nodelist:
+            xcoords.append(int(node['x']))
+            ycoords.append(int(node['y']))
+        self.objx = (min(xcoords) - 4)
+        self.objy = (min(ycoords) - 4)
+
+        mywidth = (8 + (max(xcoords) - self.objx)) * (globals.TileWidth / 16)
+        myheight = (8 + (max(ycoords) - self.objy)) * (globals.TileWidth / 16)
+        globals.DirtyOverride += 1
+        self.setPos(self.objx * (globals.TileWidth / 16), self.objy * (globals.TileWidth / 16))
+        globals.DirtyOverride -= 1
+        self.prepareGeometryChange()
+        self.BoundingRect = QtCore.QRectF(-4, -4, mywidth, myheight)
+
     def paint(self, painter, option, widget):
         """
         Paints the path lines
