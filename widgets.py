@@ -4399,6 +4399,17 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         return rect.translated(x*globals.TileWidth, y*globals.TileWidth)
 
+    @staticmethod
+    def setOverrideCursor(cursor):
+        """
+        Safe way to override the cursor
+        """
+        if globals.app.overrideCursor() is None:
+            globals.app.setOverrideCursor(cursor)
+
+        else:
+            globals.app.changeOverrideCursor(cursor)
+
     def mouseMoveEvent(self, event):
         """
         Overrides mouse movement events if needed
@@ -4653,40 +4664,41 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 for obj in objlist:
                     if self.translateRect(obj.SelectionRect, obj.objx, obj.objy).contains(pos) and not obj.dragging:
                         if self.translateRect(obj.GrabberRectTL, obj.objx, obj.objy).contains(pos):
-                            globals.app.setOverrideCursor(Qt.SizeFDiagCursor)
+                            self.setOverrideCursor(Qt.SizeFDiagCursor)
                             break
 
                         elif self.translateRect(obj.GrabberRectTR, obj.objx, obj.objy).contains(pos):
-                            globals.app.setOverrideCursor(Qt.SizeBDiagCursor)
+                            self.setOverrideCursor(Qt.SizeBDiagCursor)
                             break
 
                         elif self.translateRect(obj.GrabberRectBL, obj.objx, obj.objy).contains(pos):
-                            globals.app.setOverrideCursor(Qt.SizeBDiagCursor)
+                            self.setOverrideCursor(Qt.SizeBDiagCursor)
                             break
 
                         elif self.translateRect(obj.GrabberRectBR, obj.objx, obj.objy).contains(pos):
-                            globals.app.setOverrideCursor(Qt.SizeFDiagCursor)
+                            self.setOverrideCursor(Qt.SizeFDiagCursor)
                             break
 
                         elif (self.translateRect(obj.GrabberRectMT, obj.objx, obj.objy).contains(pos)
                               or self.translateRect(obj.GrabberRectMB, obj.objx, obj.objy).contains(pos)):
-                            globals.app.setOverrideCursor(Qt.SizeVerCursor)
+                            self.setOverrideCursor(Qt.SizeVerCursor)
                             break
 
                         elif (self.translateRect(obj.GrabberRectML, obj.objx, obj.objy).contains(pos)
                               or self.translateRect(obj.GrabberRectMR, obj.objx, obj.objy).contains(pos)):
-                            globals.app.setOverrideCursor(Qt.SizeHorCursor)
+                            self.setOverrideCursor(Qt.SizeHorCursor)
                             break
 
                         elif obj.LevelRect.contains(pos.x()/globals.TileWidth,pos.y()/globals.TileWidth):
-                            globals.app.setOverrideCursor(Qt.SizeAllCursor)
+                            self.setOverrideCursor(Qt.SizeAllCursor)
                             break
 
-                    elif not obj.dragging:
-                        globals.app.setOverrideCursor(Qt.ArrowCursor)
-            else:
+                    elif not obj.dragging and globals.app.overrideCursor():
+                        globals.app.restoreOverrideCursor()
+
+            elif globals.app.overrideCursor():
                 # Prevent visual bugs
-                globals.app.setOverrideCursor(Qt.ArrowCursor)
+                globals.app.restoreOverrideCursor()
 
             QtWidgets.QGraphicsView.mouseMoveEvent(self, event)
 
