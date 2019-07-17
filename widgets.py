@@ -1548,9 +1548,11 @@ class ObjectPickerWidget(QtWidgets.QListView):
         self.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
         self.setWrapping(True)
 
+        self.objTS123Tab = globals.mainWindow.objTS123Tab
+
         self.m0 = self.ObjectListModel()
         self.mall = self.ObjectListModel()
-        self.m123 = self.ObjectListModel()
+        self.m123 = self.objTS123Tab.getModels()
         self.setModel(self.m0)
 
         self.setItemDelegate(self.ObjectItemDelegate())
@@ -1586,7 +1588,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         Renders all the object previews
         """
         self.m0.LoadFromTileset(0)
-        self.m123.LoadFromTileset(1)
+        self.objTS123Tab.LoadFromTilesets()
 
     def ShowTileset(self, id):
         """
@@ -1595,7 +1597,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         sel = self.currentIndex().row()
         if id == 0: self.setModel(self.m0)
         elif id == 1: self.setModel(self.mall)
-        else: self.setModel(self.m123)
+        else: self.setModel(self.objTS123Tab.getActiveModel())
 
         globals.CurrentObject = -1
         self.clearSelection()
@@ -1849,10 +1851,10 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
             z = 0
 
-            if idx != 0:
+            if idx == 4:
                 numTileset = range(1, 4)
             else:
-                numTileset = [0]
+                numTileset = [idx]
 
             for idx in numTileset:
                 if globals.ObjectDefinitions[idx] is None:
@@ -3948,7 +3950,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             elif globals.CurrentPaintType in (0, 1, 2, 3) and globals.CurrentObject != -1:
                 # return if the Embedded tab is empty
                 if (globals.CurrentPaintType in (1, 2, 3)
-                    and not len(globals.mainWindow.objPicker.m123.items)):
+                    and not len(globals.mainWindow.objPicker.objTS123Tab.getActiveModel().items)):
                     globals.CurrentObject = -1
                     return
 
@@ -5389,6 +5391,88 @@ class ZoomStatusWidget(QtWidgets.QWidget):
             self.label.setText(str(int(zoomLevel)) + '%')
         else:
             self.label.setText(str(float(zoomLevel)) + '%')
+
+
+class EmbeddedTabSeparate(QtWidgets.QTabWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.currentChanged.connect(self.tabChanged)
+
+        self.objTS1Tab = QtWidgets.QWidget()
+        self.objTS2Tab = QtWidgets.QWidget()
+        self.objTS3Tab = QtWidgets.QWidget()
+
+        tsicon = GetIcon('objects')
+        self.addTab(self.objTS1Tab, tsicon, '2')
+        self.addTab(self.objTS2Tab, tsicon, '3')
+        self.addTab(self.objTS3Tab, tsicon, '4')
+
+        self.m1 = ObjectPickerWidget.ObjectListModel()
+        self.m2 = ObjectPickerWidget.ObjectListModel()
+        self.m3 = ObjectPickerWidget.ObjectListModel()
+
+    def tabChanged(self, nt, layout=None):
+        if nt >= 0 and nt <= 2:
+            if not layout and hasattr(globals.mainWindow, 'createObjectLayout'):
+                layout = globals.mainWindow.createObjectLayout
+
+            if layout:
+                globals.mainWindow.objPicker.ShowTileset(2)
+                if nt == 0:
+                    self.objTS1Tab.setLayout(layout)
+                elif nt == 1:
+                    self.objTS2Tab.setLayout(layout)
+                else:
+                    self.objTS3Tab.setLayout(layout)
+
+    def setLayout(self, layout):
+        self.tabChanged(self.currentIndex(), layout)
+
+    def getObjectAndPaintType(self, type):
+        return type, self.currentIndex()+1
+
+    def getModels(self):
+        return self.m1, self.m2, self.m3
+
+    def getActiveModel(self):
+        return self.getModels()[self.currentIndex()]
+
+    def LoadFromTilesets(self):
+        self.m1.LoadFromTileset(1)
+        self.m2.LoadFromTileset(2)
+        self.m3.LoadFromTileset(3)
+
+
+class EmbeddedTabJoined(QtWidgets.QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.m123 = ObjectPickerWidget.ObjectListModel()
+
+    @staticmethod
+    def getObjectAndPaintType(type):
+        type += 1
+        paintType = 1
+
+        if type > globals.numObj[1]:
+            paintType = 3
+            type -= globals.numObj[1]
+
+        elif type > globals.numObj[0]:
+            paintType = 2
+            type -= globals.numObj[0]
+
+        return type-1, paintType
+
+    def getModels(self):
+        return self.m123,
+
+    def getActiveModel(self):
+        return self.m123
+
+    def LoadFromTilesets(self):
+        self.m123.LoadFromTileset(4)
 
 
 class ListWidgetWithToolTipSignal(QtWidgets.QListWidget):
