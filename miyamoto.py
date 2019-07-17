@@ -5078,7 +5078,17 @@ def main():
     globals.app.setOverrideCursor(Qt.ArrowCursor)
 
     # load the settings
-    globals.settings = QtCore.QSettings('Miyamoto', globals.MiyamotoVersion)
+    globals.settings = QtCore.QSettings('settings.ini', QtCore.QSettings.IniFormat)
+
+    # Check the version
+    if setting("MiyamotoVersion", None) is None:
+        setSetting("isDX", True)
+        setSetting("MiyamotoVersion", globals.MiyamotoVersionFloat)
+
+    if setting("MiyamotoVersion") < 27.0 or not setting("isDX"):
+        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Unsupported settings file', 'Your settings.ini file is unsupported. Please remove it and run Miyamoto DX again.')
+        warningBox.exec_()
+        sys.exit(1)
 
     # load the translation (needs to happen first)
     LoadTranslation()

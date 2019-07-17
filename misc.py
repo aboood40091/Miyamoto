@@ -594,8 +594,8 @@ def setting(name, default=None):
     """
     Thin wrapper around QSettings, fixes the type=bool bug
     """
-    types_str = {str: 'str', int: 'int', dict: 'dict', bool: 'bool', QtCore.QByteArray: 'QByteArray', type(None): 'NoneType'}
-    types = {'str': str, 'int': int, 'dict': dict, 'bool': bool, 'QByteArray': QtCore.QByteArray}
+    types_str = {str: 'str', int: 'int', float: 'float', dict: 'dict', bool: 'bool', QtCore.QByteArray: 'QByteArray', type(None): 'NoneType'}
+    types = {'str': str, 'int': int, 'float': float, 'dict': dict, 'bool': bool, 'QByteArray': QtCore.QByteArray}
 
     type_ = globals.settings.value('typeof(%s)' % name, types_str[type(default)], str)
     if type_ == 'NoneType':
@@ -608,7 +608,7 @@ def setSetting(name, value):
     """
     Thin wrapper around QSettings
     """
-    types_str = {str: 'str', int: 'int', dict: 'dict', bool: 'bool', QtCore.QByteArray: 'QByteArray', type(None): 'NoneType'}
+    types_str = {str: 'str', int: 'int', float: 'float', dict: 'dict', bool: 'bool', QtCore.QByteArray: 'QByteArray', type(None): 'NoneType'}
     assert isinstance(name, str) and type(value) in types_str
 
     globals.settings.setValue(name, value)
