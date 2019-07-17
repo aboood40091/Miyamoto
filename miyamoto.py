@@ -1196,7 +1196,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.objTS0Tab = QtWidgets.QWidget()
         self.objTSAllTab = QtWidgets.QWidget()
-        self.objTS123Tab = QtWidgets.QWidget()
+        self.objTS123Tab = EmbeddedTabJoined()
         self.objAllTab.addTab(self.objTS0Tab, tsicon, 'Main')
         self.objAllTab.addTab(self.objTSAllTab, tsicon, 'All')
         self.objAllTab.addTab(self.objTS123Tab, tsicon, 'Embedded')
@@ -1605,7 +1605,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Sets the window title accordingly
         """
-        self.setWindowTitle('You Make Good Level Now! - %s%s' % (
+        self.setWindowTitle('%s%s' % (
         self.fileTitle, (' ' + globals.trans.string('MainWindow', 0)) if globals.Dirty else ''))
 
     def CheckDirty(self):
@@ -4254,17 +4254,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Handles a new object being chosen
         """
         if globals.CurrentPaintType not in [0, 10]:
-            type += 1
-            if type > globals.numObj[1]:
-                globals.CurrentPaintType = 3
-                globals.CurrentObject = type - globals.numObj[1]
-            elif type > globals.numObj[0]:
-                globals.CurrentPaintType = 2
-                globals.CurrentObject = type - globals.numObj[0]
-            else:
-                globals.CurrentPaintType = 1
-                globals.CurrentObject = type
-            globals.CurrentObject -= 1
+            globals.CurrentObject, globals.CurrentPaintType = self.objTS123Tab.getObjectAndPaintType(type)
 
         else:
             globals.CurrentObject = type
@@ -4281,15 +4271,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         changed = False
 
         if globals.CurrentPaintType != 0:
-            type += 1
-
-            if type > globals.numObj[1]:
-                type -= globals.numObj[1]
-
-            elif type > globals.numObj[0]:
-                type -= globals.numObj[0]
-
-            type -= 1
+            type, _ = self.objTS123Tab.getObjectAndPaintType(type)
 
         for x in items:
             if isinstance(x, type_obj) and (x.tileset != tileset or x.type != type):
