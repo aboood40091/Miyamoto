@@ -1205,6 +1205,31 @@ class ZoneItem(LevelEditorItem):
                 if x2 - x1 < MIN_W: x2 = x1 + MIN_W
                 if y2 - y1 < MIN_H: y2 = y1 + MIN_H
 
+            if QtWidgets.QApplication.keyboardModifiers() != Qt.AltModifier:
+                # Snap to 8x8 grid
+
+                if self.dragcorner % 2:
+                    if x1 % 8 < 4:
+                        x1 -= (x1 % 8)
+                    else:
+                        x1 += 8 - (x1 % 8)
+                else:
+                    if x2 % 8 < 4:
+                        x2 -= (x2 % 8)
+                    else:
+                        x2 += 8 - (x2 % 8)
+
+                if self.dragcorner < 3:
+                    if y1 % 8 < 4:
+                        y1 -= (y1 % 8)
+                    else:
+                        y1 += 8 - (y1 % 8)
+                else:
+                    if y2 % 8 < 4:
+                        y2 -= (y2 % 8)
+                    else:
+                        y2 += 8 - (y2 % 8)
+
             self.objx = x1
             self.objy = y1
             self.width = x2 - x1
