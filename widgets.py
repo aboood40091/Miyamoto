@@ -4718,6 +4718,20 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         self.repaint.emit()
         QtWidgets.QGraphicsView.paintEvent(self, e)
 
+    def wheelEvent(self, event):
+        """
+        Handles wheel events for zooming in/out
+        """
+        if QtWidgets.QApplication.keyboardModifiers() == Qt.ControlModifier:
+            numDegrees = event.angleDelta() / 8
+            if not numDegrees.isNull():
+                numSteps = numDegrees / 15
+                numStepsY = numSteps.y()
+                globals.mainWindow.ZoomWidget.slider.setSliderPosition(globals.mainWindow.ZoomWidget.slider.value() + numStepsY)
+
+        else:
+            QtWidgets.QGraphicsView.wheelEvent(self, event)
+
     def drawForeground(self, painter, rect):
         """
         Draws a foreground grid and other stuff
