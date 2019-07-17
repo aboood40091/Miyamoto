@@ -5307,7 +5307,7 @@ def main():
         setSetting("MiyamotoVersion", globals.MiyamotoVersionFloat)
 
     if setting("MiyamotoVersion") < 27.0 or setting("isDX"):
-        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Unsupported settings file', 'Your settings.ini file is unsupported. Please remove it and run Miyamoto DX again.')
+        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Unsupported settings file', 'Your settings.ini file is unsupported. Please remove it and run Miyamoto again.')
         warningBox.exec_()
         sys.exit(1)
 
