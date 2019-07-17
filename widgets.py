@@ -2852,7 +2852,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         self.UpdateFlag = False
         self.DataUpdate.emit(data)
-        self.raweditor.setStyleSheet('QLineEdit { background-color: #ffffff; }')
 
 class EntranceEditorWidget(QtWidgets.QWidget):
     """
