@@ -313,7 +313,7 @@ class MiyamotoTranslation:
                 2: 'New Game Patch',
                 3: 'It appears that this is your first time using the game patch for [game]. Please select its Course folder so tilesets and levels can be loaded.',
                 4: 'Aborted Game Path Selection',
-                5: 'Since you did not select the stage folder for [game], stages and tilesets will not load correctly. You can try again by choosing Change Game Path while the [game] patch is loaded.',
+                5: 'Since you did not select the "Course" folder for [game], stages will not load correctly. You can try again by choosing Change Game Path while the [game] patch is loaded.',
                 6: 'New Game Patch',
                 7: 'You can change the game path for [game] at any time by choosing Change Game Path while the [game] patch is loaded.',
                 8: 'Loading sprite data...',

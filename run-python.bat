@@ -22,7 +22,7 @@ goto :choice
 
 @echo OFF
 echo Downloading latest spritedata...
-powershell -Command "Invoke-WebRequest https://raw.githubusercontent.com/Gota7/Miyamoto/master/miyamotodata/spritedata.xml -OutFile miyamotodata/spritedata.xml"
+powershell -Command "Invoke-WebRequest https://raw.githubusercontent.com/aboood40091/Miyamoto/deluxe/miyamotodata/spritedata.xml -OutFile miyamotodata/spritedata.xml"
 echo Done!
 
 :nogoaway
@@ -35,13 +35,13 @@ goto :nogoaway
 
 @echo OFF
 echo Downloading latest cateogry data...
-powershell -Command "Invoke-WebRequest https://raw.githubusercontent.com/Gota7/Miyamoto/master/miyamotodata/spritecategories.xml -OutFile miyamotodata/spritecategories.xml"
+powershell -Command "Invoke-WebRequest https://raw.githubusercontent.com/aboood40091/Miyamoto/deluxe/miyamotodata/spritecategories.xml -OutFile miyamotodata/spritecategories.xml"
 echo Done!
 echo Starting Miyamoto!
-py miyamoto.py
+py -3 miyamoto.py
 EXIT
 
 :srslygoaway
 @echo OFF
 echo Starting Miyamoto!
-py miyamoto.py
+py -3 miyamoto.py
