@@ -81,7 +81,7 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
                     objectsSelected = False
                 else:
                     objectsSelected = any([isinstance(thing, ObjectItem) for thing in globals.mainWindow.CurrentSelection])
-                if QtWidgets.QApplication.keyboardModifiers() == Qt.AltModifier:
+                if QtWidgets.QApplication.keyboardModifiers() == Qt.AltModifier and not isinstance(self, LocationItem):
                     # Alt is held; don't snap
                     newpos.setX(int(int((newpos.x() + 0.75) / tileWidthMult) * tileWidthMult))
                     newpos.setY(int(int((newpos.y() + 0.75) / tileWidthMult) * tileWidthMult))
