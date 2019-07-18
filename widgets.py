@@ -4726,7 +4726,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                             self.setOverrideCursor(Qt.SizeHorCursor)
                             break
 
-                        elif obj.LevelRect.contains(pos.x()/globals.TileWidth,pos.y()/globals.TileWidth):
+                        else:
                             self.setOverrideCursor(Qt.SizeAllCursor)
                             break
 
