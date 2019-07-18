@@ -1322,16 +1322,20 @@ class LocationItem(LevelEditorItem):
         Updates the location's bounding rectangle
         """
         self.prepareGeometryChange()
-        if self.width == 0: self.width == 1
-        if self.height == 0: self.height == 1
+        if self.width == 0: self.width == 8
+        if self.height == 0: self.height == 8
+        mult = globals.TileWidth / 16
         GrabberSide = 4 * (globals.TileWidth / 20)
-        self.BoundingRect = QtCore.QRectF(0, 0, self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)
-        self.SelectionRect = QtCore.QRectF(self.objx * globals.TileWidth / 16, self.objy * globals.TileWidth / 16,
-                                           self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)
+        self.BoundingRect = QtCore.QRectF(0, 0, self.width * mult, self.height * mult)
+        self.SelectionRect = QtCore.QRectF(self.objx * mult, self.objy * mult, self.width * mult, self.height * mult)
         self.ZoneRect = QtCore.QRectF(self.objx, self.objy, self.width, self.height)
-        self.DrawRect = QtCore.QRectF(1, 1, (self.width * globals.TileWidth / 16) - 2, (self.height * globals.TileWidth / 16) - 2)
-        self.GrabberRect = QtCore.QRectF(((globals.TileWidth / 16) * self.width) - GrabberSide,
-                                         ((globals.TileWidth / 16) * self.height) - GrabberSide, GrabberSide, GrabberSide)
+        self.DrawRect = QtCore.QRectF(1, 1, (self.width * mult) - 2, (self.height * mult) - 2)
+
+        self.GrabberRectTL = QtCore.QRectF(0, 0, GrabberSide, GrabberSide)
+        self.GrabberRectTR = QtCore.QRectF(int(self.width * mult) - GrabberSide, 0, GrabberSide, GrabberSide)
+        self.GrabberRectBL = QtCore.QRectF(0, int(self.height * mult) - GrabberSide, GrabberSide, GrabberSide)
+        self.GrabberRectBR = QtCore.QRectF(int(self.width * mult) - GrabberSide, int(self.height * mult) - GrabberSide, GrabberSide, GrabberSide)
+
         self.UpdateListItem()
 
     def paint(self, painter, option, widget):
@@ -1354,58 +1358,154 @@ class LocationItem(LevelEditorItem):
         painter.setFont(self.font)
         painter.drawText(QtCore.QRectF(0, 0, globals.TileWidth / 2, globals.TileWidth / 2), Qt.AlignCenter, self.title)
 
-        # Draw the resizer rectangle, if selected
-        if self.isSelected(): painter.fillRect(self.GrabberRect, globals.theme.color('location_lines_s'))
+        # Draw the resizer rectangles, if selected
+        if self.isSelected():
+            GrabberColor = globals.theme.color('location_lines_s')
+            painter.fillRect(self.GrabberRectTL, GrabberColor)
+            painter.fillRect(self.GrabberRectTR, GrabberColor)
+            painter.fillRect(self.GrabberRectBL, GrabberColor)
+            painter.fillRect(self.GrabberRectBR, GrabberColor)
 
     def mousePressEvent(self, event):
         """
         Overrides mouse pressing events if needed for resizing
         """
-        if self.isSelected() and self.GrabberRect.contains(event.pos()):
+
+        if self.isSelected() and self.GrabberRectTL.contains(event.pos()):
             # start dragging
             self.dragging = True
-            self.dragstartx = int(event.pos().x() / globals.TileWidth * 16)
-            self.dragstarty = int(event.pos().y() / globals.TileWidth * 16)
+            self.dragcorner = 1
+
+        elif self.isSelected() and self.GrabberRectTR.contains(event.pos()):
+            self.dragging = True
+            self.dragcorner = 2
+
+        elif self.isSelected() and self.GrabberRectBL.contains(event.pos()):
+            self.dragging = True
+            self.dragcorner = 3
+
+        elif self.isSelected() and self.GrabberRectBR.contains(event.pos()):
+            self.dragging = True
+            self.dragcorner = 4
+
+        else:
+            self.dragging = False
+
+        if self.dragging:
+            self.dragstartx = int(event.scenePos().x() / globals.TileWidth * 16)
+            self.dragstarty = int(event.scenePos().y() / globals.TileWidth * 16)
+            self.draginitialx1 = self.objx
+            self.draginitialy1 = self.objy
+            self.draginitialx2 = self.objx + self.width
+            self.draginitialy2 = self.objy + self.height
             event.accept()
+            
         else:
             LevelEditorItem.mousePressEvent(self, event)
-            self.dragging = False
 
     def mouseMoveEvent(self, event):
         """
         Overrides mouse movement events if needed for resizing
         """
+
         if event.buttons() != Qt.NoButton and self.dragging:
             # resize it
-            dsx = self.dragstartx
-            dsy = self.dragstarty
-            clickedx = event.pos().x() / globals.TileWidth * 16
-            clickedy = event.pos().y() / globals.TileWidth * 16
+            clickedx = int(event.scenePos().x() / globals.TileWidth * 16)
+            clickedy = int(event.scenePos().y() / globals.TileWidth * 16)
 
-            cx = self.objx
-            cy = self.objy
+            x1 = self.draginitialx1
+            y1 = self.draginitialy1
+            x2 = self.draginitialx2
+            y2 = self.draginitialy2
 
-            if clickedx < 0: clickedx = 0
-            if clickedy < 0: clickedy = 0
+            oldx = self.x()
+            oldy = self.y()
+            oldw = self.width * globals.TileWidth / 16
+            oldh = self.height * globals.TileWidth / 16
 
-            if clickedx != dsx or clickedy != dsy:
-                self.dragstartx = clickedx
-                self.dragstarty = clickedy
+            deltax = clickedx - self.dragstartx
+            deltay = clickedy - self.dragstarty
 
-                self.width += clickedx - dsx
-                self.height += clickedy - dsy
+            MIN_X = 16
+            MIN_Y = 16
+            MIN_W = 8
+            MIN_H = 8
 
-                oldrect = self.BoundingRect
-                oldrect.translate(cx * globals.TileWidth / 16, cy * globals.TileWidth / 16)
-                newrect = QtCore.QRectF(self.x(), self.y(), self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)
-                updaterect = oldrect.united(newrect)
+            if self.dragcorner == 1: # TL
+                x1 += deltax
+                y1 += deltay
+                if x1 < MIN_X: x1 = MIN_X
+                if y1 < MIN_Y: y1 = MIN_Y
+                if x2 - x1 < MIN_W: x1 = x2 - MIN_W
+                if y2 - y1 < MIN_H: y1 = y2 - MIN_H
 
-                self.UpdateRects()
-                self.scene().update(updaterect)
-                SetDirty()
+            elif self.dragcorner == 2: # TR
+                x2 += deltax
+                y1 += deltay
+                if y1 < MIN_Y: y1 = MIN_Y
+                if x2 - x1 < MIN_W: x2 = x1 + MIN_W
+                if y2 - y1 < MIN_H: y1 = y2 - MIN_H
 
-                if self.sizeChanged is not None:
-                    self.sizeChanged(self, self.width, self.height)
+            elif self.dragcorner == 3: # BL
+                x1 += deltax
+                y2 += deltay
+                if x1 < MIN_X: x1 = MIN_X
+                if x2 - x1 < MIN_W: x1 = x2 - MIN_W
+                if y2 - y1 < MIN_H: y2 = y1 + MIN_H
+
+            elif self.dragcorner == 4: # BR
+                x2 += deltax
+                y2 += deltay
+                if x2 - x1 < MIN_W: x2 = x1 + MIN_W
+                if y2 - y1 < MIN_H: y2 = y1 + MIN_H
+
+            if QtWidgets.QApplication.keyboardModifiers() != Qt.AltModifier:
+                # Snap to 8x8 grid
+
+                if self.dragcorner % 2:
+                    if x1 % 8 < 4:
+                        x1 -= (x1 % 8)
+                    else:
+                        x1 += 8 - (x1 % 8)
+                else:
+                    if x2 % 8 < 4:
+                        x2 -= (x2 % 8)
+                    else:
+                        x2 += 8 - (x2 % 8)
+
+                if self.dragcorner < 3:
+                    if y1 % 8 < 4:
+                        y1 -= (y1 % 8)
+                    else:
+                        y1 += 8 - (y1 % 8)
+                else:
+                    if y2 % 8 < 4:
+                        y2 -= (y2 % 8)
+                    else:
+                        y2 += 8 - (y2 % 8)
+
+            self.objx = x1
+            self.objy = y1
+            self.width = x2 - x1
+            self.height = y2 - y1
+
+            oldrect = QtCore.QRectF(oldx, oldy, oldw, oldh)
+            newrect = QtCore.QRectF(self.x(), self.y(), self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)
+            updaterect = oldrect.united(newrect)
+            updaterect.setTop(updaterect.top() - 3)
+            updaterect.setLeft(updaterect.left() - 3)
+            updaterect.setRight(updaterect.right() + 3)
+            updaterect.setBottom(updaterect.bottom() + 3)
+
+            self.UpdateRects()
+            self.setPos(int(self.objx * globals.TileWidth / 16), int(self.objy * globals.TileWidth / 16))
+            self.scene().update(updaterect)
+
+            globals.mainWindow.levelOverview.update()
+            SetDirty()
+
+            if self.sizeChanged is not None:
+                self.sizeChanged(self, self.width, self.height)
 
             event.accept()
         else:
