@@ -1003,7 +1003,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         )
 
         # Determine which keys are activated
-        if globals.FirstRun or setting('ToolbarActs') in (None, 'None', 'none', '', 0):
+        if setting('ToolbarActs') is None:
             # Get the default settings
             toggled = {}
             for List in (globals.FileActions, globals.EditActions, globals.ViewActions, globals.SettingsActions, globals.HelpActions):
@@ -5304,10 +5304,11 @@ def main():
     # load the settings
     globals.settings = QtCore.QSettings('settings.ini', QtCore.QSettings.IniFormat)
 
-    # Check the version
-    if setting("MiyamotoVersion", None) is None:
+    # Check the version and set the UI style to Fusion by default
+    if setting("MiyamotoVersion") is None:
         setSetting("isDX", False)
         setSetting("MiyamotoVersion", globals.MiyamotoVersionFloat)
+        setSetting('uiStyle', "Fusion")
 
     if setting("MiyamotoVersion") < 27.0 or setting("isDX"):
         warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Unsupported settings file', 'Your settings.ini file is unsupported. Please remove it and run Miyamoto again.')
@@ -5328,10 +5329,6 @@ def main():
     # check if required files are missing
     if FilesAreMissing():
         sys.exit(1)
-
-    # Set the UI style to Fusion by default
-    if setting("FirstRun") is None:
-        setSetting('uiStyle', "Fusion")
 
     # load required stuff
     globals.Sprites = None
@@ -5420,14 +5417,6 @@ def main():
 
     LoadTheme()
     SetAppStyle()
-
-    # check if this is the first time this version of Miyamoto is ran
-    if setting("FirstRun") is None:
-        globals.FirstRun = True
-        setSetting("FirstRun", "False")
-
-    else:
-        globals.FirstRun = False
 
     # create and show the main window
     globals.mainWindow = MiyamotoWindow()
