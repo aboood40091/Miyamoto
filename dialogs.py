@@ -1369,11 +1369,16 @@ class PreferencesDialog(QtWidgets.QDialog):
                     self.compLevel.addItem(globals.trans.string('PrefsDlg', 42))
                     self.compLevel.setCurrentIndex(0)
 
+                # Add the Embedded tab type determiner
+                self.separate = QtWidgets.QCheckBox()
+                self.separate.setChecked(globals.isEmbeddedSeparate)
+
                 # Create the main layout
                 L = QtWidgets.QFormLayout()
                 L.addRow(globals.trans.string('PrefsDlg', 14), self.Trans)
                 L.addRow(globals.trans.string('PrefsDlg', 15), ClearRecentBtn)
                 L.addRow(globals.trans.string('PrefsDlg', 32), self.compLevel)
+                L.addRow(globals.trans.string('PrefsDlg', 43), self.separate)
                 self.setLayout(L)
 
                 # Set the buttons

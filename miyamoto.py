@@ -1196,7 +1196,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.objTS0Tab = QtWidgets.QWidget()
         self.objTSAllTab = QtWidgets.QWidget()
-        self.objTS123Tab = EmbeddedTabJoined()
+        self.objTS123Tab = EmbeddedTabSeparate() if globals.isEmbeddedSeparate else EmbeddedTabJoined()
         self.objAllTab.addTab(self.objTS0Tab, tsicon, 'Main')
         self.objAllTab.addTab(self.objTSAllTab, tsicon, 'All')
         self.objAllTab.addTab(self.objTS123Tab, tsicon, 'Embedded')
@@ -2640,6 +2640,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Get the compression level
         globals.CompLevel = int(dlg.generalTab.compLevel.currentIndex())
         setSetting('CompLevel', globals.CompLevel)
+
+        # Determine the Embedded tab type
+        globals.isEmbeddedSeparate = dlg.generalTab.separate.isChecked()
+        setSetting('isEmbeddedSeparate', globals.isEmbeddedSeparate)
 
         # Get the Toolbar tab settings
         boxes = (
@@ -5374,6 +5378,7 @@ def main():
     globals.LocationsShown = setting('ShowLocations', True)
     globals.CommentsShown = setting('ShowComments', True)
     globals.PathsShown = setting('ShowPaths', True)
+    globals.isEmbeddedSeparate = setting('isEmbeddedSeparate', False)
 
     if globals.libyaz0_available:
         globals.CompLevel = setting('CompLevel', 1)
