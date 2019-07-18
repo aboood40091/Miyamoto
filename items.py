@@ -1426,8 +1426,8 @@ class LocationItem(LevelEditorItem):
             deltax = clickedx - self.dragstartx
             deltay = clickedy - self.dragstarty
 
-            MIN_X = 16
-            MIN_Y = 16
+            MIN_X = 0
+            MIN_Y = 0
             MIN_W = 8
             MIN_H = 8
 
