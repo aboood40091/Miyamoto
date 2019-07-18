@@ -76,7 +76,7 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
 
             # snap even further if Alt isn't held
             # but -only- if globals.OverrideSnapping is off
-            if (not globals.OverrideSnapping) and (not self.autoPosChange):
+            if (not globals.OverrideSnapping) and (not self.autoPosChange) and (hasattr(self, 'dragging') and not self.dragging):
                 if self.scene() is None:
                     objectsSelected = False
                 else:
@@ -1624,12 +1624,6 @@ class LocationItem(LevelEditorItem):
         """
         self.dragging = False
         LevelEditorItem.mouseReleaseEvent(self, event)
-
-    def itemChange(self, change, value):
-        """
-        Avoids snapping for locations
-        """
-        return QtWidgets.QGraphicsItem.itemChange(self, change, value)
 
     def delete(self):
         """

@@ -4219,8 +4219,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
 
-                clickedx = int(clicked.x() / globals.TileWidth * 16)
-                clickedy = int(clicked.y() / globals.TileWidth * 16)
+                clickedx = int(clicked.x() // globals.TileWidth) * 16
+                clickedy = int(clicked.y() // globals.TileWidth) * 16
 
                 allID = set()  # faster 'x in y' lookups for sets
                 newID = 1
@@ -4232,9 +4232,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         break
                     newID += 1
 
-                globals.OverrideSnapping = True
-                loc = LocationItem(clickedx, clickedy, 4, 4, newID)
-                globals.OverrideSnapping = False
+                loc = LocationItem(clickedx, clickedy, 8, 8, newID)
 
                 mw = globals.mainWindow
                 loc.positionChanged = mw.HandleLocPosChange
@@ -4249,6 +4247,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 self.currentobj = loc
                 self.dragstartx = clickedx
                 self.dragstarty = clickedy
+
+                self.scene().update()
 
                 loc.UpdateListItem()
 
@@ -4590,6 +4590,15 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     else:
                         y = clicky
                         height = dsy - clicky + 1
+
+                    if width % 8 < 4:
+                        width -= (width % 8)
+                    else:
+                        width += 8 - (width % 8)
+                    if height % 8 < 4:
+                        height -= (height % 8)
+                    else:
+                        height += 8 - (height % 8)
 
                     # if the position changed, set the new one
                     if cx != x or cy != y:
