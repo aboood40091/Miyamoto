@@ -76,7 +76,14 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
 
             # snap even further if Alt isn't held
             # but -only- if globals.OverrideSnapping is off
-            if (not globals.OverrideSnapping) and (not self.autoPosChange) and (hasattr(self, 'dragging') and not self.dragging):
+            doSnap = False
+            if (not globals.OverrideSnapping) and (not self.autoPosChange):
+                doSnap = True
+
+            if hasattr(self, 'dragging') and not self.dragging:
+                doSnap = False
+
+            if doSnap:
                 if self.scene() is None:
                     objectsSelected = False
                 else:
@@ -2222,8 +2229,7 @@ class EntranceItem(LevelEditorItem):
     Level editor item that represents an entrance
     """
     BoundingRect = QtCore.QRectF(0, 0, globals.TileWidth, globals.TileWidth)
-    RoundedRect = QtCore.QRectF(1 / 24 * globals.TileWidth, 1 / 24 * globals.TileWidth, globals.TileWidth - 1 / 24 * globals.TileWidth,
-                                globals.TileWidth - 1 / 24 * globals.TileWidth)
+    RoundedRect = QtCore.QRectF(1, 1, globals.TileWidth - 2, globals.TileWidth - 2)
     EntranceImages = None
 
     class AuxEntranceItem(QtWidgets.QGraphicsItem):
@@ -2414,7 +2420,7 @@ class EntranceItem(LevelEditorItem):
             h = 2
 
         # Now make the rects
-        self.RoundedRect = QtCore.QRectF(x * globals.TileWidth, y * globals.TileWidth, w * globals.TileWidth, h * globals.TileWidth)
+        self.RoundedRect = QtCore.QRectF(x * globals.TileWidth + 1, y * globals.TileWidth + 1, w * globals.TileWidth - 2, h * globals.TileWidth - 2)
         self.BoundingRect = QtCore.QRectF(x * globals.TileWidth, y * globals.TileWidth, w * globals.TileWidth, h * globals.TileWidth)
 
         # Update the aux thing
@@ -2520,7 +2526,7 @@ class PathItem(LevelEditorItem):
     """
     BoundingRect = QtCore.QRectF(0, 0, globals.TileWidth, globals.TileWidth)
     SelectionRect = QtCore.QRectF(0, 0, globals.TileWidth, globals.TileWidth)
-    RoundedRect = QtCore.QRectF(0, 0, globals.TileWidth, globals.TileWidth)
+    RoundedRect = QtCore.QRectF(1, 1, globals.TileWidth - 2, globals.TileWidth - 2)
 
     def __init__(self, objx, objy, pathinfo, nodeinfo, unk1, unk2, unk3,
                  unk4):  # no idea what the unknowns are, so...placeholders!
