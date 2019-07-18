@@ -38,7 +38,7 @@ Qt = QtCore.Qt
 
 import globals
 
-from items import ObjectItem, LocationItem, SpriteItem
+from items import ObjectItem, ZoneItem, LocationItem, SpriteItem
 from items import EntranceItem, PathItem, NabbitPathItem
 from items import PathEditorLineItem, NabbitPathEditorLineItem
 from items import CommentItem
@@ -4658,47 +4658,155 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
         else:
             type_obj = ObjectItem
+            type_loc = LocationItem
+            type_zone = ZoneItem
+
             objlist = [obj for obj in self.scene().selectedItems() if isinstance(obj, type_obj)]
+            loclist = [loc for loc in self.scene().selectedItems() if isinstance(loc, type_loc)]
+            zonelist = [zone for zone in self.scene().items() if isinstance(zone, type_zone)]
 
-            if objlist:
-                for obj in objlist:
-                    if self.translateRect(obj.SelectionRect, obj.objx, obj.objy).contains(pos) and not obj.dragging:
-                        if self.translateRect(obj.GrabberRectTL, obj.objx, obj.objy).contains(pos):
-                            self.setOverrideCursor(Qt.SizeFDiagCursor)
+            dragging = True
+            for obj in objlist:
+                if obj.dragging:
+                    break
+
+            else:
+                for loc in loclist:
+                    if loc.dragging:
+                        break
+
+                else:
+                    for zone in zonelist:
+                        if zone.dragging:
                             break
 
-                        elif self.translateRect(obj.GrabberRectTR, obj.objx, obj.objy).contains(pos):
-                            self.setOverrideCursor(Qt.SizeBDiagCursor)
-                            break
+                    else:
+                        dragging = False
 
-                        elif self.translateRect(obj.GrabberRectBL, obj.objx, obj.objy).contains(pos):
-                            self.setOverrideCursor(Qt.SizeBDiagCursor)
-                            break
+            if not dragging:
+                objCursorOverriden = True
+                locCursorOverriden = True
+                zoneCursorOverriden = True
 
-                        elif self.translateRect(obj.GrabberRectBR, obj.objx, obj.objy).contains(pos):
-                            self.setOverrideCursor(Qt.SizeFDiagCursor)
-                            break
+                if objlist:
+                    for obj in objlist:
+                        if self.translateRect(obj.SelectionRect, obj.objx, obj.objy).contains(pos) and not obj.dragging:
+                            if self.translateRect(obj.GrabberRectTL, obj.objx, obj.objy).contains(pos):
+                                self.setOverrideCursor(Qt.SizeFDiagCursor); objCursorOverriden = True
+                                break
 
-                        elif (self.translateRect(obj.GrabberRectMT, obj.objx, obj.objy).contains(pos)
-                              or self.translateRect(obj.GrabberRectMB, obj.objx, obj.objy).contains(pos)):
-                            self.setOverrideCursor(Qt.SizeVerCursor)
-                            break
+                            elif self.translateRect(obj.GrabberRectTR, obj.objx, obj.objy).contains(pos):
+                                self.setOverrideCursor(Qt.SizeBDiagCursor); objCursorOverriden = True
+                                break
 
-                        elif (self.translateRect(obj.GrabberRectML, obj.objx, obj.objy).contains(pos)
-                              or self.translateRect(obj.GrabberRectMR, obj.objx, obj.objy).contains(pos)):
-                            self.setOverrideCursor(Qt.SizeHorCursor)
-                            break
+                            elif self.translateRect(obj.GrabberRectBL, obj.objx, obj.objy).contains(pos):
+                                self.setOverrideCursor(Qt.SizeBDiagCursor); objCursorOverriden = True
+                                break
 
-                        else:
-                            self.setOverrideCursor(Qt.SizeAllCursor)
-                            break
+                            elif self.translateRect(obj.GrabberRectBR, obj.objx, obj.objy).contains(pos):
+                                self.setOverrideCursor(Qt.SizeFDiagCursor); objCursorOverriden = True
+                                break
 
-                    elif not obj.dragging and globals.app.overrideCursor():
-                        globals.app.restoreOverrideCursor()
+                            elif (self.translateRect(obj.GrabberRectMT, obj.objx, obj.objy).contains(pos)
+                                  or self.translateRect(obj.GrabberRectMB, obj.objx, obj.objy).contains(pos)):
+                                self.setOverrideCursor(Qt.SizeVerCursor); objCursorOverriden = True
+                                break
 
-            elif globals.app.overrideCursor():
-                # Prevent visual bugs
-                globals.app.restoreOverrideCursor()
+                            elif (self.translateRect(obj.GrabberRectML, obj.objx, obj.objy).contains(pos)
+                                  or self.translateRect(obj.GrabberRectMR, obj.objx, obj.objy).contains(pos)):
+                                self.setOverrideCursor(Qt.SizeHorCursor); objCursorOverriden = True
+                                break
+
+                            else:
+                                self.setOverrideCursor(Qt.SizeAllCursor); objCursorOverriden = True
+                                break
+
+                        elif not obj.dragging:
+                            objCursorOverriden = False
+
+                else:
+                    objCursorOverriden = False
+
+                if loclist:
+                    for loc in loclist:
+                        if loc.SelectionRect.contains(pos.x(), pos.y()) and not loc.dragging:
+                            if self.translateRect(loc.GrabberRectTL, loc.objx/16, loc.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeFDiagCursor); locCursorOverriden = True
+                                break
+
+                            elif self.translateRect(loc.GrabberRectTR, loc.objx/16, loc.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeBDiagCursor); locCursorOverriden = True
+                                break
+
+                            elif self.translateRect(loc.GrabberRectBL, loc.objx/16, loc.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeBDiagCursor); locCursorOverriden = True
+                                break
+
+                            elif self.translateRect(loc.GrabberRectBR, loc.objx/16, loc.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeFDiagCursor); locCursorOverriden = True
+                                break
+
+                            elif (self.translateRect(loc.GrabberRectMT, loc.objx/16, loc.objy/16).contains(pos)
+                                  or self.translateRect(loc.GrabberRectMB, loc.objx/16, loc.objy/16).contains(pos)):
+                                self.setOverrideCursor(Qt.SizeVerCursor); locCursorOverriden = True
+                                break
+
+                            elif (self.translateRect(loc.GrabberRectML, loc.objx/16, loc.objy/16).contains(pos)
+                                  or self.translateRect(loc.GrabberRectMR, loc.objx/16, loc.objy/16).contains(pos)):
+                                self.setOverrideCursor(Qt.SizeHorCursor); locCursorOverriden = True
+                                break
+
+                            else:
+                                self.setOverrideCursor(Qt.SizeAllCursor); locCursorOverriden = True
+                                break
+
+                        elif not loc.dragging:
+                            locCursorOverriden = False
+
+                else:
+                    locCursorOverriden = False
+
+                if zonelist:
+                    for zone in zonelist:
+                        if zone.ScalingRect.contains(pos.x(), pos.y()) and not zone.dragging:
+                            if self.translateRect(zone.GrabberRectTL, zone.objx/16, zone.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeFDiagCursor); zoneCursorOverriden = True
+                                break
+
+                            elif self.translateRect(zone.GrabberRectTR, zone.objx/16, zone.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeBDiagCursor); zoneCursorOverriden = True
+                                break
+
+                            elif self.translateRect(zone.GrabberRectBL, zone.objx/16, zone.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeBDiagCursor); zoneCursorOverriden = True
+                                break
+
+                            elif self.translateRect(zone.GrabberRectBR, zone.objx/16, zone.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeFDiagCursor); zoneCursorOverriden = True
+                                break
+
+                            elif (self.translateRect(zone.GrabberRectMT, zone.objx/16, zone.objy/16).contains(pos)
+                                  or self.translateRect(zone.GrabberRectMB, zone.objx/16, zone.objy/16).contains(pos)):
+                                self.setOverrideCursor(Qt.SizeVerCursor); zoneCursorOverriden = True
+                                break
+
+                            elif (self.translateRect(zone.GrabberRectML, zone.objx/16, zone.objy/16).contains(pos)
+                                  or self.translateRect(zone.GrabberRectMR, zone.objx/16, zone.objy/16).contains(pos)):
+                                self.setOverrideCursor(Qt.SizeHorCursor); zoneCursorOverriden = True
+                                break
+
+                            else:
+                                zoneCursorOverriden = False
+                                break
+
+                        elif not zone.dragging:
+                            zoneCursorOverriden = False
+
+                else:
+                    zoneCursorOverriden = False
+
+                if (not (objlist or loclist or zonelist) or not (objCursorOverriden or locCursorOverriden or zoneCursorOverriden)) and globals.app.overrideCursor():
+                    globals.app.restoreOverrideCursor()
 
             QtWidgets.QGraphicsView.mouseMoveEvent(self, event)
 
