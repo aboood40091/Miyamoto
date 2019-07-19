@@ -328,7 +328,7 @@ class SpriteDefinition:
                     # different number of bits
                     getit = sbit.split('-')
                     bit = (((int(getit[0]) - 1) << sft) + 1, (int(getit[1]) << sft) + 1)
-                    max = 1 << (bit[1] - bit[0] + 1)
+                    max = 1 << (bit[1] - bit[0])
 
                 entries = []
                 existing = [None for i in range(max)]
@@ -367,7 +367,7 @@ class SpriteDefinition:
                     # different number of bits
                     getit = sbit.split('-')
                     bit = (((int(getit[0]) - 1) << sft) + 1, (int(getit[1]) << sft) + 1)
-                    max = 1 << (bit[1] - bit[0] + 1)
+                    max = 1 << (bit[1] - bit[0])
 
                 fields.append((2, attribs['title'], bit, max, comment))
 
