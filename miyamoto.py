@@ -3603,10 +3603,45 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.scene.update()
 
     def ReloadSpriteData(self):
-        globals.Sprites = None
         LoadSpriteData()
+
+        for i in range(self.sprPicker.topLevelItemCount()):
+            cnode = self.sprPicker.topLevelItem(i)
+            for j in reversed(range(cnode.childCount())):
+                cnode.removeChild(cnode.child(j))
+
+            for _, view, _ in globals.SpriteCategories:
+                for catname, category in view:
+                    if catname != cnode.text(0):
+                        continue
+
+                    isSearch = (catname == globals.trans.string('Sprites', 16))
+                    if isSearch:
+                        self.sprPicker.SearchResultsCategory = cnode
+                        SearchableItems = []
+
+                    for id in category:
+                        snode = QtWidgets.QTreeWidgetItem()
+                        if id == 9999:
+                            snode.setText(0, globals.trans.string('Sprites', 17))
+                            snode.setData(0, Qt.UserRole, -2)
+                            self.sprPicker.NoSpritesFound = snode
+                        else:
+                            snode.setText(0, globals.trans.string('Sprites', 18, '[id]', id, '[name]', globals.Sprites[id].name))
+                            snode.setData(0, Qt.UserRole, id)
+
+                        if isSearch:
+                            SearchableItems.append(snode)
+
+                        cnode.addChild(snode)
+
+        self.sprPicker.ShownSearchResults = SearchableItems
+        self.sprPicker.NoSpritesFound.setHidden(True)
+        self.NewSearchTerm(self.spriteSearchTerm.text())
+
         for sprite in globals.Area.sprites:
             sprite.InitializeSprite()
+
         self.scene.update()
 
     def ChangeSelectionHandler(self):
