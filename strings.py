@@ -525,6 +525,10 @@ class MiyamotoTranslation:
                 143: 'Edit Slot [slot] Tileset',
                 144: 'Use RGBA8',
                 145: 'Use RGBA8 instead of BC3 when encoding tilesets',
+                146: 'Raise to Top',
+                147: 'Raise selected objects to the front of all other objects in the scene.',
+                148: 'Lower to Bottom',
+                149: 'Lower selected objects behind all other objects in the scene.',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',

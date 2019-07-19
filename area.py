@@ -655,6 +655,8 @@ class Area_NSMBU(AbstractArea):
         layer = self.layers[idx]
         if not layer: return None
 
+        layer.sort(key=lambda obj: obj.zValue())
+
         offset = 0
         objstruct = struct.Struct('>HhhHHB')
         buffer = bytearray((len(layer) * 16) + 2)

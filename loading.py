@@ -732,6 +732,8 @@ def LoadActionsLists():
         (globals.trans.string('MenuItems', 26), True, 'cut'),
         (globals.trans.string('MenuItems', 28), True, 'copy'),
         (globals.trans.string('MenuItems', 30), True, 'paste'),
+        (globals.trans.string('MenuItems', 146), True, 'raise'),
+        (globals.trans.string('MenuItems', 148), True, 'lower'),
         (globals.trans.string('MenuItems', 32), False, 'shiftitems'),
         (globals.trans.string('MenuItems', 34), False, 'mergelocations'),
         (globals.trans.string('MenuItems', 38), False, 'freezeobjects'),
