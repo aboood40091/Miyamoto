@@ -484,6 +484,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         )
 
         self.CreateAction(
+            'raise', self.HandleRaiseObjects, GetIcon('raise'),
+            globals.trans.string('MenuItems', 147),
+            globals.trans.string('MenuItems', 148),
+            None,
+        )
+
+        self.CreateAction(
+            'lower', self.HandleLowerObjects, GetIcon('lower'),
+            globals.trans.string('MenuItems', 149),
+            globals.trans.string('MenuItems', 150),
+            None,
+        )
+
+        self.CreateAction(
             'shiftitems', self.ShiftItems, GetIcon('move'),
             globals.trans.string('MenuItems', 32),
             globals.trans.string('MenuItems', 33),
@@ -838,6 +852,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         emenu.addAction(self.actions['copy'])
         emenu.addAction(self.actions['paste'])
         emenu.addSeparator()
+        emenu.addAction(self.actions['raise'])
+        emenu.addAction(self.actions['lower'])
+        emenu.addSeparator()
         emenu.addAction(self.actions['shiftitems'])
         emenu.addAction(self.actions['mergelocations'])
         emenu.addAction(self.actions['swapobjectstilesets'])
@@ -963,6 +980,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'cut',
                 'copy',
                 'paste',
+            ), (
+                'raise',
+                'lower',
             ), (
                 'shiftitems',
                 'mergelocations',
@@ -2200,6 +2220,59 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             pass
 
         return layers, sprites
+
+    def HandleRaiseObjects(self):
+        """
+        Raise selected objects to the front of all other objects in the scene
+        """
+        objlist = [obj for obj in self.scene.selectedItems() if isinstance(obj, ObjectItem)]
+        objlist.sort(key=lambda obj: obj.zValue())
+        numObjs = len(objlist)
+
+        for i, obj in enumerate(objlist):
+            layer = globals.Area.layers[obj.layer]
+            layer.sort(key=lambda obj: obj.zValue())
+            if layer[i-numObjs] == obj:
+                continue
+
+            layer.remove(obj)
+
+            newZ = layer[-1].zValue() + 1
+            obj.setZValue(newZ)
+
+            layer.append(obj)
+
+        if numObjs:
+            SetDirty()
+            self.scene.update()
+
+    def HandleLowerObjects(self):
+        """
+        Lower selected objects behind all other objects in the scene
+        """
+        objlist = [obj for obj in self.scene.selectedItems() if isinstance(obj, ObjectItem)]
+        objlist.sort(key=lambda obj: -obj.zValue())
+        numObjs = len(objlist)
+
+        for i, obj in enumerate(objlist):
+            layer = globals.Area.layers[obj.layer]
+            layer.sort(key=lambda obj: obj.zValue())
+            if layer[numObjs-i-1] == obj:
+                continue
+
+            layer.remove(obj)
+
+            newZ = (2 - obj.layer) * 8192
+            obj.setZValue(newZ)
+
+            for oObj in layer:
+                oObj.setZValue(oObj.zValue() + 1)
+
+            layer.insert(0, obj)
+
+        if numObjs:
+            SetDirty()
+            self.scene.update()
 
     def ShiftItems(self):
         """
@@ -4500,10 +4573,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 event.accept()
                 self.SelectionUpdateFlag = False
                 self.ChangeSelectionHandler()
-                return
-        self.levelOverview.update()
 
-        QtWidgets.QMainWindow.keyPressEvent(self, event)
+        else:
+            QtWidgets.QMainWindow.keyPressEvent(self, event)
+
+        self.levelOverview.update()
 
     def HandleAreaOptions(self):
         """

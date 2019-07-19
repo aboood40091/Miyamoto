@@ -526,6 +526,10 @@ class MiyamotoTranslation:
                 144: 'Save Level to FTP server',
                 145: 'Saves the Level to an FTP server',
                 146: 'FTP Preferences...',
+                147: 'Raise to Top',
+                148: 'Raise selected objects to the front of all other objects in the scene.',
+                149: 'Lower to Bottom',
+                150: 'Lower selected objects behind all other objects in the scene.',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
