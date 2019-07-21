@@ -503,6 +503,42 @@ class ZonesDialog(QtWidgets.QDialog):
     Dialog which lets you choose among various from tabs
     """
 
+    class ScrollArea(QtWidgets.QScrollArea):
+        def __init__(self, widget=None, initialWidth=-1, initialHeight=-1):
+            super().__init__()
+
+            self.setWidgetResizable(True)
+            self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+            deltaWidth = globals.app.style().pixelMetric(QtWidgets.QStyle.PM_ScrollBarExtent)
+
+            if widget:
+                self.setWidget(widget)
+
+                if initialWidth == -1:
+                    initialWidth = widget.sizeHint().width()
+
+                if initialHeight == -1:
+                    initialHeight = widget.sizeHint().height()
+
+            if initialWidth == -1:
+                initialWidth = super().sizeHint().width()
+
+            else:
+                initialWidth += deltaWidth
+
+            if initialHeight == -1:
+                initialHeight = super().sizeHint().height()
+
+            else:
+                initialHeight += deltaWidth
+
+            self.initialWidth = initialWidth
+            self.initialHeight = initialHeight
+
+        def sizeHint(self):
+            return QtCore.QSize(self.initialWidth, self.initialHeight)
+
     def __init__(self):
         """
         Creates and initializes the tab dialog
@@ -515,12 +551,24 @@ class ZonesDialog(QtWidgets.QDialog):
 
         i = 0
         self.zoneTabs = []
+        self.BGTabs = []
         for z in globals.Area.zones:
             i = i + 1
             ZoneTabName = globals.trans.string('ZonesDlg', 3, '[num]', i)
-            tab = ZoneTab(z)
+            tab = ZoneTab(z); tab.adjustSize()
             self.zoneTabs.append(tab)
-            self.tabWidget.addTab(tab, ZoneTabName)
+
+            bgTab = BGTab(z.background[1], globals.names_bg.index(bytes_to_string(z.background[2])), z.background[3])
+            bgTab.adjustSize()
+            self.BGTabs.append(bgTab)
+
+            tabWidget = QtWidgets.QTabWidget()
+            tabWidget.addTab(tab, 'Options')
+            tabWidget.addTab(bgTab, 'Background')
+            tabWidget.adjustSize()
+
+            scrollArea = ZonesDialog.ScrollArea(tabWidget)
+            self.tabWidget.addTab(scrollArea, ZoneTabName)
 
         if self.tabWidget.count() > 5:
             for tab in range(0, self.tabWidget.count()):
@@ -535,7 +583,8 @@ class ZonesDialog(QtWidgets.QDialog):
 
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
-        # self.NewButton.setEnabled(len(self.zoneTabs) < 8)
+
+        self.NewButton.setEnabled(len(self.zoneTabs) < 8)
         self.NewButton.clicked.connect(self.NewZone)
         self.DeleteButton.clicked.connect(self.DeleteZone)
 
@@ -543,6 +592,8 @@ class ZonesDialog(QtWidgets.QDialog):
         mainLayout.addWidget(self.tabWidget)
         mainLayout.addWidget(buttonBox)
         self.setLayout(mainLayout)
+
+        self.setFixedWidth(self.sizeHint().width())
 
     def NewZone(self):
         if len(self.zoneTabs) >= 15:
@@ -553,17 +604,31 @@ class ZonesDialog(QtWidgets.QDialog):
 
         id = len(self.zoneTabs)
 
-        i = 0
-        while i in globals.Area.bgblockid:
-            i += 1
+        if id in globals.Area.bgblockid:
+            bg = globals.Area.bgs[id]
 
-        bg = (i, 0, to_bytes('Black', 16), 0)
+        else:
+            globals.Area.bgblockid.append(id)
+            bg = (id, 0, to_bytes('Black', 16), 0)
+            globals.Area.bgs[id] = bg
 
-        z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, i, 0, 1, 0, 0, (0, 0, 0, 0, 0, 0xF), bg, id)
+        z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, id, 0, 1, 0, 0, (0, 0, 0, 0, 0, 0xF), bg, id)
         ZoneTabName = globals.trans.string('ZonesDlg', 3, '[num]', id + 1)
         tab = ZoneTab(z)
         self.zoneTabs.append(tab)
-        self.tabWidget.addTab(tab, ZoneTabName)
+
+        bgTab = BGTab(z.background[1], globals.names_bg.index(bytes_to_string(z.background[2])), z.background[3])
+        bgTab.adjustSize()
+        self.BGTabs.append(bgTab)
+
+        tabWidget = QtWidgets.QTabWidget()
+        tabWidget.addTab(tab, 'Options')
+        tabWidget.addTab(bgTab, 'Background')
+        tabWidget.adjustSize()
+
+        scrollArea = ZonesDialog.ScrollArea(tabWidget)
+        self.tabWidget.addTab(scrollArea, ZoneTabName)
+
         if self.tabWidget.count() > 5:
             for tab in range(0, self.tabWidget.count()):
                 self.tabWidget.setTabText(tab, str(tab + 1))
@@ -579,10 +644,16 @@ class ZonesDialog(QtWidgets.QDialog):
         for tab in range(curindex, tabamount):
             if self.tabWidget.count() < 6:
                 self.tabWidget.setTabText(tab, globals.trans.string('ZonesDlg', 3, '[num]', tab + 1))
-            if self.tabWidget.count() > 5:
+            else:
                 self.tabWidget.setTabText(tab, str(tab + 1))
 
+        globals.Area.bgblockid.pop(curindex)
+        for i in range(len(globals.Area.bgblockid)):
+            if globals.Area.bgblockid[i] > curindex:
+                globals.Area.bgblockid[i] -= 1
+
         self.zoneTabs.pop(curindex)
+        self.BGTabs.pop(curindex)
         if self.tabWidget.count() < 6:
             for tab in range(0, self.tabWidget.count()):
                 self.tabWidget.setTabText(tab, globals.trans.string('ZonesDlg', 3, '[num]', tab + 1))
@@ -1079,46 +1150,6 @@ class ZoneTab(QtWidgets.QWidget):
         self.AutoChangingSize = False
 
 
-class BGDialog(QtWidgets.QDialog):
-    """
-    Dialog which lets you choose backgrounds
-    """
-
-    def __init__(self):
-        """
-        Creates and initializes the tab dialog
-        """
-        super().__init__()
-        self.setWindowTitle('Backgrounds')
-        self.setWindowIcon(GetIcon('background'))
-
-        self.tabWidget = QtWidgets.QTabWidget()
-        self.BGTabs = {}
-
-        for z in globals.Area.zones:
-            BGTabName = 'Zone ' + str(z.id + 1)
-
-            try:
-                tab = BGTab(z.background[1], globals.names_bg.index(bytes_to_string(z.background[2])), z.background[3])
-
-            except ValueError:
-                pass
-
-            else:
-                self.BGTabs[z.id] = tab
-                self.tabWidget.addTab(tab, BGTabName)
-
-        buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
-
-        buttonBox.accepted.connect(self.accept)
-        buttonBox.rejected.connect(self.reject)
-
-        mainLayout = QtWidgets.QVBoxLayout()
-        mainLayout.addWidget(self.tabWidget)
-        mainLayout.addWidget(buttonBox)
-        self.setLayout(mainLayout)
-
-
 class BGTab(QtWidgets.QWidget):
     def __init__(self, unk1, name, unk2):
         super().__init__()
@@ -1147,9 +1178,9 @@ class BGTab(QtWidgets.QWidget):
         settingsLayout2.addLayout(settingsLayout, 0, 0)
         self.BGSettings.setLayout(settingsLayout2)
 
-        Layout = QtWidgets.QGridLayout()
-        Layout.addWidget(self.BGViewer, 0, 1)
-        Layout.addWidget(self.BGSettings, 0, 0)
+        Layout = QtWidgets.QVBoxLayout()
+        Layout.addWidget(self.BGViewer)
+        Layout.addWidget(self.BGSettings)
         self.setLayout(Layout)
 
         self.updatePreview()
@@ -1627,13 +1658,13 @@ class PreferencesDialog(QtWidgets.QDialog):
                 keys = QtWidgets.QStyleFactory().keys()
 
                 if themeObj.color('ui') is not None and not themeObj.forceStyleSheet:
-                    if "WindowsXP" in keys:
-                        keys.remove("WindowsXP")
+                    styles = ["WindowsXP", "WindowsVista"]
+                    for _style in styles:
+                        for key in _style, _style.lower():
+                            if key in keys:
+                                keys.remove(key)
 
-                    if "WindowsVista" in keys:
-                        keys.remove("WindowsVista")
-
-                    if style in ["WindowsXP", "WindowsVista"]:
+                    if style in styles + [_style.lower() for _style in styles]:
                         style = "Fusion"
 
                 self.NonWinStyle.clear()

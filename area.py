@@ -178,7 +178,6 @@ class Area_NSMBU(AbstractArea):
         self.entrances = []
         self.sprites = []
         self.bounding = []
-        self.bgs = []
         self.zones = []
         self.locations = []
         self.pathdata = []
@@ -405,7 +404,7 @@ class Area_NSMBU(AbstractArea):
         self.bounding = bounding
 
         # Block 5 - Bg data
-        bgs = self.LoadBackgrounds()
+        self.bgs = self.LoadBackgrounds()
 
         # Block 10 - zone data
         zonedata = self.blocks[9]
@@ -423,7 +422,7 @@ class Area_NSMBU(AbstractArea):
                 if checkb[4] == id: boundObj = checkb
 
             # Find the proper bg
-            bgObj = bgs[dataz[11]]
+            bgObj = self.bgs[dataz[11]]
 
             zones.append(ZoneItem(
                 dataz[0], dataz[1], dataz[2], dataz[3],

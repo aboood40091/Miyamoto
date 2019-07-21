@@ -712,13 +712,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         )
 
         self.CreateAction(
-            'backgrounds', self.HandleBG, GetIcon('background'),
-            globals.trans.string('MenuItems', 76),
-            globals.trans.string('MenuItems', 77),
-            QtGui.QKeySequence('Ctrl+Alt+B'),
-        )
-
-        self.CreateAction(
             'addarea', self.HandleAddNewArea, GetIcon('add'),
             globals.trans.string('MenuItems', 78),
             globals.trans.string('MenuItems', 79),
@@ -897,7 +890,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         lmenu = menubar.addMenu(globals.trans.string('Menubar', 3))
         lmenu.addAction(self.actions['areaoptions'])
         lmenu.addAction(self.actions['zones'])
-        lmenu.addAction(self.actions['backgrounds'])
         lmenu.addSeparator()
         lmenu.addAction(self.actions['addarea'])
         lmenu.addAction(self.actions['importarea'])
@@ -1012,7 +1004,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             ), (
                 'areaoptions',
                 'zones',
-                'backgrounds',
             ), (
                 'addarea',
                 'importarea',
@@ -4671,7 +4662,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         dlg = ZonesDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
-            i = 0
 
             # resync the zones
             items = self.scene.items()
@@ -4684,9 +4674,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             globals.Area.zones = []
 
-            for tab in dlg.zoneTabs:
+            ygn2Used = False
+
+            for id, (tab, bgTab) in enumerate(zip(dlg.zoneTabs, dlg.BGTabs)):
                 z = tab.zoneObj
-                z.id = i
+                z.id = id
                 z.UpdateTitle()
                 globals.Area.zones.append(z)
                 self.scene.addItem(z)
@@ -4964,28 +4956,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     z.sfxmod = z.sfxmod + 1
 
                 z.type = 0
-                for i in range(0, 8):
+                for i in range(8):
                     if tab.Zone_settings[i].isChecked():
-                        z.type = z.type + (2 ** i)
+                        z.type |= 1 << i
 
-                i = i + 1
-        self.levelOverview.update()
-
-    # Handles setting the backgrounds
-    def HandleBG(self):
-        """
-        Pops up the Background settings Dialog
-        """
-        dlg = BGDialog()
-        if dlg.exec_() == QtWidgets.QDialog.Accepted:
-            SetDirty()
-
-            ygn2Used = False
-
-            for z in globals.Area.zones:
-                name = globals.names_bg[globals.names_bgTrans.index(str(dlg.BGTabs[z.id].bg_name.currentText()))]
-                unk1 = dlg.BGTabs[z.id].unk1.value()
-                unk2 = dlg.BGTabs[z.id].unk2.value()
+                name = globals.names_bg[globals.names_bgTrans.index(str(bgTab.bg_name.currentText()))]
+                unk1 = bgTab.unk1.value()
+                unk2 = bgTab.unk2.value()
                 z.background = (z.id, unk1, to_bytes(name, 16), unk2)
 
                 ygn2Used = name == "Yougan_2"
@@ -4993,6 +4970,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if ygn2Used:
                 QtWidgets.QMessageBox.information(None, globals.trans.string('BGDlg', 22),
                                                   globals.trans.string('BGDlg', 23))
+
+        self.levelOverview.update()
 
     def HandleScreenshot(self):
         """

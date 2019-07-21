@@ -786,7 +786,6 @@ def LoadActionsLists():
     globals.SettingsActions = (
         (globals.trans.string('MenuItems', 72), True, 'areaoptions'),
         (globals.trans.string('MenuItems', 74), True, 'zones'),
-        (globals.trans.string('MenuItems', 76), True, 'backgrounds'),
         (globals.trans.string('MenuItems', 78), False, 'addarea'),
         (globals.trans.string('MenuItems', 80), False, 'importarea'),
         (globals.trans.string('MenuItems', 82), False, 'deletearea'),
