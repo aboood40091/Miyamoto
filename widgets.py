@@ -4539,29 +4539,32 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     clickx = int(clicked.x() / globals.TileWidth * 16)
                     clicky = int(clicked.y() / globals.TileWidth * 16)
 
+                    if clickx % 8 < 4:
+                        clickx -= (clickx % 8)
+                    else:
+                        clickx += 8 - (clickx % 8)
+                    if clicky % 8 < 4:
+                        clicky -= (clicky % 8)
+                    else:
+                        clicky += 8 - (clicky % 8)
+
                     # allow negative width/height and treat it properly :D
                     if clickx >= dsx:
                         x = dsx
-                        width = clickx - dsx + 1
+                        width = clickx - dsx
                     else:
                         x = clickx
-                        width = dsx - clickx + 1
+                        width = dsx - clickx
 
                     if clicky >= dsy:
                         y = dsy
-                        height = clicky - dsy + 1
+                        height = clicky - dsy
                     else:
                         y = clicky
-                        height = dsy - clicky + 1
+                        height = dsy - clicky
 
-                    if width % 8 < 4:
-                        width -= (width % 8)
-                    else:
-                        width += 8 - (width % 8)
-                    if height % 8 < 4:
-                        height -= (height % 8)
-                    else:
-                        height += 8 - (height % 8)
+                    width = max(width, 8)
+                    height = max(height, 8)
 
                     # if the position changed, set the new one
                     if cx != x or cy != y:
@@ -4578,10 +4581,12 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         obj.height = height
                         #                    obj.updateObjCache()
 
+                        delta = globals.TileWidth / 2
+
                         oldrect = obj.BoundingRect
                         oldrect.translate(cx * globals.TileWidth / 16, cy * globals.TileWidth / 16)
-                        newrect = QtCore.QRectF(obj.x(), obj.y(), obj.width * globals.TileWidth / 16,
-                                                obj.height * globals.TileWidth / 16)
+                        newrect = QtCore.QRectF(obj.x() - delta, obj.y() - delta, obj.width * globals.TileWidth / 16 + globals.TileWidth,
+                                                obj.height * globals.TileWidth / 16 + globals.TileWidth)
                         updaterect = oldrect.united(newrect)
 
                         obj.UpdateRects()
