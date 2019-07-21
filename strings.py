@@ -951,7 +951,7 @@ class MiyamotoTranslation:
                 73: '[b]Lower Bounds 2:[/b][br]Unknown differences from the main lower bounds.',
                 74: 'Enable Scrolling vertically?',
                 75: '[b]Enable Scrolling vertically?:[/b][br]The level can\'t scroll vertically if this is not checked Seems to be always checked.',
-                76: 'Settings',
+                76: 'Flags',
                 77: (
                     'Start Zoomed Out:',
                     'Center Camera X-pos On Load:',
