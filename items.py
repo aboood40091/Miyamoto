@@ -80,7 +80,7 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
             if (not globals.OverrideSnapping) and (not self.autoPosChange):
                 doSnap = True
 
-            if hasattr(self, 'dragging') and not self.dragging:
+            if hasattr(self, 'dragging') and self.dragging:
                 doSnap = False
 
             if doSnap:
