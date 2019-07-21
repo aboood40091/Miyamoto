@@ -4699,7 +4699,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 if objlist:
                     for obj in objlist:
-                        if self.translateRect(obj.SelectionRect, obj.objx, obj.objy).contains(pos) and not obj.dragging:
+                        if self.translateRect(obj.SelectionRect, obj.objx, obj.objy).contains(pos):
                             if self.translateRect(obj.GrabberRectTL, obj.objx, obj.objy).contains(pos):
                                 self.setOverrideCursor(Qt.SizeFDiagCursor); objCursorOverriden = True
                                 break
@@ -4730,7 +4730,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                                 self.setOverrideCursor(Qt.SizeAllCursor); objCursorOverriden = True
                                 break
 
-                        elif not obj.dragging:
+                        else:
                             objCursorOverriden = False
 
                 else:
@@ -4738,7 +4738,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 if loclist:
                     for loc in loclist:
-                        if loc.SelectionRect.contains(pos.x(), pos.y()) and not loc.dragging:
+                        if loc.SelectionRect.contains(pos.x(), pos.y()):
                             if self.translateRect(loc.GrabberRectTL, loc.objx/16, loc.objy/16).contains(pos):
                                 self.setOverrideCursor(Qt.SizeFDiagCursor); locCursorOverriden = True
                                 break
@@ -4769,7 +4769,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                                 self.setOverrideCursor(Qt.SizeAllCursor); locCursorOverriden = True
                                 break
 
-                        elif not loc.dragging:
+                        else:
                             locCursorOverriden = False
 
                 else:
@@ -4777,7 +4777,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 if zonelist:
                     for zone in zonelist:
-                        if zone.ScalingRect.contains(pos.x(), pos.y()) and not zone.dragging:
+                        if zone.ScalingRect.contains(pos.x(), pos.y()):
                             if self.translateRect(zone.GrabberRectTL, zone.objx/16, zone.objy/16).contains(pos):
                                 self.setOverrideCursor(Qt.SizeFDiagCursor); zoneCursorOverriden = True
                                 break
@@ -4808,7 +4808,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                                 zoneCursorOverriden = False
                                 break
 
-                        elif not zone.dragging:
+                        else:
                             zoneCursorOverriden = False
 
                 else:
