@@ -743,6 +743,7 @@ def LoadActionsLists():
         (globals.trans.string('MenuItems', 0), True, 'newlevel'),
         (globals.trans.string('MenuItems', 2), True, 'openfromname'),
         (globals.trans.string('MenuItems', 4), False, 'openfromfile'),
+        (globals.trans.string('MenuItems', 6), False, 'openrecent'),
         (globals.trans.string('MenuItems', 8), True, 'save'),
         (globals.trans.string('MenuItems', 10), False, 'saveas'),
         (globals.trans.string('MenuItems', 12), False, 'metainfo'),
@@ -786,9 +787,9 @@ def LoadActionsLists():
     globals.SettingsActions = (
         (globals.trans.string('MenuItems', 72), True, 'areaoptions'),
         (globals.trans.string('MenuItems', 74), True, 'zones'),
-        (globals.trans.string('MenuItems', 78), False, 'addarea'),
+        (globals.trans.string('MenuItems', 78), True, 'addarea'),
         (globals.trans.string('MenuItems', 80), False, 'importarea'),
-        (globals.trans.string('MenuItems', 82), False, 'deletearea'),
+        (globals.trans.string('MenuItems', 82), True, 'deletearea'),
         (globals.trans.string('MenuItems', 128), False, 'reloaddata'),
     )
     globals.HelpActions = (

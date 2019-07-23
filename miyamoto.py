@@ -1036,7 +1036,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         for group in Groups:
             addedButtons = False
             for key in group:
-                if key in toggled and toggled[key] and key != 'save':
+                if key in toggled and toggled[key]:
                     act = self.actions[key]
                     self.toolbar.addAction(act)
                     addedButtons = True
