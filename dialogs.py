@@ -614,7 +614,7 @@ class ZonesDialog(QtWidgets.QDialog):
 
         z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, id, 0, 1, 0, 0, (0, 0, 0, 0, 0, 0xF), bg, id)
         ZoneTabName = globals.trans.string('ZonesDlg', 3, '[num]', id + 1)
-        tab = ZoneTab(z)
+        tab = ZoneTab(z); tab.adjustSize()
         self.zoneTabs.append(tab)
 
         bgTab = BGTab(z.background[1], globals.names_bg.index(bytes_to_string(z.background[2])), z.background[3])
@@ -634,6 +634,9 @@ class ZonesDialog(QtWidgets.QDialog):
                 self.tabWidget.setTabText(tab, str(tab + 1))
 
         self.NewButton.setEnabled(len(self.zoneTabs) < 8)
+
+        self.resize(self.sizeHint())
+        self.setFixedWidth(self.sizeHint().width())
 
     def DeleteZone(self):
         curindex = self.tabWidget.currentIndex()
@@ -659,6 +662,9 @@ class ZonesDialog(QtWidgets.QDialog):
                 self.tabWidget.setTabText(tab, globals.trans.string('ZonesDlg', 3, '[num]', tab + 1))
 
                 # self.NewButton.setEnabled(len(self.zoneTabs) < 8)
+
+        self.resize(self.sizeHint())
+        self.setFixedWidth(self.sizeHint().width())
 
 
 class ZoneTab(QtWidgets.QWidget):
