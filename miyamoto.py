@@ -473,6 +473,20 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         )
 
         self.CreateAction(
+            'raise', self.HandleRaiseObjects, GetIcon('raise'),
+            globals.trans.string('MenuItems', 146),
+            globals.trans.string('MenuItems', 147),
+            None,
+        )
+
+        self.CreateAction(
+            'lower', self.HandleLowerObjects, GetIcon('lower'),
+            globals.trans.string('MenuItems', 148),
+            globals.trans.string('MenuItems', 149),
+            None,
+        )
+
+        self.CreateAction(
             'shiftitems', self.ShiftItems, GetIcon('move'),
             globals.trans.string('MenuItems', 32),
             globals.trans.string('MenuItems', 33),
@@ -687,13 +701,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         )
 
         self.CreateAction(
-            'backgrounds', self.HandleBG, GetIcon('background'),
-            globals.trans.string('MenuItems', 76),
-            globals.trans.string('MenuItems', 77),
-            QtGui.QKeySequence('Ctrl+Alt+B'),
-        )
-
-        self.CreateAction(
             'addarea', self.HandleAddNewArea, GetIcon('add'),
             globals.trans.string('MenuItems', 78),
             globals.trans.string('MenuItems', 79),
@@ -833,6 +840,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         emenu.addAction(self.actions['copy'])
         emenu.addAction(self.actions['paste'])
         emenu.addSeparator()
+        emenu.addAction(self.actions['raise'])
+        emenu.addAction(self.actions['lower'])
+        emenu.addSeparator()
         emenu.addAction(self.actions['shiftitems'])
         emenu.addAction(self.actions['mergelocations'])
         emenu.addAction(self.actions['swapobjectstilesets'])
@@ -875,7 +885,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         lmenu = menubar.addMenu(globals.trans.string('Menubar', 3))
         lmenu.addAction(self.actions['areaoptions'])
         lmenu.addAction(self.actions['zones'])
-        lmenu.addAction(self.actions['backgrounds'])
         lmenu.addSeparator()
         lmenu.addAction(self.actions['addarea'])
         lmenu.addAction(self.actions['importarea'])
@@ -959,6 +968,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'copy',
                 'paste',
             ), (
+                'raise',
+                'lower',
+            ), (
                 'shiftitems',
                 'mergelocations',
             ), (
@@ -987,7 +999,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             ), (
                 'areaoptions',
                 'zones',
-                'backgrounds',
             ), (
                 'addarea',
                 'importarea',
@@ -1003,7 +1014,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         )
 
         # Determine which keys are activated
-        if globals.FirstRun or setting('ToolbarActs') in (None, 'None', 'none', '', 0):
+        if setting('ToolbarActs') is None:
             # Get the default settings
             toggled = {}
             for List in (globals.FileActions, globals.EditActions, globals.ViewActions, globals.SettingsActions, globals.HelpActions):
@@ -1020,7 +1031,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         for group in Groups:
             addedButtons = False
             for key in group:
-                if key in toggled and toggled[key] and key != 'save':
+                if key in toggled and toggled[key]:
                     act = self.actions[key]
                     self.toolbar.addAction(act)
                     addedButtons = True
@@ -1196,7 +1207,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.objTS0Tab = QtWidgets.QWidget()
         self.objTSAllTab = QtWidgets.QWidget()
-        self.objTS123Tab = QtWidgets.QWidget()
+        self.objTS123Tab = EmbeddedTabSeparate() if globals.isEmbeddedSeparate else EmbeddedTabJoined()
         self.objAllTab.addTab(self.objTS0Tab, tsicon, 'Main')
         self.objAllTab.addTab(self.objTSAllTab, tsicon, 'All')
         self.objAllTab.addTab(self.objTS123Tab, tsicon, 'Embedded')
@@ -1605,7 +1616,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Sets the window title accordingly
         """
-        self.setWindowTitle('You Make Good Level Now! - %s%s' % (
+        self.setWindowTitle('%s%s' % (
         self.fileTitle, (' ' + globals.trans.string('MainWindow', 0)) if globals.Dirty else ''))
 
     def CheckDirty(self):
@@ -2203,6 +2214,59 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         return layers, sprites
 
+    def HandleRaiseObjects(self):
+        """
+        Raise selected objects to the front of all other objects in the scene
+        """
+        objlist = [obj for obj in self.scene.selectedItems() if isinstance(obj, ObjectItem)]
+        objlist.sort(key=lambda obj: obj.zValue())
+        numObjs = len(objlist)
+
+        for i, obj in enumerate(objlist):
+            layer = globals.Area.layers[obj.layer]
+            layer.sort(key=lambda obj: obj.zValue())
+            if layer[i-numObjs] == obj:
+                continue
+
+            layer.remove(obj)
+
+            newZ = layer[-1].zValue() + 1
+            obj.setZValue(newZ)
+
+            layer.append(obj)
+
+        if numObjs:
+            SetDirty()
+            self.scene.update()
+
+    def HandleLowerObjects(self):
+        """
+        Lower selected objects behind all other objects in the scene
+        """
+        objlist = [obj for obj in self.scene.selectedItems() if isinstance(obj, ObjectItem)]
+        objlist.sort(key=lambda obj: -obj.zValue())
+        numObjs = len(objlist)
+
+        for i, obj in enumerate(objlist):
+            layer = globals.Area.layers[obj.layer]
+            layer.sort(key=lambda obj: obj.zValue())
+            if layer[numObjs-i-1] == obj:
+                continue
+
+            layer.remove(obj)
+
+            newZ = (2 - obj.layer) * 8192
+            obj.setZValue(newZ)
+
+            for oObj in layer:
+                oObj.setZValue(oObj.zValue() + 1)
+
+            layer.insert(0, obj)
+
+        if numObjs:
+            SetDirty()
+            self.scene.update()
+
     def ShiftItems(self):
         """
         Shifts the selected object(s)
@@ -2640,6 +2704,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Get the compression level
         globals.CompLevel = int(dlg.generalTab.compLevel.currentIndex())
         setSetting('CompLevel', globals.CompLevel)
+
+        # Determine the Embedded tab type
+        globals.isEmbeddedSeparate = dlg.generalTab.separate.isChecked()
+        setSetting('isEmbeddedSeparate', globals.isEmbeddedSeparate)
 
         # Get the Toolbar tab settings
         boxes = (
@@ -3744,10 +3812,45 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.scene.update()
 
     def ReloadSpriteData(self):
-        globals.Sprites = None
         LoadSpriteData()
+
+        for i in range(self.sprPicker.topLevelItemCount()):
+            cnode = self.sprPicker.topLevelItem(i)
+            for j in reversed(range(cnode.childCount())):
+                cnode.removeChild(cnode.child(j))
+
+            for _, view, _ in globals.SpriteCategories:
+                for catname, category in view:
+                    if catname != cnode.text(0):
+                        continue
+
+                    isSearch = (catname == globals.trans.string('Sprites', 16))
+                    if isSearch:
+                        self.sprPicker.SearchResultsCategory = cnode
+                        SearchableItems = []
+
+                    for id in category:
+                        snode = QtWidgets.QTreeWidgetItem()
+                        if id == 9999:
+                            snode.setText(0, globals.trans.string('Sprites', 17))
+                            snode.setData(0, Qt.UserRole, -2)
+                            self.sprPicker.NoSpritesFound = snode
+                        else:
+                            snode.setText(0, globals.trans.string('Sprites', 18, '[id]', id, '[name]', globals.Sprites[id].name))
+                            snode.setData(0, Qt.UserRole, id)
+
+                        if isSearch:
+                            SearchableItems.append(snode)
+
+                        cnode.addChild(snode)
+
+        self.sprPicker.ShownSearchResults = SearchableItems
+        self.sprPicker.NoSpritesFound.setHidden(True)
+        self.NewSearchTerm(self.spriteSearchTerm.text())
+
         for sprite in globals.Area.sprites:
             sprite.InitializeSprite()
+
         self.scene.update()
 
     def ChangeSelectionHandler(self):
@@ -4254,17 +4357,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Handles a new object being chosen
         """
         if globals.CurrentPaintType not in [0, 10]:
-            type += 1
-            if type > globals.numObj[1]:
-                globals.CurrentPaintType = 3
-                globals.CurrentObject = type - globals.numObj[1]
-            elif type > globals.numObj[0]:
-                globals.CurrentPaintType = 2
-                globals.CurrentObject = type - globals.numObj[0]
-            else:
-                globals.CurrentPaintType = 1
-                globals.CurrentObject = type
-            globals.CurrentObject -= 1
+            globals.CurrentObject, globals.CurrentPaintType = self.objTS123Tab.getObjectAndPaintType(type)
 
         else:
             globals.CurrentObject = type
@@ -4281,15 +4374,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         changed = False
 
         if globals.CurrentPaintType != 0:
-            type += 1
-
-            if type > globals.numObj[1]:
-                type -= globals.numObj[1]
-
-            elif type > globals.numObj[0]:
-                type -= globals.numObj[0]
-
-            type -= 1
+            type, _ = self.objTS123Tab.getObjectAndPaintType(type)
 
         for x in items:
             if isinstance(x, type_obj) and (x.tileset != tileset or x.type != type):
@@ -4732,10 +4817,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 event.accept()
                 self.SelectionUpdateFlag = False
                 self.ChangeSelectionHandler()
-                return
-        self.levelOverview.update()
 
-        QtWidgets.QMainWindow.keyPressEvent(self, event)
+        else:
+            QtWidgets.QMainWindow.keyPressEvent(self, event)
+
+        self.levelOverview.update()
 
     def HandleAreaOptions(self):
         """
@@ -4793,7 +4879,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         dlg = ZonesDialog()
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             SetDirty()
-            i = 0
 
             # resync the zones
             items = self.scene.items()
@@ -4806,9 +4891,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             globals.Area.zones = []
 
-            for tab in dlg.zoneTabs:
+            ygn2Used = False
+
+            for id, (tab, bgTab) in enumerate(zip(dlg.zoneTabs, dlg.BGTabs)):
                 z = tab.zoneObj
-                z.id = i
+                z.id = id
                 z.UpdateTitle()
                 globals.Area.zones.append(z)
                 self.scene.addItem(z)
@@ -5086,28 +5173,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     z.sfxmod = z.sfxmod + 1
 
                 z.type = 0
-                for i in range(0, 8):
+                for i in range(8):
                     if tab.Zone_settings[i].isChecked():
-                        z.type = z.type + (2 ** i)
-				
-                i = i + 1
-        self.levelOverview.update()
+                        z.type |= 1 << i
 
-    # Handles setting the backgrounds
-    def HandleBG(self):
-        """
-        Pops up the Background settings Dialog
-        """
-        dlg = BGDialog()
-        if dlg.exec_() == QtWidgets.QDialog.Accepted:
-            SetDirty()
-
-            ygn2Used = False
-
-            for z in globals.Area.zones:
-                name = globals.names_bg[globals.names_bgTrans.index(str(dlg.BGTabs[z.id].bg_name.currentText()))]
-                unk1 = dlg.BGTabs[z.id].unk1.value()
-                unk2 = dlg.BGTabs[z.id].unk2.value()
+                name = globals.names_bg[globals.names_bgTrans.index(str(bgTab.bg_name.currentText()))]
+                unk1 = bgTab.unk1.value()
+                unk2 = bgTab.unk2.value()
                 z.background = (z.id, unk1, to_bytes(name, 16), unk2)
 
                 ygn2Used = name == "Yougan_2"
@@ -5115,6 +5187,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if ygn2Used:
                 QtWidgets.QMessageBox.information(None, globals.trans.string('BGDlg', 22),
                                                   globals.trans.string('BGDlg', 23))
+
+        self.levelOverview.update()
 
     def HandleScreenshot(self):
         """
@@ -5314,10 +5388,20 @@ def main():
 
     # create an application
     globals.app = QtWidgets.QApplication(sys.argv)
-    globals.app.setOverrideCursor(Qt.ArrowCursor)
 
     # load the settings
-    globals.settings = QtCore.QSettings('Miyamoto', globals.MiyamotoVersion)
+    globals.settings = QtCore.QSettings('settings.ini', QtCore.QSettings.IniFormat)
+
+    # Check the version and set the UI style to Fusion by default
+    if setting("MiyamotoVersion") is None:
+        setSetting("isDX", False)
+        setSetting("MiyamotoVersion", globals.MiyamotoVersionFloat)
+        setSetting('uiStyle', "Fusion")
+
+    if setting("MiyamotoVersion") < 27.0 or setting("isDX"):
+        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Unsupported settings file', 'Your settings.ini file is unsupported. Please remove it and run Miyamoto again.')
+        warningBox.exec_()
+        sys.exit(1)
 
     # load the translation (needs to happen first)
     LoadTranslation()
@@ -5333,10 +5417,6 @@ def main():
     # check if required files are missing
     if FilesAreMissing():
         sys.exit(1)
-
-    # Set the UI style to Fusion by default
-    if setting("FirstRun") is None:
-        setSetting('uiStyle', "Fusion")
 
     # load required stuff
     globals.Sprites = None
@@ -5383,6 +5463,7 @@ def main():
     globals.LocationsShown = setting('ShowLocations', True)
     globals.CommentsShown = setting('ShowComments', True)
     globals.PathsShown = setting('ShowPaths', True)
+    globals.isEmbeddedSeparate = setting('isEmbeddedSeparate', False)
 
     if globals.libyaz0_available:
         globals.CompLevel = setting('CompLevel', 1)
@@ -5424,14 +5505,6 @@ def main():
 
     LoadTheme()
     SetAppStyle()
-
-    # check if this is the first time this version of Miyamoto is ran
-    if setting("FirstRun") is None:
-        globals.FirstRun = True
-        setSetting("FirstRun", "False")
-
-    else:
-        globals.FirstRun = False
 
     # create and show the main window
     globals.mainWindow = MiyamotoWindow()

@@ -106,7 +106,7 @@ class MiyamotoTranslation:
                 18: 'Custom filename... [name]',
                 19: '[name] ([file])',
                 20: 'Enter a Filename',
-                21: 'Enter the name of a custom tileset file to use. It must be placed in the game\'s Stage\\Texture or Unit folder in order for Miyamoto to recognize it. Do not add the \'.arc\' or \'.sarc\' extension at the end of the filename.',
+                21: 'Enter the name of a custom tileset file to use. It must already be inside the level archive in order for Miyamoto to recognize it.',
                 22: 'Unknown Value 1:',
                 23: 'Unknown Value 2:',
                 24: 'Unknown Value 3:', # Currently unused
@@ -196,10 +196,10 @@ class MiyamotoTranslation:
                 23: '"Lava 2" BG requires sprites: 473, 477, 487, 497.[br]Of course, you have to set up those sprites correctly in order for the game to not crash.[br]Go take a look at 8-43 Area 3.',
                 },
             'ChangeGamePath': {
-                0: 'Choose the Course folder from [game]',
+                0: 'Choose the "course_res_pack" folder from [game]',
                 1: 'Error',
-                2: 'This folder doesn\'t have all of the files from the extracted NSMBU course_res_pack folder.',
-                3: 'This folder doesn\'t seem to have the required files. In order to use Miyamoto, you need the Stage folder from the game, including the Texture folder and the level files contained within it.',
+                2: 'This folder doesn\'t have all of the files from the extracted NSMBU "course_res_pack" folder.',
+                3: 'This folder doesn\'t seem to have the required files. In order to use Miyamoto, you need the "course_res_pack" folder from the game and the level files contained within it.',
                 },
             'Comments': {
                 0: '[x], [y]: [text]',
@@ -273,7 +273,7 @@ class MiyamotoTranslation:
                 },
             'Err_CorruptedTilesetData': {
                 0: 'Error',
-                1: 'Cannot find the required texture within the tileset file [file].szs, so it will not be loaded. Keep in mind that the tileset file cannot be renamed without changing the names of the texture/object files within the archive as well!',
+                1: 'Cannot find the required texture within the tileset file [file], so it will not be loaded. Keep in mind that the tileset file cannot be renamed without changing the names of the texture/object files within the archive as well!',
                 },
             'Err_InvalidLevel': {
                 0: 'This file doesn\'t seem to be a valid level.',
@@ -285,11 +285,11 @@ class MiyamotoTranslation:
                 },
             'Err_MissingLevel': {
                 0: 'Error',
-                1: 'Cannot find the required level file [file].arc. Check your Stage folder and make sure it exists.',
+                1: 'Cannot find the required level file [file].szs. Check your "course_res_pack" folder and make sure it exists.',
                 },
             'Err_MissingTileset': {
                 0: 'Error',
-                1: 'Cannot find the required tileset file [file].arc. Check your Stage folder and make sure it exists.',
+                1: 'Cannot find the required tileset file [file]. Check the level archive and make sure it exists.',
                 },
             'Err_Save': {
                 0: 'Error',
@@ -311,9 +311,9 @@ class MiyamotoTranslation:
                 0: 'This game has custom sprite images',
                 1: 'Loading patch...',
                 2: 'New Game Patch',
-                3: 'It appears that this is your first time using the game patch for [game]. Please select its Stage folder so custom tilesets and levels can be loaded.',
+                3: 'It appears that this is your first time using the game patch for [game]. Please select its "course_res_pack" folder so custom levels can be loaded.',
                 4: 'Aborted Game Path Selection',
-                5: 'Since you did not select the stage folder for [game], stages and tilesets will not load correctly. You can try again by choosing Change Game Path while the [game] patch is loaded.',
+                5: 'Since you did not select the "course_res_pack" folder for [game], stages will not load correctly. You can try again by choosing Change Game Path while the [game] patch is loaded.',
                 6: 'New Game Patch',
                 7: 'You can change the game path for [game] at any time by choosing Change Game Path while the [game] patch is loaded.',
                 8: 'Loading sprite data...',
@@ -525,6 +525,10 @@ class MiyamotoTranslation:
                 143: 'Edit Slot [slot] Tileset',
                 144: 'Use RGBA8',
                 145: 'Use RGBA8 instead of BC3 when encoding tilesets',
+                146: 'Raise to Top',
+                147: 'Raise selected objects to the front of all other objects in the scene.',
+                148: 'Lower to Bottom',
+                149: 'Lower selected objects behind all other objects in the scene.',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',
@@ -647,6 +651,7 @@ class MiyamotoTranslation:
                 40: '7',
                 41: '8',
                 42: '9: Best',
+                43: 'Split Embedded tab:',
                 },
             'QuickPaint': {
                 1: "WOAH! Watch out!",
@@ -946,7 +951,7 @@ class MiyamotoTranslation:
                 73: '[b]Lower Bounds 2:[/b][br]Unknown differences from the main lower bounds.',
                 74: 'Enable Scrolling vertically?',
                 75: '[b]Enable Scrolling vertically?:[/b][br]The level can\'t scroll vertically if this is not checked Seems to be always checked.',
-                76: 'Settings',
+                76: 'Flags',
                 77: (
                     'Start Zoomed Out:',
                     'Center Camera X-pos On Load:',

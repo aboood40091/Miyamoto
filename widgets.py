@@ -38,7 +38,7 @@ Qt = QtCore.Qt
 
 import globals
 
-from items import ObjectItem, LocationItem, SpriteItem
+from items import ObjectItem, ZoneItem, LocationItem, SpriteItem
 from items import EntranceItem, PathItem, NabbitPathItem
 from items import PathEditorLineItem, NabbitPathEditorLineItem
 from items import CommentItem
@@ -1548,9 +1548,11 @@ class ObjectPickerWidget(QtWidgets.QListView):
         self.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
         self.setWrapping(True)
 
+        self.objTS123Tab = globals.mainWindow.objTS123Tab
+
         self.m0 = self.ObjectListModel()
         self.mall = self.ObjectListModel()
-        self.m123 = self.ObjectListModel()
+        self.m123 = self.objTS123Tab.getModels()
         self.setModel(self.m0)
 
         self.setItemDelegate(self.ObjectItemDelegate())
@@ -1586,7 +1588,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         Renders all the object previews
         """
         self.m0.LoadFromTileset(0)
-        self.m123.LoadFromTileset(1)
+        self.objTS123Tab.LoadFromTilesets()
 
     def ShowTileset(self, id):
         """
@@ -1595,7 +1597,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         sel = self.currentIndex().row()
         if id == 0: self.setModel(self.m0)
         elif id == 1: self.setModel(self.mall)
-        else: self.setModel(self.m123)
+        else: self.setModel(self.objTS123Tab.getActiveModel())
 
         globals.CurrentObject = -1
         self.clearSelection()
@@ -1849,10 +1851,10 @@ class ObjectPickerWidget(QtWidgets.QListView):
 
             z = 0
 
-            if idx != 0:
+            if idx == 4:
                 numTileset = range(1, 4)
             else:
-                numTileset = [0]
+                numTileset = [idx]
 
             for idx in numTileset:
                 if globals.ObjectDefinitions[idx] is None:
@@ -2850,7 +2852,6 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         self.UpdateFlag = False
         self.DataUpdate.emit(data)
-        self.raweditor.setStyleSheet('QLineEdit { background-color: #ffffff; }')
 
 class EntranceEditorWidget(QtWidgets.QWidget):
     """
@@ -3911,7 +3912,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             elif globals.CurrentPaintType in (0, 1, 2, 3) and globals.CurrentObject != -1:
                 # return if the Embedded tab is empty
                 if (globals.CurrentPaintType in (1, 2, 3)
-                    and not len(globals.mainWindow.objPicker.m123.items)):
+                    and not len(globals.mainWindow.objPicker.objTS123Tab.getActiveModel().items)):
                     globals.CurrentObject = -1
                     return
 
@@ -4181,8 +4182,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
 
-                clickedx = int(clicked.x() / globals.TileWidth * 16)
-                clickedy = int(clicked.y() / globals.TileWidth * 16)
+                clickedx = int(clicked.x() // globals.TileWidth) * 16
+                clickedy = int(clicked.y() // globals.TileWidth) * 16
 
                 allID = set()  # faster 'x in y' lookups for sets
                 newID = 1
@@ -4194,9 +4195,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         break
                     newID += 1
 
-                globals.OverrideSnapping = True
-                loc = LocationItem(clickedx, clickedy, 4, 4, newID)
-                globals.OverrideSnapping = False
+                loc = LocationItem(clickedx, clickedy, 8, 8, newID)
 
                 mw = globals.mainWindow
                 loc.positionChanged = mw.HandleLocPosChange
@@ -4211,6 +4210,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 self.currentobj = loc
                 self.dragstartx = clickedx
                 self.dragstarty = clickedy
+
+                self.scene().update()
 
                 loc.UpdateListItem()
 
@@ -4398,6 +4399,17 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         return rect.translated(x*globals.TileWidth, y*globals.TileWidth)
 
+    @staticmethod
+    def setOverrideCursor(cursor):
+        """
+        Safe way to override the cursor
+        """
+        if globals.app.overrideCursor() is None:
+            globals.app.setOverrideCursor(cursor)
+
+        else:
+            globals.app.changeOverrideCursor(cursor)
+
     def mouseMoveEvent(self, event):
         """
         Overrides mouse movement events if needed
@@ -4527,20 +4539,32 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     clickx = int(clicked.x() / globals.TileWidth * 16)
                     clicky = int(clicked.y() / globals.TileWidth * 16)
 
+                    if clickx % 8 < 4:
+                        clickx -= (clickx % 8)
+                    else:
+                        clickx += 8 - (clickx % 8)
+                    if clicky % 8 < 4:
+                        clicky -= (clicky % 8)
+                    else:
+                        clicky += 8 - (clicky % 8)
+
                     # allow negative width/height and treat it properly :D
                     if clickx >= dsx:
                         x = dsx
-                        width = clickx - dsx + 1
+                        width = clickx - dsx
                     else:
                         x = clickx
-                        width = dsx - clickx + 1
+                        width = dsx - clickx
 
                     if clicky >= dsy:
                         y = dsy
-                        height = clicky - dsy + 1
+                        height = clicky - dsy
                     else:
                         y = clicky
-                        height = dsy - clicky + 1
+                        height = dsy - clicky
+
+                    width = max(width, 8)
+                    height = max(height, 8)
 
                     # if the position changed, set the new one
                     if cx != x or cy != y:
@@ -4557,10 +4581,12 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         obj.height = height
                         #                    obj.updateObjCache()
 
+                        delta = globals.TileWidth / 2
+
                         oldrect = obj.BoundingRect
                         oldrect.translate(cx * globals.TileWidth / 16, cy * globals.TileWidth / 16)
-                        newrect = QtCore.QRectF(obj.x(), obj.y(), obj.width * globals.TileWidth / 16,
-                                                obj.height * globals.TileWidth / 16)
+                        newrect = QtCore.QRectF(obj.x() - delta, obj.y() - delta, obj.width * globals.TileWidth / 16 + globals.TileWidth,
+                                                obj.height * globals.TileWidth / 16 + globals.TileWidth)
                         updaterect = oldrect.united(newrect)
 
                         obj.UpdateRects()
@@ -4646,46 +4672,155 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
         else:
             type_obj = ObjectItem
+            type_loc = LocationItem
+            type_zone = ZoneItem
+
             objlist = [obj for obj in self.scene().selectedItems() if isinstance(obj, type_obj)]
+            loclist = [loc for loc in self.scene().selectedItems() if isinstance(loc, type_loc)]
+            zonelist = [zone for zone in self.scene().items() if isinstance(zone, type_zone)]
 
-            if objlist:
-                for obj in objlist:
-                    if self.translateRect(obj.SelectionRect, obj.objx, obj.objy).contains(pos) and not obj.dragging:
-                        if self.translateRect(obj.GrabberRectTL, obj.objx, obj.objy).contains(pos):
-                            globals.app.setOverrideCursor(Qt.SizeFDiagCursor)
-                            break
+            dragging = True
+            for obj in objlist:
+                if obj.dragging:
+                    break
 
-                        elif self.translateRect(obj.GrabberRectTR, obj.objx, obj.objy).contains(pos):
-                            globals.app.setOverrideCursor(Qt.SizeBDiagCursor)
-                            break
-
-                        elif self.translateRect(obj.GrabberRectBL, obj.objx, obj.objy).contains(pos):
-                            globals.app.setOverrideCursor(Qt.SizeBDiagCursor)
-                            break
-
-                        elif self.translateRect(obj.GrabberRectBR, obj.objx, obj.objy).contains(pos):
-                            globals.app.setOverrideCursor(Qt.SizeFDiagCursor)
-                            break
-
-                        elif (self.translateRect(obj.GrabberRectMT, obj.objx, obj.objy).contains(pos)
-                              or self.translateRect(obj.GrabberRectMB, obj.objx, obj.objy).contains(pos)):
-                            globals.app.setOverrideCursor(Qt.SizeVerCursor)
-                            break
-
-                        elif (self.translateRect(obj.GrabberRectML, obj.objx, obj.objy).contains(pos)
-                              or self.translateRect(obj.GrabberRectMR, obj.objx, obj.objy).contains(pos)):
-                            globals.app.setOverrideCursor(Qt.SizeHorCursor)
-                            break
-
-                        elif obj.LevelRect.contains(pos.x()/globals.TileWidth,pos.y()/globals.TileWidth):
-                            globals.app.setOverrideCursor(Qt.SizeAllCursor)
-                            break
-
-                    elif not obj.dragging:
-                        globals.app.setOverrideCursor(Qt.ArrowCursor)
             else:
-                # Prevent visual bugs
-                globals.app.setOverrideCursor(Qt.ArrowCursor)
+                for loc in loclist:
+                    if loc.dragging:
+                        break
+
+                else:
+                    for zone in zonelist:
+                        if zone.dragging:
+                            break
+
+                    else:
+                        dragging = False
+
+            if not dragging:
+                objCursorOverriden = True
+                locCursorOverriden = True
+                zoneCursorOverriden = True
+
+                if objlist:
+                    for obj in objlist:
+                        if self.translateRect(obj.SelectionRect, obj.objx, obj.objy).contains(pos):
+                            if self.translateRect(obj.GrabberRectTL, obj.objx, obj.objy).contains(pos):
+                                self.setOverrideCursor(Qt.SizeFDiagCursor); objCursorOverriden = True
+                                break
+
+                            elif self.translateRect(obj.GrabberRectTR, obj.objx, obj.objy).contains(pos):
+                                self.setOverrideCursor(Qt.SizeBDiagCursor); objCursorOverriden = True
+                                break
+
+                            elif self.translateRect(obj.GrabberRectBL, obj.objx, obj.objy).contains(pos):
+                                self.setOverrideCursor(Qt.SizeBDiagCursor); objCursorOverriden = True
+                                break
+
+                            elif self.translateRect(obj.GrabberRectBR, obj.objx, obj.objy).contains(pos):
+                                self.setOverrideCursor(Qt.SizeFDiagCursor); objCursorOverriden = True
+                                break
+
+                            elif (self.translateRect(obj.GrabberRectMT, obj.objx, obj.objy).contains(pos)
+                                  or self.translateRect(obj.GrabberRectMB, obj.objx, obj.objy).contains(pos)):
+                                self.setOverrideCursor(Qt.SizeVerCursor); objCursorOverriden = True
+                                break
+
+                            elif (self.translateRect(obj.GrabberRectML, obj.objx, obj.objy).contains(pos)
+                                  or self.translateRect(obj.GrabberRectMR, obj.objx, obj.objy).contains(pos)):
+                                self.setOverrideCursor(Qt.SizeHorCursor); objCursorOverriden = True
+                                break
+
+                            else:
+                                self.setOverrideCursor(Qt.SizeAllCursor); objCursorOverriden = True
+                                break
+
+                        else:
+                            objCursorOverriden = False
+
+                else:
+                    objCursorOverriden = False
+
+                if loclist:
+                    for loc in loclist:
+                        if loc.SelectionRect.contains(pos.x(), pos.y()):
+                            if self.translateRect(loc.GrabberRectTL, loc.objx/16, loc.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeFDiagCursor); locCursorOverriden = True
+                                break
+
+                            elif self.translateRect(loc.GrabberRectTR, loc.objx/16, loc.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeBDiagCursor); locCursorOverriden = True
+                                break
+
+                            elif self.translateRect(loc.GrabberRectBL, loc.objx/16, loc.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeBDiagCursor); locCursorOverriden = True
+                                break
+
+                            elif self.translateRect(loc.GrabberRectBR, loc.objx/16, loc.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeFDiagCursor); locCursorOverriden = True
+                                break
+
+                            elif (self.translateRect(loc.GrabberRectMT, loc.objx/16, loc.objy/16).contains(pos)
+                                  or self.translateRect(loc.GrabberRectMB, loc.objx/16, loc.objy/16).contains(pos)):
+                                self.setOverrideCursor(Qt.SizeVerCursor); locCursorOverriden = True
+                                break
+
+                            elif (self.translateRect(loc.GrabberRectML, loc.objx/16, loc.objy/16).contains(pos)
+                                  or self.translateRect(loc.GrabberRectMR, loc.objx/16, loc.objy/16).contains(pos)):
+                                self.setOverrideCursor(Qt.SizeHorCursor); locCursorOverriden = True
+                                break
+
+                            else:
+                                self.setOverrideCursor(Qt.SizeAllCursor); locCursorOverriden = True
+                                break
+
+                        else:
+                            locCursorOverriden = False
+
+                else:
+                    locCursorOverriden = False
+
+                if zonelist:
+                    for zone in zonelist:
+                        if zone.ScalingRect.contains(pos.x(), pos.y()):
+                            if self.translateRect(zone.GrabberRectTL, zone.objx/16, zone.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeFDiagCursor); zoneCursorOverriden = True
+                                break
+
+                            elif self.translateRect(zone.GrabberRectTR, zone.objx/16, zone.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeBDiagCursor); zoneCursorOverriden = True
+                                break
+
+                            elif self.translateRect(zone.GrabberRectBL, zone.objx/16, zone.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeBDiagCursor); zoneCursorOverriden = True
+                                break
+
+                            elif self.translateRect(zone.GrabberRectBR, zone.objx/16, zone.objy/16).contains(pos):
+                                self.setOverrideCursor(Qt.SizeFDiagCursor); zoneCursorOverriden = True
+                                break
+
+                            elif (self.translateRect(zone.GrabberRectMT, zone.objx/16, zone.objy/16).contains(pos)
+                                  or self.translateRect(zone.GrabberRectMB, zone.objx/16, zone.objy/16).contains(pos)):
+                                self.setOverrideCursor(Qt.SizeVerCursor); zoneCursorOverriden = True
+                                break
+
+                            elif (self.translateRect(zone.GrabberRectML, zone.objx/16, zone.objy/16).contains(pos)
+                                  or self.translateRect(zone.GrabberRectMR, zone.objx/16, zone.objy/16).contains(pos)):
+                                self.setOverrideCursor(Qt.SizeHorCursor); zoneCursorOverriden = True
+                                break
+
+                            else:
+                                zoneCursorOverriden = False
+                                break
+
+                        else:
+                            zoneCursorOverriden = False
+
+                else:
+                    zoneCursorOverriden = False
+
+                if (not (objlist or loclist or zonelist) or not (objCursorOverriden or locCursorOverriden or zoneCursorOverriden)) and globals.app.overrideCursor():
+                    globals.app.restoreOverrideCursor()
 
             QtWidgets.QGraphicsView.mouseMoveEvent(self, event)
 
@@ -4717,6 +4852,20 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         self.repaint.emit()
         QtWidgets.QGraphicsView.paintEvent(self, e)
+
+    def wheelEvent(self, event):
+        """
+        Handles wheel events for zooming in/out
+        """
+        if QtWidgets.QApplication.keyboardModifiers() == Qt.ControlModifier:
+            numDegrees = event.angleDelta() / 8
+            if not numDegrees.isNull():
+                numSteps = numDegrees / 15
+                numStepsY = numSteps.y()
+                globals.mainWindow.ZoomWidget.slider.setSliderPosition(globals.mainWindow.ZoomWidget.slider.value() + numStepsY)
+
+        else:
+            QtWidgets.QGraphicsView.wheelEvent(self, event)
 
     def drawForeground(self, painter, rect):
         """
@@ -5338,6 +5487,88 @@ class ZoomStatusWidget(QtWidgets.QWidget):
             self.label.setText(str(int(zoomLevel)) + '%')
         else:
             self.label.setText(str(float(zoomLevel)) + '%')
+
+
+class EmbeddedTabSeparate(QtWidgets.QTabWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.currentChanged.connect(self.tabChanged)
+
+        self.objTS1Tab = QtWidgets.QWidget()
+        self.objTS2Tab = QtWidgets.QWidget()
+        self.objTS3Tab = QtWidgets.QWidget()
+
+        tsicon = GetIcon('objects')
+        self.addTab(self.objTS1Tab, tsicon, '2')
+        self.addTab(self.objTS2Tab, tsicon, '3')
+        self.addTab(self.objTS3Tab, tsicon, '4')
+
+        self.m1 = ObjectPickerWidget.ObjectListModel()
+        self.m2 = ObjectPickerWidget.ObjectListModel()
+        self.m3 = ObjectPickerWidget.ObjectListModel()
+
+    def tabChanged(self, nt, layout=None):
+        if nt >= 0 and nt <= 2:
+            if not layout and hasattr(globals.mainWindow, 'createObjectLayout'):
+                layout = globals.mainWindow.createObjectLayout
+
+            if layout:
+                globals.mainWindow.objPicker.ShowTileset(2)
+                if nt == 0:
+                    self.objTS1Tab.setLayout(layout)
+                elif nt == 1:
+                    self.objTS2Tab.setLayout(layout)
+                else:
+                    self.objTS3Tab.setLayout(layout)
+
+    def setLayout(self, layout):
+        self.tabChanged(self.currentIndex(), layout)
+
+    def getObjectAndPaintType(self, type):
+        return type, self.currentIndex()+1
+
+    def getModels(self):
+        return self.m1, self.m2, self.m3
+
+    def getActiveModel(self):
+        return self.getModels()[self.currentIndex()]
+
+    def LoadFromTilesets(self):
+        self.m1.LoadFromTileset(1)
+        self.m2.LoadFromTileset(2)
+        self.m3.LoadFromTileset(3)
+
+
+class EmbeddedTabJoined(QtWidgets.QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.m123 = ObjectPickerWidget.ObjectListModel()
+
+    @staticmethod
+    def getObjectAndPaintType(type):
+        type += 1
+        paintType = 1
+
+        if type > globals.numObj[1]:
+            paintType = 3
+            type -= globals.numObj[1]
+
+        elif type > globals.numObj[0]:
+            paintType = 2
+            type -= globals.numObj[0]
+
+        return type-1, paintType
+
+    def getModels(self):
+        return self.m123,
+
+    def getActiveModel(self):
+        return self.m123
+
+    def LoadFromTilesets(self):
+        self.m123.LoadFromTileset(4)
 
 
 class ListWidgetWithToolTipSignal(QtWidgets.QListWidget):

@@ -328,7 +328,7 @@ class SpriteDefinition:
                     # different number of bits
                     getit = sbit.split('-')
                     bit = (((int(getit[0]) - 1) << sft) + 1, (int(getit[1]) << sft) + 1)
-                    max = 1 << (bit[1] - bit[0] + 1)
+                    max = 1 << (bit[1] - bit[0])
 
                 entries = []
                 existing = [None for i in range(max)]
@@ -367,7 +367,7 @@ class SpriteDefinition:
                     # different number of bits
                     getit = sbit.split('-')
                     bit = (((int(getit[0]) - 1) << sft) + 1, (int(getit[1]) << sft) + 1)
-                    max = 1 << (bit[1] - bit[0] + 1)
+                    max = 1 << (bit[1] - bit[0])
 
                 fields.append((2, attribs['title'], bit, max, comment))
 
@@ -594,22 +594,25 @@ def setting(name, default=None):
     """
     Thin wrapper around QSettings, fixes the type=bool bug
     """
-    result = globals.settings.value(name, default)
-    if result == 'false':
-        return False
-    elif result == 'true':
-        return True
-    elif result == 'none':
+    types_str = {str: 'str', int: 'int', float: 'float', dict: 'dict', bool: 'bool', QtCore.QByteArray: 'QByteArray', type(None): 'NoneType'}
+    types = {'str': str, 'int': int, 'float': float, 'dict': dict, 'bool': bool, 'QByteArray': QtCore.QByteArray}
+
+    type_ = globals.settings.value('typeof(%s)' % name, types_str[type(default)], str)
+    if type_ == 'NoneType':
         return None
-    else:
-        return result
+
+    return globals.settings.value(name, default, types[type_])
 
 
 def setSetting(name, value):
     """
     Thin wrapper around QSettings
     """
-    return globals.settings.setValue(name, value)
+    types_str = {str: 'str', int: 'int', float: 'float', dict: 'dict', bool: 'bool', QtCore.QByteArray: 'QByteArray', type(None): 'NoneType'}
+    assert isinstance(name, str) and type(value) in types_str
+
+    globals.settings.setValue(name, value)
+    globals.settings.setValue('typeof(%s)' % name, types_str[type(value)])
 
 
 def SetGamePath(newpath):
