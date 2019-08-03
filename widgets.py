@@ -50,10 +50,10 @@ from misc import clipStr, setting, setSetting
 from quickpaint import QuickPaintOperations
 from stamp import StampListModel
 
-from tileset import TilesetTile, ObjectDef, addObjToTileset
-from tileset import exportObject, HandleTilesetEdited, DeleteObject
-from tileset import RenderObject, RenderObjectAll
-from tileset import SimpleTilesetNames
+from tileset import TilesetTile, ObjectDef, objFitsInTileset
+from tileset import addObjToTilesetImpl, addObjToTileset, exportObject
+from tileset import HandleTilesetEdited, DeleteObject, RenderObject
+from tileset import RenderObjectAll, SimpleTilesetNames
 
 from ui import createHorzLine, createVertLine, GetIcon
 from verifications import SetDirty
@@ -1571,6 +1571,9 @@ class ObjectPickerWidget(QtWidgets.QListView):
         export = QtWidgets.QAction('Export', self)
         export.triggered.connect(self.HandleObjExport)
 
+        replace = QtWidgets.QAction('Replace', self)
+        replace.triggered.connect(self.HandleObjImportReplace)
+
         delete = QtWidgets.QAction('Delete', self)
         delete.triggered.connect(self.HandleObjDelete)
 
@@ -1578,6 +1581,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         delIns.triggered.connect(self.HandleObjDeleteInstances)
 
         self.menu.addAction(export)
+        self.menu.addAction(replace)
         self.menu.addAction(delete)
         self.menu.addAction(delIns)
 
@@ -1630,6 +1634,93 @@ class ObjectPickerWidget(QtWidgets.QListView):
         objNum = globals.CurrentObject
 
         exportObject(name, baseName, idx, objNum)
+
+    def HandleObjImportReplace(self, index):
+        """
+        Imports a replacement for the selected object
+        """
+        idx = globals.CurrentPaintType
+        objNum = globals.CurrentObject
+
+        if objNum == -1: return
+
+        # Get the json file
+        file = QtWidgets.QFileDialog.getOpenFileName(self, "Open Object", '',
+                    "Object files (*.json)")[0]
+
+        if not file: return
+
+        with open(file) as inf:
+            jsonData = json.load(inf)
+
+        dir = os.path.dirname(file)
+
+        # Read the other files
+        with open(dir + "/" + jsonData["meta"], "rb") as inf:
+            indexfile = inf.read()
+
+        with open(dir + "/" + jsonData["objlyt"], "rb") as inf:
+            deffile = inf.read()
+
+        with open(dir + "/" + jsonData["colls"], "rb") as inf:
+            colls = inf.read()
+
+        # Get the object's definition
+        indexstruct = struct.Struct('>HBBH')
+
+        data = indexstruct.unpack_from(indexfile, 0)
+        obj = ObjectDef()
+        obj.width = data[1]
+        obj.height = data[2]
+
+        if "randLen" in jsonData:
+            obj.randByte = data[3]
+
+        else:
+            obj.randByte = 0
+
+        obj.load(deffile, 0)
+
+        # Get the image and normal map
+        img = QtGui.QPixmap(dir + "/" + jsonData["img"])
+        nml = QtGui.QPixmap(dir + "/" + jsonData["nml"])
+
+        # Temporarily remove the selected object
+        oObj = globals.ObjectDefinitions[idx].pop(objNum)
+        globals.ObjectDefinitions[idx].append(None)
+
+        # Check if the replacement fits
+        fits = objFitsInTileset(obj, idx)
+
+        # Restore the selected object
+        del globals.ObjectDefinitions[idx][-1]
+        globals.ObjectDefinitions[idx][objNum:objNum] = [oObj]
+
+        # Throw warning and return if the replacement doesn't fit
+        if not fits:
+            QtWidgets.QMessageBox.critical(self, 'Cannot Delete', 'Replacement doesn\'t fit ' \
+                                                                  'in the tileset')
+            return
+
+        # Delete the selected object (using soft deletion)
+        DeleteObject(idx, objNum, True)
+
+        # Add the replacement in place of the previously deleted object
+        obj = addObjToTilesetImpl(obj, colls, img, nml, idx, fits)
+        globals.ObjectDefinitions[idx][objNum] = obj
+
+        # Update all instances of the replaced object in the scene
+        for obj in globals.mainWindow.view.scene().items():
+            if isinstance(obj, ObjectItem) and obj.tileset == idx and obj.type == objNum:
+                obj.update()
+
+        # Set related flags
+        HandleTilesetEdited()
+        SetDirty()
+
+        # Clear selection in the palette to avoid a bug
+        globals.CurrentObject = -1
+        self.clearSelection()
 
     def HandleObjDelete(self, index):
         """

@@ -275,8 +275,9 @@ class Level_NSMBU(AbstractLevel):
             # Sort the filenames for each "used" sprite
             sprites_names = []
             for sprite in sprites_SARC:
-                for sprite_name in sprites_xml[sprite]:
-                    sprites_names.append(sprite_name)
+                if sprite in sprites_xml:
+                    for sprite_name in sprites_xml[sprite]:
+                        sprites_names.append(sprite_name)
 
             sprites_names = list(set(sprites_names))
 
