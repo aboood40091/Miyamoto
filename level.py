@@ -201,19 +201,19 @@ class Level_NSMBU(AbstractLevel):
         if globals.TilesetEdited or globals.OverrideTilesetSaving:
             tilesetNames = generateTilesetNames()
             if globals.Area.tileset1:
-                if globals.Area.tileset1 == "Pa1_untitled_%d" % globals.CurrentArea:
+                if globals.Area.tileset1 == "Pa1_untitled_%d" % globals.CurrentArea or globals.OverrideTilesetSaving:
                     globals.Area.tileset1 = tilesetNames[0]
 
                 tilesetData = SaveTileset(1)
 
             if globals.Area.tileset2:
-                if globals.Area.tileset2 == "Pa2_untitled_%d" % globals.CurrentArea:
+                if globals.Area.tileset2 == "Pa2_untitled_%d" % globals.CurrentArea or globals.OverrideTilesetSaving:
                     globals.Area.tileset2 = tilesetNames[1]
 
                 tilesetData = SaveTileset(2)
 
             if globals.Area.tileset3:
-                if globals.Area.tileset3 == "Pa3_untitled_%d" % globals.CurrentArea:
+                if globals.Area.tileset3 == "Pa3_untitled_%d" % globals.CurrentArea or globals.OverrideTilesetSaving:
                     globals.Area.tileset3 = tilesetNames[2]
 
                 tilesetData = SaveTileset(3)
