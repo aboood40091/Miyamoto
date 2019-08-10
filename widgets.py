@@ -3055,61 +3055,61 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
         # 'Editing Entrance #' label
         self.editingLabel = QtWidgets.QLabel('-')
-        layout.addWidget(self.editingLabel, 0, 0, 1, 4, Qt.AlignTop)
+        layout.addWidget(self.editingLabel, 0, 0, 1, 6, Qt.AlignTop)
 
         # add labels
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 2)), 1, 0, 1, 1, Qt.AlignRight)
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 0)), 3, 0, 1, 1, Qt.AlignRight)
 
-        layout.addWidget(createHorzLine(), 2, 0, 1, 5)
+        layout.addWidget(createHorzLine(), 2, 0, 1, 6)
 
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 4)), 3, 2, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 6)), 4, 2, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 4)), 3, 3, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 6)), 5, 3, 1, 1, Qt.AlignRight)
 
         # add the widgets
-        layout.addWidget(self.entranceType, 1, 1, 1, 3)
-        layout.addWidget(self.entranceID, 3, 1, 1, 1)
-        layout.addWidget(self.destEntrance, 3, 3, 1, 1)
-        layout.addWidget(self.destArea, 4, 3, 1, 1)
+        layout.addWidget(self.entranceType, 1, 1, 1, 5)
+        layout.addWidget(self.entranceID, 3, 1, 1, 2)
+        layout.addWidget(self.destEntrance, 3, 4, 1, 2)
+        layout.addWidget(self.destArea, 5, 4, 1, 2)
 
-        layout.addWidget(createHorzLine(), 5, 0, 1, 5)
+        layout.addWidget(createHorzLine(), 6, 0, 1, 6)
 
-        layout.addWidget(self.allowEntryCheckbox, 6, 1, 1, 2)  # , Qt.AlignRight)
-        layout.addWidget(self.faceLeftCheckbox, 6, 3, 1, 2)  # , Qt.AlignRight)
+        layout.addWidget(self.allowEntryCheckbox, 7, 1, 1, 2)
+        layout.addWidget(self.faceLeftCheckbox, 7, 4, 1, 2)
 
-        layout.addWidget(createHorzLine(), 7, 0, 1, 5)
+        layout.addWidget(createHorzLine(), 8, 0, 1, 6)
 
-        horizontalLayout = QtWidgets.QHBoxLayout()
-        horizontalLayout.addWidget(self.player1Checkbox)
-        horizontalLayout.addWidget(self.player2Checkbox)
-        horizontalLayout.addWidget(self.player3Checkbox)
-        horizontalLayout.addWidget(self.player4Checkbox)
+        layout.addWidget(QtWidgets.QLabel('Players to spawn:'), 9, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.player1Checkbox, 9, 1)
+        layout.addWidget(self.player2Checkbox, 9, 2)
+        layout.addWidget(self.player3Checkbox, 9, 3)
+        layout.addWidget(self.player4Checkbox, 9, 4)
+        layout.addWidget(QtWidgets.QLabel('Players Distance:'), 10, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.playerDistance, 10, 1, 1, 5)
 
-        layout.addWidget(QtWidgets.QLabel('Players to spawn:'), 9, 0)
-        layout.addLayout(horizontalLayout, 9, 1)
-        layout.addWidget(QtWidgets.QLabel('Players Distance:'), 10, 0)
-        layout.addWidget(self.playerDistance, 10, 1, 1, 3)
+        layout.addWidget(createHorzLine(), 11, 0, 1, 6)
 
-        layout.addWidget(createHorzLine(), 11, 0, 1, 5)
+        layout.addWidget(QtWidgets.QLabel('Baby Yoshi Entrance ID:'), 12, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.otherID, 12, 1, 1, 2)
+        layout.addWidget(self.goto, 13, 1, 1, 2)
 
-        layout.addWidget(QtWidgets.QLabel('Baby Yoshi Entrance ID:'), 12, 0)
-        layout.addWidget(QtWidgets.QLabel('Entrance Order:'), 13, 0)
-        layout.addWidget(QtWidgets.QLabel('Path ID:'), 14, 0)
-        layout.addWidget(QtWidgets.QLabel('Path Node Index:'), 15, 0)
-        layout.addWidget(QtWidgets.QLabel('Transition:'), 16, 0)
-        layout.addWidget(self.otherID, 12, 1)
-        layout.addWidget(self.goto, 12, 3)
-        layout.addWidget(self.coinOrder, 13, 1)
-        layout.addWidget(self.scrollPathID, 14, 1)
-        layout.addWidget(self.pathnodeindex, 15, 1)
-        layout.addWidget(self.transition, 16, 1)
+        layout.addWidget(createHorzLine(), 14, 0, 1, 6)
 
-        layout.addWidget(createHorzLine(), 17, 0, 1, 5)
+        layout.addWidget(QtWidgets.QLabel('Entrance Order:'), 12, 3, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel('Path ID:'), 16, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel('Path Node Index:'), 16, 3, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel('Transition:'), 18, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.coinOrder, 12, 4, 1, 2)
+        layout.addWidget(self.scrollPathID, 16, 1, 1, 2)
+        layout.addWidget(self.pathnodeindex, 16, 4, 1, 2)
+        layout.addWidget(self.transition, 18, 1, 1, 5)
 
-        layout.addWidget(QtWidgets.QLabel('Camera X:'), 18, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel('Camera Y:'), 18, 2, 1, 1, Qt.AlignRight)
-        layout.addWidget(self.cameraX, 18, 1)
-        layout.addWidget(self.cameraY, 18, 3)
+        layout.addWidget(createHorzLine(), 19, 0, 1, 6)
+
+        layout.addWidget(QtWidgets.QLabel('Camera X:'), 20, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel('Camera Y:'), 20, 3, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.cameraX, 20, 1, 1, 2)
+        layout.addWidget(self.cameraY, 20, 4, 1, 2)
 
         self.ent = None
         self.UpdateFlag = False
