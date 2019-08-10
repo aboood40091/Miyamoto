@@ -235,20 +235,26 @@ class Level_NSMBU(AbstractLevel):
             szsNewData[innerfilename] = innersarc
             szsNewData['levelname'] = innerfilename.encode('utf-8')
 
-            # Read the sprites resources xml
-            tree = etree.parse(globals.miyamoto_path + '/miyamotodata/spriteresources.xml')
-            root = tree.getroot()
+            paths = [globals.miyamoto_path + '/miyamotodata/spriteresources.xml']
+            for path in globals.gamedef.recursiveFiles('spriteresources'):
+                if path:
+                    paths.append(os.path.join(globals.miyamoto_path, path if isinstance(path, str) else path.path))
 
-            # Get all sprites' filenames and add them to a list
             sprites_xml = {}
-            for sprite in root.iter('sprite'):
-                id = int(sprite.get('id'))
+            for path in paths:
+                # Read the sprites resources xml
+                tree = etree.parse(path)
+                root = tree.getroot()
 
-                name = []
-                for id2 in sprite:
-                    name.append(id2.get('name'))
+                # Get all sprites' filenames and add them to a list
+                for sprite in root.iter('sprite'):
+                    id = int(sprite.get('id'))
 
-                sprites_xml[id] = list(name)
+                    name = []
+                    for id2 in sprite:
+                        name.append(id2.get('name'))
+
+                    sprites_xml[id] = list(name)
 
             # Look up every sprite and tileset used in each area
             sprites_SARC = []
