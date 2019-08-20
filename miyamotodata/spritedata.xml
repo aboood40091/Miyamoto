@@ -2354,13 +2354,16 @@
 	</sprite>
 	<sprite id="171" name="Bill Blaster (Bullet Bill Cannon, Bullet Bill Launcher)" notes="A cannon that fires Bullet Bills.">
 		<checkbox nybble="5" title="Upside-Down" comment="Makes the Bill Blaster spawn upside-down."/>
+		<value nybble="6" title="Maximum amount of bullets" comment="Value + (is_search ? 1 : 0x20)" />
+		<value nybble="9" title="Unknown Value 9" comment="Passed on to child search bullets as nybble 9" />
 		<list nybble="10" title="Shooting Direction">
 			<entry value="0">Towards Player</entry>
 			<entry value="1">Left Only</entry>
 			<entry value="2">Right Only</entry>
 		</list>
-		<value nybble="11" title="Length"/>
-		<value nybble="19" title="Unknown Value 19"/>
+		<value nybble="11" title="Length" comment="Value + 2 blocks"/>
+		<checkbox nybble="12" title="Physics maybe?" mask="2" />
+		<value nybble="19" title="Unknown Value 19" comment="Passed on to child bullets as nybble 19"/>
 	</sprite>
 	<sprite id="172" name="Rising/Lowering Bill Blaster [UNUSED]" notes="A bullet bill launcher that can rise and lower, with various speeds!">
 		<checkbox nybble="5" title="Upside-Down" comment="When checked, the Bill Blaster will be upside-down."/>
