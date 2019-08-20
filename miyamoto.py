@@ -4372,13 +4372,25 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         type_obj = ObjectItem
         tileset = globals.CurrentPaintType
         changed = False
+        data = 0
 
         if globals.CurrentPaintType != 0:
             type, _ = self.objTS123Tab.getObjectAndPaintType(type)
 
+        else:
+            oItems = {16: 1, 17: 2, 18: 3, 19: 4, 20: 5, 21: 6, 22: 7, 23: 8,
+                     24: 9, 25: 10, 26: 11, 27: 12, 28: data, 29: 14, 30: 15,
+                     31: 16, 32: 17, 33: 18, 34: 19, 35: 20, 36: 21, 37: 22, 38: 23, 39: 24}
+
+            if type in oItems:
+                data = oItems[type]
+                type = 28
+                if data == 0: data = 13
+
         for x in items:
-            if isinstance(x, type_obj) and (x.tileset != tileset or x.type != type):
+            if isinstance(x, type_obj) and (x.tileset != tileset or x.type != type or x.data != data):
                 x.SetType(tileset, type)
+                x.data = data
                 x.update()
                 changed = True
 
