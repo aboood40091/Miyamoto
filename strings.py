@@ -600,6 +600,10 @@ class MiyamotoTranslation:
                 14: '[b]Nabbit Path Node [id][/b]',
                 15: 'Action:',
                 16: '[b]Action:[/b][br]The action Nabbit will do when he is on this node',
+                17: 'Unknown value 1:',
+                18: 'Unknown value 2:',
+                19: 'Unknown value 3:',
+                20: 'Unknown value 4:',
                 },
             'Paths': {
                 0: '[b]Path [path][/b][br]Node [node]',
@@ -728,6 +732,11 @@ class MiyamotoTranslation:
                 6: '[b]Sprite [id]:[br][name][/b]',
                 7: 'Object Files',
                 8: '[b]This sprite uses:[/b][br][list]',
+                9: 'Layer:',
+                10: ('Layer 1', 'Layer 2', 'Layer 0'),
+                11: '[b]Layer:[/b][br]Allows you to change the layer which this sprite is active on. This field is not read in-game by some sprites - for almost all normal cases, you will want to use layer 1.',
+                12: 'Initial State:',
+                13: '[b]Initial State:[/b][br]Used by some sprites to initiate in a different state depending on the value of this field.',
                 },
             'Sprites': {
                 0: '[b]Sprite [type]:[/b][br][name]',

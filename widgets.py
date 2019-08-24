@@ -2459,6 +2459,16 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         self.setLayout(mainLayout)
 
+        self.activeLayer = QtWidgets.QComboBox()
+        self.activeLayer.addItems(globals.trans.stringList('SpriteDataEditor', 10))
+        self.activeLayer.setToolTip(globals.trans.string('SpriteDataEditor', 11))
+        self.activeLayer.activated.connect(globals.mainWindow.SpriteLayerUpdated)
+
+        self.initialState = QtWidgets.QSpinBox()
+        self.initialState.setRange(0, 255)
+        self.initialState.setToolTip(globals.trans.string('SpriteDataEditor', 13))
+        self.initialState.valueChanged.connect(globals.mainWindow.SpriteInitialStateUpdated)
+
         self.spritetype = -1
         self.data = b'\0' * 12
         self.fields = []
@@ -2860,6 +2870,13 @@ class SpriteEditorWidget(QtWidgets.QWidget):
                 row += 1
 
             self.fields = fields
+            layout.addWidget(createHorzLine(), row, 0, 1, 2); row += 1
+
+            layout.addWidget(QtWidgets.QLabel(globals.trans.string('SpriteDataEditor', 9)), row, 0, Qt.AlignRight)
+            layout.addWidget(self.activeLayer, row, 1); row += 1
+
+            layout.addWidget(QtWidgets.QLabel(globals.trans.string('SpriteDataEditor', 12)), row, 0, Qt.AlignRight)
+            layout.addWidget(self.initialState, row, 1)
 
     def update(self):
         """
@@ -3384,7 +3401,7 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         self.loops.stateChanged.connect(self.HandleLoopsChanged)
 
         self.unk1 = QtWidgets.QSpinBox()
-        self.unk1.setRange(-127, 127)
+        self.unk1.setRange(-128, 127)
         self.unk1.setToolTip(globals.trans.string('PathDataEditor', 12))
         self.unk1.valueChanged.connect(self.Handleunk1Changed)
         self.unk1.setMaximumWidth(256)
@@ -3396,22 +3413,22 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         # 'Editing Path #' label
         self.editingLabel = QtWidgets.QLabel('-')
         self.editingPathLabel = QtWidgets.QLabel('-')
-        layout.addWidget(self.editingLabel, 3, 0, 1, 2, Qt.AlignTop)
+        layout.addWidget(self.editingLabel, 4, 0, 1, 2, Qt.AlignTop)
         layout.addWidget(self.editingPathLabel, 0, 0, 1, 2, Qt.AlignTop)
         # add labels
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 0)), 1, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 2)), 4, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 4)), 5, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 6)), 6, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 11)), 7, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(createHorzLine(), 2, 0, 1, 2)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 11)), 1, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 0)), 2, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 2)), 5, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 4)), 6, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 6)), 7, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(createHorzLine(), 3, 0, 1, 2)
 
         # add the widgets
-        layout.addWidget(self.loops, 1, 1)
-        layout.addWidget(self.speed, 4, 1)
-        layout.addWidget(self.accel, 5, 1)
-        layout.addWidget(self.delay, 6, 1)
-        layout.addWidget(self.unk1, 7, 1)
+        layout.addWidget(self.unk1, 1, 1)
+        layout.addWidget(self.loops, 2, 1)
+        layout.addWidget(self.speed, 5, 1)
+        layout.addWidget(self.accel, 6, 1)
+        layout.addWidget(self.delay, 7, 1)
 
         self.path = None
         self.UpdateFlag = False
@@ -3486,6 +3503,22 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
         # create widgets
+        self.unk1 = QtWidgets.QSpinBox()
+        self.unk1.setRange(0, 0xFFFF)
+        self.unk1.valueChanged.connect(self.HandleUnk1Changed)
+
+        self.unk2 = QtWidgets.QSpinBox()
+        self.unk2.setRange(0, 0xFF)
+        self.unk2.valueChanged.connect(self.HandleUnk2Changed)
+
+        self.unk3 = QtWidgets.QSpinBox()
+        self.unk3.setRange(0, 0xFF)
+        self.unk3.valueChanged.connect(self.HandleUnk3Changed)
+
+        self.unk4 = QtWidgets.QSpinBox()
+        self.unk4.setRange(0, 0xFF)
+        self.unk4.valueChanged.connect(self.HandleUnk4Changed)
+
         self.action = QtWidgets.QComboBox()
         self.action.addItems(['0: Run to the right',
                               '1: Jump to the next node',
@@ -3511,10 +3544,19 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
         self.editingLabel = QtWidgets.QLabel('-')
         layout.addWidget(self.editingLabel, 0, 0, 1, 2, Qt.AlignTop)
         # add labels
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 15)), 1, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 17)), 1, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 18)), 2, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 19)), 3, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 20)), 4, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 15)), 6, 0, 1, 1, Qt.AlignRight)
 
         # add the widgets
-        layout.addWidget(self.action, 1, 1)
+        layout.addWidget(self.unk1, 1, 1)
+        layout.addWidget(self.unk2, 2, 1)
+        layout.addWidget(self.unk3, 3, 1)
+        layout.addWidget(self.unk4, 4, 1)
+        layout.addWidget(createHorzLine(), 5, 0, 1, 2)
+        layout.addWidget(self.action, 6, 1)
 
         self.path = None
         self.UpdateFlag = False
@@ -3556,6 +3598,11 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
         self.path = path
         self.UpdateFlag = True
 
+        self.unk1.setValue(path.nodeinfo['unk1'])
+        self.unk2.setValue(path.nodeinfo['unk2'])
+        self.unk3.setValue(path.nodeinfo['unk3'])
+        self.unk4.setValue(path.nodeinfo['unk4'])
+
         if path.nodeinfo['action'] in self.indecies:
             self.action.setCurrentIndex(self.indecies[path.nodeinfo['action']])
 
@@ -3564,6 +3611,42 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
             self.action.setCurrentIndex(0)
 
         self.UpdateFlag = False
+
+    def HandleUnk1Changed(self, v):
+        """
+        Handler for unknown value 1 changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+
+        self.path.nodeinfo['unk1'] = v
+
+    def HandleUnk2Changed(self, v):
+        """
+        Handler for unknown value 2 changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+
+        self.path.nodeinfo['unk2'] = v
+
+    def HandleUnk3Changed(self, v):
+        """
+        Handler for unknown value 3 changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+
+        self.path.nodeinfo['unk3'] = v
+
+    def HandleUnk4Changed(self, v):
+        """
+        Handler for unknown value 4 changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+
+        self.path.nodeinfo['unk4'] = v
 
     def HandleActionChanged(self, i):
         """
@@ -4419,7 +4502,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     selectedpn = None if len(plist.selectedItems()) < 1 else plist.selectedItems()[0]
                     if not globals.Area.nPathdata:
                         newpathdata = {'nodes': [
-                                           {'x': clickedx, 'y': clickedy, 'action': 0}],
+                                           {'x': clickedx, 'y': clickedy, 'action': 0,
+                                            'unk1': 0, 'unk2': 0, 'unk3': 0, 'unk4': 0}],
                                        }
                         globals.Area.nPathdata = newpathdata
                         newnode = NabbitPathItem(clickedx, clickedy, newpathdata, newpathdata['nodes'][0], 0, 0, 0, 0)
@@ -4460,7 +4544,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         if not pathd:
                             pathd = globals.Area.nPaths[-1].pathinfo
 
-                        newnodedata = {'x': clickedx, 'y': clickedy, 'action': 0}
+                        newnodedata = {'x': clickedx, 'y': clickedy, 'action': 0,
+                                       'unk1': 0, 'unk2': 0, 'unk3': 0, 'unk4': 0}
                         pathd['nodes'].append(newnodedata)
 
                         newnode = NabbitPathItem(clickedx, clickedy, pathd, newnodedata, 0, 0, 0, 0)
