@@ -63,7 +63,7 @@ class AbstractArea:
         self.L2 = L2
         self.LoadBlocks(course)
         self.LoadTilesetNames()
-        self.LoadBackgrounds()
+        self.bgs = self.LoadBackgrounds()
         self.LoadSprites()
 
     def LoadBlocks(self, course):
@@ -104,18 +104,13 @@ class AbstractArea:
         Loads block 5, the background data
         """
         bgData = self.blocks[4]
-        self.bgCount = len(bgData) // 28
+        bgCount = len(bgData) // 28
 
-        bgStruct = struct.Struct('>HxBxxxx16sxBxx')
-
+        bgStruct = struct.Struct('>HHHH16sxBxx')
         offset = 0
-
         bgs = {}
-        self.bgblockid = []
-
-        for i in range(self.bgCount):
+        for i in range(bgCount):
             bg = bgStruct.unpack_from(bgData, offset)
-            self.bgblockid.append(bg[0])
             bgs[bg[0]] = bg
 
             offset += 28
@@ -128,7 +123,7 @@ class AbstractArea:
         """
         spritedata = self.blocks[7]
         sprcount = len(spritedata) // 24
-        sprstruct = struct.Struct('>HHHHIIxx2sxxxx')
+        sprstruct = struct.Struct('>HHHHIIBB2sBxxx')
         offset = 0
         sprites = []
 
@@ -137,7 +132,7 @@ class AbstractArea:
         obj = SpriteItem
         for i in range(sprcount):
             data = unpack(spritedata, offset)
-            append(obj(data[0], data[1], data[2], to_bytes(data[3], 2) + to_bytes(data[4], 4) + to_bytes(data[5], 4) + data[6]))
+            append(obj(data[0], data[1], data[2], to_bytes(data[3], 2) + to_bytes(data[4], 4) + to_bytes(data[5], 4) + data[8], data[7], data[9]))
             offset += 24
         self.sprites = sprites
 
@@ -200,11 +195,8 @@ class Area_NSMBU(AbstractArea):
         self.LoadMiyamotoInfo(None)
 
         # BG data
-        self.bgCount = 1
         self.bgs = {}
-        self.bgblockid = []
-        bg = struct.unpack('>HxBxxxx16sxBxx', self.blocks[4])
-        self.bgblockid.append(bg[0])
+        bg = struct.unpack('>HHHH16sxBxx', self.blocks[4])
         self.bgs[bg[0]] = bg
 
     def load(self, course, L0, L1, L2, progress=None):
@@ -417,7 +409,7 @@ class Area_NSMBU(AbstractArea):
 
         # Block 10 - zone data
         zonedata = self.blocks[9]
-        zonestruct = struct.Struct('>HHHHxBxBBBBBxBBxBxBBxBxx')
+        zonestruct = struct.Struct('>HHHHHHBBBBxBBxBxBBxBxx')
         count = len(zonedata) // 28
         offset = 0
         zones = []
@@ -426,9 +418,9 @@ class Area_NSMBU(AbstractArea):
 
             # Find the proper bounding
             boundObj = None
-            id = dataz[6]  # still correct, value 7
+            zoneBoundId = dataz[7]
             for checkb in self.bounding:
-                if checkb[4] == id: boundObj = checkb
+                if checkb[4] == zoneBoundId: boundObj = checkb
 
             # Find the proper bg
             bgObj = self.bgs[dataz[11]]
@@ -540,7 +532,7 @@ class Area_NSMBU(AbstractArea):
         """
         ret = []
         nodedata = self.blocks[14]
-        nodestruct = struct.Struct('>HHffhHBBBx')  # updated struct -- MrRean
+        nodestruct = struct.Struct('>HHffhHBBBx')
         offset = startindex * 20
         unpack = nodestruct.unpack_from
         for i in range(count):
@@ -550,10 +542,6 @@ class Area_NSMBU(AbstractArea):
                         'speed': float(data[2]),
                         'accel': float(data[3]),
                         'delay': int(data[4]),
-                        'unk1': int(data[5]),  # unknowns, probably really not ints, just setting to 0 for now
-                        'unk2': int(data[6]),
-                        'unk3': int(data[7]),
-                        'unk4': int(data[8]),
                         })
             offset += 20
         return ret
@@ -564,7 +552,7 @@ class Area_NSMBU(AbstractArea):
         """
         ret = []
         nodedata = self.blocks[14]
-        nodestruct = struct.Struct('>HHffhHBBBx')  # updated struct -- MrRean
+        nodestruct = struct.Struct('>HHffhHBBBx')
         offset = startindex * 20
         unpack = nodestruct.unpack_from
         for i in range(count):
@@ -572,6 +560,10 @@ class Area_NSMBU(AbstractArea):
             ret.append({'x': int(data[0]),
                         'y': int(data[1]),
                         'action': int(data[4]),
+                        'unk1': int(data[5]),
+                        'unk2': int(data[6]),
+                        'unk3': int(data[7]),
+                        'unk4': int(data[8]),
                         })
             offset += 20
         return ret
@@ -772,7 +764,8 @@ class Area_NSMBU(AbstractArea):
         nodestruct = struct.Struct('>HHffhHBBBx')
         for node in nodes:
             nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), 0.0,
-                                 0.0, int(node['action']), 0, 0, 0, 0)
+                                 0.0, int(node['action']), int(node['unk1']), int(node['unk2']),
+                                 int(node['unk3']), int(node['unk4']))
             offset += 20
 
     def SaveSprites(self):
@@ -780,7 +773,7 @@ class Area_NSMBU(AbstractArea):
         Saves the sprites back to block 8
         """
         offset = 0
-        sprstruct = struct.Struct('>HHHHLLBx2sxxxx')
+        sprstruct = struct.Struct('>HHHHIIBB2sBxxx')
         buffer = bytearray((len(self.sprites) * 24) + 4)
         f_int = int
         for sprite in self.sprites:
@@ -788,7 +781,7 @@ class Area_NSMBU(AbstractArea):
             try:
                 sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy),
                                     struct.unpack(">H", sprite.spritedata[:2])[0], struct.unpack(">I", sprite.spritedata[2:6])[0], struct.unpack(">I", sprite.spritedata[6:10])[0],
-                                    zoneID, sprite.spritedata[10:])
+                                    zoneID, sprite.layer, sprite.spritedata[10:], sprite.initialState)
             except struct.error:
                 # Hopefully this will solve the mysterious bug, and will
                 # soon no longer be necessary.
@@ -802,7 +795,9 @@ class Area_NSMBU(AbstractArea):
                                      str(sprite.objy) + '\n' + \
                                      str(sprite.spritedata[:10]) + '\n' + \
                                      str(zoneID) + '\n' + \
-                                     str(sprite.spritedata[10:]) + '\n',
+                                     str(sprite.layer) + '\n' + \
+                                     str(sprite.spritedata[10:]) + '\n' + \
+                                     str(sprite.initialState) + '\n',
                                      )
             offset += 24
         buffer[offset] = 0xFF
@@ -833,31 +828,68 @@ class Area_NSMBU(AbstractArea):
         Saves blocks 10, 3, and 5; the zone data, boundings, and background data respectively
         """
         bdngstruct = struct.Struct('>llllHHxxxxxxxx')
-        bgStruct = struct.Struct('>HxBxxxx16sxBxx')
-        zonestruct = struct.Struct('>HHHHxBxBBBBBxBBxBxBBxBxx')
+        bgStruct = struct.Struct('>HHHH16sxBxx')
+        zonestruct = struct.Struct('>HHHHHHBBBBxBBxBxBBxBxx')
         offset = 0
-        i = 0
+        bdngs, bdngcount = self.GetOptimizedBoundings()
+        bgs, bgcount = self.GetOptimizedBGs()
         zcount = len(globals.Area.zones)
-        buffer2 = bytearray(28 * zcount)
-        buffer4 = bytearray(28 * zcount)
+        buffer2 = bytearray(28 * bdngcount)
+        buffer4 = bytearray(28 * bgcount)
         buffer9 = bytearray(28 * zcount)
         for z in globals.Area.zones:
             if z.objx < 0: z.objx = 0
             if z.objy < 0: z.objy = 0
-            bdngstruct.pack_into(buffer2, offset, z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, i,
-                                 z.unknownbnf)
-            bgStruct.pack_into(buffer4, offset, z.id, z.background[1], z.background[2], z.background[3])
+            bounding = bdngs[z.id]
+            bdngstruct.pack_into(buffer2, bounding[4] * 28, bounding[0], bounding[1], bounding[2], bounding[3], bounding[4],
+                                 bounding[5])
+            background = bgs[z.id]
+            bgStruct.pack_into(buffer4, background[0] * 28, background[0], background[1], background[2], background[3],
+                               background[4], background[5])
             zonestruct.pack_into(buffer9, offset,
                                  z.objx, z.objy, z.width, z.height,
-                                 0, 0, z.id, i,
-                                 z.cammode, z.camzoom, z.visibility, z.id,
+                                 0, 0, z.id, bounding[4],
+                                 z.cammode, z.camzoom, z.visibility, background[0],
                                  z.camtrack, z.music, z.sfxmod, z.type)
             offset += 28
-            i += 1
 
         self.blocks[2] = bytes(buffer2)
         self.blocks[4] = bytes(buffer4)
         self.blocks[9] = bytes(buffer9)
+
+    def GetOptimizedBoundings(self):
+        bdngs = {}
+        bdngstruct = struct.Struct('>llllHHxxxxxxxx')
+        for z in globals.Area.zones:
+            bdng = bdngstruct.pack(z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, 0, z.unknownbnf)
+            if bdng not in bdngs:
+                bdngs[bdng] = []
+            bdngs[bdng].append(z.id)
+        bdngs = sorted(bdngs.items(), key=lambda kv: min(kv[1]))
+        oBdngs = {}
+        for i, bdng in enumerate(bdngs):
+            for z in globals.Area.zones:
+                if z.id in bdng[1]:
+                    oBdngs[z.id] = *bdngstruct.unpack(bdng[0])[:4], i, bdngstruct.unpack(bdng[0])[5]
+
+        return oBdngs, len(bdngs)
+
+    def GetOptimizedBGs(self):
+        bgs = {}
+        bgStruct = struct.Struct('>HHHH16sxBxx')
+        for z in globals.Area.zones:
+            bg = bgStruct.pack(0, z.background[1], z.background[2], z.background[3], z.background[4], z.background[5])
+            if bg not in bgs:
+                bgs[bg] = []
+            bgs[bg].append(z.id)
+        bgs = sorted(bgs.items(), key=lambda kv: min(kv[1]))
+        oBgs = {}
+        for i, bg in enumerate(bgs):
+            for z in globals.Area.zones:
+                if z.id in bg[1]:
+                    oBgs[z.id] = i, *bgStruct.unpack(bg[0])[1:]
+
+        return oBgs, len(bgs)
 
     def SaveLocations(self):
         """

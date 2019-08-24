@@ -4477,6 +4477,30 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             obj.UpdateDynamicSizing()
 
+    def SpriteLayerUpdated(self, layer):
+        """
+        Handle the current sprite's layer being updated
+        """
+        if self.spriteEditorDock.isVisible():
+            obj = self.selObj
+            obj.layer = layer
+            obj.UpdateListItem()
+            SetDirty()
+
+            obj.UpdateDynamicSizing()
+
+    def SpriteInitialStateUpdated(self, initialState):
+        """
+        Handle the current sprite's initial state being updated
+        """
+        if self.spriteEditorDock.isVisible():
+            obj = self.selObj
+            obj.initialState = initialState
+            obj.UpdateListItem()
+            SetDirty()
+
+            obj.UpdateDynamicSizing()
+
     def HandleEntPosChange(self, obj, oldx, oldy, x, y):
         """
         Handle the entrance being dragged
@@ -4732,6 +4756,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if self.spriteEditorDock.isVisible():
             obj = self.selObj
             self.spriteDataEditor.setSprite(obj.type)
+            self.spriteDataEditor.activeLayer.setCurrentIndex(obj.layer)
+            self.spriteDataEditor.initialState.setValue(obj.initialState)
             self.spriteDataEditor.data = obj.spritedata
             self.spriteDataEditor.update()
         elif self.entranceEditorDock.isVisible():
@@ -5192,7 +5218,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 name = globals.names_bg[globals.names_bgTrans.index(str(bgTab.bg_name.currentText()))]
                 unk1 = bgTab.unk1.value()
                 unk2 = bgTab.unk2.value()
-                z.background = (z.id, unk1, to_bytes(name, 16), unk2)
+                unk3 = bgTab.unk3.value()
+                unk4 = bgTab.unk4.value()
+                z.background = (z.id, unk1, unk2, unk3, to_bytes(name, 16), unk4)
 
                 ygn2Used = name == "Yougan_2"
 

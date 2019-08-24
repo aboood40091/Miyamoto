@@ -558,7 +558,7 @@ class ZonesDialog(QtWidgets.QDialog):
             tab = ZoneTab(z); tab.adjustSize()
             self.zoneTabs.append(tab)
 
-            bgTab = BGTab(z.background[1], globals.names_bg.index(bytes_to_string(z.background[2])), z.background[3])
+            bgTab = BGTab(z.background)
             bgTab.adjustSize()
             self.BGTabs.append(bgTab)
 
@@ -593,6 +593,7 @@ class ZonesDialog(QtWidgets.QDialog):
         mainLayout.addWidget(buttonBox)
         self.setLayout(mainLayout)
 
+        self.resize(self.sizeHint())
         self.setFixedWidth(self.sizeHint().width())
 
     def NewZone(self):
@@ -603,21 +604,12 @@ class ZonesDialog(QtWidgets.QDialog):
                 return
 
         id = len(self.zoneTabs)
-
-        if id in globals.Area.bgblockid:
-            bg = globals.Area.bgs[id]
-
-        else:
-            globals.Area.bgblockid.append(id)
-            bg = (id, 0, to_bytes('Black', 16), 0)
-            globals.Area.bgs[id] = bg
-
-        z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, id, 0, 1, 0, 0, (0, 0, 0, 0, 0, 0xF), bg, id)
+        z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, id, 0, 1, 0, 0, (0, 0, 0, 0, 0, 0xF), (0, 0, 0, 0, to_bytes('Black', 16), 0), id)
         ZoneTabName = globals.trans.string('ZonesDlg', 3, '[num]', id + 1)
         tab = ZoneTab(z); tab.adjustSize()
         self.zoneTabs.append(tab)
 
-        bgTab = BGTab(z.background[1], globals.names_bg.index(bytes_to_string(z.background[2])), z.background[3])
+        bgTab = BGTab(z.background)
         bgTab.adjustSize()
         self.BGTabs.append(bgTab)
 
@@ -649,11 +641,6 @@ class ZonesDialog(QtWidgets.QDialog):
                 self.tabWidget.setTabText(tab, globals.trans.string('ZonesDlg', 3, '[num]', tab + 1))
             else:
                 self.tabWidget.setTabText(tab, str(tab + 1))
-
-        globals.Area.bgblockid.pop(curindex)
-        for i in range(len(globals.Area.bgblockid)):
-            if globals.Area.bgblockid[i] > curindex:
-                globals.Area.bgblockid[i] -= 1
 
         self.zoneTabs.pop(curindex)
         self.BGTabs.pop(curindex)
@@ -1157,29 +1144,39 @@ class ZoneTab(QtWidgets.QWidget):
 
 
 class BGTab(QtWidgets.QWidget):
-    def __init__(self, unk1, name, unk2):
+    def __init__(self, background):
         super().__init__()
 
         self.createBGViewers()
 
         self.bg_name = QtWidgets.QComboBox()
         self.bg_name.addItems(globals.names_bgTrans)
-        self.bg_name.setCurrentIndex(name)
+        self.bg_name.setCurrentIndex(globals.names_bg.index(bytes_to_string(background[4])))
         self.bg_name.activated.connect(self.handleNameBox)
 
         self.unk1 = QtWidgets.QSpinBox()
-        self.unk1.setRange(0, 0xFF)
-        self.unk1.setValue(unk1)
+        self.unk1.setRange(0, 0xFFFF)
+        self.unk1.setValue(background[1])
 
         self.unk2 = QtWidgets.QSpinBox()
         self.unk2.setRange(0, 0xFFFF)
-        self.unk2.setValue(unk2)
+        self.unk2.setValue(background[2])
+
+        self.unk3 = QtWidgets.QSpinBox()
+        self.unk3.setRange(0, 0xFFFF)
+        self.unk3.setValue(background[3])
+
+        self.unk4 = QtWidgets.QSpinBox()
+        self.unk4.setRange(0, 0xFF)
+        self.unk4.setValue(background[5])
 
         self.BGSettings = QtWidgets.QGroupBox('Settings')
         settingsLayout = QtWidgets.QFormLayout()
         settingsLayout.addRow('Background:', self.bg_name)
         settingsLayout.addRow('Unknown Value 1:', self.unk1)
         settingsLayout.addRow('Unknown Value 2:', self.unk2)
+        settingsLayout.addRow('Unknown Value 3:', self.unk3)
+        settingsLayout.addRow('Unknown Value 4:', self.unk4)
         settingsLayout2 = QtWidgets.QGridLayout()
         settingsLayout2.addLayout(settingsLayout, 0, 0)
         self.BGSettings.setLayout(settingsLayout2)

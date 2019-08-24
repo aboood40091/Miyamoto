@@ -1043,7 +1043,11 @@ class ZoneItem(LevelEditorItem):
             self.entryid = 0
             self.unknownbnf = 0
 
-        self.background = bg
+        if bg is not None:
+            self.background = bg
+
+        else:
+            self.background = (0, 0, 0, 0, to_bytes('Black', 16), 0)
 
         self.dragging = False
         self.dragstartx = -1
@@ -1652,7 +1656,7 @@ class SpriteItem(LevelEditorItem):
     BoundingRect = QtCore.QRectF(0, 0, globals.TileWidth, globals.TileWidth)
     SelectionRect = QtCore.QRectF(0, 0, globals.TileWidth - 1, globals.TileWidth - 1)
 
-    def __init__(self, type, x, y, data):
+    def __init__(self, type, x, y, data, layer=0, initialState=0):
         """
         Creates a sprite with specific data
         """
@@ -1664,6 +1668,8 @@ class SpriteItem(LevelEditorItem):
         self.objx = x
         self.objy = y
         self.spritedata = data
+        self.layer = layer
+        self.initialState = initialState
         self.listitem = None
         self.LevelRect = QtCore.QRectF(self.objx / 16, self.objy / 16, globals.TileWidth / 16, globals.TileWidth / 16)
         self.ChangingPos = False
