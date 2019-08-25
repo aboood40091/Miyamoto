@@ -4,6 +4,7 @@ __pycache__/
 build/
 data/
 dist/
+distrib/
 miyamotodata/patches/
 *.qpp
 *.spec
