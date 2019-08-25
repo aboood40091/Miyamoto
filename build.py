@@ -52,11 +52,11 @@ if 'build' not in sys.argv:
 if os.path.isdir(dir_): shutil.rmtree(dir_)
 os.makedirs(dir_)
 
-# exclude QtWebKit to save space, plus Python stuff we don't use
+# exclude QtWebChannel, QtWebSockets and QtNetwork to save space, plus Python stuff we don't use
 excludes = ['doctest', 'pdb', 'unittest', 'difflib', 'inspect',
     'os2emxpath', 'posixpath', 'optpath', 'locale', 'calendar',
     'select', 'multiprocessing', 'ssl',
-    'PyQt5.QtWebKit', 'PyQt5.QtNetwork']
+    'PyQt5.QtWebChannel', 'PyQt5.QtWebSockets', 'PyQt5.QtNetwork']
 
 # Set it up
 base = 'Win32GUI' if sys.platform == 'win32' else None
@@ -69,12 +69,14 @@ setup(
             'excludes': excludes,
             'packages': ['sip', 'encodings', 'encodings.hex_codec', 'encodings.utf_8'],
             'build_exe': dir_,
-            'icon': 'miyamotodata/win_icon.ico',
+            'optimize': 2,
+            'silent': True,
             },
         },
     executables = [
         Executable(
             'miyamoto.py',
+            icon = 'miyamotodata/win_icon.ico',
             base = base,
             ),
         ],
@@ -98,8 +100,6 @@ shutil.copytree('miyamotodata', dir_ + '/miyamotodata')
 if platform.system() == 'Windows':
     if os.path.isdir(dir_ + '/Tools'): shutil.rmtree(dir_ + '/Tools') 
     shutil.copytree('Tools', dir_ + '/Tools')
-    if not os.path.isfile(dir_ + '/libEGL.dll'):
-        shutil.copy('libEGL.dll', dir_)
 elif platform.system() == 'Linux':
     if os.path.isdir(dir_ + '/linuxTools'): shutil.rmtree(dir_ + '/linuxTools') 
     shutil.copytree('linuxTools', dir_ + '/linuxTools')
