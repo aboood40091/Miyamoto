@@ -2526,7 +2526,7 @@
 		<value nybble="12" title="Unused Flag 12"/>
 		<checkbox nybble="13" title="Spawn Acorn Mushroom" comment="When checked, it will spawn an acorn mushroom."/>
 		<checkbox nybble="15" title="Unused Flag 15"/>
-		<checkbox nybble="16" title="ZPos"/>
+		<checkbox nybble="16" title="Place Behind Other Sprites"/>
 		<checkbox nybble="17" title="Unknown Value 17"/>
 		<list nybble="20" title="Contains">
 			<entry value="0">Nothing</entry>
@@ -5469,20 +5469,11 @@
 	</sprite>
 	<sprite id="546" name="Grass/Flowers">
 		<checkbox nybble="5" title="Swaying movement?" comment="Only used on flowers that are on swaying mushrooms"/>
-		<checkbox nybble="6" title="Shrink Blue Flower" comment="Shrinks the blue flower (on the right) of the set."/>
-		<list nybble="7" title="Style" comment="This goes up to 7">
-			<entry value="0">Unknown</entry>
-			<entry value="1">Unknown</entry>
-			<entry value="2">Has Butterfly</entry>
-			<entry value="3">Unknown</entry>
-			<entry value="4">Has Butterfly</entry>
-			<entry value="5">Unknown</entry>
-			<entry value="6">Unknown</entry>
-			<entry value="7">Unknown</entry>
-		</list>
+		<checkbox nybble="6" title="Unknown Checkbox 6"/>
+		<value nybble="7" title="Unknown Value 7" comment="This goes up to 7"/>
 		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="11" title="Unknown Value 11" comment="Might be a bitfield"/>
-		<value nybble="12" title="Moving ID" comment="Some kind of moving ID..."/>
+		<checkbox nybble="11" title="Affected by gravity" mask="2"/>
+		<value nybble="12" title="Type"/>
 	</sprite>
 	<sprite id="547" name="Treasure Chest Prize Item [UNUSED]">
 		<list nybble="12" title="Item">
@@ -5573,10 +5564,10 @@
 	<sprite id="564" name="Flower/Grass Type Setter" notes="This sprite changes the type of flowers that are used in the level. If this sprite is not present in the level, the standard flowers are used.">
 		<list nybble="12" title="Type" comment="Forest and sky textures are assigned to two values. It's unknown if there's a difference.">
 			<entry value="0">Forest</entry>
-			<entry value="1">Forest</entry>
+			<entry value="1">Forest (Big flowers)</entry>
 			<entry value="2">Underground</entry>
 			<entry value="3">Sky</entry>
-			<entry value="4">Sky</entry>
+			<entry value="4">Sky (No butterflies)</entry>
 			<entry value="5">Standard</entry>
 		</list>
 	</sprite>

@@ -53,7 +53,7 @@ from stamp import StampListModel
 from tileset import TilesetTile, ObjectDef, objFitsInTileset
 from tileset import addObjToTilesetImpl, addObjToTileset, exportObject
 from tileset import HandleTilesetEdited, DeleteObject, RenderObject
-from tileset import RenderObjectAll, SimpleTilesetNames
+from tileset import RenderObjectAll, ProcessOverrides, SimpleTilesetNames
 
 from ui import createHorzLine, createVertLine, GetIcon
 from verifications import SetDirty
@@ -4226,9 +4226,30 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     # [18:15:42]  Angel-SL: you can paint a 'No sprites found'
                     # [18:15:47]  Angel-SL: results in a sprite -2
 
+                    if globals.CurrentSprite == 564:
+                        # Get the previous flower/grass type
+                        oldGrassType = 5
+                        for sprite in globals.Area.sprites:
+                            if sprite.type == 564:
+                                oldGrassType = min(sprite.spritedata[5] & 0xf, 5)
+                                if oldGrassType < 2:
+                                    oldGrassType = 0
+
+                                elif oldGrassType in [3, 4]:
+                                    oldGrassType = 3
+
                     # paint a sprite
-                    clickedx = int(clicked.x() // globals.TileWidth) * 16
-                    clickedy = int(clicked.y() // globals.TileWidth) * 16
+                    clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
+                    clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16)
+
+                    if clickedx % 8 < 4:
+                        clickedx -= (clickedx % 8)
+                    else:
+                        clickedx += 8 - (clickedx % 8)
+                    if clickedy % 8 < 4:
+                        clickedy -= (clickedy % 8)
+                    else:
+                        clickedy += 8 - (clickedy % 8)
 
                     data = globals.mainWindow.defaultDataEditor.data
                     spr = SpriteItem(globals.CurrentSprite, clickedx, clickedy, data)
@@ -4240,6 +4261,33 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     spr.listitem = ListWidgetItem_SortsByOther(spr)
                     mw.spriteList.addItem(spr.listitem)
                     globals.Area.sprites.append(spr)
+
+                    if globals.CurrentSprite == 564:
+                        # Get the current flower/grass type
+                        grassType = 5
+                        for sprite in globals.Area.sprites:
+                            if sprite.type == 564:
+                                grassType = min(sprite.spritedata[5] & 0xf, 5)
+                                if grassType < 2:
+                                    grassType = 0
+
+                                elif grassType in [3, 4]:
+                                    grassType = 3
+
+                        # If the current type is not the previous type, reprocess the Overrides
+                        # update the objects and flower sprite instances and update the scene
+                        if grassType != oldGrassType and globals.Area.tileset0:
+                            ProcessOverrides(globals.Area.tileset0)
+                            mw.objPicker.LoadFromTilesets()
+                            for layer in globals.Area.layers:
+                                for tObj in layer:
+                                    tObj.updateObjCache()
+
+                            for sprite in globals.Area.sprites:
+                                if sprite.type == 546:
+                                    sprite.UpdateDynamicSizing()
+
+                            mw.scene.update()
 
                     self.dragstamp = False
                     self.currentobj = spr
@@ -4257,8 +4305,17 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
-                clickedx = int((clicked.x() - 12) / globals.TileWidth * 16)
-                clickedy = int((clicked.y() - 12) / globals.TileWidth * 16)
+                clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
+                clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16)
+
+                if clickedx % 8 < 4:
+                    clickedx -= (clickedx % 8)
+                else:
+                    clickedx += 8 - (clickedx % 8)
+                if clickedy % 8 < 4:
+                    clickedy -= (clickedy % 8)
+                else:
+                    clickedy += 8 - (clickedy % 8)
 
                 getids = [False for x in range(256)]
                 for ent in globals.Area.entrances: getids[ent.entid] = True
@@ -4293,8 +4350,16 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
-                clickedx = int((clicked.x() - 12) / globals.TileWidth * 16)
-                clickedy = int((clicked.y() - 12) / globals.TileWidth * 16)
+                clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
+                clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16)
+                if clickedx % 8 < 4:
+                    clickedx -= (clickedx % 8)
+                else:
+                    clickedx += 8 - (clickedx % 8)
+                if clickedy % 8 < 4:
+                    clickedy -= (clickedy % 8)
+                else:
+                    clickedy += 8 - (clickedy % 8)
                 mw = globals.mainWindow
                 plist = mw.pathList
                 selectedpn = None if len(plist.selectedItems()) < 1 else plist.selectedItems()[0]
@@ -4439,7 +4504,42 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 stamp = globals.mainWindow.stampChooser.currentlySelectedStamp()
                 if stamp is not None:
+                    # Get the previous flower/grass type
+                    oldGrassType = 5
+                    for sprite in globals.Area.sprites:
+                        if sprite.type == 564:
+                            oldGrassType = min(sprite.spritedata[5] & 0xf, 5)
+                            if oldGrassType < 2:
+                                oldGrassType = 0
+
+                            elif oldGrassType in [3, 4]:
+                                oldGrassType = 3
+
                     objs = globals.mainWindow.placeEncodedObjects(stamp.MiyamotoClip, False, clickedx, clickedy)
+
+                    # Get the current flower/grass type
+                    grassType = 5
+                    for sprite in globals.Area.sprites:
+                        if sprite.type == 564:
+                            grassType = min(sprite.spritedata[5] & 0xf, 5)
+                            if grassType < 2:
+                                grassType = 0
+
+                            elif grassType in [3, 4]:
+                                grassType = 3
+
+                    # If the current type is not the previous type, reprocess the Overrides
+                    # update the objects and flower sprite instances and update the scene
+                    if grassType != oldGrassType and globals.Area.tileset0:
+                        ProcessOverrides(globals.Area.tileset0)
+                        globals.mainWindow.objPicker.LoadFromTilesets()
+                        for layer in globals.Area.layers:
+                            for tObj in layer:
+                                tObj.updateObjCache()
+
+                        for sprite in globals.Area.sprites:
+                            if sprite.type == 546:
+                                sprite.UpdateDynamicSizing()
 
                     for obj in objs:
                         obj.dragstartx = obj.objx
@@ -4463,6 +4563,15 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 if clicked.y() < 0: clicked.setY(0)
                 clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
                 clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16)
+
+                if clickedx % 8 < 4:
+                    clickedx -= (clickedx % 8)
+                else:
+                    clickedx += 8 - (clickedx % 8)
+                if clickedy % 8 < 4:
+                    clickedy -= (clickedy % 8)
+                else:
+                    clickedy += 8 - (clickedy % 8)
 
                 com = CommentItem(clickedx, clickedy, '')
                 mw = globals.mainWindow
@@ -4495,8 +4604,16 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
                     if clicked.x() < 0: clicked.setX(0)
                     if clicked.y() < 0: clicked.setY(0)
-                    clickedx = int((clicked.x() - 12) / globals.TileWidth * 16)
-                    clickedy = int((clicked.y() - 12) / globals.TileWidth * 16)
+                    clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16) + 8
+                    clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16) + 8
+                    if clickedx % 8 < 4:
+                        clickedx -= (clickedx % 8)
+                    else:
+                        clickedx += 8 - (clickedx % 8)
+                    if clickedy % 8 < 4:
+                        clickedy -= (clickedy % 8)
+                    else:
+                        clickedy += 8 - (clickedy % 8)
                     mw = globals.mainWindow
                     plist = mw.nabbitPathList
                     selectedpn = None if len(plist.selectedItems()) < 1 else plist.selectedItems()[0]
@@ -4677,6 +4794,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             type_ent = EntranceItem
             type_loc = LocationItem
             type_path = PathItem
+            type_nPath = NabbitPathItem
             type_com = CommentItem
 
             # iterate through the objects if there's more than one
@@ -4819,13 +4937,22 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         obj.setPos(int((clickedx + obj.ImageObj.xOffset) * globals.TileWidth / 16),
                                    int((clickedy + obj.ImageObj.yOffset) * globals.TileWidth / 16))
 
-                elif isinstance(obj, type_ent) or isinstance(obj, type_path) or isinstance(obj, type_com):
+                elif isinstance(obj, type_ent) or isinstance(obj, type_path) or isinstance(obj, type_nPath) or isinstance(obj, type_com):
                     # move the created entrance/path/comment
                     clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
                     if clicked.x() < 0: clicked.setX(0)
                     if clicked.y() < 0: clicked.setY(0)
                     clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
                     clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16)
+
+                    if clickedx % 8 < 4:
+                        clickedx -= (clickedx % 8)
+                    else:
+                        clickedx += 8 - (clickedx % 8)
+                    if clickedy % 8 < 4:
+                        clickedy -= (clickedy % 8)
+                    else:
+                        clickedy += 8 - (clickedy % 8)
 
                     if obj.objx != clickedx or obj.objy != clickedy:
                         obj.objx = clickedx
