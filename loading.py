@@ -573,10 +573,10 @@ def LoadOverrides():
     Load overrides
     """
     OverrideBitmap = QtGui.QPixmap('miyamotodata/overrides.png')
-    globals.Overrides = [None] * 256
     idx = 0
     xcount = OverrideBitmap.width() // globals.TileWidth
     ycount = OverrideBitmap.height() // globals.TileWidth
+    globals.Overrides = [None] * (xcount * ycount)
     sourcex = 0
     sourcey = 0
 
@@ -586,9 +586,8 @@ def LoadOverrides():
             globals.Overrides[idx] = TilesetTile(bmp)
 
             # Set collisions if it's a brick or question
-            if y in [1, 2]:
-                if x < 11 or x == 14: globals.Overrides[idx].setQuestionCollisions()
-                elif x < 12: globals.Overrides[idx].setBrickCollisions()
+            if (x < 11 or x == 14) and y == 2: globals.Overrides[idx].setQuestionCollisions()
+            elif x < 12 and y == 1: globals.Overrides[idx].setBrickCollisions()
 
             idx += 1
             sourcex += globals.TileWidth
@@ -599,8 +598,8 @@ def LoadOverrides():
             idx += 16
 
     # ? Block for Sprite 59
-    bmp = OverrideBitmap.copy(44 * globals.TileWidth, 2 * globals.TileWidth, globals.TileWidth, globals.TileWidth)
-    globals.Overrides[160] = TilesetTile(bmp)
+    bmp = OverrideBitmap.copy(14 * globals.TileWidth, 2 * globals.TileWidth, globals.TileWidth, globals.TileWidth)
+    globals.Overrides.append(TilesetTile(bmp))
 
 
 def LoadTranslation():
