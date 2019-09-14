@@ -483,7 +483,7 @@ class Area_NSMBU(AbstractArea):
         """
         pathdata = self.blocks[13]
         pathcount = len(pathdata) // 12
-        pathstruct = struct.Struct('>BbHHxBxxxx')  # updated struct -- MrRean
+        pathstruct = struct.Struct('>BbHHHxxxx')  # updated struct -- MrRean
         offset = 0
         unpack = pathstruct.unpack_from
         pathinfo = []
@@ -694,7 +694,7 @@ class Area_NSMBU(AbstractArea):
         """
         Saves the paths back to block 14 and 15
         """
-        pathstruct = struct.Struct('>BbHHxBxxxx')
+        pathstruct = struct.Struct('>BbHHHxxxx')
         nodecount = 0
         for path in self.pathdata:
             nodecount += len(path['nodes'])
