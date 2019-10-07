@@ -1642,7 +1642,7 @@ class SpriteImage_QBlock(SLib.SpriteImage_Static):  # 59
         self.contents = self.parent.spritedata[9] & 0xF
         self.acorn = (self.parent.spritedata[6] >> 4) & 1
 
-        items = {0: 0x800 + 160, 1: 49, 2: 32, 3: 32, 4: 37, 5: 38, 6: 36, 7: 33, 8: 34, 9: 41, 12: 35, 13: 42, 15: 39}
+        items = {0: 0x800 + len(globals.Overrides) - 1, 1: 49, 2: 32, 3: 32, 4: 37, 5: 38, 6: 36, 7: 33, 8: 34, 9: 41, 12: 35, 13: 42, 15: 39}
 
         self.dopaint = True
         self.image = None
@@ -3616,7 +3616,7 @@ class SpriteImage_FlyingQBlock(SLib.SpriteImage):  # 154
         self.contents = self.parent.spritedata[9] & 0xF
         self.acorn = (self.parent.spritedata[6] >> 4) & 1
 
-        items = {0: 0x800 + 160, 1: 49, 2: 32, 3: 32, 4: 37, 5: 38, 6: 36, 7: 33, 8: 34, 9: 41, 12: 35, 13: 42, 15: 39}
+        items = {0: 0x800 + len(globals.Overrides) - 1, 1: 49, 2: 32, 3: 32, 4: 37, 5: 38, 6: 36, 7: 33, 8: 34, 9: 41, 12: 35, 13: 42, 15: 39}
 
         self.dopaint = True
         self.image = None
@@ -7194,7 +7194,7 @@ class SpriteImage_BigQBlock(SLib.SpriteImage):  # 475
         self.contents = self.parent.spritedata[9] & 0xF
         self.acorn = (self.parent.spritedata[6] >> 4) & 1
 
-        items = {0: 0x800 + 160, 1: 49, 2: 32, 3: 32, 4: 37, 5: 38, 6: 36, 7: 33, 8: 34, 9: 41, 12: 35, 13: 42, 15: 39}
+        items = {0: 0x800 + len(globals.Overrides) - 1, 1: 49, 2: 32, 3: 32, 4: 37, 5: 38, 6: 36, 7: 33, 8: 34, 9: 41, 12: 35, 13: 42, 15: 39}
 
         self.dopaint = True
         self.image = None
@@ -7553,7 +7553,7 @@ class SpriteImage_FlyingQBlockAmbush(SLib.SpriteImage):  # 523
         super().paint(painter)
 
         painter.drawPixmap(0, 0, ImageCache['FlyingQBlock'])
-        painter.drawPixmap(45, 57.5, SLib.Tiles[0x800 + 160].main)
+        painter.drawPixmap(45, 57.5, SLib.Tiles[0x800 + len(globals.Overrides) - 1].main)
 
 
 class SpriteImage_MovementControlledTowerBlock(SLib.SpriteImage_Static):  # 524
@@ -7649,50 +7649,104 @@ class SpriteImage_MushroomMovingPlatform(SLib.SpriteImage):  # 544
                                ImageCache['CyanStemB' if self.color else 'PinkStemB'])
 
 
-class SpriteImage_Flowers(SLib.SpriteImage_StaticMultiple):  # 546
+class SpriteImage_Flowers(SLib.SpriteImage):  # 546
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
         )
 
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('Flower1', 'flower_1.png')
-        SLib.loadIfNotInImageCache('Flower2', 'flower_2.png')
-        SLib.loadIfNotInImageCache('Flower3', 'flower_3.png')
-        SLib.loadIfNotInImageCache('Flower4', 'flower_4.png')
-        SLib.loadIfNotInImageCache('Flower5', 'flower_5.png')
-        SLib.loadIfNotInImageCache('Flower15', 'flower_15.png')
-        SLib.loadIfNotInImageCache('WTF', 'wtf.png')
-
-    #    TODO: Find out wtf are the other nybbles other than 0.
+        self.height = 16
+        self.spritebox.shown = False
 
     def dataChanged(self):
-
-        otherid = self.parent.spritedata[5]
-
-        if otherid == 33:
-            self.image = ImageCache['Flower1']
-            self.xOffset = -32
-        elif otherid == 35:
-            self.image = ImageCache['Flower5']
-            self.xOffset = -24
-        elif otherid == 39:
-            self.image = ImageCache['Flower4']
-            self.xOffset = -24
-        elif otherid == 43:
-            self.image = ImageCache['Flower2']
-        elif otherid == 44:
-            self.image = ImageCache['Flower3']
-            self.xOffset = -16
-        elif otherid == 47:
-            self.image = ImageCache['Flower15']
-            self.xOffset = -32
-        else:
-            self.image = ImageCache['WTF']
-
         super().dataChanged()
+
+        self.type = self.parent.spritedata[5] & 0xF
+        if self.type == 0:
+            self.type = 1
+
+        if self.type < 6 or self.type == 7:
+            self.width = 64
+
+        elif self.type == 6 or self.type > 13:
+            self.width = 48
+
+        elif self.type == 8:
+            self.width = 80
+
+        elif self.type < 12:
+            self.width = 16
+
+        else:
+            self.width = 32
+
+        self.xOffset = -(self.width / 2) + 8
+
+    def paint(self, painter):
+        super().paint(painter)
+
+        # Draw the first tile
+        if self.type < 9:
+            painter.drawPixmap(0, 0, SLib.Tiles[178].main)
+
+        elif self.type in [9, 12, 14]:
+            painter.drawPixmap(0, 0, SLib.Tiles[211].main)
+
+        elif self.type in [10, 15]:
+            painter.drawPixmap(0, 0, SLib.Tiles[212].main)
+
+        else:
+            painter.drawPixmap(0, 0, SLib.Tiles[210].main)
+
+        # Draw the second tile
+        if self.type < 3:
+            painter.drawPixmap(60, 0, SLib.Tiles[214].main)
+
+        elif self.type < 5:
+            painter.drawPixmap(60, 0, SLib.Tiles[213].main)
+
+        elif self.type < 9:
+            painter.drawPixmap(60, 0, SLib.Tiles[179].main)
+
+        elif self.type > 11 and self.type < 14:
+            painter.drawPixmap(60, 0, SLib.Tiles[212].main)
+
+        elif self.type > 11:
+            painter.drawPixmap(60, 0, SLib.Tiles[210].main)
+
+        # Draw the third tile
+        if self.type in [1, 3]:
+            painter.drawPixmap(120, 0, SLib.Tiles[215].main)
+
+        elif self.type == 2:
+            painter.drawPixmap(120, 0, SLib.Tiles[213].main)
+
+        elif self.type < 6:
+            painter.drawPixmap(120, 0, SLib.Tiles[214].main)
+
+        elif self.type == 6:
+            painter.drawPixmap(120, 0, SLib.Tiles[182].main)
+
+        elif self.type < 9:
+            painter.drawPixmap(120, 0, SLib.Tiles[180].main)
+
+        elif self.type == 14:
+            painter.drawPixmap(120, 0, SLib.Tiles[212].main)
+
+        elif self.type == 15:
+            painter.drawPixmap(120, 0, SLib.Tiles[211].main)
+
+        # Draw the fourth tile
+        if self.type < 8 and self.type != 6:
+            painter.drawPixmap(180, 0, SLib.Tiles[182].main)
+
+        elif self.type == 8:
+            painter.drawPixmap(180, 0, SLib.Tiles[179].main)
+
+        # Draw the fifth tile
+        if self.type == 8:
+            painter.drawPixmap(240, 0, SLib.Tiles[182].main)
 
 
 class SpriteImage_RecordSignboard(SLib.SpriteImage):  # 561

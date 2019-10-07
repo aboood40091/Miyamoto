@@ -1934,6 +1934,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.scene.clearSelection()
 
         if len(selitems) > 0:
+            # Get the previous flower/grass type
+            oldGrassType = 5
+            for sprite in globals.Area.sprites:
+                if sprite.type == 564:
+                    oldGrassType = min(sprite.spritedata[5] & 0xf, 5)
+                    if oldGrassType < 2:
+                        oldGrassType = 0
+
+                    elif oldGrassType in [3, 4]:
+                        oldGrassType = 3
+
             clipboard_o = []
             clipboard_s = []
             ii = isinstance
@@ -1958,6 +1969,32 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 self.actions['paste'].setEnabled(True)
                 self.clipboard = self.encodeObjects(clipboard_o, clipboard_s)
                 self.systemClipboard.setText(self.clipboard)
+
+                # Get the current flower/grass type
+                grassType = 5
+                for sprite in globals.Area.sprites:
+                    if sprite.type == 564:
+                        grassType = min(sprite.spritedata[5] & 0xf, 5)
+                        if grassType < 2:
+                            grassType = 0
+
+                        elif grassType in [3, 4]:
+                            grassType = 3
+
+                # If the current type is not the previous type, reprocess the Overrides
+                # update the objects and flower sprite instances and update the scene
+                if grassType != oldGrassType and globals.Area.tileset0:
+                    ProcessOverrides(globals.Area.tileset0)
+                    self.objPicker.LoadFromTilesets()
+                    for layer in globals.Area.layers:
+                        for tObj in layer:
+                            tObj.updateObjCache()
+
+                    for sprite in globals.Area.sprites:
+                        if sprite.type == 546:
+                            sprite.UpdateDynamicSizing()
+
+                    self.scene.update()
 
         self.levelOverview.update()
         self.SelectionUpdateFlag = False
@@ -1991,7 +2028,44 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Paste the selected items
         """
         if self.clipboard is not None:
+            # Get the previous flower/grass type
+            oldGrassType = 5
+            for sprite in globals.Area.sprites:
+                if sprite.type == 564:
+                    oldGrassType = min(sprite.spritedata[5] & 0xf, 5)
+                    if oldGrassType < 2:
+                        oldGrassType = 0
+
+                    elif oldGrassType in [3, 4]:
+                        oldGrassType = 3
+
             self.placeEncodedObjects(self.clipboard)
+
+            # Get the current flower/grass type
+            grassType = 5
+            for sprite in globals.Area.sprites:
+                if sprite.type == 564:
+                    grassType = min(sprite.spritedata[5] & 0xf, 5)
+                    if grassType < 2:
+                        grassType = 0
+
+                    elif grassType in [3, 4]:
+                        grassType = 3
+
+            # If the current type is not the previous type, reprocess the Overrides
+            # update the objects and flower sprite instances and update the scene
+            if grassType != oldGrassType and globals.Area.tileset0:
+                ProcessOverrides(globals.Area.tileset0)
+                self.objPicker.LoadFromTilesets()
+                for layer in globals.Area.layers:
+                    for tObj in layer:
+                        tObj.updateObjCache()
+
+                for sprite in globals.Area.sprites:
+                    if sprite.type == 546:
+                        sprite.UpdateDynamicSizing()
+
+                self.scene.update()
 
     def encodeObjects(self, clipboard_o, clipboard_s):
         """
@@ -4372,13 +4446,25 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         type_obj = ObjectItem
         tileset = globals.CurrentPaintType
         changed = False
+        data = 0
 
         if globals.CurrentPaintType != 0:
             type, _ = self.objTS123Tab.getObjectAndPaintType(type)
 
+        else:
+            oItems = {16: 1, 17: 2, 18: 3, 19: 4, 20: 5, 21: 6, 22: 7, 23: 8,
+                     24: 9, 25: 10, 26: 11, 27: 12, 28: data, 29: 14, 30: 15,
+                     31: 16, 32: 17, 33: 18, 34: 19, 35: 20, 36: 21, 37: 22, 38: 23, 39: 24}
+
+            if type in oItems:
+                data = oItems[type]
+                type = 28
+                if data == 0: data = 13
+
         for x in items:
-            if isinstance(x, type_obj) and (x.tileset != tileset or x.type != type):
+            if isinstance(x, type_obj) and (x.tileset != tileset or x.type != type or x.data != data):
                 x.SetType(tileset, type)
+                x.data = data
                 x.update()
                 changed = True
 
@@ -4459,7 +4545,69 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         if self.spriteEditorDock.isVisible():
             obj = self.selObj
+
+            # If the sprite with updated spritedata is the Flower/Grass Type Setter
+            if obj.type == 564:
+                # Get the previous type
+                oldGrassType = 5
+                for sprite in globals.Area.sprites:
+                    if sprite.type == 564:
+                        oldGrassType = min(sprite.spritedata[5] & 0xf, 5)
+                        if oldGrassType < 2:
+                            oldGrassType = 0
+
+                        elif oldGrassType in [3, 4]:
+                            oldGrassType = 3
+
+                # Get the current type
+                grassType = min(data[5] & 0xf, 5)
+                if grassType < 2:
+                    grassType = 0
+
+                elif grassType in [3, 4]:
+                    grassType = 3
+
+                # If the current type is not the previous type, reprocess the Overrides
+                # update the objects and flower sprite instances and update the scene
+                if grassType != oldGrassType and globals.Area.tileset0:
+                    obj.spritedata = data
+                    ProcessOverrides(globals.Area.tileset0)
+                    self.objPicker.LoadFromTilesets()
+                    for layer in globals.Area.layers:
+                        for tObj in layer:
+                            tObj.updateObjCache()
+
+                    for sprite in globals.Area.sprites:
+                        if sprite.type == 546:
+                            sprite.UpdateDynamicSizing()
+
+                    self.scene.update()
+
             obj.spritedata = data
+            obj.UpdateListItem()
+            SetDirty()
+
+            obj.UpdateDynamicSizing()
+
+    def SpriteLayerUpdated(self, layer):
+        """
+        Handle the current sprite's layer being updated
+        """
+        if self.spriteEditorDock.isVisible():
+            obj = self.selObj
+            obj.layer = layer
+            obj.UpdateListItem()
+            SetDirty()
+
+            obj.UpdateDynamicSizing()
+
+    def SpriteInitialStateUpdated(self, initialState):
+        """
+        Handle the current sprite's initial state being updated
+        """
+        if self.spriteEditorDock.isVisible():
+            obj = self.selObj
+            obj.initialState = initialState
             obj.UpdateListItem()
             SetDirty()
 
@@ -4720,6 +4868,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if self.spriteEditorDock.isVisible():
             obj = self.selObj
             self.spriteDataEditor.setSprite(obj.type)
+            self.spriteDataEditor.activeLayer.setCurrentIndex(obj.layer)
+            self.spriteDataEditor.initialState.setValue(obj.initialState)
             self.spriteDataEditor.data = obj.spritedata
             self.spriteDataEditor.update()
         elif self.entranceEditorDock.isVisible():
@@ -4808,6 +4958,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             sel = self.scene.selectedItems()
             self.SelectionUpdateFlag = True
             if len(sel) > 0:
+                # Get the previous flower/grass type
+                oldGrassType = 5
+                for sprite in globals.Area.sprites:
+                    if sprite.type == 564:
+                        oldGrassType = min(sprite.spritedata[5] & 0xf, 5)
+                        if oldGrassType < 2:
+                            oldGrassType = 0
+
+                        elif oldGrassType in [3, 4]:
+                            oldGrassType = 3
+
                 for obj in sel:
                     obj.delete()
                     obj.setSelected(False)
@@ -4817,6 +4978,32 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 event.accept()
                 self.SelectionUpdateFlag = False
                 self.ChangeSelectionHandler()
+
+                # Get the current flower/grass type
+                grassType = 5
+                for sprite in globals.Area.sprites:
+                    if sprite.type == 564:
+                        grassType = min(sprite.spritedata[5] & 0xf, 5)
+                        if grassType < 2:
+                            grassType = 0
+
+                        elif grassType in [3, 4]:
+                            grassType = 3
+
+                # If the current type is not the previous type, reprocess the Overrides
+                # update the objects and flower sprite instances and update the scene
+                if grassType != oldGrassType and globals.Area.tileset0:
+                    ProcessOverrides(globals.Area.tileset0)
+                    self.objPicker.LoadFromTilesets()
+                    for layer in globals.Area.layers:
+                        for tObj in layer:
+                            tObj.updateObjCache()
+
+                    for sprite in globals.Area.sprites:
+                        if sprite.type == 546:
+                            sprite.UpdateDynamicSizing()
+
+                    self.scene.update()
 
         else:
             QtWidgets.QMainWindow.keyPressEvent(self, event)
@@ -5180,7 +5367,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 name = globals.names_bg[globals.names_bgTrans.index(str(bgTab.bg_name.currentText()))]
                 unk1 = bgTab.unk1.value()
                 unk2 = bgTab.unk2.value()
-                z.background = (z.id, unk1, to_bytes(name, 16), unk2)
+                unk3 = bgTab.unk3.value()
+                unk4 = bgTab.unk4.value()
+                z.background = (z.id, unk1, unk2, unk3, to_bytes(name, 16), unk4)
 
                 ygn2Used = name == "Yougan_2"
 

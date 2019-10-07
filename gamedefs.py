@@ -98,6 +98,7 @@ class MiyamotoGameDefinition:
             'spritedata': gdf(None, False),
             'spritelistdata': gdf(None, False),
             'spritenames': gdf(None, False),
+            'spriteresources': gdf(None, False),
             'tilesets': gdf(None, False),
             'ts1_descriptions': gdf(None, False),
         }
@@ -306,7 +307,7 @@ class MiyamotoGameDefinition:
 
         # This should be very simple
         # Each arg should be a file name
-        if self.base is None:
+        if self.base is None or self.base.base is None:
             main = []  # start a new level
         else:
             main = self.base.multipleRecursiveFiles(*args)

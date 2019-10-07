@@ -49,6 +49,12 @@ GitHub: https://github.com/aboood40091/Miyamoto
 
 ----------------------------------------------------------------
 
+### Building
+Please note that when building Miyamoto, you have to remove any instances of Cython usage in both Miyamoto and libyaz0. (pyximport)  
+Alternatively, you can build the .pyx files and then remove any instances of pyximport in the code.
+
+----------------------------------------------------------------
+
 ### How To Use
 #### STEP 1:
 Download the source code from here:  

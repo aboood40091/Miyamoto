@@ -1862,7 +1862,7 @@ def ProcessOverrides(name):
                 t[i].main = t[offset + i].main
 
             ## ?
-            t[offset + 160].main = t[49].main
+            t[offset + len(globals.Overrides) - 1].main = t[49].main
             t[49].main = t[offset + 46].main
             for i in range(32, 43):
                 t[i].main = t[offset + i].main
@@ -1988,18 +1988,48 @@ def ProcessOverrides(name):
             t[46].main = t[offset + 47].main
 
             # Flowers / Grass
+            grassType = 5
+            for sprite in globals.Area.sprites:
+                if sprite.type == 564:
+                    grassType = min(sprite.spritedata[5] & 0xf, 5)
+                    if grassType < 2:
+                        grassType = 0
+
+                    elif grassType in [3, 4]:
+                        grassType = 3
+
+            if grassType == 0:  # Forest
+                replace_flowers = offset + 160
+                replace_grass = offset + 163
+                replace_both = offset + 168
+
+            elif grassType == 2:  # Underground
+                replace_flowers = offset + 55
+                replace_grass = offset + 171
+                replace_both = offset + 188
+
+            elif grassType == 3:  # Sky
+                replace_flowers = offset + 176
+                replace_grass = offset + 179
+                replace_both = offset + 184
+
+            else:  # Normal
+                replace_flowers = offset + 55
+                replace_grass = offset + 58
+                replace_both = offset + 106
+
             ## Flowers
-            replace = offset + 55
+            replace = replace_flowers
             for i in range(210, 213):
                 t[i].main = t[replace].main
                 replace += 1
             ## Grass
-            replace = offset + 58
+            replace = replace_grass
             for i in range(178, 183):
                 t[i].main = t[replace].main
                 replace += 1
             ## Flowers and grass
-            replace = offset + 106
+            replace = replace_both
             for i in range(213, 216):
                 t[i].main = t[replace].main
                 replace += 1

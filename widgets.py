@@ -53,7 +53,7 @@ from stamp import StampListModel
 from tileset import TilesetTile, ObjectDef, objFitsInTileset
 from tileset import addObjToTilesetImpl, addObjToTileset, exportObject
 from tileset import HandleTilesetEdited, DeleteObject, RenderObject
-from tileset import RenderObjectAll, SimpleTilesetNames
+from tileset import RenderObjectAll, ProcessOverrides, SimpleTilesetNames
 
 from ui import createHorzLine, createVertLine, GetIcon
 from verifications import SetDirty
@@ -2459,6 +2459,16 @@ class SpriteEditorWidget(QtWidgets.QWidget):
 
         self.setLayout(mainLayout)
 
+        self.activeLayer = QtWidgets.QComboBox()
+        self.activeLayer.addItems(globals.trans.stringList('SpriteDataEditor', 10))
+        self.activeLayer.setToolTip(globals.trans.string('SpriteDataEditor', 11))
+        self.activeLayer.activated.connect(globals.mainWindow.SpriteLayerUpdated)
+
+        self.initialState = QtWidgets.QSpinBox()
+        self.initialState.setRange(0, 255)
+        self.initialState.setToolTip(globals.trans.string('SpriteDataEditor', 13))
+        self.initialState.valueChanged.connect(globals.mainWindow.SpriteInitialStateUpdated)
+
         self.spritetype = -1
         self.data = b'\0' * 12
         self.fields = []
@@ -2860,6 +2870,13 @@ class SpriteEditorWidget(QtWidgets.QWidget):
                 row += 1
 
             self.fields = fields
+            layout.addWidget(createHorzLine(), row, 0, 1, 2); row += 1
+
+            layout.addWidget(QtWidgets.QLabel(globals.trans.string('SpriteDataEditor', 9)), row, 0, Qt.AlignRight)
+            layout.addWidget(self.activeLayer, row, 1); row += 1
+
+            layout.addWidget(QtWidgets.QLabel(globals.trans.string('SpriteDataEditor', 12)), row, 0, Qt.AlignRight)
+            layout.addWidget(self.initialState, row, 1)
 
     def update(self):
         """
@@ -3055,61 +3072,61 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
         # 'Editing Entrance #' label
         self.editingLabel = QtWidgets.QLabel('-')
-        layout.addWidget(self.editingLabel, 0, 0, 1, 4, Qt.AlignTop)
+        layout.addWidget(self.editingLabel, 0, 0, 1, 6, Qt.AlignTop)
 
         # add labels
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 2)), 1, 0, 1, 1, Qt.AlignRight)
         layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 0)), 3, 0, 1, 1, Qt.AlignRight)
 
-        layout.addWidget(createHorzLine(), 2, 0, 1, 5)
+        layout.addWidget(createHorzLine(), 2, 0, 1, 6)
 
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 4)), 3, 2, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 6)), 4, 2, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 4)), 3, 3, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('EntranceDataEditor', 6)), 5, 3, 1, 1, Qt.AlignRight)
 
         # add the widgets
-        layout.addWidget(self.entranceType, 1, 1, 1, 3)
-        layout.addWidget(self.entranceID, 3, 1, 1, 1)
-        layout.addWidget(self.destEntrance, 3, 3, 1, 1)
-        layout.addWidget(self.destArea, 4, 3, 1, 1)
+        layout.addWidget(self.entranceType, 1, 1, 1, 5)
+        layout.addWidget(self.entranceID, 3, 1, 1, 2)
+        layout.addWidget(self.destEntrance, 3, 4, 1, 2)
+        layout.addWidget(self.destArea, 5, 4, 1, 2)
 
-        layout.addWidget(createHorzLine(), 5, 0, 1, 5)
+        layout.addWidget(createHorzLine(), 6, 0, 1, 6)
 
-        layout.addWidget(self.allowEntryCheckbox, 6, 1, 1, 2)  # , Qt.AlignRight)
-        layout.addWidget(self.faceLeftCheckbox, 6, 3, 1, 2)  # , Qt.AlignRight)
+        layout.addWidget(self.allowEntryCheckbox, 7, 1, 1, 2)
+        layout.addWidget(self.faceLeftCheckbox, 7, 4, 1, 2)
 
-        layout.addWidget(createHorzLine(), 7, 0, 1, 5)
+        layout.addWidget(createHorzLine(), 8, 0, 1, 6)
 
-        horizontalLayout = QtWidgets.QHBoxLayout()
-        horizontalLayout.addWidget(self.player1Checkbox)
-        horizontalLayout.addWidget(self.player2Checkbox)
-        horizontalLayout.addWidget(self.player3Checkbox)
-        horizontalLayout.addWidget(self.player4Checkbox)
+        layout.addWidget(QtWidgets.QLabel('Players to spawn:'), 9, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.player1Checkbox, 9, 1)
+        layout.addWidget(self.player2Checkbox, 9, 2)
+        layout.addWidget(self.player3Checkbox, 9, 3)
+        layout.addWidget(self.player4Checkbox, 9, 4)
+        layout.addWidget(QtWidgets.QLabel('Players Distance:'), 10, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.playerDistance, 10, 1, 1, 5)
 
-        layout.addWidget(QtWidgets.QLabel('Players to spawn:'), 9, 0)
-        layout.addLayout(horizontalLayout, 9, 1)
-        layout.addWidget(QtWidgets.QLabel('Players Distance:'), 10, 0)
-        layout.addWidget(self.playerDistance, 10, 1, 1, 3)
+        layout.addWidget(createHorzLine(), 11, 0, 1, 6)
 
-        layout.addWidget(createHorzLine(), 11, 0, 1, 5)
+        layout.addWidget(QtWidgets.QLabel('Baby Yoshi Entrance ID:'), 12, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.otherID, 12, 1, 1, 2)
+        layout.addWidget(self.goto, 13, 1, 1, 2)
 
-        layout.addWidget(QtWidgets.QLabel('Baby Yoshi Entrance ID:'), 12, 0)
-        layout.addWidget(QtWidgets.QLabel('Entrance Order:'), 13, 0)
-        layout.addWidget(QtWidgets.QLabel('Path ID:'), 14, 0)
-        layout.addWidget(QtWidgets.QLabel('Path Node Index:'), 15, 0)
-        layout.addWidget(QtWidgets.QLabel('Transition:'), 16, 0)
-        layout.addWidget(self.otherID, 12, 1)
-        layout.addWidget(self.goto, 12, 3)
-        layout.addWidget(self.coinOrder, 13, 1)
-        layout.addWidget(self.scrollPathID, 14, 1)
-        layout.addWidget(self.pathnodeindex, 15, 1)
-        layout.addWidget(self.transition, 16, 1)
+        layout.addWidget(createHorzLine(), 14, 0, 1, 6)
 
-        layout.addWidget(createHorzLine(), 17, 0, 1, 5)
+        layout.addWidget(QtWidgets.QLabel('Entrance Order:'), 12, 3, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel('Path ID:'), 16, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel('Path Node Index:'), 16, 3, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel('Transition:'), 18, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.coinOrder, 12, 4, 1, 2)
+        layout.addWidget(self.scrollPathID, 16, 1, 1, 2)
+        layout.addWidget(self.pathnodeindex, 16, 4, 1, 2)
+        layout.addWidget(self.transition, 18, 1, 1, 5)
 
-        layout.addWidget(QtWidgets.QLabel('Camera X:'), 18, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel('Camera Y:'), 18, 2, 1, 1, Qt.AlignRight)
-        layout.addWidget(self.cameraX, 18, 1)
-        layout.addWidget(self.cameraY, 18, 3)
+        layout.addWidget(createHorzLine(), 19, 0, 1, 6)
+
+        layout.addWidget(QtWidgets.QLabel('Camera X:'), 20, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel('Camera Y:'), 20, 3, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.cameraX, 20, 1, 1, 2)
+        layout.addWidget(self.cameraY, 20, 4, 1, 2)
 
         self.ent = None
         self.UpdateFlag = False
@@ -3384,7 +3401,7 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         self.loops.stateChanged.connect(self.HandleLoopsChanged)
 
         self.unk1 = QtWidgets.QSpinBox()
-        self.unk1.setRange(-127, 127)
+        self.unk1.setRange(-128, 127)
         self.unk1.setToolTip(globals.trans.string('PathDataEditor', 12))
         self.unk1.valueChanged.connect(self.Handleunk1Changed)
         self.unk1.setMaximumWidth(256)
@@ -3396,22 +3413,22 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         # 'Editing Path #' label
         self.editingLabel = QtWidgets.QLabel('-')
         self.editingPathLabel = QtWidgets.QLabel('-')
-        layout.addWidget(self.editingLabel, 3, 0, 1, 2, Qt.AlignTop)
+        layout.addWidget(self.editingLabel, 4, 0, 1, 2, Qt.AlignTop)
         layout.addWidget(self.editingPathLabel, 0, 0, 1, 2, Qt.AlignTop)
         # add labels
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 0)), 1, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 2)), 4, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 4)), 5, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 6)), 6, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 11)), 7, 0, 1, 1, Qt.AlignRight)
-        layout.addWidget(createHorzLine(), 2, 0, 1, 2)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 11)), 1, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 0)), 2, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 2)), 5, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 4)), 6, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 6)), 7, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(createHorzLine(), 3, 0, 1, 2)
 
         # add the widgets
-        layout.addWidget(self.loops, 1, 1)
-        layout.addWidget(self.speed, 4, 1)
-        layout.addWidget(self.accel, 5, 1)
-        layout.addWidget(self.delay, 6, 1)
-        layout.addWidget(self.unk1, 7, 1)
+        layout.addWidget(self.unk1, 1, 1)
+        layout.addWidget(self.loops, 2, 1)
+        layout.addWidget(self.speed, 5, 1)
+        layout.addWidget(self.accel, 6, 1)
+        layout.addWidget(self.delay, 7, 1)
 
         self.path = None
         self.UpdateFlag = False
@@ -3486,6 +3503,22 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed))
 
         # create widgets
+        self.unk1 = QtWidgets.QSpinBox()
+        self.unk1.setRange(0, 0xFFFF)
+        self.unk1.valueChanged.connect(self.HandleUnk1Changed)
+
+        self.unk2 = QtWidgets.QSpinBox()
+        self.unk2.setRange(0, 0xFF)
+        self.unk2.valueChanged.connect(self.HandleUnk2Changed)
+
+        self.unk3 = QtWidgets.QSpinBox()
+        self.unk3.setRange(0, 0xFF)
+        self.unk3.valueChanged.connect(self.HandleUnk3Changed)
+
+        self.unk4 = QtWidgets.QSpinBox()
+        self.unk4.setRange(0, 0xFF)
+        self.unk4.valueChanged.connect(self.HandleUnk4Changed)
+
         self.action = QtWidgets.QComboBox()
         self.action.addItems(['0: Run to the right',
                               '1: Jump to the next node',
@@ -3511,10 +3544,19 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
         self.editingLabel = QtWidgets.QLabel('-')
         layout.addWidget(self.editingLabel, 0, 0, 1, 2, Qt.AlignTop)
         # add labels
-        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 15)), 1, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 17)), 1, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 18)), 2, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 19)), 3, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 20)), 4, 0, 1, 1, Qt.AlignRight)
+        layout.addWidget(QtWidgets.QLabel(globals.trans.string('PathDataEditor', 15)), 6, 0, 1, 1, Qt.AlignRight)
 
         # add the widgets
-        layout.addWidget(self.action, 1, 1)
+        layout.addWidget(self.unk1, 1, 1)
+        layout.addWidget(self.unk2, 2, 1)
+        layout.addWidget(self.unk3, 3, 1)
+        layout.addWidget(self.unk4, 4, 1)
+        layout.addWidget(createHorzLine(), 5, 0, 1, 2)
+        layout.addWidget(self.action, 6, 1)
 
         self.path = None
         self.UpdateFlag = False
@@ -3556,6 +3598,11 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
         self.path = path
         self.UpdateFlag = True
 
+        self.unk1.setValue(path.nodeinfo['unk1'])
+        self.unk2.setValue(path.nodeinfo['unk2'])
+        self.unk3.setValue(path.nodeinfo['unk3'])
+        self.unk4.setValue(path.nodeinfo['unk4'])
+
         if path.nodeinfo['action'] in self.indecies:
             self.action.setCurrentIndex(self.indecies[path.nodeinfo['action']])
 
@@ -3564,6 +3611,42 @@ class NabbitPathNodeEditorWidget(QtWidgets.QWidget):
             self.action.setCurrentIndex(0)
 
         self.UpdateFlag = False
+
+    def HandleUnk1Changed(self, v):
+        """
+        Handler for unknown value 1 changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+
+        self.path.nodeinfo['unk1'] = v
+
+    def HandleUnk2Changed(self, v):
+        """
+        Handler for unknown value 2 changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+
+        self.path.nodeinfo['unk2'] = v
+
+    def HandleUnk3Changed(self, v):
+        """
+        Handler for unknown value 3 changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+
+        self.path.nodeinfo['unk3'] = v
+
+    def HandleUnk4Changed(self, v):
+        """
+        Handler for unknown value 4 changing
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+
+        self.path.nodeinfo['unk4'] = v
 
     def HandleActionChanged(self, i):
         """
@@ -4106,9 +4189,30 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     # [18:15:42]  Angel-SL: you can paint a 'No sprites found'
                     # [18:15:47]  Angel-SL: results in a sprite -2
 
+                    if globals.CurrentSprite == 564:
+                        # Get the previous flower/grass type
+                        oldGrassType = 5
+                        for sprite in globals.Area.sprites:
+                            if sprite.type == 564:
+                                oldGrassType = min(sprite.spritedata[5] & 0xf, 5)
+                                if oldGrassType < 2:
+                                    oldGrassType = 0
+
+                                elif oldGrassType in [3, 4]:
+                                    oldGrassType = 3
+
                     # paint a sprite
-                    clickedx = int(clicked.x() // globals.TileWidth) * 16
-                    clickedy = int(clicked.y() // globals.TileWidth) * 16
+                    clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
+                    clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16)
+
+                    if clickedx % 8 < 4:
+                        clickedx -= (clickedx % 8)
+                    else:
+                        clickedx += 8 - (clickedx % 8)
+                    if clickedy % 8 < 4:
+                        clickedy -= (clickedy % 8)
+                    else:
+                        clickedy += 8 - (clickedy % 8)
 
                     data = globals.mainWindow.defaultDataEditor.data
                     spr = SpriteItem(globals.CurrentSprite, clickedx, clickedy, data)
@@ -4120,6 +4224,33 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     spr.listitem = ListWidgetItem_SortsByOther(spr)
                     mw.spriteList.addItem(spr.listitem)
                     globals.Area.sprites.append(spr)
+
+                    if globals.CurrentSprite == 564:
+                        # Get the current flower/grass type
+                        grassType = 5
+                        for sprite in globals.Area.sprites:
+                            if sprite.type == 564:
+                                grassType = min(sprite.spritedata[5] & 0xf, 5)
+                                if grassType < 2:
+                                    grassType = 0
+
+                                elif grassType in [3, 4]:
+                                    grassType = 3
+
+                        # If the current type is not the previous type, reprocess the Overrides
+                        # update the objects and flower sprite instances and update the scene
+                        if grassType != oldGrassType and globals.Area.tileset0:
+                            ProcessOverrides(globals.Area.tileset0)
+                            mw.objPicker.LoadFromTilesets()
+                            for layer in globals.Area.layers:
+                                for tObj in layer:
+                                    tObj.updateObjCache()
+
+                            for sprite in globals.Area.sprites:
+                                if sprite.type == 546:
+                                    sprite.UpdateDynamicSizing()
+
+                            mw.scene.update()
 
                     self.dragstamp = False
                     self.currentobj = spr
@@ -4137,8 +4268,17 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
-                clickedx = int((clicked.x() - 12) / globals.TileWidth * 16)
-                clickedy = int((clicked.y() - 12) / globals.TileWidth * 16)
+                clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
+                clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16)
+
+                if clickedx % 8 < 4:
+                    clickedx -= (clickedx % 8)
+                else:
+                    clickedx += 8 - (clickedx % 8)
+                if clickedy % 8 < 4:
+                    clickedy -= (clickedy % 8)
+                else:
+                    clickedy += 8 - (clickedy % 8)
 
                 getids = [False for x in range(256)]
                 for ent in globals.Area.entrances: getids[ent.entid] = True
@@ -4173,8 +4313,16 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
-                clickedx = int((clicked.x() - 12) / globals.TileWidth * 16)
-                clickedy = int((clicked.y() - 12) / globals.TileWidth * 16)
+                clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
+                clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16)
+                if clickedx % 8 < 4:
+                    clickedx -= (clickedx % 8)
+                else:
+                    clickedx += 8 - (clickedx % 8)
+                if clickedy % 8 < 4:
+                    clickedy -= (clickedy % 8)
+                else:
+                    clickedy += 8 - (clickedy % 8)
                 mw = globals.mainWindow
                 plist = mw.pathList
                 selectedpn = None if len(plist.selectedItems()) < 1 else plist.selectedItems()[0]
@@ -4319,7 +4467,42 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 stamp = globals.mainWindow.stampChooser.currentlySelectedStamp()
                 if stamp is not None:
+                    # Get the previous flower/grass type
+                    oldGrassType = 5
+                    for sprite in globals.Area.sprites:
+                        if sprite.type == 564:
+                            oldGrassType = min(sprite.spritedata[5] & 0xf, 5)
+                            if oldGrassType < 2:
+                                oldGrassType = 0
+
+                            elif oldGrassType in [3, 4]:
+                                oldGrassType = 3
+
                     objs = globals.mainWindow.placeEncodedObjects(stamp.MiyamotoClip, False, clickedx, clickedy)
+
+                    # Get the current flower/grass type
+                    grassType = 5
+                    for sprite in globals.Area.sprites:
+                        if sprite.type == 564:
+                            grassType = min(sprite.spritedata[5] & 0xf, 5)
+                            if grassType < 2:
+                                grassType = 0
+
+                            elif grassType in [3, 4]:
+                                grassType = 3
+
+                    # If the current type is not the previous type, reprocess the Overrides
+                    # update the objects and flower sprite instances and update the scene
+                    if grassType != oldGrassType and globals.Area.tileset0:
+                        ProcessOverrides(globals.Area.tileset0)
+                        globals.mainWindow.objPicker.LoadFromTilesets()
+                        for layer in globals.Area.layers:
+                            for tObj in layer:
+                                tObj.updateObjCache()
+
+                        for sprite in globals.Area.sprites:
+                            if sprite.type == 546:
+                                sprite.UpdateDynamicSizing()
 
                     for obj in objs:
                         obj.dragstartx = obj.objx
@@ -4343,6 +4526,15 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 if clicked.y() < 0: clicked.setY(0)
                 clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
                 clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16)
+
+                if clickedx % 8 < 4:
+                    clickedx -= (clickedx % 8)
+                else:
+                    clickedx += 8 - (clickedx % 8)
+                if clickedy % 8 < 4:
+                    clickedy -= (clickedy % 8)
+                else:
+                    clickedy += 8 - (clickedy % 8)
 
                 com = CommentItem(clickedx, clickedy, '')
                 mw = globals.mainWindow
@@ -4375,14 +4567,23 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
                     if clicked.x() < 0: clicked.setX(0)
                     if clicked.y() < 0: clicked.setY(0)
-                    clickedx = int((clicked.x() - 12) / globals.TileWidth * 16)
-                    clickedy = int((clicked.y() - 12) / globals.TileWidth * 16)
+                    clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16) + 8
+                    clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16) + 8
+                    if clickedx % 8 < 4:
+                        clickedx -= (clickedx % 8)
+                    else:
+                        clickedx += 8 - (clickedx % 8)
+                    if clickedy % 8 < 4:
+                        clickedy -= (clickedy % 8)
+                    else:
+                        clickedy += 8 - (clickedy % 8)
                     mw = globals.mainWindow
                     plist = mw.nabbitPathList
                     selectedpn = None if len(plist.selectedItems()) < 1 else plist.selectedItems()[0]
                     if not globals.Area.nPathdata:
                         newpathdata = {'nodes': [
-                                           {'x': clickedx, 'y': clickedy, 'action': 0}],
+                                           {'x': clickedx, 'y': clickedy, 'action': 0,
+                                            'unk1': 0, 'unk2': 0, 'unk3': 0, 'unk4': 0}],
                                        }
                         globals.Area.nPathdata = newpathdata
                         newnode = NabbitPathItem(clickedx, clickedy, newpathdata, newpathdata['nodes'][0], 0, 0, 0, 0)
@@ -4423,7 +4624,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         if not pathd:
                             pathd = globals.Area.nPaths[-1].pathinfo
 
-                        newnodedata = {'x': clickedx, 'y': clickedy, 'action': 0}
+                        newnodedata = {'x': clickedx, 'y': clickedy, 'action': 0,
+                                       'unk1': 0, 'unk2': 0, 'unk3': 0, 'unk4': 0}
                         pathd['nodes'].append(newnodedata)
 
                         newnode = NabbitPathItem(clickedx, clickedy, pathd, newnodedata, 0, 0, 0, 0)
@@ -4555,6 +4757,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             type_ent = EntranceItem
             type_loc = LocationItem
             type_path = PathItem
+            type_nPath = NabbitPathItem
             type_com = CommentItem
 
             # iterate through the objects if there's more than one
@@ -4691,19 +4894,37 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
                     clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16)
 
+                    if clickedx % 8 < 4:
+                        clickedx -= (clickedx % 8)
+                    else:
+                        clickedx += 8 - (clickedx % 8)
+                    if clickedy % 8 < 4:
+                        clickedy -= (clickedy % 8)
+                    else:
+                        clickedy += 8 - (clickedy % 8)
+
                     if obj.objx != clickedx or obj.objy != clickedy:
                         obj.objx = clickedx
                         obj.objy = clickedy
                         obj.setPos(int((clickedx + obj.ImageObj.xOffset) * globals.TileWidth / 16),
                                    int((clickedy + obj.ImageObj.yOffset) * globals.TileWidth / 16))
 
-                elif isinstance(obj, type_ent) or isinstance(obj, type_path) or isinstance(obj, type_com):
+                elif isinstance(obj, type_ent) or isinstance(obj, type_path) or isinstance(obj, type_nPath) or isinstance(obj, type_com):
                     # move the created entrance/path/comment
                     clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
                     if clicked.x() < 0: clicked.setX(0)
                     if clicked.y() < 0: clicked.setY(0)
                     clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
                     clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16)
+
+                    if clickedx % 8 < 4:
+                        clickedx -= (clickedx % 8)
+                    else:
+                        clickedx += 8 - (clickedx % 8)
+                    if clickedy % 8 < 4:
+                        clickedy -= (clickedy % 8)
+                    else:
+                        clickedy += 8 - (clickedy % 8)
 
                     if obj.objx != clickedx or obj.objy != clickedy:
                         obj.objx = clickedx
