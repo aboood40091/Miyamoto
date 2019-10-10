@@ -8302,6 +8302,7 @@ ImageClasses = {
     631: SpriteImage_PaintGoal,
     643: SpriteImage_LavaBubble,
     644: SpriteImage_LavaBubble,
+    655: SpriteImage_SnakeBlock,
     659: SpriteImage_BigGrrrol,
     662: SpriteImage_BlueRing,
     673: SpriteImage_TileGod,
@@ -8313,4 +8314,5 @@ ImageClasses = {
     706: SpriteImage_BrickBlock,
     707: SpriteImage_QBlock,
     716: SpriteImage_Foo,
+    717: SpriteImage_SnakeBlock,
 }
