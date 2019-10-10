@@ -1458,12 +1458,13 @@ class SpriteImage_StarCoin(SLib.SpriteImage_Static):  # 45
         SLib.loadIfNotInImageCache('StarCoin', 'star_coin.png')
 
 
-class SpriteImage_LineControlledStarCoin(SLib.SpriteImage_Static):  # 46
+class SpriteImage_LineControlledStarCoin(SLib.SpriteImage_Static):  # 46, 607
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
             ImageCache['LineStarCoin'],
+            (-16, -12),
         )
 
     @staticmethod
@@ -1484,7 +1485,7 @@ class SpriteImage_BoltControlledStarCoin(SLib.SpriteImage_Static):  # 47
         SLib.loadIfNotInImageCache('BoltStarCoin', 'star_coin.png')
 
 
-class SpriteImage_MvmtRotControlledStarCoin(SLib.SpriteImage_Static):  # 48
+class SpriteImage_MvmtRotControlledStarCoin(SLib.SpriteImage_Static):  # 48, 480
     # Movement Controlled, Rotation Controlled Star Coin
     def __init__(self, parent):
         super().__init__(
@@ -1493,7 +1494,7 @@ class SpriteImage_MvmtRotControlledStarCoin(SLib.SpriteImage_Static):  # 48
             ImageCache['MRStarCoin'],
         )
 
-        self.xOffset = -16
+        self.yOffset = 6
 
     @staticmethod
     def loadImages():
@@ -4589,7 +4590,7 @@ class SpriteImage_MovingPlatformSpawner(SLib.SpriteImage_StaticMultiple):  # 192
             painter.drawPixmap(30, 0, ImageCache['MovPlatNR'])
 
 
-class SpriteImage_LineMovingPlatform(SLib.SpriteImage_StaticMultiple):  # 193
+class SpriteImage_LineMovingPlatform(SLib.SpriteImage_StaticMultiple):  # 193, 573
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -4616,11 +4617,13 @@ class SpriteImage_LineMovingPlatform(SLib.SpriteImage_StaticMultiple):  # 193
         if not self.width:
             self.width = 4
 
-        self.xOffset = (1.5 - 0.5 * (self.width - 1)) * 16
+        self.xOffset = (1.5 - 0.5 * (self.width - 1))
 
         if self.width == 1:
+            self.xOffset = 1.25
             self.width = 1.5
 
+        self.xOffset *= 16
         self.width *= 16
 
         self.imgType = 'R'
@@ -4827,7 +4830,7 @@ class SpriteImage_Fuzzy(SLib.SpriteImage_StaticMultiple):  # 204
         giant = self.parent.spritedata[4] & 1
 
         self.image = ImageCache['FuzzyGiant'] if giant else ImageCache['Fuzzy']
-        self.offset = (-18, -18) if giant else (-7, -7)
+        self.offset = (-18, -18) if giant else (-8, -7)
 
         super().dataChanged()
 
@@ -7271,19 +7274,6 @@ class SpriteImage_BowserJrBlock(SLib.SpriteImage_Static):  # 478
         SLib.loadIfNotInImageCache('BowserJrBlock', 'bowser_jr_block.png')
 
 
-class SpriteImage_MovementControlledStarCoin(SLib.SpriteImage_Static):  # 480
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['MovementStarCoin'],
-        )
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('MovementStarCoin', 'star_coin.png')
-
-
 class SpriteImage_WaddleWing(SLib.SpriteImage_StaticMultiple):  # 481
     def __init__(self, parent):
         super().__init__(
@@ -8253,7 +8243,7 @@ ImageClasses = {
     476: SpriteImage_BigKoopaTroopa,
     478: SpriteImage_BowserJrBlock,
     479: SpriteImage_Crash,
-    480: SpriteImage_MovementControlledStarCoin,
+    480: SpriteImage_MvmtRotControlledStarCoin,
     481: SpriteImage_WaddleWing,
     483: SpriteImage_MultiSpinningFirebar,
     484: SpriteImage_ControllerSpinning,
@@ -8292,6 +8282,7 @@ ImageClasses = {
     566: SpriteImage_NabbitMetal,
     569: SpriteImage_NabbitPrize,
     572: SpriteImage_Crash,
+    573: SpriteImage_LineMovingPlatform,
     575: SpriteImage_PipeLeft,
     576: SpriteImage_PipeRight,
     577: SpriteImage_PipeUp,
@@ -8303,6 +8294,7 @@ ImageClasses = {
     600: SpriteImage_MoonBlock,
     602: SpriteImage_SwingingChain,
     606: SpriteImage_BigBuzzyBeetle,
+    607: SpriteImage_LineControlledStarCoin,
     612: SpriteImage_PacornBlock,
     615: SpriteImage_CheepCheep,
     618: SpriteImage_SteelBlock,
