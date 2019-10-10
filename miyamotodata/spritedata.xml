@@ -2828,7 +2828,14 @@
 			<entry value="1">Metal</entry>
 		</list>
 		<checkbox nybble="12" title="Stop at line stopper" comment="If checked, instead of bouncing off a line stopper, the platform will stop moving there."/>
-		<value nybble="16" title="Speed"/>
+		<list nybble="16" title="Speed">
+			<entry value="0">1.0</entry>
+			<entry value="1">1.5</entry>
+			<entry value="2">2.0</entry>
+			<entry value="3">3.0</entry>
+			<entry value="4">0.5</entry>
+			<entry value="5">0.75</entry>
+		</list>
 		<value nybble="18" title="Length" comment="Value + 4 (in blocks)"/>
 	</sprite>
 	<sprite id="194" name="Fire Snake">
@@ -3116,10 +3123,10 @@
 		<list nybble="5" title="At The End" comment="What the snake blocks do once it hits the last path point. Higher values cause crashes. Value 4 can be used to create looping snake blocks. To do this, make sure the path's start and end node are on the same position and set this to 4.">
 			<entry value="0">Stop</entry>
 			<entry value="1">Fall (Via front square)</entry>
-			<entry value="2">Fall (Block by block)</entry>
+			<entry value="2">Fall (Piece by piece - first to last)</entry>
 			<entry value="3">Fall (All at once)</entry>
 			<entry value="4">Repeat movement</entry>
-			<entry value="5">Falls (Piece by piece - right to left)</entry>
+			<entry value="5">Falls (Piece by piece - last to first)</entry>
 		</list>
 		<list bit="21-22" title="Size" comment="This sets the size of the thing.">
 			<entry value="0">1 block</entry>
@@ -3161,9 +3168,9 @@
 		<value nybble="13-14" title="Repeat-related Path Node" comment="When nybble 7 is set to 'Repeat movement', this value is used to get a path node with unknown purpose."/>
 		<checkbox nybble="15" title="Icy [UNUSED]" comment="Makes the snake blocks appear frozen when checked. They're also slippery."/>
 		<list nybble="16" title="Speed" comment="The speed of the snake blocks.">
-			<entry value="0">Slow</entry>
-			<entry value="1">Fast</entry>
-			<entry value="2">Very Fast</entry>
+			<entry value="0">0.5</entry>
+			<entry value="1">1.0</entry>
+			<entry value="2">1.4</entry>
 		</list>
 		<list nybble="19" title="Spawn">
 			<entry value="0">Always</entry>
@@ -3635,7 +3642,7 @@
 		<value nybble="20" title="Length" comment="The platform length."/>
 	</sprite>
 	<sprite id="279" name="Coin - Follows Screen" notes="Whenever the screen scrolls, this coin scrolls with it, always staying at the same place."/>
-	<sprite id="280" name="UNKNOWN 280">
+	<sprite id="280" name="Bolt Mushroom Platform - Uses Lines">
 		<checkbox nybble="10" title="Unknown Checkbox 10"/>
 		<list nybble="11" title="Unknown Value 11">
 			<entry value="0">???</entry>
@@ -5924,7 +5931,14 @@
 			<entry value="0">No</entry>
 			<entry value="1">Yes</entry>
 		</list>
-		<value nybble="16" title="Speed"/>
+		<list nybble="16" title="Speed">
+			<entry value="0">1.0</entry>
+			<entry value="1">1.5</entry>
+			<entry value="2">2.0</entry>
+			<entry value="3">3.0</entry>
+			<entry value="4">0.5</entry>
+			<entry value="5">0.75</entry>
+		</list>
 		<value nybble="18" title="Width" comment="The width of the platform. (0 will not spawn anything.)"/>
 	</sprite>
 	<sprite id="574" name="Coin-collection-spawned Rainbow Pipe" notes="This sprite appears once enough coins are collected in the area is in.">
@@ -6416,10 +6430,10 @@
 		<list nybble="5" title="At The End" comment="What the snake blocks do once it hits the last path point. Higher values cause crashes. Value 4 can be used to create looping snake blocks. To do this, make sure the path's start and end node are on the same position and set this to 4.">
 			<entry value="0">Stop</entry>
 			<entry value="1">Fall (Via front square)</entry>
-			<entry value="2">Fall (Block by block)</entry>
+			<entry value="2">Fall (Piece by piece - first to last)</entry>
 			<entry value="3">Fall (All at once)</entry>
 			<entry value="4">Repeat movement</entry>
-			<entry value="5">Falls (Piece by piece - right to left)</entry>
+			<entry value="5">Falls (Piece by piece - last to first)</entry>
 		</list>
 		<list bit="21-22" title="Size" comment="This sets the size of the thing.">
 			<entry value="0">1 block</entry>
@@ -6461,9 +6475,9 @@
 		<value nybble="13-14" title="Repeat-related Path Node" comment="When nybble 7 is set to 'Repeat movement', this value is used to get a path node with unknown purpose."/>
 		<checkbox nybble="15" title="Icy [UNUSED]" comment="Makes the snake blocks appear frozen when checked. They're also slippery."/>
 		<list nybble="16" title="Speed" comment="The speed of the snake blocks.">
-			<entry value="0">Slow</entry>
-			<entry value="1">Fast</entry>
-			<entry value="2">Very Fast</entry>
+			<entry value="0">0.5</entry>
+			<entry value="1">1.0</entry>
+			<entry value="2">1.4</entry>
 		</list>
 		<list nybble="19" title="Spawn">
 			<entry value="0">Always</entry>
@@ -6495,7 +6509,14 @@
 		<value nybble="10" title="Unknown Value 10"/>
 		<checkbox nybble="12" title="Stop at line stopper"/>
 		<value nybble="14" title="Unknown Value 14"/>
-		<value nybble="16" title="Unknown Value 16"/>
+		<list nybble="16" title="Speed">
+			<entry value="0">1.0</entry>
+			<entry value="1">1.5</entry>
+			<entry value="2">2.0</entry>
+			<entry value="3">3.0</entry>
+			<entry value="4">0.5</entry>
+			<entry value="5">0.75</entry>
+		</list>
 		<value nybble="18" title="Unknown Value 18"/>
 		<value nybble="19" title="Unknown Value 19"/>
 	</sprite>
@@ -6856,14 +6877,15 @@
 	</sprite>
 	<sprite id="716" name="Foo - NSLU"/>
 	<sprite id="717" name="Snake Block - NSLU 7-6" notes="Unlike 222 and 655, this one can activate an event when ridden by all players if the 'Start Condition' is set to 2 (Only in NSLU. Won't work in NSMBU).">
-		<value nybble="3-4" title="Target Event ID" comment="This event is triggered when the snake block reaches the end of its path."/>
+		<value nybble="1-2" title="Target Event ID 1" comment="This event is triggered when the snake block is ridden by all players and the 'Start Condition' is set to 2 (Only in NSLU. Won't work in NSMBU)."/>
+		<value nybble="3-4" title="Target Event ID 2" comment="This event is triggered when the snake block reaches the end of its path."/>
 		<list nybble="5" title="At The End" comment="What the snake blocks do once it hits the last path point. Higher values cause crashes. Value 4 can be used to create looping snake blocks. To do this, make sure the path's start and end node are on the same position and set this to 4.">
 			<entry value="0">Stop</entry>
 			<entry value="1">Fall (Via front square)</entry>
-			<entry value="2">Fall (Block by block)</entry>
+			<entry value="2">Fall (Piece by piece - first to last)</entry>
 			<entry value="3">Fall (All at once)</entry>
 			<entry value="4">Repeat movement</entry>
-			<entry value="5">Falls (Piece by piece - right to left)</entry>
+			<entry value="5">Falls (Piece by piece - last to first)</entry>
 		</list>
 		<list bit="21-22" title="Size" comment="This sets the size of the thing.">
 			<entry value="0">1 block</entry>
@@ -6905,9 +6927,9 @@
 		<value nybble="13-14" title="Repeat-related Path Node" comment="When nybble 7 is set to 'Repeat movement', this value is used to get a path node with unknown purpose."/>
 		<checkbox nybble="15" title="Icy [UNUSED]" comment="Makes the snake blocks appear frozen when checked. They're also slippery."/>
 		<list nybble="16" title="Speed" comment="The speed of the snake blocks.">
-			<entry value="0">Slow</entry>
-			<entry value="1">Fast</entry>
-			<entry value="2">Very Fast</entry>
+			<entry value="0">0.5</entry>
+			<entry value="1">1.0</entry>
+			<entry value="2">1.4</entry>
 		</list>
 		<list nybble="19" title="Spawn">
 			<entry value="0">Always</entry>
