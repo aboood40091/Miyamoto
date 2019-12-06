@@ -1427,7 +1427,8 @@ def _loadGTX_gtx_extract(gtxdata):
         os.system('./gtx_extract.elf texture.gtx texture.bmp')
 
     else:
-        os.system(tile_path + '/gtx_extract_bmp texture.gtx')
+        os.system('chmod +x ./gtx_extract_bmp')
+        os.system('./gtx_extract_bmp texture.gtx')
 
     os.chdir(globals.miyamoto_path)
 

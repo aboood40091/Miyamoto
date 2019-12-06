@@ -5915,3 +5915,23 @@ class ListWidgetItem_SortsByOther(QtWidgets.QListWidgetItem):
 
     def __lt__(self, other):
         return self.reference < other.reference
+
+
+class IconsOnlyTabBar(QtWidgets.QTabBar):
+    """
+    A QTabBar subclass that is designed to only display icons.
+    From "Reggie-Updated".
+
+    On macOS Mojave (and probably other versions around there),
+    QTabWidget tabs are way too wide when only displaying icons.
+    This ultimately causes the Miyamoto palette itself to have a really
+    high minimum width.
+
+    This subclass limits tab widths to fix the problem.
+    """
+    def tabSizeHint(self, index):
+        res = super().tabSizeHint(index)
+        if globals.app.style().metaObject().className() == 'QMacStyle':
+            res.setWidth(res.height() * 2)
+
+        return res

@@ -1192,6 +1192,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # add tabs to it
         tabs = QtWidgets.QTabWidget()
+        tabs.setTabBar(IconsOnlyTabBar())
         tabs.setIconSize(QtCore.QSize(16, 16))
         tabs.currentChanged.connect(self.CreationTabChanged)
         dock.setWidget(tabs)
