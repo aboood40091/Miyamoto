@@ -76,8 +76,8 @@ Open Command Prompt or PowerShell (Windows) or Terminal (Linux or Mac OSX) and t
 
 #### STEP 4: (Skip to 4.5 for Windows)
 Make sure you have a compatible C compiler with Cython. For Linux and Mac OSX, you want "GCC".  
-GCC is usually preinstalled on Linux, but if you don't have it, the command sudo apt-get install build-essential will fetch everything you need.  
-On Mac OSX, you can retrieve gcc by installing Apple’s XCode through running the command xcode-select --install.  
+GCC is usually preinstalled on Linux, but if you don't have it, the command `sudo apt-get install build-essential` will fetch everything you need.  
+On Mac OSX, you can retrieve gcc by installing Apple’s XCode through running the command `xcode-select --install`.  
 
 ##### STEP 4.5 (C compiler for Windows):
 Download the Microsoft Build Tools 2015 installer:  

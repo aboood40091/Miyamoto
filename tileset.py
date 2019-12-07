@@ -56,6 +56,7 @@ class TilesetTile:
     Class that represents a single tile in a tileset
     """
     exists = True
+    _collisionedImgCache = {}
 
     def __init__(self, main=None, nml=None):
         """
@@ -78,6 +79,24 @@ class TilesetTile:
         self.animTiles = []
         self.collData = ()
         self.collOverlay = None
+
+    def imgWithCollisions(self, img):
+        """
+        Return a copy of "img" with self.collOverlay applied.
+        Uses self._collisionedImgCache, which has to be reset if
+        self.collOverlay changes.
+        """
+        imgId = id(img)
+        if imgId not in self._collisionedImgCache:
+            newImg = QtGui.QPixmap(img)
+            p = QtGui.QPainter(newImg)
+            p.drawPixmap(0, 0, self.collOverlay)
+            del p
+
+            self._collisionedImgCache[imgId] = newImg
+
+        return self._collisionedImgCache[imgId]
+
 
     def addAnimationData(self, data):
         """
@@ -139,9 +158,7 @@ class TilesetTile:
             result = QtGui.QPixmap(self.animTiles[self.animFrame])
 
         if globals.CollisionsShown and (self.collOverlay is not None):
-            painter = QtGui.QPainter(result)
-            painter.drawPixmap(0, 0, self.collOverlay)
-            del painter
+            result = self.imgWithCollisions(result)
 
         return result
 
@@ -531,6 +548,7 @@ class TilesetTile:
             painter.drawRect(0, 0, globals.TileWidth, globals.TileWidth)
 
         self.collOverlay = collPix
+        self._collisionedImgCache = {}
 
 
 class ObjectDef:

@@ -88,70 +88,71 @@ class LevelScene(QtWidgets.QGraphicsScene):
 
         width = x2 - x1
         height = y2 - y1
+
+        objectDefinitions = globals.ObjectDefinitions
         tiles = globals.Tiles
+
+        offset = 0x800
+        items = {1: 26, 2: 27, 3: 16, 4: 17, 5: 18, 6: 19,
+                 7: 20, 8: 21, 9: 22, 10: 25, 11: 23, 12: 24,
+                 14: 32, 15: 33, 16: 34, 17: 35, 18: 42, 19: 36,
+                 20: 37, 21: 38, 22: 41, 23: 39, 24: 40}
 
         # create and draw the tilemaps
         for layer in [layer2, layer1, layer0]:
-            if len(layer) > 0:
-                tmap = []
-                i = 0
-                while i < height:
-                    tmap.append([None] * width)
-                    i += 1
+            if not layer:
+                continue
 
-                for item in layer:
-                    startx = item.objx - x1
-                    desty = item.objy - y1
+            tmap = [[None] * width for _ in range(height)]
 
-                    exists = True
-                    try:
-                        if globals.ObjectDefinitions[item.tileset] is None:
-                            exists = False
-                        elif globals.ObjectDefinitions[item.tileset][item.type] is None:
-                            exists = False
-                    except IndexError:
+            for item in layer:
+                startx = item.objx - x1
+                desty = item.objy - y1
+
+                exists = True
+                try:
+                    if objectDefinitions[item.tileset] is None:
                         exists = False
+                    elif objectDefinitions[item.tileset][item.type] is None:
+                        exists = False
+                except IndexError:
+                    exists = False
 
-                    for row in item.objdata:
-                        destrow = tmap[desty]
-                        destx = startx
-                        for tile in row:
-                            # If this object has data, make sure to override it properly
-                            if tile > 0:
-                                offset = 0x200 * 4
-                                items = {1: 26, 2: 27, 3: 16, 4: 17, 5: 18, 6: 19,
-                                         7: 20, 8: 21, 9: 22, 10: 25, 11: 23, 12: 24,
-                                         14: 32, 15: 33, 16: 34, 17: 35, 18: 42, 19: 36,
-                                         20: 37, 21: 38, 22: 41, 23: 39, 24: 40}
-                                if item.data in items:
-                                    destrow[destx] = offset + items[item.data]
-                                else:
-                                    destrow[destx] = tile
-                            elif not exists:
-                                destrow[destx] = -1
-                            destx += 1
-                        desty += 1
-
-                painter.save()
-                painter.translate(x1 * globals.TileWidth, y1 * globals.TileWidth)
-                desty = 0
-                for row in tmap:
-                    destx = 0
+                for row in item.objdata:
+                    destrow = tmap[desty]
+                    destx = startx
                     for tile in row:
-                        pix = None
+                        # If this object has data, make sure to override it properly
+                        if tile > 0:
+                            if item.data in items:
+                                destrow[destx] = offset + items[item.data]
+                            else:
+                                destrow[destx] = tile
+                        elif not exists:
+                            destrow[destx] = -1
+                        destx += 1
+                    desty += 1
 
-                        if tile == -1:
-                            # Draw unknown tiles
-                            pix = tiles[4 * 0x200].getCurrentTile()
-                        elif tile is not None:
-                            pix = tiles[tile].getCurrentTile()
+            painter.save()
+            painter.translate(x1 * globals.TileWidth, y1 * globals.TileWidth)
+            desty = 0
+            for row in tmap:
+                destx = 0
+                for tile in row:
+                    pix = None
 
-                        if pix is not None:
-                            painter.drawPixmap(destx, desty, pix)
+                    if tile == -1:
+                        # Draw unknown tiles
+                        pix = tiles[0x800].getCurrentTile()
+                    elif tile is not None:
+                        pix = tiles[tile].getCurrentTile()
 
-                        destx += globals.TileWidth
-                    desty += globals.TileWidth
-                painter.restore()
+                    if pix is not None:
+                        painter.drawPixmap(destx, desty, pix)
+
+                    destx += globals.TileWidth
+                desty += globals.TileWidth
+            painter.restore()
 
 
 class HexSpinBox(QtWidgets.QSpinBox):
