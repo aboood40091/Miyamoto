@@ -307,6 +307,17 @@ class SpriteImage_Static(SpriteImage):
         painter.restore()
 
 
+class SpriteImage_MovementController(SpriteImage_Static):
+    """
+    A special class for movement controllers
+    """
+    def __init__(self, parent, scale=3.75, image=None):
+        super().__init__(parent, scale, image)
+
+    def getMovementID(self):
+        return self.parent.spritedata[10]
+
+
 class SpriteImage_StaticMultiple(SpriteImage_Static):
     """
     A class that acts like a SpriteImage_Static but lets you change
