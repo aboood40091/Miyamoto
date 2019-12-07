@@ -28,7 +28,7 @@
 ################################################################
 
 # Python version: sanity check
-minimum = 3.4
+minimum = 3.5
 import sys
 
 currentRunningVersion = sys.version_info.major + (.1 * sys.version_info.minor)
@@ -1197,6 +1197,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # add tabs to it
         tabs = QtWidgets.QTabWidget()
+        tabs.setTabBar(IconsOnlyTabBar())
         tabs.setIconSize(QtCore.QSize(16, 16))
         tabs.currentChanged.connect(self.CreationTabChanged)
         dock.setWidget(tabs)
@@ -2990,22 +2991,24 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Handle toggling of sprite images
         """
         globals.SpriteImagesShown = checked
-
         setSetting('ShowSpriteImages', globals.SpriteImagesShown)
 
         if globals.Area is not None:
             globals.DirtyOverride += 1
             for spr in globals.Area.sprites:
                 spr.UpdateRects()
-                if globals.SpriteImagesShown and not globals.Initializing:
+                if globals.Initializing:
+                    continue
+
+                if globals.SpriteImagesShown:
                     spr.setPos(
-                        (spr.objx + spr.ImageObj.xOffset) * (globals.TileWidth / 16),
-                        (spr.objy + spr.ImageObj.yOffset) * (globals.TileWidth / 16),
+                        int((spr.objx + spr.ImageObj.xOffset) * globals.TileWidth / 16),
+                        int((spr.objy + spr.ImageObj.yOffset) * globals.TileWidth / 16),
                     )
-                elif not globals.Initializing:
+                else:
                     spr.setPos(
-                        spr.objx * (globals.TileWidth / 16),
-                        spr.objy * (globals.TileWidth / 16),
+                        int(spr.objx * globals.TileWidth / 16),
+                        int(spr.objy * globals.TileWidth / 16),
                     )
             globals.DirtyOverride -= 1
 
@@ -5402,7 +5405,7 @@ def main():
     SLib.main()
 
     # Set the default window icon (used for random popups and stuff)
-    globals.app.setWindowIcon(GetIcon('miyamoto'))
+    globals.app.setWindowIcon(QtGui.QIcon('miyamotodata/icon.png'))
     globals.app.setApplicationDisplayName('Miyamoto! v%s' % globals.MiyamotoVersion)
 
     gt = setting('GridType')

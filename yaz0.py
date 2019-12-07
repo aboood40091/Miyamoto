@@ -75,7 +75,8 @@ def compressWSZST(inb, outf, level=9):
 
     else:
         os.chdir(globals.miyamoto_path + '/macTools')
-        os.system('"' + globals.miyamoto_path + '/macTools/wszst_mac" COMPRESS "' + inf + '" --dest "' + outf + '"')
+        os.system('chmod +x ./wszst_mac')
+        os.system('./wszst_mac COMPRESS "' + inf + '" --dest "' + outf + '"')
 
     os.chdir(globals.miyamoto_path)
 
@@ -109,13 +110,14 @@ def decompressWSZST(inb):
 
     else:
         os.chdir(globals.miyamoto_path + '/macTools')
-        os.system('"' + globals.miyamoto_path + '/macTools/wszst_mac" DECOMPRESS "' + inf + '" --dest "' + outf + '"')
+        os.system('chmod +x ./wszst_mac')
+        os.system('./wszst_mac DECOMPRESS "' + inf + '" --dest "' + outf + '"')
 
     os.remove(inf)
     os.chdir(globals.miyamoto_path)
 
     if not os.path.isfile(outf):
-        return b''
+        return None
 
     with open(outf, "rb") as inf_:
         data = inf_.read()
@@ -150,7 +152,7 @@ def decompressLIBYAZ0(inb):
         data = decompress(inb)
 
     except:
-        return False
+        return None
 
     else:
         return data

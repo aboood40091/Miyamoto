@@ -2281,7 +2281,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         bfresdata, behaviourdata, objstrings, metadata = self.getData(arc)
 
-        if not (bfresdata and behaviourdata and objstrings and metadata):
+        if not bfresdata:
+            QtWidgets.QMessageBox.warning(None, 'Error',  'Error - Couldn\'t load the image and normal map data')
+            return
+
+        elif None in (behaviourdata, objstrings, metadata):
             QtWidgets.QMessageBox.warning(None, 'Error',  'Error - the necessary files were not found.\n\nNot a valid tileset, sadly.')
             return
 
@@ -2422,7 +2426,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         bfresdata, behaviourdata, objstrings, metadata = self.getData(arc)
 
-        if not (bfresdata and behaviourdata and objstrings and metadata):
+        if not bfresdata:
+            QtWidgets.QMessageBox.warning(None, 'Error',  'Error - Couldn\'t load the image and normal map data')
+            return
+
+        elif None in (behaviourdata, objstrings, metadata):
             QtWidgets.QMessageBox.warning(None, 'Error',  'Error - the necessary files were not found.\n\nNot a valid tileset, sadly.')
             return
 
