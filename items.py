@@ -719,6 +719,8 @@ class ObjectItem(LevelEditorItem):
         self.UpdateRects()
         self.scene().update(updaterect)
 
+        globals.mainWindow.levelOverview.update()
+
     def mouseMoveEvent(self, event):
         """
         Overrides mouse movement events if needed for resizing

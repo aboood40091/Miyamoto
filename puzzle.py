@@ -2285,7 +2285,7 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(None, 'Error',  'Error - Couldn\'t load the normal map data')
             return
 
-        elif not (behaviourdata and objstrings and metadata):
+        elif None in (behaviourdata, objstrings, metadata):
             QtWidgets.QMessageBox.warning(None, 'Error',  'Error - the necessary files were not found.\n\nNot a valid tileset, sadly.')
             return
 
@@ -2433,7 +2433,7 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(None, 'Error',  'Error - Couldn\'t load the normal map data')
             return
 
-        elif not (behaviourdata and objstrings and metadata):
+        elif None in (behaviourdata, objstrings, metadata):
             QtWidgets.QMessageBox.warning(None, 'Error',  'Error - the necessary files were not found.\n\nNot a valid tileset, sadly.')
             return
 
