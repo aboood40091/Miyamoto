@@ -958,47 +958,66 @@
 		<value nybble="21-22" title="Movement ID" comment="Use this id to hook the sprite to a movement controller."/>
 	</sprite>
 	<sprite id="68" name="Movement Controller - Swaying" notes="Use this to sway some objects.">
-		<value nybble="4" title="Target Event ID" comment="Use this to activate an event."/>
+		<value nybble="3-4" title="Triggering Event ID" comment="Use this to activate the movement once."/>
 		<checkbox nybble="5" title="Unknown Value 5" comment="No effect at all."/>
-		<value nybble="6" title="Unknown Value 6" comment="This value was literally changed from 15 to 0 and it had no effect at all."/>
+		<list nybble="6" title="Sway Start Offset" comment="Offset [Sway Direction]. Sway direction is inverted when 'Reversed Movement' is used.">
+			<entry value="0">None [Counter-Clockwise]</entry>
+			<entry value="1">(Arc / 2) * cos(22.5&#xB0;) : [Counter-Clockwise]</entry>
+			<entry value="2">(Arc / 2) * cos(45&#xB0;) : [Counter-Clockwise]</entry>
+			<entry value="3">(Arc / 2) * cos(67.5&#xB0;) : [Counter-Clockwise]</entry>
+			<entry value="4">(Arc / 2) * cos(90&#xB0;) : [Clockwise]</entry>
+			<entry value="5">(Arc / 2) * cos(112.5&#xB0;) : [Clockwise]</entry>
+			<entry value="6">(Arc / 2) * cos(135&#xB0;) : [Clockwise]</entry>
+			<entry value="7">(Arc / 2) * cos(157.5&#xB0;) : [Clockwise]</entry>
+			<entry value="8">None [Clockwise]</entry>
+			<entry value="9">(Arc / 2) * cos(202.5&#xB0;) : [Clockwise]</entry>
+			<entry value="10">(Arc / 2) * cos(225&#xB0;) : [Clockwise]</entry>
+			<entry value="11">(Arc / 2) * cos(247.5&#xB0;) : [Clockwise]</entry>
+			<entry value="12">(Arc / 2) * cos(270&#xB0;) : [Counter-Clockwise]</entry>
+			<entry value="13">(Arc / 2) * cos(292.5&#xB0;) : [Counter-Clockwise]</entry>
+			<entry value="14">(Arc / 2) * cos(315&#xB0;) : [Counter-Clockwise]</entry>
+			<entry value="15">(Arc / 2) * cos(337.5&#xB0;) : [Counter-Clockwise]</entry>
+		</list>
 		<checkbox nybble="7" title="Unknown Value 7" comment="No effect at all."/>
 		<value nybble="8" title="Unknown Value 8"/>
-		<list nybble="9-10" title="Starting rotation" comment="The offset the objects will start at.">
-			<entry value="0">0</entry>
-			<entry value="1">22.5</entry>
-			<entry value="2">45</entry>
-			<entry value="3">67.5</entry>
-			<entry value="4">90</entry>
-			<entry value="5">112.5</entry>
-			<entry value="6">135</entry>
-			<entry value="7">157.5</entry>
-			<entry value="8">180</entry>
-			<entry value="9">202.5</entry>
-			<entry value="10">225</entry>
-			<entry value="11">247.5</entry>
-			<entry value="12">270</entry>
-			<entry value="13">292.5</entry>
-			<entry value="14">315</entry>
-			<entry value="15">337.5</entry>
+		<checkbox nybble="9" title="Reversed Movement"/>
+		<checkbox nybble="9" title="Event Activated" mask="4"/>
+		<list nybble="10" title="Arc Middle Rotation">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0;</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0;</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0;</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
 		</list>
-		<value nybble="13" title="Sway Delay" comment="Delays the movement of the sprite."/>
-		<list nybble="15" title="Sway arc" comment="Arc.">
-			<entry value="0">0</entry>
-			<entry value="1">22.5</entry>
-			<entry value="2">45</entry>
-			<entry value="3">67.5</entry>
-			<entry value="4">90</entry>
-			<entry value="5">112.5</entry>
-			<entry value="6">135</entry>
-			<entry value="7">157.5</entry>
-			<entry value="8">180</entry>
-			<entry value="9">202.5</entry>
-			<entry value="10">225</entry>
-			<entry value="11">247.5</entry>
-			<entry value="12">270</entry>
-			<entry value="13">292.5</entry>
-			<entry value="14">315</entry>
-			<entry value="15">337.5</entry>
+		<value nybble="13" title="Sway Delay" comment="Delays the movement of the sprite when switching directions."/>
+		<list nybble="15" title="Sway arc">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0;</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0;</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0;</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
 		</list>
 		<value nybble="16" title="Swaying Speed" comment="The speed it sways."/>
 		<value nybble="18" title="Unknown Value 18"/>
@@ -1698,18 +1717,73 @@
 		<checkbox nybble="19" title="Unknown Checkbox 19 [NSLU]" comment="Only used in NSLU 8-4 A1."/>
 		<checkbox nybble="20" title="Reveal Paths On Exit*" comment="*If this is unchecked and exit type is 1 then when the players come back to the worldmap no path reveal animation is played, BUT you can still walk on the unrevealed paths."/>
 	</sprite>
-	<sprite id="116" name="Movement Controller - Two-In-One" notes="Combines two movement IDs to one.">
-		<value nybble="4" title="Unknown Value 4"/>
-		<value nybble="5" title="Unknown Value 5"/>
-		<value nybble="6" title="Unknown Value 6"/>
+	<sprite id="116" name="Movement-controlled Movement Controller - Swaying">
+		<value nybble="3-4" title="Triggering Event ID" comment="Use this to activate the movement once."/>
+		<checkbox nybble="5" title="Unknown Value 5" comment="No effect at all."/>
+		<list nybble="6" title="Sway Start Offset" comment="Offset [Sway Direction]. Sway direction is inverted when 'Reversed Movement' is used.">
+			<entry value="0">None [Counter-Clockwise]</entry>
+			<entry value="1">(Arc / 2) * cos(22.5&#xB0;) : [Counter-Clockwise]</entry>
+			<entry value="2">(Arc / 2) * cos(45&#xB0;) : [Counter-Clockwise]</entry>
+			<entry value="3">(Arc / 2) * cos(67.5&#xB0;) : [Counter-Clockwise]</entry>
+			<entry value="4">(Arc / 2) * cos(90&#xB0;) : [Clockwise]</entry>
+			<entry value="5">(Arc / 2) * cos(112.5&#xB0;) : [Clockwise]</entry>
+			<entry value="6">(Arc / 2) * cos(135&#xB0;) : [Clockwise]</entry>
+			<entry value="7">(Arc / 2) * cos(157.5&#xB0;) : [Clockwise]</entry>
+			<entry value="8">None [Clockwise]</entry>
+			<entry value="9">(Arc / 2) * cos(202.5&#xB0;) : [Clockwise]</entry>
+			<entry value="10">(Arc / 2) * cos(225&#xB0;) : [Clockwise]</entry>
+			<entry value="11">(Arc / 2) * cos(247.5&#xB0;) : [Clockwise]</entry>
+			<entry value="12">(Arc / 2) * cos(270&#xB0;) : [Counter-Clockwise]</entry>
+			<entry value="13">(Arc / 2) * cos(292.5&#xB0;) : [Counter-Clockwise]</entry>
+			<entry value="14">(Arc / 2) * cos(315&#xB0;) : [Counter-Clockwise]</entry>
+			<entry value="15">(Arc / 2) * cos(337.5&#xB0;) : [Counter-Clockwise]</entry>
+		</list>
+		<checkbox nybble="7" title="Unknown Value 7" comment="No effect at all."/>
 		<value nybble="8" title="Unknown Value 8"/>
-		<value nybble="9" title="Unknown Value 9"/>
-		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="13" title="Unknown Value 13"/>
-		<value nybble="15" title="Unknown Value 15"/>
-		<value nybble="16" title="Unknown Value 16"/>
-		<value nybble="21-22" title="Movement ID 1" comment="Could also be the output"/>
-		<value nybble="23-24" title="Movement ID 2" comment="Could also be the output"/>
+		<checkbox nybble="9" title="Reversed Movement"/>
+		<checkbox nybble="9" title="Event Activated" mask="4"/>
+		<list nybble="10" title="Arc Middle Rotation">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0;</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0;</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0;</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
+		</list>
+		<value nybble="13" title="Sway Delay" comment="Delays the movement of the sprite when switching direction."/>
+		<list nybble="15" title="Sway arc" comment="Arc.">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0;</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0;</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0;</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
+		</list>
+		<value nybble="16" title="Swaying Speed" comment="The speed it sways."/>
+		<value nybble="18" title="Unknown Value 18"/>
+		<value nybble="20" title="Unknown Value 20"/>
+		<value nybble="21-22" title="Output Movement ID"/>
+		<value nybble="23-24" title="Input Movement ID"/>
 	</sprite>
 	<sprite id="117" name="Big Spinner (Ball 'n' Chain)" notes="A swinging spiked ball on a spiked chain. Does not spawn if not tied to a movement controller.">
 		<value nybble="8" title="Unknown Value 8"/>
@@ -1797,9 +1871,9 @@
 			<entry value="3">1.25</entry>
 		</list>
 	</sprite>
-	<sprite id="124" name="Continuous Sand Spout" notes="Name translates to &quot;Resident geyser (sand)&quot;. ">
-		<value nybble="5-6" title="Unknown Value 5-6"/>
-		<value nybble="10" title="Unknown Value 10"/>
+	<sprite id="124" name="Location-triggered Sand Spout">
+		<value nybble="5-6" title="Location ID"/>
+		<value nybble="10" title="Delay"/>
 		<list nybble="11" title="Size">
 			<entry value="0">0.95</entry>
 			<entry value="1">1.44</entry>
@@ -4015,8 +4089,8 @@
 		<value nybble="23-24" title="Crystal ID" comment="Some kind of ID."/>
 	</sprite>
 	<sprite id="317" name="Boom Boom (W5 - big, spinning and jumping)" notes="The Soda Jungle version of Boom boom. "/>
-	<sprite id="318" name="Lava Bubble (Synced)" notes="Lava Bubbles were previously known as Podoboo.">
-		<value nybble="6" title="Unknown Value 6"/>
+	<sprite id="318" name="Grouped Lava Bubble" notes="Lava Bubbles were previously known as Podoboo.">
+		<value nybble="5-6" title="Group ID"/>
 		<list nybble="8" title="Initial Direction" comment="Only useful when &quot;Horizontal Distance&quot; is set.">
 			<entry value="0">Right</entry>
 			<entry value="1">Left</entry>
@@ -4349,7 +4423,10 @@
 			<entry value="2">Placed on Ceiling</entry>
 			<entry value="3">Placed on Right Wall</entry>
 		</list>
-		<value nybble="12" title="Direction"/>
+		<list nybble="12" title="Direction">
+			<entry value="0">Clockwise</entry>
+			<entry value="1">Counter-Clockwise</entry>
+		</list>
 	</sprite>
 	<sprite id="353" name="Parachute Coin">
 		<value nybble="16" title="Unknown Value 16"/>
@@ -4637,13 +4714,35 @@
 	</sprite>
 	<sprite id="389" name="Roy Koopa"/>
 	<sprite id="390" name="Movement-controlled Jungle Bridge Platform">
-		<value nybble="5" title="Unknown Value 5"/>
-		<checkbox nybble="8" title="Don't Spin with Movement Controller" comment="As the sprite spins around the movement controller, the platforms themselves won't."/>
-		<checkbox nybble="10" title="Unknown Flag 10" comment="Unticked in NSLU 5-56 A1, NSLU 5-6 A1, NSLU 5-6 A2, NSMBU 5-56 A1, NSMBU 5-6 A1, NSMBU 5-6 A2&lt;br&gt;&lt;br&gt;Ticked in NSLU 5-6 A1, NSMBU 5-6 A1"/>
-		<value nybble="11" title="Starting Angle" comment="Angle should be Value - 22.5. Needs more testing."/>
-		<value nybble="12" title="Hinge Amount-Related" comment="The amount of hinges...? Used 0-2 in NSMBU 5-6 A1. The first hinge will be generated wherever the movement controller is placed."/>
-		<value nybble="17-18" title="Length" comment="Value+0. Extends to the right of the sprite."/>
-		<value nybble="21-22" title="Movement ID" comment="Attatches to sprite 68."/>
+		<checkbox nybble="5" mask="1" title="Slippery"/>
+		<checkbox nybble="5" mask="2" title="Unknown Value 5 Mask 2"/>
+		<checkbox nybble="8" title="Gyroscopic Movement" comment="The rotation will be locked in place as it follows the movement controller."/>
+		<checkbox nybble="10" title="Longer Pillar"/>
+		<list nybble="11" title="Rotation">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0;</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0;</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0;</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
+		</list>
+		<list nybble="12" title="Has Hinge" comment="The hinge will be placed wherever the movement controller is placed.">
+			<entry value="0">No</entry>
+			<entry value="1">Yes (Under layer 0)</entry>
+			<entry value="2">Yes (Over layer 0)</entry>
+		</list>
+		<value bit="68-72" title="Length" comment="Value + 0. Value 0 = 1. Extends to the right of the sprite."/>
+		<value nybble="21-22" title="Movement ID" comment="Attatches to sprite 68 and 69."/>
 	</sprite>
 	<sprite id="391" name="Rotation-controlled Crystal Block">
 		<list nybble="10" title="Type" comment="* This is not cyrstalized. (Also unused.)">
@@ -5039,16 +5138,16 @@
 		<value nybble="12" title="Unknown Value 12"/>
 	</sprite>
 	<sprite id="447" name="Grouped Spike Top">
-		<list nybble="1" title="Direction">
-			<entry value="0">Right</entry>
-			<entry value="1">Left</entry>
-		</list>
-		<value nybble="6" title="Unknown Value 6"/>
+		<value nybble="5-6" title="Group ID" comment="The ID used to chain sprites together. Use sprite 196 to create the groups."/>
 		<list nybble="11" title="Orientation">
 			<entry value="0">Placed on Ground</entry>
 			<entry value="1">Placed on Left Wall</entry>
 			<entry value="2">Placed on Ceiling</entry>
 			<entry value="3">Placed on Right Wall</entry>
+		</list>
+		<list nybble="12" title="Direction">
+			<entry value="0">Clockwise</entry>
+			<entry value="1">Counter-Clockwise</entry>
 		</list>
 	</sprite>
 	<sprite id="448" name="Torpedo Ted for Bowser Jr. Fight (W5-Ship)" notes="Only used in the fight with Bowser Jr. at the start of World 5.">
@@ -6260,8 +6359,8 @@
 	<sprite id="623" name="Pipe-bubbles-related">
 		<checkbox nybble="5" title="Unknown Flag 5"/>
 	</sprite>
-	<sprite id="624" name="Spike Top Group">
-		<value nybble="5-6" title="Group ID" comment="The ID used to chain sprites together. Use sprite 196 to create the groups."/>
+	<sprite id="624" name="Spike Top Group Controller">
+		<value nybble="5-6" title="Group ID" comment="Use this ID to chain Spike Tops together."/>
 	</sprite>
 	<sprite id="625" name="Bolt-controlled Rocky Castle Platform" notes="This sprite does exactly the same as sprite 530.">
 		<checkbox nybble="5" title="Unknown Flag 5"/>
@@ -6407,8 +6506,8 @@
 		<value nybble="17" title="Unknown Value 17" comment="Not sure"/>
 		<value nybble="18" title="Horizontal Distance"/>
 	</sprite>
-	<sprite id="644" name="Lava Bubble (Synced) - NSLU" notes="You can sync it with other lava bubbles">
-		<value nybble="6" title="Unknown Value 6"/>
+	<sprite id="644" name="Grouped Lava Bubble - NSLU" notes="You can sync it with other lava bubbles">
+		<value nybble="5-6" title="Group ID"/>
 		<list nybble="8" title="Initial Direction">
 			<entry value="0">Right</entry>
 			<entry value="1">Left</entry>
@@ -6687,13 +6786,29 @@
 			<entry value="15">Ice flower</entry>
 		</list>
 	</sprite>
-	<sprite id="679" name="Movement Controlled Pipe Body - NSLU">
-		<value nybble="7" title="Unknown Value 7"/>
-		<value nybble="8" title="Unknown Value 8"/>
-		<value nybble="9" title="Unknown Value 9"/>
-		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="11" title="Unknown Value 11"/>
-		<value nybble="21-22" title="Movement ID?" comment="Probably."/>
+	<sprite id="679" name="Movement-controlled Pipe Body - NSLU">
+		<checkbox nybble="5" title="Expels bubbles"/>
+		<value nybble="6" title="Z-Order"/>
+		<list nybble="7" title="Direction">
+			<entry value="0">Right</entry>
+			<entry value="1">Left</entry>
+			<entry value="2">Up</entry>
+			<entry value="3">Down</entry>
+		</list>
+		<list nybble="8" title="Color" comment="Set the colour of your pipe!">
+			<entry value="0">Green</entry>
+			<entry value="1">Red</entry>
+			<entry value="2">Yellow</entry>
+			<entry value="3">Purple/Blue</entry>
+		</list>
+		<value bit="35-40" title="Length" comment="Value + 2."/>
+		<list nybble="11" title="Type">
+			<entry value="0">Normal</entry>
+			<entry value="1">Painted</entry>
+		</list>
+		<value nybble="12" title="Unknown Value 12"/>
+		<value nybble="14-15" title="Unknown Value 14-15" comment="Any non-zero value would probably show the same behavior."/>
+		<value nybble="21-22" title="Movement ID" comment="Oddly, 1-2 A1 used the swayer instead of the spinner like one would expect..."/>
 	</sprite>
 	<sprite id="680" name="Stone-Eye - NSLU">
 		<value nybble="6" title="Unknown Value 6" comment="Only used as 1."/>
