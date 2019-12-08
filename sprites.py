@@ -1836,7 +1836,7 @@ class SpriteImage_Swooper(SLib.SpriteImage_Static):  # 67
         SLib.loadIfNotInImageCache('Swooper', 'swooper.png')
 
 
-class SpriteImage_ControllerSwaying(SLib.SpriteImage_Static):  # 68
+class SpriteImage_ControllerSwaying(SLib.SpriteImage_MovementController):  # 68
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -1844,33 +1844,28 @@ class SpriteImage_ControllerSwaying(SLib.SpriteImage_Static):  # 68
             ImageCache['ControllerSwaying'],
         )
         self.parent.setZValue(500000)
+        self.aux.append(SLib.AuxiliaryRotationAreaOutline(parent, 60))
+        self.aux.append(SLib.AuxiliaryRotationAreaOutline(parent, 120))
+        self.aux[0].setPos(-12, 0)
+        self.aux[1].setPos(-58, -44)
 
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('ControllerSwaying', 'controller_swaying.png')
 
     def dataChanged(self):
-        #        rotation = self.parent.spritedata[4]
+        startOffset = (self.parent.spritedata[2] & 0xF) * 22.5
+        reversedDir = (self.parent.spritedata[4] >> 4) & 1
+        rotation = (self.parent.spritedata[4] & 0xF) * 22.5
+        arc = (self.parent.spritedata[7] >> 4) * 22.5
 
-        """
-        if rotation == 1: Rotations[rotid] = 22.5
-        elif rotation == 2: Rotations[rotid] = 45
-        elif rotation == 3: Rotations[rotid] = 67.5
-        elif rotation == 4: Rotations[rotid] = 90
-        elif rotation == 5: Rotations[rotid] = 112.5
-        elif rotation == 6: Rotations[rotid] = 135
-        elif rotation == 7: Rotations[rotid] = 157.5
-        elif rotation == 8: Rotations[rotid] = 180
-        elif rotation == 9: Rotations[rotid] = 22.5 + 180
-        elif rotation == 10: Rotations[rotid] = 45 + 180
-        elif rotation == 11: Rotations[rotid] = 67.5 + 180
-        elif rotation == 12: Rotations[rotid] = 90 + 180
-        elif rotation == 13: Rotations[rotid] = 112.5 + 180
-        elif rotation == 14: Rotations[rotid] = 135 + 180
-        elif rotation == 15: Rotations[rotid] = 157.5 + 180
-        else: Rotations[rotid] = 0
-        """
-
+        if reversedDir == 1:
+            startOffset += 180
+        
+        startOffset = math.cos(math.radians(startOffset + 90))
+            
+        self.aux[0].SetAngle(90 + rotation - arc * 0.5, arc)
+        self.aux[1].SetAngle(90 + rotation - startOffset * arc * 0.5, 0)
         super().dataChanged()
 
 
@@ -1879,7 +1874,7 @@ class SpriteImage_ControllerSwaying(SLib.SpriteImage_Static):  # 68
 
 
 
-class SpriteImage_ControllerSpinning(SLib.SpriteImage_Static):  # 69, 484
+class SpriteImage_ControllerSpinning(SLib.SpriteImage_MovementController):  # 69, 484
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -3849,19 +3844,13 @@ class SpriteImage_CoinOutline(SLib.SpriteImage_StaticMultiple):  # 158
     def __init__(self, parent):
         super().__init__(
             parent,
-            3.75,  # native res (3.75*16=60)
-            ImageCache['CoinOutlineMultiplayer'],
+            3.75,
         )
         self.parent.setZValue(20000)
 
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('CoinOutline', 'coin_outline.png')
-        SLib.loadIfNotInImageCache('CoinOutlineMultiplayer', 'coin_outline_multiplayer.png')
-
     def dataChanged(self):
         multi = (self.parent.spritedata[2] >> 4) & 1
-        self.image = ImageCache['CoinOutline' + ('Multiplayer' if multi else '')]
+        self.image = SLib.Tiles[28 if multi else 31].main
         super().dataChanged()
 
 
@@ -4173,6 +4162,79 @@ class SpriteImage_BobOmb(SLib.SpriteImage_Static):  # 164
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('BobOmb', 'bob_omb.png')
+
+
+class SpriteImage_CoinCircle(SLib.SpriteImage):  # 165
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+
+        self.tileIdx = 30
+        auxImage = QtGui.QPixmap(60, 60)
+        auxImage.fill(Qt.transparent)
+        self.aux.append(SLib.AuxiliaryImage(parent, 60, 60))
+        self.aux[0].image = auxImage
+        self.aux[0].hover = False
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('Coin', 'coin.png')
+
+    def dataChanged(self):
+        tilt = ((self.parent.spritedata[2] >> 2) & 1) | ((self.parent.spritedata[3] >> 4) & 1) | (self.parent.spritedata[3] & 1)
+        arc = (self.parent.spritedata[6] >> 4) * 22.5 + 22.5
+        offset = (self.parent.spritedata[6] & 0xF) * 22.5
+        coinAmount = 1 + self.parent.spritedata[8]
+        diameter = self.parent.spritedata[9]
+        movementID = self.parent.spritedata[10]
+
+        tiltX = self.parent.objx
+        tiltY = self.parent.objy
+
+        # Uncomment to enable tilt towards movement controllers
+        
+        #if tilt == 1:
+        #    for sprite in globals.Area.sprites:
+        #        if isinstance(sprite.ImageObj, SLib.SpriteImage_MovementController):
+        #            if sprite.ImageObj.getMovementID() == movementID:
+        #                tiltX = sprite.objx + 8
+        #                tiltY = sprite.objy + 8
+        #                break
+
+        pix = QtGui.QPixmap(60 * (diameter + 2), 60 * (diameter + 2))
+        pix.fill(Qt.transparent)
+        paint = QtGui.QPainter(pix)
+        paint.setOpacity(0.5)
+        angle = offset
+
+        for i in range(coinAmount):
+            if arc == 360:
+                angle = math.radians(-arc * i / coinAmount - offset)
+            elif coinAmount > 1:
+                angle = math.radians(arc * 0.5 - arc * i / (coinAmount - 1) - offset)
+
+            x = math.sin(angle) * ((diameter * 30) + 30) - 30
+            y = -(math.cos(angle) * ((diameter * 30) + 30)) - 30
+
+            if tilt == 1:
+                imageAngle = math.degrees(math.atan2(tiltY - (self.parent.objy + (y / 60) * 16 + 8), tiltX - (self.parent.objx + (x / 60) * 16 + 8))) - 90
+                img = SLib.Tiles[self.tileIdx].main.transformed(QTransform().rotate(imageAngle))
+                paint.drawPixmap(x + pix.width() / 2 + 30 - img.width() / 2, y + pix.height() / 2 + 30 - img.height() / 2, img);
+            else:
+                paint.drawPixmap(x + pix.width() / 2, y + pix.height() / 2, SLib.Tiles[self.tileIdx].main)
+
+        paint = None
+        self.aux[0].image = pix
+        self.aux[0].setSize(pix.width(), pix.height(), -pix.width() / 2 + 30, -pix.height() / 2 + 30)
+
+
+class SpriteImage_CoinOutlineCircle(SpriteImage_CoinCircle):  # 166
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def dataChanged(self):
+        multi = (self.parent.spritedata[2] >> 4) & 1
+        self.tileIdx = 28 if multi else 31
+        super().dataChanged()
 
 
 class SpriteImage_CoinBlue(SLib.SpriteImage_Static):  # 167
@@ -4942,7 +5004,7 @@ class SpriteImage_SwingingVine(SLib.SpriteImage_Static):  # 213
         SLib.loadIfNotInImageCache('SwingingVine', 'swinging_vine.png')
 
 
-class SpriteImage_ControllerSpinOne(SLib.SpriteImage_Static):  # 214
+class SpriteImage_ControllerSpinOne(SLib.SpriteImage_MovementController):  # 214
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -6570,21 +6632,49 @@ class SpriteImage_Pokey(SLib.SpriteImage):  # 351
             painter.drawPixmap(0, 0, 100, 60, ImageCache['PokeyBottomD'])
 
 
-class SpriteImage_SpikeTop(SLib.SpriteImage_Static):  # 352
+class SpriteImage_SpikeTop(SLib.SpriteImage_StaticMultiple):  # 352, 447
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
-            ImageCache['SpikeTop'],
         )
-        self.yOffset = -8
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('SpikeTop', 'spike_top.png')
+        SLib.loadIfNotInImageCache('SpikeTop0', 'spike_top.png')
+        SLib.loadIfNotInImageCache('SpikeTop1', 'spike_top_left.png')
+        SLib.loadIfNotInImageCache('SpikeTop2', 'spike_top_down.png')
+        SLib.loadIfNotInImageCache('SpikeTop3', 'spike_top_right.png')
 
     def dataChanged(self):
-        self.xOffset = -0.5 * (self.image.width() / 60 - 1) * 16
+        orientation = (self.parent.spritedata[5] >> 4) & 3
+        direction = self.parent.spritedata[5] & 1
+        
+        if orientation & 1 == 1: #Wall
+            self.yOffset = 0
+                                                                                
+            if orientation & 2 == 2: #Right Wall
+                self.xOffset = 0
+            else: #Left Wall
+                self.xOffset = -8
+                                                                                
+        else: #Floor/Ceiling
+            self.xOffset = 0
+            
+            if orientation & 2 == 2: #Ceiling
+                self.yOffset = 0
+            else: #Ground
+                self.yOffset = -8
+                
+        t = QTransform()
+        
+        if direction == 1:
+            if orientation & 1 == 1: #Wall
+                t.scale(1, -1)
+            else:
+                t.scale(-1, 1)
+        
+        self.image = ImageCache['SpikeTop%d' % orientation].transformed(t)
         super().dataChanged()
 
 
@@ -8030,6 +8120,7 @@ ImageClasses = {
     113: SpriteImage_MediumCheepCheep,
     114: SpriteImage_CheepCheep,
     115: SpriteImage_SpecialExit,
+    116: SpriteImage_ControllerSwaying,
     117: SpriteImage_Spinner,
     119: SpriteImage_Lakitu,
     120: SpriteImage_SpinyCheep,
@@ -8070,7 +8161,8 @@ ImageClasses = {
     162: SpriteImage_ExpandingPipeDown,
     163: SpriteImage_WaterGeyserLocation,
     164: SpriteImage_BobOmb,
-    166: SpriteImage_CoinOutline,
+    165: SpriteImage_CoinCircle,
+    166: SpriteImage_CoinOutlineCircle,
     167: SpriteImage_CoinBlue,
     168: SpriteImage_ClapCoin,
     169: SpriteImage_ClapCoin,
@@ -8227,6 +8319,7 @@ ImageClasses = {
     441: SpriteImage_Fliprus,
     443: SpriteImage_BonyBeetle,
     446: SpriteImage_FliprusSnowball,
+    447: SpriteImage_SpikeTop,
     449: SpriteImage_Useless,
     451: SpriteImage_NabbitPlacement,
     452: SpriteImage_Crash,
