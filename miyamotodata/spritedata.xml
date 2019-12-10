@@ -2614,25 +2614,24 @@
 		<value nybble="21-22" title="Movement ID" comment="Can be used with rotation movement controllers for sure."/>
 		<value nybble="23-24" title="Coin ID" comment="Use this to link this coin to a clapping controller."/>
 	</sprite>
-	<sprite id="168" name="Clapping Controller" notes="Same as sprite 169">
-		<value nybble="5" title="Unknown Value 5"/>
-		<value nybble="6" title="Unknown Value 6"/>
+	<sprite id="168" name="Clapping Controller">
+		<value nybble="5-6" title="Amount of coin outlines"/>
 		<value nybble="7-8" title="Amount of blue coins"/>
 		<value nybble="9-10" title="Amount of yellow coins"/>
-		<value nybble="12" title="Unknown Value 12" comment="Seems to be related to a movement ID"/>
-		<value nybble="19" title="Unknown Value 19"/>
-		<value nybble="20" title="Unknown Value 20"/>
+		<value nybble="11" title="Unused Value 11" comment="Relates to value 19-20 somehow."/>
+		<value nybble="12" title="Movement ID" comment="Useless. Looks to be a leftover from an old version of the game where you would get cheered if you collect all coins with this movement ID.&lt;br&gt;This field is no longer even referenced in the code."/>
+		<value nybble="19-20" title="Unknown Value 19-20"/>
 		<value nybble="23-24" title="Coin ID"/>
 	</sprite>
-	<sprite id="169" name="Clapping Controller 2" notes="Same as sprite 168">
-		<value nybble="6" title="Unknown Value 6"/>
-		<value nybble="7-8" title="Number of blue coins" comment="Use this to set the amount of coins that need to be collected."/>
-		<value nybble="9-10" title="Number of yellow coins" comment="Use this to set the amount of coins that need to be collected."/>
-		<value nybble="19" title="Unknown Value 19"/>
-		<value nybble="20" title="Location ID" comment="Use this to set the location ID the player has to be in for the Event to be activated."/>
-		<value nybble="23-24" title="Target Event ID/Coin ID" comment="This Event is activated when the conditions are met or the coins are collected.&lt;br&gt;Alternatively, when this controller produces clapping sounds, this is the ID that needs to be set on the coins that need to be collected."/>
+	<sprite id="169" name="Clapping Controller 2" notes="It was determined through looking at the game's code that the only differences between this and 168 are the spawn range and a certain flag. However, we still don't know what difference those made.">
+		<value nybble="5-6" title="Amount of coin outlines"/>
+		<value nybble="7-8" title="Amount of blue coins"/>
+		<value nybble="9-10" title="Amount of yellow coins"/>
+		<value nybble="11" title="Unused Value 11" comment="Relates to value 19-20 somehow."/>
+		<value nybble="19-20" title="Unknown Value 19-20"/>
+		<value nybble="23-24" title="Coin ID"/>
 	</sprite>
-	<sprite id="170" name="Parabomb" notes="A bob-omb that falls from the sky on a parachute. ">
+	<sprite id="170" name="Parabomb" notes="A bob-omb that falls from the sky on a parachute.">
 		<list nybble="16" title="Direction After Landing" comment="The direction the Bob-omb walks in after landing.">
 			<entry value="0">Right</entry>
 			<entry value="1">Left</entry>
@@ -5179,10 +5178,13 @@
 	</sprite>
 	<sprite id="455" name="Location-based Clapping Controller" notes="Activated when all coins in the location are grabbed by the player. There seems to be no time limit.">
 		<value nybble="5-6" title="Location ID"/>
-		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="12" title="Unknown Value 12"/>
-		<value nybble="19" title="Unknown Value 19"/>
-		<value nybble="20" title="Unknown Value 20"/>
+		<value nybble="9-10" title="Amount of yellow coins" comment="Useless. Looks to be a leftover from an old version of the game where you would get cheered only if you collect this amount of coins.&lt;br&gt;This field is no longer even referenced in the code."/>
+		<value nybble="11" title="Unused Value 11" comment="Relates to value 19-20 somehow."/>
+		<checkbox nybble="12" title="Ignore blue coins" mask="1"/>
+		<checkbox nybble="12" title="Ignore yellow coins" mask="2"/>
+		<checkbox nybble="12" title="Ignore brick blocks (P-Switch yellow coins)" mask="4"/>
+		<checkbox nybble="12" title="Ignore coin outlines" mask="8"/>
+		<value nybble="19-20" title="Unknown Value 19-20"/>
 	</sprite>
 	<sprite id="456" name="Kamek Warp - Useless [UNUSED]" notes="This sprite doesn't do anything. May have been used in earlier development to define the locations Kamek warps to in the battle.">
 		<checkbox nybble="7" title="Useless Flag 7" comment="Not sure what this nybble was used for, but since this sprite does nothing, it's useless."/>
