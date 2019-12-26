@@ -576,6 +576,39 @@ class Metadata:
         return data
 
 
+class BGName:
+    def __init__(self, name, trans):
+        self.name = name
+        self.trans = trans
+
+    def __eq__(self, other):
+        return other in (self.name, self.trans)
+
+    @staticmethod
+    def index(name):
+        try:
+            return globals.names_bg.index(name)
+
+        except ValueError:
+            return len(globals.names_bg) - 1
+
+    @staticmethod
+    def getNameForTrans(trans):
+        return globals.names_bg[BGName.index(trans)].name
+
+    @staticmethod
+    def getTransAll():
+        return [bg.trans for bg in globals.names_bg]
+
+    class Custom:
+        def __init__(self):
+            self.name = ''
+            self.trans = 'Custom filename...'
+
+        def __eq__(self, other):
+            return False
+
+
 def clipStr(text, idealWidth, font=None):
     """
     Returns a shortened string, or None if it need not be shortened

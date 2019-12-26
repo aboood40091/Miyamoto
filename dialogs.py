@@ -34,9 +34,9 @@ Qt = QtCore.Qt
 from bytes import bytes_to_string, to_bytes
 import globals
 from items import ZoneItem
-from misc import HexSpinBox, setting
+from misc import HexSpinBox, BGName, setting
 from strings import MiyamotoTranslation
-from ui import MiyamotoTheme, toQColor, GetIcon
+from ui import MiyamotoTheme, toQColor, GetIcon, createHorzLine
 from widgets import LoadingTab, TilesetsTab
 from verifications import SetDirty
 
@@ -695,13 +695,13 @@ class ZoneTab(QtWidgets.QWidget):
         self.snapButton16.clicked.connect(lambda: self.HandleSnapTo16x16Grid(z))
 
         self.Zone_width = QtWidgets.QSpinBox()
-        self.Zone_width.setRange(192, 65535)
+        self.Zone_width.setRange(80, 65535)
         self.Zone_width.setToolTip(globals.trans.string('ZonesDlg', 14))
         self.Zone_width.setValue(z.width)
         self.Zone_width.valueChanged.connect(self.PresetDeselected)
 
         self.Zone_height = QtWidgets.QSpinBox()
-        self.Zone_height.setRange(144, 65535)
+        self.Zone_height.setRange(16, 65535)
         self.Zone_height.setToolTip(globals.trans.string('ZonesDlg', 16))
         self.Zone_height.setValue(z.height)
         self.Zone_height.valueChanged.connect(self.PresetDeselected)
@@ -787,8 +787,8 @@ class ZoneTab(QtWidgets.QWidget):
 
         if left < 16: left = 16
         if top < 16: top = 16
-        if right < 192: right = 192
-        if bottom < 144: bottom = 144
+        if right < 80: right = 80
+        if bottom < 16: bottom = 16
 
         if left > 65528: left = 65528
         if top > 65528: top = 65528
@@ -837,8 +837,8 @@ class ZoneTab(QtWidgets.QWidget):
 
         if left < 16: left = 16
         if top < 16: top = 16
-        if right < 192: right = 192
-        if bottom < 144: bottom = 144
+        if right < 80: right = 80
+        if bottom < 16: bottom = 16
 
         if left > 65520: left = 65520
         if top > 65520: top = 65520
@@ -1149,10 +1149,15 @@ class BGTab(QtWidgets.QWidget):
 
         self.createBGViewers()
 
-        self.bg_name = QtWidgets.QComboBox()
-        self.bg_name.addItems(globals.names_bgTrans)
-        self.bg_name.setCurrentIndex(globals.names_bg.index(bytes_to_string(background[4])))
-        self.bg_name.activated.connect(self.handleNameBox)
+        self.bgFname = QtWidgets.QLineEdit()
+        self.bgFname.setText(bytes_to_string(background[4]))
+
+        self.bgName = QtWidgets.QComboBox()
+        self.bgName.addItems(BGName.getTransAll())
+        self.bgName.setCurrentIndex(BGName.index(self.bgFname.text()))
+        self.bgName.activated.connect(self.handleNameBox)
+
+        self.bgFname.setEnabled(self.bgName.currentText() == 'Custom filename...')
 
         self.unk1 = QtWidgets.QSpinBox()
         self.unk1.setRange(0, 0xFFFF)
@@ -1170,16 +1175,23 @@ class BGTab(QtWidgets.QWidget):
         self.unk4.setRange(0, 0xFF)
         self.unk4.setValue(background[5])
 
-        self.BGSettings = QtWidgets.QGroupBox('Settings')
+        nameLayout = QtWidgets.QFormLayout()
+        nameLayout.addRow('Background:', self.bgName)
+        nameLayout.addRow('Filename:', self.bgFname)
+
         settingsLayout = QtWidgets.QFormLayout()
-        settingsLayout.addRow('Background:', self.bg_name)
         settingsLayout.addRow('Unknown Value 1:', self.unk1)
         settingsLayout.addRow('Unknown Value 2:', self.unk2)
         settingsLayout.addRow('Unknown Value 3:', self.unk3)
         settingsLayout.addRow('Unknown Value 4:', self.unk4)
-        settingsLayout2 = QtWidgets.QGridLayout()
-        settingsLayout2.addLayout(settingsLayout, 0, 0)
-        self.BGSettings.setLayout(settingsLayout2)
+
+        BGSettingsLayout = QtWidgets.QVBoxLayout()
+        BGSettingsLayout.addLayout(nameLayout)
+        BGSettingsLayout.addWidget(createHorzLine())
+        BGSettingsLayout.addLayout(settingsLayout)
+
+        self.BGSettings = QtWidgets.QGroupBox('Settings')
+        self.BGSettings.setLayout(BGSettingsLayout)
 
         Layout = QtWidgets.QVBoxLayout()
         Layout.addWidget(self.BGViewer)
@@ -1189,8 +1201,7 @@ class BGTab(QtWidgets.QWidget):
         self.updatePreview()
 
     def createBGViewers(self):
-        g = QtWidgets.QGroupBox(globals.trans.string('BGDlg', 16))  # Preview
-        self.BGViewer = g
+        self.BGViewer = QtWidgets.QGroupBox(globals.trans.string('BGDlg', 16))
 
         self.preview = QtWidgets.QLabel()
 
@@ -1202,22 +1213,34 @@ class BGTab(QtWidgets.QWidget):
         """
         Handles any name box changing
         """
+        if self.bgName.currentText() == 'Custom filename...':
+            self.bgFname.setText('')
+            self.bgFname.setEnabled(True)
+
+        else:
+            self.bgFname.setText(BGName.getNameForTrans(self.bgName.currentText()))
+            self.bgFname.setEnabled(False)
+
         self.updatePreview()
 
     def updatePreview(self):
         """
         Updates the preview label
         """
-        folders = globals.gamedef.recursiveFiles('bg', False, True)
-        folders.append(os.path.join(globals.miyamoto_path, 'miyamotodata/bg'))
-
-        for folder in folders:
-            filename = os.path.join(folder, str(self.bg_name.currentText()) + '.png')
-            if os.path.isfile(filename):
-                break
+        if self.bgName.currentText() == 'Custom filename...':
+            filename = globals.miyamoto_path + '/miyamotodata/bg/no_preview.png'
 
         else:
-            filename = globals.miyamoto_path + '/miyamotodata/bg/no_preview.png'
+            folders = globals.gamedef.recursiveFiles('bg', False, True)
+            folders.append(os.path.join(globals.miyamoto_path, 'miyamotodata/bg'))
+
+            for folder in folders:
+                filename = os.path.join(folder, self.bgName.currentText() + '.png')
+                if os.path.isfile(filename):
+                    break
+
+            else:
+                filename = globals.miyamoto_path + '/miyamotodata/bg/no_preview.png'
 
         pix = QtGui.QPixmap(filename)
         self.preview.setPixmap(pix)

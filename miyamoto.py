@@ -5367,14 +5367,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     if tab.Zone_settings[i].isChecked():
                         z.type |= 1 << i
 
-                name = globals.names_bg[globals.names_bgTrans.index(str(bgTab.bg_name.currentText()))]
+                name = bgTab.bgFname.text()
                 unk1 = bgTab.unk1.value()
                 unk2 = bgTab.unk2.value()
                 unk3 = bgTab.unk3.value()
                 unk4 = bgTab.unk4.value()
                 z.background = (z.id, unk1, unk2, unk3, to_bytes(name, 16), unk4)
 
-                ygn2Used = name == "Yougan_2"
+                if not ygn2Used:
+                    ygn2Used = name == "Yougan_2"
 
             if ygn2Used:
                 QtWidgets.QMessageBox.information(None, globals.trans.string('BGDlg', 22),

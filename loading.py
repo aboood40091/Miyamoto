@@ -33,7 +33,7 @@ from xml.etree import ElementTree as etree
 import globals
 import spritelib as SLib
 from gamedefs import MiyamotoGameDefinition, GetPath
-from misc import SpriteDefinition, setting, setSetting
+from misc import SpriteDefinition, BGName, setting, setSetting
 import SarcLib
 from strings import MiyamotoTranslation
 
@@ -63,15 +63,14 @@ def LoadBGNames():
     """
     # Sort BG Names
     globals.names_bg = []
-    globals.names_bgTrans = []
 
-    with open(GetPath('bg'), 'r') as txt:
-        for line in txt.readlines():
-            globals.names_bg.append(line.rstrip())
+    with open(GetPath('bg'), 'r') as txt, open(GetPath('bgTrans'), 'r') as txt2:
+        for line, lineTrans in zip(txt.readlines(), txt2.readlines()):
+            name, trans = line.rstrip(), lineTrans.rstrip()
+            if name and trans:
+                globals.names_bg.append(BGName(name, trans))
 
-    with open(GetPath('bgTrans'), 'r') as txt:
-        for line in txt.readlines():
-            globals.names_bgTrans.append(line.rstrip())
+    globals.names_bg.append(BGName.Custom())
 
 
 def LoadLevelNames():

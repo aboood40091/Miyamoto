@@ -1480,7 +1480,7 @@
 			<entry value="1">Longer and a bit bigger</entry>
 		</list>
 	</sprite>
-	<sprite id="95" name="Defunct &quot;Moving&quot; Bouncy Cloud [UNUSED]"/>
+	<sprite id="95" name="Move-when-on Bouncy Cloud [UNUSED]"/>
 	<sprite id="96" name="Lighting - Lamp" notes="A weak light source that will light up a small area around it.">
 		<list nybble="12" title="Style">
 			<entry value="0">Lamp</entry>
@@ -5484,7 +5484,7 @@
 			<entry value="1">8x10</entry>
 		</list>
 	</sprite>
-	<sprite id="494" name="Places Bowser Jr. Goes to When Hit (?)" notes="&quot;Retracted position. Bowser Jr underwater&quot;&#13;&#10;Unless it was just a coincidence when I tested it.">
+	<sprite id="494" name="Underwater Bowser Jr. Retraction position" notes="Position Bowser Jr. goes to when hit.">
 		<checkbox nybble="12" title="Unknown Flag 12"/>
 	</sprite>
 	<sprite id="495" name="Down-Pulling Underwater Bubbles" notes="Can spawn bubbles that pull you down in a location.">
