@@ -97,7 +97,6 @@ cython_available = False
 libyaz0_available = False
 err_msg = ''
 names_bg = []
-names_bgTrans = []
 
 # Game enums
 FileExtentions = ('.sarc',)

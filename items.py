@@ -1216,8 +1216,8 @@ class ZoneItem(LevelEditorItem):
 
             MIN_X = 16
             MIN_Y = 16
-            MIN_W = 192
-            MIN_H = 144
+            MIN_W = 80
+            MIN_H = 16
 
             if self.dragcorner == 1: # TL
                 x1 += deltax
