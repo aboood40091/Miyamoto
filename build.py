@@ -24,10 +24,10 @@
 # Builds Miyamoto! DX to a binary
 # Use the values below to configure the release:
 
-from globals import MiyamotoVersion
+from globals import MiyamotoVersionFloat
 
-PackageName = 'miyamoto_v%s' % MiyamotoVersion
-Version = MiyamotoVersion
+Version = str(MiyamotoVersionFloat)
+PackageName = 'miyamotodx_v%s' % Version
 
 
 ################################################################
@@ -41,7 +41,7 @@ from cx_Freeze import setup, Executable
 dir_ = 'distrib/' + PackageName
 
 # Print some stuff
-print('[[ Freezing Miyamoto! ]]')
+print('[[ Freezing Miyamoto! DX ]]')
 print('>> Destination directory: %s' % dir_)
 
 # Add the "build" parameter to the system argument list
@@ -55,15 +55,15 @@ os.makedirs(dir_)
 # exclude QtWebChannel, QtWebSockets and QtNetwork to save space, plus Python stuff we don't use
 excludes = ['doctest', 'pdb', 'unittest', 'difflib', 'inspect',
     'os2emxpath', 'posixpath', 'optpath', 'locale', 'calendar',
-    'select', 'multiprocessing', 'ssl',
+    'multiprocessing', 'ssl',
     'PyQt5.QtWebChannel', 'PyQt5.QtWebSockets', 'PyQt5.QtNetwork']
 
 # Set it up
 base = 'Win32GUI' if sys.platform == 'win32' else None
 setup(
-    name = 'Miyamoto!',
+    name = 'Miyamoto! DX',
     version = Version,
-    description = 'Miyamoto!',
+    description = 'Miyamoto! DX',
     options={
         'build_exe': {
             'excludes': excludes,
@@ -110,4 +110,4 @@ shutil.copy('license.txt', dir_)
 shutil.copy('README.md', dir_)
 print('>> Files copied!')
 
-print('>> Miyamoto! has been frozen to %s !' % dir_)
+print('>> Miyamoto! DX has been frozen to %s !' % dir_)
