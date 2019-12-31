@@ -24,10 +24,10 @@
 # Builds Miyamoto! to a binary
 # Use the values below to configure the release:
 
-from globals import MiyamotoVersion
+from globals import MiyamotoVersionFloat
 
-PackageName = 'miyamoto_v%s' % MiyamotoVersion
-Version = MiyamotoVersion
+Version = str(MiyamotoVersionFloat)
+PackageName = 'miyamoto_v%s' % Version
 
 
 ################################################################
