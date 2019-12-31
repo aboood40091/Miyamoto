@@ -3693,14 +3693,17 @@
 			<entry value="2">1x1 Block (with no glimmer)</entry>
 		</list>
 	</sprite>
-	<sprite id="269" name="Rotating Stone Gear" notes="A rotating solid gear/cog.">
-		<checkbox nybble="5" title="Inverted Alignment" comment="Use this to get it to sync with other gears more easily."/>
+	<sprite id="269" name="Rotating Stone Gear" notes="A rotating solid gear/cog. Doesn't need a movement controller to spin.">
+		<checkbox nybble="5" title="Offset Rotation" comment="Used to sync gears. Can only be used with large gears and is ignored if a movement-controller isn't used."/>
 		<value nybble="8" title="Z-Order"/>
-		<checkbox nybble="9" title="Clockwise"/>
+		<checkbox nybble="9" title="Clockwise" comment="Ignored if a movement-controller is used."/>
 		<list nybble="10" title="Size">
-			<entry value="0">13x13</entry>
-			<entry value="1">19x19</entry>
+			<entry value="0">Medium</entry>
+			<entry value="1">Large</entry>
+			<entry value="2">Small</entry>
 		</list>
+		<checkbox nybble="12" title="Metallic"/>
+		<value nybble="16" title="Rotation Speed" comment="Ignored if a movement-controller is used."/>
 		<value nybble="21-22" title="Movement ID" comment="Use this to match it to a movement controller (68, 69, 116, 118)."/>
 	</sprite>
 	<sprite id="270" name="Amp" notes="Will electrify the player once he comes in contact with the Amp.">
@@ -3840,6 +3843,7 @@
 		</list>
 	</sprite>
 	<sprite id="289" name="Continuous Burner" notes="A burner that sprays a flame continuously. The flames are 2 blocks long.">
+		<checkbox nybble="7" title="Affected by gravity" mask="2"/>
 		<list nybble="12" title="Direction" comment="Sets the direction of the burner.">
 			<entry value="0">Left</entry>
 			<entry value="1">Right</entry>
@@ -3847,16 +3851,34 @@
 			<entry value="3">Down</entry>
 		</list>
 	</sprite>
-	<sprite id="290" name="Burner (Long Fire) (Right) [UNUSED]" notes="A burner with a long fire that faces right."/>
-	<sprite id="291" name="Synchronized Burner Controller" notes="This sprite is REQUIRED for sprite 292 to function.">
-		<value nybble="6" title="Unknown Value 6"/>
-		<value nybble="7-8" title="Unknown Value 7-8"/>
-		<value nybble="9-10" title="Unknown Value 9-10"/>
-		<value nybble="11" title="Unknown Value 11"/>
+	<sprite id="290" name="Continuous Burner (Long Fire) [UNUSED]" notes="A larger varient of sprite 289.">
+		<checkbox nybble="7" title="Affected by gravity" mask="2"/>
+		<list nybble="12" title="Direction" comment="Sets the direction of the burner.">
+			<entry value="0">Left</entry>
+			<entry value="1">Right</entry>
+			<entry value="2">Up</entry>
+			<entry value="3">Down</entry>
+		</list>
+	</sprite>
+	<sprite id="291" name="Synced Burner Controller" notes="This sprite is REQUIRED for sprite 292 to function.">
+		<value nybble="6" title="Burner ID"/>
+		<value nybble="7-8" title="Time inactive"/>
+		<value nybble="9-10" title="Time active"/>
+		<list nybble="11" title="Length" comment="Length of burner (base and flame).">
+			<entry value="0">1 block</entry>
+			<entry value="1">2 blocks</entry>
+			<entry value="2">3 blocks</entry>
+			<entry value="3">4 blocks</entry>
+			<entry value="4">5 blocks</entry>
+			<entry value="5">6 blocks</entry>
+			<entry value="6">7 blocks</entry>
+			<entry value="7">8 blocks</entry>
+		</list>
 	</sprite>
 	<sprite id="292" name="Synced Burner">
-		<value nybble="6" title="Length" comment="Value + 2.25 (including base)."/>
-		<checkbox nybble="10" title="Start activated" comment="If checked, the burner starts spitting out a flame. Otherwise, it starts deactivated, and then activates after a certain amount of time."/>
+		<value nybble="6" title="Burner ID"/>
+		<checkbox nybble="7" title="Affected by gravity" mask="2"/>
+		<checkbox nybble="10" title="Switch time active and inactive"/>
 		<list nybble="12" title="Direction" comment="Set the direction of the flame.">
 			<entry value="0">Right</entry>
 			<entry value="1">Left</entry>
@@ -3864,8 +3886,8 @@
 			<entry value="3">Down</entry>
 		</list>
 	</sprite>
-	<sprite id="293" name="synchronised burner control object">
-		<checkbox nybble="5" title="Unknown Flag 5"/>
+	<sprite id="293" name="Rotating Burner">
+		<checkbox nybble="5" title="Useless" comment="This field is no longer even referenced in the code."/>
 		<checkbox nybble="7" title="Affected by gravity" mask="2"/>
 		<list nybble="11" title="Direction" comment="Describes where the flame is during the movement, relative to the base block. 0 is unused.">
 			<entry value="0">Left-Top-Right</entry>
@@ -3873,7 +3895,15 @@
 			<entry value="2">Bottom-Right-Up</entry>
 			<entry value="3">Top-Left-Bottom</entry>
 		</list>
-		<value nybble="12" title="Flame Length" comment="The flame length. Value + 3 in blocks."/>
+		<value nybble="12" title="Length" comment="Length of burner (base and flame)."/>
+		<entry value="0">5 block</entry>
+		<entry value="1">6 blocks</entry>
+		<entry value="2">7 blocks</entry>
+		<entry value="3">8 blocks</entry>
+		<entry value="4">9 blocks</entry>
+		<entry value="5">10 blocks</entry>
+		<entry value="6">11 blocks</entry>
+		<entry value="7">12 blocks</entry>
 	</sprite>
 	<sprite id="294" name="Purple Striped Climbable Pole" notes="A pole that is striped with purple, usually found in ghost houses.">
 		<value nybble="11-12" title="Length"/>
@@ -6753,11 +6783,18 @@
 		<value nybble="10" title="Unknown Value 10"/>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
-	<sprite id="675" name="Stone Cog Platform - NSLU" notes="Doesn't need a movement controller to spin.">
-		<value nybble="9" title="Unknown Value 9"/>
-		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="21" title="Unknown Value 21"/>
-		<value nybble="22" title="Unknown Value 22"/>
+	<sprite id="675" name="Rotating Stone Gear - NSLU" notes="Doesn't need a movement controller to spin.">
+		<checkbox nybble="5" title="Offset Rotation" comment="Used to sync gears. Can only be used with large gears and is ignored if a movement-controller isn't used."/>
+		<value nybble="8" title="Z-Order"/>
+		<checkbox nybble="9" title="Clockwise" comment="Ignored if a movement-controller is used."/>
+		<list nybble="10" title="Size">
+			<entry value="0">Medium</entry>
+			<entry value="1">Large</entry>
+			<entry value="2">Small</entry>
+		</list>
+		<checkbox nybble="12" title="Metallic"/>
+		<value nybble="16" title="Rotation Speed" comment="Ignored if a movement-controller is used."/>
+		<value nybble="21-22" title="Movement ID" comment="Use this to match it to a movement controller (68, 69, 116, 118)."/>
 	</sprite>
 	<sprite id="676" name="Blue Platform - NSLU">
 		<value nybble="5" title="Unknown Value 5"/>
