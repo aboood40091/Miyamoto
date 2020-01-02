@@ -5361,6 +5361,11 @@ def main():
     # create an application
     globals.app = QtWidgets.QApplication(sys.argv)
 
+    # go to the script path
+    path = globals.miyamoto_path
+    if path is not None:
+        os.chdir(path)
+
     # load the settings
     globals.settings = QtCore.QSettings('settings.ini', QtCore.QSettings.IniFormat)
 
@@ -5370,18 +5375,14 @@ def main():
         setSetting("MiyamotoVersion", globals.MiyamotoVersionFloat)
         setSetting('uiStyle', "Fusion")
 
-    if setting("MiyamotoVersion") < 27.0 or not setting("isDX"):
+    # 27.0 -> oldest version with settings.ini compatible with the current version
+    if setting("MiyamotoVersion") < 27.0 or setting("MiyamotoVersion") > globals.MiyamotoVersionFloat or not setting("isDX"):
         warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Unsupported settings file', 'Your settings.ini file is unsupported. Please remove it and run Miyamoto DX again.')
         warningBox.exec_()
         sys.exit(1)
 
     # load the translation (needs to happen first)
     LoadTranslation()
-
-    # go to the script path
-    path = globals.miyamoto_path
-    if path is not None:
-        os.chdir(globals.miyamoto_path)
 
     # set the default theme, plus some other stuff too
     globals.theme = MiyamotoTheme()
