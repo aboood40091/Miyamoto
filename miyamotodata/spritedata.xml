@@ -3159,25 +3159,68 @@
 	</sprite>
 	<sprite id="214" name="Movement Controller - Spinning (Single-use)" notes="A simpler version of the rotation controller. Can also only be temporary spinning.">
 		<value nybble="3-4" title="Triggering Event ID" comment="If this event is activated, the assigned objects will be rotated."/>
-		<list nybble="5" title="Direction" comment="The direction the objects swing in from. 1 and 3 are hard to see...">
-			<entry value="0">Counterclockwise</entry>
-			<entry value="1">UNKNOWN</entry>
-			<entry value="2">Clockwise</entry>
-			<entry value="3">UNKNOWN</entry>
-			<entry value="4">From below the screen</entry>
-			<entry value="5">UNKNOWN</entry>
-			<entry value="6">UNKNOWN</entry>
+		<checkbox nybble="5" title="From top of screen" comment="Makes the coin swing in from the top of the screen."/>
+		<checkbox nybble="5" title="Clockwise" mask="2"/>
+		<checkbox nybble="5" title="Closer Arc" mask="4" comment="Makes the rotation non-circular in some cases."/>
+		<value nybble="6" title="Controller Spin Radius"/>
+		<list nybble="7" title="Controller Spin Arc">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0;</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0;</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0;</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
 		</list>
-		<value nybble="6" title="Unknown Value 6"/>
-		<value nybble="7" title="Unknown Value 7"/>
-		<value nybble="8" title="Unknown Value 8"/>
-		<value nybble="9" title="Arc?" comment="Possibly the rotation arc."/>
-		<value nybble="10" title="Delay" comment="The delay between the activation of the event and the start of the actual rotation. Unknown unit."/>
-		<value nybble="13" title="Unknown Value 13"/>
-		<value nybble="14" title="Unknown Value 14"/>
+		<value nybble="8" title="Delay" comment="Unknown unit. Delay before the controller starts spinning."/>
+		<list nybble="9" title="Speed" comment="Values 11-15 are the same as 0.">
+			<entry value="0">Slower</entry>
+			<entry value="1">Slow</entry>
+			<entry value="2">Normal</entry>
+			<entry value="3">Fast</entry>
+			<entry value="4">Slowest</entry>
+			<entry value="5">Faster</entry>
+			<entry value="6">Even faster</entry>
+			<entry value="7">Extreme</entry>
+			<entry value="8">Insane</entry>
+			<entry value="9">Light speed</entry>
+			<entry value="10">Instant</entry>
+		</list>
+		<value nybble="10" title="Ordering ID" comment="This value specifies the order which the controllers activates. Almost always starts with order ID 1."/>
+		<list nybble="13" title="Arc (Useless)" comment="This field is no longer even referenced in the code.">
+			<entry value="0">0&#xB0; (?)</entry>
+			<entry value="1">45&#xB0;</entry>
+			<entry value="2">90&#xB0; [USED]</entry>
+			<entry value="3">135&#xB0;</entry>
+			<entry value="4">180&#xB0; [USED]</entry>
+			<entry value="5">225&#xB0;</entry>
+			<entry value="6">270&#xB0;</entry>
+			<entry value="7">315&#xB0;</entry>
+			<entry value="8">0&#xB0; (?)</entry>
+			<entry value="9">0&#xB0; (?)</entry>
+			<entry value="10">270&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">225&#xB0;</entry>
+			<entry value="13">202.5&#xB0;</entry>
+			<entry value="14">180&#xB0;</entry>
+			<entry value="15">157.5&#xB0;</entry>
+		</list>
+		<value nybble="14" title="Useless" comment="Supposed to be the same as sprite 484's Unknown Value 14. This field is no longer even referenced in the code."/>
 		<value nybble="15" title="Unknown Value 15"/>
-		<value nybble="16" title="Unknown Value 16"/>
-		<value nybble="20" title="Unknown Value 20"/>
+		<list nybble="16" title="Sound">
+			<entry value="0">At the end of movement</entry>
+			<entry value="1">When the movement starts</entry>
+		</list>
+		<value nybble="19-20" title="Ordering ID (Useless)" comment="Same as the other Ordering ID, but is no longer even referenced in the code. Use the other one."/>
 		<value nybble="21-22" title="Movement ID" comment="Use this ID to connect (assign) objects to this movement controller."/>
 	</sprite>
 	<sprite id="215" name="Portable Springboard" notes="Notes: Known as Trampoline in Super Mario Maker english script.">
