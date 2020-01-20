@@ -53,6 +53,7 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
     autoPosChange = False
     dragoffsetx = 0
     dragoffsety = 0
+    objx, objy = 0, 0
 
     def __init__(self):
         """
@@ -62,7 +63,9 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
         self.setFlag(self.ItemSendsGeometryChanges, True)
 
     def __lt__(self, other):
-        return (self.objx * 100000 + self.objy) < (other.objx * 100000 + other.objy)
+        if self.objx != other.objx:
+            return self.objx < other.objx
+        return self.objy < other.objy
 
     def itemChange(self, change, value):
         """
@@ -781,7 +784,7 @@ class ObjectItem(LevelEditorItem):
                     clickedx = 0
 
                 if clickedx != dsx or clickedy != dsy:
-                    self.dragstartx= clickedx
+                    self.dragstartx = clickedx
 
                     for obj in self.objsDragging:
                         oldHeight = self.objsDragging[obj][1] + 0
@@ -1693,13 +1696,13 @@ class SpriteItem(LevelEditorItem):
         globals.DirtyOverride += 1
         if globals.SpriteImagesShown:
             self.setPos(
-                int((self.objx + self.ImageObj.xOffset) * globals.TileWidth / 16),
-                int((self.objy + self.ImageObj.yOffset) * globals.TileWidth / 16),
+                int((self.objx + self.ImageObj.xOffset) * (globals.TileWidth / 16)),
+                int((self.objy + self.ImageObj.yOffset) * (globals.TileWidth / 16)),
             )
         else:
             self.setPos(
-                int(self.objx * globals.TileWidth / 16),
-                int(self.objy * globals.TileWidth / 16),
+                int(self.objx * (globals.TileWidth / 16)),
+                int(self.objy * (globals.TileWidth / 16)),
             )
         globals.DirtyOverride -= 1
 
@@ -1858,6 +1861,11 @@ class SpriteItem(LevelEditorItem):
             SLib.SpriteImagesLoaded.add(self.type)
 
         self.ImageObj = obj(self)
+
+        # show auxiliary objects properly
+        for aux in self.ImageObj.aux:
+            aux.setVisible(globals.SpriteImagesShown)
+
         self.UpdateDynamicSizing()
 
     def UpdateDynamicSizing(self):
@@ -1880,8 +1888,8 @@ class SpriteItem(LevelEditorItem):
             self.UpdateRects()
             self.ChangingPos = True
             self.setPos(
-                int((self.objx + self.ImageObj.xOffset) * globals.TileWidth / 16),
-                int((self.objy + self.ImageObj.yOffset) * globals.TileWidth / 16),
+                int((self.objx + self.ImageObj.xOffset) * (globals.TileWidth / 16)),
+                int((self.objy + self.ImageObj.yOffset) * (globals.TileWidth / 16)),
             )
             self.ChangingPos = False
 
@@ -1900,8 +1908,8 @@ class SpriteItem(LevelEditorItem):
         # Get rects
         imgRect = QtCore.QRectF(
             0, 0,
-            self.ImageObj.width * globals.TileWidth / 16,
-            self.ImageObj.height * globals.TileWidth / 16,
+            self.ImageObj.width * (globals.TileWidth / 16),
+            self.ImageObj.height * (globals.TileWidth / 16),
         )
         spriteboxRect = QtCore.QRectF(
             0, 0,
@@ -2105,9 +2113,9 @@ class SpriteItem(LevelEditorItem):
         """
         self.objx, self.objy = newobjx, newobjy
         if globals.SpriteImagesShown:
-            self.setPos((newobjx + self.ImageObj.xOffset) * globals.TileWidth / 16, (newobjy + self.ImageObj.yOffset) * globals.TileWidth / 16)
+            self.setPos((newobjx + self.ImageObj.xOffset) * (globals.TileWidth / 16), (newobjy + self.ImageObj.yOffset) * (globals.TileWidth / 16))
         else:
-            self.setPos(newobjx * globals.TileWidth / 16, newobjy * globals.TileWidth / 16)
+            self.setPos(newobjx * (globals.TileWidth / 16), newobjy * (globals.TileWidth / 16))
 
     def mousePressEvent(self, event):
         """

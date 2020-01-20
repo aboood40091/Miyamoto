@@ -2994,23 +2994,22 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         setSetting('ShowSpriteImages', globals.SpriteImagesShown)
 
         if globals.Area is not None:
+            globals.OverrideSnapping = True
             globals.DirtyOverride += 1
             for spr in globals.Area.sprites:
                 spr.UpdateRects()
-                if globals.Initializing:
-                    continue
-
-                if globals.SpriteImagesShown:
+                if globals.SpriteImagesShown and not globals.Initializing:
                     spr.setPos(
-                        int((spr.objx + spr.ImageObj.xOffset) * globals.TileWidth / 16),
-                        int((spr.objy + spr.ImageObj.yOffset) * globals.TileWidth / 16),
+                        (spr.objx + spr.ImageObj.xOffset) * (globals.TileWidth / 16),
+                        (spr.objy + spr.ImageObj.yOffset) * (globals.TileWidth / 16),
                     )
-                else:
+                elif not globals.Initializing:
                     spr.setPos(
-                        int(spr.objx * globals.TileWidth / 16),
-                        int(spr.objy * globals.TileWidth / 16),
+                        spr.objx * (globals.TileWidth / 16),
+                        spr.objy * (globals.TileWidth / 16),
                     )
             globals.DirtyOverride -= 1
+            globals.OverrideSnapping = False
 
         self.scene.update()
 
@@ -3459,6 +3458,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     globals.ObjectAddedtoEmbedded[globals.CurrentArea][i] = {}
                     self.folderPicker.addItem(folder)
 
+        # Prevent things from snapping when they're created
         globals.OverrideSnapping = True
 
         # Load the actual level
@@ -3526,7 +3526,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.UpdateTitle()
 
         # Update UI things
-        self.scene.update()
+        self.scene.update(0, 0, self.scene.width(), self.scene.height())
 
         self.levelOverview.Reset()
         self.levelOverview.update()
@@ -3672,39 +3672,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
     def ReloadSpriteData(self):
         LoadSpriteData()
+        LoadSpriteListData(True)
+        LoadSpriteCategories(True)
 
-        for i in range(self.sprPicker.topLevelItemCount()):
-            cnode = self.sprPicker.topLevelItem(i)
-            for j in reversed(range(cnode.childCount())):
-                cnode.removeChild(cnode.child(j))
+        self.spriteViewPicker.clear()
+        for cat in globals.SpriteCategories:
+            self.spriteViewPicker.addItem(cat[0])
 
-            for _, view, _ in globals.SpriteCategories:
-                for catname, category in view:
-                    if catname != cnode.text(0):
-                        continue
+        self.sprPicker.LoadItems()
+        self.spriteViewPicker.setCurrentIndex(0)
+        self.spriteDataEditor.setSprite(self.spriteDataEditor.spritetype, True)
+        self.spriteDataEditor.update()
 
-                    isSearch = (catname == globals.trans.string('Sprites', 16))
-                    if isSearch:
-                        self.sprPicker.SearchResultsCategory = cnode
-                        SearchableItems = []
-
-                    for id in category:
-                        snode = QtWidgets.QTreeWidgetItem()
-                        if id == 9999:
-                            snode.setText(0, globals.trans.string('Sprites', 17))
-                            snode.setData(0, Qt.UserRole, -2)
-                            self.sprPicker.NoSpritesFound = snode
-                        else:
-                            snode.setText(0, globals.trans.string('Sprites', 18, '[id]', id, '[name]', globals.Sprites[id].name))
-                            snode.setData(0, Qt.UserRole, id)
-
-                        if isSearch:
-                            SearchableItems.append(snode)
-
-                        cnode.addChild(snode)
-
-        self.sprPicker.ShownSearchResults = SearchableItems
-        self.sprPicker.NoSpritesFound.setHidden(True)
         self.NewSearchTerm(self.spriteSearchTerm.text())
 
         for sprite in globals.Area.sprites:
@@ -4298,7 +4277,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         cat = globals.SpriteCategories[type]
         self.sprPicker.SwitchView(cat)
 
-        isSearch = (type == len(globals.SpriteCategories) - 1)
+        isSearch = (type == 0)
         layout = self.spriteSearchLayout
         layout.itemAt(0).widget().setVisible(isSearch)
         layout.itemAt(1).widget().setVisible(isSearch)
