@@ -302,6 +302,11 @@ def LoadSpriteCategories(reload_=False):
         paths = new
 
     globals.SpriteCategories = []
+
+    # Add a Search category
+    globals.SpriteCategories.append((globals.trans.string('Sprites', 19), [(globals.trans.string('Sprites', 16), list(range(globals.NumSprites)))], []))
+    globals.SpriteCategories[-1][1][0][1].append(9999)  # 'no results' special case
+
     for path in paths:
         tree = etree.parse(path)
         root = tree.getroot()
@@ -342,10 +347,6 @@ def LoadSpriteCategories(reload_=False):
                         for i in range(int(x[0]), int(x[1]) + 1):
                             if i not in CurrentCategory:
                                 CurrentCategory.append(i)
-
-    # Add a Search category
-    globals.SpriteCategories.append((globals.trans.string('Sprites', 19), [(globals.trans.string('Sprites', 16), list(range(globals.NumSprites)))], []))
-    globals.SpriteCategories[-1][1][0][1].append(9999)  # 'no results' special case
 
 
 def LoadSpriteListData(reload_=False):
