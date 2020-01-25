@@ -447,7 +447,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         """
         if self.scene.zoom == 1:
             self.scene.zoom = 0.5
-            self.ZoomButton.setIcon(("zoomin", True))
+            self.ZoomButton.setIcon(GetIcon("zoomin", True))
 
         else:
             self.scene.zoom = 1
