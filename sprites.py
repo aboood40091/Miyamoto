@@ -1150,6 +1150,27 @@ class SpriteImage_MidwayFlag(SLib.SpriteImage_Static):  # 25
         SLib.loadIfNotInImageCache('MidwayFlag', 'midway_flag.png')
 
 
+class SpriteImage_ZoomArea(SLib.SpriteImage):  # 26
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        h = self.parent.spritedata[4]
+        w = self.parent.spritedata[5]
+        if w == 0:
+            w = 1
+        if h == 0:
+            h = 1
+        
+        if w == 1 and h == 1:  # no point drawing a 1x1 outline behind the self.parent
+            self.aux[0].setSize(0, 0, 0, 0)
+            return
+        self.aux[0].setSize(w * 60, h * 60, 0, -h * 60 + 60)
+
+
 class SpriteImage_LimitU(SLib.SpriteImage_StaticMultiple):  # 29
     def __init__(self, parent):
         super().__init__(
@@ -8197,6 +8218,7 @@ ImageClasses = {
     23: SpriteImage_Spiny,
     24: SpriteImage_SpinyU,
     25: SpriteImage_MidwayFlag,
+    26: SpriteImage_ZoomArea,
     29: SpriteImage_LimitU,
     30: SpriteImage_LimitD,
     31: SpriteImage_Flagpole,
