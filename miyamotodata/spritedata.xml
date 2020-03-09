@@ -1480,7 +1480,7 @@
 			<entry value="1">Longer and a bit bigger</entry>
 		</list>
 	</sprite>
-	<sprite id="95" name="Defunct &quot;Moving&quot; Bouncy Cloud [UNUSED]"/>
+	<sprite id="95" name="Move-when-on Bouncy Cloud [UNUSED]"/>
 	<sprite id="96" name="Lighting - Lamp" notes="A weak light source that will light up a small area around it.">
 		<list nybble="12" title="Style">
 			<entry value="0">Lamp</entry>
@@ -2614,25 +2614,24 @@
 		<value nybble="21-22" title="Movement ID" comment="Can be used with rotation movement controllers for sure."/>
 		<value nybble="23-24" title="Coin ID" comment="Use this to link this coin to a clapping controller."/>
 	</sprite>
-	<sprite id="168" name="Clapping Controller" notes="Same as sprite 169">
-		<value nybble="5" title="Unknown Value 5"/>
-		<value nybble="6" title="Unknown Value 6"/>
+	<sprite id="168" name="Clapping Controller">
+		<value nybble="5-6" title="Amount of coin outlines"/>
 		<value nybble="7-8" title="Amount of blue coins"/>
 		<value nybble="9-10" title="Amount of yellow coins"/>
-		<value nybble="12" title="Unknown Value 12" comment="Seems to be related to a movement ID"/>
-		<value nybble="19" title="Unknown Value 19"/>
-		<value nybble="20" title="Unknown Value 20"/>
+		<value nybble="11" title="Unused Value 11" comment="Relates to value 19-20 somehow."/>
+		<value nybble="12" title="Movement ID" comment="Useless. Looks to be a leftover from an old version of the game where you would get cheered if you collect all coins with this movement ID.&lt;br&gt;This field is no longer even referenced in the code."/>
+		<value nybble="19-20" title="Unknown Value 19-20"/>
 		<value nybble="23-24" title="Coin ID"/>
 	</sprite>
-	<sprite id="169" name="Clapping Controller 2" notes="Same as sprite 168">
-		<value nybble="6" title="Unknown Value 6"/>
-		<value nybble="7-8" title="Number of blue coins" comment="Use this to set the amount of coins that need to be collected."/>
-		<value nybble="9-10" title="Number of yellow coins" comment="Use this to set the amount of coins that need to be collected."/>
-		<value nybble="19" title="Unknown Value 19"/>
-		<value nybble="20" title="Location ID" comment="Use this to set the location ID the player has to be in for the Event to be activated."/>
-		<value nybble="23-24" title="Target Event ID/Coin ID" comment="This Event is activated when the conditions are met or the coins are collected.&lt;br&gt;Alternatively, when this controller produces clapping sounds, this is the ID that needs to be set on the coins that need to be collected."/>
+	<sprite id="169" name="Clapping Controller 2" notes="It was determined through looking at the game's code that the only differences between this and 168 are the spawn range and a certain flag. However, we still don't know what difference those made.">
+		<value nybble="5-6" title="Amount of coin outlines"/>
+		<value nybble="7-8" title="Amount of blue coins"/>
+		<value nybble="9-10" title="Amount of yellow coins"/>
+		<value nybble="11" title="Unused Value 11" comment="Relates to value 19-20 somehow."/>
+		<value nybble="19-20" title="Unknown Value 19-20"/>
+		<value nybble="23-24" title="Coin ID"/>
 	</sprite>
-	<sprite id="170" name="Parabomb" notes="A bob-omb that falls from the sky on a parachute. ">
+	<sprite id="170" name="Parabomb" notes="A bob-omb that falls from the sky on a parachute.">
 		<list nybble="16" title="Direction After Landing" comment="The direction the Bob-omb walks in after landing.">
 			<entry value="0">Right</entry>
 			<entry value="1">Left</entry>
@@ -3160,25 +3159,68 @@
 	</sprite>
 	<sprite id="214" name="Movement Controller - Spinning (Single-use)" notes="A simpler version of the rotation controller. Can also only be temporary spinning.">
 		<value nybble="3-4" title="Triggering Event ID" comment="If this event is activated, the assigned objects will be rotated."/>
-		<list nybble="5" title="Direction" comment="The direction the objects swing in from. 1 and 3 are hard to see...">
-			<entry value="0">Counterclockwise</entry>
-			<entry value="1">UNKNOWN</entry>
-			<entry value="2">Clockwise</entry>
-			<entry value="3">UNKNOWN</entry>
-			<entry value="4">From below the screen</entry>
-			<entry value="5">UNKNOWN</entry>
-			<entry value="6">UNKNOWN</entry>
+		<checkbox nybble="5" title="From top of screen" comment="Makes the coin swing in from the top of the screen."/>
+		<checkbox nybble="5" title="Clockwise" mask="2"/>
+		<checkbox nybble="5" title="Closer Arc" mask="4" comment="Makes the rotation non-circular in some cases."/>
+		<value nybble="6" title="Controller Spin Radius"/>
+		<list nybble="7" title="Controller Spin Arc">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0;</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0;</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0;</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
 		</list>
-		<value nybble="6" title="Unknown Value 6"/>
-		<value nybble="7" title="Unknown Value 7"/>
-		<value nybble="8" title="Unknown Value 8"/>
-		<value nybble="9" title="Arc?" comment="Possibly the rotation arc."/>
-		<value nybble="10" title="Delay" comment="The delay between the activation of the event and the start of the actual rotation. Unknown unit."/>
-		<value nybble="13" title="Unknown Value 13"/>
-		<value nybble="14" title="Unknown Value 14"/>
+		<value nybble="8" title="Delay" comment="Unknown unit. Delay before the controller starts spinning."/>
+		<list nybble="9" title="Speed" comment="Values 11-15 are the same as 0.">
+			<entry value="0">Slower</entry>
+			<entry value="1">Slow</entry>
+			<entry value="2">Normal</entry>
+			<entry value="3">Fast</entry>
+			<entry value="4">Slowest</entry>
+			<entry value="5">Faster</entry>
+			<entry value="6">Even faster</entry>
+			<entry value="7">Extreme</entry>
+			<entry value="8">Insane</entry>
+			<entry value="9">Light speed</entry>
+			<entry value="10">Instant</entry>
+		</list>
+		<value nybble="10" title="Ordering ID" comment="This value specifies the order which the controllers activates. Almost always starts with order ID 1."/>
+		<list nybble="13" title="Arc (Useless)" comment="This field is no longer even referenced in the code.">
+			<entry value="0">0&#xB0; (?)</entry>
+			<entry value="1">45&#xB0;</entry>
+			<entry value="2">90&#xB0; [USED]</entry>
+			<entry value="3">135&#xB0;</entry>
+			<entry value="4">180&#xB0; [USED]</entry>
+			<entry value="5">225&#xB0;</entry>
+			<entry value="6">270&#xB0;</entry>
+			<entry value="7">315&#xB0;</entry>
+			<entry value="8">0&#xB0; (?)</entry>
+			<entry value="9">0&#xB0; (?)</entry>
+			<entry value="10">270&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">225&#xB0;</entry>
+			<entry value="13">202.5&#xB0;</entry>
+			<entry value="14">180&#xB0;</entry>
+			<entry value="15">157.5&#xB0;</entry>
+		</list>
+		<value nybble="14" title="Useless" comment="Supposed to be the same as sprite 484's Unknown Value 14. This field is no longer even referenced in the code."/>
 		<value nybble="15" title="Unknown Value 15"/>
-		<value nybble="16" title="Unknown Value 16"/>
-		<value nybble="20" title="Unknown Value 20"/>
+		<list nybble="16" title="Sound">
+			<entry value="0">At the end of movement</entry>
+			<entry value="1">When the movement starts</entry>
+		</list>
+		<value nybble="19-20" title="Ordering ID (Useless)" comment="Same as the other Ordering ID, but is no longer even referenced in the code. Use the other one."/>
 		<value nybble="21-22" title="Movement ID" comment="Use this ID to connect (assign) objects to this movement controller."/>
 	</sprite>
 	<sprite id="215" name="Portable Springboard" notes="Notes: Known as Trampoline in Super Mario Maker english script.">
@@ -3694,14 +3736,17 @@
 			<entry value="2">1x1 Block (with no glimmer)</entry>
 		</list>
 	</sprite>
-	<sprite id="269" name="Rotating Stone Gear" notes="A rotating solid gear/cog.">
-		<checkbox nybble="5" title="Inverted Alignment" comment="Use this to get it to sync with other gears more easily."/>
+	<sprite id="269" name="Rotating Stone Gear" notes="A rotating solid gear/cog. Doesn't need a movement controller to spin.">
+		<checkbox nybble="5" title="Offset Rotation" comment="Used to sync gears. Can only be used with large gears and is ignored if a movement-controller isn't used."/>
 		<value nybble="8" title="Z-Order"/>
-		<checkbox nybble="9" title="Clockwise"/>
+		<checkbox nybble="9" title="Clockwise" comment="Ignored if a movement-controller is used."/>
 		<list nybble="10" title="Size">
-			<entry value="0">13x13</entry>
-			<entry value="1">19x19</entry>
+			<entry value="0">Medium</entry>
+			<entry value="1">Large</entry>
+			<entry value="2">Small</entry>
 		</list>
+		<checkbox nybble="12" title="Metallic"/>
+		<value nybble="16" title="Rotation Speed" comment="Ignored if a movement-controller is used."/>
 		<value nybble="21-22" title="Movement ID" comment="Use this to match it to a movement controller (68, 69, 116, 118)."/>
 	</sprite>
 	<sprite id="270" name="Amp" notes="Will electrify the player once he comes in contact with the Amp.">
@@ -3841,6 +3886,7 @@
 		</list>
 	</sprite>
 	<sprite id="289" name="Continuous Burner" notes="A burner that sprays a flame continuously. The flames are 2 blocks long.">
+		<checkbox nybble="7" title="Affected by gravity" mask="2"/>
 		<list nybble="12" title="Direction" comment="Sets the direction of the burner.">
 			<entry value="0">Left</entry>
 			<entry value="1">Right</entry>
@@ -3848,16 +3894,34 @@
 			<entry value="3">Down</entry>
 		</list>
 	</sprite>
-	<sprite id="290" name="Burner (Long Fire) (Right) [UNUSED]" notes="A burner with a long fire that faces right."/>
-	<sprite id="291" name="Synchronized Burner Controller" notes="This sprite is REQUIRED for sprite 292 to function.">
-		<value nybble="6" title="Unknown Value 6"/>
-		<value nybble="7-8" title="Unknown Value 7-8"/>
-		<value nybble="9-10" title="Unknown Value 9-10"/>
-		<value nybble="11" title="Unknown Value 11"/>
+	<sprite id="290" name="Continuous Burner (Long Fire) [UNUSED]" notes="A larger varient of sprite 289.">
+		<checkbox nybble="7" title="Affected by gravity" mask="2"/>
+		<list nybble="12" title="Direction" comment="Sets the direction of the burner.">
+			<entry value="0">Left</entry>
+			<entry value="1">Right</entry>
+			<entry value="2">Up</entry>
+			<entry value="3">Down</entry>
+		</list>
+	</sprite>
+	<sprite id="291" name="Synced Burner Controller" notes="This sprite is REQUIRED for sprite 292 to function.">
+		<value nybble="6" title="Burner ID"/>
+		<value nybble="7-8" title="Time inactive"/>
+		<value nybble="9-10" title="Time active"/>
+		<list nybble="11" title="Length" comment="Length of burner (base and flame).">
+			<entry value="0">1 block</entry>
+			<entry value="1">2 blocks</entry>
+			<entry value="2">3 blocks</entry>
+			<entry value="3">4 blocks</entry>
+			<entry value="4">5 blocks</entry>
+			<entry value="5">6 blocks</entry>
+			<entry value="6">7 blocks</entry>
+			<entry value="7">8 blocks</entry>
+		</list>
 	</sprite>
 	<sprite id="292" name="Synced Burner">
-		<value nybble="6" title="Length" comment="Value + 2.25 (including base)."/>
-		<checkbox nybble="10" title="Start activated" comment="If checked, the burner starts spitting out a flame. Otherwise, it starts deactivated, and then activates after a certain amount of time."/>
+		<value nybble="6" title="Burner ID"/>
+		<checkbox nybble="7" title="Affected by gravity" mask="2"/>
+		<checkbox nybble="10" title="Switch time active and inactive"/>
 		<list nybble="12" title="Direction" comment="Set the direction of the flame.">
 			<entry value="0">Right</entry>
 			<entry value="1">Left</entry>
@@ -3865,8 +3929,8 @@
 			<entry value="3">Down</entry>
 		</list>
 	</sprite>
-	<sprite id="293" name="synchronised burner control object">
-		<checkbox nybble="5" title="Unknown Flag 5"/>
+	<sprite id="293" name="Rotating Burner">
+		<checkbox nybble="5" title="Useless" comment="This field is no longer even referenced in the code."/>
 		<checkbox nybble="7" title="Affected by gravity" mask="2"/>
 		<list nybble="11" title="Direction" comment="Describes where the flame is during the movement, relative to the base block. 0 is unused.">
 			<entry value="0">Left-Top-Right</entry>
@@ -3874,7 +3938,15 @@
 			<entry value="2">Bottom-Right-Up</entry>
 			<entry value="3">Top-Left-Bottom</entry>
 		</list>
-		<value nybble="12" title="Flame Length" comment="The flame length. Value + 3 in blocks."/>
+		<value nybble="12" title="Length" comment="Length of burner (base and flame)."/>
+		<entry value="0">5 block</entry>
+		<entry value="1">6 blocks</entry>
+		<entry value="2">7 blocks</entry>
+		<entry value="3">8 blocks</entry>
+		<entry value="4">9 blocks</entry>
+		<entry value="5">10 blocks</entry>
+		<entry value="6">11 blocks</entry>
+		<entry value="7">12 blocks</entry>
 	</sprite>
 	<sprite id="294" name="Purple Striped Climbable Pole" notes="A pole that is striped with purple, usually found in ghost houses.">
 		<value nybble="11-12" title="Length"/>
@@ -5179,10 +5251,13 @@
 	</sprite>
 	<sprite id="455" name="Location-based Clapping Controller" notes="Activated when all coins in the location are grabbed by the player. There seems to be no time limit.">
 		<value nybble="5-6" title="Location ID"/>
-		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="12" title="Unknown Value 12"/>
-		<value nybble="19" title="Unknown Value 19"/>
-		<value nybble="20" title="Unknown Value 20"/>
+		<value nybble="9-10" title="Amount of yellow coins" comment="Useless. Looks to be a leftover from an old version of the game where you would get cheered only if you collect this amount of coins.&lt;br&gt;This field is no longer even referenced in the code."/>
+		<value nybble="11" title="Unused Value 11" comment="Relates to value 19-20 somehow."/>
+		<checkbox nybble="12" title="Ignore blue coins" mask="1"/>
+		<checkbox nybble="12" title="Ignore yellow coins" mask="2"/>
+		<checkbox nybble="12" title="Ignore brick blocks (P-Switch yellow coins)" mask="4"/>
+		<checkbox nybble="12" title="Ignore coin outlines" mask="8"/>
+		<value nybble="19-20" title="Unknown Value 19-20"/>
 	</sprite>
 	<sprite id="456" name="Kamek Warp - Useless [UNUSED]" notes="This sprite doesn't do anything. May have been used in earlier development to define the locations Kamek warps to in the battle.">
 		<checkbox nybble="7" title="Useless Flag 7" comment="Not sure what this nybble was used for, but since this sprite does nothing, it's useless."/>
@@ -5482,7 +5557,7 @@
 			<entry value="1">8x10</entry>
 		</list>
 	</sprite>
-	<sprite id="494" name="Places Bowser Jr. Goes to When Hit (?)" notes="&quot;Retracted position. Bowser Jr underwater&quot;&#13;&#10;Unless it was just a coincidence when I tested it.">
+	<sprite id="494" name="Underwater Bowser Jr. Retraction position" notes="Position Bowser Jr. goes to when hit.">
 		<checkbox nybble="12" title="Unknown Flag 12"/>
 	</sprite>
 	<sprite id="495" name="Down-Pulling Underwater Bubbles" notes="Can spawn bubbles that pull you down in a location.">
@@ -6751,11 +6826,18 @@
 		<value nybble="10" title="Unknown Value 10"/>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
-	<sprite id="675" name="Stone Cog Platform - NSLU" notes="Doesn't need a movement controller to spin.">
-		<value nybble="9" title="Unknown Value 9"/>
-		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="21" title="Unknown Value 21"/>
-		<value nybble="22" title="Unknown Value 22"/>
+	<sprite id="675" name="Rotating Stone Gear - NSLU" notes="Doesn't need a movement controller to spin.">
+		<checkbox nybble="5" title="Offset Rotation" comment="Used to sync gears. Can only be used with large gears and is ignored if a movement-controller isn't used."/>
+		<value nybble="8" title="Z-Order"/>
+		<checkbox nybble="9" title="Clockwise" comment="Ignored if a movement-controller is used."/>
+		<list nybble="10" title="Size">
+			<entry value="0">Medium</entry>
+			<entry value="1">Large</entry>
+			<entry value="2">Small</entry>
+		</list>
+		<checkbox nybble="12" title="Metallic"/>
+		<value nybble="16" title="Rotation Speed" comment="Ignored if a movement-controller is used."/>
+		<value nybble="21-22" title="Movement ID" comment="Use this to match it to a movement controller (68, 69, 116, 118)."/>
 	</sprite>
 	<sprite id="676" name="Blue Platform - NSLU">
 		<value nybble="5" title="Unknown Value 5"/>

@@ -537,8 +537,8 @@ class Area_NSMBU(AbstractArea):
         unpack = nodestruct.unpack_from
         for i in range(count):
             data = unpack(nodedata, offset)
-            ret.append({'x': int(data[0]) - 8,
-                        'y': int(data[1]) - 8,
+            ret.append({'x': int(data[0]),
+                        'y': int(data[1]),
                         'speed': float(data[2]),
                         'accel': float(data[3]),
                         'delay': int(data[4]),
@@ -751,7 +751,7 @@ class Area_NSMBU(AbstractArea):
 
         nodestruct = struct.Struct('>HHffhHBBBx')
         for node in nodes:
-            nodestruct.pack_into(buffer, offset, int(node['x']) + 8, int(node['y']) + 8, float(node['speed']),
+            nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), float(node['speed']),
                                  float(node['accel']), int(node['delay']), 0, 0, 0, 0)
             offset += 20
 

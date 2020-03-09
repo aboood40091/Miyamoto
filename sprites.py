@@ -3844,19 +3844,13 @@ class SpriteImage_CoinOutline(SLib.SpriteImage_StaticMultiple):  # 158
     def __init__(self, parent):
         super().__init__(
             parent,
-            3.75,  # native res (3.75*16=60)
-            ImageCache['CoinOutlineMultiplayer'],
+            3.75,
         )
         self.parent.setZValue(20000)
 
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('CoinOutline', 'coin_outline.png')
-        SLib.loadIfNotInImageCache('CoinOutlineMultiplayer', 'coin_outline_multiplayer.png')
-
     def dataChanged(self):
         multi = (self.parent.spritedata[2] >> 4) & 1
-        self.image = ImageCache['CoinOutline' + ('Multiplayer' if multi else '')]
+        self.image = SLib.Tiles[28 if multi else 31].main
         super().dataChanged()
 
 
@@ -4174,7 +4168,7 @@ class SpriteImage_CoinCircle(SLib.SpriteImage):  # 165
     def __init__(self, parent):
         super().__init__(parent, 3.75)
 
-        self.circleImg = ImageCache['Coin']
+        self.tileIdx = 30
         auxImage = QtGui.QPixmap(60, 60)
         auxImage.fill(Qt.transparent)
         self.aux.append(SLib.AuxiliaryImage(parent, 60, 60))
@@ -4223,10 +4217,10 @@ class SpriteImage_CoinCircle(SLib.SpriteImage):  # 165
 
             if tilt == 1:
                 imageAngle = math.degrees(math.atan2(tiltY - (self.parent.objy + (y / 60) * 16 + 8), tiltX - (self.parent.objx + (x / 60) * 16 + 8))) - 90
-                img = self.circleImg.transformed(QTransform().rotate(imageAngle))
+                img = SLib.Tiles[self.tileIdx].main.transformed(QTransform().rotate(imageAngle))
                 paint.drawPixmap(x + pix.width() / 2 + 30 - img.width() / 2, y + pix.height() / 2 + 30 - img.height() / 2, img);
             else:
-                paint.drawPixmap(x + pix.width() / 2, y + pix.height() / 2, self.circleImg)
+                paint.drawPixmap(x + pix.width() / 2, y + pix.height() / 2, SLib.Tiles[self.tileIdx].main)
 
         paint = None
         self.aux[0].image = pix
@@ -4237,14 +4231,9 @@ class SpriteImage_CoinOutlineCircle(SpriteImage_CoinCircle):  # 166
     def __init__(self, parent):
         super().__init__(parent)
 
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('CoinOutline', 'coin_outline.png')
-        SLib.loadIfNotInImageCache('CoinOutlineMultiplayer', 'coin_outline_multiplayer.png')
-
     def dataChanged(self):
         multi = (self.parent.spritedata[2] >> 4) & 1
-        self.circleImg = ImageCache['CoinOutline' + ('Multiplayer' if multi else '')]
+        self.tileIdx = 28 if multi else 31
         super().dataChanged()
 
 

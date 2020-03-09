@@ -447,7 +447,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         """
         if self.scene.zoom == 1:
             self.scene.zoom = 0.5
-            self.ZoomButton.setIcon(("zoomin", True))
+            self.ZoomButton.setIcon(GetIcon("zoomin", True))
 
         else:
             self.scene.zoom = 1
@@ -3688,12 +3688,12 @@ class LocationEditorWidget(QtWidgets.QWidget):
 
         self.locationWidth = QtWidgets.QSpinBox()
         self.locationWidth.setToolTip(globals.trans.string('LocationDataEditor', 7))
-        self.locationWidth.setRange(1, 65535)
+        self.locationWidth.setRange(8, 65535)
         self.locationWidth.valueChanged.connect(self.HandleLocationWidthChanged)
 
         self.locationHeight = QtWidgets.QSpinBox()
         self.locationHeight.setToolTip(globals.trans.string('LocationDataEditor', 9))
-        self.locationHeight.setRange(1, 65535)
+        self.locationHeight.setRange(8, 65535)
         self.locationHeight.valueChanged.connect(self.HandleLocationHeightChanged)
 
         self.snapButton = QtWidgets.QPushButton(globals.trans.string('LocationDataEditor', 10))
@@ -4434,7 +4434,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         break
                     newID += 1
 
+                globals.OverrideSnapping = True
                 loc = LocationItem(clickedx, clickedy, 8, 8, newID)
+                globals.OverrideSnapping = False
 
                 mw = globals.mainWindow
                 loc.positionChanged = mw.HandleLocPosChange
@@ -4866,7 +4868,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         obj.objy = y
 
                         globals.OverrideSnapping = True
-                        obj.setPos(x * globals.TileWidth / 16, y * globals.TileWidth / 16)
+                        obj.setPos(x * (globals.TileWidth / 16), y * (globals.TileWidth / 16))
                         globals.OverrideSnapping = False
 
                     # if the size changed, recache it and update the area
