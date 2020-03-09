@@ -7926,6 +7926,24 @@ class SpriteImage_MovementControlledTowerBlock(SLib.SpriteImage_Static):  # 524
         SLib.loadIfNotInImageCache('TowerBlock', 'tower_block.png')
 
 
+class SpriteImage_BoltStoneBlock(SLib.SpriteImage_StaticMultiple):  # 530, 625
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+    @staticmethod
+    def loadImages():
+        for i in range(0, 7):
+            SLib.loadIfNotInImageCache('BoltStoneBlock%d' % i, 'bolt_stone_block_%d.png' % i)
+
+    def dataChanged(self):
+        size = self.parent.spritedata[5] & 0xF; size = 0 if size > 6 else size
+        self.image = ImageCache['BoltStoneBlock%d' % size]
+        super().dataChanged()
+
+
 class SpriteImage_RockyWrench(SLib.SpriteImage_Static):  # 536
     def __init__(self, parent):
         super().__init__(
@@ -8651,6 +8669,7 @@ ImageClasses = {
     525: SpriteImage_QBlock,
     526: SpriteImage_BrickBlock,
     529: SpriteImage_Crash,
+    530: SpriteImage_BoltStoneBlock,
     536: SpriteImage_RockyWrench,
     538: SpriteImage_Crash,
     542: SpriteImage_MushroomPlatform,
@@ -8669,6 +8688,7 @@ ImageClasses = {
     577: SpriteImage_PipeUp,
     578: SpriteImage_PipeDown,
     579: SpriteImage_StoneSpike,
+    580: SpriteImage_StoneSpike,
     588: SpriteImage_CheepGreen,
     593: SpriteImage_SumoBro,
     595: SpriteImage_Goombrat,
@@ -8679,6 +8699,7 @@ ImageClasses = {
     612: SpriteImage_PacornBlock,
     615: SpriteImage_CheepCheep,
     618: SpriteImage_SteelBlock,
+    625: SpriteImage_BoltStoneBlock,
     630: SpriteImage_Flagpole,
     631: SpriteImage_PaintGoal,
     643: SpriteImage_LavaBubble,
