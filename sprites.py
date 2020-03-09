@@ -5992,6 +5992,37 @@ class SpriteImage_MetalBridgeBase(SLib.SpriteImage_Static):  # 273
         SLib.loadIfNotInImageCache('MetalBridgeBase', 'metal_bridge_base.png')
 
 
+class SpriteImage_CastlePlatform(SLib.SpriteImage_StaticMultiple):  # 275
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+        self.yOffset = -12
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('CastlePlatform0', 'castle_platform_0.png')
+        SLib.loadIfNotInImageCache('CastlePlatform1', 'castle_platform_1.png')
+        SLib.loadIfNotInImageCache('CastlePlatform2', 'castle_platform_2.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        size = self.parent.spritedata[4] & 0xF
+
+        if size == 1:
+            self.image = ImageCache['CastlePlatform1']
+        elif size == 2:
+            self.image = ImageCache['CastlePlatform2']
+        else:
+            self.image = ImageCache['CastlePlatform0']
+            
+        self.width = (self.image.width() / 60) * 16
+        self.height = (self.image.height() / 60) * 16
+        self.xOffset = -(self.image.width() / 120) * 16 + 8
+
+
 class SpriteImage_CoinBubble(SLib.SpriteImage_Static):  # 281
     def __init__(self, parent):
         super().__init__(
@@ -6877,6 +6908,20 @@ class SpriteImage_Morton(SLib.SpriteImage_Static):  # 368
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Morton', 'morton.png')
+
+
+class SpriteImage_ChainHolder(SLib.SpriteImage_Static):  # 374
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['ChainHolder'],
+            (0, -16)
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('ChainHolder', 'chain_holder.png')
 
 
 class SpriteImage_TorpedoLauncher(SLib.SpriteImage_Static):  # 378
@@ -8425,6 +8470,7 @@ ImageClasses = {
     269: SpriteImage_TowerCog,
     270: SpriteImage_Amp,
     273: SpriteImage_MetalBridgeBase,
+    275: SpriteImage_CastlePlatform,
     281: SpriteImage_CoinBubble,
     282: SpriteImage_KingBill,
     284: SpriteImage_StretchBlock,
@@ -8477,6 +8523,7 @@ ImageClasses = {
     360: SpriteImage_Crash,
     365: SpriteImage_GoldenYoshi,
     368: SpriteImage_Morton,
+    374: SpriteImage_ChainHolder,
     376: SpriteImage_Crash,
     377: SpriteImage_Crash,
     378: SpriteImage_TorpedoLauncher,
