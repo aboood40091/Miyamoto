@@ -7074,6 +7074,64 @@ class SpriteImage_Starman(SLib.SpriteImage_StaticMultiple):  # 395
         super().dataChanged()
 
 
+class SpriteImage_LanternPlatform(SLib.SpriteImage):  # 400
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.spritebox.shown = False
+        self.height = 24
+        self.xOffset = -4
+        self.yOffset = -4
+
+    @staticmethod
+    def loadImages():
+        ImageCache['LanternPlatformLeft'] = SLib.GetImg('lantern_platform_l.png')
+        ImageCache['LanternPlatformMiddle'] = SLib.GetImg('lantern_platform_m.png')
+        ImageCache['LanternPlatformRight'] = SLib.GetImg('lantern_platform_r.png')
+        ImageCache['LanternPlatformLeftLamp'] = SLib.GetImg('lantern_platform_l_lamp.png')
+        ImageCache['LanternPlatformMiddleScrew'] = SLib.GetImg('lantern_platform_m_screw.png')
+        ImageCache['LanternPlatformRightLamp'] = SLib.GetImg('lantern_platform_r_lamp.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        self.screwPlacement = ((self.parent.spritedata[4] & 0x1) << 4) + ((self.parent.spritedata[5] & 0xF0) >> 4) # <- max length is 31
+        self.platformLength = self.parent.spritedata[8] & 0b00011111 # <- max length is 31
+        self.lanternPlacement = self.parent.spritedata[5] & 0x3 # values repeat after 3
+
+        if self.lanternPlacement == 0:
+            self.width = ((self.platformLength + 2) << 4) + 8
+        elif self.lanternPlacement == 1 or self.lanternPlacement == 2:
+            self.width = ((self.platformLength + 3) << 4) + 8
+        else:
+            self.width = ((self.platformLength + 4) << 4) + 8
+
+    def paint(self, painter):
+        super().paint(painter)
+
+        if self.lanternPlacement < 2:
+            painter.drawPixmap(0, 0, ImageCache['LanternPlatformLeft'])
+            painter.drawTiledPixmap(75, 15, self.platformLength * 60, 60, ImageCache['LanternPlatformMiddle'])
+
+            if self.screwPlacement > 0 and self.screwPlacement <= self.platformLength:
+                painter.drawPixmap(self.screwPlacement * 60 + 15, 15, ImageCache['LanternPlatformMiddleScrew'])
+
+            if self.lanternPlacement == 0:
+                painter.drawPixmap(75 + self.platformLength * 60, 0, ImageCache['LanternPlatformRight'])
+            else:
+                painter.drawPixmap(75 + self.platformLength * 60, 0, ImageCache['LanternPlatformRightLamp'])
+        else:
+            painter.drawPixmap(0, 0, ImageCache['LanternPlatformLeftLamp'])
+            painter.drawTiledPixmap(135, 15, self.platformLength * 60, 60, ImageCache['LanternPlatformMiddle'])
+            
+            if self.screwPlacement > 1 and self.screwPlacement <= self.platformLength + 1:
+                painter.drawPixmap(self.screwPlacement * 60 + 15, 15, ImageCache['LanternPlatformMiddleScrew'])
+
+            if self.lanternPlacement == 2:
+                painter.drawPixmap(135 + self.platformLength * 60, 0, ImageCache['LanternPlatformRight'])
+            else:
+                painter.drawPixmap(135 + self.platformLength * 60, 0, ImageCache['LanternPlatformRightLamp'])
+
+
 class SpriteImage_GreenRing(SLib.SpriteImage_Static):  # 402
     def __init__(self, parent):
         super().__init__(
@@ -8535,6 +8593,7 @@ ImageClasses = {
     395: SpriteImage_Starman,
     397: SpriteImage_QBlock,
     398: SpriteImage_BrickBlock,
+    400: SpriteImage_LanternPlatform,
     402: SpriteImage_GreenRing,
     403: SpriteImage_Iggy,
     404: SpriteImage_PipeUpEnterable,
