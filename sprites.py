@@ -6173,8 +6173,7 @@ class SpriteImage_ContinuousBurner(SLib.SpriteImage_StaticMultiple):  # 289
             parent,
             3.75,
         )
-        
-        self.spritebox.shown = False
+        self.imgName = 'ContinuousBurner'
 
     @staticmethod
     def loadImages():
@@ -6184,34 +6183,35 @@ class SpriteImage_ContinuousBurner(SLib.SpriteImage_StaticMultiple):  # 289
         super().dataChanged()
         
         self.direction = self.parent.spritedata[5] & 3
+        self.xOffset = 0
+        self.yOffset = 0
 
         if self.direction == 1:
-            self.xOffset = -48
-            self.yOffset = 0
-            self.width = 64
-            self.height = 16
-            self.image = ImageCache['ContinuousBurner'].transformed(QTransform().scale(-1, 1))
-
+            self.image = ImageCache[self.imgName].transformed(QTransform().scale(-1, 1))
+            self.xOffset = -(self.image.width() / 60) * 16 + 16
+            
         elif self.direction == 2:
-            self.xOffset = 0
-            self.yOffset = -48
-            self.width = 16
-            self.height = 64
-            self.image = ImageCache['ContinuousBurner'].transformed(QTransform().rotate(-90))
-
+            self.image = ImageCache[self.imgName].transformed(QTransform().rotate(-90))
+            self.yOffset = -(self.image.height() / 60) * 16 + 16
+            
         elif self.direction == 3:
-            self.xOffset = 0
-            self.yOffset = 0
-            self.width = 16
-            self.height = 64
-            self.image = ImageCache['ContinuousBurner'].transformed(QTransform().rotate(-90).scale(-1, 1))
+            self.image = ImageCache[self.imgName].transformed(QTransform().rotate(-90).scale(-1, 1))
 
         else:
-            self.xOffset = 0
-            self.yOffset = 0
-            self.width = 64
-            self.height = 16
-            self.image = ImageCache['ContinuousBurner']
+            self.image = ImageCache[self.imgName]
+
+        self.width = (self.image.width() / 60) * 16
+        self.height = (self.image.height() / 60) * 16
+
+
+class SpriteImage_ContinuousBurnerLong(SpriteImage_ContinuousBurner):  # 290
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.imgName = 'ContinuousBurnerLong'
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('ContinuousBurnerLong', 'continuous_burner_long.png')
 
 
 class SpriteImage_NoteBlock(SLib.SpriteImage_Static):  # 295
@@ -8410,6 +8410,7 @@ ImageClasses = {
     286: SpriteImage_LavaBubble,
     288: SpriteImage_Bush,
     289: SpriteImage_ContinuousBurner,
+    290: SpriteImage_ContinuousBurnerLong,
     295: SpriteImage_NoteBlock,
     298: SpriteImage_Clampy,
     296: SpriteImage_Lemmy,
