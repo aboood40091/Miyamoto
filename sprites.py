@@ -6438,6 +6438,109 @@ class SpriteImage_Barrel(SLib.SpriteImage_Static):  # 323
         SLib.loadIfNotInImageCache('Barrel', 'barrel.png')
 
 
+SpikePillar_MoveDistance = [16*60, 7*60, 14*60, 10*60]
+
+
+class SpriteImage_SpikePillarDown(SLib.SpriteImage_Static):  # 329
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['SpikePillarDown'],
+            (0, -432),
+        )
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 240, 1680))
+        self.aux[0].image = ImageCache['SpikePillarDown']
+        self.aux[0].hover = False
+        self.aux[0].opacity = 0.2
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('SpikePillarDown', 'spike_pillar_down.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+        
+        move = (self.parent.spritedata[3] >> 4) & 3
+        self.aux[0].setPos(0, SpikePillar_MoveDistance[move])
+
+
+class SpriteImage_SpikePillarUp(SLib.SpriteImage_Static):  # 331
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['SpikePillarUp'],
+            (0, 0),
+        )
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 240, 1680))
+        self.aux[0].image = ImageCache['SpikePillarUp']
+        self.aux[0].hover = False
+        self.aux[0].opacity = 0.2
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('SpikePillarUp', 'spike_pillar_up.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+        
+        move = (self.parent.spritedata[3] >> 4) & 3
+        self.aux[0].setPos(0, -SpikePillar_MoveDistance[move])
+
+
+class SpriteImage_SpikePillarRight(SLib.SpriteImage_Static):  # 332
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['SpikePillarRight'],
+            (-432, 0),
+        )
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 1680, 240))
+        self.aux[0].image = ImageCache['SpikePillarRight']
+        self.aux[0].hover = False
+        self.aux[0].opacity = 0.2
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('SpikePillarRight', 'spike_pillar_right.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+        
+        move = (self.parent.spritedata[3] >> 4) & 3
+        self.aux[0].setPos(SpikePillar_MoveDistance[move], 0)
+
+
+class SpriteImage_SpikePillarLeft(SLib.SpriteImage_Static):  # 333
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['SpikePillarLeft'],
+            (0, 0),
+        )
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 1680, 240))
+        self.aux[0].image = ImageCache['SpikePillarLeft']
+        self.aux[0].hover = False
+        self.aux[0].opacity = 0.2
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('SpikePillarLeft', 'spike_pillar_left.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+        
+        move = (self.parent.spritedata[3] >> 4) & 3
+        self.aux[0].setPos(-SpikePillar_MoveDistance[move], 0)
+
+
 class SpriteImage_Cooligan(SLib.SpriteImage_StaticMultiple):  # 334
     def __init__(self, parent):
         super().__init__(
@@ -6535,6 +6638,56 @@ class SpriteImage_WoodenBox(SLib.SpriteImage_StaticMultiple):  # 338
             self.image = ImageCache['Reg2x2']  # let's not make some nonsense out of this
 
         super().dataChanged()
+
+
+class SpriteImage_SpikePillarLongRight(SLib.SpriteImage_Static):  # 342
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['SpikePillarLongRight'],
+            (-1332, -4),
+        )
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 5055, 270))
+        self.aux[0].image = ImageCache['SpikePillarLongRight']
+        self.aux[0].hover = False
+        self.aux[0].opacity = 0.2
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('SpikePillarLongRight', 'spike_pillar_long_right.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+        
+        moveShort = self.parent.spritedata[3] & 0x10
+        self.aux[0].setPos(24*60 if moveShort != 0 else 80*60, 0)
+
+
+class SpriteImage_SpikePillarLongLeft(SLib.SpriteImage_Static):  # 343
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['SpikePillarLongLeft'],
+            (0, -4),
+        )
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 5055, 270))
+        self.aux[0].image = ImageCache['SpikePillarLongLeft']
+        self.aux[0].hover = False
+        self.aux[0].opacity = 0.2
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('SpikePillarLongLeft', 'spike_pillar_long_left.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+        
+        moveShort = self.parent.spritedata[3] & 0x10
+        self.aux[0].setPos(-(24*60 if moveShort != 0 else 80*60), 0)
 
 
 class SpriteImage_StoneBlock(SLib.SpriteImage_Static):  # 347
@@ -8279,10 +8432,16 @@ ImageClasses = {
     325: SpriteImage_Coin,
     326: SpriteImage_MovingCoin,
     328: SpriteImage_Coin,
+    329: SpriteImage_SpikePillarDown,
+    331: SpriteImage_SpikePillarUp,
+    332: SpriteImage_SpikePillarRight,
+    333: SpriteImage_SpikePillarLeft,
     334: SpriteImage_Cooligan,
     335: SpriteImage_PipeCooliganGenerator,
     336: SpriteImage_Bramball,
     338: SpriteImage_WoodenBox,
+    342: SpriteImage_SpikePillarLongRight,
+    343: SpriteImage_SpikePillarLongLeft,
     345: SpriteImage_Crash,
     347: SpriteImage_StoneBlock,
     348: SpriteImage_SuperGuide,
