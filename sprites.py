@@ -7326,6 +7326,61 @@ class SpriteImage_SnowyBoxes(SLib.SpriteImage_StaticMultiple):  # 427
         super().dataChanged()
 
 
+class SpriteImage_MortonStoneBlock(SLib.SpriteImage):  # 431
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+        self.spritebox.shown = False
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('MortonStoneBlockT', 'morton_stone_block_t.png')
+        SLib.loadIfNotInImageCache('MortonStoneBlockTL', 'morton_stone_block_tl.png')
+        SLib.loadIfNotInImageCache('MortonStoneBlockTR', 'morton_stone_block_tr.png')
+        SLib.loadIfNotInImageCache('MortonStoneBlockL', 'morton_stone_block_l.png')
+        SLib.loadIfNotInImageCache('MortonStoneBlockM', 'morton_stone_block_m.png')
+        SLib.loadIfNotInImageCache('MortonStoneBlockR', 'morton_stone_block_r.png')
+        SLib.loadIfNotInImageCache('MortonStoneBlockB', 'morton_stone_block_b.png')
+        SLib.loadIfNotInImageCache('MortonStoneBlockBL', 'morton_stone_block_bl.png')
+        SLib.loadIfNotInImageCache('MortonStoneBlockBR', 'morton_stone_block_br.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        self.w = self.parent.spritedata[8] + 1
+        self.h = self.parent.spritedata[9] + 1
+
+        if self.w < 2:
+            self.w = 2
+        if self.h < 2:
+            self.h = 2
+
+        self.width = self.w << 4
+        self.height = self.h << 4
+
+    def paint(self, painter):
+        super().paint(painter)
+
+        # Draw middle
+        painter.drawTiledPixmap(30, 30, (self.w - 1) * 60, (self.h - 1) * 60, ImageCache['MortonStoneBlockM'], ImageCache['MortonStoneBlockM'].width() / 2 - ((self.w - 1) / 2) * 60, ImageCache['MortonStoneBlockM'].height() / 2 - ((self.h - 1) / 2) * 60)
+
+        # Draw top row
+        painter.drawPixmap(0, 0, ImageCache['MortonStoneBlockTL'])
+        painter.drawTiledPixmap(60, 0, (self.w - 2) * 60, 60, ImageCache['MortonStoneBlockT'])
+        painter.drawPixmap((self.w - 1) * 60, 0, ImageCache['MortonStoneBlockTR'])
+
+        # Draw left and right side
+        painter.drawTiledPixmap(0, 60, 60, (self.h - 2) * 60, ImageCache['MortonStoneBlockL'])
+        painter.drawTiledPixmap((self.w - 1) * 60, 60, 60, (self.h - 2) * 60, ImageCache['MortonStoneBlockR'])
+
+        # Draw bottom row
+        painter.drawPixmap(0, (self.h - 1) * 60, ImageCache['MortonStoneBlockBL'])
+        painter.drawTiledPixmap(60, (self.h - 1) * 60, (self.w - 2) * 60, 60, ImageCache['MortonStoneBlockB'])
+        painter.drawPixmap((self.w - 1) * 60, (self.h - 1) * 60, ImageCache['MortonStoneBlockBR'])
+
+
 class SpriteImage_Fliprus(SLib.SpriteImage_StaticMultiple):  # 441
     def __init__(self, parent):
         super().__init__(
@@ -8620,6 +8675,7 @@ ImageClasses = {
     422: SpriteImage_BigBrickBlock,
     424: SpriteImage_ToAirshipCannon,
     427: SpriteImage_SnowyBoxes,
+    431: SpriteImage_MortonStoneBlock,
     436: SpriteImage_Crash,
     439: SpriteImage_Crash,
     441: SpriteImage_Fliprus,
