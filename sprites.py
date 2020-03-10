@@ -5991,6 +5991,58 @@ class SpriteImage_Amp(SLib.SpriteImage_StaticMultiple):  # 270
         super().dataChanged()
 
 
+class SpriteImage_MetalBridgePlatform(SLib.SpriteImage_StaticMultiple):  # 271
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('MetalBridgePlatform0', 'metal_bridge_platform0.png')
+        SLib.loadIfNotInImageCache('MetalBridgePlatform1', 'metal_bridge_platform1.png')
+        SLib.loadIfNotInImageCache('MetalBridgePlatform2', 'metal_bridge_platform2.png')
+
+    def dataChanged(self):
+        model = self.parent.spritedata[4] & 3
+
+        if model == 1:
+            self.xOffset = 0
+            self.image = ImageCache['MetalBridgePlatform1']
+        elif model == 2:
+            self.xOffset = -4
+            self.image = ImageCache['MetalBridgePlatform2']
+        else:
+            self.xOffset = 0
+            self.image = ImageCache['MetalBridgePlatform0']
+            
+        super().dataChanged()
+
+
+class SpriteImage_MetalBridgeStem(SLib.SpriteImage_StaticMultiple):  # 272
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('MetalBridgeStem', 'metal_bridge_stem.png')
+        SLib.loadIfNotInImageCache('MetalBridgeStemUnused', 'metal_bridge_stem_unused.png')
+
+    def dataChanged(self):
+        if (self.parent.spritedata[5] & 1) == 0:
+            self.xOffset = -16
+            self.image = ImageCache['MetalBridgeStemUnused']
+        else:
+            self.xOffset = -24
+            self.image = ImageCache['MetalBridgeStem']
+            
+        super().dataChanged()
+
+
 class SpriteImage_MetalBridgeBase(SLib.SpriteImage_Static):  # 273
     def __init__(self, parent):
         super().__init__(
@@ -6277,6 +6329,31 @@ class SpriteImage_ContinuousBurnerLong(SpriteImage_ContinuousBurner):  # 290
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('ContinuousBurnerLong', 'continuous_burner_long.png')
+
+
+class SpriteImage_PurplePole(SLib.SpriteImage):  # 309
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.spritebox.shown = False
+        self.yOffset = -8
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('PurplePoleT', 'purple_pole_t.png')
+        SLib.loadIfNotInImageCache('PurplePoleM', 'purple_pole_m.png')
+        SLib.loadIfNotInImageCache('PurplePoleB', 'purple_pole_b.png')
+
+
+    def dataChanged(self):
+        super().dataChanged()
+        self.height = ((self.parent.spritedata[5] + 1) << 4) + 48
+
+    def paint(self, painter):
+        super().paint(painter)
+
+        painter.drawPixmap(0, 0, ImageCache['PurplePoleT'])
+        painter.drawTiledPixmap(0, 90, 60, self.height * 3.75 - 180, ImageCache['PurplePoleM'])
+        painter.drawPixmap(0, self.height * 3.75 - 90, ImageCache['PurplePoleB'])
 
 
 class SpriteImage_NoteBlock(SLib.SpriteImage_Static):  # 295
@@ -7156,19 +7233,19 @@ class SpriteImage_Starman(SLib.SpriteImage_StaticMultiple):  # 395
         if direction == 0:
             self.image = ImageCache['StarmanS']
             self.xOffset = -44
-            self.yOffset = -32
+            self.yOffset = -36
         elif direction == 16:
             self.image = ImageCache['StarmanB']
             self.xOffset = -64
-            self.yOffset = -52
+            self.yOffset = -60
         elif direction == 32:
             self.image = ImageCache['StarmanG']
-            self.xOffset = -100
-            self.yOffset = -100
+            self.xOffset = -96
+            self.yOffset = -92
         else:
             self.image = ImageCache['StarmanS']
             self.xOffset = -44
-            self.yOffset = -32
+            self.yOffset = -36
 
         super().dataChanged()
 
@@ -8783,8 +8860,11 @@ ImageClasses = {
     265: SpriteImage_RollingHill,
     269: SpriteImage_TowerCog,
     270: SpriteImage_Amp,
+    271: SpriteImage_MetalBridgePlatform,
+    272: SpriteImage_MetalBridgeStem,
     273: SpriteImage_MetalBridgeBase,
     275: SpriteImage_CastlePlatform,
+    279: SpriteImage_Coin,
     281: SpriteImage_CoinBubble,
     282: SpriteImage_KingBill,
     284: SpriteImage_StretchBlock,
@@ -8793,6 +8873,7 @@ ImageClasses = {
     288: SpriteImage_Bush,
     289: SpriteImage_ContinuousBurner,
     290: SpriteImage_ContinuousBurnerLong,
+    294: SpriteImage_PurplePole,
     295: SpriteImage_NoteBlock,
     298: SpriteImage_Clampy,
     296: SpriteImage_Lemmy,
@@ -8828,6 +8909,7 @@ ImageClasses = {
     342: SpriteImage_SpikePillarLongRight,
     343: SpriteImage_SpikePillarLongLeft,
     345: SpriteImage_Crash,
+    346: SpriteImage_Thwimp,
     347: SpriteImage_StoneBlock,
     348: SpriteImage_SuperGuide,
     350: SpriteImage_MovingStoneBlock,
@@ -8919,6 +9001,7 @@ ImageClasses = {
     544: SpriteImage_MushroomMovingPlatform,
     546: SpriteImage_Flowers,
     551: SpriteImage_Useless,
+    552: SpriteImage_Muncher,
     555: SpriteImage_Crash,
     556: SpriteImage_Crash,
     559: SpriteImage_NabbitRefugeLocation,

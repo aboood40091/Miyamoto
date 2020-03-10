@@ -3763,10 +3763,19 @@
 	</sprite>
 	<sprite id="271" name="Movement-controlled Metal Bridge Platform" notes="A piece of the metal bridge platform. This is the actual bridge piece.">
 		<value nybble="9" title="Unknown Value 9"/>
+		<list nybble="10" title="Type">
+			<entry value="0">UNUSED</entry>
+			<entry value="1">UNUSED</entry>
+			<entry value="2">Metal Bridge</entry>
+			<entry value="3">CRASHES</entry>
+		</list>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
 	<sprite id="272" name="Movement-controlled Metal Bridge Stem" notes="A piece of the metal bridge. This is the step of the platform, that connects to the base.">
-		<value nybble="12" title="Unknown Value 12"/>
+		<list nybble="12" title="Type">
+			<entry value="0">UNUSED</entry>
+			<entry value="1">Stone Stem</entry>
+		</list>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
 	<sprite id="273" name="Movement-controlled Metal Bridge Base" notes="A piece of the metal bridge. This is the base with the screw in the center. ">
