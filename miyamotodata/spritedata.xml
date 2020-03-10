@@ -4086,18 +4086,19 @@
 			<entry value="15">34 Blocks</entry>
 		</list>
 	</sprite>
-	<sprite id="308" name="&quot;Balance [moving platform]&quot; [UNUSED]">
+	<sprite id="308" name="Scale Platform [UNUSED]">
 		<value nybble="3-4" title="Triggering Event ID" comment="The ID that triggers the spawn of the scale platform."/>
 		<checkbox nybble="5" title="Event Activated" comment="When checked, the platform can be event activated."/>
-		<checkbox nybble="8" title="Snow Covered" comment="When checked, the platform will have a snow covering on it."/>
-		<value nybble="9" title="Extra Rope Width?" comment="Seemed to double the width of the platform..."/>
-		<value nybble="10" title="Left Platform Rope Height" comment="Height of the rope on the left platform when it spawns."/>
-		<value nybble="11" title="Right Platform Rope Height" comment="Height of the rope on the right platform when it spawns."/>
-		<value nybble="12" title="Rope Width" comment="Width of the rope that seperates the platforms."/>
-		<value nybble="18" title="Left Platform Width" comment="Width of the left platform. (Value + 3)"/>
-		<value nybble="19" title="Right Platform Width" comment="Width of the left platform. (Value + 3)"/>
+		<value nybble="8" title="Additional distance between steps*" comment="Value * 16. *Adds this distance to the regular distance between steps."/>
+		<checkbox nybble="9" title="Snowy" comment="If checked, the Scale Platform will be covered in snow."/>
+		<value nybble="10" title="Rope length left side"/>
+		<value nybble="11" title="Rope length right side"/>
+		<value nybble="12" title="Distance between steps"/>
+		<value nybble="18" title="Platform width left side" comment="Width of the left platform. (Value + 3)"/>
+		<value nybble="19" title="Platform width right side" comment="Width of the right platform. (Value + 3)"/>
 	</sprite>
 	<sprite id="309" name="Scale Platform" notes="A platform that acts as a scale when something is on it.">
+		<value nybble="8" title="Additional distance between steps*" comment="Value * 16. *Adds this distance to the regular distance between steps."/>
 		<checkbox nybble="9" title="Snowy" comment="If checked, the Scale Platform will be covered in snow."/>
 		<value nybble="10" title="Rope length left side"/>
 		<value nybble="11" title="Rope length right side"/>

@@ -6401,6 +6401,78 @@ class SpriteImage_Poltergeist(SLib.SpriteImage_Static):  # 305
         SLib.loadIfNotInImageCache('Poltergeist', 'poltergeist.png')
 
 
+class SpriteImage_ScalePlatform(SLib.SpriteImage):  # 309
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.spritebox.shown = False
+        self.yOffset = -12
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('ScaleRopeV', 'scale_rope_v.png')
+        SLib.loadIfNotInImageCache('ScaleRopeH', 'scale_rope_h.png')
+        SLib.loadIfNotInImageCache('ScaleWheel', 'scale_wheel.png')
+        SLib.loadIfNotInImageCache('MovPlatNL', 'wood_platform_left.png')
+        SLib.loadIfNotInImageCache('MovPlatNM', 'wood_platform_middle.png')
+        SLib.loadIfNotInImageCache('MovPlatNR', 'wood_platform_right.png')
+        SLib.loadIfNotInImageCache('MovPlatSL', 'wood_platform_snow_left.png')
+        SLib.loadIfNotInImageCache('MovPlatSM', 'wood_platform_snow_middle.png')
+        SLib.loadIfNotInImageCache('MovPlatSR', 'wood_platform_snow_right.png')
+
+
+    def dataChanged(self):
+        super().dataChanged()
+        self.leftRopeLength = self.parent.spritedata[4] & 0xF
+        self.leftRopeLength = 0.5 if self.leftRopeLength < 1 else self.leftRopeLength
+        self.rightRopeLength = self.parent.spritedata[5] >> 4
+        self.rightRopeLength = 0.5 if self.rightRopeLength < 1 else self.rightRopeLength
+        self.snowy = self.parent.spritedata[4] & 0x10 != 0
+        self.middleRopeLength = (self.parent.spritedata[5] & 0xF) + ((self.parent.spritedata[3] & 0xF) << 4)
+        self.leftPlatfromWidth = (self.parent.spritedata[8] & 0xF) + 3
+        self.rightPlatfromWidth = (self.parent.spritedata[9] >> 4) + 3
+
+        self.leftPlatformOffset = (self.leftPlatfromWidth + 0.5) / 2
+        self.rightPlatformOffset = (self.rightPlatfromWidth + 0.5) / 2
+
+        if self.middleRopeLength + self.leftPlatformOffset < self.rightPlatformOffset:
+            self.width = self.rightPlatformOffset * 2 * 16
+            self.xOffset = -(self.rightPlatformOffset - self.middleRopeLength) * 16
+        elif self.middleRopeLength + self.rightPlatformOffset < self.leftPlatformOffset:
+            self.width = self.leftPlatformOffset * 2 * 16
+            self.xOffset = -self.leftPlatformOffset * 16
+        else:
+            self.width = (self.leftPlatformOffset + self.middleRopeLength + self.rightPlatformOffset) * 16
+            self.xOffset = -self.leftPlatformOffset * 16
+
+        self.height = (self.leftRopeLength if self.leftRopeLength > self.rightRopeLength else self.rightRopeLength) * 16 + 20
+
+    def paint(self, painter):
+        super().paint(painter)
+
+        leftSideOffset = self.leftPlatformOffset * 60 - 15
+        if self.middleRopeLength + self.leftPlatformOffset < self.rightPlatformOffset:
+            leftSideOffset = (self.rightPlatformOffset - self.middleRopeLength) * 60 - 15
+
+        #Draw ropes and wheels
+        painter.drawTiledPixmap(leftSideOffset, 30, 30, self.leftRopeLength * 60 - 15, ImageCache['ScaleRopeV'])
+        painter.drawTiledPixmap(leftSideOffset + self.middleRopeLength * 60, 30, 30, self.rightRopeLength * 60 - 15, ImageCache['ScaleRopeV'])
+        painter.drawTiledPixmap(leftSideOffset + 30, 0, self.middleRopeLength * 60 - 30, 30, ImageCache['ScaleRopeH'])
+        painter.drawPixmap(leftSideOffset, 0, ImageCache['ScaleWheel'])
+        painter.drawPixmap(leftSideOffset + self.middleRopeLength * 60 - 30, 0, ImageCache['ScaleWheel'])
+
+        imgType = 'MovPlat%s' % ('S' if self.snowy else 'N')
+        
+        # Draw left platform
+        painter.drawPixmap(leftSideOffset + 15 - self.leftPlatformOffset * 60 + 75 - ImageCache[imgType + 'L'].width(), self.leftRopeLength * 60 + 15, ImageCache[imgType + 'L'])
+        painter.drawTiledPixmap(leftSideOffset + 15 - self.leftPlatformOffset * 60 + 75, self.leftRopeLength * 60 + 15, (self.leftPlatfromWidth - 2) * 60, 60, ImageCache[imgType + 'M'])
+        painter.drawPixmap(leftSideOffset + 15 - self.leftPlatformOffset * 60 + 75 + (self.leftPlatfromWidth - 2) * 60, self.leftRopeLength * 60 + 15, ImageCache[imgType + 'R'])
+
+        # Draw right platform
+        painter.drawPixmap(10 + leftSideOffset + 15 + (self.middleRopeLength - self.rightPlatformOffset) * 60 + 75 - ImageCache[imgType + 'L'].width(), self.rightRopeLength * 60 + 15, ImageCache[imgType + 'L'])
+        painter.drawTiledPixmap(9 + leftSideOffset + 15 + (self.middleRopeLength - self.rightPlatformOffset) * 60 + 75, self.rightRopeLength * 60 + 15, (self.rightPlatfromWidth - 2) * 60, 60, ImageCache[imgType + 'M'])
+        painter.drawPixmap(7 + leftSideOffset + 15 + (self.middleRopeLength - self.rightPlatformOffset) * 60 + 75 + (self.rightPlatfromWidth - 2) * 60, self.rightRopeLength * 60 + 15, ImageCache[imgType + 'R'])
+
+
 class SpriteImage_Blooper(SLib.SpriteImage_Static):  # 313
     def __init__(self, parent):
         super().__init__(
@@ -8681,6 +8753,8 @@ ImageClasses = {
     303: SpriteImage_Thwimp,
     305: SpriteImage_Poltergeist,
     306: SpriteImage_Crash,
+    308: SpriteImage_ScalePlatform,
+    309: SpriteImage_ScalePlatform,
     310: SpriteImage_Crash,
     312: SpriteImage_Crash,
     313: SpriteImage_Blooper,
