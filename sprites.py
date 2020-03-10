@@ -6994,6 +6994,20 @@ class SpriteImage_Ludwig(SLib.SpriteImage_Static):  # 385
         SLib.loadIfNotInImageCache('Ludwig', 'ludwig.png')
 
 
+class SpriteImage_MeltableIceChunk(SLib.SpriteImage_Static):  # 386
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['MeltableIceChunk'],
+            (-8, 0)
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('MeltableIceChunk', 'meltable_ice_chunk.png')
+
+
 class SpriteImage_Roy(SLib.SpriteImage_Static):  # 389
     def __init__(self, parent):
         super().__init__(
@@ -7884,6 +7898,55 @@ class SpriteImage_CloudPlatform(SLib.SpriteImage_Static):  # 508
         SLib.loadIfNotInImageCache('CloudPlatform', 'cloud_platform.png')
 
 
+class SpriteImage_GhostShipBlock(SLib.SpriteImage):  # 512
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+        self.spritebox.shown = False
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('GhostShipBlockT', 'ghost_ship_block_t.png')
+        SLib.loadIfNotInImageCache('GhostShipBlockTL', 'ghost_ship_block_tl.png')
+        SLib.loadIfNotInImageCache('GhostShipBlockTR', 'ghost_ship_block_tr.png')
+        SLib.loadIfNotInImageCache('GhostShipBlockL', 'ghost_ship_block_l.png')
+        SLib.loadIfNotInImageCache('GhostShipBlockM', 'ghost_ship_block_m.png')
+        SLib.loadIfNotInImageCache('GhostShipBlockR', 'ghost_ship_block_r.png')
+        SLib.loadIfNotInImageCache('GhostShipBlockB', 'ghost_ship_block_b.png')
+        SLib.loadIfNotInImageCache('GhostShipBlockBL', 'ghost_ship_block_bl.png')
+        SLib.loadIfNotInImageCache('GhostShipBlockBR', 'ghost_ship_block_br.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        self.w = self.parent.spritedata[8] + 3
+        self.h = self.parent.spritedata[9] + 3
+        self.width = self.w << 4
+        self.height = self.h << 4
+
+    def paint(self, painter):
+        super().paint(painter)
+
+        # Draw middle
+        painter.drawTiledPixmap(60, 60, (self.w - 2) * 60, (self.h - 2) * 60, ImageCache['GhostShipBlockM'], 15, ImageCache['GhostShipBlockM'].height() - (((self.h - 2) * 60) % ImageCache['GhostShipBlockM'].height()))
+
+        # Draw top row
+        painter.drawPixmap(0, 0, ImageCache['GhostShipBlockTL'])
+        painter.drawTiledPixmap(60, 0, (self.w - 2) * 60, 60, ImageCache['GhostShipBlockT'])
+        painter.drawPixmap((self.w - 1) * 60, 0, ImageCache['GhostShipBlockTR'])
+
+        # Draw left and right side
+        painter.drawTiledPixmap(0, 60, 60, (self.h - 2) * 60, ImageCache['GhostShipBlockL'])
+        painter.drawTiledPixmap((self.w - 1) * 60, 60, 60, (self.h - 2) * 60, ImageCache['GhostShipBlockR'])
+
+        # Draw bottom row
+        painter.drawPixmap(0, (self.h - 1) * 60, ImageCache['GhostShipBlockBL'])
+        painter.drawTiledPixmap(60, (self.h - 1) * 60, (self.w - 2) * 60, 60, ImageCache['GhostShipBlockB'])
+        painter.drawPixmap((self.w - 1) * 60, (self.h - 1) * 60, ImageCache['GhostShipBlockBR'])
+
+
 class SpriteImage_PipeJoint(SLib.SpriteImage_Static):  # 513
     def __init__(self, parent, scale=3.75):
         super().__init__(
@@ -8661,6 +8724,7 @@ ImageClasses = {
     380: SpriteImage_QBlockBYoshi,
     383: SpriteImage_Wendy,
     385: SpriteImage_Ludwig,
+    386: SpriteImage_MeltableIceChunk,
     389: SpriteImage_Roy,
     393: SpriteImage_3x3IceBlock,
     395: SpriteImage_Starman,
@@ -8711,6 +8775,7 @@ ImageClasses = {
     507: SpriteImage_ShootingStar,
     508: SpriteImage_CloudPlatform,
     511: SpriteImage_PipeDown,
+    512: SpriteImage_GhostShipBlock,
     513: SpriteImage_PipeJoint,
     514: SpriteImage_PipeJointSmall,
     516: SpriteImage_MiniPipeRight,

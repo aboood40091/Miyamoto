@@ -5795,7 +5795,7 @@
 		</list>
 		<value nybble="12" title="Height" comment="Value + 1. Other nybbles may influence this though."/>
 	</sprite>
-	<sprite id="512" name="Ghost House Block">
+	<sprite id="512" name="Ghost Ship Block">
 		<value nybble="18" title="Width" comment="Value+3"/>
 		<value nybble="20" title="Height" comment="Value+3"/>
 		<value nybble="21-22" title="Movement ID" comment="Can be matched to multiple movement controllers at the same time."/>
