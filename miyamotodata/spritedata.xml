@@ -6109,8 +6109,8 @@
 		<value nybble="8" title="Unknown Value 8"/>
 		<value nybble="9" title="Unknown Value 9"/>
 		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="11" title="Unknown Value 11"/>
-		<value nybble="12" title="Unknown Value 12"/>
+		<value nybble="11" title="Height"/>
+		<value nybble="12" title="Width"/>
 	</sprite>
 	<sprite id="560" name="Wendy Battle Floor"/>
 	<sprite id="561" name="Records Toad House Signboard">
@@ -6342,7 +6342,10 @@
 		<value nybble="5" title="Unknown Value 5" comment="Only used as 8."/>
 	</sprite>
 	<sprite id="590" name="Eep Cheep">
-		<value nybble="5" title="Unknown Value 5"/>
+		<list nybble="5" title="Direction">
+			<entry value="0">Towards Player</entry>
+			<entry value="8">Left</entry>
+		</list>
 	</sprite>
 	<sprite id="591" name="Medium Eep Cheep"/>
 	<sprite id="592" name="Searching Cheep Cheep [UNUSED]" notes="An aggressive green Cheep Cheep that tries to swim towards the player. Needs a location to function.">

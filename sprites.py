@@ -1229,65 +1229,48 @@ class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple):  # 31
             parent,
             3.75,
         )
-
-        self.xOffset = -48
-        self.yOffset = -160
+        self.xOffset = -36
+        self.yOffset = -144
 
         self.parent.setZValue(24999)
+        self.aux.append(SLib.AuxiliaryImage(parent, 390, 375))
+        self.aux[0].setPos(135 + 13*60, 4*60 - 15)
+        self.aux[0].opacity = 0.5
+        self.dataChanged()
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('FlagReg', 'flag_reg.png')
-        SLib.loadIfNotInImageCache('FlagSnow', 'flag_snow.png')
-        SLib.loadIfNotInImageCache('FlagNo', 'flag_no.png')
-        SLib.loadIfNotInImageCache('FlagSecReg', 'flag_sec_reg.png')
-        SLib.loadIfNotInImageCache('FlagSecSnow', 'flag_sec_snow.png')
-        SLib.loadIfNotInImageCache('FlagSecNo', 'flag_sec_no.png')
+        SLib.loadIfNotInImageCache('FlagPole', 'flag_pole.png')
+        SLib.loadIfNotInImageCache('FlagPoleSecret', 'flag_pole_secret.png')
+        SLib.loadIfNotInImageCache('Castle', 'castle.png')
+        SLib.loadIfNotInImageCache('CastleSnow', 'castle_snow.png')
+        SLib.loadIfNotInImageCache('CastleSecret', 'castle_secret.png')
+        SLib.loadIfNotInImageCache('CastleSecretSnow', 'castle_secret_snow.png')
 
     def dataChanged(self):
-
-        secret = self.parent.spritedata[2]
-        snowno = self.parent.spritedata[5]
-
-        secretb = False
-        nob = False
-        snowb = False
-
-        if snowno == 16:
-            nob = True
-        else:
-            nob = False
-        if snowno == 1:
-            snowb = True
-        else:
-            snowb = False
-        if secret == 16:
-            secretb = True
-        else:
-            secretb = False
-        if snowno == 17:
-            nob = True
-            snowb = True
-
-        # print("Snow: "+str(snowb) + "   Secret: "+str(secretb) + "   No: "+str(nob) + "     SecretN:" + str(secret)+ "     SnowNo:"+str(snowno))
-        # That was a coding challenge
-
-        if nob and not secretb:
-            self.image = ImageCache['FlagNo']
-        elif nob and secretb:
-            self.image = ImageCache['FlagSecNo']
-        elif not nob and not secretb and snowb:
-            self.image = ImageCache['FlagSnow']
-        elif not nob and secretb and not snowb:
-            self.image = ImageCache['FlagSecReg']
-        elif not nob and secretb and snowb:
-            self.image = ImageCache['FlagSecSnow']
-        elif not nob and not secretb and not snowb:
-            self.image = ImageCache['FlagReg']
-        else:
-            self.image = ImageCache['FlagReg']
-
         super().dataChanged()
+
+        secret = (self.parent.spritedata[2] & 0x10) != 0
+        castle = (self.parent.spritedata[5] & 0x10) == 0
+        snow =   (self.parent.spritedata[5] & 1)    != 0
+
+        if secret:
+            self.image = ImageCache['FlagPoleSecret']
+            
+            if snow:
+                self.aux[0].image = ImageCache['CastleSecretSnow']
+            else:
+                self.aux[0].image = ImageCache['CastleSecret']
+        else:
+            self.image = ImageCache['FlagPole']
+            
+            if snow:
+                self.aux[0].image = ImageCache['CastleSnow']
+            else:
+                self.aux[0].image = ImageCache['Castle']
+
+        if not castle:
+            self.aux[0].image = None
 
 
 class SpriteImage_ArrowSignboard(SLib.SpriteImage_StaticMultiple):  # 32
@@ -5858,6 +5841,36 @@ class SpriteImage_HeavyParabeetle(SLib.SpriteImage_StaticMultiple):  # 262
         super().dataChanged()
 
 
+class SpriteImage_PipeBubbles(SLib.SpriteImage_StaticMultiple):  # 263
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('PipeBubbles0', 'pipe_bubbles.png')
+        ImageCache['PipeBubbles1'] = ImageCache['PipeBubbles0'].transformed(QTransform().scale(1, -1))
+        ImageCache['PipeBubbles2'] = ImageCache['PipeBubbles0'].transformed(QTransform().rotate(90))
+        ImageCache['PipeBubbles3'] = ImageCache['PipeBubbles2'].transformed(QTransform().scale(-1, 1))
+
+    def dataChanged(self):
+        direction = self.parent.spritedata[5] & 3
+        self.image = ImageCache['PipeBubbles%d' % direction]
+
+        if direction == 1:
+            self.offset = (0, 16)
+        elif direction == 2:
+            self.offset = (16, -16)
+        elif direction == 3:
+            self.offset = (-96, -16)
+        else:
+            self.offset = (0, -96)
+        
+        super().dataChanged()
+
+
 class SpriteImage_WaterGeyserBoss(SLib.SpriteImage_Static):  # 264
     def __init__(self, parent):
         super().__init__(
@@ -8314,6 +8327,27 @@ class SpriteImage_Flowers(SLib.SpriteImage):  # 546
             painter.drawPixmap(240, 0, SLib.Tiles[182].main)
 
 
+class SpriteImage_NabbitRefugeLocation(SLib.SpriteImage):  # 559
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
+
+    def dataChanged(self):
+        super().dataChanged()
+
+        h = self.parent.spritedata[5] >> 4
+        w = self.parent.spritedata[5] & 0xF
+        if w == 0:
+            w = 1
+        if h == 0:
+            h = 1
+        
+        if w == 1 and h == 1:  # no point drawing a 1x1 outline behind the self.parent
+            self.aux[0].setSize(0, 0)
+            return
+        self.aux[0].setSize(w * 60, h * 60)
+
+
 class SpriteImage_RecordSignboard(SLib.SpriteImage):  # 561
     def __init__(self, parent):
         super().__init__(parent, 3.75)
@@ -8367,17 +8401,30 @@ class SpriteImage_StoneSpike(SLib.SpriteImage_Static):  # 579
         SLib.loadIfNotInImageCache('StoneSpike', 'stone_spike.png')
 
 
-class SpriteImage_CheepGreen(SLib.SpriteImage_Static):  # 588
+class SpriteImage_DeepCheep(SLib.SpriteImage_Static):  # 588
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
-            ImageCache['CheepGreen'],
+            ImageCache['DeepCheep'],
         )
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('CheepGreen', 'cheep_green.png')
+        SLib.loadIfNotInImageCache('DeepCheep', 'cheep_deep.png')
+
+
+class SpriteImage_EepCheep(SLib.SpriteImage_Static):  # 589
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['EepCheep'],
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('EepCheep', 'cheep_eep.png')
 
 
 class SpriteImage_SumoBro(SLib.SpriteImage_Static):  # 593
@@ -8731,6 +8778,7 @@ ImageClasses = {
     260: SpriteImage_BigCannon,
     261: SpriteImage_Parabeetle,
     262: SpriteImage_HeavyParabeetle,
+    263: SpriteImage_PipeBubbles,
     264: SpriteImage_WaterGeyserBoss,
     265: SpriteImage_RollingHill,
     269: SpriteImage_TowerCog,
@@ -8873,6 +8921,7 @@ ImageClasses = {
     551: SpriteImage_Useless,
     555: SpriteImage_Crash,
     556: SpriteImage_Crash,
+    559: SpriteImage_NabbitRefugeLocation,
     561: SpriteImage_RecordSignboard,
     566: SpriteImage_NabbitMetal,
     569: SpriteImage_NabbitPrize,
@@ -8884,7 +8933,8 @@ ImageClasses = {
     578: SpriteImage_PipeDown,
     579: SpriteImage_StoneSpike,
     580: SpriteImage_StoneSpike,
-    588: SpriteImage_CheepGreen,
+    588: SpriteImage_DeepCheep,
+    590: SpriteImage_EepCheep,
     593: SpriteImage_SumoBro,
     595: SpriteImage_Goombrat,
     600: SpriteImage_MoonBlock,
