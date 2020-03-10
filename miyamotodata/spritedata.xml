@@ -6088,8 +6088,8 @@
 		<list nybble="5" title="Orientation" comment="Sets the direction of the piranha plant. 2 and 3 are unused.">
 			<entry value="0">Up</entry>
 			<entry value="1">Down</entry>
-			<entry value="2">Left</entry>
-			<entry value="3">Right</entry>
+			<entry value="2">Right</entry>
+			<entry value="3">Left</entry>
 		</list>
 	</sprite>
 	<sprite id="551" name="Nothing. [UNUSED]"/>
