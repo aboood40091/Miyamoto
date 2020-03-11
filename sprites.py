@@ -1235,7 +1235,7 @@ class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple):  # 31
         self.parent.setZValue(24999)
         self.aux.append(SLib.AuxiliaryImage(parent, 390, 375))
         self.aux[0].setPos(135 + 13*60, 4*60 - 15)
-        self.aux[0].opacity = 0.5
+        self.aux[0].alpha = 0.5
         self.dataChanged()
 
     @staticmethod
@@ -2880,6 +2880,7 @@ class SpriteImage_SandPillar(SLib.SpriteImage_StaticMultiple):  # 123, 124
             ImageCache['SandPillar0'],
         )
 
+        self.alpha = 0.65
         self.xOffset = -40
 
     @staticmethod
@@ -4179,10 +4180,6 @@ class SpriteImage_CoinCircle(SLib.SpriteImage):  # 165
         self.aux[0].image = auxImage
         self.aux[0].hover = False
 
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('Coin', 'coin.png')
-
     def dataChanged(self):
         tilt = ((self.parent.spritedata[2] >> 2) & 1) | ((self.parent.spritedata[3] >> 4) & 1) | (self.parent.spritedata[3] & 1)
         arc = (self.parent.spritedata[6] >> 4) * 22.5 + 22.5
@@ -4926,12 +4923,16 @@ class SpriteImage_LavaGeyser(SLib.SpriteImage_StaticMultiple):  # 207
 
     @staticmethod
     def loadImages():
-        for i in [0, 1, 2, 3, 4, 5, 6]:
+        for i in range(7):
             SLib.loadIfNotInImageCache('LavaGeyser%d' % i, 'lava_geyser_%d.png' % i)
 
     def dataChanged(self):
         size = self.parent.spritedata[4] >> 4; size = 0 if size > 6 else size
         self.image = ImageCache['LavaGeyser%d' % size]
+
+        startsOn = self.parent.spritedata[5] & 1
+        self.alpha = 0.75 if startsOn else 0.5
+
         self.yOffset = -160
         
         if size == 1:
@@ -5089,7 +5090,7 @@ class SpriteImage_BooCircle(SLib.SpriteImage):  # 221, 703
         # Constants (change these to fine-tune the boo positions)
         radiusMultiplier = 60  # pixels between boos per distance value
         radiusConstant = 60  # add to all radius values
-        opacity = 0.5
+        alpha = 0.5
 
         # Read the data
         outrad = self.parent.spritedata[2] & 15
@@ -5108,7 +5109,7 @@ class SpriteImage_BooCircle(SLib.SpriteImage):  # 221, 703
         pix = QtGui.QPixmap(2560, 2560)
         pix.fill(Qt.transparent)
         paint = QtGui.QPainter(pix)
-        paint.setOpacity(opacity)
+        paint.setOpacity(alpha)
 
         # Paint each boo
         for i in range(ghostnum):
@@ -5269,13 +5270,14 @@ class SpriteImage_Larry(SLib.SpriteImage_Static):  # 230
         SLib.loadIfNotInImageCache('Larry', 'larry.png')
 
 
-class SpriteImage_IceFloe(SLib.SpriteImage_StaticMultiple):  # 231
+class SpriteImage_IceFloe(SLib.SpriteImage_StaticMultiple):  # 226, 227, 231
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
         )
 
+        self.alpha = 0.65
         self.xOffset = -16
         self.yOffset = -16
 
@@ -6744,7 +6746,7 @@ class SpriteImage_SpikePillarDown(SLib.SpriteImage_Static):  # 329
         self.aux.append(SLib.AuxiliaryImage(parent, 240, 1680))
         self.aux[0].image = ImageCache['SpikePillarDown']
         self.aux[0].hover = False
-        self.aux[0].opacity = 0.2
+        self.aux[0].alpha = 0.2
 
     @staticmethod
     def loadImages():
@@ -6769,7 +6771,7 @@ class SpriteImage_SpikePillarUp(SLib.SpriteImage_Static):  # 331
         self.aux.append(SLib.AuxiliaryImage(parent, 240, 1680))
         self.aux[0].image = ImageCache['SpikePillarUp']
         self.aux[0].hover = False
-        self.aux[0].opacity = 0.2
+        self.aux[0].alpha = 0.2
 
     @staticmethod
     def loadImages():
@@ -6794,7 +6796,7 @@ class SpriteImage_SpikePillarRight(SLib.SpriteImage_Static):  # 332
         self.aux.append(SLib.AuxiliaryImage(parent, 1680, 240))
         self.aux[0].image = ImageCache['SpikePillarRight']
         self.aux[0].hover = False
-        self.aux[0].opacity = 0.2
+        self.aux[0].alpha = 0.2
 
     @staticmethod
     def loadImages():
@@ -6819,7 +6821,7 @@ class SpriteImage_SpikePillarLeft(SLib.SpriteImage_Static):  # 333
         self.aux.append(SLib.AuxiliaryImage(parent, 1680, 240))
         self.aux[0].image = ImageCache['SpikePillarLeft']
         self.aux[0].hover = False
-        self.aux[0].opacity = 0.2
+        self.aux[0].alpha = 0.2
 
     @staticmethod
     def loadImages():
@@ -6956,7 +6958,7 @@ class SpriteImage_SpikePillarLongRight(SLib.SpriteImage_Static):  # 342
         self.aux.append(SLib.AuxiliaryImage(parent, 5055, 270))
         self.aux[0].image = ImageCache['SpikePillarLongRight']
         self.aux[0].hover = False
-        self.aux[0].opacity = 0.2
+        self.aux[0].alpha = 0.2
 
     @staticmethod
     def loadImages():
@@ -6981,7 +6983,7 @@ class SpriteImage_SpikePillarLongLeft(SLib.SpriteImage_Static):  # 343
         self.aux.append(SLib.AuxiliaryImage(parent, 5055, 270))
         self.aux[0].image = ImageCache['SpikePillarLongLeft']
         self.aux[0].hover = False
-        self.aux[0].opacity = 0.2
+        self.aux[0].alpha = 0.2
 
     @staticmethod
     def loadImages():
