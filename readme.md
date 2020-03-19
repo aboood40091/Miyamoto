@@ -23,7 +23,7 @@ GitHub: https://github.com/aboood40091/Miyamoto
 * libtxc_dxtn -- Original DXT5 (De)compressor in C
 * Luzifer -- Graphics
 * Mayro -- Graphics
-* mrbengtsson -- Graphics
+* mrbengtsson -- Coding, Spritedata, Graphics
 * Meorge -- Testing on macOS
 * NVIDIA -- NVCOMPRESS
 * RicBent -- Graphics
