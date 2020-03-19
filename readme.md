@@ -21,7 +21,7 @@ GitHub: https://github.com/aboood40091/Miyamoto/tree/deluxe
 * John10v10 -- Quick Paint Tool
 * Luzifer -- Graphics
 * Mayro -- Graphics
-* mrbengtsson -- Graphics
+* mrbengtsson -- Coding, Spritedata, Graphics
 * Meorge -- Testing on macOS
 * RicBent -- Graphics
 * reece stone -- Spritedata, Graphics
