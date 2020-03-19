@@ -1223,13 +1223,23 @@
 	</sprite>
 	<sprite id="85" name="Flame Chomp" notes="Spawns a Flame Chomp."/>
 	<sprite id="86" name="Urchin" notes="The normal-sized, spiky fish that lives near the water's surface. It loves the warmth of the water geyser. Once shot with a fireball, the urchin will &quot;die&quot; and fall to the very bottom of the lake/ocean.">
-		<checkbox nybble="9" title="Rises with Geyser" comment="When checked, makes the Urchin rise with a water geyser."/>
-		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="11" title="Movement distance" comment="The urchin starts centered."/>
-		<list nybble="12" title="Direction of movement" comment="When set to 0, the urchin moves up and down in water. If set to 1, the urchin moves from left to right.">
+		<value nybble="6" title="Z-Order"/>
+		<value nybble="7" title="Chase Movement Distance (Down)" comment="Used with movement type 3. The urchin will move down this far when the player gets close under it and then up again."/>
+		<value nybble="8" title="Chase Movement Distance (Up)" comment="Used with movement type 3. The urchin will move up this far when the player gets close over it and then down again."/>
+		<list nybble="9" title="Rise/Fall Behavior" comment="*Use this with Urchin type 2 to get the chasing behavior.&lt;br&gt;&lt;br&gt;**Gravity doesn't work with Urchin type 0, with type 1 it will work correctly if the urchin is placed under water. Both types will slowly return back to its original move pattern if moved by something. &lt;br&gt;&lt;br&gt;***Value 2 only gives the sinking effect to Urchin type 2.">
+			<entry value="0">None / *Chasing</entry>
+			<entry value="1">Affected by geysers + **Gravity</entry>
+			<entry value="2">Affected by geysers + **Gravity + ***Sinks to bottom</entry>
+		</list>
+		<list nybble="10" title="Start Direction" comment="Used with movement type 1 and 2.">
+			<entry value="0">Up/Left</entry>
+			<entry value="1">Down/Right</entry>
+		</list>
+		<value nybble="11" title="Movement Distance" comment="Used with movement type 1 and 2. The urchin starts centered."/>
+		<list nybble="12" title="Type">
 			<entry value="0">Moves up and down</entry>
-			<entry value="1">Moves left to right</entry>
-			<entry value="2">Falls after being risen</entry>
+			<entry value="1">Moves left and right</entry>
+			<entry value="2">Chasing / Geyser (and Sinking)</entry>
 		</list>
 	</sprite>
 	<sprite id="87" name="Movement-controlled Coin" notes="Confirmed to be usable with: Movement controller - Swaying and the path movement controller.">
@@ -1514,15 +1524,24 @@
 			<entry value="3">Right</entry>
 		</list>
 	</sprite>
-	<sprite id="99" name="Mega Urchin" notes="Value 6 is only used in NSLU, 3-2 area 2">
-		<value nybble="6" title="Unknown Value 6"/>
-		<value nybble="9" title="Unknown Value 9"/>
-		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="11" title="Movement distance" comment="The urchin starts centered."/>
-		<list nybble="12" title="Movement direction" comment="When set to 0, the urchin moves up and down in water. If set to 1, the urchin moves from left to right. And finally, if set to 2, it won't move at all, it will just stare at you.">
+	<sprite id="99" name="Mega Urchin">
+		<value nybble="6" title="Z-Order"/>
+		<value nybble="7" title="Chase Movement Distance (Down)" comment="Used with movement type 3. The urchin will move down this far when the player gets close under it and then up again."/>
+		<value nybble="8" title="Chase Movement Distance (Up)" comment="Used with movement type 3. The urchin will move up this far when the player gets close over it and then down again."/>
+		<list nybble="9" title="Rise/Fall Behavior" comment="*Use this with Urchin type 2 to get the chasing behavior.&lt;br&gt;&lt;br&gt;**Gravity doesn't work with Urchin type 0, with type 1 it will work correctly if the urchin is placed under water. Both types will slowly return back to its original move pattern if moved by something. &lt;br&gt;&lt;br&gt;***Value 2 only gives the sinking effect to Urchin type 2.">
+			<entry value="0">None / *Chasing</entry>
+			<entry value="1">Affected by geysers + **Gravity</entry>
+			<entry value="2">Affected by geysers + **Gravity + ***Sinks to bottom</entry>
+		</list>
+		<list nybble="10" title="Start Direction" comment="Used with movement type 1 and 2.">
+			<entry value="0">Up/Left</entry>
+			<entry value="1">Down/Right</entry>
+		</list>
+		<value nybble="11" title="Movement Distance" comment="Used with movement type 1 and 2. The urchin starts centered."/>
+		<list nybble="12" title="Type">
 			<entry value="0">Moves up and down</entry>
-			<entry value="1">Moves left to right</entry>
-			<entry value="2">Doesn't move</entry>
+			<entry value="1">Moves left and right</entry>
+			<entry value="2">Chasing / Geyser (and Sinking)</entry>
 		</list>
 	</sprite>
 	<sprite id="100" name="Movement Controller - Path" notes="Follows the path by default in a &quot;curly&quot;, realistic manner. This means the game takes speed into account and calculates a path that is roughly the same as the path you set. This behaviour can be turned off to make this sprite function more like in previous games.">
@@ -5983,7 +6002,7 @@
 	</sprite>
 	<sprite id="536" name="Rocky Wrench"/>
 	<sprite id="537" name="Flying Wrench [UNUSED]" notes="Name translates to Spanner. Spawns a wrench and is thrown to the left.&#13;&#10;Might be spawned by Rocky Wrenches."/>
-	<sprite id="538" name="Cookie [CRASHING SPRITE] [UNUSED]" notes="Name translates as &quot;cookie&quot;"/>
+	<sprite id="538" name="Roto-disc [CRASHING SPRITE] [UNUSED]"/>
 	<sprite id="539" name="Rolling Ice Block [UNUSED]" notes="Name translates to Gattan. Battan is Whomp's Japanese name. One of the coolest unused sprites. No collision glitches. It can roll on its side and can crush the player.">
 		<value nybble="5" title="Mid-delay" comment="Delay for middle rolls."/>
 		<value nybble="6" title="Initial delay" comment="Delay for first and last rolls."/>
