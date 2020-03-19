@@ -1,0 +1,1855 @@
+<?xml version="1.0"?>
+<spriteresources>
+    <sprite id="0">
+        <resource md5="a58ca6ebcc74d5ceaffec9010eb86e83" name="kuribo" />
+    </sprite>
+    <sprite id="1">
+        <resource md5="a58ca6ebcc74d5ceaffec9010eb86e83" name="kuribo" />
+        <resource md5="64de2b46bd4e68980f7b374f385d17ec" name="wing" />
+    </sprite>
+    <sprite id="2">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="3">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="4">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="5">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="6">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="7">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="8">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="9">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="10">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="11">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="12">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="13">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="14">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="15">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="16">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="17">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="18">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="19">
+        <resource md5="0c02110a9aa210959784672c299be412" name="nokonokoA" />
+    </sprite>
+    <sprite id="20">
+        <resource md5="0c02110a9aa210959784672c299be412" name="nokonokoA" />
+        <resource md5="64de2b46bd4e68980f7b374f385d17ec" name="wing" />
+    </sprite>
+    <sprite id="21">
+        <resource md5="0c02110a9aa210959784672c299be412" name="nokonokoA" />
+        <resource md5="64de2b46bd4e68980f7b374f385d17ec" name="wing" />
+    </sprite>
+    <sprite id="22">
+        <resource md5="412a81eda53df903f6e75d839c88cb96" name="met" />
+    </sprite>
+    <sprite id="23">
+        <resource md5="8c910cfa6f30854891e4746def200f27" name="togezo" />
+        <resource md5="bb6a181349ceca56b3902e27252ea42f" name="paipo" />
+    </sprite>
+    <sprite id="24">
+        <resource md5="8c910cfa6f30854891e4746def200f27" name="togezo" />
+        <resource md5="bb6a181349ceca56b3902e27252ea42f" name="paipo" />
+    </sprite>
+    <sprite id="25">
+        <resource md5="92113fa3d8d968ba59987ab5711f151c" name="middle_flag" />
+    </sprite>
+    <sprite id="31">
+        <resource md5="846c66f824f9a3e2469c02038b1eef60" name="goal_set" />
+    </sprite>
+    <sprite id="32">
+        <resource md5="ecb3c7d375a9e89d8cb41492d2e825bf" name="kanban_yajirushi" />
+    </sprite>
+    <sprite id="33">
+        <resource md5="1311d82708cfb271cb62bae1a7129d8d" name="gorogoro" />
+    </sprite>
+    <sprite id="34">
+        <resource md5="1311d82708cfb271cb62bae1a7129d8d" name="gorogoro" />
+    </sprite>
+    <sprite id="35">
+        <resource md5="2704c13ee20163573cb2e105fd590cde" name="obj_sea_wakame" />
+    </sprite>
+    <sprite id="44">
+        <resource md5="d864161a702e8e4305970729c4cf48d5" name="red_ring" />
+    </sprite>
+    <sprite id="45">
+        <resource md5="8e6d186b5a6aa318deae4f54e4aee991" name="star_coin" />
+    </sprite>
+    <sprite id="46">
+        <resource md5="8e6d186b5a6aa318deae4f54e4aee991" name="star_coin" />
+    </sprite>
+    <sprite id="47">
+        <resource md5="8e6d186b5a6aa318deae4f54e4aee991" name="star_coin" />
+    </sprite>
+    <sprite id="48">
+        <resource md5="8e6d186b5a6aa318deae4f54e4aee991" name="star_coin" />
+    </sprite>
+    <sprite id="49" />
+    <sprite id="50" />
+    <sprite id="51">
+        <resource md5="55d44e90ef8ba1c2983e2e14faebe7c7" name="choropoo" />
+    </sprite>
+    <sprite id="52">
+        <resource md5="03262185e9219715b7e9af2469a30c83" name="iron_boll_hole" />
+    </sprite>
+    <sprite id="53">
+        <resource md5="2983a6b375ea91cc8234174e357f8e79" name="fugu" />
+    </sprite>
+    <sprite id="54">
+        <resource md5="0aabb1fdccc0497ec005e7deb80f182d" name="fruit" />
+    </sprite>
+    <sprite id="55">
+        <resource md5="0c02110a9aa210959784672c299be412" name="nokonokoA" />
+    </sprite>
+    <sprite id="56">
+        <resource md5="2983a6b375ea91cc8234174e357f8e79" name="fugu" />
+    </sprite>
+    <sprite id="57">
+        <resource md5="613c0398a89a21866c22ca9039865324" name="fishbone" />
+    </sprite>
+    <sprite id="58">
+        <resource md5="1311d82708cfb271cb62bae1a7129d8d" name="gorogoro" />
+    </sprite>
+    <sprite id="62">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="63">
+        <resource md5="6ed3bc2da539fc4ffac5d2ff062610f5" name="pakkun_walk" />
+    </sprite>
+    <sprite id="64">
+        <resource md5="135cdeac9dfa6599f6507cf9f6759dc2" name="pakkun_water" />
+    </sprite>
+    <sprite id="67">
+        <resource md5="7604bc5ea46fed922f351c3b080e9761" name="basabasa" />
+    </sprite>
+    <sprite id="71">
+        <resource md5="c4fe14e47386db407608396d1d1d5be0" name="lift_zen_toride_iron" />
+    </sprite>
+    <sprite id="72">
+        <resource md5="67440679cf28a16891e57dd6cb246c34" name="lift_zen_nohara" />
+    </sprite>
+    <sprite id="74">
+        <resource md5="7557648a9032ea88fdb78a9542dd7f08" name="kanibo" />
+    </sprite>
+    <sprite id="75">
+        <resource md5="262cea177840d2cf1544748730475df3" name="bros" />
+    </sprite>
+    <sprite id="76">
+        <resource md5="262cea177840d2cf1544748730475df3" name="bros" />
+    </sprite>
+    <sprite id="77">
+        <resource md5="c36991c3220648d7f73946b3be261f0c" name="bros_mega" />
+    </sprite>
+    <sprite id="78">
+        <resource md5="262cea177840d2cf1544748730475df3" name="bros" />
+    </sprite>
+    <sprite id="79">
+        <resource md5="262cea177840d2cf1544748730475df3" name="bros" />
+    </sprite>
+    <sprite id="80">
+        <resource md5="c4fe14e47386db407608396d1d1d5be0" name="lift_zen_toride_iron" />
+    </sprite>
+    <sprite id="81">
+        <resource md5="67440679cf28a16891e57dd6cb246c34" name="lift_zen_nohara" />
+    </sprite>
+    <sprite id="82">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="83">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="84">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="85">
+        <resource md5="458c36bec98384eac9d6e73025e907b3" name="keronpa" />
+    </sprite>
+    <sprite id="86">
+        <resource md5="c05ace4bda3169c7bb3202a91b9824bb" name="unizo" />
+    </sprite>
+    <sprite id="88">
+        <resource md5="00189e8fd521d2ca7dae692a6a1bbd9e" name="obj_waterfull" />
+        <resource md5="683a94c201fca66cb93eb8cad52418e2" name="obj_waterhalf" />
+    </sprite>
+    <sprite id="89">
+        <resource md5="6f76a32fa232774b579a6b1e2697aafd" name="obj_magma" />
+        <resource md5="b547cda1b4c9094c56a613078060d0d8" name="obj_magmawave" />
+        <resource md5="9a7c2e521ed52cf6f91aeaf075194560" name="yogan_line" />
+    </sprite>
+    <sprite id="90">
+        <resource md5="9e4039189fd1b04d451d3b96404a9e57" name="obj_poisonwater" />
+    </sprite>
+    <sprite id="91">
+        <resource md5="4814921c00c73b281ad06bacfed86e61" name="obj_quicksand" />
+    </sprite>
+    <sprite id="92" />
+    <sprite id="94">
+        <resource md5="27f1e049be6dab25ef55354caf7cee3c" name="lift_trampoline" />
+    </sprite>
+    <sprite id="95">
+        <resource md5="27f1e049be6dab25ef55354caf7cee3c" name="lift_trampoline" />
+    </sprite>
+    <sprite id="96">
+        <resource md5="308c75f0430ec6d5c9711c37231e80ee" name="center_fire" />
+    </sprite>
+    <sprite id="98">
+        <resource md5="a58ca6ebcc74d5ceaffec9010eb86e83" name="kuribo" />
+        <resource md5="29d39e7765b6da251f5e1214b28cde8a" name="kakibo" />
+        <resource md5="ba61cff5d65eaac937943dcdf13b1499" name="bombhei" />
+        <resource md5="0c02110a9aa210959784672c299be412" name="nokonokoA" />
+    </sprite>
+    <sprite id="99">
+        <resource md5="9a428b57bad4932c33ffb3282ae8564d" name="unizoBig" />
+    </sprite>
+    <sprite id="101">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="103">
+        <resource md5="61dc7e49266e61e55d70be982f42009a" name="killer_rot_houdai" />
+        <resource md5="04563de5959789504771d84a9fce9010" name="killer" />
+    </sprite>
+    <sprite id="104">
+        <resource md5="fd2a74e3295ce2b8e730e763059c34ec" name="switch" />
+    </sprite>
+    <sprite id="105">
+        <resource md5="fd2a74e3295ce2b8e730e763059c34ec" name="switch" />
+    </sprite>
+    <sprite id="106">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="107">
+        <resource md5="10c616bc7c9dbe758714b02be8f5f41e" name="obj_door" />
+    </sprite>
+    <sprite id="108">
+        <resource md5="f2f21dbc0d2dffd0fefb2be6276fab3c" name="obj_door_obake" />
+    </sprite>
+    <sprite id="109">
+        <resource md5="35de901ad917b20d3f12f4bdf5bc444d" name="obj_door_torideboss" />
+    </sprite>
+    <sprite id="110">
+        <resource md5="f31cd948249997209fb2842d56523c63" name="obj_door_shiroboss" />
+    </sprite>
+    <sprite id="111">
+        <resource md5="f5cebbec18ff7b111319d32d20556566" name="boss_koopa_door" />
+    </sprite>
+    <sprite id="112">
+        <resource md5="61dc7e49266e61e55d70be982f42009a" name="killer_rot_houdai" />
+        <resource md5="04563de5959789504771d84a9fce9010" name="killer" />
+    </sprite>
+    <sprite id="113">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="114">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="117">
+        <resource md5="fd954a8a20303942d52916da93741068" name="guru" />
+    </sprite>
+    <sprite id="119">
+        <resource md5="50acbbf541e215d147aff525dd60d243" name="jugem" />
+        <resource md5="8c910cfa6f30854891e4746def200f27" name="togezo" />
+        <resource md5="bb6a181349ceca56b3902e27252ea42f" name="paipo" />
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+        <resource md5="2659674e4bf004b76cde4d5a1a7007b9" name="pakkun_tane" />
+    </sprite>
+    <sprite id="120">
+        <resource md5="f49d90f2ea853174144ded7a63350dbc" name="pukupuku_toge" />
+    </sprite>
+    <sprite id="121">
+        <resource md5="c3e44359a9958bba6ed82023ca81c21b" name="env_mist" />
+    </sprite>
+    <sprite id="122">
+        <resource md5="c3e44359a9958bba6ed82023ca81c21b" name="env_mist" />
+    </sprite>
+    <sprite id="123">
+        <resource md5="e7ff6754634f0e12e9cb9740f63dd6a4" name="sandpillar" />
+    </sprite>
+    <sprite id="124">
+        <resource md5="e7ff6754634f0e12e9cb9740f63dd6a4" name="sandpillar" />
+    </sprite>
+    <sprite id="129">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="130">
+        <resource md5="50acbbf541e215d147aff525dd60d243" name="jugem" />
+        <resource md5="8c910cfa6f30854891e4746def200f27" name="togezo" />
+        <resource md5="bb6a181349ceca56b3902e27252ea42f" name="paipo" />
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+        <resource md5="2659674e4bf004b76cde4d5a1a7007b9" name="pakkun_tane" />
+    </sprite>
+    <sprite id="131">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="132">
+        <resource md5="eb0cac4f92d51c3eb46ec4bf66640985" name="lift_zen_kaitenita" />
+        <resource md5="07edd04590574794a1b204d5e53f3c31" name="lift_zen_kaitenita_toride" />
+    </sprite>
+    <sprite id="133">
+        <resource md5="1396f5e187ea0a5db7a30244c2f9f67a" name="lift_torokko" />
+    </sprite>
+    <sprite id="135">
+        <resource md5="484f15efcf4bc36fe582922587714440" name="dossun" />
+    </sprite>
+    <sprite id="136">
+        <resource md5="484f15efcf4bc36fe582922587714440" name="dossun" />
+    </sprite>
+    <sprite id="137">
+        <resource md5="a589bda8988d0200dabd6ea1cfdeb6cb" name="karon" />
+    </sprite>
+    <sprite id="138">
+        <resource md5="a589bda8988d0200dabd6ea1cfdeb6cb" name="karon" />
+    </sprite>
+    <sprite id="139">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="140">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="141">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="142">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="145">
+        <resource md5="67263ba18b62a1e3462665112e6e11bd" name="obj_yashi" />
+        <resource md5="241184e4c5a14f6b379ebcd0ef38ae74" name="obj_yashi_sabaku" />
+    </sprite>
+    <sprite id="146">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="150">
+        <resource md5="38793f9d1e7ef657856b4131006025db" name="lift_moaidon" />
+    </sprite>
+    <sprite id="151">
+        <resource md5="38793f9d1e7ef657856b4131006025db" name="lift_moaidon" />
+    </sprite>
+    <sprite id="152">
+        <resource md5="a20303661a042853a9fe9a5dadad9ebb" name="block_pow" />
+        <resource md5="5b9c1b7ce1cd05d45307bf432426337c" name="EF_POW" />
+    </sprite>
+    <sprite id="153">
+        <resource md5="558036ed63e51b59206c4ae6f01b1648" name="light_search" />
+        <resource md5="2fbe78d62788d6d9a6830c05092aa675" name="Mask_flashlight_obake" />
+        <resource md5="a4fb18807902f527b8f1a5a9e2073aa1" name="Mask" />
+    </sprite>
+    <sprite id="154">
+        <resource md5="1f5dd95274dc0dec77b14fd04bbb7368" name="block_pata" />
+    </sprite>
+    <sprite id="155">
+        <resource md5="00b154a752260ba676330869544791c1" name="obj_dokan_cannon" />
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+    </sprite>
+    <sprite id="156">
+        <resource md5="17dd4639752d71856d17aff791b5a3cc" name="waterpillar" />
+    </sprite>
+    <sprite id="157">
+        <resource md5="7ec5ac769a4ebf37c5828380dba687c8" name="lift_zen_yoko" />
+    </sprite>
+    <sprite id="159">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="160">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="161">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="162">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="163">
+        <resource md5="17dd4639752d71856d17aff791b5a3cc" name="waterpillar" />
+    </sprite>
+    <sprite id="164">
+        <resource md5="ba61cff5d65eaac937943dcdf13b1499" name="bombhei" />
+    </sprite>
+    <sprite id="170">
+        <resource md5="ba61cff5d65eaac937943dcdf13b1499" name="bombhei" />
+    </sprite>
+    <sprite id="171">
+        <resource md5="1f7768755d022dc17c14802fc9c64ee0" name="killer_houdai" />
+        <resource md5="04563de5959789504771d84a9fce9010" name="killer" />
+    </sprite>
+    <sprite id="172">
+        <resource md5="1f7768755d022dc17c14802fc9c64ee0" name="killer_houdai" />
+        <resource md5="04563de5959789504771d84a9fce9010" name="killer" />
+    </sprite>
+    <sprite id="173">
+        <resource md5="8d6b61b708e0511f6d42e9c44f0a476d" name="killer_mag_houdai" />
+        <resource md5="de3592097d6ab986d212cce2b6735f1a" name="killer_mag" />
+    </sprite>
+    <sprite id="174">
+        <resource md5="8d6b61b708e0511f6d42e9c44f0a476d" name="killer_mag_houdai" />
+        <resource md5="de3592097d6ab986d212cce2b6735f1a" name="killer_mag" />
+    </sprite>
+    <sprite id="175">
+        <resource md5="11ef693f8af2509f2a753c381eed8286" name="mecha_koopa" />
+    </sprite>
+    <sprite id="176">
+        <resource md5="9044ed3f12e16eea222509936a60ddac" name="houdai_slope" />
+        <resource md5="f2e8587f6cfc0d8910bebb3753e1a828" name="houdai_ball" />
+        <resource md5="ba61cff5d65eaac937943dcdf13b1499" name="bombhei" />
+    </sprite>
+    <sprite id="177">
+        <resource md5="f2e8587f6cfc0d8910bebb3753e1a828" name="houdai_ball" />
+    </sprite>
+    <sprite id="178">
+        <resource md5="f2e8587f6cfc0d8910bebb3753e1a828" name="houdai_ball" />
+    </sprite>
+    <sprite id="180">
+        <resource md5="42321299553f04e823442196bf5c2750" name="gabon" />
+    </sprite>
+    <sprite id="181">
+        <resource md5="42321299553f04e823442196bf5c2750" name="gabon" />
+    </sprite>
+    <sprite id="182">
+        <resource md5="a6a1dddfffb6e38df7de4e3d47fcaa47" name="lift_han_wood" />
+        <resource md5="76651358c62c0aa38b4b1d3d0ef49951" name="lift_han_stone" />
+        <resource md5="8e37493ab62d10b7e195589f593cc49d" name="lift_kinoko_yoko" />
+        <resource md5="77d11b92a63c6cfe7d5e0d68287ac32a" name="lift_han_spin" />
+        <resource md5="53a2442b5436bd76b30e6a63f4078645" name="lift_kinoko_shiso" />
+        <resource md5="09c03d244dddb0625611c3c30cfb439f" name="lift_han_sky" />
+    </sprite>
+    <sprite id="183">
+        <resource md5="9e047e235330f750d514192603b5a830" name="obj_turara_rakka" />
+    </sprite>
+    <sprite id="184">
+        <resource md5="6ce938f3df5330d0b5cae912cad473e6" name="obj_turara_rakka_Big" />
+    </sprite>
+    <sprite id="185">
+        <resource md5="1073af91a91a0bfcad29ef0cd0ed3f74" name="obj_turara_kotei" />
+    </sprite>
+    <sprite id="186">
+        <resource md5="a6a1dddfffb6e38df7de4e3d47fcaa47" name="lift_han_wood" />
+        <resource md5="76651358c62c0aa38b4b1d3d0ef49951" name="lift_han_stone" />
+        <resource md5="8e37493ab62d10b7e195589f593cc49d" name="lift_kinoko_yoko" />
+        <resource md5="77d11b92a63c6cfe7d5e0d68287ac32a" name="lift_han_spin" />
+        <resource md5="53a2442b5436bd76b30e6a63f4078645" name="lift_kinoko_shiso" />
+        <resource md5="09c03d244dddb0625611c3c30cfb439f" name="lift_han_sky" />
+    </sprite>
+    <sprite id="187">
+        <resource md5="49233de2d565de087b2d764e9b84f00b" name="mouse" />
+    </sprite>
+    <sprite id="188">
+        <resource md5="1311d82708cfb271cb62bae1a7129d8d" name="gorogoro" />
+    </sprite>
+    <sprite id="189">
+        <resource md5="50acbbf541e215d147aff525dd60d243" name="jugem" />
+    </sprite>
+    <sprite id="192">
+        <resource md5="a6a1dddfffb6e38df7de4e3d47fcaa47" name="lift_han_wood" />
+    </sprite>
+    <sprite id="193">
+        <resource md5="a6a1dddfffb6e38df7de4e3d47fcaa47" name="lift_han_wood" />
+        <resource md5="76651358c62c0aa38b4b1d3d0ef49951" name="lift_han_stone" />
+        <resource md5="8e37493ab62d10b7e195589f593cc49d" name="lift_kinoko_yoko" />
+        <resource md5="77d11b92a63c6cfe7d5e0d68287ac32a" name="lift_han_spin" />
+        <resource md5="53a2442b5436bd76b30e6a63f4078645" name="lift_kinoko_shiso" />
+    </sprite>
+    <sprite id="194">
+        <resource md5="c4354de1c852cd1268764ea71ef4b9fa" name="fire_snake" />
+    </sprite>
+    <sprite id="195">
+        <resource md5="27090f93075cd9ddc01c93a87717ce3d" name="block_roulette" />
+    </sprite>
+    <sprite id="197" />
+    <sprite id="199" />
+    <sprite id="200">
+        <resource md5="76179a505ad7705ae6d0611c99ec063b" name="obj_kinoko" />
+    </sprite>
+    <sprite id="202" />
+    <sprite id="203" />
+    <sprite id="204">
+        <resource md5="0d0f3659b920abbf4a1cdfbd8eaedd15" name="chorobon" />
+    </sprite>
+    <sprite id="206">
+        <resource md5="196576fa09934b67f69507458c87a975" name="bunbun" />
+    </sprite>
+    <sprite id="207">
+        <resource md5="137a676b59486b0893e7c0441c177d88" name="firepillar" />
+    </sprite>
+    <sprite id="208">
+        <resource md5="fd2a74e3295ce2b8e730e763059c34ec" name="switch" />
+    </sprite>
+    <sprite id="209">
+        <resource md5="fd2a74e3295ce2b8e730e763059c34ec" name="switch" />
+    </sprite>
+    <sprite id="210">
+        <resource md5="de8e118e013e1c2d5c722730fbc6cada" name="lift_kinoko_sora" />
+    </sprite>
+    <sprite id="211">
+        <resource md5="e6f112829c21f840c4fad5d6c6c574a5" name="test_lift" />
+    </sprite>
+    <sprite id="213">
+        <resource md5="228a80db84059578c8dbe96694c815da" name="tarzantsuta" />
+    </sprite>
+    <sprite id="216">
+        <resource md5="81f51fcead256f3927a2776d21d4fbf6" name="kameck" />
+    </sprite>
+    <sprite id="217" />
+    <sprite id="218">
+        <resource md5="2eb3105071b26cfd04dd6cf490bd6570" name="teresa" />
+    </sprite>
+    <sprite id="219">
+        <resource md5="2eb3105071b26cfd04dd6cf490bd6570" name="teresa" />
+    </sprite>
+    <sprite id="221">
+        <resource md5="2eb3105071b26cfd04dd6cf490bd6570" name="teresa" />
+    </sprite>
+    <sprite id="222">
+        <resource md5="bbe5ae2bae39eaa519dc6962bcae4f73" name="block_snake" />
+        <resource md5="2be883cc81b888dc60e48355714f8dba" name="block_snake_ice" />
+    </sprite>
+    <sprite id="223">
+        <resource md5="196576fa09934b67f69507458c87a975" name="bunbun" />
+    </sprite>
+    <sprite id="225">
+        <resource md5="196576fa09934b67f69507458c87a975" name="bunbun" />
+    </sprite>
+    <sprite id="226">
+        <resource md5="45a994a0fad08b509ce6007e0969e416" name="lift_ice_ashiba" />
+    </sprite>
+    <sprite id="227">
+        <resource md5="45a994a0fad08b509ce6007e0969e416" name="lift_ice_ashiba" />
+    </sprite>
+    <sprite id="228">
+        <resource md5="545a7bdb04b55690f111d216478cd36a" name="lift_huriko_ue" />
+    </sprite>
+    <sprite id="229">
+        <resource md5="31c71eccab9871e44c9f17cec44e44c4" name="huhu" />
+        <resource md5="c3e44359a9958bba6ed82023ca81c21b" name="env_mist" />
+    </sprite>
+    <sprite id="230">
+        <resource md5="5b2685f2264f0e9296ba9a739a5b9e6f" name="larry" />
+        <resource md5="94cfc0396f5fd3b677aa8525fc746255" name="boss_ef_attack" />
+    </sprite>
+    <sprite id="231">
+        <resource md5="45a994a0fad08b509ce6007e0969e416" name="lift_ice_ashiba" />
+    </sprite>
+    <sprite id="232">
+        <resource md5="ef0556a94d7f769ce2348e5bf755810a" name="light_block" />
+    </sprite>
+    <sprite id="235">
+        <resource md5="dac09295ce52dad129d929140aa111b8" name="center_firebar" />
+        <resource md5="dd73d45de805b917773588516210a141" name="firebar_L" />
+    </sprite>
+    <sprite id="236">
+        <resource md5="dd73d45de805b917773588516210a141" name="firebar_L" />
+    </sprite>
+    <sprite id="238">
+        <resource md5="502002918c9f9ca191536d5ddd0cc109" name="bolt" />
+        <resource md5="46377e03b2491f87e443217de199ce83" name="bolt_pyramid" />
+    </sprite>
+    <sprite id="239">
+        <resource md5="29ac71bb4eb70c2ecb911f5a2a9b6562" name="lift_zen_spin_cube" />
+    </sprite>
+    <sprite id="240">
+        <resource md5="d75997b191d94379b34f333335bb55ce" name="lift_maruta" />
+    </sprite>
+    <sprite id="241">
+        <resource md5="fe4d2796b993130e240da07ed5d212de" name="lift_spin_kinoko" />
+        <resource md5="502002918c9f9ca191536d5ddd0cc109" name="bolt" />
+    </sprite>
+    <sprite id="242">
+        <resource md5="fe4d2796b993130e240da07ed5d212de" name="lift_spin_kinoko" />
+        <resource md5="502002918c9f9ca191536d5ddd0cc109" name="bolt" />
+    </sprite>
+    <sprite id="244">
+        <resource md5="94cfc0396f5fd3b677aa8525fc746255" name="boss_ef_attack" />
+    </sprite>
+    <sprite id="245" />
+    <sprite id="246">
+        <resource md5="196576fa09934b67f69507458c87a975" name="bunbun" />
+    </sprite>
+    <sprite id="247">
+        <resource md5="b9a405c40af3e8f31b8bee84fa7630c4" name="kuribo_iga" />
+    </sprite>
+    <sprite id="248">
+        <resource md5="4c378f59793463219f41ceb09037f4b0" name="lift_obake_chikei" />
+    </sprite>
+    <sprite id="249">
+        <resource md5="524a65c8a928784c3dfecb2c07cf59df" name="hanachan" />
+    </sprite>
+    <sprite id="250">
+        <resource md5="e6f112829c21f840c4fad5d6c6c574a5" name="test_lift" />
+    </sprite>
+    <sprite id="251">
+        <resource md5="df3578d55ec36fc444c8c9d0c9770a0a" name="obj_waterfloat" />
+    </sprite>
+    <sprite id="252">
+        <resource md5="803ce5188ab53588c7ca84a051c98c06" name="hashigo" />
+    </sprite>
+    <sprite id="253" />
+    <sprite id="254">
+        <resource md5="e2e9c92c52284fc150cd4f5364aaf65f" name="shinkai_light" />
+    </sprite>
+    <sprite id="255">
+        <resource md5="546d6070fe4ff92c3a8f87d7d52e78d1" name="kuriboMini" />
+    </sprite>
+    <sprite id="256" />
+    <sprite id="257">
+        <resource md5="8e37493ab62d10b7e195589f593cc49d" name="lift_kinoko_yoko" />
+    </sprite>
+    <sprite id="258">
+        <resource md5="8e37493ab62d10b7e195589f593cc49d" name="lift_kinoko_yoko" />
+    </sprite>
+    <sprite id="259">
+        <resource md5="9b2d8bf8bace399627a1086c4ea960f7" name="pakkun_black" />
+    </sprite>
+    <sprite id="260">
+        <resource md5="1f20abb0a3d161b690479f87ad1296f1" name="houdai" />
+        <resource md5="f2e8587f6cfc0d8910bebb3753e1a828" name="houdai_ball" />
+    </sprite>
+    <sprite id="261">
+        <resource md5="84bd8584e129a7c27df12c3d47a15abc" name="met_pata" />
+    </sprite>
+    <sprite id="262">
+        <resource md5="4bb0cd858ffe3953957e425598058b12" name="met_pataBig" />
+    </sprite>
+    <sprite id="263" />
+    <sprite id="264">
+        <resource md5="17dd4639752d71856d17aff791b5a3cc" name="waterpillar" />
+    </sprite>
+    <sprite id="265">
+        <resource md5="41d5927ef824ed5a6325b05a383398b1" name="circle_ground" />
+        <resource md5="82eb419a850aa42b86cc44d3b78c8c1f" name="circle_ground_sabaku" />
+        <resource md5="159f5179cec015257197d82c565e1dc1" name="circle_ground_kori" />
+    </sprite>
+    <sprite id="266">
+        <resource md5="4c378f59793463219f41ceb09037f4b0" name="lift_obake_chikei" />
+    </sprite>
+    <sprite id="267" />
+    <sprite id="269">
+        <resource md5="93354963f9dbe552e94367fb8916698f" name="obj_gear" />
+        <resource md5="7beeecd9382046cc84174b9739d2a250" name="obj_gear_shiro" />
+    </sprite>
+    <sprite id="270">
+        <resource md5="86905c06171ba4a109d6ae432dfcbf6e" name="bilikyu" />
+    </sprite>
+    <sprite id="271">
+        <resource md5="b80de7602f9ca7f488f41ff904782d14" name="lift_zen_hanebashi" />
+    </sprite>
+    <sprite id="272">
+        <resource md5="b80de7602f9ca7f488f41ff904782d14" name="lift_zen_hanebashi" />
+    </sprite>
+    <sprite id="273">
+        <resource md5="b80de7602f9ca7f488f41ff904782d14" name="lift_zen_hanebashi" />
+    </sprite>
+    <sprite id="274">
+        <resource md5="a75a95fc70fe561fca7c7d6ecda1bcfd" name="lift_zen_color_pori" />
+    </sprite>
+    <sprite id="275">
+        <resource md5="7603e6bb232655e92a1d0ee86cb3204d" name="lift_huriko_yougan" />
+    </sprite>
+    <sprite id="276">
+        <resource md5="191cfd7510e49f7987710e5bdfb0dee7" name="kurage" />
+    </sprite>
+    <sprite id="278">
+        <resource md5="53a2442b5436bd76b30e6a63f4078645" name="lift_kinoko_shiso" />
+    </sprite>
+    <sprite id="280">
+        <resource md5="77d11b92a63c6cfe7d5e0d68287ac32a" name="lift_han_spin" />
+        <resource md5="502002918c9f9ca191536d5ddd0cc109" name="bolt" />
+    </sprite>
+    <sprite id="281" />
+    <sprite id="282">
+        <resource md5="dc6291e77c0b915835c15412c62206ee" name="killer_king" />
+    </sprite>
+    <sprite id="283" />
+    <sprite id="284">
+        <resource md5="4f5a1e3e528d22a6b9047db1249feedf" name="block_slide" />
+    </sprite>
+    <sprite id="285">
+        <resource md5="4f5a1e3e528d22a6b9047db1249feedf" name="block_slide" />
+    </sprite>
+    <sprite id="286">
+        <resource md5="b4e30479c15466862d7e45c289ed5600" name="bubble" />
+    </sprite>
+    <sprite id="287">
+        <resource md5="36d1e08ffdd81257158afa7b6b6c9c04" name="lift_suisha" />
+    </sprite>
+    <sprite id="288">
+        <resource md5="2a03c73bfd467c27a1ead82b7107d519" name="fruits_kusa" />
+        <resource md5="f9de08c4b969e2b80e3fdbaa9ee17d7f" name="fruits_kusa_gake" />
+    </sprite>
+    <sprite id="289">
+        <resource md5="8cd9dd280892e6e759c960dcb5960954" name="fire_cannon" />
+    </sprite>
+    <sprite id="290">
+        <resource md5="8cd9dd280892e6e759c960dcb5960954" name="fire_cannon" />
+    </sprite>
+    <sprite id="292">
+        <resource md5="8cd9dd280892e6e759c960dcb5960954" name="fire_cannon" />
+    </sprite>
+    <sprite id="293">
+        <resource md5="b9a9a3afe964dfa8b7997c44b5e6deaf" name="fire_rot_cannon" />
+    </sprite>
+    <sprite id="294">
+        <resource md5="5262a08b38a0ace1919323d97a902cc0" name="noboribou_obake" />
+    </sprite>
+    <sprite id="295">
+        <resource md5="e7e40c75b9740a400ce01ee94bcb0323" name="block_jump" />
+    </sprite>
+    <sprite id="296">
+        <resource md5="6365b369633df31c9e8dc6c4a15e554d" name="lemmy" />
+    </sprite>
+    <sprite id="298">
+        <resource md5="32325fb2a2bd119221b2bb40b6b1eafa" name="shell_fish" />
+        <resource md5="8e6d186b5a6aa318deae4f54e4aee991" name="star_coin" />
+        <resource md5="fd2a74e3295ce2b8e730e763059c34ec" name="switch" />
+    </sprite>
+    <sprite id="299">
+        <resource md5="68134149f394023c525cde8982aab3f1" name="lift_number_ship_up" />
+    </sprite>
+    <sprite id="300">
+        <resource md5="68134149f394023c525cde8982aab3f1" name="lift_number_ship_up" />
+    </sprite>
+    <sprite id="301">
+        <resource md5="9e5425f14dad44d61b19d4fdf0323675" name="hanachan_big" />
+    </sprite>
+    <sprite id="302">
+        <resource md5="196576fa09934b67f69507458c87a975" name="bunbun" />
+    </sprite>
+    <sprite id="303">
+        <resource md5="77edff56a58c1edadd27d9182cb75e5e" name="koton" />
+    </sprite>
+    <sprite id="304">
+        <resource md5="3cc81fe1ec35ad8e42f0b5ea6d2a2f1e" name="lift_guraIwa" />
+    </sprite>
+    <sprite id="305">
+        <resource md5="746c8d9027e1b4dd7a10605c16a4b6aa" name="poltergeist" />
+    </sprite>
+    <sprite id="306" />
+    <sprite id="307">
+        <resource md5="38bc08825ee47e83be796c8c37c2b5a2" name="lift_zen_kanaami" />
+    </sprite>
+    <sprite id="308">
+        <resource md5="b779e8198fe8a2ecbb536c35efbc5f13" name="lift_tenbin" />
+        <resource md5="a6a1dddfffb6e38df7de4e3d47fcaa47" name="lift_han_wood" />
+    </sprite>
+    <sprite id="309">
+        <resource md5="b779e8198fe8a2ecbb536c35efbc5f13" name="lift_tenbin" />
+        <resource md5="a6a1dddfffb6e38df7de4e3d47fcaa47" name="lift_han_wood" />
+    </sprite>
+    <sprite id="310">
+        <resource md5="746c8d9027e1b4dd7a10605c16a4b6aa" name="poltergeist" />
+    </sprite>
+    <sprite id="311" />
+    <sprite id="312" />
+    <sprite id="313">
+        <resource md5="9c4c04b7175eec9c6ee3cd2a1cf5c853" name="gesso" />
+    </sprite>
+    <sprite id="314">
+        <resource md5="ba61cff5d65eaac937943dcdf13b1499" name="bombhei" />
+    </sprite>
+    <sprite id="315">
+        <resource md5="b779e8198fe8a2ecbb536c35efbc5f13" name="lift_tenbin" />
+        <resource md5="a6a1dddfffb6e38df7de4e3d47fcaa47" name="lift_han_wood" />
+    </sprite>
+    <sprite id="316">
+        <resource md5="e9c55c530292aa6f49d1a510b4d75ca1" name="lift_zen_chika_pori" />
+    </sprite>
+    <sprite id="317">
+        <resource md5="196576fa09934b67f69507458c87a975" name="bunbun" />
+    </sprite>
+    <sprite id="318">
+        <resource md5="b4e30479c15466862d7e45c289ed5600" name="bubble" />
+    </sprite>
+    <sprite id="319" />
+    <sprite id="320">
+        <resource md5="8ff3f420516f277237dc13ccba0110ea" name="crasher" />
+    </sprite>
+    <sprite id="321">
+        <resource md5="a60871cca11e2648d47762c9dfa8da22" name="ankou" />
+    </sprite>
+    <sprite id="322">
+        <resource md5="9c4c04b7175eec9c6ee3cd2a1cf5c853" name="gesso" />
+        <resource md5="ee6b31674dab82a74f78015790eea6a0" name="gessoMini" />
+    </sprite>
+    <sprite id="323">
+        <resource md5="faad14f667e3891bc05d3120c86c23ff" name="block_taru" />
+    </sprite>
+    <sprite id="324">
+        <resource md5="4c378f59793463219f41ceb09037f4b0" name="lift_obake_chikei" />
+    </sprite>
+    <sprite id="327">
+        <resource md5="8f7530e9c8e52acdfe0a066500088fec" name="lift_zen_hammer" />
+    </sprite>
+    <sprite id="329">
+        <resource md5="cdfb869afc3f19fbb5bb6f8221b31c0e" name="daikonbou" />
+    </sprite>
+    <sprite id="330">
+        <resource md5="6c30f5c547c6f660e734015ea9082cc3" name="lift_number_ship_yougan" />
+        <resource md5="3dc27e9c387bb4de091716c9664ec394" name="lift_number_ship" />
+    </sprite>
+    <sprite id="331">
+        <resource md5="cdfb869afc3f19fbb5bb6f8221b31c0e" name="daikonbou" />
+    </sprite>
+    <sprite id="332">
+        <resource md5="cdfb869afc3f19fbb5bb6f8221b31c0e" name="daikonbou" />
+    </sprite>
+    <sprite id="333">
+        <resource md5="cdfb869afc3f19fbb5bb6f8221b31c0e" name="daikonbou" />
+    </sprite>
+    <sprite id="334">
+        <resource md5="a67e2daeaa29b33f2f9fca77b22b7e54" name="penguin2" />
+    </sprite>
+    <sprite id="335">
+        <resource md5="a67e2daeaa29b33f2f9fca77b22b7e54" name="penguin2" />
+    </sprite>
+    <sprite id="336">
+        <resource md5="804ed7807f08166f5077d7150c6714a2" name="ibaramushi" />
+    </sprite>
+    <sprite id="337">
+        <resource md5="66af9c91ab077e1ff3708828124bedc1" name="bakubaku" />
+    </sprite>
+    <sprite id="338">
+        <resource md5="7be128513f70100590e4fdacdcf89b22" name="box_wood" />
+    </sprite>
+    <sprite id="339">
+        <resource md5="7be128513f70100590e4fdacdcf89b22" name="box_wood" />
+    </sprite>
+    <sprite id="341">
+        <resource md5="91e27945c5e6d9de5d48ef1cfe13699d" name="obj_nut" />
+    </sprite>
+    <sprite id="342">
+        <resource md5="cdfb869afc3f19fbb5bb6f8221b31c0e" name="daikonbou" />
+    </sprite>
+    <sprite id="343">
+        <resource md5="cdfb869afc3f19fbb5bb6f8221b31c0e" name="daikonbou" />
+    </sprite>
+    <sprite id="345" />
+    <sprite id="346">
+        <resource md5="77edff56a58c1edadd27d9182cb75e5e" name="koton" />
+    </sprite>
+    <sprite id="347" />
+    <sprite id="348">
+        <resource md5="a3c4869ed3bda7bc03dc53ba28134b6b" name="block_help" />
+    </sprite>
+    <sprite id="349">
+        <resource md5="f4de4ad3575d035d002e365dfb7be673" name="remo_lift_line" />
+    </sprite>
+    <sprite id="350">
+        <resource md5="7ec5ac769a4ebf37c5828380dba687c8" name="lift_zen_yoko" />
+    </sprite>
+    <sprite id="351">
+        <resource md5="05de20029ecb512283271796f26c6b20" name="sanbo" />
+    </sprite>
+    <sprite id="352">
+        <resource md5="d964693c5c0a58a7927105794f437627" name="met_toge" />
+    </sprite>
+    <sprite id="353">
+        <resource md5="ba61cff5d65eaac937943dcdf13b1499" name="bombhei" />
+    </sprite>
+    <sprite id="354">
+        <resource md5="c4fe14e47386db407608396d1d1d5be0" name="lift_zen_toride_iron" />
+    </sprite>
+    <sprite id="355">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+    </sprite>
+    <sprite id="356">
+        <resource md5="c4fe14e47386db407608396d1d1d5be0" name="lift_zen_toride_iron" />
+    </sprite>
+    <sprite id="357">
+        <resource md5="0d0f3659b920abbf4a1cdfbd8eaedd15" name="chorobon" />
+    </sprite>
+    <sprite id="358" />
+    <sprite id="359">
+        <resource md5="d0b0769d9a5e37a4fbe5d26058a3ea05" name="yogan_jimen" />
+        <resource md5="116f1b090ff592a73c231da74b52cf27" name="yogan_jimen_line" />
+    </sprite>
+    <sprite id="360" />
+    <sprite id="361">
+        <resource md5="ba61cff5d65eaac937943dcdf13b1499" name="bombhei" />
+    </sprite>
+    <sprite id="362">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="364">
+        <resource md5="15e52e9f1018987df6f831f0a73e68e0" name="kazan_rock" />
+    </sprite>
+    <sprite id="366" />
+    <sprite id="367">
+        <resource md5="4ca0538bbb5e9135a4fd18cd09c7911f" name="lift_up_down_side" />
+    </sprite>
+    <sprite id="368">
+        <resource md5="8083b7f594c5aee6d3d60062af764c6b" name="morton" />
+        <resource md5="fa0a19e35600426efd9b7dce81c0d4b5" name="deka_sanbo" />
+        <resource md5="ce8aa62f9469b30832455d96d0defd9d" name="ef_dekasanbo" />
+        <resource md5="7d6d10f79764da4c090323005a937dfe" name="EF_MortonHammerBlur" />
+    </sprite>
+    <sprite id="369" />
+    <sprite id="371">
+        <resource md5="e6f112829c21f840c4fad5d6c6c574a5" name="test_lift" />
+    </sprite>
+    <sprite id="372">
+        <resource md5="a6a1dddfffb6e38df7de4e3d47fcaa47" name="lift_han_wood" />
+        <resource md5="76651358c62c0aa38b4b1d3d0ef49951" name="lift_han_stone" />
+    </sprite>
+    <sprite id="373">
+        <resource md5="e6f112829c21f840c4fad5d6c6c574a5" name="test_lift" />
+    </sprite>
+    <sprite id="374">
+        <resource md5="7603e6bb232655e92a1d0ee86cb3204d" name="lift_huriko_yougan" />
+    </sprite>
+    <sprite id="375">
+        <resource md5="fd954a8a20303942d52916da93741068" name="guru" />
+    </sprite>
+    <sprite id="376" />
+    <sprite id="377" />
+    <sprite id="378">
+        <resource md5="cefaa540cbaa79c4f99ed27dbf7afd12" name="torpedo" />
+    </sprite>
+    <sprite id="379">
+        <resource md5="cefaa540cbaa79c4f99ed27dbf7afd12" name="torpedo" />
+    </sprite>
+    <sprite id="380" />
+    <sprite id="381">
+        <resource md5="dac09295ce52dad129d929140aa111b8" name="center_firebar" />
+        <resource md5="dd73d45de805b917773588516210a141" name="firebar_L" />
+    </sprite>
+    <sprite id="382">
+        <resource md5="3d3b3d10e31d2d3404017c39683c9c1f" name="unabon" />
+    </sprite>
+    <sprite id="383">
+        <resource md5="e8a8fb6ae43a541f8a627b60f67dc34d" name="wendy" />
+    </sprite>
+    <sprite id="385">
+        <resource md5="ac9986f47b64a92ff8dee728cfe5608d" name="ludwig" />
+        <resource md5="94cfc0396f5fd3b677aa8525fc746255" name="boss_ef_attack" />
+    </sprite>
+    <sprite id="386" />
+    <sprite id="387">
+        <resource md5="cefaa540cbaa79c4f99ed27dbf7afd12" name="torpedo" />
+    </sprite>
+    <sprite id="388">
+        <resource md5="e1b0a3aabaecaa2f8bcd576d9ac5c53f" name="lift_kanransha" />
+    </sprite>
+    <sprite id="389">
+        <resource md5="39d396b3df88d3b6f62f8224bb7ca08d" name="roy" />
+        <resource md5="04563de5959789504771d84a9fce9010" name="killer" />
+    </sprite>
+    <sprite id="390">
+        <resource md5="92542ea9a3fcb420a2d85bfb904bc494" name="lift_zen_rotate_wood" />
+    </sprite>
+    <sprite id="391">
+        <resource md5="6f7bfa24c9ac0d87d426bdce9a8ca573" name="lift_zen_rotate_stone" />
+    </sprite>
+    <sprite id="392">
+        <resource md5="f7b7cb2abe0e259b4c23bd86889aa92f" name="koopaJr" />
+        <resource md5="043545d0b641ae5abc73f83b2f75af52" name="koopaJr_clown" />
+        <resource md5="0f4da0c4850b5775feeffa94b24ca042" name="koopaJr_clown_m" />
+        <resource md5="8200993cbd156bf57fe962c4b6d8c01e" name="magic_hand" />
+    </sprite>
+    <sprite id="393">
+        <resource md5="a458e9fdff30afed24f85607bb8659f0" name="block_ice_hard" />
+    </sprite>
+    <sprite id="394">
+        <resource md5="cefaa540cbaa79c4f99ed27dbf7afd12" name="torpedo" />
+    </sprite>
+    <sprite id="395">
+        <resource md5="1a53e43614f7fbd9cbf126d552c0a82e" name="lift_zen_star" />
+    </sprite>
+    <sprite id="396">
+        <resource md5="03bb20407b21c6d980274b95899674c0" name="lift_han_leaf" />
+    </sprite>
+    <sprite id="399">
+        <resource md5="f7b7cb2abe0e259b4c23bd86889aa92f" name="koopaJr" />
+        <resource md5="043545d0b641ae5abc73f83b2f75af52" name="koopaJr_clown" />
+        <resource md5="0f4da0c4850b5775feeffa94b24ca042" name="koopaJr_clown_m" />
+        <resource md5="8200993cbd156bf57fe962c4b6d8c01e" name="magic_hand" />
+    </sprite>
+    <sprite id="400">
+        <resource md5="16d4299eb979fa1769180dd35f9c4f83" name="lift_han_rotate_light" />
+    </sprite>
+    <sprite id="402">
+        <resource md5="695aa85195a346d48a0c85dfff616e41" name="green_ring" />
+    </sprite>
+    <sprite id="403">
+        <resource md5="8eb9ab150eef1c83e04cc538ff87c30d" name="iggy" />
+        <resource md5="2f8bdd766582b070bb1f67b19c65fea7" name="woogan" />
+    </sprite>
+    <sprite id="404">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="405" />
+    <sprite id="406">
+        <resource md5="e8daecbdd13d4a044b6fe625086475a8" name="boss_KK" />
+    </sprite>
+    <sprite id="407">
+        <resource md5="57e83def9080885b569b61b0cf77dc6c" name="mario_brothers_yuka" />
+    </sprite>
+    <sprite id="408" />
+    <sprite id="409">
+        <resource md5="40f8ae4c6d8f1d684c3a1e1d6ba74f8f" name="wanwan" />
+    </sprite>
+    <sprite id="410">
+        <resource md5="35906fa7a960057dd183aaa29835e216" name="block_zen_rail_shiro" />
+    </sprite>
+    <sprite id="411">
+        <resource md5="81f51fcead256f3927a2776d21d4fbf6" name="kameck" />
+        <resource md5="24eb55a863f52f5fdd7e05731560ff3a" name="ice_kameck" />
+        <resource md5="a58ca6ebcc74d5ceaffec9010eb86e83" name="kuribo" />
+        <resource md5="0c02110a9aa210959784672c299be412" name="nokonokoA" />
+        <resource md5="ba61cff5d65eaac937943dcdf13b1499" name="bombhei" />
+        <resource md5="55d44e90ef8ba1c2983e2e14faebe7c7" name="choropoo" />
+        <resource md5="64de2b46bd4e68980f7b374f385d17ec" name="wing" />
+        <resource md5="546d6070fe4ff92c3a8f87d7d52e78d1" name="kuriboMini" />
+    </sprite>
+    <sprite id="412" />
+    <sprite id="413" />
+    <sprite id="414">
+        <resource md5="fcb96bdb12db0fcaa4941bfd0cdd7946" name="ShipLemmy" />
+    </sprite>
+    <sprite id="415">
+        <resource md5="5c78df36edab2d85956f1f5972635105" name="ShipMorton" />
+    </sprite>
+    <sprite id="416">
+        <resource md5="de3592097d6ab986d212cce2b6735f1a" name="killer_mag" />
+    </sprite>
+    <sprite id="417">
+        <resource md5="7677fc9dac25700ba5f58e2adaf8c326" name="ShipLarry" />
+    </sprite>
+    <sprite id="418">
+        <resource md5="480814143c3d642ea61786f002f581bf" name="ShipWendy" />
+    </sprite>
+    <sprite id="419">
+        <resource md5="655150cfa65a5d85445e5b320f613e29" name="ShipIggy" />
+    </sprite>
+    <sprite id="420">
+        <resource md5="9acbfbe933582ba52e3aed8efe5b5315" name="ShipRoy" />
+    </sprite>
+    <sprite id="421">
+        <resource md5="76477f3ad7c1489478e68920a88e52c2" name="ShipLudwig" />
+    </sprite>
+    <sprite id="422" />
+    <sprite id="423">
+        <resource md5="8b4932c0fd0defebe21641d44da1d2e2" name="miniGame_shuffle" />
+        <resource md5="1f5dd95274dc0dec77b14fd04bbb7368" name="block_pata" />
+        <resource md5="6a6073d9fc71b1db810dd77f28b6d9fb" name="miniGame_mochimaki" />
+        <resource md5="796a6d8d6a3a2a4ff788a829886c9f59" name="miniGame_slot" />
+    </sprite>
+    <sprite id="424">
+        <resource md5="16986d63c6edf513cf2101bade251d22" name="boss_cannon" />
+    </sprite>
+    <sprite id="425">
+        <resource md5="36e8c48de0acc00b045f249d67eb6b5d" name="lift_han_tsuru" />
+    </sprite>
+    <sprite id="426">
+        <resource md5="5af1af5624f373cf19342ef447754909" name="obj_balloon" />
+        <resource md5="a58ca6ebcc74d5ceaffec9010eb86e83" name="kuribo" />
+        <resource md5="29d39e7765b6da251f5e1214b28cde8a" name="kakibo" />
+    </sprite>
+    <sprite id="427">
+        <resource md5="6cea77bc1b69053ddc808496de2b18d3" name="lift_zen_float" />
+    </sprite>
+    <sprite id="428">
+        <resource md5="35906fa7a960057dd183aaa29835e216" name="block_zen_rail_shiro" />
+    </sprite>
+    <sprite id="429">
+        <resource md5="21d03e22db89b46d1da88106dfb2d2dd" name="lift_zen_tagaichigai" />
+    </sprite>
+    <sprite id="430">
+        <resource md5="c4fe14e47386db407608396d1d1d5be0" name="lift_zen_toride_iron" />
+    </sprite>
+    <sprite id="431">
+        <resource md5="d7f71f73aee5b808f2b7f0b324b95a2c" name="lift_zen_shiro_iwa" />
+    </sprite>
+    <sprite id="432" />
+    <sprite id="433">
+        <resource md5="f7b7cb2abe0e259b4c23bd86889aa92f" name="koopaJr" />
+        <resource md5="043545d0b641ae5abc73f83b2f75af52" name="koopaJr_clown" />
+        <resource md5="6d5acc675611f867b1bc12834c72a0ad" name="koopaJr_clown_b" />
+        <resource md5="ba61cff5d65eaac937943dcdf13b1499" name="bombhei" />
+        <resource md5="94cfc0396f5fd3b677aa8525fc746255" name="boss_ef_attack" />
+    </sprite>
+    <sprite id="434">
+        <resource md5="c4fe14e47386db407608396d1d1d5be0" name="lift_zen_toride_iron" />
+    </sprite>
+    <sprite id="435">
+        <resource md5="81f51fcead256f3927a2776d21d4fbf6" name="kameck" />
+        <resource md5="8f82502c50e20fad90d7276a77b3bd2a" name="KK" />
+    </sprite>
+    <sprite id="436" />
+    <sprite id="437">
+        <resource md5="a58ca6ebcc74d5ceaffec9010eb86e83" name="kuribo" />
+    </sprite>
+    <sprite id="438">
+        <resource md5="a58ca6ebcc74d5ceaffec9010eb86e83" name="kuribo" />
+    </sprite>
+    <sprite id="439" />
+    <sprite id="440">
+        <resource md5="15e52e9f1018987df6f831f0a73e68e0" name="kazan_rock" />
+    </sprite>
+    <sprite id="441">
+        <resource md5="8bd1753eee5b4f80b5ba200678e8dc4e" name="seichan" />
+    </sprite>
+    <sprite id="442">
+        <resource md5="3d3b3d10e31d2d3404017c39683c9c1f" name="unabon" />
+    </sprite>
+    <sprite id="443">
+        <resource md5="e78a1029ffaa59a7119320fb2f51161f" name="met_hone" />
+    </sprite>
+    <sprite id="444">
+        <resource md5="6cea77bc1b69053ddc808496de2b18d3" name="lift_zen_float" />
+    </sprite>
+    <sprite id="445">
+        <resource md5="7fece988c1a06b0bda2a313adcc615d0" name="obj_tsuru" />
+    </sprite>
+    <sprite id="446">
+        <resource md5="8bd1753eee5b4f80b5ba200678e8dc4e" name="seichan" />
+    </sprite>
+    <sprite id="447">
+        <resource md5="d964693c5c0a58a7927105794f437627" name="met_toge" />
+    </sprite>
+    <sprite id="448" />
+    <sprite id="449" />
+    <sprite id="450" />
+    <sprite id="451" />
+    <sprite id="452">
+        <resource md5="796a6d8d6a3a2a4ff788a829886c9f59" name="miniGame_slot" />
+    </sprite>
+    <sprite id="453">
+        <resource md5="8200993cbd156bf57fe962c4b6d8c01e" name="magic_hand" />
+    </sprite>
+    <sprite id="454">
+        <resource md5="8200993cbd156bf57fe962c4b6d8c01e" name="magic_hand" />
+    </sprite>
+    <sprite id="456" />
+    <sprite id="457">
+        <resource md5="30eb5b7057d43fc062a509caf7a8138c" name="koopaJr_clown_yuka" />
+    </sprite>
+    <sprite id="458">
+        <resource md5="1f9d764ccc55051e34331e54f7116da9" name="obj_dokan_CB" />
+    </sprite>
+    <sprite id="459">
+        <resource md5="f7b7cb2abe0e259b4c23bd86889aa92f" name="koopaJr" />
+        <resource md5="043545d0b641ae5abc73f83b2f75af52" name="koopaJr_clown" />
+        <resource md5="2d7f9d560df46a8bf9400d841365be02" name="koopa_model" />
+    </sprite>
+    <sprite id="462">
+        <resource md5="65e0950a8e8fe70c7f050192a48ae0d3" name="koopa" />
+        <resource md5="2d7f9d560df46a8bf9400d841365be02" name="koopa_model" />
+        <resource md5="94cfc0396f5fd3b677aa8525fc746255" name="boss_ef_attack" />
+    </sprite>
+    <sprite id="463" />
+    <sprite id="464">
+        <resource md5="5331870cc242150119e083b4f9d1d2ab" name="boss_koopa_ashiba" />
+    </sprite>
+    <sprite id="465">
+        <resource md5="46473e4557caa1e2a3cc3da331d85cfd" name="block_kameck" />
+    </sprite>
+    <sprite id="466">
+        <resource md5="f7b7cb2abe0e259b4c23bd86889aa92f" name="koopaJr" />
+        <resource md5="043545d0b641ae5abc73f83b2f75af52" name="koopaJr_clown" />
+        <resource md5="81f51fcead256f3927a2776d21d4fbf6" name="kameck" />
+    </sprite>
+    <sprite id="467">
+        <resource md5="241a43af3a394775285c329bbb43f32c" name="boss_shutter_koopa" />
+    </sprite>
+    <sprite id="468">
+        <resource md5="94cfc0396f5fd3b677aa8525fc746255" name="boss_ef_attack" />
+        <resource md5="2d7f9d560df46a8bf9400d841365be02" name="koopa_model" />
+    </sprite>
+    <sprite id="469">
+        <resource md5="0a9dba6d9ee7bdcefcdec69b252dbf49" name="peach" />
+    </sprite>
+    <sprite id="470">
+        <resource md5="d864161a702e8e4305970729c4cf48d5" name="red_ring" />
+        <resource md5="8e6d186b5a6aa318deae4f54e4aee991" name="star_coin" />
+    </sprite>
+    <sprite id="471">
+        <resource md5="a58ca6ebcc74d5ceaffec9010eb86e83" name="kuribo" />
+        <resource md5="120edc961a04ef9323a41d8521e8d805" name="kuriboBig" />
+    </sprite>
+    <sprite id="472">
+        <resource md5="a58ca6ebcc74d5ceaffec9010eb86e83" name="kuribo" />
+        <resource md5="120edc961a04ef9323a41d8521e8d805" name="kuriboBig" />
+    </sprite>
+    <sprite id="473">
+        <resource md5="65e0950a8e8fe70c7f050192a48ae0d3" name="koopa" />
+        <resource md5="2d7f9d560df46a8bf9400d841365be02" name="koopa_model" />
+        <resource md5="0a9dba6d9ee7bdcefcdec69b252dbf49" name="peach" />
+        <resource md5="605a09495ab5891d0dea21406a90b7ea" name="boss_shutter_peach" />
+    </sprite>
+    <sprite id="474">
+        <resource md5="6a6073d9fc71b1db810dd77f28b6d9fb" name="miniGame_mochimaki" />
+    </sprite>
+    <sprite id="475" />
+    <sprite id="476">
+        <resource md5="9b8e4dda753de02870de2a023de6c82f" name="nokonokoBig" />
+    </sprite>
+    <sprite id="477">
+        <resource md5="f7b7cb2abe0e259b4c23bd86889aa92f" name="koopaJr" />
+        <resource md5="043545d0b641ae5abc73f83b2f75af52" name="koopaJr_clown" />
+        <resource md5="ba61cff5d65eaac937943dcdf13b1499" name="bombhei" />
+        <resource md5="2d7f9d560df46a8bf9400d841365be02" name="koopa_model" />
+    </sprite>
+    <sprite id="478">
+        <resource md5="004ed953c30f5249c273f75a3b19854f" name="block_koopaJr_clown" />
+    </sprite>
+    <sprite id="479" />
+    <sprite id="480">
+        <resource md5="8e6d186b5a6aa318deae4f54e4aee991" name="star_coin" />
+    </sprite>
+    <sprite id="481">
+        <resource md5="9fde6c9c6ed3834a11b6e4a280b13859" name="musasabi" />
+    </sprite>
+    <sprite id="482">
+        <resource md5="675103f236abc985b1aacda8da7fb9fe" name="pukupuku_mecha" />
+    </sprite>
+    <sprite id="483">
+        <resource md5="dac09295ce52dad129d929140aa111b8" name="center_firebar" />
+        <resource md5="dd73d45de805b917773588516210a141" name="firebar_L" />
+    </sprite>
+    <sprite id="485">
+        <resource md5="21d03e22db89b46d1da88106dfb2d2dd" name="lift_zen_tagaichigai" />
+    </sprite>
+    <sprite id="486" />
+    <sprite id="488">
+        <resource md5="3d3b3d10e31d2d3404017c39683c9c1f" name="unabon" />
+    </sprite>
+    <sprite id="489">
+        <resource md5="b4d50199d560b9979af248e603886cd9" name="ship_bottom" />
+    </sprite>
+    <sprite id="490">
+        <resource md5="b4d50199d560b9979af248e603886cd9" name="ship_bottom" />
+    </sprite>
+    <sprite id="491">
+        <resource md5="2619e899a0a08ae7d8c88fdf7b8e82cd" name="lift_han_koopa" />
+    </sprite>
+    <sprite id="492">
+        <resource md5="2619e899a0a08ae7d8c88fdf7b8e82cd" name="lift_han_koopa" />
+    </sprite>
+    <sprite id="493">
+        <resource md5="3eaa85c40af79cbeca775a0933bd2ff6" name="lift_zen_ashiba" />
+    </sprite>
+    <sprite id="494">
+        <resource md5="68a18a51977fee3a42ff8e149a3b1b77" name="block_broken" />
+    </sprite>
+    <sprite id="495" />
+    <sprite id="497" />
+    <sprite id="499">
+        <resource md5="4a7342c92a5e89f632a398c42ff620ad" name="lift_han_iwakabe" />
+        <resource md5="0f9aeab9f60f8eb350ace0a4387a5e43" name="lift_han_iwakabe_moyou" />
+    </sprite>
+    <sprite id="500">
+        <resource md5="4ea8e9a555c8d30a0bc3cfbca582bec5" name="densen" />
+        <resource md5="86905c06171ba4a109d6ae432dfcbf6e" name="bilikyu" />
+    </sprite>
+    <sprite id="502">
+        <resource md5="4ea8e9a555c8d30a0bc3cfbca582bec5" name="densen" />
+    </sprite>
+    <sprite id="503">
+        <resource md5="6a41942ba15f63c4bf509eee54663a91" name="goal_set_kaiga" />
+    </sprite>
+    <sprite id="504">
+        <resource md5="1311d82708cfb271cb62bae1a7129d8d" name="gorogoro" />
+    </sprite>
+    <sprite id="505">
+        <resource md5="1311d82708cfb271cb62bae1a7129d8d" name="gorogoro" />
+    </sprite>
+    <sprite id="506">
+        <resource md5="2e1a819eb350c74acf4e630847511eae" name="block_challenge" />
+    </sprite>
+    <sprite id="507" />
+    <sprite id="508">
+        <resource md5="09c03d244dddb0625611c3c30cfb439f" name="lift_han_sky" />
+    </sprite>
+    <sprite id="509">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="510">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="511">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="512">
+        <resource md5="2185631cac0d5f05fd46d7c026d73a7d" name="lift_obake_chikei_fune" />
+    </sprite>
+    <sprite id="513">
+        <resource md5="a051da6c4ee9cfa21a5a33dbcef587bb" name="obj_dokan_joint" />
+    </sprite>
+    <sprite id="514">
+        <resource md5="a051da6c4ee9cfa21a5a33dbcef587bb" name="obj_dokan_joint" />
+    </sprite>
+    <sprite id="515">
+        <resource md5="ae84c25a53b765a79cb0e3150ac72b7b" name="lift_zen_shiro_yogan" />
+    </sprite>
+    <sprite id="516">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+    </sprite>
+    <sprite id="517">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+    </sprite>
+    <sprite id="518">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+    </sprite>
+    <sprite id="519">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+    </sprite>
+    <sprite id="520">
+        <resource md5="b8ed3cf75d6670b48e4e58ca9f38aaa1" name="switch_koopa" />
+    </sprite>
+    <sprite id="521" />
+    <sprite id="522" />
+    <sprite id="523">
+        <resource md5="1f5dd95274dc0dec77b14fd04bbb7368" name="block_pata" />
+    </sprite>
+    <sprite id="524">
+        <resource md5="ca1f4ea2f354ab50419045aaab4433bb" name="lift_zen_toride_rock" />
+    </sprite>
+    <sprite id="527" />
+    <sprite id="528" />
+    <sprite id="529" />
+    <sprite id="530">
+        <resource md5="7cb31ca1ffd4327546957eb9c92a62fa" name="lift_zen_spin_pyramid" />
+    </sprite>
+    <sprite id="531" />
+    <sprite id="532">
+        <resource md5="9d2a336a42ce90c97846fe2291d9e9d7" name="lift_han_hikousen" />
+    </sprite>
+    <sprite id="533">
+        <resource md5="9e047e235330f750d514192603b5a830" name="obj_turara_rakka" />
+    </sprite>
+    <sprite id="534">
+        <resource md5="a6a1dddfffb6e38df7de4e3d47fcaa47" name="lift_han_wood" />
+        <resource md5="76651358c62c0aa38b4b1d3d0ef49951" name="lift_han_stone" />
+        <resource md5="8e37493ab62d10b7e195589f593cc49d" name="lift_kinoko_yoko" />
+        <resource md5="77d11b92a63c6cfe7d5e0d68287ac32a" name="lift_han_spin" />
+        <resource md5="53a2442b5436bd76b30e6a63f4078645" name="lift_kinoko_shiso" />
+        <resource md5="09c03d244dddb0625611c3c30cfb439f" name="lift_han_sky" />
+    </sprite>
+    <sprite id="535">
+        <resource md5="a6a1dddfffb6e38df7de4e3d47fcaa47" name="lift_han_wood" />
+        <resource md5="76651358c62c0aa38b4b1d3d0ef49951" name="lift_han_stone" />
+        <resource md5="8e37493ab62d10b7e195589f593cc49d" name="lift_kinoko_yoko" />
+        <resource md5="77d11b92a63c6cfe7d5e0d68287ac32a" name="lift_han_spin" />
+        <resource md5="53a2442b5436bd76b30e6a63f4078645" name="lift_kinoko_shiso" />
+        <resource md5="09c03d244dddb0625611c3c30cfb439f" name="lift_han_sky" />
+    </sprite>
+    <sprite id="536">
+        <resource md5="55d44e90ef8ba1c2983e2e14faebe7c7" name="choropoo" />
+    </sprite>
+    <sprite id="537">
+        <resource md5="55d44e90ef8ba1c2983e2e14faebe7c7" name="choropoo" />
+    </sprite>
+    <sprite id="538" />
+    <sprite id="539" />
+    <sprite id="540">
+        <resource md5="76179a505ad7705ae6d0611c99ec063b" name="obj_kinoko" />
+        <resource md5="53a2442b5436bd76b30e6a63f4078645" name="lift_kinoko_shiso" />
+    </sprite>
+    <sprite id="541">
+        <resource md5="76179a505ad7705ae6d0611c99ec063b" name="obj_kinoko" />
+        <resource md5="53a2442b5436bd76b30e6a63f4078645" name="lift_kinoko_shiso" />
+    </sprite>
+    <sprite id="542">
+        <resource md5="76179a505ad7705ae6d0611c99ec063b" name="obj_kinoko" />
+    </sprite>
+    <sprite id="543" />
+    <sprite id="544">
+        <resource md5="de8e118e013e1c2d5c722730fbc6cada" name="lift_kinoko_sora" />
+    </sprite>
+    <sprite id="545">
+        <resource md5="66af9c91ab077e1ff3708828124bedc1" name="bakubaku" />
+    </sprite>
+    <sprite id="546" />
+    <sprite id="548">
+        <resource md5="2e1a819eb350c74acf4e630847511eae" name="block_challenge" />
+    </sprite>
+    <sprite id="549">
+        <resource md5="604b8adc145db3ad3d691bd1d1fe92e7" name="lift_zen_sabaku_iseki" />
+    </sprite>
+    <sprite id="550">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="551">
+        <resource md5="8200993cbd156bf57fe962c4b6d8c01e" name="magic_hand" />
+    </sprite>
+    <sprite id="552">
+        <resource md5="9b2d8bf8bace399627a1086c4ea960f7" name="pakkun_black" />
+    </sprite>
+    <sprite id="553">
+        <resource md5="4ca0538bbb5e9135a4fd18cd09c7911f" name="lift_up_down_side" />
+    </sprite>
+    <sprite id="554" />
+    <sprite id="555" />
+    <sprite id="556">
+        <resource md5="4e3a9db6aea64add99717540957a54c3" name="baloon_ABC" />
+    </sprite>
+    <sprite id="557">
+        <resource md5="4e3a9db6aea64add99717540957a54c3" name="baloon_ABC" />
+        <resource md5="1b06d8c71051d38bf3d6abd00b149b74" name="copyright" />
+    </sprite>
+    <sprite id="558" />
+    <sprite id="559" />
+    <sprite id="560">
+        <resource md5="c4b9740bb73f53e47125075cdf97f297" name="ice_wendy" />
+    </sprite>
+    <sprite id="561" />
+    <sprite id="562" />
+    <sprite id="563" />
+    <sprite id="565">
+        <resource md5="6dd9454d44885d9bd5a77c5e4b850407" name="woochan" />
+    </sprite>
+    <sprite id="566">
+        <resource md5="2e1a819eb350c74acf4e630847511eae" name="block_challenge" />
+    </sprite>
+    <sprite id="567">
+        <resource md5="458c36bec98384eac9d6e73025e907b3" name="keronpa" />
+    </sprite>
+    <sprite id="568">
+        <resource md5="3d3b3d10e31d2d3404017c39683c9c1f" name="unabon" />
+    </sprite>
+    <sprite id="569" />
+    <sprite id="570">
+        <resource md5="0a9dba6d9ee7bdcefcdec69b252dbf49" name="peach" />
+    </sprite>
+    <sprite id="571">
+        <resource md5="0a9dba6d9ee7bdcefcdec69b252dbf49" name="peach" />
+    </sprite>
+    <sprite id="572" />
+    <sprite id="573">
+        <resource md5="a6a1dddfffb6e38df7de4e3d47fcaa47" name="lift_han_wood" />
+        <resource md5="76651358c62c0aa38b4b1d3d0ef49951" name="lift_han_stone" />
+        <resource md5="8e37493ab62d10b7e195589f593cc49d" name="lift_kinoko_yoko" />
+        <resource md5="77d11b92a63c6cfe7d5e0d68287ac32a" name="lift_han_spin" />
+        <resource md5="53a2442b5436bd76b30e6a63f4078645" name="lift_kinoko_shiso" />
+    </sprite>
+    <sprite id="574">
+        <resource md5="1f9d764ccc55051e34331e54f7116da9" name="obj_dokan_CB" />
+    </sprite>
+    <sprite id="575">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="576">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="577">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="578">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="579">
+        <resource md5="a6bdedc3a7cea7127e1a414493fbe985" name="gabon_rock" />
+    </sprite>
+    <sprite id="580">
+        <resource md5="a6bdedc3a7cea7127e1a414493fbe985" name="gabon_rock" />
+    </sprite>
+    <sprite id="581">
+        <resource md5="1f7768755d022dc17c14802fc9c64ee0" name="killer_houdai" />
+        <resource md5="04563de5959789504771d84a9fce9010" name="killer" />
+    </sprite>
+    <sprite id="582">
+        <resource md5="8d6b61b708e0511f6d42e9c44f0a476d" name="killer_mag_houdai" />
+        <resource md5="de3592097d6ab986d212cce2b6735f1a" name="killer_mag" />
+    </sprite>
+    <sprite id="583">
+        <resource md5="8d6b61b708e0511f6d42e9c44f0a476d" name="killer_mag_houdai" />
+        <resource md5="de3592097d6ab986d212cce2b6735f1a" name="killer_mag" />
+    </sprite>
+    <sprite id="584">
+        <resource md5="11b8768049b7692c664475d3e1aa51ad" name="box_iron" />
+    </sprite>
+    <sprite id="585">
+        <resource md5="11b8768049b7692c664475d3e1aa51ad" name="box_iron" />
+    </sprite>
+    <sprite id="586">
+        <resource md5="675103f236abc985b1aacda8da7fb9fe" name="pukupuku_mecha" />
+    </sprite>
+    <sprite id="587">
+        <resource md5="675103f236abc985b1aacda8da7fb9fe" name="pukupuku_mecha" />
+    </sprite>
+    <sprite id="588">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="589">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="590">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="591">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="592">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="593">
+        <resource md5="8f82502c50e20fad90d7276a77b3bd2a" name="KK" />
+    </sprite>
+    <sprite id="594" />
+    <sprite id="595">
+        <resource md5="29d39e7765b6da251f5e1214b28cde8a" name="kakibo" />
+    </sprite>
+    <sprite id="596">
+        <resource md5="cefaa540cbaa79c4f99ed27dbf7afd12" name="torpedo" />
+    </sprite>
+    <sprite id="597">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="598">
+        <resource md5="ef072b1a67c155ad71fdec18aefdc32d" name="block_odai" />
+        <resource md5="6b49dd59e38c781cfca70a8e2f747c7e" name="coinedit_batten" />
+    </sprite>
+    <sprite id="599">
+        <resource md5="f5fb5461a3996f502601ecc7dd348fbd" name="goal_odai" />
+    </sprite>
+    <sprite id="600">
+        <resource md5="dc883c4361605f4045742a2c6813cc2c" name="block_DRC_hide" />
+    </sprite>
+    <sprite id="601" />
+    <sprite id="602">
+        <resource md5="228a80db84059578c8dbe96694c815da" name="tarzantsuta" />
+    </sprite>
+    <sprite id="603">
+        <resource md5="c3e44359a9958bba6ed82023ca81c21b" name="env_mist" />
+    </sprite>
+    <sprite id="604">
+        <resource md5="f7b7cb2abe0e259b4c23bd86889aa92f" name="koopaJr" />
+        <resource md5="043545d0b641ae5abc73f83b2f75af52" name="koopaJr_clown" />
+        <resource md5="8200993cbd156bf57fe962c4b6d8c01e" name="magic_hand" />
+    </sprite>
+    <sprite id="605">
+        <resource md5="043545d0b641ae5abc73f83b2f75af52" name="koopaJr_clown" />
+    </sprite>
+    <sprite id="606">
+        <resource md5="412a81eda53df903f6e75d839c88cb96" name="met" />
+    </sprite>
+    <sprite id="607">
+        <resource md5="8e6d186b5a6aa318deae4f54e4aee991" name="star_coin" />
+    </sprite>
+    <sprite id="608" />
+    <sprite id="609">
+        <resource md5="09a78980cd31e1e4afb916d604511ef7" name="room_iggy" />
+    </sprite>
+    <sprite id="610" />
+    <sprite id="611">
+        <resource md5="9e5425f14dad44d61b19d4fdf0323675" name="hanachan_big" />
+    </sprite>
+    <sprite id="613">
+        <resource md5="1f9d764ccc55051e34331e54f7116da9" name="obj_dokan_CB" />
+    </sprite>
+    <sprite id="614">
+        <resource md5="1f9d764ccc55051e34331e54f7116da9" name="obj_dokan_CB" />
+    </sprite>
+    <sprite id="615">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="616">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+    <sprite id="618">
+        <resource md5="30c7064c072c44d46652b504924bd24e" name="obj_block" />
+    </sprite>
+    <sprite id="619">
+        <resource md5="30c7064c072c44d46652b504924bd24e" name="obj_block" />
+    </sprite>
+    <sprite id="620" />
+    <sprite id="621" />
+    <sprite id="625">
+        <resource md5="7cb31ca1ffd4327546957eb9c92a62fa" name="lift_zen_spin_pyramid" />
+    </sprite>
+    <sprite id="626">
+        <resource md5="8f82502c50e20fad90d7276a77b3bd2a" name="KK" />
+    </sprite>
+    <sprite id="627">
+        <resource md5="2619e899a0a08ae7d8c88fdf7b8e82cd" name="lift_han_koopa" />
+    </sprite>
+    <sprite id="629">
+        <resource md5="50acbbf541e215d147aff525dd60d243" name="jugem" />
+        <resource md5="8c910cfa6f30854891e4746def200f27" name="togezo" />
+        <resource md5="bb6a181349ceca56b3902e27252ea42f" name="paipo" />
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+        <resource md5="2659674e4bf004b76cde4d5a1a7007b9" name="pakkun_tane" />
+    </sprite>
+    <sprite id="630">
+        <resource md5="a4de8854da4f67acc016d7ccc09faa91" name="R_goal_set" />
+    </sprite>
+    <sprite id="631">
+        <resource md5="2104d3d61ef44649376ae84151af13f6" name="R_goal_set_kaiga" />
+    </sprite>
+    <sprite id="632">
+        <resource md5="9b28ca9504d3b29471a06ba22bd320c0" name="R_lift_kinoko_shiso" />
+    </sprite>
+    <sprite id="633">
+        <resource md5="d8c53e50c0309ba2bc68602893dcce73" name="R_lift_number_ship_up" />
+    </sprite>
+    <sprite id="634">
+        <resource md5="1d8b76dc13f1393ff7b6eae5a98163ab" name="R_block_luigi" />
+    </sprite>
+    <sprite id="635">
+        <resource md5="f31cd948249997209fb2842d56523c63" name="obj_door_shiroboss" />
+    </sprite>
+    <sprite id="636">
+        <resource md5="35de901ad917b20d3f12f4bdf5bc444d" name="obj_door_torideboss" />
+    </sprite>
+    <sprite id="637">
+        <resource md5="f5cebbec18ff7b111319d32d20556566" name="boss_koopa_door" />
+    </sprite>
+    <sprite id="638">
+        <resource md5="3d3b3d10e31d2d3404017c39683c9c1f" name="unabon" />
+    </sprite>
+    <sprite id="639" />
+    <sprite id="640">
+        <resource md5="458c36bec98384eac9d6e73025e907b3" name="keronpa" />
+    </sprite>
+    <sprite id="641">
+        <resource md5="40f8ae4c6d8f1d684c3a1e1d6ba74f8f" name="wanwan" />
+    </sprite>
+    <sprite id="643">
+        <resource md5="b4e30479c15466862d7e45c289ed5600" name="bubble" />
+    </sprite>
+    <sprite id="644">
+        <resource md5="b4e30479c15466862d7e45c289ed5600" name="bubble" />
+    </sprite>
+    <sprite id="645">
+        <resource md5="92542ea9a3fcb420a2d85bfb904bc494" name="lift_zen_rotate_wood" />
+    </sprite>
+    <sprite id="646">
+        <resource md5="b7447ef14403f90434355781f61f3ee7" name="R_killer_mag_houdai" />
+        <resource md5="de3592097d6ab986d212cce2b6735f1a" name="killer_mag" />
+    </sprite>
+    <sprite id="647">
+        <resource md5="b7447ef14403f90434355781f61f3ee7" name="R_killer_mag_houdai" />
+        <resource md5="de3592097d6ab986d212cce2b6735f1a" name="killer_mag" />
+    </sprite>
+    <sprite id="648">
+        <resource md5="b7447ef14403f90434355781f61f3ee7" name="R_killer_mag_houdai" />
+        <resource md5="de3592097d6ab986d212cce2b6735f1a" name="killer_mag" />
+    </sprite>
+    <sprite id="649">
+        <resource md5="b7447ef14403f90434355781f61f3ee7" name="R_killer_mag_houdai" />
+        <resource md5="de3592097d6ab986d212cce2b6735f1a" name="killer_mag" />
+    </sprite>
+    <sprite id="650">
+        <resource md5="8e6d186b5a6aa318deae4f54e4aee991" name="star_coin" />
+    </sprite>
+    <sprite id="651">
+        <resource md5="42321299553f04e823442196bf5c2750" name="gabon" />
+    </sprite>
+    <sprite id="652">
+        <resource md5="84bd8584e129a7c27df12c3d47a15abc" name="met_pata" />
+    </sprite>
+    <sprite id="653">
+        <resource md5="dc6291e77c0b915835c15412c62206ee" name="killer_king" />
+    </sprite>
+    <sprite id="654" />
+    <sprite id="655">
+        <resource md5="bbe5ae2bae39eaa519dc6962bcae4f73" name="block_snake" />
+        <resource md5="2be883cc81b888dc60e48355714f8dba" name="block_snake_ice" />
+    </sprite>
+    <sprite id="657" />
+    <sprite id="658">
+        <resource md5="a6a1dddfffb6e38df7de4e3d47fcaa47" name="lift_han_wood" />
+        <resource md5="76651358c62c0aa38b4b1d3d0ef49951" name="lift_han_stone" />
+        <resource md5="8e37493ab62d10b7e195589f593cc49d" name="lift_kinoko_yoko" />
+        <resource md5="77d11b92a63c6cfe7d5e0d68287ac32a" name="lift_han_spin" />
+        <resource md5="53a2442b5436bd76b30e6a63f4078645" name="lift_kinoko_shiso" />
+    </sprite>
+    <sprite id="659">
+        <resource md5="1311d82708cfb271cb62bae1a7129d8d" name="gorogoro" />
+    </sprite>
+    <sprite id="661">
+        <resource md5="8f82502c50e20fad90d7276a77b3bd2a" name="KK" />
+    </sprite>
+    <sprite id="662">
+        <resource md5="947d6f142f6d50c12a32c3385037e375" name="R_blue_ring" />
+    </sprite>
+    <sprite id="664">
+        <resource md5="3d3b3d10e31d2d3404017c39683c9c1f" name="unabon" />
+    </sprite>
+    <sprite id="665">
+        <resource md5="8e6d186b5a6aa318deae4f54e4aee991" name="star_coin" />
+    </sprite>
+    <sprite id="666">
+        <resource md5="8200993cbd156bf57fe962c4b6d8c01e" name="magic_hand" />
+    </sprite>
+    <sprite id="667">
+        <resource md5="00b154a752260ba676330869544791c1" name="obj_dokan_cannon" />
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+    </sprite>
+    <sprite id="668">
+        <resource md5="b4d50199d560b9979af248e603886cd9" name="ship_bottom" />
+    </sprite>
+    <sprite id="669">
+        <resource md5="ca1f4ea2f354ab50419045aaab4433bb" name="lift_zen_toride_rock" />
+    </sprite>
+    <sprite id="670">
+        <resource md5="1f5dd95274dc0dec77b14fd04bbb7368" name="block_pata" />
+        <resource md5="6a6073d9fc71b1db810dd77f28b6d9fb" name="miniGame_mochimaki" />
+        <resource md5="796a6d8d6a3a2a4ff788a829886c9f59" name="miniGame_slot" />
+    </sprite>
+    <sprite id="671">
+        <resource md5="03262185e9219715b7e9af2469a30c83" name="iron_boll_hole" />
+    </sprite>
+    <sprite id="672" />
+    <sprite id="674">
+        <resource md5="093841b80d943c23163baf74a60554c6" name="R_yogan_jimen" />
+        <resource md5="d581eaedfaf13fa818d85598c0e9eacc" name="R_yogan_jimen_line" />
+    </sprite>
+    <sprite id="675">
+        <resource md5="9621518818f6be38d04dce45e79f795c" name="R_obj_gear" />
+        <resource md5="7beeecd9382046cc84174b9739d2a250" name="obj_gear_shiro" />
+    </sprite>
+    <sprite id="676">
+        <resource md5="7603e6bb232655e92a1d0ee86cb3204d" name="lift_huriko_yougan" />
+    </sprite>
+    <sprite id="677" />
+    <sprite id="679">
+        <resource md5="51280b4fa49e6df60ff2942875de8556" name="obj_dokan" />
+        <resource md5="18f8fcfe2ba5891e100334b70e7a111f" name="obj_dokan_kaiga" />
+    </sprite>
+    <sprite id="680">
+        <resource md5="38793f9d1e7ef657856b4131006025db" name="lift_moaidon" />
+    </sprite>
+    <sprite id="681">
+        <resource md5="ecb3c7d375a9e89d8cb41492d2e825bf" name="kanban_yajirushi" />
+    </sprite>
+    <sprite id="682">
+        <resource md5="135cdeac9dfa6599f6507cf9f6759dc2" name="pakkun_water" />
+    </sprite>
+    <sprite id="686">
+        <resource md5="fd2a74e3295ce2b8e730e763059c34ec" name="switch" />
+    </sprite>
+    <sprite id="687">
+        <resource md5="ba61cff5d65eaac937943dcdf13b1499" name="bombhei" />
+    </sprite>
+    <sprite id="688">
+        <resource md5="11b8768049b7692c664475d3e1aa51ad" name="box_iron" />
+    </sprite>
+    <sprite id="689">
+        <resource md5="4e3a9db6aea64add99717540957a54c3" name="baloon_ABC" />
+    </sprite>
+    <sprite id="690">
+        <resource md5="27bdc065409ebbf06de74687308e80b5" name="R_kanban_1_1" />
+    </sprite>
+    <sprite id="691">
+        <resource md5="7d5b9b149ed1cb76cd3124ee30186923" name="R_kanban_9_9" />
+    </sprite>
+    <sprite id="693">
+        <resource md5="fd954a8a20303942d52916da93741068" name="guru" />
+    </sprite>
+    <sprite id="694">
+        <resource md5="4c378f59793463219f41ceb09037f4b0" name="lift_obake_chikei" />
+    </sprite>
+    <sprite id="695">
+        <resource md5="c05ace4bda3169c7bb3202a91b9824bb" name="unizo" />
+    </sprite>
+    <sprite id="696">
+        <resource md5="4c378f59793463219f41ceb09037f4b0" name="lift_obake_chikei" />
+    </sprite>
+    <sprite id="697">
+        <resource md5="11b8768049b7692c664475d3e1aa51ad" name="box_iron" />
+    </sprite>
+    <sprite id="698">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="699">
+        <resource md5="1396f5e187ea0a5db7a30244c2f9f67a" name="lift_torokko" />
+    </sprite>
+    <sprite id="700">
+        <resource md5="1396f5e187ea0a5db7a30244c2f9f67a" name="lift_torokko" />
+    </sprite>
+    <sprite id="702">
+        <resource md5="524a65c8a928784c3dfecb2c07cf59df" name="hanachan" />
+    </sprite>
+    <sprite id="703">
+        <resource md5="2eb3105071b26cfd04dd6cf490bd6570" name="teresa" />
+    </sprite>
+    <sprite id="705">
+        <resource md5="17dd4639752d71856d17aff791b5a3cc" name="waterpillar" />
+    </sprite>
+    <sprite id="708" />
+    <sprite id="709">
+        <resource md5="c4fe14e47386db407608396d1d1d5be0" name="lift_zen_toride_iron" />
+    </sprite>
+    <sprite id="710">
+        <resource md5="fd2a74e3295ce2b8e730e763059c34ec" name="switch" />
+    </sprite>
+    <sprite id="711">
+        <resource md5="c4fe14e47386db407608396d1d1d5be0" name="lift_zen_toride_iron" />
+    </sprite>
+    <sprite id="712">
+        <resource md5="58ff8a8bf6ac6a8ab98a015efdca2ce5" name="pakkun" />
+    </sprite>
+    <sprite id="713">
+        <resource md5="c05ace4bda3169c7bb3202a91b9824bb" name="unizo" />
+    </sprite>
+    <sprite id="714">
+        <resource md5="545a7bdb04b55690f111d216478cd36a" name="lift_huriko_ue" />
+    </sprite>
+    <sprite id="716">
+        <resource md5="31c71eccab9871e44c9f17cec44e44c4" name="huhu" />
+        <resource md5="c3e44359a9958bba6ed82023ca81c21b" name="env_mist" />
+    </sprite>
+    <sprite id="717">
+        <resource md5="bbe5ae2bae39eaa519dc6962bcae4f73" name="block_snake" />
+        <resource md5="2be883cc81b888dc60e48355714f8dba" name="block_snake_ice" />
+    </sprite>
+    <sprite id="719">
+        <resource md5="38793f9d1e7ef657856b4131006025db" name="lift_moaidon" />
+    </sprite>
+    <sprite id="720">
+        <resource md5="38793f9d1e7ef657856b4131006025db" name="lift_moaidon" />
+    </sprite>
+    <sprite id="721">
+        <resource md5="8e6d186b5a6aa318deae4f54e4aee991" name="star_coin" />
+    </sprite>
+    <sprite id="722">
+        <resource md5="ecb3c7d375a9e89d8cb41492d2e825bf" name="kanban_yajirushi" />
+    </sprite>
+    <sprite id="723">
+        <resource md5="410a83ed46fb99e0b6f55daefc32a9df" name="pukupuku" />
+    </sprite>
+</spriteresources>
