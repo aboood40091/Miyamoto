@@ -2328,27 +2328,27 @@
 		</list>
 	</sprite>
 	<sprite id="156" name="Water Geyser" notes="A geyser of water. It's height, rise time, delay, and all can be edited.&#13;&#10;Do &lt;b&gt;not&lt;/b&gt; place this sprite visible for the player ; it leaves a very bad looking texture when it's not active. Place it inside the water.">
-		<list nybble="7" title="Width" comment="The width of the geyser.">
-			<entry value="0">6 blocks</entry>
-			<entry value="1">3 blocks</entry>
-			<entry value="2">4 blocks</entry>
-			<entry value="3">6 blocks</entry>
-			<entry value="4">7 blocks</entry>
-			<entry value="5">8 blocks</entry>
-			<entry value="6">10 blocks</entry>
-			<entry value="7">12 blocks</entry>
-			<entry value="8">12 blocks</entry>
-			<entry value="9">14 blocks</entry>
-			<entry value="10">15 blocks</entry>
-			<entry value="11">16 blocks</entry>
-			<entry value="12">17 blocks</entry>
-			<entry value="13">18 blocks</entry>
-			<entry value="14">20 blocks</entry>
-			<entry value="15">22 blocks</entry>
+		<list nybble="7" title="Width" comment="The width of the geyser. (Value + 1) * 1.625.">
+			<entry value="0">6.5 blocks</entry>
+			<entry value="1">3.25 blocks</entry>
+			<entry value="2">4.875 blocks</entry>
+			<entry value="3">6.5 blocks</entry>
+			<entry value="4">8.125 blocks</entry>
+			<entry value="5">9.75 blocks</entry>
+			<entry value="6">11.375 blocks</entry>
+			<entry value="7">13 blocks</entry>
+			<entry value="8">14.625 blocks</entry>
+			<entry value="9">16.25 blocks</entry>
+			<entry value="10">17.875 blocks</entry>
+			<entry value="11">19.5 blocks</entry>
+			<entry value="12">21.125 blocks</entry>
+			<entry value="13">22.75 blocks</entry>
+			<entry value="14">24.375 blocks</entry>
+			<entry value="15">26 blocks</entry>
 		</list>
 		<value nybble="8" title="Unknown Value 8" comment="No visible difference."/>
 		<value nybble="9" title="Unknown Value 9" comment="No visible difference."/>
-		<value nybble="10-11" title="Height" comment="The height of the geyser in blocks."/>
+		<value nybble="10-11" title="Height" comment="The height of the geyser in blocks. (Value / 2) + 6."/>
 		<list nybble="13" title="Rise Delay">
 			<entry value="0">1 second</entry>
 			<entry value="1">0 seconds</entry>
@@ -2447,27 +2447,28 @@
 	</sprite>
 	<sprite id="163" name="Location-triggered Water Geyser" notes="Also know as &quot;water spout&quot;. Caused by a quick rise in water temperature, these things cause the whole lake to be at a nice temperature, even during winters. Often, Urchins are resting on top of one.">
 		<value nybble="5-6" title="Location ID" comment="Waits until a player is in this location until it rises for the first time."/>
-		<list nybble="7" title="Width" comment="The width of the geyser.">
-			<entry value="0">6 blocks</entry>
-			<entry value="1">3 blocks</entry>
-			<entry value="2">4 blocks</entry>
-			<entry value="3">6 blocks</entry>
-			<entry value="4">7 blocks</entry>
-			<entry value="5">8 blocks</entry>
-			<entry value="6">10 blocks</entry>
-			<entry value="7">12 blocks</entry>
-			<entry value="8">12 blocks</entry>
-			<entry value="9">14 blocks</entry>
-			<entry value="10">15 blocks</entry>
-			<entry value="11">16 blocks</entry>
-			<entry value="12">17 blocks</entry>
-			<entry value="13">18 blocks</entry>
-			<entry value="14">20 blocks</entry>
-			<entry value="15">22 blocks</entry>
+		<list nybble="7" title="Width" comment="The width of the geyser. (Value + 1) * 1.625.">
+			<entry value="0">6.5 blocks</entry>
+			<entry value="1">3.25 blocks</entry>
+			<entry value="2">4.875 blocks</entry>
+			<entry value="3">6.5 blocks</entry>
+			<entry value="4">8.125 blocks</entry>
+			<entry value="5">9.75 blocks</entry>
+			<entry value="6">11.375 blocks</entry>
+			<entry value="7">13 blocks</entry>
+			<entry value="8">14.625 blocks</entry>
+			<entry value="9">16.25 blocks</entry>
+			<entry value="10">17.875 blocks</entry>
+			<entry value="11">19.5 blocks</entry>
+			<entry value="12">21.125 blocks</entry>
+			<entry value="13">22.75 blocks</entry>
+			<entry value="14">24.375 blocks</entry>
+			<entry value="15">26 blocks</entry>
 		</list>
 		<value nybble="8" title="Unknown Value 8" comment="No visible difference."/>
 		<value nybble="9" title="Unknown Value 9" comment="No visible difference."/>
-		<value nybble="10-11" title="Height" comment="The height of the geyser in blocks."/>
+		<value nybble="10" title="Unknown Value 10"/>
+		<value nybble="11" title="Height" comment="The height of the geyser in blocks. (Value / 2) + 6."/>
 		<checkbox nybble="13" title="Rise Instantly" comment="Rises instantly when checked."/>
 		<checkbox nybble="18" title="2 Blocks Wide" comment="Ignores the width set, and creates a geyser with a width even smaller than width value 1."/>
 		<value nybble="19" title="Unknown Value 19" comment="No visible difference."/>

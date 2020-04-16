@@ -3754,82 +3754,39 @@ class SpriteImage_WaterGeyser(SpriteImage_StackedSprite):  # 156
 
     @staticmethod
     def loadImages():
-        ImageCache['WaterGeyserTop'] = SLib.GetImg('water_geyser_top.png')
-        ImageCache['WaterGeyserMiddle'] = SLib.GetImg('water_geyser_middle.png')
+        SLib.loadIfNotInImageCache('WaterGeyserTop', 'water_geyser_top.png')
+        SLib.loadIfNotInImageCache('WaterGeyserMiddle', 'water_geyser_middle.png')
 
     def dataChanged(self):
         super().dataChanged()
-        rawlengthones = self.parent.spritedata[5]
-        rawlengthtwos = self.parent.spritedata[4] & 0xF
 
-        if rawlengthones == 0:
-            rawlengthones = 0
-        elif rawlengthones == 16:
-            rawlengthones = 1
-        elif rawlengthones == 32:
-            rawlengthones = 2
-        elif rawlengthones == 48:
-            rawlengthones = 3
-        elif rawlengthones == 64:
-            rawlengthones = 4
-        elif rawlengthones == 80:
-            rawlengthones = 5
-        elif rawlengthones == 96:
-            rawlengthones = 6
-        elif rawlengthones == 112:
-            rawlengthones = 7
-        elif rawlengthones == 128:
-            rawlengthones = 8
-        elif rawlengthones == 144:
-            rawlengthones = 9
-        elif rawlengthones == 160:
-            rawlengthones = 10
-        elif rawlengthones == 176:
-            rawlengthones = 11
-        elif rawlengthones == 192:
-            rawlengthones = 12
-        elif rawlengthones == 208:
-            rawlengthones = 13
-        elif rawlengthones == 224:
-            rawlengthones = 14
-        elif rawlengthones == 240:
-            rawlengthones = 15
-        elif rawlengthones == 256:
-            rawlengthones = 16
+        if self.parent.spritedata[8] & 1:
+            width = 2
 
-        rawlengthtwos = rawlengthtwos * 16
+        else:
+            raw_width = self.parent.spritedata[3] >> 4
+            width = 1.625 * raw_width + 1.625
+            if width == 1.625:
+                width = 6.5
 
-        #        if rawlengthtwos > 255: rawlengthtwos = rawlengthtwos - 256
-
-        rawlength = rawlengthones + rawlengthtwos
-
-        pipeLength = rawlength
-
-        #        print(rawlengthones, rawlengthtwos, pipeLength)
-
-        self.hasTop = True
-        self.hasBottom = False
-
-        self.pipeHeight = (pipeLength + 1) * 60
-        self.height = (self.pipeHeight / 3.75)
-        self.pipeHeight = (pipeLength) * 60
+        length = (self.parent.spritedata[4] & 0xF) << 4 | self.parent.spritedata[5] >> 4
+        length = 33/64 * length + 6
 
         self.middle = ImageCache['WaterGeyserMiddle']
         self.top = ImageCache['WaterGeyserTop']
 
-        self.pipeWidth = 360
-        self.width = 96
+        self.width = width * 16
+        self.height = length * 16
 
-        self.yOffset = 8 + (-6 * 16) + (-1 * ((rawlength - 2) * 8))
-        #        self.yOffset = -12 * 16
-        self.xOffset = -40
+        self.xOffset = -(self.width / 2) + 8
+        self.yOffset = -(length - 1) * 16
 
     def paint(self, painter):
         super().paint(painter)
 
-        painter.drawTiledPixmap(self.x, self.y + 15, self.pipeWidth, self.pipeHeight - 15, self.middle)
+        painter.drawTiledPixmap(self.x, self.y + 15, self.width * (60/16), self.height * (60/16) - 15, self.middle.scaledToWidth(self.width * (60/16), Qt.SmoothTransformation))
         if self.hasTop:
-            painter.drawPixmap(self.topX, self.topY, self.top)
+            painter.drawPixmap(self.topX, self.topY, self.width * (60/16), 180, self.top)
 
 
 class SpriteImage_BarCenter(SLib.SpriteImage_Static):  # 157
@@ -4078,82 +4035,39 @@ class SpriteImage_WaterGeyserLocation(SpriteImage_StackedSprite):  # 163
 
     @staticmethod
     def loadImages():
-        ImageCache['WaterGeyserTop'] = SLib.GetImg('water_geyser_top.png')
-        ImageCache['WaterGeyserMiddle'] = SLib.GetImg('water_geyser_middle.png')
+        SLib.loadIfNotInImageCache('WaterGeyserTop', 'water_geyser_top.png')
+        SLib.loadIfNotInImageCache('WaterGeyserMiddle', 'water_geyser_middle.png')
 
     def dataChanged(self):
         super().dataChanged()
-        rawlengthones = self.parent.spritedata[5]
-        rawlengthtwos = self.parent.spritedata[4] & 0xF
 
-        if rawlengthones == 0:
-            rawlengthones = 0
-        elif rawlengthones == 16:
-            rawlengthones = 1
-        elif rawlengthones == 32:
-            rawlengthones = 2
-        elif rawlengthones == 48:
-            rawlengthones = 3
-        elif rawlengthones == 64:
-            rawlengthones = 4
-        elif rawlengthones == 80:
-            rawlengthones = 5
-        elif rawlengthones == 96:
-            rawlengthones = 6
-        elif rawlengthones == 112:
-            rawlengthones = 7
-        elif rawlengthones == 128:
-            rawlengthones = 8
-        elif rawlengthones == 144:
-            rawlengthones = 9
-        elif rawlengthones == 160:
-            rawlengthones = 10
-        elif rawlengthones == 176:
-            rawlengthones = 11
-        elif rawlengthones == 192:
-            rawlengthones = 12
-        elif rawlengthones == 208:
-            rawlengthones = 13
-        elif rawlengthones == 224:
-            rawlengthones = 14
-        elif rawlengthones == 240:
-            rawlengthones = 15
-        elif rawlengthones == 256:
-            rawlengthones = 16
+        if self.parent.spritedata[8] & 1:
+            width = 2
 
-        rawlengthtwos = rawlengthtwos * 16
+        else:
+            raw_width = self.parent.spritedata[3] >> 4
+            width = 1.625 * raw_width + 1.625
+            if width == 1.625:
+                width = 6.5
 
-        #        if rawlengthtwos > 255: rawlengthtwos = rawlengthtwos - 256
-
-        rawlength = rawlengthones
-
-        pipeLength = rawlength
-
-        #        print(rawlengthones, rawlengthtwos, pipeLength)
-
-        self.hasTop = True
-        self.hasBottom = False
-
-        self.pipeHeight = (pipeLength + 1) * 60
-        self.height = (self.pipeHeight / 3.75)
-        self.pipeHeight = (pipeLength) * 60
+        length = self.parent.spritedata[5] >> 4
+        length = 31/60 * length + 6
 
         self.middle = ImageCache['WaterGeyserMiddle']
         self.top = ImageCache['WaterGeyserTop']
 
-        self.pipeWidth = 360
-        self.width = 96
+        self.width = width * 16
+        self.height = length * 16
 
-        self.yOffset = 8 + (-6 * 16) + (-1 * ((rawlength - 2) * 8))
-        #        self.yOffset = -12 * 16
-        self.xOffset = -40
+        self.xOffset = -(self.width / 2) + 8
+        self.yOffset = -(length - 1) * 16
 
     def paint(self, painter):
         super().paint(painter)
 
-        painter.drawTiledPixmap(self.x, self.y, self.pipeWidth, self.pipeHeight, self.middle)
+        painter.drawTiledPixmap(self.x, self.y + 15, self.width * (60/16), self.height * (60/16) - 15, self.middle.scaledToWidth(self.width * (60/16), Qt.SmoothTransformation))
         if self.hasTop:
-            painter.drawPixmap(self.topX, self.topY, self.top)
+            painter.drawPixmap(self.topX, self.topY, self.width * (60/16), 180, self.top)
 
 
 class SpriteImage_BobOmb(SLib.SpriteImage_Static):  # 164

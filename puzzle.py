@@ -99,6 +99,7 @@ class TilesetClass:
         self.objects = []
 
         self.slot = 0
+        self.placeNullChecked = False
 
 
     def addTile(self, image, nml, bytelist = (0, 0, 0, 0, 0, 0, 0, 0)):
@@ -1146,6 +1147,12 @@ class tileOverlord(QtWidgets.QWidget):
         self.addObject = QtWidgets.QPushButton('Add')
         self.removeObject = QtWidgets.QPushButton('Remove')
 
+        global Tileset
+
+        self.placeNull = QtWidgets.QPushButton('Null')
+        self.placeNull.setCheckable(True)
+        self.placeNull.setChecked(Tileset.placeNullChecked)
+
         self.addRow = QtWidgets.QPushButton('+')
         self.removeRow = QtWidgets.QPushButton('-')
 
@@ -1195,6 +1202,7 @@ class tileOverlord(QtWidgets.QWidget):
         # Connections
         self.addObject.released.connect(self.addObj)
         self.removeObject.released.connect(self.removeObj)
+        self.placeNull.toggled.connect(self.doPlaceNull)
         self.addRow.released.connect(self.addRowHandler)
         self.removeRow.released.connect(self.removeRowHandler)
         self.addColumn.released.connect(self.addColumnHandler)
@@ -1231,6 +1239,8 @@ class tileOverlord(QtWidgets.QWidget):
         layout.setRowStretch(3, 5)
         layout.setRowStretch(6, 5)
         layout.addWidget(self.tiles, 3, 1, 4, 6)
+
+        layout.addWidget(self.placeNull, 3, 7, 1, 1)
 
         layout.addWidget(self.addColumn, 4, 7, 1, 1)
         layout.addWidget(self.removeColumn, 5, 7, 1, 1)
@@ -1277,6 +1287,11 @@ class tileOverlord(QtWidgets.QWidget):
 
         window.objectList.update()
         self.update()
+
+
+    def doPlaceNull(self, checked):
+        global Tileset
+        Tileset.placeNullChecked = checked
 
 
     def setObject(self, index):
@@ -1672,6 +1687,9 @@ class tileWidget(QtWidgets.QWidget):
         if self.size[0] >= 24:
             return
 
+        if self.object < 0 or self.object >= len(Tileset.objects):
+            return
+
         self.size[0] += 1
         self.setMinimumSize(self.size[0]*24, self.size[1]*24)
 
@@ -1698,6 +1716,9 @@ class tileWidget(QtWidgets.QWidget):
         if self.size[0] == 1:
             return
 
+        if self.object < 0 or self.object >= len(Tileset.objects):
+            return
+
         for y in range(self.size[1]):
             self.tiles.pop(((y+1) * self.size[0])-(y+1))
 
@@ -1719,6 +1740,9 @@ class tileWidget(QtWidgets.QWidget):
         global Tileset
 
         if self.size[1] >= 24:
+            return
+
+        if self.object < 0 or self.object >= len(Tileset.objects):
             return
 
         self.size[1] += 1
@@ -1745,6 +1769,9 @@ class tileWidget(QtWidgets.QWidget):
         global Tileset
 
         if self.size[1] == 1:
+            return
+
+        if self.object < 0 or self.object >= len(Tileset.objects):
             return
 
         for x in range(self.size[0]):
@@ -1814,18 +1841,9 @@ class tileWidget(QtWidgets.QWidget):
         if event.button() == 2:
             return
 
-        if window.tileDisplay.selectedIndexes() == []:
-            return
-
-        currentSelected = window.tileDisplay.selectedIndexes()
-
-        ix = 0
-        iy = 0
-        for modelItem in currentSelected:
-            # Update yourself!
+        if Tileset.placeNullChecked:
             centerPoint = self.contentsRect().center()
 
-            tile = modelItem.row()
             upperLeftX = centerPoint.x() - self.size[0]*12
             upperLeftY = centerPoint.y() - self.size[1]*12
 
@@ -1833,25 +1851,59 @@ class tileWidget(QtWidgets.QWidget):
             lowerRightY = centerPoint.y() + self.size[1]*12
 
 
-            x = int((event.x() - upperLeftX)/24 + ix)
-            y = int((event.y() - upperLeftY)/24 + iy)
+            x = int((event.x() - upperLeftX)/24)
+            y = int((event.y() - upperLeftY)/24)
 
             if event.x() < upperLeftX or event.y() < upperLeftY or event.x() > lowerRightX or event.y() > lowerRightY:
                 return
 
+            pix = QtGui.QPixmap(24,24)
+            pix.fill(QtGui.QColor(0,0,0,0))
+
             try:
-                self.tiles[(y * self.size[0]) + x][2] = Tileset.tiles[tile].image.scaledToWidth(24, Qt.SmoothTransformation)
-                Tileset.objects[self.object].tiles[y][x] = (Tileset.objects[self.object].tiles[y][x][0], tile, Tileset.slot)
+                self.tiles[(y * self.size[0]) + x][2] = pix
+                Tileset.objects[self.object].tiles[y][x] = (0, 0, 0)
             except IndexError:
                 pass
 
-            ix += 1
-            if self.size[0]-1 < ix:
-                ix = 0
-                iy += 1
-            if iy > self.size[1]-1:
-                break
+        else:
+            if window.tileDisplay.selectedIndexes() == []:
+                return
 
+            currentSelected = window.tileDisplay.selectedIndexes()
+
+            ix = 0
+            iy = 0
+            for modelItem in currentSelected:
+                # Update yourself!
+                centerPoint = self.contentsRect().center()
+
+                tile = modelItem.row()
+                upperLeftX = centerPoint.x() - self.size[0]*12
+                upperLeftY = centerPoint.y() - self.size[1]*12
+
+                lowerRightX = centerPoint.x() + self.size[0]*12
+                lowerRightY = centerPoint.y() + self.size[1]*12
+
+
+                x = int((event.x() - upperLeftX)/24 + ix)
+                y = int((event.y() - upperLeftY)/24 + iy)
+
+                if event.x() < upperLeftX or event.y() < upperLeftY or event.x() > lowerRightX or event.y() > lowerRightY:
+                    return
+
+                try:
+                    self.tiles[(y * self.size[0]) + x][2] = Tileset.tiles[tile].image.scaledToWidth(24, Qt.SmoothTransformation)
+                    Tileset.objects[self.object].tiles[y][x] = (Tileset.objects[self.object].tiles[y][x][0], tile, Tileset.slot)
+                except IndexError:
+                    pass
+
+                ix += 1
+                if self.size[0]-1 < ix:
+                    ix = 0
+                    iy += 1
+                if iy > self.size[1]-1:
+                    break
 
         self.update()
 
