@@ -653,7 +653,7 @@ def LoadGameDef(name=None, dlg=None):
     try:
         # Load the gamedef
         globals.gamedef = MiyamotoGameDefinition(name)
-        if globals.gamedef.custom and (not globals.settings.contains('GamePath_' + globals.gamedef.name)):
+        if globals.gamedef.custom and (not globals.settings.contains('GamePath_' + globals.gamedef.name)) and globals.mainWindow:
             # First-time usage of this gamedef. Have the
             # user pick a stage folder so we can load stages
             # and tilesets from there

@@ -264,6 +264,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # create the various panels
         self.SetupDocksAndPanels()
 
+        # Load the most recently used gamedef
+        LoadGameDef(setting('LastGameDef'), False)
+
         # now get stuff ready
         loaded = False
 
@@ -319,9 +322,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.restoreGeometry(setting('MainWindowGeometry'))
         if globals.settings.contains('MainWindowState'):
             self.restoreState(setting('MainWindowState'), 0)
-
-        # Load the most recently used gamedef
-        LoadGameDef(setting('LastGameDef'), False)
 
         # Aaaaaand... initializing is done!
         globals.Initializing = False
