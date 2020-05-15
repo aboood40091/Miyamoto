@@ -3577,8 +3577,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.objPicker.LoadFromTilesets()
 
-        self.objAllTab.setCurrentIndex(0)
-        self.objAllTab.setTabEnabled(0, (globals.Area.tileset0 != ''))
+        if globals.Area.tileset0 != '':
+            self.objAllTab.setCurrentIndex(0)
+            self.objAllTab.setTabEnabled(0, True)
+
+        else:
+            self.objAllTab.setCurrentIndex(2)
+            self.objAllTab.setTabEnabled(0, False)
 
         # Load events
         self.LoadEventTabFromLevel()
@@ -4816,8 +4821,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 UnloadTileset(idx)
 
             self.objPicker.LoadFromTilesets()
-            self.objAllTab.setCurrentIndex(0)
-            self.objAllTab.setTabEnabled(0, (globals.Area.tileset0 != ''))
+
+            if globals.Area.tileset0 != '':
+                self.objAllTab.setCurrentIndex(0)
+                self.objAllTab.setTabEnabled(0, True)
+
+            else:
+                self.objAllTab.setCurrentIndex(2)
+                self.objAllTab.setTabEnabled(0, False)
 
             for layer in globals.Area.layers:
                 for obj in layer:
