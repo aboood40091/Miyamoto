@@ -2799,10 +2799,14 @@
 		<checkbox nybble="5" title="Don't Fall" comment="&lt;br&gt;Makes the Icicle not fall down."/>
 		<checkbox nybble="6" title="Load in Small (Growing)" comment="&lt;br&gt;This makes the Icicle first appear small, then grow to it's normal size."/>
 		<value nybble="7" title="Vertical Distance" comment="When set, the horizontal distance from the player is ignored and the icicle will only fall when the player is 'value*2' blocks below at most. When the value is 0, the vertical distance is ignored and the icicle will only fall when the player is 4 blocks away at most. (Horizontally)"/>
-		<value nybble="8" title="Unknown Value 8"/>
-		<value nybble="9" title="Unknown Value 9"/>
-		<value nybble="10" title="Block Train Distance" comment="If 'Falls Onto Block Train' is checked, the icicle will only fall if the block train is 'value+8' blocks away at most. (Horizontally)"/>
-		<checkbox nybble="11" title="Falls Onto Block Train" comment="Unused port from NSMBW. When this is checked, it will only fall when a block train is underneath it."/>
+		<list nybble="8" title="State after ground disappearance">
+			<entry value="0">Die and fall leaning leftwards</entry>
+			<entry value="1">Die and fall leaning backwards</entry>
+			<entry value="1">Continue falling downwards</entry>
+		</list>
+		<checkbox nybble="9" title="Do not respawn"/>
+		<value nybble="10" title="Snake Block Horizontal Distance" comment="If 'Falls Onto Snake Block' is checked, the icicle will only fall if the snake block is 'value+8' blocks away at most. (Horizontally)"/>
+		<checkbox nybble="11" title="Falls Onto Snake Block" comment="Unused port from NSMBW. When this is checked, it will only fall when a snake block is underneath it."/>
 		<checkbox nybble="12" title="Tilt after falling" comment="Unused port from NSMBW. The icicle will tilt to the right after falling."/>
 	</sprite>
 	<sprite id="185" name="Stationary Icicle" notes="A stationary icicle. Meant to be placed on the ceiling of icy and snowy levels. Doesn't fall.">
@@ -3319,7 +3323,7 @@
 			<entry value="2">All Players</entry>
 		</list>
 		<value nybble="8-9" title="Starting Node"/>
-		<value bit="40-44" title="Path ID" comment="Use this to specify the path the train follows. Only values less than 32 can be used."/>
+		<value bit="40-44" title="Path ID" comment="Use this to specify the path the snake block follows. Only values less than 32 can be used."/>
 		<list nybble="12" title="Number of blocks" comment="This is glitchy when the length is longer than the distance from the first to the second node of the path.">
 			<entry value="0">3 blocks</entry>
 			<entry value="1">4 blocks</entry>
@@ -5578,7 +5582,7 @@
 	</sprite>
 	<sprite id="486" name="Darkened Screen Corners Effect" notes="This spite makes the corners of the screen darker. Used in most underground sections of levels.">
 		<value nybble="10-11" title="Zone (useless)" comment="This doesn't make a difference."/>
-		<checkbox nybble="12" title="Don't do anything" comment="Doesn't do anything if this checkbox is unchecked."/>
+		<checkbox nybble="12" title="Apply effect" comment="The effect is not applied if this checkbox is unchecked."/>
 	</sprite>
 	<sprite id="487" name="Bowser Area" notes="&quot;Area dedicated OBJ Bowser&quot;. ">
 		<value nybble="3-4" title="Event ID"/>
@@ -6743,7 +6747,7 @@
 			<entry value="2">All Players</entry>
 		</list>
 		<value nybble="8-9" title="Starting Node"/>
-		<value bit="40-44" title="Path ID" comment="Use this to specify the path the train follows. Only values less than 32 can be used."/>
+		<value bit="40-44" title="Path ID" comment="Use this to specify the path the snake block follows. Only values less than 32 can be used."/>
 		<list nybble="12" title="Number of blocks" comment="This is glitchy when the length is longer than the distance from the first to the second node of the path.">
 			<entry value="0">3 blocks</entry>
 			<entry value="1">4 blocks</entry>
@@ -7218,7 +7222,7 @@
 			<entry value="2">All Players [NSLU: Activates event]</entry>
 		</list>
 		<value nybble="8-9" title="Starting Node"/>
-		<value bit="40-44" title="Path ID" comment="Use this to specify the path the train follows. Only values less than 32 can be used."/>
+		<value bit="40-44" title="Path ID" comment="Use this to specify the path the snake block follows. Only values less than 32 can be used."/>
 		<list nybble="12" title="Number of blocks" comment="This is glitchy when the length is longer than the distance from the first to the second node of the path.">
 			<entry value="0">3 blocks</entry>
 			<entry value="1">4 blocks</entry>
