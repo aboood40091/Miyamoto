@@ -3624,13 +3624,10 @@
 		<list nybble="9" title="Object Type" comment="Here you can select which object type will be used to fill the selected area.&lt;br&gt;&lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; If an event is activated that triggers the 'Tile God' effect to destroy objects, and the event is deactivated afterward, then the area will be filled with the object type selected here (the 'Permanent' checkbox overrides this).&lt;br&gt;&lt;br&gt;&lt;b&gt;Tip:&lt;/b&gt; The number in parentheses () corresponds to the position of the tile in the tileset (tile">
 			<entry value="0">Red Block (Pa0 tile #208) (Object #143)</entry>
 			<entry value="1">Brick Block (Pa0 tile #48) (Object #15)</entry>
-			<entry value="2">An effect</entry>
+			<entry value="2">Blank Tile (Pa0 tile #0) (Object #0)</entry>
 			<entry value="3">Stone Block (Pa0 tile #52) (Object #42)</entry>
 			<entry value="4">Wooden Block (Pa0 tile #51) (Object #41)</entry>
-			<entry value="6">Pa1 tile #240</entry>
-			<entry value="7">Pa1 tile #4</entry>
-			<entry value="12">Same as 6</entry>
-			<entry value="13">Same as 7</entry>
+			<entry value="5">Wooden Block (Pa0 tile #51) (Object #41)</entry>
 		</list>
 		<list nybble="10" title="Effect" comment="Determines the effect that is triggered when the event is activated. 'Destroy Tiles' can destroy all kinds of objects. It cannot destroy sprites. 'Spawns Tiles' will even create new tiles above other tiles or objects.">
 			<entry value="0">Destroys Tiles</entry>
@@ -7032,7 +7029,7 @@
 	<sprite id="672" name="Movement Controller - Brick Blocks - NSLU" notes="Pairs with sprite 701.">
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
-	<sprite id="673" name="Tile God - NSLU" notes="Exactly the same as NSMBU tile god, except the effect is placed a half tile higher if the 'Spawns / Destroys' nybble is set to 2.">
+	<sprite id="673" name="Tile God - NSLU" notes="Exactly the same as NSMBU tile god, except the effect is placed a half tile higher.">
 		<value nybble="3-4" title="Triggering Event ID" comment="When this Event ID is activated, the tiles affected by the sprite's area will be created/destroyed (depending on the Mode)."/>
 		<checkbox nybble="5" title="Permanent" comment="If this option is checked, the effect of the sprite (creation / destruction) will remain even after the event is deactivated. If this is not checked, previously destroyed tiles will 'respawn' (with their 'Block Type' set) after the initial event is deactivated again."/>
 		<list nybble="8" title="Fill Pattern" comment="Determines the pattern the area will be filled with.">
@@ -7043,13 +7040,10 @@
 		<list nybble="9" title="Object Type" comment="Here you can select which object type will be used to fill the selected area.&lt;br&gt;&lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; If an event is activated that triggers the 'Tile God' effect to destroy objects, and the event is deactivated afterward, then the area will be filled with the object type selected here (the 'Permanent' checkbox overrides this).&lt;br&gt;&lt;br&gt;&lt;b&gt;Tip:&lt;/b&gt; The number in parentheses () corresponds to the position of the tile in the tileset (tile">
 			<entry value="0">Red Block (Pa0 tile #208) (Object #143)</entry>
 			<entry value="1">Brick Block (Pa0 tile #48) (Object #15)</entry>
-			<entry value="2">An effect</entry>
+			<entry value="2">Blank Tile (Pa0 tile #0) (Object #0)</entry>
 			<entry value="3">Stone Block (Pa0 tile #52) (Object #42)</entry>
 			<entry value="4">Wooden Block (Pa0 tile #51) (Object #41)</entry>
-			<entry value="6">Pa1 tile #240</entry>
-			<entry value="7">Pa1 tile #4</entry>
-			<entry value="12">Same as 6</entry>
-			<entry value="13">Same as 7</entry>
+			<entry value="5">Wooden Block (Pa0 tile #51) (Object #41)</entry>
 		</list>
 		<list nybble="10" title="Effect" comment="Determines the effect that is triggered when the event is activated. 'Destroy Tiles' can destroy all kinds of objects. It cannot destroy sprites. 'Spawns Tiles' will even create new tiles above other tiles or objects.">
 			<entry value="0">Destroys Tiles</entry>
