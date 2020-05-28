@@ -5374,11 +5374,19 @@ class SpriteImage_TileGod(SLib.SpriteImage_StaticMultiple):  # 237, 673
         super().__init__(parent, 3.75)
         self.aux2 = [SLib.AuxiliaryRectOutline(parent, 0, 0)]
         self.aux = self.aux2
+        self.checkType = 0
 
     def dataChanged(self):
         super().dataChanged()
 
+        self.checkType = (self.parent.spritedata[3] & 0xF)
+        if self.checkType > 2:
+            self.checkType = 1
+
         type_ = self.parent.spritedata[4] >> 4
+
+        self.alpha = 1 if (self.parent.spritedata[4] & 0xF) != 0 else 0.5
+        
         self.width = (self.parent.spritedata[8] & 0xF) * 16
         self.height = (self.parent.spritedata[9] & 0xF) * 16
 
@@ -5388,7 +5396,7 @@ class SpriteImage_TileGod(SLib.SpriteImage_StaticMultiple):  # 237, 673
         if not self.height:
             self.height = 16
 
-        if type_ in [2, 5, 8, 9, 10, 11, 14, 15]:
+        if type_ > 5:
             self.aux = self.aux2
             self.spritebox.shown = True
             self.image = None
@@ -5400,23 +5408,20 @@ class SpriteImage_TileGod(SLib.SpriteImage_StaticMultiple):  # 237, 673
             self.aux = []
             self.spritebox.shown = False
 
-            if not type_:
+            if type_ == 0:
                 tile = SLib.Tiles[208]
 
             elif type_ == 1:
                 tile = SLib.Tiles[48]
 
+            elif type_ == 2:
+                tile = SLib.Tiles[0]
+
             elif type_ == 3:
                 tile = SLib.Tiles[52]
 
-            elif type_ == 4:
+            else:
                 tile = SLib.Tiles[51]
-
-            elif type_ in [6, 12]:
-                tile = SLib.Tiles[256 + 240]
-
-            elif type_ in [7, 13]:
-                tile = SLib.Tiles[256 + 4]
 
             if tile.exists:
                 self.image = tile.main
@@ -5437,7 +5442,10 @@ class SpriteImage_TileGod(SLib.SpriteImage_StaticMultiple):  # 237, 673
 
         for yTile in range(self.height // 16):
             for xTile in range(self.width // 16):
-                painter.drawPixmap(xTile * 60, yTile * 60, self.image)
+                if ( self.checkType == 0                                                                                     # Solid Fill
+                     or self.checkType == 1 and (xTile % 2 == 0 and yTile % 2 == 0 or xTile % 2 != 0 and yTile % 2 != 0)     # Checkers
+                     or self.checkType == 2 and (xTile % 2 != 0 and yTile % 2 == 0 or xTile % 2 == 0 and yTile % 2 != 0) ):  # Inverted Checkers
+                    painter.drawPixmap(xTile * 60, yTile * 60, self.image)
 
         aux = self.aux2
         aux[0].paint(painter, None, None)
