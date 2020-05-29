@@ -1851,8 +1851,6 @@ class SpriteImage_ControllerSwaying(SLib.SpriteImage_MovementController):  # 68
         self.parent.setZValue(500000)
         self.aux.append(SLib.AuxiliaryRotationAreaOutline(parent, 60))
         self.aux.append(SLib.AuxiliaryRotationAreaOutline(parent, 120))
-        self.aux[0].setPos(-12, 0)
-        self.aux[1].setPos(-58, -44)
 
     @staticmethod
     def loadImages():
