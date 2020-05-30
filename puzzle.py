@@ -640,7 +640,7 @@ class InfoBox(QtWidgets.QWidget):
         self.LabelB = QtWidgets.QLabel('Properties:')
         self.LabelB.setFont(Font)
 
-        self.hexdata = QtWidgets.QLabel('Hex Data: 0x00 0x00 0x00 0x00\n                0x00 0x00 0x00 0x00')
+        self.hexdata = QtWidgets.QLabel('Hex Data: 0x0 0x0\n               0x0 0x0 0x0')
         self.hexdata.setFont(Font)
 
 
