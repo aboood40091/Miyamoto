@@ -496,7 +496,7 @@ def _LoadTileset(idx, name):
     tileoffset = idx * 256
     for i in range(tileoffset, tileoffset + 256):
         T = TilesetTile(getTileFromImage(dest, sourcex, sourcey), getTileFromImage(dest2, sourcex, sourcey))
-        T.setCollisions(struct.unpack_from('<8B', colldata, (i - tileoffset) * 8))
+        T.setCollisions(struct.unpack_from('<Q', colldata, (i - tileoffset) * 8)[0])
         globals.Tiles[i] = T
         sourcex += 1
         if sourcex >= 32:
@@ -537,19 +537,19 @@ def _LoadTileset(idx, name):
             pass
 
         for i in range(tileoffset, tileoffset + 256):
-            if globals.Tiles[i].collData[0] == 7:
+            if globals.Tiles[i].coreType == 7:
                 if hatena_anime:
                     globals.Tiles[i].addAnimationData(hatena_anime)
 
-            elif globals.Tiles[i].collData[0] == 6:
+            elif globals.Tiles[i].coreType == 6:
                 if block_anime:
                     globals.Tiles[i].addAnimationData(block_anime)
 
-            elif globals.Tiles[i].collData[0] == 2:
+            elif globals.Tiles[i].coreType == 2:
                 if tuka_coin_anime:
                     globals.Tiles[i].addAnimationData(tuka_coin_anime)
 
-            elif globals.Tiles[i].collData[0] == 17:
+            elif globals.Tiles[i].coreType == 17:
                 if belt_conveyor_anime:
                     for x in range(2):
                         if i == 144 + x * 16:
@@ -569,6 +569,15 @@ def _LoadTileset(idx, name):
 
                         elif i == 149 + x * 16:
                             globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 2)
+
+        for tile in globals.Overrides:
+            if tile.coreType == 7:
+                if hatena_anime:
+                    tile.addAnimationData(hatena_anime)
+
+            elif tile.coreType == 6:
+                if block_anime:
+                    tile.addAnimationData(block_anime)
 
     # Load the object definitions
     defs = [None] * 256

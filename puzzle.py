@@ -20,6 +20,7 @@ import globals
 import SarcLib
 from tileset import HandleTilesetEdited, loadBNTXFromBFRES
 from tileset import loadTexFromBNTX, writeBNTX, writeBFRES
+from tileset import updateCollisionOverlay
 
 from yaz0 import determineCompressionMethod
 CompYaz0, DecompYaz0 = determineCompressionMethod()
@@ -56,19 +57,28 @@ class TilesetClass:
     Methods: addTile, removeTile, addObject, removeObject, clear'''
 
     class Tile:
-        def __init__(self, image, nml, bytelist):
+        def __init__(self, image, nml, collision):
             '''Tile Constructor'''
 
             self.image = image
             self.normalmap = nml
-            self.byte0 = bytelist[0]
-            self.byte1 = bytelist[1]
-            self.byte2 = bytelist[2]
-            self.byte3 = bytelist[3]
-            self.byte4 = bytelist[4]
-            self.byte5 = bytelist[5]
-            self.byte6 = bytelist[6]
-            self.byte7 = bytelist[7]
+            self.setCollision(collision)
+
+
+        def setCollision(self, collision):
+            self.coreType = (collision >>  0) & 0xFFFF
+            self.params   = (collision >> 16) &   0xFF
+            self.params2  = (collision >> 24) &   0xFF
+            self.solidity = (collision >> 32) &   0xFF
+            self.terrain  = (collision >> 40) &   0xFF
+
+
+        def getCollision(self):
+            return ((self.coreType <<  0) |
+                    (self.params   << 16) |
+                    (self.params2  << 24) |
+                    (self.solidity << 32) |
+                    (self.terrain  << 40))
 
 
     class Object:
@@ -136,10 +146,10 @@ class TilesetClass:
         self.placeNullChecked = False
 
 
-    def addTile(self, image, nml, bytelist = (0, 0, 0, 0, 0, 0, 0, 0)):
+    def addTile(self, image, nml, collision=0):
         '''Adds an tile class to the tile list with the passed image or parameters'''
 
-        self.tiles.append(self.Tile(image, nml, bytelist))
+        self.tiles.append(self.Tile(image, nml, collision))
 
 
     def addObject(self, height = 1, width = 1, randByte = 0, uslope = [0, 0], lslope = [0, 0], tilelist = [[(0, 0, 0)]]):
@@ -791,365 +801,7 @@ class displayWidget(QtWidgets.QListView):
             curTile = Tileset.tiles[index.row()]
 
             if info.collisionOverlay.isChecked():
-                path = os.path.dirname(os.path.abspath(sys.argv[0])) + '/Icons/'
-
-                colour = QtGui.QColor(0, 0, 0, 120)
-
-                # Sets the colour based on terrain type
-                if curTile.byte5 == 1:      # Ice
-                    colour = QtGui.QColor(0, 0, 255, 120)
-                elif curTile.byte5 == 2:    # Snow
-                    colour = QtGui.QColor(120, 120, 255, 120)
-                elif curTile.byte5 == 4:    # Sand
-                    colour = QtGui.QColor(128,64,0, 120)
-                elif curTile.byte5 == 5:    # Grass
-                    colour = QtGui.QColor(0, 255, 0, 120)
-
-                # Sets Brush style for fills
-                if curTile.byte0 in [14, 20, 21]:  # Climbing Grid
-                    style = Qt.DiagCrossPattern
-                elif curTile.byte0 in [5, 6, 7]:  # Breakable
-                    style = Qt.Dense5Pattern
-                else:
-                    style = Qt.SolidPattern
-
-
-                brush = QtGui.QBrush(colour, style)
-                painter.setBrush(brush)
-                painter.setRenderHint(QtGui.QPainter.Antialiasing)
-
-
-                # Paints shape based on other junk
-                if curTile.byte0 == 0xB:  # Slope
-                    if curTile.byte2 == 0:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y)]))
-                    elif curTile.byte2 == 1:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 2:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 12)]))
-                    elif curTile.byte2 == 3:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x, y + 12),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 24)]))
-                    elif curTile.byte2 == 4:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x + 24, y + 24)]))
-                    elif curTile.byte2 == 5:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 12),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 6:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 12, y)]))
-                    elif curTile.byte2 == 7:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 12, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y)]))
-                    elif curTile.byte2 == 8:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 12, y),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 9:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 12, y + 24),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 10:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y)]))
-                    elif curTile.byte2 == 11:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 18),
-                                                            QtCore.QPoint(x + 24, y + 24)]))
-                    elif curTile.byte2 == 12:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x, y + 18),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 13:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 6),
-                                                            QtCore.QPoint(x, y + 12),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 14:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x, y + 6),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 15:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 6),
-                                                            QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 16:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x, y + 6),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 17:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 18),
-                                                            QtCore.QPoint(x, y + 12),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 18:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x, y + 18),
-                                                            QtCore.QPoint(x, y + 24)]))
-
-                elif curTile.byte0 == 0xC:  # Reverse Slope
-                    if curTile.byte2 == 0:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y)]))
-                    elif curTile.byte2 == 1:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y)]))
-                    elif curTile.byte2 == 2:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y + 12)]))
-                    elif curTile.byte2 == 3:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x, y + 12),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y)]))
-                    elif curTile.byte2 == 4:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 12)]))
-                    elif curTile.byte2 == 5:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 12),
-                                                            QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y)]))
-                    elif curTile.byte2 == 6:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 12, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x, y)]))
-                    elif curTile.byte2 == 7:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 12, y)]))
-                    elif curTile.byte2 == 8:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 12, y + 24),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 9:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 12, y),
-                                                            QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 10:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y)]))
-                    elif curTile.byte2 == 11:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 6)]))
-                    elif curTile.byte2 == 12:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x, y + 6)]))
-                    elif curTile.byte2 == 13:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 18),
-                                                            QtCore.QPoint(x, y + 12)]))
-                    elif curTile.byte2 == 14:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x, y + 18)]))
-                    elif curTile.byte2 == 15:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 18),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 16:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x, y + 18)]))
-                    elif curTile.byte2 == 17:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 6),
-                                                            QtCore.QPoint(x, y + 12)]))
-                    elif curTile.byte2 == 18:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x, y + 6)]))
-
-                elif curTile.byte0 == 9:  # Partial
-                    if curTile.byte2 == 0:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 12, y),
-                                                            QtCore.QPoint(x + 12, y + 12),
-                                                            QtCore.QPoint(x, y + 12)]))
-                    elif curTile.byte2 == 1:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 12, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x + 12, y + 12)]))
-                    elif curTile.byte2 == 2:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x, y + 12)]))
-                    elif curTile.byte2 == 3:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 12),
-                                                            QtCore.QPoint(x + 12, y + 12),
-                                                            QtCore.QPoint(x + 12, y + 24),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 4:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 12, y),
-                                                            QtCore.QPoint(x + 12, y + 24),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 5:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x + 12, y + 24),
-                                                            QtCore.QPoint(x + 12, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x, y + 12)]))
-                    elif curTile.byte2 == 6:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x + 12, y + 12),
-                                                            QtCore.QPoint(x + 12, y + 24),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 7:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 12, y + 12),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 12, y + 24)]))
-                    elif curTile.byte2 == 8:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x, y + 12),
-                                                            QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x + 12, y + 24),
-                                                            QtCore.QPoint(x + 12, y)]))
-                    elif curTile.byte2 == 9:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 12, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 12, y + 24)]))
-                    elif curTile.byte2 == 10:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 12, y + 24),
-                                                            QtCore.QPoint(x + 12, y + 12),
-                                                            QtCore.QPoint(x, y + 12)]))
-                    elif curTile.byte2 == 11:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 12),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 12:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 12, y),
-                                                            QtCore.QPoint(x + 12, y + 12),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 13:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 12, y),
-                                                            QtCore.QPoint(x + 12, y + 12),
-                                                            QtCore.QPoint(x, y + 12),
-                                                            QtCore.QPoint(x, y + 24)]))
-                    elif curTile.byte2 == 14:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x, y + 24)]))
-
-                elif curTile.byte0 == 0 and curTile.byte4 == 3:  # Solid-on-bottom
-                    painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
-                                                        QtCore.QPoint(x + 24, y + 24),
-                                                        QtCore.QPoint(x + 24, y + 18),
-                                                        QtCore.QPoint(x, y + 18)]))
-
-                    painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 15, y),
-                                                        QtCore.QPoint(x + 15, y + 12),
-                                                        QtCore.QPoint(x + 18, y + 12),
-                                                        QtCore.QPoint(x + 12, y + 17),
-                                                        QtCore.QPoint(x + 6, y + 12),
-                                                        QtCore.QPoint(x + 9, y + 12),
-                                                        QtCore.QPoint(x + 9, y)]))
-
-                elif curTile.byte0 == 0 and curTile.byte4 == 2:  # Solid-on-top
-                    painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                        QtCore.QPoint(x + 24, y),
-                                                        QtCore.QPoint(x + 24, y + 6),
-                                                        QtCore.QPoint(x, y + 6)]))
-
-                    painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 15, y + 24),
-                                                        QtCore.QPoint(x + 15, y + 12),
-                                                        QtCore.QPoint(x + 18, y + 12),
-                                                        QtCore.QPoint(x + 12, y + 7),
-                                                        QtCore.QPoint(x + 6, y + 12),
-                                                        QtCore.QPoint(x + 9, y + 12),
-                                                        QtCore.QPoint(x + 9, y + 24)]))
-
-                elif curTile.byte0 == 0xF:  # Spikes
-                    if curTile.byte2 == 3:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x, y + 6)]))
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 24, y + 12),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x, y + 18)]))
-                    elif curTile.byte2 == 4:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x, y + 12),
-                                                            QtCore.QPoint(x + 24, y + 6)]))
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 12),
-                                                            QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 18)]))
-                    elif curTile.byte2 == 5:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + 24),
-                                                            QtCore.QPoint(x + 12, y + 24),
-                                                            QtCore.QPoint(x + 6, y)]))
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 12, y + 24),
-                                                            QtCore.QPoint(x + 24, y + 24),
-                                                            QtCore.QPoint(x + 18, y)]))
-                    elif curTile.byte2 == 6:
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                            QtCore.QPoint(x + 12, y),
-                                                            QtCore.QPoint(x + 6, y + 24)]))
-                        painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + 12, y),
-                                                            QtCore.QPoint(x + 24, y),
-                                                            QtCore.QPoint(x + 18, y + 24)]))
-
-                elif curTile.byte4 == 1:  # Solid
-                    painter.drawRect(option.rect)
-
-                else:  # No fill
-                    pass
+                updateCollisionOverlay(curTile, x, y, 24, painter)
 
 
             # Highlight stuff.
@@ -2380,8 +2032,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Loads Tile Behaviours
         behaviours = []
         for entry in range(256):
-            thisline = list(struct.unpack('<8B', behaviourdata[entry*8:entry*8+8]))
-            behaviours.append(tuple(thisline))
+            behaviours.append(struct.unpack('<Q', behaviourdata[entry*8:entry*8+8])[0])
 
 
         # Makes us some nice Tile Classes!
@@ -2525,8 +2176,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Loads Tile Behaviours
         behaviours = []
         for entry in range(256):
-            thisline = list(struct.unpack('<8B', behaviourdata[entry*8:entry*8+8]))
-            behaviours.append(tuple(thisline))
+            behaviours.append(struct.unpack('<Q', behaviourdata[entry*8:entry*8+8])[0])
 
 
         # Makes us some nice Tile Classes!
@@ -2930,10 +2580,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def PackTiles(self):
         offset = 0
-        tilespack = struct.Struct('<8B')
+        tilespack = struct.Struct('<Q')
         Tilebuffer = create_string_buffer(2048)
         for tile in Tileset.tiles:
-            tilespack.pack_into(Tilebuffer, offset, tile.byte0, tile.byte1, tile.byte2, tile.byte3, tile.byte4, tile.byte5, tile.byte6, tile.byte7)
+            tilespack.pack_into(Tilebuffer, offset, tile.getCollision())
             offset += 8
 
         return Tilebuffer.raw
@@ -3244,22 +2894,8 @@ class MainWindow(QtWidgets.QMainWindow):
             for z in range(randLen):
                 Tileset.tiles[tileNum + z].image = tileImage.copy(z*60,0,60,60)
                 Tileset.tiles[tileNum + z].normalmap = nmlImage.copy(z*60,0,60,60)
-                Tileset.tiles[tileNum + z].byte0 = colls[colls_off]
-                colls_off += 1
-                Tileset.tiles[tileNum + z].byte1 = colls[colls_off]
-                colls_off += 1
-                Tileset.tiles[tileNum + z].byte2 = colls[colls_off]
-                colls_off += 1
-                Tileset.tiles[tileNum + z].byte3 = colls[colls_off]
-                colls_off += 1
-                Tileset.tiles[tileNum + z].byte4 = colls[colls_off]
-                colls_off += 1
-                Tileset.tiles[tileNum + z].byte5 = colls[colls_off]
-                colls_off += 1
-                Tileset.tiles[tileNum + z].byte6 = colls[colls_off]
-                colls_off += 1
-                Tileset.tiles[tileNum + z].byte7 = colls[colls_off]
-                colls_off += 1
+                Tileset.tiles[tileNum + z].setCollision(struct.unpack_from('<Q', colls, colls_off)[0])
+                colls_off += 8
 
         else:
             tex = QtGui.QPixmap(object.width * 60, object.height * 60)
@@ -3281,14 +2917,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
                             Tileset.tiles[tile[1]].image = tileImage.copy(Xoffset,Yoffset,60,60)
                             Tileset.tiles[tile[1]].normalmap = nmlImage.copy(Xoffset,Yoffset,60,60)
-                            Tileset.tiles[tile[1]].byte0 = colls[colls_off]
-                            Tileset.tiles[tile[1]].byte1 = colls[colls_off + 1]
-                            Tileset.tiles[tile[1]].byte2 = colls[colls_off + 2]
-                            Tileset.tiles[tile[1]].byte3 = colls[colls_off + 3]
-                            Tileset.tiles[tile[1]].byte4 = colls[colls_off + 4]
-                            Tileset.tiles[tile[1]].byte5 = colls[colls_off + 5]
-                            Tileset.tiles[tile[1]].byte6 = colls[colls_off + 6]
-                            Tileset.tiles[tile[1]].byte7 = colls[colls_off + 7]
+                            Tileset.tiles[tile[1]].setCollision(struct.unpack_from('<Q', colls, colls_off)[0])
 
 
                         painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].image)
@@ -3336,28 +2965,14 @@ class MainWindow(QtWidgets.QMainWindow):
                     for z in range(object.randLen):
                         if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
                             painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1] + z].image)
-                        Tilebuffer += (Tileset.tiles[tile[1] + z].byte0).to_bytes(1, 'big')
-                        Tilebuffer += (Tileset.tiles[tile[1] + z].byte1).to_bytes(1, 'big')
-                        Tilebuffer += (Tileset.tiles[tile[1] + z].byte2).to_bytes(1, 'big')
-                        Tilebuffer += (Tileset.tiles[tile[1] + z].byte3).to_bytes(1, 'big')
-                        Tilebuffer += (Tileset.tiles[tile[1] + z].byte4).to_bytes(1, 'big')
-                        Tilebuffer += (Tileset.tiles[tile[1] + z].byte5).to_bytes(1, 'big')
-                        Tilebuffer += (Tileset.tiles[tile[1] + z].byte6).to_bytes(1, 'big')
-                        Tilebuffer += (Tileset.tiles[tile[1] + z].byte7).to_bytes(1, 'big')
+                        Tilebuffer += struct.pack('<Q', Tileset.tiles[tile[1] + z].getCollision())
                         Xoffset += 60
                     break
 
                 else:
                     if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
                         painter.drawPixmap(Xoffset, Yoffset, Tileset.tiles[tile[1]].image)
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte0).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte1).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte2).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte3).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte4).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte5).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte6).to_bytes(1, 'big')
-                    Tilebuffer += (Tileset.tiles[tile[1]].byte7).to_bytes(1, 'big')
+                    Tilebuffer += struct.pack('<Q', Tileset.tiles[tile[1]].getCollision())
                     Xoffset += 60
             Xoffset = 0
             Yoffset += 60
@@ -3533,14 +3148,7 @@ class MainWindow(QtWidgets.QMainWindow):
         '''Clears the collisions data'''
 
         for tile in Tileset.tiles:
-            tile.byte0 = 0
-            tile.byte1 = 0
-            tile.byte2 = 0
-            tile.byte3 = 0
-            tile.byte4 = 0
-            tile.byte5 = 0
-            tile.byte6 = 0
-            tile.byte7 = 0
+            tile.setCollision(0)
 
         self.updateInfo(0, 0)
         self.tileDisplay.update()
@@ -3604,15 +3212,15 @@ class MainWindow(QtWidgets.QMainWindow):
         propertyText = ''
 
 
-        if curTile.byte4 == 1:
+        if curTile.solidity == 1:
             propertyList.append('Solid')
-        elif curTile.byte4 == 2:
+        elif curTile.solidity == 2:
             propertyList.append('Solid-on-Top')
-        elif curTile.byte4 == 3:
+        elif curTile.solidity == 3:
             propertyList.append('Solid-on-Bottom')
-        elif curTile.byte4 == 0x21:
+        elif curTile.solidity == 0x21:
             propertyList.append('Sloped Solid-on-Top (1)')
-        elif curTile.byte4 == 0x22:
+        elif curTile.solidity == 0x22:
             propertyList.append('Sloped Solid-on-Top (2)')
 
 
@@ -3625,28 +3233,28 @@ class MainWindow(QtWidgets.QMainWindow):
             for string in propertyList:
                 propertyText = propertyText + ', ' + string
 
-        if palette.ParameterList[curTile.byte0] is not None:
-            if curTile.byte2 < len(palette.ParameterList[curTile.byte0]):
-                parameter = palette.ParameterList[curTile.byte0][curTile.byte2]
+        if palette.ParameterList[curTile.coreType] is not None:
+            if curTile.params < len(palette.ParameterList[curTile.coreType]):
+                parameter = palette.ParameterList[curTile.coreType][curTile.params]
             else:
-                print('Error 1: %d, %d, %d' % (index[0].row(), curTile.byte0, curTile.byte2))
+                print('Error 1: %d, %d, %d' % (index[0].row(), curTile.coreType, curTile.params))
                 parameter = ['', QtGui.QIcon()]
         else:
             parameter = ['', QtGui.QIcon()]
 
 
-        info.coreImage.setPixmap(palette.coreTypes[curTile.byte0][1].pixmap(24,24))
-        info.terrainImage.setPixmap(palette.terrainTypes[curTile.byte5][1].pixmap(24,24))
+        info.coreImage.setPixmap(palette.coreTypes[curTile.coreType][1].pixmap(24,24))
+        info.terrainImage.setPixmap(palette.terrainTypes[curTile.terrain][1].pixmap(24,24))
         info.parameterImage.setPixmap(parameter[1].pixmap(24,24))
 
-        info.coreInfo.setText(palette.coreTypes[curTile.byte0][0])
+        info.coreInfo.setText(palette.coreTypes[curTile.coreType][0])
         info.propertyInfo.setText(propertyText)
-        info.terrainInfo.setText(palette.terrainTypes[curTile.byte5][0])
+        info.terrainInfo.setText(palette.terrainTypes[curTile.terrain][0])
         info.paramInfo.setText(parameter[0])
 
-        info.hexdata.setText('Hex Data: {0} {1} {2} {3}\n                {4} {5} {6} {7}'.format(
-                                hex(curTile.byte0), hex(curTile.byte1), hex(curTile.byte2), hex(curTile.byte3),
-                                hex(curTile.byte4), hex(curTile.byte5), hex(curTile.byte6), hex(curTile.byte7)))
+        info.hexdata.setText('Hex Data: {0} {1}\n               {2} {3} {4}'.format(
+                             hex(curTile.coreType), hex(curTile.params),
+                             hex(curTile.params2), hex(curTile.solidity), hex(curTile.terrain)))
 
 
 
@@ -3660,25 +3268,21 @@ class MainWindow(QtWidgets.QMainWindow):
         # Find the checked Core widget
         for i, w in enumerate(palette.coreWidgets):
             if w.isChecked():
-                curTile.byte0 = i
+                curTile.coreType = i
                 break
 
-        curTile.byte1 = 0
-
         if palette.ParameterList[i] is not None:
-            curTile.byte2 = palette.parameters1.currentIndex()
+            curTile.params = palette.parameters1.currentIndex()
 
         if palette.ParameterList2[i] is not None:
-            curTile.byte3 = palette.parameters2.currentIndex()
+            curTile.params2 = palette.parameters2.currentIndex()
 
-        curTile.byte4 = palette.collsType.currentIndex()
+        curTile.solidity = palette.collsType.currentIndex()
 
-        if curTile.byte4 in [4, 5]:
-            curTile.byte4 += 0x1D
+        if curTile.solidity in [4, 5]:
+            curTile.solidity += 0x1D
 
-        curTile.byte5 = palette.terrainType.currentIndex()
-        curTile.byte6 = 0
-        curTile.byte7 = 0
+        curTile.terrain = palette.terrainType.currentIndex()
 
         self.updateInfo(0, 0)
         self.tileDisplay.update()
