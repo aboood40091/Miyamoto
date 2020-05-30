@@ -1584,10 +1584,17 @@
 			<entry value="8">Left</entry>
 		</list>
 		<value nybble="8" title="Swimming distance" comment="Value+2"/>
-		<value nybble="9" title="Swimming speed"/>
+		<list bit="35-36" title="Swimming speed">
+			<entry value="0">Fastest</entry>
+			<entry value="2">Fast</entry>
+			<entry value="1">Slow</entry>
+			<entry value="3">Slowest</entry>
+		</list>
 		<list nybble="12" title="Type" comment="The distance of swim type 3 before turning around depends on nybble 8.">
 			<entry value="0">Normal</entry>
 			<entry value="3">Turns around after a while</entry>
+			<entry value="9">Normal (45&#xB0; Up)</entry>
+			<entry value="10">Normal (45&#xB0; Down)</entry>
 		</list>
 	</sprite>
 	<sprite id="102" name="Nothing. (&quot;Environmental phenomena kun&quot;) [UNUSED]" notes="Does nothing."/>
@@ -1690,13 +1697,23 @@
 		<checkbox nybble="19" title="Unknown Checkbox 19" comment="No visual effects"/>
 	</sprite>
 	<sprite id="113" name="Medium-sized Cheep Cheep">
-		<checkbox nybble="5" title="Obey Backtrack" mask="8" comment="The Cheep-Cheep will not turn around and swim in the opposite direction when you backtrack."/>
-		<value nybble="8" title="Unknown Value 8"/>
-		<list nybble="9" title="Direction" comment="Determines which direction the cheep cheep will go in.">
-			<entry value="0">Left</entry>
-			<entry value="1">Right</entry>
+		<list nybble="5" title="Starting direction">
+			<entry value="0">Towards player</entry>
+			<entry value="8">Left</entry>
 		</list>
-		<value nybble="12" title="Unknown Value 12"/>
+		<value nybble="8" title="Swimming distance" comment="Value+2"/>
+		<list bit="35-36" title="Swimming speed">
+			<entry value="0">Fastest</entry>
+			<entry value="2">Fast</entry>
+			<entry value="1">Slow</entry>
+			<entry value="3">Slowest</entry>
+		</list>
+		<list nybble="12" title="Type" comment="The distance of swim type 3 before turning around depends on nybble 8.">
+			<entry value="0">Normal</entry>
+			<entry value="3">Turns around after a while</entry>
+			<entry value="9">Normal (45&#xB0; Up)</entry>
+			<entry value="10">Normal (45&#xB0; Down)</entry>
+		</list>
 	</sprite>
 	<sprite id="114" name="Cheep Cheep Formation [UNUSED]" notes="Name translates to &quot;Pukupuku [Japanese name for Cheep Cheep] (formation)&quot;&#13;&#10;Doesn't form any type of group at all by itself.">
 		<value nybble="6" title="Unknown Value 6"/>
@@ -2861,7 +2878,7 @@
 		<list nybble="8" title="State after ground disappearance">
 			<entry value="0">Die and fall leaning leftwards</entry>
 			<entry value="1">Die and fall leaning backwards</entry>
-			<entry value="1">Continue falling downwards</entry>
+			<entry value="2">Continue falling downwards</entry>
 		</list>
 		<checkbox nybble="9" title="Do not respawn"/>
 		<value nybble="10" title="Snake Block Horizontal Distance" comment="If 'Falls Onto Snake Block' is checked, the icicle will only fall if the snake block is 'value+8' blocks away at most. (Horizontally)"/>
@@ -4415,6 +4432,10 @@
 			<entry value="2">Slow</entry>
 			<entry value="3">Disables sprite</entry>
 		</list>
+		<list bit="21" title="Sync" comment="If the extension delay and retraction delay of several spike pillars add up to the same number they will by default sync their extension to be at the same time. You can use this to make the retraction sync instead.">
+			<entry value="0">Extension</entry>
+			<entry value="1">Retraction</entry>
+		</list>
 		<list bit="22-24" title="Initial Extension State">
 			<entry value="0">Extend immediately</entry>
 			<entry value="1">UNUSED</entry>
@@ -4457,6 +4478,10 @@
 			<entry value="2">Slow</entry>
 			<entry value="3">Disables sprite</entry>
 		</list>
+		<list bit="21" title="Sync" comment="If the extension delay and retraction delay of several spike pillars add up to the same number they will by default sync their extension to be at the same time. You can use this to make the retraction sync instead.">
+			<entry value="0">Extension</entry>
+			<entry value="1">Retraction</entry>
+		</list>
 		<list bit="22-24" title="Initial Extension State">
 			<entry value="0">Extend immediately</entry>
 			<entry value="1">UNUSED</entry>
@@ -4482,6 +4507,10 @@
 			<entry value="2">Slow</entry>
 			<entry value="3">Disables sprite</entry>
 		</list>
+		<list bit="21" title="Sync" comment="If the extension delay and retraction delay of several spike pillars add up to the same number they will by default sync their extension to be at the same time. You can use this to make the retraction sync instead.">
+			<entry value="0">Extension</entry>
+			<entry value="1">Retraction</entry>
+		</list>
 		<list bit="22-24" title="Initial Extension State">
 			<entry value="0">Extend immediately</entry>
 			<entry value="1">UNUSED</entry>
@@ -4506,6 +4535,10 @@
 			<entry value="1">Fast</entry>
 			<entry value="2">Slow</entry>
 			<entry value="3">Disables sprite</entry>
+		</list>
+		<list bit="21" title="Sync" comment="If the extension delay and retraction delay of several spike pillars add up to the same number they will by default sync their extension to be at the same time. You can use this to make the retraction sync instead.">
+			<entry value="0">Extension</entry>
+			<entry value="1">Retraction</entry>
 		</list>
 		<list bit="22-24" title="Initial Extension State">
 			<entry value="0">Extend immediately</entry>
@@ -5470,9 +5503,20 @@
 	<sprite id="457" name="Wobbly Bone Platform" notes="Wobbles when hit by Bowser jr in flying clown car. ">
 		<value nybble="17-18" title="Width" comment="Width of the platform."/>
 	</sprite>
-	<sprite id="458" name="Golden Pipe (Up)">
-		<value nybble="5" title="Length" comment="The length of the pipe."/>
-		<value nybble="10-12" title="Number of coins until spawn" comment="The number of coins it needs to spawn."/>
+	<sprite id="458" name="Golden Pipe (Down)" notes="This sprite appears once enough coins are collected in the area is in.">
+		<value nybble="5" title="Mode 2: Coin Multiplier"/>
+		<value bit="24-26" title="Mode 1: Time" comment="(Value * 10) seconds."/>
+		<value nybble="8" title="Mode 0: Coins Needed" comment="Value * 10"/>
+		<value nybble="10" title="Entrance ID"/>
+		<checkbox nybble="11" title="Mode 2: Ignore blue coins" mask="1"/>
+		<checkbox nybble="11" title="Mode 2: Ignore yellow coins" mask="2"/>
+		<checkbox nybble="11" title="Mode 2: Ignore brick blocks (P-Switch yellow coins)" mask="4"/>
+		<checkbox nybble="11" title="Mode 2: Ignore coin outlines" mask="8"/>
+		<list nybble="12" title="Behavior Mode">
+			<entry value="0">Use coins needed</entry>
+			<entry value="1">Use time</entry>
+			<entry value="2">Use coins in zone</entry>
+		</list>
 	</sprite>
 	<sprite id="459" name="Bowser Jr. (Clown Car) Controller" notes="Doesn't appear in retail, but if you spawn a bunch near the actual sprite, it will spawn the same model but not interact with Mario."/>
 	<sprite id="460" name="Data for Airship Hand (Hand Form)">
@@ -6383,11 +6427,20 @@
 		</list>
 		<value nybble="18" title="Width" comment="The width of the platform. (0 will not spawn anything.)"/>
 	</sprite>
-	<sprite id="574" name="Coin-collection-spawned Rainbow Pipe" notes="This sprite appears once enough coins are collected in the area is in.">
-		<value nybble="5" title="Length?"/>
-		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="11" title="Unknown Value 11"/>
-		<value nybble="12" title="Unknown Value 10"/>
+	<sprite id="574" name="Golden Pipe (Up)" notes="This sprite appears once enough coins are collected in the area is in.">
+		<value nybble="5" title="Mode 2: Coin Multiplier"/>
+		<value bit="24-26" title="Mode 1: Time" comment="(Value * 10) seconds."/>
+		<value nybble="8" title="Mode 0: Coins Needed" comment="Value * 10"/>
+		<value nybble="10" title="Entrance ID"/>
+		<checkbox nybble="11" title="Mode 2: Ignore blue coins" mask="1"/>
+		<checkbox nybble="11" title="Mode 2: Ignore yellow coins" mask="2"/>
+		<checkbox nybble="11" title="Mode 2: Ignore brick blocks (P-Switch yellow coins)" mask="4"/>
+		<checkbox nybble="11" title="Mode 2: Ignore coin outlines" mask="8"/>
+		<list nybble="12" title="Behavior Mode">
+			<entry value="0">Use coins needed</entry>
+			<entry value="1">Use time</entry>
+			<entry value="2">Use coins in zone</entry>
+		</list>
 	</sprite>
 	<sprite id="575" name="Pipe - Left (Solid) [UNUSED]" notes="A pipe that's unused. Shares some nybbles with the 139 set, but not much. This one doesn't need collision tiles.">
 		<list nybble="5" title="Height-Related" comment="How the pipe spawns.">
@@ -6635,8 +6688,36 @@
 		<value nybble="11" title="Unknown Value 11" comment="Always 8"/>
 		<value nybble="12" title="Unknown Value 12"/>
 	</sprite>
-	<sprite id="613" name="Golden Pipe (Left) [UNUSED]"/>
-	<sprite id="614" name="Golden Pipe (Right) [UNUSED]"/>
+	<sprite id="613" name="Golden Pipe (Left) [UNUSED]" notes="This sprite appears once enough coins are collected in the area is in.">
+		<value nybble="5" title="Mode 2: Coin Multiplier"/>
+		<value bit="24-26" title="Mode 1: Time" comment="(Value * 10) seconds."/>
+		<value nybble="8" title="Mode 0: Coins Needed" comment="Value * 10"/>
+		<value nybble="10" title="Entrance ID"/>
+		<checkbox nybble="11" title="Mode 2: Ignore blue coins" mask="1"/>
+		<checkbox nybble="11" title="Mode 2: Ignore yellow coins" mask="2"/>
+		<checkbox nybble="11" title="Mode 2: Ignore brick blocks (P-Switch yellow coins)" mask="4"/>
+		<checkbox nybble="11" title="Mode 2: Ignore coin outlines" mask="8"/>
+		<list nybble="12" title="Behavior Mode">
+			<entry value="0">Use coins needed</entry>
+			<entry value="1">Use time</entry>
+			<entry value="2">Use coins in zone</entry>
+		</list>
+	</sprite>
+	<sprite id="614" name="Golden Pipe (Right) [UNUSED]" notes="This sprite appears once enough coins are collected in the area is in.">
+		<value nybble="5" title="Mode 2: Coin Multiplier"/>
+		<value bit="24-26" title="Mode 1: Time" comment="(Value * 10) seconds."/>
+		<value nybble="8" title="Mode 0: Coins Needed" comment="Value * 10"/>
+		<value nybble="10" title="Entrance ID"/>
+		<checkbox nybble="11" title="Mode 2: Ignore blue coins" mask="1"/>
+		<checkbox nybble="11" title="Mode 2: Ignore yellow coins" mask="2"/>
+		<checkbox nybble="11" title="Mode 2: Ignore brick blocks (P-Switch yellow coins)" mask="4"/>
+		<checkbox nybble="11" title="Mode 2: Ignore coin outlines" mask="8"/>
+		<list nybble="12" title="Behavior Mode">
+			<entry value="0">Use coins needed</entry>
+			<entry value="1">Use time</entry>
+			<entry value="2">Use coins in zone</entry>
+		</list>
+	</sprite>
 	<sprite id="615" name="Grouped Cheep Cheep" notes="Link this sprite to a Cheep Cheep group controller (sprite 616).">
 		<checkbox nybble="5" title="Obey Backtrack" mask="8" comment="The Cheep-Cheep will not turn around and swim in the opposite direction when you backtrack."/>
 		<value nybble="21-22" title="Cheep Cheep Group ID"/>

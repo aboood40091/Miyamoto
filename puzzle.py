@@ -76,15 +76,40 @@ class TilesetClass:
         def __init__(self, height, width, randByte, uslope, lslope, tilelist):
             '''Tile Constructor'''
 
-            self.height = height
-            self.width = width
-
             self.randX = (randByte >> 4) & 1
             self.randY = (randByte >> 5) & 1
             self.randLen = randByte & 0xF
 
             self.upperslope = uslope
             self.lowerslope = lslope
+
+            # Fix a bug from a previous version of Puzzle
+            # where the actual width and height would
+            # mismatch with the number of tiles for the object
+
+            realH = len(tilelist)
+            while realH > height:
+                del tilelist[-1]
+                realH -= 1
+
+            for row in tilelist:
+                realW = len(row)
+                while realW > width:
+                    del row[-1]
+                    realW -= 1
+
+            for row in tilelist:
+                realW = len(row)
+                while realW < width:
+                    row.append((0, 0, 0))
+                    realW += 1
+
+            while realH < height:
+                tilelist.append([(0, 0, 0) for _ in range(width)])
+                realH += 1
+
+            self.height = height
+            self.width = width
 
             self.tiles = tilelist
 
@@ -1217,7 +1242,7 @@ class tileOverlord(QtWidgets.QWidget):
         self.addColumn.released.connect(self.addColumnHandler)
         self.removeColumn.released.connect(self.removeColumnHandler)
 
-        self.tilingMethod.activated.connect(self.setTiling)
+        self.tilingMethod.currentIndexChanged.connect(self.setTiling)
 
         self.randX.toggled.connect(self.changeRandX)
         self.randY.toggled.connect(self.changeRandY)
@@ -2782,9 +2807,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def saving(self, name):
 
         # Prepare tiles, objects, object metadata, and textures and stuff into buffers.
-        textureType = self.slot in range(1, 4)
-        textureBuffer = self.PackTexture(textureType)
-        textureBufferNml = self.PackTexture(textureType, True)
+        textureBuffer = self.PackTexture()
+        textureBufferNml = self.PackTexture(True)
         tileBuffer = self.PackTiles()
         objectBuffers = self.PackObjects()
         objectBuffer = objectBuffers[0]
@@ -2827,7 +2851,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return arc.save()[0]
 
 
-    def PackTexture(self, isDxt5, normalmap=False):
+    def PackTexture(self, normalmap=False):
 
         tex = QtGui.QImage(2048, 512, QtGui.QImage.Format_RGBA8888)
         tex.fill(Qt.transparent)
@@ -3049,7 +3073,7 @@ class MainWindow(QtWidgets.QMainWindow):
         usedTiles = len(Tileset.getUsedTiles())
         freeTiles = 256 - usedTiles
         QtWidgets.QMessageBox.information(self, "Tiles info",
-                "Used Tiles: " + str(usedTiles) + (" tile.\n" if freeTiles == 1 else " tiles.\n")
+                "Used Tiles: " + str(usedTiles) + (" tile.\n" if usedTiles == 1 else " tiles.\n")
                 + "Free Tiles: " + str(freeTiles) + (" tile." if freeTiles == 1 else " tiles."),
                 QtWidgets.QMessageBox.Ok)
 
