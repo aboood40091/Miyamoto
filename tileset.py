@@ -597,7 +597,6 @@ class ObjectDef:
 
         i = 0
         row = []
-        cbyte = source[i]
 
         while i < len(source):
             cbyte = source[i]
@@ -612,6 +611,7 @@ class ObjectDef:
 
             elif (cbyte & 0x80) != 0:
                 if self.mainPartAt == -1:
+                    assert len(self.rows) == 0
                     self.mainPartAt = 0
 
                 else:

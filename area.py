@@ -109,6 +109,7 @@ class AbstractArea:
 
         bgStruct = struct.Struct('>HHHH16sxBxx')
         offset = 0
+
         bgs = {}
         for i in range(bgCount):
             bg = bgStruct.unpack_from(bgData, offset)
