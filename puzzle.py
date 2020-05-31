@@ -1255,9 +1255,11 @@ class tileOverlord(QtWidgets.QWidget):
                 crow += 1
                 ctile = 0
 
-            object.upperslope = [0x90, 1]
-            object.lowerslope = [0x84, object.height - 1]
-            self.tiles.slope = 1
+            if object.upperslope[0] != 0x90:
+                object.upperslope = [0x90, 1]
+            if object.lowerslope[0] != 0x84:
+                object.lowerslope = [0x84, object.height - 1]
+            self.tiles.slope = object.upperslope[1]
 
             self.tiles.update()
 
@@ -1271,9 +1273,11 @@ class tileOverlord(QtWidgets.QWidget):
                 crow += 1
                 ctile = 0
 
-            object.upperslope = [0x91, 1]
-            object.lowerslope = [0x84, object.height - 1]
-            self.tiles.slope = 1
+            if object.upperslope[0] != 0x91:
+                object.upperslope = [0x91, 1]
+            if object.lowerslope[0] != 0x84:
+                object.lowerslope = [0x84, object.height - 1]
+            self.tiles.slope = object.upperslope[1]
 
             self.tiles.update()
 
@@ -1287,9 +1291,11 @@ class tileOverlord(QtWidgets.QWidget):
                 crow += 1
                 ctile = 0
 
-            object.upperslope = [0x92, object.height - 1]
-            object.lowerslope = [0x84, 1]
-            self.tiles.slope = 0-(object.height-1)
+            if object.upperslope[0] != 0x92:
+                object.upperslope = [0x92, object.height - 1]
+            if object.lowerslope[0] != 0x84:
+                object.lowerslope = [0x84, 1]
+            self.tiles.slope = 0 - object.lowerslope[1]
 
             self.tiles.update()
 
@@ -1303,9 +1309,11 @@ class tileOverlord(QtWidgets.QWidget):
                 crow += 1
                 ctile = 0
 
-            object.upperslope = [0x93, object.height - 1]
-            object.lowerslope = [0x84, 1]
-            self.tiles.slope = 0-(object.height-1)
+            if object.upperslope[0] != 0x93:
+                object.upperslope = [0x93, object.height - 1]
+            if object.lowerslope[0] != 0x84:
+                object.lowerslope = [0x84, 1]
+            self.tiles.slope = 0 - object.lowerslope[1]
 
             self.tiles.update()
 

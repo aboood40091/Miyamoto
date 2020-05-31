@@ -4934,6 +4934,15 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
                     clickedy = int((clicked.y() - globals.TileWidth / 2) / globals.TileWidth * 16)
 
+                    if clickedx % 8 < 4:
+                        clickedx -= (clickedx % 8)
+                    else:
+                        clickedx += 8 - (clickedx % 8)
+                    if clickedy % 8 < 4:
+                        clickedy -= (clickedy % 8)
+                    else:
+                        clickedy += 8 - (clickedy % 8)
+
                     if obj.objx != clickedx or obj.objy != clickedy:
                         obj.objx = clickedx
                         obj.objy = clickedy
