@@ -1668,19 +1668,15 @@ def _RenderObject(obj, width, height, fullslope=False):
         afterRepeat = []
 
         for row in obj.rows:
-            if len(row) == 0:
-                continue
-
-            if (row[0][0] & 2) != 0:
+            if row and (row[0][0] & 2) != 0:
                 repeatFound = True
                 inRepeat.append(row)
 
-            else:
-                if repeatFound:
-                    afterRepeat.append(row)
+            elif repeatFound:
+                afterRepeat.append(row)
 
-                else:
-                    beforeRepeat.append(row)
+            else:
+                beforeRepeat.append(row)
 
         bc = len(beforeRepeat)
         ic = len(inRepeat)
@@ -1689,6 +1685,14 @@ def _RenderObject(obj, width, height, fullslope=False):
         if ic == 0:
             for y in range(height):
                 RenderStandardRow(dest[y], beforeRepeat[y % bc], width)
+
+        elif height <= bc + ac:
+            for y in range(height):
+                if y < bc:
+                    RenderStandardRow(dest[y], beforeRepeat[y], width)
+
+                else:
+                    RenderStandardRow(dest[y], afterRepeat[y - bc], width)
 
         else:
             afterthreshold = height - ac - 1
@@ -1733,24 +1737,24 @@ def RenderStandardRow(dest, row, width):
     """
     Render a row from an object
     """
+    if not row:
+        return
+
     repeatFound = False
     beforeRepeat = []
     inRepeat = []
     afterRepeat = []
 
     for tile in row:
-        tiling = (tile[0] & 1) != 0
-
-        if tiling:
+        if tile[0] & 1:
             repeatFound = True
             inRepeat.append(tile)
 
-        else:
-            if repeatFound:
-                afterRepeat.append(tile)
+        elif repeatFound:
+            afterRepeat.append(tile)
 
-            else:
-                beforeRepeat.append(tile)
+        else:
+            beforeRepeat.append(tile)
 
     bc = len(beforeRepeat)
     ic = len(inRepeat)
@@ -1758,13 +1762,24 @@ def RenderStandardRow(dest, row, width):
     if ic == 0:
         for x in range(width):
             dest[x] = beforeRepeat[x % bc][1]
+
+    elif width <= bc + ac:
+        for x in range(width):
+            if x < bc:
+                dest[x] = beforeRepeat[x][1]
+
+            else:
+                dest[x] = afterRepeat[x - bc][1]
+
     else:
         afterthreshold = width - ac - 1
         for x in range(width):
             if x < bc:
                 dest[x] = beforeRepeat[x][1]
+
             elif x > afterthreshold:
                 dest[x] = afterRepeat[x - width + ac][1]
+
             else:
                 dest[x] = inRepeat[(x - bc) % ic][1]
 
