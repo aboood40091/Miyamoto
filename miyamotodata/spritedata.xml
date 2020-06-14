@@ -523,7 +523,7 @@
 			<entry value="1">Small Player</entry>
 			<entry value="2">Super Player</entry>
 			<entry value="3">Fire Flower</entry>
-			<entry value="4">MinI mushroom</entry>
+			<entry value="4">Mini mushroom</entry>
 			<entry value="5">Propeller Mushroom</entry>
 			<entry value="6">Penguin Suit</entry>
 			<entry value="7">Ice Flower</entry>
@@ -663,7 +663,7 @@
 		</list>
 		<value nybble="21-22" title="Bolt ID" comment="Use this to assign the star coin to a bolt."/>
 	</sprite>
-	<sprite id="48" name="Movement-controlled, Rotation-controlled Star Coin">
+	<sprite id="48" name="Movement-controlled Star Coin">
 		<value nybble="3-4" title="Target ID" comment="Collecting the star coin will activate this event."/>
 		<value nybble="6" title="Unknown Value 6"/>
 		<value nybble="7" title="Unknown Value 7"/>
@@ -679,23 +679,11 @@
 		<value nybble="16" title="Unknown Value 16" comment="Goes up to 7."/>
 		<value nybble="17" title="Unknown Value 17"/>
 		<value nybble="18" title="Unknown Value 18"/>
-		<list nybble="19" title="Related to Movement ID" comment="Set to the type of sprite you are linking the Star Coin with.">
-			<entry value="0">Unknown</entry>
-			<entry value="1">Unknown</entry>
-			<entry value="2">70 - Two-Way</entry>
-			<entry value="3">Unknown</entry>
-			<entry value="4">Unknown</entry>
-			<entry value="5">Unknown</entry>
-			<entry value="6">Unknown</entry>
-			<entry value="7">Unknown</entry>
-			<entry value="8">Unknown</entry>
-			<entry value="9">Unknown</entry>
-			<entry value="10">Unknown</entry>
-			<entry value="11">Unknown</entry>
-			<entry value="12">Unknown</entry>
-			<entry value="13">Unknown</entry>
-			<entry value="14">Unknown</entry>
-			<entry value="15">Unknown</entry>
+		<list nybble="19" title="Movement Type" comment="Set to the type of sprite you are linking the Star Coin with.">
+			<entry value="0">Pivotal Rotation (68, 69, 116, 118)</entry>
+			<entry value="1">Path (100)</entry>
+			<entry value="2">Two-Way (70, 642)</entry>
+			<entry value="3">Shifting Rectangle Platform (132)</entry>
 		</list>
 		<value nybble="20" title="Unknown Value 20"/>
 		<value nybble="21-22" title="Movement ID" comment="Use this to match it to a rotation controller or sprite 70."/>
@@ -878,7 +866,7 @@
 		</list>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
-	<sprite id="62" name="Movement-controlled Pipe Piranha Plant">
+	<sprite id="62" name="Pivotal-rotation-controlled Pipe Piranha Plant - Up">
 		<value nybble="7" title="Unknown Value 7"/>
 		<value nybble="21-22" title="Movement ID" comment="The movement ID it connects to."/>
 	</sprite>
@@ -946,10 +934,10 @@
 		<value nybble="21-22" title="Movement ID" comment="Can match to 70 for sure."/>
 		<value nybble="23-24" title="Coin ID" comment="Use this to link it to a the clapping controller."/>
 	</sprite>
-	<sprite id="66" name="Movement-controlled Coin" notes="A coin that uses lines to move. Hooks up to sprite 70.">
+	<sprite id="66" name="Moving Solid Platform Coin" notes="A coin that uses lines to move. Hooks up to sprite 70.">
 		<value nybble="16" title="Unknown Value 16"/>
 		<value nybble="17" title="Unknown Value 17"/>
-		<value nybble="21-22" title="Movement ID" comment="Connects to a movement/rotation controller."/>
+		<value nybble="21-22" title="Movement ID" comment="Connects to a movement controller."/>
 		<value nybble="23-24" title="Coin ID" comment="Use this to assign the coin an id to another controller."/>
 	</sprite>
 	<sprite id="67" name="Swooper">
@@ -958,7 +946,7 @@
 		<checkbox nybble="9" title="Unknown Checkbox 9"/>
 		<value nybble="21-22" title="Movement ID" comment="Use this id to hook the sprite to a movement controller."/>
 	</sprite>
-	<sprite id="68" name="Movement Controller - Swaying" notes="Use this to sway some objects.">
+	<sprite id="68" name="Movement Controller - Pivotal Rotation (Swaying)" notes="Use this to sway some objects. The controller will be the pivot (center) of rotation.">
 		<value nybble="3-4" title="Triggering Event ID" comment="Use this to activate the movement once."/>
 		<checkbox nybble="5" title="Unknown Value 5" comment="No effect at all."/>
 		<list nybble="6" title="Sway Start Offset" comment="Offset [Sway Direction]. Sway direction is inverted when 'Reversed Movement' is used.">
@@ -1025,7 +1013,7 @@
 		<value nybble="20" title="Unknown Value 20"/>
 		<value nybble="21-22" title="Movement ID" comment="Use this to link this controller with the objects you want to sway."/>
 	</sprite>
-	<sprite id="69" name="Movement Controller - Spinning (Constant)" notes="Used for rolling hills, among other things.">
+	<sprite id="69" name="Movement Controller - Pivotal Rotation (Spinning)" notes="Used for rolling hills, among other things. The controller will be the pivot (center) of rotation.">
 		<value nybble="3-4" title="Triggering Event ID" comment="The ID that triggers the controller."/>
 		<list nybble="5" title="Starting Rotation" comment="The angle it starts rotating at in degrees. Used to desync other sprites.">
 			<entry value="0">0&#xB0;</entry>
@@ -1209,13 +1197,13 @@
 		<value nybble="18" title="Width"/>
 		<value nybble="20" title="Height"/>
 	</sprite>
-	<sprite id="82" name="Rotation-controlled Pipe Piranha Plant - Down" notes="A pipe piranha plant that can be rotation controlled.">
+	<sprite id="82" name="Pivotal-rotation-controlled Pipe Piranha Plant - Down" notes="A pipe piranha plant that can be rotation controlled.">
 		<value nybble="21-22" title="Movement ID" comment="Attatches to a movement ID."/>
 	</sprite>
-	<sprite id="83" name="Rotation-controlled Pipe Piranha Plant - Left" notes="A pipe piranha plant that is rotation controlled.">
+	<sprite id="83" name="Pivotal-rotation-controlled Pipe Piranha Plant - Left" notes="A pipe piranha plant that is rotation controlled.">
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
-	<sprite id="84" name="Rotation-controlled Pipe Piranha Plant - Right" notes="A piranha plant that can be rotation controlled.">
+	<sprite id="84" name="Pivotal-rotation-controlled Pipe Piranha Plant - Right" notes="A piranha plant that can be rotation controlled.">
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
 	<sprite id="85" name="Flame Chomp" notes="Spawns a Flame Chomp."/>
@@ -1239,7 +1227,7 @@
 			<entry value="2">Chasing / Geyser (and Sinking)</entry>
 		</list>
 	</sprite>
-	<sprite id="87" name="Movement-controlled Coin" notes="Confirmed to be usable with: Movement controller - Swaying and the path movement controller.">
+	<sprite id="87" name="Pivotal-rotation-controlled Coin" notes="Confirmed to be usable with: Movement controller - Swaying and the path movement controller.">
 		<value nybble="3-4" title="Triggering Event ID"/>
 		<value nybble="5" title="Unknown Value 5"/>
 		<checkbox nybble="6" mask="1" title="Upside Down"/>
@@ -1764,7 +1752,7 @@
 		<checkbox nybble="19" title="Unknown Checkbox 19 [NSLU]" comment="Only used in NSLU 8-4 A1."/>
 		<checkbox nybble="20" title="Reveal Paths On Exit*" comment="*If this is unchecked and exit type is 1 then when the players come back to the worldmap no path reveal animation is played, BUT you can still walk on the unrevealed paths."/>
 	</sprite>
-	<sprite id="116" name="Path-controlled Movement-controlled Movement Controller - Swaying" notes="Link this to a Movement Controller - Path (100).">
+	<sprite id="116" name="Movement Controller - Pivotal Rotation (Swaying, Path-controlled)" notes="Link this to Movement Controller - Path (100). The controller will be the pivot (center) of rotation for the object controlled by it.">
 		<value nybble="3-4" title="Triggering Event ID" comment="Use this to activate the movement once."/>
 		<checkbox nybble="5" title="Unknown Value 5" comment="No effect at all."/>
 		<list nybble="6" title="Sway Start Offset" comment="Offset [Sway Direction]. Sway direction is inverted when 'Reversed Movement' is used.">
@@ -1832,13 +1820,14 @@
 		<value nybble="21-22" title="Output Movement ID"/>
 		<value nybble="23-24" title="Input Movement ID"/>
 	</sprite>
-	<sprite id="117" name="Big Spinner (Ball 'n' Chain)" notes="A swinging spiked ball on a spiked chain. Does not spawn if not tied to a movement controller.">
+	<sprite id="117" name="Pivotal-rotation-controlled Pendulum (Spinner, Ball 'n' Chain)" notes="A swinging spiked ball on a spiked chain. Does not spawn if not tied to a movement controller.">
 		<value nybble="8" title="Unknown Value 8"/>
+		<value nybble="9" title="Unused Value 9"/>
 		<value nybble="10" title="Scale"/>
 		<value nybble="11" title="Unknown Value 11"/>
 		<value nybble="21-22" title="Movement ID" comment="Use this to link this sprite to a rotation movement controller (68/69/116/118)."/>
 	</sprite>
-	<sprite id="118" name="Path-controlled Movement Controller - Spinning" notes="Link this to a Movement Controller - Path (100).">
+	<sprite id="118" name="Movement Controller - Pivotal Rotation (Spinning, Path-controlled)" notes="Link this to Movement Controller - Path (100). The controller will be the pivot (center) of rotation for the object controlled by it.">
 		<value nybble="3-4" title="Triggering Event ID" comment="The event that triggers the controller."/>
 		<list nybble="5" title="Starting Rotation" comment="The angle it starts rotating at. Used to desync other sprites.">
 			<entry value="0">0 deg</entry>
@@ -2157,7 +2146,7 @@
 		<checkbox nybble="11" title="Contains coins" comment="If checked, the palm tree emits 4 coins when ground-pounded or spun near. When the last two digits of the timer are the same (i.e 455, 288, etc.), it emits 8 coins instead of four."/>
 		<value nybble="12" title="Height" comment="Value+4"/>
 	</sprite>
-	<sprite id="146" name="Movement-controlled Pipe" notes="A separate, movement-controlled pipe.">
+	<sprite id="146" name="Pivotal-rotation-controlled Pipe" notes="A separate, rotation-controlled pipe.">
 		<checkbox nybble="5" title="Expels bubbles"/>
 		<value nybble="6" title="Z-Order"/>
 		<list nybble="7" title="Direction">
@@ -2592,7 +2581,7 @@
 			<entry value="3">Right</entry>
 		</list>
 	</sprite>
-	<sprite id="165" name="Coin Circle" notes="Spawns circle of coins(87).">
+	<sprite id="165" name="Pivotal-rotation-controlled Coin Circle" notes="Spawns circle of coins(87).">
 		<checkbox nybble="5" title="Coin Battle Only*" comment="Seems to only work on sprite 166. If checked the ring only appears in Coin Battle Mode."/>
 		<checkbox nybble="6" title="Upside-Down Coins"/>
 		<checkbox nybble="6" title="Gyroscopic Coins*" mask="2" comment="*Does not work together with Upside-Down or Tilting, this will always take priority."/>
@@ -2645,7 +2634,7 @@
 		<value nybble="21-22" title="Movement ID" comment="Use this to link this coin circle to a movement controller."/>
 		<value nybble="23-24" title="Coin ID"/>
 	</sprite>
-	<sprite id="166" name="Dash Coin Circle">
+	<sprite id="166" name="Pivotal-rotation-controlled Dash Coin Circle">
 		<checkbox nybble="5" title="Coin Battle Only" comment="If checked the ring only appears in Coin Battle Mode."/>
 		<checkbox nybble="6" title="Upside-Down Coins"/>
 		<checkbox nybble="6" title="Gyroscopic Coins*" mask="2" comment="*Does not work together with Upside-Down or Tilting, this will always take priority."/>
@@ -2962,7 +2951,7 @@
 		<checkbox nybble="20" title="Grrrols die when crushed"/>
 	</sprite>
 	<sprite id="189" name="Lakitu Block [UNUSED]" notes="Crashes. Unused port from NSMBW"/>
-	<sprite id="190" name="Movement-controlled Question Block" notes="Matches to many movement controllers.">
+	<sprite id="190" name="Pivotal-rotation-controlled Question Block" notes="Matches to many movement controllers.">
 		<value nybble="4" title="Unknown Value 4"/>
 		<value nybble="6" title="Unknown Value 6" comment="4 bitfields"/>
 		<value nybble="9" title="Unused Value 9"/>
@@ -2991,7 +2980,7 @@
 		</list>
 		<value nybble="21-22" title="Movement ID" comment="Use this to link this block to a rotation movement controller."/>
 	</sprite>
-	<sprite id="191" name="Movement-controlled Brick Block" notes="Maybe checkbox at nybble 13 to make this spawn an acorn mushroom...">
+	<sprite id="191" name="Pivotal-rotation-controlled Brick Block" notes="Maybe checkbox at nybble 13 to make this spawn an acorn mushroom...">
 		<value nybble="4" title="Unknown Value 4"/>
 		<value nybble="6" title="Unknown Value 6"/>
 		<value nybble="12" title="Unknown Value 12"/>
@@ -3253,9 +3242,9 @@
 		<value nybble="16" title="Unknown Value 16"/>
 		<value nybble="21-22" title="Movement ID" comment="Assigns the sprite to a movement controller."/>
 	</sprite>
-	<sprite id="211" name="Rotation-controlled/Path-controlled Test Platform [UNUSED]">
+	<sprite id="211" name="Pivotal-rotation-controlled/Path-controlled Test Platform [UNUSED]">
 		<value nybble="17-18" title="Width" comment="This value can go up to 31."/>
-		<value nybble="21-22" title="Movement ID" comment="Can attatch to 68, 69, 116, and 118."/>
+		<value nybble="21-22" title="Movement ID" comment="Can attatch to 68, 69, 90, 116, and 118."/>
 	</sprite>
 	<sprite id="212" name="Autoscrolling Controller" notes="A sprite that makes the camera move at a speed defined in the path it's connected to.">
 		<value nybble="1-2" title="Target Event ID"/>
@@ -3277,7 +3266,7 @@
 	<sprite id="213" name="Swinging Vine" notes="aaa">
 		<value nybble="4" title="Unknown Value 4"/>
 	</sprite>
-	<sprite id="214" name="Movement Controller - Spinning (Single-use)" notes="A simpler version of the rotation controller. Can also only be temporary spinning.">
+	<sprite id="214" name="Movement Controller - Rotation (Spinning)" notes="A simpler version of the rotation controller. Can also only be temporarily spinning.">
 		<value nybble="3-4" title="Triggering Event ID" comment="If this event is activated, the assigned objects will be rotated."/>
 		<checkbox nybble="5" title="From top of screen" comment="Makes the coin swing in from the top of the screen."/>
 		<checkbox nybble="5" title="Clockwise" mask="2"/>
@@ -3492,7 +3481,7 @@
 			<entry value="13">5x14</entry>
 		</list>
 	</sprite>
-	<sprite id="228" name="Movement-controlled Scaffold Platform">
+	<sprite id="228" name="Pivotal-rotation-controlled Scaffold Platform">
 		<checkbox nybble="17" title="Big"/>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
@@ -3778,7 +3767,7 @@
 	</sprite>
 	<sprite id="254" name="Lighting - Underwater Lamp" notes="Looks like a porthole with a metal stripe in the middle."/>
 	<sprite id="255" name="Micro Goomba" notes="A tiny version of the Goomba. They can not hurt the player directly, but they can cling to him and so adversely affect his jump height and width. "/>
-	<sprite id="256" name="Rotation-controlled Mushroom Block [Crashes] [UNUSED]"/>
+	<sprite id="256" name="Pivotal-rotation-controlled Mushroom Block [Crashes] [UNUSED]"/>
 	<sprite id="257" name="Stretching Mushroom Platform" notes="A pinkish platform that stretches and contracts. Includes stem.">
 		<value nybble="5" title="Unknown Value 5" comment="No visible effect."/>
 		<list nybble="9" title="Min Length">
@@ -4394,7 +4383,7 @@
 		<value nybble="10" title="Unknown Value 10"/>
 		<value nybble="21-22" title="Movement ID" comment="The movement id for the sprite."/>
 	</sprite>
-	<sprite id="326" name="Movement-controlled Coin" notes="May only connect to rotation controllers.">
+	<sprite id="326" name="Rotation-controlled Coin" notes="May only connect to rotation controllers 214 and 484.">
 		<value nybble="4" title="Unknown Value 4"/>
 		<checkbox nybble="6" mask="1" title="Upside Down"/>
 		<checkbox nybble="6" mask="2" title="Gyroscopic Movement"/>
@@ -4687,7 +4676,7 @@
 		<value nybble="11" title="Unknown Value 11" comment="0/1/2/3"/>
 		<value nybble="18" title="Unknown value 18"/>
 	</sprite>
-	<sprite id="350" name="Movement-controlled Stone Block">
+	<sprite id="350" name="Pivotal-rotation-controlled Stone Block">
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
 	<sprite id="351" name="Pokey">
@@ -4806,7 +4795,7 @@
 		<value nybble="16" title="Unknown Value 16"/>
 		<value nybble="20" title="Unknown Value 20"/>
 	</sprite>
-	<sprite id="362" name="Movement-controlled Venus Fire Trap">
+	<sprite id="362" name="Pivotal-rotation-controlled Venus Fire Trap">
 		<list nybble="5" title="Direction">
 			<entry value="0">Up</entry>
 			<entry value="1">Down</entry>
@@ -4880,7 +4869,7 @@
 		<value nybble="18" title="Amount of coins"/>
 		<value nybble="21-22" title="Movement ID" comment="Attach this to a swaying controller (sprite 68)"/>
 	</sprite>
-	<sprite id="370" name="&quot;Mushroom lift follow coin&quot; [UNUSED]" notes="Nybble 21-22 must be set to something. Otherwise, this coin immediately disappears when spawned. This sprite is probably linked to a mushroom lift and/or movement controller.&#13;&#10;&#13;&#10;Notes: you can actually modify this sprite to spawn with 68, 69, 70, and 100.">
+	<sprite id="370" name="Moving Mushroom Platform Coin [UNUSED]" notes="Nybble 21-22 must be set to something. Otherwise, this coin immediately disappears when spawned. This sprite is probably linked to a mushroom lift and/or movement controller.&#13;&#10;&#13;&#10;Notes: you can actually modify this sprite to spawn with 68, 69, 70, and 100.">
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
 	<sprite id="371" name="Path-controlled Test Platform">
@@ -4953,7 +4942,7 @@
 			<entry value="2">Glow Baby Yoshi</entry>
 		</list>
 	</sprite>
-	<sprite id="381" name="Movement-controlled Fire Bar [UNUSED]" notes="A fire bar that needs a movement controller to function correctly.">
+	<sprite id="381" name="Pivotal-rotation-controlled Fire Bar [UNUSED]" notes="A fire bar that needs a movement controller to function correctly.">
 		<list nybble="8" title="Model">
 			<entry value="0">center_firebar</entry>
 			<entry value="1">center_firebar_2unit</entry>
@@ -5018,7 +5007,7 @@
 		<value nybble="20" title="Unknown Value 20"/>
 	</sprite>
 	<sprite id="389" name="Roy Koopa"/>
-	<sprite id="390" name="Movement-controlled Jungle Bridge Platform">
+	<sprite id="390" name="Pivotal-rotation-controlled Jungle Bridge Platform">
 		<checkbox nybble="5" mask="1" title="Slippery"/>
 		<checkbox nybble="5" mask="2" title="Unknown Value 5 Mask 2"/>
 		<checkbox nybble="8" title="Gyroscopic Movement" comment="The rotation will be locked in place as it follows the movement controller."/>
@@ -5049,7 +5038,7 @@
 		<value bit="68-72" title="Length" comment="Value + 0. Value 0 = 1. Extends to the right of the sprite."/>
 		<value nybble="21-22" title="Movement ID" comment="Attatches to sprite 68 and 69."/>
 	</sprite>
-	<sprite id="391" name="Rotation-controlled Crystal Block">
+	<sprite id="391" name="Pivotal-rotation-controlled Crystal Block">
 		<list nybble="10" title="Type" comment="* This is not cyrstalized. (Also unused.)">
 			<entry value="0">4 x 2 Rectangle*</entry>
 			<entry value="1"> 5 x 2 Rectangle</entry>
@@ -5619,7 +5608,7 @@
 		<value nybble="12" title="Block ID"/>
 	</sprite>
 	<sprite id="479" name="CRASHING SPRITE [UNUSED]" notes="Platform with unknow purpose. Crashes because lift_zen_warning.szs is missing."/>
-	<sprite id="480" name="Movement-controlled Star Coin">
+	<sprite id="480" name="Rotation-controlled Star Coin">
 		<value nybble="3-4" title="Target Event ID"/>
 		<list nybble="9" title="Star Coin Number" comment="The star coin number in the level.">
 			<entry value="0">First star coin</entry>
@@ -5648,7 +5637,7 @@
 		<value nybble="11" title="Unknown Value 11"/>
 		<value nybble="12" title="Length of bar" comment="The number of fireballs on both sides of the stick."/>
 	</sprite>
-	<sprite id="484" name="Movement Controller - Spinning (Uses Locations)" notes="A more complex version of the other spinning rotation controller.">
+	<sprite id="484" name="Movement Controller - Rotation (Spinning, Location-triggered)" notes="A more complex version of the other spinning rotation controller.">
 		<list nybble="2" title="Players that must be in the location">
 			<entry value="0">Any</entry>
 			<entry value="1">Mario</entry>
@@ -7317,12 +7306,13 @@
 		<value nybble="20" title="Unknown Value 20"/>
 		<value nybble="21-22" title="Movement ID?" comment="Probably."/>
 	</sprite>
-	<sprite id="693" name="Pendulum - NSLU">
+	<sprite id="693" name="Pivotal-rotation-controlled Pendulum (Spinner, Ball 'n' Chain) - NSLU" notes="A swinging spiked ball on a spiked chain. Does not spawn if not tied to a movement controller.">
+		<value nybble="8" title="Unknown Value 8"/>
 		<value nybble="9" title="Unknown Value 9"/>
-		<value nybble="10" title="Unknown Value 10" comment="Always used as 15."/>
+		<value nybble="10" title="Scale"/>
 		<value nybble="11" title="Unknown Value 11" comment="Always used as 1."/>
-		<value nybble="15" title="Unknown Value 15"/>
-		<value nybble="21-22" title="Movement ID"/>
+		<checkbox nybble="15" title="Unknown Checkbox 15"/>
+		<value nybble="21-22" title="Movement ID" comment="Use this to link this sprite to a rotation movement controller (68/69/116/118)."/>
 	</sprite>
 	<sprite id="694" name="Ghost House Platform - NSLU [UNUSED]" notes="&quot;All per polygon dedicated haunted house&quot;"/>
 	<sprite id="695" name="Urchin - NSLU">
@@ -7552,7 +7542,10 @@
 		<value nybble="11" title="Unknown Value 11"/>
 		<value nybble="12" title="Unknown Value 12"/>
 	</sprite>
-	<sprite id="714" name="Rotation-controlled Tilting Platform - NSLU"/>
+	<sprite id="714" name="Pivotal-rotation-controlled Scaffold Platform - NSLU (Permanent)">
+		<checkbox nybble="17" title="Big"/>
+		<value nybble="21-22" title="Movement ID"/>
+	</sprite>
 	<sprite id="715" name="Location-state-triggered Event Controller - NSLU">
 		<value nybble="3-4" title="Triggering Event ID"/>
 		<value nybble="5-6" title="Player Location"/>
