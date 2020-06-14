@@ -2808,7 +2808,7 @@ class SpriteImage_SpecialExit(SLib.SpriteImage):  # 115
         self.aux[0].setSize(w * 60, h * 60)
 
 
-class SpriteImage_Spinner(SLib.SpriteImage_StaticMultiple):  # 117
+class SpriteImage_Spinner(SLib.SpriteImage_StaticMultiple):  # 117, 693
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -5128,7 +5128,7 @@ class SpriteImage_BalloonYoshi(SLib.SpriteImage_Static):  # 224
         SLib.loadIfNotInImageCache('BalloonYoshi', 'balloonbabyyoshi.png')
 
 
-class SpriteImage_Scaffold(SLib.SpriteImage_StaticMultiple):  # 228
+class SpriteImage_Scaffold(SLib.SpriteImage_StaticMultiple):  # 228, 714
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -9111,6 +9111,7 @@ ImageClasses = {
     683: SpriteImage_QBlock,
     686: SpriteImage_PSwitch,
     692: SpriteImage_BrickBlock,
+    693: SpriteImage_Spinner,
     701: SpriteImage_BrickBlock,
     703: SpriteImage_BooCircle,
     704: SpriteImage_BrickBlock,
@@ -9118,6 +9119,7 @@ ImageClasses = {
     706: SpriteImage_BrickBlock,
     707: SpriteImage_QBlock,
     710: SpriteImage_PSwitch,
+    714: SpriteImage_Scaffold,
     716: SpriteImage_Foo,
     717: SpriteImage_SnakeBlock,
     722: SpriteImage_ArrowSignboard,
