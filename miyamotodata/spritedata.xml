@@ -210,7 +210,7 @@
 		</list>
 		<checkbox nybble="11" title="Unknown Checkbox 11"/>
 		<checkbox nybble="11" title="Affected by gravity" mask="2"/>
-		<checkbox nybble="12" title="Second checkpoint" comment="Set this if this is the second midway point in the level."/>
+		<checkbox nybble="12" title="Second checkpoint (Uses Time Limit 3)" comment="Set this if this is the second midway point in the level. If unchecked, Time Limit 2 will be used instead."/>
 		<checkbox nybble="20" title="Spawn on ground"/>
 	</sprite>
 	<sprite id="26" name="Zoom Area" notes="Screen width and height (in blocks) with the different zoom values are: -2 = H:7 W:12.4, -1 = H:10.5 W:18.7, 0 = H:14 W:24.9, 1 = H:17 W:30.2, 2 = H:19 W:33.8, 3 = H:20 W:35.6, 4 = H:24 W:42.7, 5 = H:28 W:49.8">
@@ -776,11 +776,7 @@
 	</sprite>
 	<sprite id="57" name="Fish Bone">
 		<value nybble="9" title="Unknown Value 9"/>
-		<list nybble="11" title="Starting Direction" comment="Also from NSMBW. Defines the starting direction of the fishbone.">
-			<entry value="0">Left</entry>
-			<entry value="1">Right</entry>
-			<entry value="2">Swims In Spot</entry>
-		</list>
+		<checkbox nybble="11" title="Start Facing Left"/>
 		<list nybble="12" title="Swim Distance" comment="2 is unused, a port from NSMBW. Defines the swim distance of the fishbone.">
 			<entry value="0">Short</entry>
 			<entry value="1">Normal</entry>
@@ -940,7 +936,7 @@
 		<value nybble="21-22" title="Movement ID" comment="Connects to a movement controller."/>
 		<value nybble="23-24" title="Coin ID" comment="Use this to assign the coin an id to another controller."/>
 	</sprite>
-	<sprite id="67" name="Swooper (Path-controlled)">
+	<sprite id="67" name="Swooper (Path-controlled) (+)" notes="(+) The initial state flag is usable. IF set to 1, the swooper will spawn in its flying state.">
 		<checkbox nybble="5" title="Path controlled" comment="Check this if you want the Swooper to be path-controlled."/>
 		<value nybble="8" title="Camera bound activation distance" comment="The minimum distance the Swooper needs to be at from the camera upper bound in order to be activated when the player is near. In blocks, value 0 = 3 blocks."/>
 		<checkbox nybble="9" title="Check camera upper bound"/>
@@ -1083,7 +1079,7 @@
 		<value nybble="18" title="Unknown Value 18" comment="I saw no real change."/>
 		<value nybble="20" title="Unknown Value 20" comment="Sprite 390 is on steroids with this option used."/>
 		<value nybble="21-22" title="Movement ID" comment="Use this to assign coins and other objects to this sprite."/>
-		<value nybble="24" title="Some kind of ID" comment="Only used as 1 and 0."/>
+		<value nybble="23-24" title="Useless Value 23-24" comment="Only used as 1 and 0."/>
 	</sprite>
 	<sprite id="70" name="Movement Controller - Two-Way" notes="Moves a certain direction when hooked to a sprite. You do not need a path for this.">
 		<checkbox nybble="6" title="Slower Acceleration"/>
@@ -1901,7 +1897,7 @@
 		<value nybble="9" title="Unknown Value 9"/>
 		<checkbox nybble="10" title="Approach From Background" comment="Check this to make the lakitu spawn by coming from the background."/>
 		<checkbox nybble="12" title="Throws Coins" mask="2"/>
-		<value nybble="13" title="Unknown Value 13"/>
+		<checkbox nybble="13" title="Throw Piranha Plants"/>
 		<value nybble="14" title="Unknown Value 14"/>
 	</sprite>
 	<sprite id="120" name="Spiny Cheep Cheep" notes="When a player is closer than 6 blocks to a spiny cheep, it starts chasing him until he is at least 16 blocks away from the spiny cheep.">
@@ -1931,11 +1927,19 @@
 		</list>
 		<value nybble="12" title="Location ID"/>
 	</sprite>
-	<sprite id="122" name="Cloud Area 2">
-		<value nybble="7" title="Unknown Value 7"/>
-		<value nybble="8" title="Unknown Value 8"/>
-		<checkbox nybble="9" title="Hide Coins" comment="Hides coins when checked. (4 coins)"/>
-		<value nybble="10" title="Unknown Value 10"/>
+	<sprite id="122" name="Light Cloud Area">
+		<list nybble="7" title="Spawned Coins: 2-Coin Spacing Decrease" comment="The decrease in space per coins of 2 when spawned. http://i.imgur.com/fejqkpu.jpg for reference.">
+			<entry value="0">1 Block</entry>
+			<entry value="1">.5 Blocks</entry>
+			<entry value="2">.1 Blocks</entry>
+		</list>
+		<checkbox nybble="8" title="Spawned Coins: Reverse Pairs" comment="When checked, rather than have an odd number of coins (if nybble 18 is even w/o the +1) on the left, the odd pair goes to the right."/>
+		<checkbox nybble="9" title="Spawn Coins" comment="If checked, spawns coins when the player spin jumps in the cloud area. (4 or 8 coins, depending on the timer)"/>
+		<list nybble="10" title="Spawned Coins: Spawn Height" comment="The height the spawned coins reach.">
+			<entry value="0">3 Blocks</entry>
+			<entry value="1">6 Blocks</entry>
+			<entry value="2">7 Blocks</entry>
+		</list>
 		<value nybble="11-12" title="Location ID" comment="The clouds will appear in this location."/>
 		<value nybble="20" title="Unknown Value 20"/>
 	</sprite>
@@ -2011,7 +2015,7 @@
 		<value nybble="7" title="Unknown Value 7"/>
 		<value nybble="8" title="Unknown Value 8"/>
 		<value nybble="9-10" title="Location ID" comment="At least one player must be in this location for Lakitu to spawn"/>
-		<value nybble="13" title="Unknown Value 13"/>
+		<checkbox nybble="13" title="Throw Piranha Plants"/>
 		<value nybble="18-19" title="Delay"/>
 		<value nybble="20" title="Unknown Value 20"/>
 	</sprite>
