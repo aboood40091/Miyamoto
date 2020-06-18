@@ -1903,7 +1903,7 @@ class SpriteImage_Swooper(SLib.SpriteImage_Static):  # 67
         SLib.loadIfNotInImageCache('Swooper', 'swooper.png')
 
 
-class SpriteImage_ControllerSwaying(SLib.SpriteImage_MovementController):  # 68
+class SpriteImage_ControllerSwaying(SLib.SpriteImage_MovementController):  # 68, 116
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -1939,7 +1939,7 @@ class SpriteImage_ControllerSwaying(SLib.SpriteImage_MovementController):  # 68
 
 
 
-class SpriteImage_ControllerSpinning(SLib.SpriteImage_MovementController):  # 69, 484
+class SpriteImage_ControllerSpinning(SLib.SpriteImage_MovementController):  # 69, 118, 484
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -10423,6 +10423,7 @@ ImageClasses = {
     115: SpriteImage_SpecialExit,
     116: SpriteImage_ControllerSwaying,
     117: SpriteImage_Spinner,
+    118: SpriteImage_ControllerSpinning,
     119: SpriteImage_Lakitu,
     120: SpriteImage_SpinyCheep,
     123: SpriteImage_SandPillar,
