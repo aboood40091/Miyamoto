@@ -1841,7 +1841,7 @@ class SpriteImage_Swooper(SLib.SpriteImage_Static):  # 67
         SLib.loadIfNotInImageCache('Swooper', 'swooper.png')
 
 
-class SpriteImage_ControllerSwaying(SLib.SpriteImage_MovementController):  # 68, 116
+class SpriteImage_ControllerSwaying(SLib.SpriteImage_MovementController):  # 68
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -1877,7 +1877,7 @@ class SpriteImage_ControllerSwaying(SLib.SpriteImage_MovementController):  # 68,
 
 
 
-class SpriteImage_ControllerSpinning(SLib.SpriteImage_MovementController):  # 69, 118, 484
+class SpriteImage_ControllerSpinning(SLib.SpriteImage_MovementController):  # 69, 484
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -3378,7 +3378,7 @@ class SpriteImage_PalmTree(SLib.SpriteImage_StaticMultiple):  # 145
         super().dataChanged()
 
 
-class SpriteImage_MovPipe(SpriteImage_PipeAlt):  # 146, 679
+class SpriteImage_MovPipe(SpriteImage_PipeAlt):  # 146
     def __init__(self, parent, scale=3.75):
         super().__init__(parent, scale)
         self.direction = 'U'
@@ -8797,7 +8797,6 @@ ImageClasses = {
     115: SpriteImage_SpecialExit,
     116: SpriteImage_ControllerSwaying,
     117: SpriteImage_Spinner,
-    118: SpriteImage_ControllerSpinning,
     119: SpriteImage_Lakitu,
     120: SpriteImage_SpinyCheep,
     123: SpriteImage_SandPillar,
@@ -9108,7 +9107,6 @@ ImageClasses = {
     659: SpriteImage_BigGrrrol,
     662: SpriteImage_BlueRing,
     673: SpriteImage_TileGod,
-    679: SpriteImage_MovPipe,
     681: SpriteImage_ArrowSignboard,
     683: SpriteImage_QBlock,
     686: SpriteImage_PSwitch,
