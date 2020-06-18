@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
+# Copyright (C) 2009-2020 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10,
+# mrbengtsson
 
 # This file is part of Miyamoto!.
 
@@ -108,6 +109,7 @@ class AbstractArea:
 
         bgStruct = struct.Struct('>HHHH16sxBxx')
         offset = 0
+
         bgs = {}
         for i in range(bgCount):
             bg = bgStruct.unpack_from(bgData, offset)

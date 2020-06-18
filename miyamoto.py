@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
+# Copyright (C) 2009-2020 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10,
+# mrbengtsson
 
 # This file is part of Miyamoto!.
 
@@ -264,6 +265,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # create the various panels
         self.SetupDocksAndPanels()
 
+        # Load the most recently used gamedef
+        LoadGameDef(setting('LastGameDef'), False)
+
         # now get stuff ready
         loaded = False
 
@@ -321,9 +325,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.restoreGeometry(setting('MainWindowGeometry'))
         if globals.settings.contains('MainWindowState'):
             self.restoreState(setting('MainWindowState'), 0)
-
-        # Load the most recently used gamedef
-        LoadGameDef(setting('LastGameDef'), False)
 
         # Aaaaaand... initializing is done!
         globals.Initializing = False
@@ -3794,8 +3795,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.objPicker.LoadFromTilesets()
 
-        self.objAllTab.setCurrentIndex(0)
-        self.objAllTab.setTabEnabled(0, (globals.Area.tileset0 != ''))
+        if globals.Area.tileset0 != '':
+            self.objAllTab.setCurrentIndex(0)
+            self.objAllTab.setTabEnabled(0, True)
+
+        else:
+            self.objAllTab.setCurrentIndex(2)
+            self.objAllTab.setTabEnabled(0, False)
 
         # Load events
         self.LoadEventTabFromLevel()
@@ -5032,8 +5038,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 UnloadTileset(0)
 
             self.objPicker.LoadFromTilesets()
-            self.objAllTab.setCurrentIndex(0)
-            self.objAllTab.setTabEnabled(0, (globals.Area.tileset0 != ''))
+
+            if globals.Area.tileset0 != '':
+                self.objAllTab.setCurrentIndex(0)
+                self.objAllTab.setTabEnabled(0, True)
+
+            else:
+                self.objAllTab.setCurrentIndex(2)
+                self.objAllTab.setTabEnabled(0, False)
 
             for layer in globals.Area.layers:
                 for obj in layer:
@@ -5476,8 +5488,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 LoadTileset(0, globals.Area.tileset0)
                 SetDirty()
                 self.objPicker.LoadFromTilesets()
-                self.objAllTab.setCurrentIndex(0)
-                self.objAllTab.setTabEnabled(0, (globals.Area.tileset0 != ''))
+
+                if globals.Area.tileset0 != '':
+                    self.objAllTab.setCurrentIndex(0)
+                    self.objAllTab.setTabEnabled(0, True)
+
+                else:
+                    self.objAllTab.setCurrentIndex(2)
+                    self.objAllTab.setTabEnabled(0, False)
 
                 for layer in globals.Area.layers:
                     for obj in layer:

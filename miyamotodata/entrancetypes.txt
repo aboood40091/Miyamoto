@@ -1,5 +1,5 @@
 0:Normal
-1:Normal?
+1:Checkpoint
 2:Door Exit
 3:Pipe Facing Up
 4:Pipe Facing Down

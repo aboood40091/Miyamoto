@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2019 Treeki, Tempus, angelsl, JasonP27, Kinnay,
-# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10
+# Copyright (C) 2009-2020 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10,
+# mrbengtsson
 
 # This file is part of Miyamoto!.
 
@@ -459,7 +460,7 @@ class AuxiliarySpriteItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         self.setParentItem(parent)
         self.hover = False
 
-        self.BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+        self.BoundingRect = QtCore.QRectF(0, 0, TileWidth, TileWidth)
 
     def setIsBehindSprite(self, behind):
         """
@@ -489,7 +490,7 @@ class AuxiliaryTrackObject(AuxiliarySpriteItem):
         """
         super().__init__(parent)
 
-        self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, height * 1.5)
+        self.BoundingRect = QtCore.QRectF(0, 0, width * (TileWidth/16), height * (TileWidth/16))
         self.setPos(0, 0)
         self.width = width
         self.height = height
@@ -498,7 +499,7 @@ class AuxiliaryTrackObject(AuxiliarySpriteItem):
 
     def setSize(self, width, height):
         self.prepareGeometryChange()
-        self.BoundingRect = QtCore.QRectF(0, 0, width * 3.75, height * 3.75)
+        self.BoundingRect = QtCore.QRectF(0, 0, width * (TileWidth/16), height * (TileWidth/16))
         self.width = width
         self.height = height
 
@@ -512,14 +513,14 @@ class AuxiliaryTrackObject(AuxiliarySpriteItem):
 
         if self.direction == self.Horizontal:
             lineY = self.height * 0.75
-            painter.drawLine(20, lineY, (self.width * 1.5) - 20, lineY)
+            painter.drawLine(20, lineY, (self.width * (TileWidth/16)) - 20, lineY)
             painter.drawEllipse(8, lineY - 4, 8, 8)
-            painter.drawEllipse((self.width * 1.5) - 16, lineY - 4, 8, 8)
+            painter.drawEllipse((self.width * (TileWidth/16)) - 16, lineY - 4, 8, 8)
         else:
             lineX = self.width * 0.75
-            painter.drawLine(lineX, 20, lineX, (self.height * 1.5) - 20)
+            painter.drawLine(lineX, 20, lineX, (self.height * (TileWidth/16)) - 20)
             painter.drawEllipse(lineX - 4, 8, 8, 8)
-            painter.drawEllipse(lineX - 4, (self.height * 1.5) - 16, 8, 8)
+            painter.drawEllipse(lineX - 4, (self.height * (TileWidth/16)) - 16, 8, 8)
 
 
 class AuxiliaryCircleOutline(AuxiliarySpriteItem):
@@ -535,10 +536,10 @@ class AuxiliaryCircleOutline(AuxiliarySpriteItem):
 
     def setSize(self, width):
         self.prepareGeometryChange()
-        self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, width * 1.5)
+        self.BoundingRect = QtCore.QRectF(0, 0, width * (TileWidth/16), width * (TileWidth/16))
 
-        centerOffset = (8 - (width / 2)) * 1.5
-        fullOffset = -(width * 1.5) + 24
+        centerOffset = (8 - (width / 2)) * (TileWidth/16)
+        fullOffset = -(width * (TileWidth/16)) + TileWidth
 
         xval = 0
         if self.alignMode & Qt.AlignHCenter:
@@ -573,8 +574,8 @@ class AuxiliaryRotationAreaOutline(AuxiliarySpriteItem):
         """
         super().__init__(parent)
 
-        self.BoundingRect = QtCore.QRectF(0, 0, width * 1.5, width * 1.5)
-        self.setPos((8 - (width / 2)) * 1.5, (8 - (width / 2)) * 1.5)
+        self.BoundingRect = QtCore.QRectF(0, 0, width * (TileWidth/16), width * (TileWidth/16))
+        self.setPos((8 - (width / 2)) * (TileWidth/16), (8 - (width / 2)) * (TileWidth/16))
         self.width = width
         self.startAngle = 0
         self.spanAngle = 0
@@ -664,7 +665,7 @@ class AuxiliaryImage(AuxiliarySpriteItem):
         self.height = height
         self.image = None
         self.hover = True
-        self.opacity = 1
+        self.alpha = 1.0
 
     def setSize(self, width, height, xoff=0, yoff=0):
         self.prepareGeometryChange()
@@ -679,7 +680,7 @@ class AuxiliaryImage(AuxiliarySpriteItem):
             painter.setClipRect(option.exposedRect)
 
         if self.image is not None:
-            painter.setOpacity(self.opacity)
+            painter.setOpacity(self.alpha)
             painter.drawPixmap(0, 0, self.image)
             painter.setOpacity(1)
 
@@ -788,7 +789,7 @@ class AuxiliaryZoneItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         if parent is not None:
             parent.aux.add(self)
 
-        self.BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+        self.BoundingRect = QtCore.QRectF(0, 0, TileWidth, TileWidth)
 
     def setIsBehindZone(self, behind):
         """
@@ -826,7 +827,7 @@ class AuxiliaryZoneItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         if self.parent is not None:
             self.BoundingRect = QtCore.QRectF(self.parent.BoundingRect)
         else:
-            self.BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+            self.BoundingRect = QtCore.QRectF(0, 0, TileWidth, TileWidth)
 
     def zoneRepositioned(self):
         """
@@ -857,7 +858,7 @@ class AuxiliaryLocationItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         self.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
         self.setParentItem(parent)
         self.hover = False
-        self.BoundingRect = QtCore.QRectF(0, 0, 24, 24)
+        self.BoundingRect = QtCore.QRectF(0, 0, TileWidth, TileWidth)
 
     def setIsBehindLocation(self, behind):
         """
