@@ -1118,15 +1118,12 @@
 	</sprite>
 	<sprite id="73" name="Coin Spawner" notes="Spawns coins. To spawn a snake of coins in a small arc, &#13;&#10;0000 0000 0103 0002 0010 0000 use this spritedata.">
 		<value nybble="3-4" title="Triggering Event ID" comment="Coins are spawned when this Event is triggered."/>
-		<value nybble="5" title="Unknown Value 5"/>
-		<value nybble="10" title="Delay between bursts" comment="The delay between emissions of coins. 0 is instant, 15 is very slow."/>
-		<value nybble="12" title="Multiplier" comment="How many times you want the same amount of coins in nybble 18 to spawn. (Value + 1)"/>
+		<checkbox nybble="5" title="Unknown Checkbox 5"/>
+		<value nybble="10" title="Delay between bursts" comment="The delay between emissions of coins. In frames, (Value * 10), value 0 is 30 frames."/>
+		<value nybble="12" title="Number of bursts" comment="How many times you want the same amount of coins in nybble 18 to spawn. (Value + 1)"/>
 		<checkbox nybble="13" title="Reverse Pairs" comment="When checked, rather than have an odd number of coins (if nybble 18 is even w/o the +1) on the left, the odd pair goes to the right."/>
-		<list nybble="14" title="Type" comment="0 just falls like regular coins. 1 and 2 are barely noticable in differences.">
-			<entry value="0">Chunk</entry>
-			<entry value="1">Curve (lower)</entry>
-			<entry value="2">Curve (higher)</entry>
-		</list>
+		<checkbox nybble="14" title="Spawn downwards (lower)"/>
+		<checkbox nybble="14" title="Spawn downwards (higher)" mask="2" comment="Enabling this forces &quot;Curve (lower)&quot; to be ignored."/>
 		<list nybble="15" title="2-Coin Spacing Decrease" comment="The decrease in space per coins of 2 when spawned. http://i.imgur.com/fejqkpu.jpg for reference.">
 			<entry value="0">1 Block</entry>
 			<entry value="1">.5 Blocks</entry>
@@ -1137,9 +1134,9 @@
 			<entry value="1">6 Blocks</entry>
 			<entry value="2">7 Blocks</entry>
 		</list>
-		<value nybble="18" title="Coins Spawned" comment="The amount of coins spawned. (Value + 1)"/>
-		<value nybble="19" title="Unknown Value 19"/>
-		<value nybble="21-22" title="Movement ID" comment="Attatch this ID to a movement controller to make it spawn at angles."/>
+		<value nybble="17-18" title="Coins Spawned per burst" comment="The amount of coins spawned. (Value + 1)"/>
+		<checkbox nybble="19" title="Play sound"/>
+		<value nybble="21-22" title="Useless Value 21-22"/>
 	</sprite>
 	<sprite id="74" name="Huckit Crab" notes="A crab that chucks rocks.">
 		<checkbox nybble="11" title="Stationary" comment="Makes the crab not hop backwards if checked."/>
@@ -1225,7 +1222,7 @@
 			<entry value="2">Chasing / Geyser (and Sinking)</entry>
 		</list>
 	</sprite>
-	<sprite id="87" name="Pivotal-rotation-controlled Coin" notes="Confirmed to be usable with: Movement controller - Swaying and the path movement controller.">
+	<sprite id="87" name="Pivotal-rotation-controlled Coin">
 		<value nybble="3-4" title="Triggering Event ID"/>
 		<value nybble="5" title="Unknown Value 5"/>
 		<checkbox nybble="6" mask="1" title="Upside Down"/>
@@ -1237,7 +1234,7 @@
 		<value nybble="15" title="Unknown Value 15"/>
 		<value nybble="17" title="Unknown Value 17"/>
 		<value nybble="19" title="Unknown Value 19"/>
-		<value nybble="21-22" title="Movement ID" comment="Use this to link this coin to a (sway) rotation controller."/>
+		<value nybble="21-22" title="Movement ID" comment="Use this to link this coin to a pivotal rotation controller."/>
 		<value nybble="23-24" title="Coin ID" comment="Assign this ID to crowd clapping controllers, and whatnot."/>
 	</sprite>
 	<sprite id="88" name="Water" notes="Another name for this is H2O. It is refreshing in warm areas, but it could freeze you in cold environments, so be careful! The water also is the natural habitat of many enemies, so once again, be careful! Based on the lava sprite, there should be nybbles for delays before rising/lowering, but the giant waves don't seem to work on this sprite.">
@@ -1261,11 +1258,9 @@
 			<entry value="14">0.25*</entry>
 			<entry value="15">0.5*</entry>
 		</list>
-		<list nybble="10" title="Appearance Modifier">
-			<entry value="0">Normal</entry>
-			<entry value="2">Behind blocks and most sprites</entry>
-			<entry value="8">Topless/Invisible; use underwater background for this</entry>
-		</list>
+		<checkbox nybble="10" title="Place Behind Layer 1" mask="2"/>
+		<checkbox nybble="10" title="Place Behind Layer 0" mask="4"/>
+		<checkbox nybble="10" title="Topless/Invisible" mask="8" comment="Use underwater background for this."/>
 		<value nybble="11-12" title="Location ID"/>
 		<value nybble="13" title="Unknown Value 13" comment="Bitfield of some kind."/>
 		<value nybble="14" title="Unknown Value 14"/>
@@ -1450,6 +1445,7 @@
 		<value nybble="11-12" title="Location ID"/>
 	</sprite>
 	<sprite id="91" name="Quicksand" notes="Once Mario steps in, he will start sinking. Doesn't hurt him to stay inside of it, though.&#13;&#10;&#13;&#10;If you use a location, make sure it sticks 5 blocks below the zone, or else it will not make the player die.">
+		<checkbox nybble="10" title="Unknown Checkbox 10 Mask 4" mask="4"/>
 		<checkbox nybble="10" title="Flat Top" mask="8" comment="&lt;br&gt;Checking this removes the animated crest effect on the top portion of the Sprite. Creates a 'square' look. &lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; Only use with a flat ceiling or else will look strange."/>
 		<value nybble="11-12" title="Location ID" comment="&lt;br&gt;Match with a Location to set the Area of this Sprite."/>
 	</sprite>
@@ -1478,12 +1474,11 @@
 		</list>
 	</sprite>
 	<sprite id="95" name="Move-when-on Bouncy Cloud [UNUSED]"/>
-	<sprite id="96" name="Lighting - Lamp" notes="A weak light source that will light up a small area around it.">
-		<list nybble="12" title="Style">
+	<sprite id="96" name="Lighting - Pivotal-rotation-controlled Lamp/Candle" notes="A weak light source that will light up a small area around it.">
+		<checkbox nybble="12" title="Unknown Checkbox 12 Mask 2" mask="2"/>
+		<list bit="48" title="Style">
 			<entry value="0">Lamp</entry>
 			<entry value="1">Candle</entry>
-			<entry value="2">Lamp</entry>
-			<entry value="3">Candle</entry>
 		</list>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
@@ -1650,11 +1645,12 @@
 	<sprite id="108" name="Ghost House Door">
 		<value nybble="1-2" title="Triggering Event ID"/>
 		<value nybble="3-4" title="Triggering Event ID 2"/>
-		<value nybble="7" title="Unknown Value 7"/>
+		<checkbox nybble="6" title="Doesn't appear in challenges" comment="When checked, the door does not appear in challenges."/>
+		<checkbox nybble="7" title="Z-Order" comment="Makes the sprite appear behind Layer 1."/>
 		<checkbox nybble="8" title="Fake door"/>
 		<checkbox nybble="10" title="Event Triggered" mask="2"/>
 		<value nybble="12" title="Unknown Value 12"/>
-		<value nybble="21-22" title="Movement ID"/>
+		<value nybble="21-22" title="Useless Value 21-22"/>
 	</sprite>
 	<sprite id="109" name="Tower Boss Door" notes="A door placed in tower levels to lead the player to a tower boss fight.">
 		<checkbox nybble="6" title="Don't Appear In Challenges" comment="Makes the door not appear in challenges."/>
@@ -1826,30 +1822,72 @@
 		<value nybble="21-22" title="Movement ID" comment="Use this to link this sprite to a rotation movement controller (68/69/116/118)."/>
 	</sprite>
 	<sprite id="118" name="Movement Controller - Pivotal Rotation (Spinning, Path-controlled)" notes="Link this to Movement Controller - Path (100). The controller will be the pivot (center) of rotation for the object controlled by it.">
-		<value nybble="3-4" title="Triggering Event ID" comment="The event that triggers the controller."/>
-		<list nybble="5" title="Starting Rotation" comment="The angle it starts rotating at. Used to desync other sprites.">
-			<entry value="0">0 deg</entry>
-			<entry value="1">22.5 deg</entry>
-			<entry value="2">45 deg</entry>
-			<entry value="3">67.5 deg</entry>
-			<entry value="4">90 deg</entry>
-			<entry value="5">112.5 deg</entry>
-			<entry value="6">135 deg</entry>
-			<entry value="7">157.5 deg</entry>
-			<entry value="8">180 deg</entry>
-			<entry value="9">202.5 deg</entry>
-			<entry value="10">225 deg</entry>
-			<entry value="11">247.5 deg</entry>
-			<entry value="12">270 deg</entry>
-			<entry value="13">292.5 deg</entry>
-			<entry value="14">315 deg</entry>
-			<entry value="15">337.5 deg</entry>
+		<value nybble="3-4" title="Triggering Event ID" comment="The ID that triggers the controller."/>
+		<list nybble="5" title="Starting Rotation" comment="The angle it starts rotating at in degrees. Used to desync other sprites.">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0; (Quadrant)</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0; (Semicircle)</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0; (Three-quarter circle)</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
 		</list>
-		<value nybble="7" title="Unknown Value 7"/>
-		<value nybble="8" title="Spins" comment="TODO: this is far too vague to be useful in any way."/>
-		<value nybble="9" title="Unknown Value 9"/>
-		<value nybble="15" title="Unknown Value 15"/>
-		<value nybble="16" title="Speed" comment="0-7 = counterclockwise, 8+ = clockwise"/>
+		<list nybble="6" title="Swing Arc">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0; (Quadrant)</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0; (Semicircle)</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0; (Three-quarter circle)</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
+		</list>
+		<checkbox nybble="8" title="Starts already spinning" comment="When ticked, it will spin."/>
+		<checkbox nybble="9" title="Spins Clockwise" comment="Makes the sprite spin clockwise."/>
+		<list nybble="10" title="Effect">
+			<entry value="0">No Effect</entry>
+			<entry value="1">POW-Block-Sound</entry>
+			<entry value="2">Coin-Sound</entry>
+			<entry value="3">Coin-Sound (2x) + POW-Block-Sound</entry>
+			<entry value="4">Zoom alteration</entry>
+			<entry value="5">Zoom alteration</entry>
+			<entry value="6">Zoom alteration</entry>
+			<entry value="7">Zoom alteration</entry>
+			<entry value="8">Zoom alteration</entry>
+			<entry value="9">Zoom alteration</entry>
+			<entry value="10">Zoom alteration</entry>
+			<entry value="11">Zoom alteration</entry>
+			<entry value="12">Zoom alteration</entry>
+		</list>
+		<list nybble="16" title="Spinning Speed" comment="The spinning speed.">
+			<entry value="4">Very Slow</entry>
+			<entry value="7">Slow</entry>
+			<entry value="0">Slow - Medium</entry>
+			<entry value="1">Medium</entry>
+			<entry value="2">Medium - Fast</entry>
+			<entry value="3">Fast</entry>
+			<entry value="5">Faster</entry>
+			<entry value="6">Very Fast</entry>
+		</list>
+		<value nybble="18" title="Unknown Value 18" comment="I saw no real change."/>
+		<value nybble="20" title="Unknown Value 20" comment="Sprite 390 is on steroids with this option used."/>
 		<value nybble="21-22" title="Output Movement ID" comment="Match this with rotation-controlled sprites."/>
 		<value nybble="23-24" title="Input Movement ID" comment="Set this to make the rotation pivot point move!"/>
 	</sprite>
@@ -2174,7 +2212,7 @@
 		</list>
 		<value nybble="12" title="Unknown Value 12"/>
 		<value nybble="14-15" title="Unknown Value 14-15" comment="Any non-zero value would probably show the same behavior."/>
-		<value nybble="21-22" title="Movement ID" comment="Oddly, 1-2 A1 used the swayer instead of the spinner like one would expect..."/>
+		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
 	<sprite id="147" name="Question Block - Uses Lines" notes="A question block that runs on a line. To make it work, place it a block above the line.">
 		<checkbox nybble="8" title="Counter-Clockwise" comment="When checked, makes the ? block go counter clockwise."/>
@@ -3353,6 +3391,7 @@
 		<list nybble="12" title="World" comment="Maybe needs a better name. ">
 			<entry value="0">World 1 - Acorn Plains</entry>
 			<entry value="1">World 2 - Layer Cake Desert</entry>
+			<entry value="2">World 3 - Sparkling Waters</entry>
 			<entry value="3">World 4 - Frosted Glacier</entry>
 			<entry value="4">World 5 - Soda Jungle</entry>
 			<entry value="5">World 6 - Rock-Candy Mines</entry>
@@ -3941,7 +3980,7 @@
 		<value nybble="20" title="Unknown Value 20"/>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
-	<sprite id="275" name="Swaying Castle Platform">
+	<sprite id="275" name="Pivotal-rotation-controlled Castle Platform">
 		<checkbox  nybble="7" title="Dry Bones On Platform*" comment="*A dry bone sprite must be placed somewhere in the level or it will crash when this is activated."/>
 		<checkbox nybble="9" title="Z-Order" comment="This will place the sprite in front of other sprites. The chains will also be in front of the player."/>
 		<list nybble="10" title="Width" comment="The size of the platform.">
@@ -4875,10 +4914,10 @@
 		<value nybble="18" title="Width" comment="Width in tiles. 0 is glitchy."/>
 	</sprite>
 	<sprite id="368" name="Boss - Morton"/>
-	<sprite id="369" name="Swaying Coins">
+	<sprite id="369" name="Pivotal-rotation-controlled Folding Coins [UNUSED]">
 		<checkbox nybble="8" title="Reverse"/>
-		<value nybble="18" title="Amount of coins"/>
-		<value nybble="21-22" title="Movement ID" comment="Attach this to a swaying controller (sprite 68)"/>
+		<value nybble="18" title="Amount of coins" comment="Value 0 -> 3 coins, value 1 -> 2 coins, else the value is the amount."/>
+		<value nybble="21-22" title="Movement ID" comment="Attach this to a pivotal rotation controller"/>
 	</sprite>
 	<sprite id="370" name="Moving Mushroom Platform Coin [UNUSED]" notes="Nybble 21-22 must be set to something. Otherwise, this coin immediately disappears when spawned. This sprite is probably linked to a mushroom lift and/or movement controller.&#13;&#10;&#13;&#10;Notes: you can actually modify this sprite to spawn with 68, 69, 70, and 100.">
 		<value nybble="21-22" title="Movement ID"/>
@@ -5159,7 +5198,7 @@
 		<value nybble="3" title="Unknown Value 3" comment="Always 1"/>
 		<value nybble="4" title="Unknown Value 4" comment="Always 4"/>
 	</sprite>
-	<sprite id="400" name=" Lantern Platform" notes="A metallic platform with two lanterns (one at each end).">
+	<sprite id="400" name="Pivotal-rotation-controlled Lantern Platform" notes="A metallic platform with two lanterns (one at each end).">
 		<checkbox nybble="9" title="Lights off" comment="If this is checked, the lanterns will be off."/>
 		<value bit="40-44" title="Screw Placement" comment="Value 0 and values larger than the length makes the screw disappear. If there is a lamp on the left side, using value 1, will also make the screw disappear."/>
 		<list nybble="12" title="Style">
@@ -6015,14 +6054,14 @@
 		</list>
 		<value nybble="12" title="Height" comment="Value + 1. Other nybbles may influence this though."/>
 	</sprite>
-	<sprite id="512" name="Ghost Ship Block">
+	<sprite id="512" name="Pivotal-rotation-controlled Ghost Ship Block">
 		<value nybble="18" title="Width" comment="Value+3"/>
 		<value nybble="20" title="Height" comment="Value+3"/>
 		<value nybble="21-22" title="Movement ID" comment="Can be matched to multiple movement controllers at the same time."/>
 	</sprite>
 	<sprite id="513" name="Pipe Joint"/>
 	<sprite id="514" name="Mini Pipe Joint"/>
-	<sprite id="515" name="Castle Platform" notes="A vertically moving platform which looks like the normal Castle (Lava) tileset.">
+	<sprite id="515" name="Movement-controlled Castle Platform" notes="A vertically moving platform which looks like the normal Castle (Lava) tileset.">
 		<list nybble="12" title="Width" comment="The horizontal length the platform is.">
 			<entry value="0">5 Blocks</entry>
 			<entry value="1">7 Blocks</entry>
@@ -6757,7 +6796,7 @@
 	<sprite id="624" name="Spike Top Group Controller">
 		<value nybble="5-6" title="Group ID" comment="Use this ID to chain Spike Tops together."/>
 	</sprite>
-	<sprite id="625" name="Bolt-controlled Rocky Castle Platform" notes="This sprite does exactly the same as sprite 530.">
+	<sprite id="625" name="Stationary Bolt-controlled Stone Block" notes="This sprite does exactly the same as sprite 530.">
 		<checkbox nybble="5" title="Unknown Flag 5"/>
 		<list nybble="6" title="Direction" comment="I may have mixed up 'up' and 'down'.">
 			<entry value="0">Right</entry>
@@ -7185,7 +7224,7 @@
 			<entry value="15">Ice flower</entry>
 		</list>
 	</sprite>
-	<sprite id="679" name="Movement-controlled Pipe Body - NSLU">
+	<sprite id="679" name="Pivotal-rotation-controlled Pipe - NSLU">
 		<checkbox nybble="5" title="Expels bubbles"/>
 		<value nybble="6" title="Z-Order"/>
 		<list nybble="7" title="Direction">
