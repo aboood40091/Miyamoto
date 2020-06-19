@@ -3541,7 +3541,7 @@ class SpriteImage_MovPipe(SpriteImage_PipeAlt):  # 146, 679
         super().setImage(pipeLength)
 
 
-class SpriteImage_StoneEye(SLib.SpriteImage_StaticMultiple):  # 150
+class SpriteImage_StoneEye(SLib.SpriteImage_StaticMultiple):  # 150, 719
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -3550,108 +3550,48 @@ class SpriteImage_StoneEye(SLib.SpriteImage_StaticMultiple):  # 150
 
     @staticmethod
     def loadImages():
-
-        SLib.loadIfNotInImageCache('StoneRightUp', 'stone_right_up.png')
-        SLib.loadIfNotInImageCache('StoneLeftUp', 'stone_left_up.png')
-        SLib.loadIfNotInImageCache('StoneFront', 'stone_front.png')
-        SLib.loadIfNotInImageCache('StoneRight', 'stone_right.png')
-        SLib.loadIfNotInImageCache('StoneLeft', 'stone_left.png')
-        ImageCache['BigStoneRightUp'] = ImageCache['StoneRightUp'].scaled(439 * 1.5, 821 * 1.5,
-                                                                          QtCore.Qt.KeepAspectRatio)
-        ImageCache['BigStoneLeftUp'] = ImageCache['StoneLeftUp'].scaled(439 * 1.5, 821 * 1.5, QtCore.Qt.KeepAspectRatio)
-        ImageCache['BigStoneFront'] = ImageCache['StoneFront'].scaled(354 * 1.5, 745 * 1.5, QtCore.Qt.KeepAspectRatio)
-        ImageCache['BigStoneRight'] = ImageCache['StoneRight'].scaled(478 * 1.5, 747 * 1.5, QtCore.Qt.KeepAspectRatio)
-        ImageCache['BigStoneLeft'] = ImageCache['StoneLeft'].scaled(487 * 1.5, 747 * 1.5, QtCore.Qt.KeepAspectRatio)
+        for i in range(6):
+            SLib.loadIfNotInImageCache('StoneEyeSN%d' % i, 'stone_eye_%d.png' % i)
+            SLib.loadIfNotInImageCache('StoneEyeSS%d' % i, 'stone_eye_spooky_%d.png' % i)
+            SLib.loadIfNotInImageCache('StoneEyeBN%d' % i, 'stone_eye_big_%d.png' % i)
+            SLib.loadIfNotInImageCache('StoneEyeBS%d' % i, 'stone_eye_big_spooky_%d.png' % i)
 
     def dataChanged(self):
+        appearance = 'S' if (self.parent.spritedata[2] & 0x1) != 0 else 'N'
+        size = 'B' if (self.parent.spritedata[4] & 0x10) != 0 else 'S'
+        type_ = self.parent.spritedata[4] & 0xF
+        if type_ > 4:
+            type_ = 0
 
-        direction = self.parent.spritedata[4]
+        self.image = ImageCache['StoneEye%s%s%d' % (size, appearance, type_)]
 
-        t = QTransform()
-
-        t.rotate(0)
-
-        #        StoneRotation = Rotations[movID]
-
-
-        if direction == 0:
-            self.image = ImageCache['StoneRightUp'].transformed(t)
-            self.xOffset = -25.5
-            self.yOffset = -16
-
-        elif direction == 1:
-            self.image = ImageCache['StoneLeftUp'].transformed(t)
-            self.xOffset = -29
-            self.yOffset = -16
-
-        elif direction == 2:
-            self.image = ImageCache['StoneFront'].transformed(t)
-            self.xOffset = -14
-            self.yOffset = 8
-
-        elif direction == 3:
-            self.image = ImageCache['StoneRight'].transformed(t)
-            self.xOffset = -48.5
-            self.yOffset = 8
-
-        elif direction == 4:
-            self.image = ImageCache['StoneLeft'].transformed(t)
-            self.xOffset = -31
-            self.yOffset = 8
-        elif direction == 16:
-            self.image = ImageCache['BigStoneRightUp'].transformed(t)
-            self.xOffset = -56
-            self.yOffset = -72
-
-        elif direction == 17:
-            self.image = ImageCache['BigStoneLeftUp'].transformed(t)
-            self.xOffset = -60
-            self.yOffset = -72
-
-        elif direction == 18:
-            self.image = ImageCache['BigStoneFront'].transformed(t)
-            self.xOffset = -40
-            self.yOffset = -48
-
-        elif direction == 19:
-            self.image = ImageCache['BigStoneRight'].transformed(t)
-            self.xOffset = -89.5
-            self.yOffset = -48
-
-        elif direction == 20:
-            self.image = ImageCache['BigStoneLeft'].transformed(t)
-            self.xOffset = -38
-            self.yOffset = -48
-
+        if size == 'S':
+            if type_ == 0:
+                self.xOffset = -28
+                self.yOffset = -16
+            elif type_ == 1:
+                self.xOffset = -32
+                self.yOffset = -16
+            elif type_ == 3:
+                self.xOffset = -56
+                self.yOffset = 4
+            else:
+                self.xOffset = -16
+                self.yOffset = 4
         else:
-            self.image = ImageCache['StoneFront'].transformed(t)
-            self.xOffset = -14
-            self.yOffset = 8
-
+            if type_ == 0:
+                self.xOffset = -56
+                self.yOffset = -76
+            elif type_ == 1:
+                self.xOffset = -64
+                self.yOffset = -76
+            elif type_ == 3:
+                self.xOffset = -96
+                self.yOffset = -48
+            else:
+                self.xOffset = -40
+                self.yOffset = -48
         super().dataChanged()
-
-
-# self.translateImage()
-
-"""
-    def translateImage(self):
-
-        t = QTransform()
-
-        t.rotate(StoneRotation)
-
-        ImageCache['BigStoneRightUp'] = ImageCache['BigStoneRightUp'].transformed(t)
-        ImageCache['BigStoneLeftUp'] = ImageCache['BigStoneLeftUp'].transformed(t)
-        ImageCache['BigStoneFront'] = ImageCache['BigStoneFront'].transformed(t)
-        ImageCache['BigStoneRight'] = ImageCache['BigStoneRight'].transformed(t)
-        ImageCache['BigStoneLeft'] = ImageCache['BigStoneLeft'].transformed(t)
-
-        ImageCache['StoneRightUp'] = ImageCache['StoneRightUp'].transformed(t)
-        ImageCache['StoneLeftUp'] = ImageCache['StoneLeftUp'].transformed(t)
-        ImageCache['StoneFront'] = ImageCache['StoneFront'].transformed(t)
-        ImageCache['StoneRight'] = ImageCache['StoneRight'].transformed(t)
-        ImageCache['StoneLeft'] = ImageCache['StoneLeft'].transformed(t)
-"""
 
 
 class SpriteImage_POWBlock(SLib.SpriteImage_Static):  # 152
@@ -5198,15 +5138,13 @@ class SpriteImage_LightBlock(SLib.SpriteImage_Static):  # 232
         SLib.loadIfNotInImageCache('LightBlock', 'lightblock.png')
 
 
-class SpriteImage_SpinningFirebar(SLib.SpriteImage):  # 235
+class SpriteImage_SpinningFirebar(SLib.SpriteImage_StaticMultiple):  # 235, 483
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75
         )
-
-        self.spritebox.shown = False
-        self.aux.append(SLib.AuxiliaryCircleOutline(parent, 60, Qt.AlignCenter))
+        self.aux.append(SLib.AuxiliaryCircleOutline(parent, 0))
 
     @staticmethod
     def loadImages():
@@ -5214,64 +5152,41 @@ class SpriteImage_SpinningFirebar(SLib.SpriteImage):  # 235
         SLib.loadIfNotInImageCache('FirebarBaseWide', 'firebar_1.png')
 
     def dataChanged(self):
-        super().dataChanged()
 
         size = self.parent.spritedata[5] & 0xF
         wideBase = (self.parent.spritedata[3] >> 4) & 1
 
-        width = ((size * 2) + 1) * 40
+        width = ((size << 1) + 1) << 4
         self.aux[0].setSize(width)
-        if wideBase:
-            currentAuxX = self.aux[0].x() - 16
-            currentAuxY = self.aux[0].y() + 12
-            self.aux[0].setPos(currentAuxX + 60, currentAuxY)
-        else:
-            currentAuxX = self.aux[0].x() + 16
-            currentAuxY = self.aux[0].y() + 16
-            self.aux[0].setPos(currentAuxX, currentAuxY)
+        self.aux[0].setPos(-width * 1.875 + (60 if wideBase else 30), -width * 1.875 + 30)
 
         self.image = ImageCache['FirebarBase'] if not wideBase else ImageCache['FirebarBaseWide']
         self.xOffset = 0 if not wideBase else -8
-        self.width = 16 if not wideBase else 32
-
-    def paint(self, painter):
-        super().paint(painter)
-        painter.drawPixmap(0, 0, self.image)
+        super().dataChanged()
 
 
-class SpriteImage_BigFirebar(SLib.SpriteImage):  # 236
+class SpriteImage_BigFirebar(SLib.SpriteImage_Static):  # 236
     def __init__(self, parent):
         super().__init__(
             parent,
-            3.75
+            3.75,
+            ImageCache['BigFirebarBase'],
+            (-8, -8),
         )
-
-        self.spritebox.shown = False
-        self.aux.append(SLib.AuxiliaryCircleOutline(parent, 60, Qt.AlignCenter))
+        self.aux.append(SLib.AuxiliaryCircleOutline(parent, 0))
 
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('BigFirebarBase', 'big_firebar.png')
 
     def dataChanged(self):
-        super().dataChanged()
-
+        isBig = (self.parent.spritedata[2] & 0x1) != 0
         size = self.parent.spritedata[5] & 0xF
 
-        width = ((size * 2) + 1) * 40
+        width = ((size << (2 if isBig else 1)) + 1) << 4 
         self.aux[0].setSize(width)
-
-        currentAuxX = self.aux[0].x() - 16
-        currentAuxY = self.aux[0].y() - 16
-        self.aux[0].setPos(currentAuxX + 60, currentAuxY + 60)
-
-        self.image = ImageCache['BigFirebarBase']
-        self.xOffset = -8; self.yOffset = -8
-        self.width = 32; self.height = 32
-
-    def paint(self, painter):
-        super().paint(painter)
-        painter.drawPixmap(0, 0, self.image)
+        self.aux[0].setPos(-width * 1.875 + 60, -width * 1.875 + 60)
+        super().dataChanged()
 
 
 class SpriteImage_Bolt(SLib.SpriteImage_StaticMultiple):  # 238
@@ -5359,7 +5274,7 @@ class SpriteImage_BoltMushroom(SLib.SpriteImage_StaticMultiple):  # 241
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('BoltMushroomBolt', 'bolt_mushroom_bolt.png')
-        SLib.loadIfNotInImageCache('BoltMushroomBoltLong', 'bolt_mushroom_bolt_long.png')
+        SLib.loadIfNotInImageCache('BoltMushroomBoltLong', 'bolt_mushroom_long_bolt.png')
         SLib.loadIfNotInImageCache('BoltMushroomSpring', 'bolt_mushroom_spring.png')
 
     def dataChanged(self):
@@ -6187,6 +6102,20 @@ class SpriteImage_SeesawMushroom(SLib.SpriteImage):  # 278
         painter.drawPixmap(30 + self.mushroomWidth * 30, 0, ImageCache['SeesawMushroomPivot'])
         painter.drawPixmap(30 + self.mushroomWidth * 30, 60, ImageCache['SeesawMushroomStemTop'])
         painter.drawTiledPixmap(30 + self.mushroomWidth * 30, 180, 60, self.stemLength * 60, ImageCache['SeesawMushroomStem'])
+
+
+class SpriteImage_BoltPlatform(SLib.SpriteImage_Static):  # 280
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['BoltPlatform'],
+            (0, -16),
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BoltPlatform', 'bolt_platform.png')
 
 
 class SpriteImage_CoinBubble(SLib.SpriteImage_Static):  # 281
@@ -8891,47 +8820,6 @@ class SpriteImage_MechaCheep(SLib.SpriteImage_Static):  # 482
         SLib.loadIfNotInImageCache('MechaCheep', 'cheep_mecha.png')
 
 
-class SpriteImage_MultiSpinningFirebar(SLib.SpriteImage):  # 483
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75
-        )
-
-        self.spritebox.shown = False
-        self.aux.append(SLib.AuxiliaryCircleOutline(parent, 60, Qt.AlignCenter))
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('FirebarBase', 'firebar_0.png')
-        SLib.loadIfNotInImageCache('FirebarBaseWide', 'firebar_1.png')
-
-    def dataChanged(self):
-        super().dataChanged()
-
-        size = self.parent.spritedata[5] & 0xF
-        wideBase = (self.parent.spritedata[3] >> 4) & 1
-
-        width = ((size * 2) + 1) * 40
-        self.aux[0].setSize(width)
-        if wideBase:
-            currentAuxX = self.aux[0].x() - 16
-            currentAuxY = self.aux[0].y() + 12
-            self.aux[0].setPos(currentAuxX + 60, currentAuxY)
-        else:
-            currentAuxX = self.aux[0].x() + 16
-            currentAuxY = self.aux[0].y() + 16
-            self.aux[0].setPos(currentAuxX, currentAuxY)
-
-        self.image = ImageCache['FirebarBase'] if not wideBase else ImageCache['FirebarBaseWide']
-        self.xOffset = 0 if not wideBase else -8
-        self.width = 16 if not wideBase else 32
-
-    def paint(self, painter):
-        super().paint(painter)
-        painter.drawPixmap(0, 0, self.image)
-
-
 class SpriteImage_MetalBarGearbox(SLib.SpriteImage_StaticMultiple):  # 485
     def __init__(self, parent):
         super().__init__(
@@ -10558,6 +10446,7 @@ ImageClasses = {
     276: SpriteImage_Jellybeam,
     278: SpriteImage_SeesawMushroom,
     279: SpriteImage_Coin,
+    280: SpriteImage_BoltPlatform,
     281: SpriteImage_CoinBubble,
     282: SpriteImage_KingBill,
     284: SpriteImage_StretchBlock,
@@ -10702,7 +10591,7 @@ ImageClasses = {
     480: SpriteImage_MvmtRotControlledStarCoin,
     481: SpriteImage_WaddleWing,
     482: SpriteImage_MechaCheep,
-    483: SpriteImage_MultiSpinningFirebar,
+    483: SpriteImage_SpinningFirebar,
     484: SpriteImage_ControllerSpinning,
     485: SpriteImage_MetalBarGearbox,
     486: SpriteImage_FrameSetting,
@@ -10864,5 +10753,6 @@ ImageClasses = {
     714: SpriteImage_Scaffold,
     716: SpriteImage_Foo,
     717: SpriteImage_SnakeBlock,
+    719: SpriteImage_StoneEye,
     722: SpriteImage_ArrowSignboard,
 }
