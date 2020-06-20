@@ -3672,6 +3672,40 @@ class SpriteImage_POWBlock(SLib.SpriteImage_Static):  # 152
         SLib.loadIfNotInImageCache('POWBlock', 'block_pow.png')
 
 
+class SpriteImage_Spotlight(SLib.SpriteImage):  # 153
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+        self.spritebox.shown = False
+        self.dimensions = (-28, -56, 72, 104)
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('SpotlightHolder', 'spotlight_holder.png')
+        SLib.loadIfNotInImageCache('SpotlightLamp', 'spotlight_lamp.png')
+        SLib.loadIfNotInImageCache('SpotlightScrew', 'spotlight_screw.png')
+
+    def dataChanged(self):
+        super().dataChanged()
+        self.rotation = (self.parent.spritedata[3] & 0xF) * 22.5
+
+    def paint(self, painter):
+        super().paint(painter)
+        oldT = painter.transform() # Save old transform
+        
+        painter.translate(135, 265)
+        painter.rotate(self.rotation)
+        painter.drawPixmap(-150, -150, ImageCache['SpotlightLamp'])
+
+        painter.setTransform(oldT) # Recover old transform
+        painter.drawPixmap(105, 0, ImageCache['SpotlightHolder'])
+
+        painter.translate(135, 265)
+        painter.rotate(self.rotation)
+        painter.drawPixmap(-30, -30, ImageCache['SpotlightScrew'])
+        
+        painter.setTransform(oldT) # Recover old transform
+
+
 class SpriteImage_FlyingQBlock(SLib.SpriteImage):  # 154
     def __init__(self, parent):
         super().__init__(parent, 3.75)
@@ -10406,6 +10440,7 @@ ImageClasses = {
     149: SpriteImage_Coin,
     150: SpriteImage_StoneEye,
     152: SpriteImage_POWBlock,
+    153: SpriteImage_Spotlight,
     154: SpriteImage_FlyingQBlock,
     155: SpriteImage_PipeCannon,
     156: SpriteImage_WaterGeyser,
