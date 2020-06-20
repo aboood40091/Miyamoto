@@ -1499,6 +1499,71 @@ class SpriteImage_LocationTrigger(SLib.SpriteImage_Static):  # 41
         SLib.loadIfNotInImageCache('LocationTrigger', 'location_trigger.png')
 
 
+class SpriteImage_EventController(SLib.SpriteImage):  # X
+    font = QtGui.QFont(globals.NumberFont)
+    font.setPointSize(14)
+    font.setBold(True)
+    
+    def __init__(self, parent, text):
+        super().__init__(
+            parent,
+            3.75,
+        )
+        topLeft = self.spritebox.BoundingRect.topLeft()
+        size = self.spritebox.BoundingRect.size()
+        self.rect = QtCore.QRectF(topLeft.x() + 1, topLeft.y() + 1, size.width() - 2, size.height() - 2)
+        self.text = text
+        self.spritebox.shown = False
+
+    def paint(self, painter):
+        super().paint(painter)
+        oldB = painter.brush()
+        oldP = painter.pen()
+
+        if self.parent.isSelected():
+            painter.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255), 1 / 24 * globals.TileWidth))
+        else:
+            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 1 / 24 * globals.TileWidth))
+
+        painter.setBrush(QtGui.QBrush(QtGui.QColor(230, 115, 0)))
+        painter.drawRoundedRect(self.rect, 4, 4)
+        painter.setFont(SpriteImage_EventController.font)
+        painter.drawText(self.rect, Qt.AlignCenter, self.text)
+
+        painter.setBrush(oldB)
+        painter.setPen(oldP)
+        
+
+class SpriteImage_EventControllerAnd(SpriteImage_EventController):  # 37
+    def __init__(self, parent):
+        super().__init__(parent, 'Event\nAND')
+
+
+class SpriteImage_EventControllerOr(SpriteImage_EventController):  # 38
+    def __init__(self, parent):
+        super().__init__(parent, 'Event\nOR')
+
+
+class SpriteImage_EventControllerRandom(SpriteImage_EventController):  # 39
+    def __init__(self, parent):
+        super().__init__(parent, 'Event\nRAND')
+
+
+class SpriteImage_EventControllerChainer(SpriteImage_EventController):  # 40
+    def __init__(self, parent):
+        super().__init__(parent, 'Event\nIF')
+
+
+class SpriteImage_EventControllerMultiChainer(SpriteImage_EventController):  # 42
+    def __init__(self, parent):
+        super().__init__(parent, 'Event\nCHNR')
+
+
+class SpriteImage_EventControllerTimer(SpriteImage_EventController):  # 43
+    def __init__(self, parent):
+        super().__init__(parent, 'Event\nTMR')
+
+
 class SpriteImage_RedRing(SLib.SpriteImage_Static):  # 44
     def __init__(self, parent):
         super().__init__(
@@ -10236,7 +10301,13 @@ ImageClasses = {
     34: SpriteImage_BigGrrrol,
     35: SpriteImage_Seaweed,
     36: SpriteImage_ZoneTrigger,
+    37: SpriteImage_EventControllerAnd,
+    38: SpriteImage_EventControllerOr,
+    39: SpriteImage_EventControllerRandom,
+    40: SpriteImage_EventControllerChainer,
     41: SpriteImage_LocationTrigger,
+    42: SpriteImage_EventControllerMultiChainer,
+    43: SpriteImage_EventControllerTimer,
     44: SpriteImage_RedRing,
     45: SpriteImage_StarCoin,
     46: SpriteImage_LineControlledStarCoin,
