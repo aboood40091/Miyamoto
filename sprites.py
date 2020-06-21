@@ -4912,6 +4912,26 @@ class SpriteImage_Block_PSwitch(SLib.SpriteImage_Static):  # 209
         SLib.loadIfNotInImageCache('Block_PSwitch', 'block_p_switch.png')
 
 
+class SpriteImage_GreyTestPlatform(SLib.SpriteImage_StaticMultiple):  # 211
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('GrayBlock', 'gray_block.png')
+
+    def dataChanged(self):
+        width = self.parent.spritedata[8] & 0x1F
+        if width == 0:
+            width = 0.25 #Just to make it show up in the editor. It's actually scale 0.
+            
+        self.image = ImageCache['GrayBlock'].transformed(QTransform().scale(width, 0.5))
+        super().dataChanged()
+
+
 class SpriteImage_ControllerAutoscroll(SLib.SpriteImage_Static):  # 212
     def __init__(self, parent):
         super().__init__(
@@ -4963,6 +4983,69 @@ class SpriteImage_Springboard(SLib.SpriteImage_Static):  # 215
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Springboard', 'springboard.png')
+
+
+class SpriteImage_WiiTowerBlock(SLib.SpriteImage):  # 217, 311
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+        self.spritebox.shown = False
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('WiiTowerBlockTL', 'wii_tower_block_top_l.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockTM', 'wii_tower_block_top_m.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockTR', 'wii_tower_block_top_r.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockML', 'wii_tower_block_middle_l.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockMM', 'wii_tower_block_middle_m.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockMR', 'wii_tower_block_middle_r.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockBL', 'wii_tower_block_bottom_l.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockBM', 'wii_tower_block_bottom_m.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockBR', 'wii_tower_block_bottom_r.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockHole', 'wii_tower_block_hole.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockTMGood', 'wii_tower_block_top_m_good.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockMLGood', 'wii_tower_block_middle_l_good.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockMRGood', 'wii_tower_block_middle_r_good.png')
+        SLib.loadIfNotInImageCache('WiiTowerBlockBMGood', 'wii_tower_block_bottom_m_good.png')
+        
+    def dataChanged(self):
+        super().dataChanged()
+
+        self.sizeW = (self.parent.spritedata[8] & 0xF) + 1
+        self.sizeH = (self.parent.spritedata[9] & 0xF) + 1
+        if self.sizeW < 2:
+            self.sizeW = 2
+        if self.sizeH < 2:
+            self.sizeH = 2
+
+        self.width = self.sizeW << 4
+        self.height = self.sizeH << 4
+
+    def paint(self, painter):
+        super().paint(painter)
+
+        # Draw middle first
+        painter.drawTiledPixmap(60, 60, (self.sizeW - 2) * 60, (self.sizeH - 2) * 60, ImageCache['WiiTowerBlockMM'])
+
+        painter.drawPixmap(0, 0, ImageCache['WiiTowerBlockTL'])
+        painter.drawPixmap((self.sizeW - 1) * 60, 0, ImageCache['WiiTowerBlockTR'])
+        painter.drawTiledPixmap(60, 0, (self.sizeW - 2) * 60, 60, ImageCache['WiiTowerBlockTM' if self.sizeW > 3 else 'WiiTowerBlockTMGood'])
+        painter.drawTiledPixmap(0, 60, 60, (self.sizeH - 2) * 60, ImageCache['WiiTowerBlockML' if self.sizeH > 3 else 'WiiTowerBlockMLGood'])
+        painter.drawTiledPixmap((self.sizeW - 1) * 60, 60, 60, (self.sizeH - 2) * 60, ImageCache['WiiTowerBlockMR' if self.sizeH > 3 else 'WiiTowerBlockMRGood'])
+        painter.drawPixmap(0, (self.sizeH - 1) * 60, ImageCache['WiiTowerBlockBL'])
+        painter.drawPixmap((self.sizeW - 1) * 60, (self.sizeH - 1) * 60, ImageCache['WiiTowerBlockBR'])
+        painter.drawTiledPixmap(60, (self.sizeH - 1) * 60, (self.sizeW - 2) * 60, 60, ImageCache['WiiTowerBlockBM' if self.sizeW > 3 else 'WiiTowerBlockBMGood'])
+
+        amountX = max((int(self.sizeW + 1) // 3), 1)
+        offsetX = (self.sizeW - (amountX * 3 - 2)) * 30
+        amountY = max((int(self.sizeH) // 2), 1)
+        offsetY = (self.sizeH - (amountY * 2 - 1)) * 30
+        
+        for x in range(amountX):
+            for y in range(amountY):
+                painter.drawPixmap(offsetX + x * 180, offsetY + y * 120, ImageCache['WiiTowerBlockHole'])
 
 
 class SpriteImage_Boo(SLib.SpriteImage):  # 218, 220
@@ -10494,10 +10577,12 @@ ImageClasses = {
     208: SpriteImage_Block_QuestionSwitch,
     209: SpriteImage_Block_PSwitch,
     210: SpriteImage_MushroomMovingPlatform,
+    211: SpriteImage_GreyTestPlatform,
     212: SpriteImage_ControllerAutoscroll,
     213: SpriteImage_SwingingVine,
     214: SpriteImage_ControllerSpinOne,
     215: SpriteImage_Springboard,
+    217: SpriteImage_WiiTowerBlock,
     218: SpriteImage_Boo,
     219: SpriteImage_BigBoo,
     220: SpriteImage_Boo,
@@ -10580,6 +10665,7 @@ ImageClasses = {
     308: SpriteImage_ScalePlatform,
     309: SpriteImage_ScalePlatform,
     310: SpriteImage_Crash,
+    311: SpriteImage_WiiTowerBlock,
     312: SpriteImage_Crash,
     313: SpriteImage_Blooper,
     314: SpriteImage_Crash,
