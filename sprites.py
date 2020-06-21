@@ -9441,60 +9441,62 @@ class SpriteImage_MushroomMovingPlatform(SLib.SpriteImage):  # 544
 
     @staticmethod
     def loadImages():
-        ImageCache['PinkL'] = SLib.GetImg('pink_mushroom_skinny_l.png')
-        ImageCache['PinkM'] = SLib.GetImg('pink_mushroom_skinny_m.png')
-        ImageCache['PinkR'] = SLib.GetImg('pink_mushroom_skinny_r.png')
-        ImageCache['CyanL'] = SLib.GetImg('cyan_mushroom_skinny_l.png')
-        ImageCache['CyanM'] = SLib.GetImg('cyan_mushroom_skinny_m.png')
-        ImageCache['CyanR'] = SLib.GetImg('cyan_mushroom_skinny_r.png')
-        ImageCache['PinkStemT'] = SLib.GetImg('pink_mushroom_stem_top.png')
-        ImageCache['PinkStemM'] = SLib.GetImg('pink_mushroom_stem_middle.png')
-        ImageCache['PinkStemB'] = SLib.GetImg('pink_mushroom_stem_bottom.png')
-        ImageCache['CyanStemT'] = SLib.GetImg('cyan_mushroom_stem_top.png')
-        ImageCache['CyanStemM'] = SLib.GetImg('cyan_mushroom_stem_middle.png')
-        ImageCache['CyanStemB'] = SLib.GetImg('cyan_mushroom_stem_bottom.png')
+        for i in range(3):
+            SLib.loadIfNotInImageCache('WobbleMushL%d' % i, 'wobble_mushroom_l_%d.png' % i)
+            SLib.loadIfNotInImageCache('WobbleMushM%d' % i, 'wobble_mushroom_m_%d.png' % i)
+            SLib.loadIfNotInImageCache('WobbleMushR%d' % i, 'wobble_mushroom_r_%d.png' % i)
+            SLib.loadIfNotInImageCache('WobbleMushStemTop%d' % i, 'wobble_mushroom_stem_top_%d.png' % i)
+            SLib.loadIfNotInImageCache('WobbleMushStem%d' % i, 'wobble_mushroom_stem_%d.png' % i)
 
     def dataChanged(self):
-        super().dataChanged()
+        self.color = (self.parent.spritedata[7] & 0x30) >> 4
+        if self.color > 2:
+            self.color = 0
 
-        self.color = self.parent.spritedata[7] & 0xF0
-        if self.color:
-            self.color = 1
-
-        self.width = ((self.parent.spritedata[4] >> 4) + 3) * 16
-        self.height = ((self.parent.spritedata[6] >> 4) + 2.5) * 16
-
+        self.wobbleUpDown = (self.parent.spritedata[3] & 0x20) != 0
+        self.oppositeDir = (self.parent.spritedata[6] & 1) != 0
+        self.width = ((self.parent.spritedata[4] >> 4) + 3) << 4
         self.xOffset = -0.5 * (self.width - 16)
+
+        if self.wobbleUpDown:
+            self.minHeight = ((self.parent.spritedata[6] >> 4) + 2.5) * 16
+            self.height = ((self.parent.spritedata[3] & 0x7) + (self.parent.spritedata[6] >> 4) + 2.5) * 16
+            self.yOffset = -((self.parent.spritedata[3] & 0x7) << 4)
+        else:
+            self.minHeight = ((self.parent.spritedata[3] & 0x7) + 5) << 4
+            self.height = ((self.parent.spritedata[3] & 0x7) + 5) << 4
+            self.yOffset = 0
+        
+        super().dataChanged()
 
     def paint(self, painter):
         super().paint(painter)
+        ghostOffset = 0
+        regularOffset = (self.height - self.minHeight) * 3.75
+        
+        if self.oppositeDir:
+            ghostOffset = regularOffset
+            regularOffset = 0
 
         # Top
-        painter.drawPixmap(0, 0, ImageCache['CyanL' if self.color else 'PinkL'])
-        painter.drawTiledPixmap(60, 0, (self.width - 32) * 3.75, 60, ImageCache['CyanM' if self.color else 'PinkM'])
-        painter.drawPixmap((self.width - 16) * 3.75, 0, 60, 60, ImageCache['CyanR' if self.color else 'PinkR'])
+        painter.drawPixmap(0, regularOffset, ImageCache['WobbleMushL%d' % self.color])
+        painter.drawTiledPixmap(60, regularOffset, (self.width - 32) * 3.75, 60, ImageCache['WobbleMushM%d' % self.color])
+        painter.drawPixmap((self.width - 16) * 3.75, regularOffset, ImageCache['WobbleMushR%d' % self.color])
 
         # Stem
-        for row in range(int((self.height - 24) / 16)):
-            if not row:
-                painter.drawPixmap((-self.xOffset - 16) * 3.75, 60,
-                                   ImageCache['CyanStemT' if self.color else 'PinkStemT'])
+        painter.drawPixmap((self.width - 16) * 1.875 - 15, regularOffset + 60, ImageCache['WobbleMushStemTop%d' % self.color])
+        painter.drawTiledPixmap((self.width - 16) * 1.875, (self.height - 8) * 3.75, 60, 30, ImageCache['WobbleMushStem%d' % self.color], 0, 30 if self.wobbleUpDown else 0)
+        painter.drawTiledPixmap((self.width - 16) * 1.875, regularOffset + 120, 60, (self.height - 40) * 3.75 - regularOffset, ImageCache['WobbleMushStem%d' % self.color])
 
-            elif row == 1:
-                painter.drawPixmap(-self.xOffset * 3.75, 150, ImageCache['CyanStemM' if self.color else 'PinkStemM'])
-
-            else:
-                painter.drawPixmap(-self.xOffset * 3.75, (row * 60) + 90,
-                                   ImageCache['CyanStemB' if self.color else 'PinkStemB'])
-
-        # trololo
-        if self.height == 40:
-            painter.drawPixmap(-self.xOffset * 3.75, (self.height - 8) * 3.75,
-                               ImageCache['CyanStemB' if self.color else 'PinkStemM'])
-
-        else:
-            painter.drawPixmap(-self.xOffset * 3.75, (self.height - 8) * 3.75,
-                               ImageCache['CyanStemB' if self.color else 'PinkStemB'])
+        # Ghost
+        if self.wobbleUpDown and self.height - self.minHeight > 0:
+            painter.setOpacity(0.5)
+            painter.drawPixmap(0, ghostOffset, ImageCache['WobbleMushL%d' % self.color])
+            painter.drawTiledPixmap(60, ghostOffset, (self.width - 32) * 3.75, 60, ImageCache['WobbleMushM%d' % self.color])
+            painter.drawPixmap((self.width - 16) * 3.75, ghostOffset, ImageCache['WobbleMushR%d' % self.color])
+            painter.drawPixmap((self.width - 16) * 1.875 - 15, ghostOffset + 60, ImageCache['WobbleMushStemTop%d' % self.color])
+            painter.drawTiledPixmap((self.width - 16) * 1.875, ghostOffset + 120, 60, (self.height - self.minHeight) * 3.75, ImageCache['WobbleMushStem%d' % self.color])
+            painter.setOpacity(1)
 
 
 class SpriteImage_Flowers(SLib.SpriteImage):  # 546

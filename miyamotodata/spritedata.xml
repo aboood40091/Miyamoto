@@ -3266,25 +3266,31 @@
 		<value nybble="23-24" title="Unused Value 23-24"/>
 	</sprite>
 	<sprite id="210" name="Moving Mushroom Platform [UNUSED]" notes="This sprite's inherits sprite 544; see notes for that sprite as well. This sprite is almost identical to sprite 544, except it can also be used as a movement controller.">
-		<list nybble="7" title="Stem Length" comment="0 and 1 are unused, and are the same thing. This might connect to another nybble for further length.">
-			<entry value="0">Long</entry>
-			<entry value="1">Long</entry>
-			<entry value="2">Short</entry>
-		</list>
-		<value nybble="8" title="Stretch Distance"/>
+		<checkbox nybble="7" title="Unknown Checkbox 7"/>
+		<checkbox nybble="7" title="Wobble Up and Down" mask="2" comment="Makes the mushroom able to move up and down."/>
+		<checkbox nybble="8" title="Unknown Checkbox 8 Mask 8" mask="8"/>
+		<value bit="30-32" title="Wobble/Stem Height*" comment="*If 'Wobble Up and Down' is true this will be the wobble height. If it's false this is the stem height."/>
 		<value nybble="9" title="Width" comment="Value + 3"/>
-		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="11" title="Unknown Value 11"/>
-		<value nybble="12" title="Unknown Value 12"/>
-		<value nybble="13" title="Height" comment="Value + 2.5"/>
-		<checkbox nybble="14" title="Opposite Direction" comment="If this is ticked, the mushroom platform will go in the opposite direction."/>
-		<list nybble="15" title="Type" comment="Default initial direction per type:&lt;br&gt;Vertical movement: Up&lt;br&gt;Horizontal wobbling: Right&lt;br&gt;Extreme horizontal wobbling: UNKNOWN">
-			<entry value="0">Vertical movement</entry>
-			<entry value="1">Horizontal wobbling</entry>
-			<entry value="2">Extreme horizontal wobbling</entry>
+		<checkbox nybble="10" title="Opposite Sway" mask="8" comment="If this is ticked, the mushroom platform will bend in the opposite direction."/>
+		<list bit="38-40" title="Sway Arc" comment="How much it will bend in each direction.">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">11.25&#xB0;</entry>
+			<entry value="2">22.5&#xB0;</entry>
+			<entry value="3">33.75&#xB0;</entry>
+			<entry value="4">45&#xB0;</entry>
+			<entry value="5">56.25&#xB0;</entry>
+			<entry value="6">67.5&#xB0;</entry>
+			<entry value="7">78.75&#xB0;</entry>
 		</list>
-		<value nybble="16" title="Unknown Value 16"/>
-		<value nybble="21-22" title="Movement ID" comment="Assigns the sprite to a movement controller."/>
+		<value bit="43-48" title="Speed*" comment="*Only usable without a movement id."/>
+		<value nybble="13" title="Stem Height*" comment="*If 'Wobble Up and Down' is true this is the stem height. But if it's false this value does nothing."/>
+		<checkbox nybble="14" title="Opposite Wobble" comment="If this is ticked, the mushroom platform will go in the opposite direction."/>
+		<list nybble="15" title="Color">
+			<entry value="0">Pink</entry>
+			<entry value="1">Cyan</entry>
+			<entry value="2">Purple</entry>
+		</list>
+		<value nybble="21-22" title="Movement ID" comment="Works with Sprite 297."/>
 	</sprite>
 	<sprite id="211" name="Pivotal-rotation-controlled/Path-controlled Test Platform [UNUSED]">
 		<value nybble="17-18" title="Width" comment="This value can go up to 31."/>
@@ -4178,8 +4184,7 @@
 	<sprite id="297" name="Movement Controller - Mushroom Platform" notes="The Mushroom Platform searches for this sprite in the level.">
 		<value nybble="6-7" title="Spinning controller movement id"/>
 		<checkbox nybble="10" title="Uses spinning controller" comment="Searches a sprite 69 if this box is checked."/>
-		<value nybble="11" title="Unknown Value 11"/>
-		<value nybble="12" title="Movement Speed"/>
+		<value bit="43-48" title="Movement Speed"/>
 		<value nybble="21-22" title="Movement ID" comment="Use this to link the sprite to a mushroom lift."/>
 	</sprite>
 	<sprite id="298" name="Clampy">
@@ -6286,26 +6291,32 @@
 		<value nybble="21-22" title="Movement ID" comment="Links with 70 - Movement Controller and ...?"/>
 	</sprite>
 	<sprite id="543" name="Toad (for Treasure Chests) [UNUSED]"/>
-	<sprite id="544" name="Moving Mushroom Platform" notes="This mushroom platform seems to not stretch/wobble when &quot;Stem Length&quot; is set to either 0 or 1. Needs to be hooked to sprite 297 in order to function properly.">
-		<list nybble="7" title="Stem Length" comment="0 and 1 are unused, and are the same thing. This might connect to another nybble for further length.">
-			<entry value="0">Long</entry>
-			<entry value="1">Long</entry>
-			<entry value="2">Short</entry>
-		</list>
-		<value nybble="8" title="Stretch Distance"/>
+	<sprite id="544" name="Moving Mushroom Platform" notes="Can be used without a movement id, just set the speed nybble. But it needs to be hooked to Sprite 297 in order to sync with other moving mushroom platforms.">
+		<checkbox nybble="7" title="Unknown Checkbox 7"/>
+		<checkbox nybble="7" title="Wobble Up and Down" mask="2" comment="Makes the mushroom able to move up and down."/>
+		<checkbox nybble="8" title="Unknown Checkbox 8 Mask 8" mask="8"/>
+		<value bit="30-32" title="Wobble/Stem Height*" comment="*If 'Wobble Up and Down' is true this will be the wobble height. If it's false this is the stem height."/>
 		<value nybble="9" title="Width" comment="Value + 3"/>
-		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="11" title="Unknown Value 11"/>
-		<value nybble="12" title="Unknown Value 12"/>
-		<value nybble="13" title="Height" comment="Value + 2.5"/>
-		<checkbox nybble="14" title="Opposite Direction" comment="If this is ticked, the mushroom platform will go in the opposite direction."/>
-		<list nybble="15" title="Type" comment="Default initial direction per type:&lt;br&gt;Vertical movement: Up&lt;br&gt;Horizontal wobbling: Right&lt;br&gt;Extreme horizontal wobbling: UNKNOWN">
-			<entry value="0">Vertical movement</entry>
-			<entry value="1">Horizontal wobbling</entry>
-			<entry value="2">Extreme horizontal wobbling</entry>
+		<checkbox nybble="10" title="Opposite Sway" mask="8" comment="If this is ticked, the mushroom platform will bend in the opposite direction."/>
+		<list bit="38-40" title="Sway Arc" comment="How much it will bend in each direction.">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">11.25&#xB0;</entry>
+			<entry value="2">22.5&#xB0;</entry>
+			<entry value="3">33.75&#xB0;</entry>
+			<entry value="4">45&#xB0;</entry>
+			<entry value="5">56.25&#xB0;</entry>
+			<entry value="6">67.5&#xB0;</entry>
+			<entry value="7">78.75&#xB0;</entry>
 		</list>
-		<value nybble="16" title="Unknown Value 16"/>
-		<value nybble="21-22" title="Movement ID" comment="Assigns the sprite to a movement controller."/>
+		<value bit="43-48" title="Speed*" comment="*Only usable without a movement id."/>
+		<value nybble="13" title="Stem Height*" comment="*If 'Wobble Up and Down' is true this is the stem height. But if it's false this value does nothing."/>
+		<checkbox nybble="14" title="Opposite Wobble" comment="If this is ticked, the mushroom platform will go in the opposite direction."/>
+		<list nybble="15" title="Color">
+			<entry value="0">Pink</entry>
+			<entry value="1">Cyan</entry>
+			<entry value="2">Purple</entry>
+		</list>
+		<value nybble="21-22" title="Movement ID" comment="Works with Sprite 297."/>
 	</sprite>
 	<sprite id="545" name="Cheep Chomp Generator">
 		<value nybble="7" title="Unknown Value 7"/>
