@@ -5653,6 +5653,30 @@ class SpriteImage_Wiggler(SLib.SpriteImage_Static):  # 249, 702
         SLib.loadIfNotInImageCache('Wiggler', 'wiggler.png')
 
 
+class SpriteImage_GreyBlock(SLib.SpriteImage_StaticMultiple):  # 250
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('GrayBlock', 'gray_block.png')
+
+    def dataChanged(self):
+        width = self.parent.spritedata[8] & 0xF
+        height = self.parent.spritedata[9] & 0xF
+
+        if width == 0 or height == 0:
+            self.spritebox.shown = True
+            self.image = None
+        else:
+            self.spritebox.shown = False
+            self.image = ImageCache['GrayBlock'].transformed(QTransform().scale(width, height))
+        super().dataChanged()
+
+
 class SpriteImage_GiantBubble(SLib.SpriteImage):  # 251
     def __init__(self, parent, scale=3.75):
         super().__init__(parent, scale)
@@ -5704,6 +5728,20 @@ class SpriteImage_RopeLadder(SLib.SpriteImage_StaticMultiple):  # 252
         size = self.parent.spritedata[5] & 0xF; size = 0 if size > 2 else size
         self.image = ImageCache['RopeLadder%d' % size]
 
+        super().dataChanged()
+
+
+class SpriteImage_LightCircle(SLib.SpriteImage):  # 253
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+        self.aux.append(SLib.AuxiliaryCircleOutline(parent, 60, Qt.AlignCenter))
+
+    def dataChanged(self):
+        self.aux[0].setSize(((self.parent.spritedata[3] & 0xF) + 2) * 48)
+        self.aux[0].setPos(self.aux[0].x() - 30, self.aux[0].y() - 30)
         super().dataChanged()
 
 
@@ -7656,7 +7694,7 @@ class SpriteImage_Morton(SLib.SpriteImage_Static):  # 368
         SLib.loadIfNotInImageCache('Morton', 'morton.png')
 
 
-class SpriteImage_GreyBlock(SLib.SpriteImage_StaticMultiple):  # 371, 373
+class SpriteImage_GreyBlock2(SLib.SpriteImage_StaticMultiple):  # 371, 373
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -10614,8 +10652,10 @@ ImageClasses = {
     247: SpriteImage_PricklyGoomba,
     248: SpriteImage_GhostHouseBoxFrame,
     249: SpriteImage_Wiggler,
+    250: SpriteImage_GreyBlock,
     251: SpriteImage_GiantBubble,
     252: SpriteImage_RopeLadder,
+    253: SpriteImage_LightCircle,
     254: SpriteImage_UnderwaterLamp,
     255: SpriteImage_MicroGoomba,
     256: SpriteImage_Crash,
@@ -10715,9 +10755,9 @@ ImageClasses = {
     365: SpriteImage_GoldenYoshi,
     367: SpriteImage_MoveWhenOnPlatform,
     368: SpriteImage_Morton,
-    371: SpriteImage_GreyBlock,
+    371: SpriteImage_GreyBlock2,
     372: SpriteImage_MovingOneWayPlatform,
-    373: SpriteImage_GreyBlock,
+    373: SpriteImage_GreyBlock2,
     374: SpriteImage_ChainHolder,
     376: SpriteImage_Crash,
     377: SpriteImage_Crash,
