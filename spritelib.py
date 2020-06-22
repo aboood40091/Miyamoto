@@ -153,7 +153,7 @@ def MapPositionToZoneID(zones, x, y, useid=False):
 ################################################################
 ##################### SpriteImage Classes ######################
 
-class SpriteImage():
+class SpriteImage:
     """
     Class that contains information about a sprite image
     """
@@ -334,7 +334,7 @@ class SpriteImage_StaticMultiple(SpriteImage_Static):
 ################################################################
 ####################### Spritebox Class ########################
 
-class Spritebox():
+class Spritebox:
     """
     Contains size and other information for a spritebox
     """
@@ -388,17 +388,17 @@ class Spritebox():
     # Rect property
     def getRR(self):
         return QtCore.QRectF(
-            self.xOffset * self.scale,
-            self.yOffset * self.scale,
-            self.width * self.scale,
-            self.height * self.scale,
+            self.xOffset * self.scale + 1,
+            self.yOffset * self.scale + 1,
+            self.width * self.scale - 2,
+            self.height * self.scale - 2,
             )
     def setRR(self, new):
         self.dimensions = (
-            new.x() * self.scale,
-            new.y() * self.scale,
-            new.width() * self.scale,
-            new.height() * self.scale,
+            new.x() / self.scale,
+            new.y() / self.scale,
+            new.width() / self.scale,
+            new.height() / self.scale,
             )
     def delRR(self):
         self.dimensions = 0, 0, 16, 16
@@ -437,7 +437,7 @@ class Spritebox():
 ################# AuxiliarySpriteItem Classes ##################
 
 
-class AuxiliaryItem():
+class AuxiliaryItem:
     """
     Base class for all auxiliary things
     """

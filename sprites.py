@@ -1373,7 +1373,7 @@ class SpriteImage_ArrowSignboard(SLib.SpriteImage_StaticMultiple):  # 32
         super().dataChanged()
 
 
-class SpriteImage_Grrrol(SLib.SpriteImage_Static):  # 33, 504
+class SpriteImage_Grrrol(SLib.SpriteImage_Static):  # 33, 58, 504
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -1501,7 +1501,7 @@ class SpriteImage_LocationTrigger(SLib.SpriteImage_Static):  # 41
 
 class SpriteImage_EventController(SLib.SpriteImage):  # X
     font = QtGui.QFont(globals.NumberFont)
-    font.setPointSize(14)
+    font.setPointSize(17)
     font.setBold(True)
     
     def __init__(self, parent, text):
@@ -1509,14 +1509,15 @@ class SpriteImage_EventController(SLib.SpriteImage):  # X
             parent,
             3.75,
         )
-        topLeft = self.spritebox.BoundingRect.topLeft()
-        size = self.spritebox.BoundingRect.size()
-        self.rect = QtCore.QRectF(topLeft.x() + 1, topLeft.y() + 1, size.width() - 2, size.height() - 2)
+
         self.text = text
         self.spritebox.shown = False
 
     def paint(self, painter):
         super().paint(painter)
+
+        rect = self.spritebox.RoundedRect
+
         oldB = painter.brush()
         oldP = painter.pen()
 
@@ -1526,9 +1527,9 @@ class SpriteImage_EventController(SLib.SpriteImage):  # X
             painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 1 / 24 * globals.TileWidth))
 
         painter.setBrush(QtGui.QBrush(QtGui.QColor(230, 115, 0)))
-        painter.drawRoundedRect(self.rect, 4, 4)
+        painter.drawRoundedRect(rect, 4, 4)
         painter.setFont(SpriteImage_EventController.font)
-        painter.drawText(self.rect, Qt.AlignCenter, self.text)
+        painter.drawText(rect, Qt.AlignCenter, self.text)
 
         painter.setBrush(oldB)
         painter.setPen(oldP)
@@ -1751,8 +1752,6 @@ class SpriteImage_FishBone(SLib.SpriteImage_StaticMultiple):  # 57
                 SLib.GetImg('fish_bone.png', True).mirrored(True, False))
 
     def dataChanged(self):
-        super().dataChanged()
-
         direction = (self.parent.spritedata[5] >> 4) & 1
 
         if direction == 1:
@@ -1762,6 +1761,8 @@ class SpriteImage_FishBone(SLib.SpriteImage_StaticMultiple):  # 57
         else:
             self.image = ImageCache['FishBoneR']
             self.xOffset = -4
+
+        super().dataChanged()
 
 
 class SpriteImage_QBlock(SLib.SpriteImage_Static):  # 59
@@ -7408,53 +7409,51 @@ class SpriteImage_Pokey(SLib.SpriteImage):  # 351
         super().__init__(parent, 3.75)
         self.spritebox.shown = False
 
+        self.width = 32
+        self.xOffset = -8
+
     @staticmethod
     def loadImages():
         ImageCache['PokeyTop'] = SLib.GetImg('pokey_top.png')
-        ImageCache['PokeyMiddle'] = SLib.GetImg('pokey_middle.png')
+        ImageCache['PokeyTopU'] = SLib.GetImg('pokey_top_u.png')
         ImageCache['PokeyBottom'] = SLib.GetImg('pokey_bottom.png')
-        ImageCache['PokeyTopD'] = SLib.GetImg('pokey_top_d.png')
-        ImageCache['PokeyMiddleD'] = SLib.GetImg('pokey_middle_d.png')
-        ImageCache['PokeyBottomD'] = SLib.GetImg('pokey_bottom_d.png')
+        ImageCache['PokeyBottomU'] = SLib.GetImg('pokey_bottom_u.png')
+
+        for i in range(1, 5):
+            ImageCache['PokeyMiddle%d' % i] = SLib.GetImg('pokey_middle_%d.png' % i)
+            ImageCache['PokeyMiddle%dU' % i] = SLib.GetImg('pokey_middle_%d_u.png' % i)
 
     def dataChanged(self):
+        self.nPieces = (self.parent.spritedata[5] & 0xF) + 3
+        self.height = self.nPieces * 16 + 10
 
-        self.rawlength = (self.parent.spritedata[5] & 0x0F) + 3
-        self.upsideDown = self.parent.spritedata[4]
+        self.upsideDown = self.parent.spritedata[4] & 1
+        if self.upsideDown:
+            self.yOffset = 4
 
-        self.length = self.rawlength * 60
-
-        self.width = 27
-        self.xOffset = -5.33
-
-        self.height = (self.rawlength - 1) * 16 + 25
-        self.yOffset = -1 * (self.rawlength * 16) + 32 - 25 + 1.33
-
-        if self.upsideDown == 1:
-            self.length = self.rawlength * 60
-
-            self.width = 27
-            self.xOffset = -5.33
-
-            self.height = (self.rawlength - 1) * 16 + 25
-            self.yOffset = 0
+        else:
+            self.yOffset = -(self.nPieces * 16) + 8
 
         super().dataChanged()
 
     def paint(self, painter):
-        super().paint(painter)
+        if self.upsideDown:
+            painter.drawPixmap(0, 0, ImageCache['PokeyBottomU'])
 
-        # Not upside-down:
-        if self.upsideDown is not 1:
-            painter.drawPixmap(0, 0 + (self.length - 120) + 91, 100, 60, ImageCache['PokeyBottom'])
-            painter.drawTiledPixmap(0, 91, 100, (self.length - 120), ImageCache['PokeyMiddle'])
-            painter.drawPixmap(0, 0, 100, 91, ImageCache['PokeyTop'])
+            for i in range(self.nPieces-2):
+                painter.drawPixmap(0, (i+1) * 60, ImageCache['PokeyMiddle%dU' % ((i % 3) + 1)])
+            
+            painter.drawPixmap(0, (self.nPieces-1) * 60, ImageCache['PokeyTopU'])
 
-        # Upside Down
         else:
-            painter.drawPixmap(0, 0 + (self.length - 120) + 60, 100, 91, ImageCache['PokeyTopD'])
-            painter.drawTiledPixmap(0, 60, 100, (self.length - 120), ImageCache['PokeyMiddleD'])
-            painter.drawPixmap(0, 0, 100, 60, ImageCache['PokeyBottomD'])
+            painter.drawPixmap(QtCore.QPointF(0, 22.5 + (self.nPieces-1) * 60), ImageCache['PokeyBottom'])
+
+            for i in range(self.nPieces-2):
+                painter.drawPixmap(QtCore.QPointF(0, (self.nPieces-i-1) * 60 - 37.5), ImageCache['PokeyMiddle%d' % ((i % 3) + 1)])
+
+            painter.drawPixmap(0, 0, ImageCache['PokeyTop'])
+
+        super().paint(painter)
 
 
 class SpriteImage_SpikeTop(SLib.SpriteImage_StaticMultiple):  # 352, 447
@@ -10478,6 +10477,7 @@ ImageClasses = {
     54: SpriteImage_YoshiBerry,
     55: SpriteImage_KoopaTroopa,
     57: SpriteImage_FishBone,
+    58: SpriteImage_Grrrol,
     59: SpriteImage_QBlock,
     60: SpriteImage_BrickBlock,
     61: SpriteImage_InvisiBlock,
