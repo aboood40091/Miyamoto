@@ -1287,7 +1287,7 @@ class SpriteImage_LimitD(SLib.SpriteImage_StaticMultiple):  # 30
         super().dataChanged()
 
 
-class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple):  # 31
+class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple):  # 31, 630
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -5327,24 +5327,97 @@ class SpriteImage_SpinningFirebar(SLib.SpriteImage_StaticMultiple):  # 235, 483
             parent,
             3.75
         )
+
         self.aux.append(SLib.AuxiliaryCircleOutline(parent, 0))
+        self.fireballs = [SLib.AuxiliaryImage(parent, 135, 135) for i in range(60)]
+        self.aux.extend(self.fireballs)
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('FirebarBase', 'firebar_0.png')
-        SLib.loadIfNotInImageCache('FirebarBaseWide', 'firebar_1.png')
+        SLib.loadIfNotInImageCache('FirebarBall', 'firebar_fireball.png')
+        SLib.loadIfNotInImageCache('FirebarBase0', 'firebar_base.png')
+        SLib.loadIfNotInImageCache('FirebarBaseLong0', 'firebar_base_long.png')
+
+        for i in range(1, 5):
+            SLib.loadIfNotInImageCache('FirebarBase%d' % i, 'firebar_base_%d.png' % i)
+            SLib.loadIfNotInImageCache('FirebarBaseLong%d' % i, 'firebar_base_long_%d.png' % i)
 
     def dataChanged(self):
-
         size = self.parent.spritedata[5] & 0xF
         wideBase = (self.parent.spritedata[3] >> 4) & 1
+
+        nFireBar = (self.parent.spritedata[5] >> 4) + 1
+        if size == 0:
+            nFireBar = 0
+
+        elif nFireBar > 4:
+            nFireBar = 4
 
         width = ((size << 1) + 1) << 4
         self.aux[0].setSize(width)
         self.aux[0].setPos(-width * 1.875 + (60 if wideBase else 30), -width * 1.875 + 30)
 
-        self.image = ImageCache['FirebarBase'] if not wideBase else ImageCache['FirebarBaseWide']
+        self.image = ImageCache['FirebarBase%d' % nFireBar] if not wideBase else ImageCache['FirebarBaseLong%d' % nFireBar]
         self.xOffset = 0 if not wideBase else -8
+
+        nFireBall = size * nFireBar
+
+        for i in range(nFireBall, 60):
+            self.fireballs[i].image = None
+
+        if nFireBar:
+            xOffs = (30 if wideBase else 0)
+
+            for j in range(size):
+                nFireBall -= 1
+                aux = self.fireballs[nFireBall]
+                aux.setPos(60*(j+1) + xOffs - 37.5, -37.5)
+                aux.image = ImageCache['FirebarBall']
+                aux.alpha = 0.5
+                aux.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+
+
+            if nFireBar in (2, 4):
+                for j in range(size):
+                    nFireBall -= 1
+                    aux = self.fireballs[nFireBall]
+                    aux.setPos(-60*(j+1) + xOffs - 37.5, -37.5)
+                    aux.image = ImageCache['FirebarBall']
+                    aux.alpha = 0.5
+                    aux.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+
+            if nFireBar == 3:
+                for j in range(size):
+                    nFireBall -= 1
+                    aux = self.fireballs[nFireBall]
+                    aux.setPos(-30*(j+1) + xOffs - 37.5, -(52.5*(j+1) + 37.5))
+                    aux.image = ImageCache['FirebarBall']
+                    aux.alpha = 0.5
+                    aux.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+
+                    nFireBall -= 1
+                    aux = self.fireballs[nFireBall]
+                    aux.setPos(-30*(j+1) + xOffs - 37.5, 52.5*(j+1) - 37.5)
+                    aux.image = ImageCache['FirebarBall']
+                    aux.alpha = 0.5
+                    aux.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+
+            if nFireBar == 4:
+                for j in range(size):
+                    nFireBall -= 1
+                    aux = self.fireballs[nFireBall]
+                    aux.setPos(xOffs - 37.5, 60*(j+1) - 37.5)
+                    aux.image = ImageCache['FirebarBall']
+                    aux.alpha = 0.5
+                    aux.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+
+                    nFireBall -= 1
+                    aux = self.fireballs[nFireBall]
+                    aux.setPos(xOffs - 37.5, -(60*(j+1) + 37.5))
+                    aux.image = ImageCache['FirebarBall']
+                    aux.alpha = 0.5
+                    aux.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+
         super().dataChanged()
 
 
@@ -5353,22 +5426,103 @@ class SpriteImage_BigFirebar(SLib.SpriteImage_Static):  # 236
         super().__init__(
             parent,
             3.75,
-            ImageCache['BigFirebarBase'],
-            (-8, -8),
         )
+
         self.aux.append(SLib.AuxiliaryCircleOutline(parent, 0))
+        self.fireballs = [SLib.AuxiliaryImage(parent, 1, 1) for i in range(60)]
+        self.aux.extend(self.fireballs)
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('BigFirebarBase', 'big_firebar.png')
+        SLib.loadIfNotInImageCache('FirebarBall', 'firebar_fireball.png')
+        SLib.loadIfNotInImageCache('FirebarBallBig', 'firebar_fireball_big.png')
+        SLib.loadIfNotInImageCache('FirebarBaseBig0', 'firebar_base_big.png')
+        SLib.loadIfNotInImageCache('FirebarBaseBigger0', 'firebar_base_bigger.png')
+
+        for i in range(1, 5):
+            SLib.loadIfNotInImageCache('FirebarBaseBig%d' % i, 'firebar_base_big_%d.png' % i)
+            SLib.loadIfNotInImageCache('FirebarBaseBigger%d' % i, 'firebar_base_bigger_%d.png' % i)
 
     def dataChanged(self):
-        isBig = (self.parent.spritedata[2] & 0x1) != 0
+        isBig = self.parent.spritedata[2] & 1
         size = self.parent.spritedata[5] & 0xF
 
-        width = ((size << (2 if isBig else 1)) + 1) << 4 
+        nFireBar = (self.parent.spritedata[5] >> 4) + 1
+        if size == 0:
+            nFireBar = 0
+
+        elif nFireBar > 4:
+            nFireBar = 4
+
+        width = (((size << (2 if isBig else 1)) + 1) << 4) + (16 if isBig else 0)
         self.aux[0].setSize(width)
-        self.aux[0].setPos(-width * 1.875 + 60, -width * 1.875 + 60)
+        self.aux[0].setPos(-width * 1.875 + (60 if isBig else 45), -width * 1.875 + (60 if isBig else 45))
+
+        self.image = ImageCache['FirebarBaseBig%d' % nFireBar] if not isBig else ImageCache['FirebarBaseBigger%d' % nFireBar]
+        self.offset = (-4, -4) if not isBig else (-8, -8)
+
+        nFireBall = size * nFireBar
+
+        for i in range(nFireBall, 60):
+            self.fireballs[i].image = None
+
+        if nFireBar:
+            offs = 30 if isBig else 15
+            imgOffs = 97.5 if isBig else 37.5
+            step = 120 if isBig else 60
+            fireballSize = 255 if isBig else 135
+            img = ImageCache['FirebarBallBig'] if isBig else ImageCache['FirebarBall']
+
+            for j in range(size):
+                nFireBall -= 1
+                aux = self.fireballs[nFireBall]
+                aux.setSize(fireballSize, fireballSize, step*(j+1) + offs - imgOffs, offs - imgOffs)
+                aux.image = img
+                aux.alpha = 0.5
+                aux.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+
+
+            if nFireBar in (2, 4):
+                for j in range(size):
+                    nFireBall -= 1
+                    aux = self.fireballs[nFireBall]
+                    aux.setSize(fireballSize, fireballSize, -step*(j+1) + offs - imgOffs, offs - imgOffs)
+                    aux.image = img
+                    aux.alpha = 0.5
+                    aux.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+
+            if nFireBar == 3:
+                for j in range(size):
+                    nFireBall -= 1
+                    aux = self.fireballs[nFireBall]
+                    aux.setSize(fireballSize, fireballSize, -(step//2)*(j+1) + offs - imgOffs, -(step*0.875)*(j+1) + offs - imgOffs)
+                    aux.image = img
+                    aux.alpha = 0.5
+                    aux.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+
+                    nFireBall -= 1
+                    aux = self.fireballs[nFireBall]
+                    aux.setSize(fireballSize, fireballSize, -(step//2)*(j+1) + offs - imgOffs, (step*0.875)*(j+1) + offs - imgOffs)
+                    aux.image = img
+                    aux.alpha = 0.5
+                    aux.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+
+            if nFireBar == 4:
+                for j in range(size):
+                    nFireBall -= 1
+                    aux = self.fireballs[nFireBall]
+                    aux.setSize(fireballSize, fireballSize, offs - imgOffs, step*(j+1) + offs - imgOffs)
+                    aux.image = img
+                    aux.alpha = 0.5
+                    aux.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+
+                    nFireBall -= 1
+                    aux = self.fireballs[nFireBall]
+                    aux.setSize(fireballSize, fireballSize, offs - imgOffs, -step*(j+1) + offs - imgOffs)
+                    aux.image = img
+                    aux.alpha = 0.5
+                    aux.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
+
         super().dataChanged()
 
 

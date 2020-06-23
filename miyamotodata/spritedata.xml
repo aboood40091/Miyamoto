@@ -3664,6 +3664,7 @@
 	</sprite>
 	<sprite id="236" name="Big Fire Bar" notes="Attn reverse engineers: Check out value's 5 and 7">
 		<value nybble="5" title="Unknown Value 5"/>
+		<checkbox nybble="6" title="Bigger" comment="If checked, the fire bar will be twice as big as the small ones."/>
 		<value nybble="7" title="Unknown Value 7"/>
 		<checkbox nybble="9" title="Spins Clockwise" comment="If checked, the fire bar(s) spin clockwise."/>
 		<value nybble="11" title="Number of Fire Bars" comment="Value +1"/>
