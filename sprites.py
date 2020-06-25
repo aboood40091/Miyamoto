@@ -1579,7 +1579,7 @@ class SpriteImage_RedRing(SLib.SpriteImage_Static):  # 44
         SLib.loadIfNotInImageCache('RedRing', 'red_ring.png')
 
 
-class SpriteImage_StarCoin(SLib.SpriteImage_Static):  # 45
+class SpriteImage_StarCoin(SLib.SpriteImage_Static):  # 45, 47, 48, 480
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -1597,42 +1597,13 @@ class SpriteImage_LineControlledStarCoin(SLib.SpriteImage_Static):  # 46, 607
         super().__init__(
             parent,
             3.75,
-            ImageCache['LineStarCoin'],
+            ImageCache['StarCoin'],
             (-16, -12),
         )
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('LineStarCoin', 'star_coin.png')
-
-
-class SpriteImage_BoltControlledStarCoin(SLib.SpriteImage_Static):  # 47
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['BoltStarCoin'],
-        )
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('BoltStarCoin', 'star_coin.png')
-
-
-class SpriteImage_MvmtRotControlledStarCoin(SLib.SpriteImage_Static):  # 48, 480
-    # Movement Controlled, Rotation Controlled Star Coin
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['MRStarCoin'],
-        )
-
-        self.yOffset = 6
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('MRStarCoin', 'star_coin.png')
+        SLib.loadIfNotInImageCache('StarCoin', 'star_coin.png')
 
 
 class SpriteImage_RedCoin(SLib.SpriteImage_Static):  # 49
@@ -6900,27 +6871,21 @@ class SpriteImage_NoteBlock(SLib.SpriteImage_Static):  # 295
 class SpriteImage_Clampy(SLib.SpriteImage_StaticMultiple):  # 298
     def __init__(self, parent):
         super().__init__(parent, 3.75)
-        self.offset = (-26, -53)
+        self.offset = (-28, -52)
 
     @staticmethod
     def loadImages():
         if 'ClamEmpty' in ImageCache: return
 
         SLib.loadIfNotInImageCache('StarCoin', 'star_coin.png')
-
-        if 'PSwitch' not in ImageCache:
-            p = SLib.GetImg('p_switch.png', True)
-            ImageCache['PSwitch'] = QtGui.QPixmap.fromImage(p)
-            ImageCache['PSwitchU'] = QtGui.QPixmap.fromImage(p.mirrored(True, True))
-
+        SLib.loadIfNotInImageCache('PSwitch', 'p_switch.png')
         SLib.loadIfNotInImageCache('ClamEmpty', 'clam.png')
         SLib.loadIfNotInImageCache('1Up', '1up.png')
 
         overlays = (
             (65, 55, 'Star', ImageCache['StarCoin']),
             (100, 105, '1Up', ImageCache['1Up']),
-            (100, 105, 'PSwitch', ImageCache['PSwitch']),
-            (100, 105, 'PSwitchU', ImageCache['PSwitchU']),
+            (82, 96, 'PSwitch', ImageCache['PSwitch']),
         )
         for x, y, clamName, overlayImage in overlays:
             newPix = QtGui.QPixmap(ImageCache['ClamEmpty'])
@@ -6934,17 +6899,13 @@ class SpriteImage_Clampy(SLib.SpriteImage_StaticMultiple):  # 298
         newPix = QtGui.QPixmap(ImageCache['ClamEmpty'])
         painter = QtGui.QPainter(newPix)
         painter.setOpacity(0.6)
-        painter.drawPixmap(70, 105, SLib.Tiles[30].main)
-        painter.drawPixmap(130, 105, SLib.Tiles[30].main)
+        painter.drawPixmap(70, 105, SLib.Tiles[0x200 * 4 + 30].main)
+        painter.drawPixmap(130, 105, SLib.Tiles[0x200 * 4 + 30].main)
         del painter
         ImageCache['Clam2Coin'] = newPix
 
     def dataChanged(self):
-
         holds = self.parent.spritedata[5] & 0xF
-        switchdir = self.parent.spritedata[4] & 0xF
-
-        holdsStr = 'Empty'
         if holds == 1:
             holdsStr = 'Star'
         elif holds == 2:
@@ -6952,10 +6913,9 @@ class SpriteImage_Clampy(SLib.SpriteImage_StaticMultiple):  # 298
         elif holds == 3:
             holdsStr = '1Up'
         elif holds == 4:
-            if switchdir == 1:
-                holdsStr = 'PSwitchU'
-            else:
-                holdsStr = 'PSwitch'
+            holdsStr = 'PSwitch'
+        else:
+            holdsStr = 'Empty'
 
         self.image = ImageCache['Clam' + holdsStr]
 
@@ -8125,6 +8085,88 @@ class SpriteImage_MeltableIceChunk(SLib.SpriteImage_Static):  # 386
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('MeltableIceChunk', 'meltable_ice_chunk.png')
+
+
+class SpriteImage_PinkMultiPlatform(SLib.SpriteImage):  # 388
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+        self.aux[0].alpha = 0.5
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('PinkMultiPlatL', 'pink_multi_platform_l.png')
+        SLib.loadIfNotInImageCache('PinkMultiPlatM', 'pink_multi_platform_m.png')
+        SLib.loadIfNotInImageCache('PinkMultiPlatR', 'pink_multi_platform_r.png')
+        SLib.loadIfNotInImageCache('PinkMultiPlatPivot', 'pink_multi_platform_pivot.png')
+        SLib.loadIfNotInImageCache('PinkMultiPlatChain', 'pink_multi_platform_chain.png')
+
+    def dataChanged(self):
+        platformCount = min((self.parent.spritedata[3] >> 4) + 2, 6)
+        startRot = (self.parent.spritedata[5] >> 4) * 22.5
+        radius = (self.parent.spritedata[5] & 0xF)
+        platformWidth = (self.parent.spritedata[8] & 0xF) + 2
+        drawCoins = (self.parent.spritedata[9] & 0xF0) != 0
+        coinsOnPlatforms = self.parent.spritedata[9] >> 4
+        coinAmount = self.parent.spritedata[9] & 0xF
+
+        if radius == 0:
+            radius = 6
+
+        width = 0
+        if not drawCoins or platformWidth + 0.5 > coinAmount:
+            width = (radius * 2 + platformWidth + 0.5) * 60
+        else:
+            width = (radius * 2 + coinAmount) * 60
+            
+        height = (radius + 1) * 120
+        xOffset = -(width - 60) * 0.5
+        yOffset = -(height - 120) * 0.5 - 60
+
+        # Create the aux image
+        self.aux[0].setSize(width, height, xOffset, yOffset)
+        pix = QtGui.QPixmap(width, height)
+        pix.fill(Qt.transparent)
+
+        # Create a painter with the image
+        paint = QtGui.QPainter(pix)
+        paintT = paint.transform()
+
+        # Draw pivot in the middle
+        paint.translate(width * 0.5, height * 0.5 + 30)
+        paint.drawPixmap(-30, -30, ImageCache['PinkMultiPlatPivot'])
+        
+        paint.rotate(180 - startRot)
+
+        # Draw all chains
+        for i in range(int(platformCount)):
+            paint.drawTiledPixmap(-radius * 60, -15, radius * 60 - 15, 30, ImageCache['PinkMultiPlatChain'], 15)
+            paint.rotate(-(360.0 / platformCount))
+
+        paint.setTransform(paintT) # Recover transform
+
+        # Draw all platforms
+        for i in range(int(platformCount)):
+            angle = math.radians(-i * (360.0 / platformCount) - startRot)
+            x = width * 0.5 + math.cos(angle) * radius * 60
+            y = height * 0.5 + 30 + math.sin(angle) * radius * 60
+            
+            paint.drawPixmap(x - platformWidth * 30 - 14, y - 30, ImageCache['PinkMultiPlatL'])
+            paint.drawTiledPixmap(x - platformWidth * 30 + 60, y - 30, (platformWidth - 2) * 60, 60, ImageCache['PinkMultiPlatM'])
+            paint.drawPixmap(x + platformWidth * 30 - 61, y - 30, ImageCache['PinkMultiPlatR'])
+
+            # Draw coins on platforms if needed
+            if drawCoins and i % coinsOnPlatforms == 0:
+                paint.drawTiledPixmap(x - coinAmount * 30, y - 90, coinAmount * 60, 60, SLib.Tiles[30].main)
+
+        # Complete the image and send it the the aux
+        paint = None
+        self.aux[0].image = pix
+        super().dataChanged()
 
 
 class SpriteImage_Roy(SLib.SpriteImage_Static):  # 389
@@ -10701,8 +10743,8 @@ ImageClasses = {
     44: SpriteImage_RedRing,
     45: SpriteImage_StarCoin,
     46: SpriteImage_LineControlledStarCoin,
-    47: SpriteImage_BoltControlledStarCoin,
-    48: SpriteImage_MvmtRotControlledStarCoin,
+    47: SpriteImage_StarCoin,
+    48: SpriteImage_StarCoin,
     49: SpriteImage_RedCoin,
     50: SpriteImage_GreenCoin,
     51: SpriteImage_MontyMole,
@@ -11003,6 +11045,7 @@ ImageClasses = {
     383: SpriteImage_Wendy,
     385: SpriteImage_Ludwig,
     386: SpriteImage_MeltableIceChunk,
+    388: SpriteImage_PinkMultiPlatform,
     389: SpriteImage_Roy,
     390: SpriteImage_JungleBridge,
     391: SpriteImage_GrayCrystal,
@@ -11058,7 +11101,7 @@ ImageClasses = {
     476: SpriteImage_GiantKoopaTroopa,
     478: SpriteImage_BowserJrBlock,
     479: SpriteImage_Crash,
-    480: SpriteImage_MvmtRotControlledStarCoin,
+    480: SpriteImage_StarCoin,
     481: SpriteImage_WaddleWing,
     482: SpriteImage_MechaCheep,
     483: SpriteImage_SpinningFirebar,

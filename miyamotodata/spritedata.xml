@@ -655,12 +655,12 @@
 			<entry value="2">Up</entry>
 			<entry value="3">Down</entry>
 		</list>
-		<value nybble="9" title="Distance Multiplier" comment="Multiplies the distance from the starting point when the bolt is screwed."/>
-		<list nybble="16" title="Coin Number" comment="The Star Coin number in the level.">
+		<list nybble="9" title="Coin Number" comment="The Star Coin number in the level.">
 			<entry value="0">First Coin</entry>
 			<entry value="1">Second Coin</entry>
 			<entry value="2">Third</entry>
 		</list>
+		<value nybble="16" title="Distance Multiplier" comment="Multiplies the distance from the starting point when the bolt is screwed."/>
 		<value nybble="21-22" title="Bolt ID" comment="Use this to assign the star coin to a bolt."/>
 	</sprite>
 	<sprite id="48" name="Movement-controlled Star Coin">
@@ -4212,7 +4212,11 @@
 	<sprite id="298" name="Clampy">
 		<checkbox nybble="7" title="Unused Flag 7"/>
 		<value nybble="8" title="Unknown Value 8"/>
-		<value nybble="9" title="Unknown Value 9"/>
+		<list nybble="9" title="Star Coin Number" comment="The Star Coin number in the level.">
+			<entry value="0">First Coin</entry>
+			<entry value="1">Second Coin</entry>
+			<entry value="2">Third</entry>
+		</list>
 		<checkbox nybble="11" title="Falling"/>
 		<list nybble="12" title="Contains">
 			<entry value="0">Nothing [unused]</entry>
