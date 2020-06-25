@@ -674,6 +674,15 @@ class AuxiliaryImage(AuxiliarySpriteItem):
         self.width = width
         self.height = height
 
+    def setImage(self, image, xoff=0, yoff=0, doScale=False):
+        if doScale:
+            xoff *= TileWidth / 16
+            yoff *= TileWidth / 16
+
+        width, height = image.width(), image.height()
+        self.setSize(width, height, xoff, yoff)
+        self.image = image
+
     def paint(self, painter, option, widget=None):
 
         if option is not None:

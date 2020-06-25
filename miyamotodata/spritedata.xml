@@ -1964,42 +1964,51 @@
 	</sprite>
 	<sprite id="125" name="Bullet Bill [UNUSED]" notes="Crashes the game when no bullet bill launcher is present in the level. Has to be present in order for the sprite to load, since it doesn't load the files it needs.">
 		<value nybble="9" title="Unknown Value 9"/>
-		<list nybble="12" title="Direction" comment="The direction the bullet bill is shot.">
+		<list nybble="12" title="Direction 1" comment="The direction the bullet bill is shot.">
 			<entry value="0">Right</entry>
 			<entry value="1">Left</entry>
 			<entry value="2">Down</entry>
 			<entry value="3">Up</entry>
+			<entry value="4">Down + Left</entry>
+			<entry value="5">Down + Right</entry>
+			<entry value="6">Up + Right</entry>
+			<entry value="7">Up + Left</entry>
+			<entry value="11">Use Direction 2</entry>
+		</list>
+		<list nybble="11" title="Direction 2" comment="The direction the bullet bill is shot. Only used when Direction 1 is set to value 11.">
+			<entry value="0">Right</entry>
+			<entry value="1">Left</entry>
 		</list>
 		<value nybble="19" title="Unknown Value 19"/>
 	</sprite>
 	<sprite id="126" name="Banzai Bill [UNUSED]" notes="Unused. Crashes the game if there's no banzai bill launcher in the level.">
-		<list nybble="12" title="Direction" comment="The direction the Banzai Bill is fired.">
+		<list nybble="12" title="Direction 1" comment="The direction the banzai bill is shot.">
 			<entry value="0">Right</entry>
 			<entry value="1">Left</entry>
 			<entry value="2">Down</entry>
 			<entry value="3">Up</entry>
+			<entry value="4">Down + Left</entry>
+			<entry value="5">Down + Right</entry>
+			<entry value="6">Up + Right</entry>
+			<entry value="7">Up + Left</entry>
+			<entry value="11">Use Direction 2</entry>
+		</list>
+		<list nybble="11" title="Direction 2" comment="The direction the banzai bill is shot. Only used when Direction 1 is set to value 11.">
+			<entry value="0">Right</entry>
+			<entry value="1">Left</entry>
 		</list>
 	</sprite>
 	<sprite id="127" name="Bull's-Eye Bill [UNUSED]" notes="Unused; crashes the game if there is no bullet bill launcher in the level.">
-		<list nybble="12" title="Direction" comment="The direction the Bull's-Eye Bill is fired.">
+		<list nybble="11" title="Direction" comment="The direction the bullet bill is shot.">
 			<entry value="0">Right</entry>
 			<entry value="1">Left</entry>
-			<entry value="2">Down</entry>
-			<entry value="3">Up</entry>
 		</list>
 	</sprite>
-	<sprite id="128" name="Bull's-Eye Banzai Bill [UNUSED]" notes="Unused; crashes the game if the level doesn't contain a banzai bill launcher. ">
-		<list nybble="12" title="Direction" comment="The direction the Bull's-Eye Banzai Bill is fired.">
-			<entry value="0">Right</entry>
-			<entry value="1">Left</entry>
-			<entry value="2">Down</entry>
-			<entry value="3">Up</entry>
-		</list>
-	</sprite>
+	<sprite id="128" name="Bull's-Eye Banzai Bill [UNUSED]" notes="Unused; crashes the game if the level doesn't contain a banzai bill launcher. Spawns facing the player."/>
 	<sprite id="129" name="Jumping Cheep Cheep">
 		<list nybble="5" title="Direction" comment="The direction the cheep cheep jumps in.">
-			<entry value="0">Left</entry>
-			<entry value="1">Right</entry>
+			<entry value="0">Right</entry>
+			<entry value="1">Left</entry>
 		</list>
 		<list nybble="6" title="Jumping Height" comment="Jumping height.">
 			<entry value="0">High</entry>
@@ -2772,7 +2781,7 @@
 			<entry value="1">Left</entry>
 		</list>
 	</sprite>
-	<sprite id="171" name="Bill Blaster (Bullet Bill Cannon, Bullet Bill Launcher)" notes="A cannon that fires Bullet Bills. When setting initial state value to 1, the blaster will become a single bullet.">
+	<sprite id="171" name="Bill Blaster (Bullet Bill Cannon, Bullet Bill Launcher) (+)" notes="A cannon that fires Bullet Bills. (+) The initial state flag is usable. IF set to 1, the blaster will transform into a bill.">
 		<checkbox nybble="5" title="Upside-Down" comment="Makes the Bill Blaster spawn upside-down."/>
 		<value nybble="6" title="Maximum amount of bullets" comment="Value + (is_search ? 1 : 0x20)" />
 		<value nybble="9" title="Unknown Value 9" comment="Passed on to child search bullets as nybble 9" />
@@ -2785,7 +2794,7 @@
 		<checkbox nybble="12" title="Physics related" mask="2" comment="Does NOT make the blaster have gravity."/>
 		<value nybble="19" title="Unknown Value 19" comment="Passed on to child bullets as nybble 19"/>
 	</sprite>
-	<sprite id="172" name="Rising/Lowering Bill Blaster [UNUSED]" notes="A bullet bill launcher that can rise and lower, with various speeds! When setting initial state value to 1, the blaster will become a single bullet.">
+	<sprite id="172" name="Rising/Lowering Bill Blaster (+) [UNUSED]" notes="A bullet bill launcher that can rise and lower, with various speeds! (+) The initial state flag is usable. IF set to 1, the blaster will transform into a bill.">
 		<checkbox nybble="5" title="Upside-Down" comment="When checked, the Bill Blaster will be upside-down."/>
 		<list nybble="7" title="Direction" comment="The direction in which the Bullet Bills are fired.">
 			<entry value="0">Towards Player</entry>
@@ -2798,7 +2807,7 @@
 		<checkbox nybble="12" title="Physics related" mask="2" comment="Does NOT make the blaster have gravity."/>
 		<value nybble="19" title="Unknown Value 19" comment="Passed on to child bullets as nybble 19"/>
 	</sprite>
-	<sprite id="173" name="Banzai Bill Blaster / Spawner" notes="When setting initial state value to 1, the blaster will become a single bullet.">
+	<sprite id="173" name="Banzai Bill Blaster / Spawner (+)" notes="(+) The initial state flag is usable. IF set to 1, the blaster will transform into a bill.">
 		<value nybble="5-6" title="Shot Delay After Collision"/>
 		<value nybble="8" title="Unknown Value 8"/>
 		<value nybble="8" title="Unknown Value 9"/>
@@ -2811,7 +2820,7 @@
 		<checkbox nybble="12" title="Physics related" mask="2" comment="Does NOT make the blaster have gravity."/>
 		<value nybble="19" title="Unknown Value 19"/>
 	</sprite>
-	<sprite id="174" name="Upside-down Banzai Bill Blaster [UNUSED]" notes="A Banzai Bill Blaster, just upside down. Functions just like the regular Banzai Bill Blasters. When setting initial state value to 1, the blaster will become a single bullet.">
+	<sprite id="174" name="Upside-down Banzai Bill Blaster (+) [UNUSED]" notes="A Banzai Bill Blaster, just upside down. Functions just like the regular Banzai Bill Blasters. (+) The initial state flag is usable. IF set to 1, the blaster will transform into a bill.">
 		<value nybble="5-6" title="Shot Delay After Collision"/>
 		<value nybble="8" title="Unknown Value 8"/>
 		<value nybble="8" title="Unknown Value 9"/>
@@ -3212,18 +3221,30 @@
 			<entry value="6">2 Blocks [Useless and Glitchy]</entry>
 		</list>
 		<list nybble="10" title="Delay Between Eruptions">
-			<entry value="0">Long</entry>
-			<entry value="1">Short</entry>
-			<entry value="2">Medium</entry>
+			<entry value="0">3 Oscillations</entry>
+			<entry value="1">1 Oscillations</entry>
+			<entry value="2">2 Oscillations</entry>
+			<entry value="3">3 Oscillations</entry>
+			<entry value="4">4 Oscillations</entry>
+			<entry value="5">5 Oscillations</entry>
+			<entry value="6">6 Oscillations</entry>
+			<entry value="7">7 Oscillations</entry>
 		</list>
 		<list nybble="11" title="Eruption Length">
-			<entry value="0">Long</entry>
-			<entry value="1">Short</entry>
-			<entry value="2">Medium</entry>
+			<entry value="0">3 Oscillations</entry>
+			<entry value="1">1 Oscillations</entry>
+			<entry value="2">2 Oscillations</entry>
+			<entry value="3">3 Oscillations</entry>
+			<entry value="4">4 Oscillations</entry>
+			<entry value="5">5 Oscillations</entry>
+			<entry value="6">6 Oscillations</entry>
+			<entry value="7">7 Oscillations</entry>
 		</list>
 		<list nybble="12" title="Starts as" comment="Value 0: Prepares for Eruption when Mario enters the Screen. Value 1: Starts Erupting when Mario enters the Screen.">
 			<entry value="0">Not Erupting</entry>
-			<entry value="1">Erupting</entry>
+			<entry value="1">Start Erupting</entry>
+			<entry value="2">Halfway Erupting</entry>
+			<entry value="3">Fully Erupting</entry>
 		</list>
 	</sprite>
 	<sprite id="208" name="Event Controller - Brick Block &quot;?&quot; Switch (Orange) [UNUSED]" notes="A brick block containing a ? switch.">
@@ -4345,7 +4366,7 @@
 		<checkbox nybble="11" title="Unknown Flag 11"/>
 		<value nybble="12" title="Unknown Value 12"/>
 	</sprite>
-	<sprite id="316" name="Underground Crystal Block">
+	<sprite id="316" name="Pivotal-rotation-controlled Crystal Block">
 		<checkbox nybble="8" title="Unknown Flag 8"/>
 		<list nybble="10" title="Colour/Size" comment="Colour (width x height). Blue square is placed in the top-left corner. * means that the shape is not a rectangle, but it has a smaller rectangle removed from the bottom-left corner. ** Really weird shape. *** Rectangle with another rectangle at the top, slanted ~100 deg.">
 			<entry value="0">Purple (12x10)</entry>
@@ -4359,11 +4380,6 @@
 			<entry value="8">Light blue (8x12)</entry>
 			<entry value="9">Light blue (7x10)</entry>
 			<entry value="10">Light blue (35x10)</entry>
-			<entry value="11">Purple (12x10)</entry>
-			<entry value="12">Purple (12x10)</entry>
-			<entry value="13">Purple (12x10)</entry>
-			<entry value="14">Purple (12x10)</entry>
-			<entry value="15">Purple (12x10)</entry>
 		</list>
 		<value nybble="21-22" title="Movement ID" comment="Works with sprite 68, 69, 116 and 118. Needs a movement ID to function."/>
 		<value nybble="23-24" title="Crystal ID" comment="Some kind of ID."/>
@@ -5048,14 +5064,36 @@
 			<entry value="0">Counterclockwise</entry>
 			<entry value="1">Clockwise</entry>
 		</list>
-		<value nybble="11" title="Starting Rotation" comment="Value * 22.5"/>
-		<value nybble="12" title="Radius of circle" comment="Value + ????"/>
+		<list nybble="11" title="Starting Rotation">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0;</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0;</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0;</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
+		</list>
+		<value nybble="12" title="Radius"/>
 		<checkbox nybble="15" title="Unknown Checkbox 15"/>
 		<value nybble="16" title="Speed" comment="Use this to determine the speed. 0 causes a slight movement."/>
 		<value nybble="17" title="Unknown Value 17"/>
-		<value nybble="18" title="Platform Width" comment="Width of the platforms."/>
-		<value nybble="19" title="Unknown Value 19"/>
-		<value nybble="20" title="Unknown Value 20"/>
+		<value nybble="18" title="Platform Width" comment="Value 0 produces graphical glitches."/>
+		<list nybble="19" title="Platforms With Coins">
+			<entry value="0">None</entry>
+			<entry value="1">All</entry>
+			<entry value="2">Every Other</entry>
+			<entry value="3">Every Third</entry>
+		</list>
+		<value nybble="20" title="Coin Amount"/>
 	</sprite>
 	<sprite id="389" name="Roy Koopa"/>
 	<sprite id="390" name="Pivotal-rotation-controlled Jungle Bridge Platform">
@@ -5089,7 +5127,7 @@
 		<value bit="68-72" title="Length" comment="Value + 0. Value 0 = 1. Extends to the right of the sprite."/>
 		<value nybble="21-22" title="Movement ID" comment="Attatches to sprite 68 and 69."/>
 	</sprite>
-	<sprite id="391" name="Pivotal-rotation-controlled Crystal Block">
+	<sprite id="391" name="Pivotal-rotation-controlled Crystal Block (2)">
 		<list nybble="10" title="Type" comment="* This is not cyrstalized. (Also unused.)">
 			<entry value="0">4 x 2 Rectangle*</entry>
 			<entry value="1"> 5 x 2 Rectangle</entry>
@@ -5107,7 +5145,7 @@
 		<value nybble="21-22" title="Movement ID" comment="Use this value to assign the sprite to a rotation controller."/>
 	</sprite>
 	<sprite id="392" name="Bowser Jr. (W5) [UNUSED]"/>
-	<sprite id="393" name="4x4 Ice Block" notes="Spawns an unbreakable 4x4 ice block.">
+	<sprite id="393" name="3x3 Ice Block" notes="Spawns an unbreakable 3x3 ice block. This ice block is gravity-affected and spawns on ground by default.">
 		<list nybble="18" title="X-Scale">
 			<entry value="0">1</entry>
 			<entry value="1">1.8</entry>
@@ -5280,7 +5318,7 @@
 	<sprite id="413" name="Nabbit" notes="This sprite is spawned automatically by the game. If you want to have Nabbit in your level, use sprite 451 (Nabbit placement) instead."/>
 	<sprite id="414" name="Lemmy's Airship in Background" notes="Maybe improve name. "/>
 	<sprite id="415" name="Morton's Airship in Background"/>
-	<sprite id="416" name="Bull's-Eye Banzai Bill Spawner [UNUSED]">
+	<sprite id="416" name="Bull's-Eye Banzai Bill Spawner [UNUSED]" notes="Spawns banzai bills facing the player.">
 		<value nybble="11-12" title="Delay" comment="The delay between spawned Banzai Bills. Each value adds 20 frames to the delay."/>
 	</sprite>
 	<sprite id="417" name="Larry's Airship in Background"/>
@@ -6250,8 +6288,8 @@
 		<value nybble="8" title="Unknown Value 8" comment="No visible effect."/>
 		<value nybble="10" title="Rolling Distance" comment="The distance it rolls!"/>
 		<value nybble="16" title="Rolling Speed" comment="The speed it rolls! The game multiplies this value by 26,215."/>
-		<value nybble="18" title="Height" comment="Height of the ice block."/>
-		<value nybble="20" title="Width" comment="Width of the ice block."/>
+		<value nybble="18" title="Width" comment="Width of the ice block. Value + 1."/>
+		<value nybble="20" title="Height" comment="Height of the ice block. Value + 1."/>
 	</sprite>
 	<sprite id="540" name="Flying Mushroom Platform [UNUSED]">
 		<list nybble="9" title="Color">
@@ -6442,8 +6480,23 @@
 	</sprite>
 	<sprite id="565" name="Magmaw" notes="An enemy that rises out of the lava, lunges at the player, and falls back into the lava.">
 		<value nybble="6" title="Height" comment="The height of the Magmaw. (Value - 1)"/>
+		<list nybble="10" title="Delay Between Eruptions">
+			<entry value="0">3 Oscillations</entry>
+			<entry value="1">1 Oscillations</entry>
+			<entry value="2">2 Oscillations</entry>
+			<entry value="3">3 Oscillations</entry>
+			<entry value="4">4 Oscillations</entry>
+			<entry value="5">5 Oscillations</entry>
+			<entry value="6">6 Oscillations</entry>
+			<entry value="7">7 Oscillations</entry>
+		</list>
 		<value nybble="11" title="Unknown Value 11"/>
-		<checkbox nybble="12" title="Rise on Spawn" comment="When checked, the Magmaw will rise on spawn."/>
+		<list nybble="12" title="Starts as" comment="Value 0: Prepares for Eruption when Mario enters the Screen. Value 1: Starts Erupting when Mario enters the Screen.">
+			<entry value="0">Not Erupting</entry>
+			<entry value="1">Start Erupting</entry>
+			<entry value="2">Halfway Erupting</entry>
+			<entry value="3">Fully Erupting</entry>
+		</list>
 	</sprite>
 	<sprite id="566" name="Nabbit-Chase-Only Metal Block" notes="This metal block only appears when the player is chasing Nabbit."/>
 	<sprite id="567" name="Flame Chomp Spawner [UNUSED]" notes="Doesn't seem to spawn anything. Must be spawned by another sprite."/>
@@ -6564,7 +6617,7 @@
 	<sprite id="580" name="Stone Spike (Stationary)">
 		<value nybble="12" title="Unknown Value 12"/>
 	</sprite>
-	<sprite id="581" name="Bull's-Eye Bill Blaster (Homing, Missile) [UNUSED]" notes="A Bill Blaster that shoots homing Bull's-Eye Bills (homing ones, also known as Missile Bills).">
+	<sprite id="581" name="Bull's-Eye Bill Blaster (Homing, Missile) (+) [UNUSED]" notes="A Bill Blaster that shoots homing Bull's-Eye Bills (homing ones, also known as Missile Bills). (+) The initial state flag is usable. IF set to 1, the blaster will transform into a bill.">
 		<checkbox nybble="5" title="Upside-Down" comment="When checked, the Bill Blaster will be upside-down."/>
 		<list nybble="9" title="Behavior" comment="* With an extra beeping sound!">
 			<entry value="0">Homes</entry>
@@ -6578,13 +6631,13 @@
 		</list>
 		<value nybble="11" title="Height" comment="Value + 2 blocks"/>
 	</sprite>
-	<sprite id="582" name="Bull's-Eye Banzai Bill Blaster (Homing, Missile) [UNUSED]">
+	<sprite id="582" name="Bull's-Eye Banzai Bill Blaster (Homing, Missile) (+) [UNUSED]" notes="Shoots bills facing the player. (+) The initial state flag is usable. IF set to 1, the blaster will transform into a bill.">
 		<value nybble="5" title="Number Of Banzai Bills Shot" comment="0 is infinite."/>
 		<value nybble="6" title="Shooting Speed" comment="3 is pretty fast."/>
 		<value nybble="8" title="Respawn Delay" comment="The delay before firing the next Bullet after the previous one has been killed."/>
 		<checkbox nybble="10" title="Unknown Checkbox 10"/>
 	</sprite>
-	<sprite id="583" name="Upside-Down Bull's-Eye Banzai Bill Blaster (Homing, Missile) [UNUSED]"/>
+	<sprite id="583" name="Upside-Down Bull's-Eye Banzai Bill Blaster (Homing, Missile) (+) [UNUSED]" notes="Shoots bills facing the player. (+) The initial state flag is usable. IF set to 1, the blaster will transform into a bill."/>
 	<sprite id="584" name="Metal Box">
 		<value nybble="7" title="Unknown Value 7"/>
 		<list nybble="10" title="Size" comment="The size the Metal Box is. Note: 1= 2x4 Tiles (horizontal) and 2= 4x2 (vertical)">
@@ -6731,8 +6784,13 @@
 		<value nybble="11" title="Unknown Value 11" comment="Maybe location ID"/>
 	</sprite>
 	<sprite id="612" name="Non-solid-when-you-have-P-Acorn Block" notes="You can pass through this block when you have the P-Acorn.">
-		<value nybble="11" title="Unknown Value 11" comment="Always 8"/>
-		<value nybble="12" title="Unknown Value 12"/>
+		<value nybble="11" title="Length" comment="Value + 1"/>
+		<list nybble="12" title="Solidity">
+			<entry value="0">Solid-on-top</entry>
+			<entry value="1">Solid-on-bottom</entry>
+			<entry value="2">Solid-on-left</entry>
+			<entry value="3">Solid-on-right</entry>
+		</list>
 	</sprite>
 	<sprite id="613" name="Golden Pipe (Left) [UNUSED]" notes="This sprite appears once enough coins are collected in the area is in.">
 		<value nybble="5" title="Mode 2: Coin Multiplier"/>
@@ -6957,7 +7015,7 @@
 		<value nybble="18" title="Platform Length" comment="Width of the platform."/>
 		<value nybble="21-22" title="Movement ID" comment="Attatches to 68."/>
 	</sprite>
-	<sprite id="646" name="Banzai Bill Blaster with Luigi Emblem - NSLU">
+	<sprite id="646" name="Banzai Bill Blaster with Luigi Emblem - NSLU (+)" notes="Shoots Banzai Bills. Also has a nice Luigi logo on the cannon. (+) The initial state flag is usable. IF set to 1, the blaster will transform into a bill.">
 		<value nybble="6" title="Unknown Value 6" comment="Only used as 12."/>
 		<list nybble="10" title="Direction" comment="Direction the Blaster fires in.">
 			<entry value="0">Towards player</entry>
@@ -6965,9 +7023,9 @@
 			<entry value="2">Right only</entry>
 		</list>
 	</sprite>
-	<sprite id="647" name="Upside-Down Banzai Bill Blaster with Luigi Emblem - NSLU [UNUSED]" notes="Fires Banzai Bills. Also has a nice Luigi logo on the cannon."/>
-	<sprite id="648" name="Bull's-Eye Banzai Bill Blaster with Luigi Emblem - NSLU [UNUSED]" notes="Shoots Homing Banzai Bills. Also has a Luigi logo on the cannon."/>
-	<sprite id="649" name="Upside-Down Bull's-Eye Banzai Bill Blaster with Luigi Emblem - NSLU [UNUSED]" notes="An upside down Banzai Bill launcher. Has a Luigi logo on the cannon."/>
+	<sprite id="647" name="Upside-Down Banzai Bill Blaster with Luigi Emblem - NSLU (+) [UNUSED]" notes="An upside down Banzai Bill launcher. Has a Luigi logo on the cannon. (+) The initial state flag is usable. IF set to 1, the blaster will transform into a bill."/>
+	<sprite id="648" name="Bull's-Eye Banzai Bill Blaster with Luigi Emblem - NSLU (+) [UNUSED]" notes="Shoots Homing Banzai Bills. Also has a Luigi logo on the cannon. Shoots bills facing the player. (+) The initial state flag is usable. IF set to 1, the blaster will transform into a bill."/>
+	<sprite id="649" name="Upside-Down Bull's-Eye Banzai Bill Blaster with Luigi Emblem - NSLU (+) [UNUSED]" notes="An upside down Homing Banzai Bill launcher. Has a Luigi logo on the cannon. Shoots bills facing the player. (+) The initial state flag is usable. IF set to 1, the blaster will transform into a bill."/>
 	<sprite id="650" name="Movement-controlled Star Coin - NSLU">
 		<list nybble="9" title="Star coin number">
 			<entry value="0">First star coin</entry>
@@ -6993,7 +7051,7 @@
 			<entry value="1">Left</entry>
 		</list>
 	</sprite>
-	<sprite id="653" name="Banzai Bill - NSLU" notes="A much larger bullet bill that will launch towards the player.">
+	<sprite id="653" name="King Bill - NSLU" notes="A much larger bullet bill that will launch towards the player.">
 		<value nybble="11" title="Unknown Value 11"/>
 	</sprite>
 	<sprite id="654" name="Running Nabbit - NSLU [UNUSED]" notes="Nabbit just runs...in one direction. He ignores slopes, just runs in a straight line."/>
@@ -7147,7 +7205,7 @@
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
 	<sprite id="670" name="Minigame Manager - NSLU [UNUSED]"/>
-	<sprite id="671" name="Rusty Pipe Platform - NSLU" notes="A rusty platform, with an end broken. The end that is broken is defined by a setting.">
+	<sprite id="671" name="Grrrol Passage - NSLU" notes="A rusty platform, with an end broken. The end that is broken is defined by a setting.">
 		<list nybble="12" title="Cracked End Direction" comment="The direction the cracked end faces.">
 			<entry value="0">Right</entry>
 			<entry value="1">Left</entry>
