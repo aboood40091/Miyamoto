@@ -2482,7 +2482,7 @@
 		<value nybble="23-24" title="Coin ID"/>
 	</sprite>
 	<sprite id="159" name="Expanding/Contracting Pipe - Right" notes="A pipe that expands and contracts at certain heights, defined by the nybbles.">
-		<list nybble="8" title="Color" comment="The color of the pipe! [Unused]">
+		<list nybble="8" title="Color" comment="Color of the pipe.">
 			<entry value="0">Green</entry>
 			<entry value="1">Red</entry>
 			<entry value="2">Yellow</entry>
@@ -2501,7 +2501,7 @@
 			<entry value="2">Yellow</entry>
 			<entry value="3">Purple</entry>
 		</list>
-		<checkbox nybble="10" title="Painted" comment="Makes the pipe painted if checked."/>
+		<checkbox nybble="10" title="Painted" comment="Makes the pipe painted."/>
 		<value nybble="11" title="Ending Height" comment="The height when the pipe finishes half a cycle."/>
 		<value nybble="12" title="Starting Height" comment="The height when the pipe starts moving."/>
 		<value nybble="13" title="Delay Between Movements" comment="Increases the delay between the movements of the pipe."/>
@@ -2514,14 +2514,14 @@
 			<entry value="2">Yellow</entry>
 			<entry value="3">Purple</entry>
 		</list>
-		<checkbox nybble="10" title="Painted" comment="Tick this to make your pipe painted!"/>
+		<checkbox nybble="10" title="Painted" comment="Makes the pipe painted."/>
 		<value nybble="11" title="Ending Height" comment="The height when the pipe finishes half a cycle."/>
 		<value nybble="12" title="Starting Height" comment="The height when the pipe starts moving."/>
 		<value nybble="13" title="Delay Between Movements" comment="The delay between movements."/>
 		<value nybble="16" title="Speed"/>
 	</sprite>
 	<sprite id="162" name="Expanding/Contracting Pipe - Down" notes="A pipe that can move up and down in various speeds.">
-		<list nybble="8" title="Color" comment="The color of the pipe! [Unused]">
+		<list nybble="8" title="Color" comment="Color of the pipe.">
 			<entry value="0">Green</entry>
 			<entry value="1">Red</entry>
 			<entry value="2">Yellow</entry>

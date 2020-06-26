@@ -3348,9 +3348,8 @@ class SpriteImage_WaterGeyser(SLib.SpriteImage_StaticMultiple):  # 156
     def paint(self, painter):
         super().paint(painter)
 
-        painter.drawTiledPixmap(self.x, self.y + 15, self.width * (60/16), self.height * (60/16) - 15, self.middle.scaledToWidth(self.width * (60/16), Qt.SmoothTransformation))
-        if self.hasTop:
-            painter.drawPixmap(self.topX, self.topY, self.width * (60/16), 180, self.top)
+        painter.drawTiledPixmap(0, 15, self.width * (60/16), self.height * (60/16) - 15, self.middle.scaledToWidth(self.width * (60/16), Qt.SmoothTransformation))
+        painter.drawPixmap(0, 0, self.width * (60/16), 180, self.top)
 
 
 class SpriteImage_BarCenter(SLib.SpriteImage_Static):  # 157
@@ -3582,9 +3581,8 @@ class SpriteImage_WaterGeyserLocation(SLib.SpriteImage_StaticMultiple):  # 163, 
     def paint(self, painter):
         super().paint(painter)
 
-        painter.drawTiledPixmap(self.x, self.y + 15, self.width * (60/16), self.height * (60/16) - 15, self.middle.scaledToWidth(self.width * (60/16), Qt.SmoothTransformation))
-        if self.hasTop:
-            painter.drawPixmap(self.topX, self.topY, self.width * (60/16), 180, self.top)
+        painter.drawTiledPixmap(0, 15, self.width * (60/16), self.height * (60/16) - 15, self.middle.scaledToWidth(self.width * (60/16), Qt.SmoothTransformation))
+        painter.drawPixmap(0, 0, self.width * (60/16), 180, self.top)
 
 
 class SpriteImage_BobOmb(SLib.SpriteImage_Static):  # 164
@@ -4628,7 +4626,7 @@ class SpriteImage_BigBoo(SLib.SpriteImage_Static):  # 219
             parent,
             3.75,
             ImageCache['BigBoo'],
-            (-64, -112),
+            (-72, -120),
         )
 
     @staticmethod
@@ -8435,7 +8433,7 @@ class SpriteImage_Bowser(SLib.SpriteImage_Static):  # 462
             parent,
             3.75,
             ImageCache['Bowser'],
-            (-56, -80),
+            (-52, -80),
         )
 
     @staticmethod
@@ -8501,6 +8499,23 @@ class SpriteImage_BowserShutter(SLib.SpriteImage_Static):  # 467
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('BowserShutter', 'bowser_shutter.png')
+
+
+class SpriteImage_BowserFireball(SLib.SpriteImage):  # 468
+    def __init__(self, parent):
+        super().__init__(parent, 3.75)
+
+        self.offset = (-12, -4)
+        self.width = 24
+        self.height = 24
+
+        self.spritebox.shown = False
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+        self.aux[0].setImage(ImageCache['BowserFireball'], -44, -52, True)
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BowserFireball', 'bowser_fireball.png')
 
 
 class SpriteImage_Peach(SLib.SpriteImage_Static):  # 469
@@ -10542,6 +10557,7 @@ ImageClasses = {
     464: SpriteImage_BowserBridge,
     465: SpriteImage_KamekFloor,
     467: SpriteImage_BowserShutter,
+    468: SpriteImage_BowserFireball,
     469: SpriteImage_Peach,
     471: SpriteImage_MediumGoomba,
     472: SpriteImage_BigGoomba,
@@ -10565,6 +10581,7 @@ ImageClasses = {
     496: SpriteImage_Coin,
     499: SpriteImage_MovingGrassPlatform,
     500: SpriteImage_BowserAmp,
+    502: SpriteImage_BowserAmp,
     503: SpriteImage_PaintGoal,
     504: SpriteImage_Grrrol,
     505: SpriteImage_BigGrrrol,
