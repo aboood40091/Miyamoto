@@ -2489,9 +2489,10 @@
 			<entry value="3">Purple</entry>
 		</list>
 		<checkbox nybble="10" title="Painted" comment="Makes the pipe painted."/>
-		<value nybble="11" title="Starting Height" comment="The height when the pipe starts moving."/>
-		<value nybble="12" title="Ending Height" comment="Goes back up when it reaches this height."/>
+		<value nybble="11" title="Ending Height" comment="The height when the pipe finishes half a cycle."/>
+		<value nybble="12" title="Starting Height" comment="The height when the pipe starts moving."/>
 		<value nybble="13" title="Delay Between Movements" comment="The delay where it hits one of the heights."/>
+		<value nybble="16" title="Speed"/>
 	</sprite>
 	<sprite id="160" name="Expanding/Contracting Pipe - Left" notes="A pipe that expands and contracts, facing to the left.">
 		<list nybble="8" title="Color" comment="Color of the pipe.">
@@ -2501,9 +2502,10 @@
 			<entry value="3">Purple</entry>
 		</list>
 		<checkbox nybble="10" title="Painted" comment="Makes the pipe painted if checked."/>
-		<value nybble="11" title="Tallest Height" comment="The height at it's max."/>
-		<value nybble="12" title="Shortest Height" comment="The height at it's minimum. "/>
+		<value nybble="11" title="Ending Height" comment="The height when the pipe finishes half a cycle."/>
+		<value nybble="12" title="Starting Height" comment="The height when the pipe starts moving."/>
 		<value nybble="13" title="Delay Between Movements" comment="Increases the delay between the movements of the pipe."/>
+		<value nybble="16" title="Speed"/>
 	</sprite>
 	<sprite id="161" name="Expanding/Contracting Pipe - Up">
 		<list nybble="8" title="Color" comment="Color of the pipe.">
@@ -2513,20 +2515,23 @@
 			<entry value="3">Purple</entry>
 		</list>
 		<checkbox nybble="10" title="Painted" comment="Tick this to make your pipe painted!"/>
-		<value nybble="11" title="Tallest Height" comment="The height at the tallest."/>
-		<value nybble="12" title="Shortest Height" comment="The height at the shortest."/>
+		<value nybble="11" title="Ending Height" comment="The height when the pipe finishes half a cycle."/>
+		<value nybble="12" title="Starting Height" comment="The height when the pipe starts moving."/>
 		<value nybble="13" title="Delay Between Movements" comment="The delay between movements."/>
-		<value nybble="16" title="Unknown Value 16"/>
+		<value nybble="16" title="Speed"/>
 	</sprite>
 	<sprite id="162" name="Expanding/Contracting Pipe - Down" notes="A pipe that can move up and down in various speeds.">
-		<list nybble="11" title="Colour" comment="The color of the piep.">
+		<list nybble="8" title="Color" comment="The color of the pipe! [Unused]">
 			<entry value="0">Green</entry>
 			<entry value="1">Red</entry>
 			<entry value="2">Yellow</entry>
 			<entry value="3">Purple</entry>
 		</list>
-		<value nybble="12" title="Height 1"/>
-		<value nybble="13" title="Height 2"/>
+		<checkbox nybble="10" title="Painted" comment="Makes the pipe painted."/>
+		<value nybble="11" title="Ending Height" comment="The height when the pipe finishes half a cycle."/>
+		<value nybble="12" title="Starting Height" comment="The height when the pipe starts moving."/>
+		<value nybble="13" title="Delay Between Movements" comment="The delay where it hits one of the heights."/>
+		<value nybble="16" title="Speed"/>
 	</sprite>
 	<sprite id="163" name="Location-triggered Water Geyser" notes="Also know as &quot;water spout&quot;. Caused by a quick rise in water temperature, these things cause the whole lake to be at a nice temperature, even during winters. Often, Urchins are resting on top of one.">
 		<value nybble="5-6" title="Location ID" comment="Waits until a player is in this location until it rises for the first time."/>
@@ -5281,13 +5286,14 @@
 		<list nybble="8" title="Type" comment="The pipe type.">
 			<entry value="0">Normal</entry>
 			<entry value="1">Painted</entry>
+			<entry value="2">Big</entry>
 		</list>
 		<value nybble="10" title="Destination Entrance ID" comment="Actually makes it's own entrance! Type in the destination value here."/>
 		<list nybble="11" title="Color" comment="The color of the pipe.">
 			<entry value="0">Green</entry>
 			<entry value="1">Red</entry>
 			<entry value="2">Yellow</entry>
-			<entry value="3">Blue</entry>
+			<entry value="3">Purple/Blue</entry>
 		</list>
 		<value nybble="12" title="Height" comment="Value + 2"/>
 	</sprite>
@@ -6057,42 +6063,48 @@
 		<value nybble="15" title="Unknown Value 15"/>
 		<value nybble="16" title="Unknown Value 16"/>
 	</sprite>
-	<sprite id="509" name="Enterable Pipe - Right [UNUSED]" notes="A pipe that you can enter without having an entrance on the sprite. Seems to only send you to 0, though.">
+	<sprite id="509" name="Pipe - Right (Enterable) [UNUSED]" notes="A pipe that you can enter without having an entrance on the sprite. Seems to only send you to 0, though.">
 		<list nybble="8" title="Type" comment="The type of pipe.">
 			<entry value="0">Normal</entry>
 			<entry value="1">Painted</entry>
+			<entry value="2">Big</entry>
 		</list>
-		<value nybble="10" title="Entrance ID"/>
+		<value nybble="10" title="Destination Entrance ID" comment="Actually makes it's own entrance! Type in the destination value here."/>
 		<list nybble="11" title="Color" comment="Color of the pipe.">
 			<entry value="0">Green</entry>
 			<entry value="1">Red</entry>
 			<entry value="2">Yellow</entry>
-			<entry value="3">Blue</entry>
+			<entry value="3">Purple/Blue</entry>
 		</list>
 		<value nybble="12" title="Length" comment="Length of the pipe."/>
 	</sprite>
-	<sprite id="510" name="Enterable Pipe - Left [UNUSED]" notes="A pipe that you can enter without having an entrance on the sprite. Seems to only send you to 0, though">
+	<sprite id="510" name="Pipe - Left (Enterable) [UNUSED]" notes="A pipe that you can enter without having an entrance on the sprite. Seems to only send you to 0, though">
 		<list nybble="8" title="Type" comment="The type of pipe.">
 			<entry value="0">Normal</entry>
 			<entry value="1">Painted</entry>
+			<entry value="2">Big</entry>
 		</list>
-		<value nybble="10" title="Entrance ID?"/>
+		<value nybble="10" title="Destination Entrance ID" comment="Actually makes it's own entrance! Type in the destination value here."/>
 		<list nybble="11" title="Color" comment="The color of the pipe.">
 			<entry value="0">Green</entry>
 			<entry value="1">Red</entry>
 			<entry value="2">Yellow</entry>
-			<entry value="3">Blue</entry>
+			<entry value="3">Purple/Blue</entry>
 		</list>
 		<value nybble="12" title="Length" comment="The pipe length."/>
 	</sprite>
-	<sprite id="511" name="Pipe - Down">
-		<checkbox nybble="8" title="Painted" comment="If this is checked, the pipe will be &quot;painted&quot;."/>
-		<value nybble="10" title="Unknown Value 10"/>
+	<sprite id="511" name="Pipe - Down (Enterable)">
+		<list nybble="8" title="Type" comment="The type of pipe.">
+			<entry value="0">Normal</entry>
+			<entry value="1">Painted</entry>
+			<entry value="2">Big</entry>
+		</list>
+		<value nybble="10" title="Destination Entrance ID" comment="Actually makes it's own entrance! Type in the destination value here."/>
 		<list nybble="11" title="Color" comment="Value 3 is a wild guess, as it's unused in the retail game.">
 			<entry value="0">Green</entry>
 			<entry value="1">Red</entry>
 			<entry value="2">Yellow</entry>
-			<entry value="3">Purple/Blue?</entry>
+			<entry value="3">Purple/Blue</entry>
 		</list>
 		<value nybble="12" title="Height" comment="Value + 1. Other nybbles may influence this though."/>
 	</sprite>
