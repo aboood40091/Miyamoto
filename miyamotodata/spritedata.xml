@@ -3211,14 +3211,13 @@
 	</sprite>
 	<sprite id="206" name="Boom Boom (W1 - Flailing)" notes="The Acorn Plains version of Boom boom."/>
 	<sprite id="207" name="Lava Geyser" notes="A lava themed obstacle that comes out of lava, and then goes back down. ">
-		<list nybble="9" title="Geyser Height" comment="Value 6 results in the geyser oscillating between a max height of about 2 blocks and min height -1 block(!).">
+		<list nybble="9" title="Geyser Height">
 			<entry value="0">10 Blocks</entry>
 			<entry value="1">9 Blocks</entry>
-			<entry value="2">8.5 Blocks</entry>
-			<entry value="3">8 Blocks</entry>
-			<entry value="4">7 Blocks</entry>
-			<entry value="5">6 Blocks</entry>
-			<entry value="6">2 Blocks [Useless and Glitchy]</entry>
+			<entry value="2">8 Blocks</entry>
+			<entry value="3">7 Blocks</entry>
+			<entry value="4">6 Blocks</entry>
+			<entry value="5">5 Blocks</entry>
 		</list>
 		<list nybble="10" title="Delay Between Eruptions">
 			<entry value="0">3 Oscillations</entry>

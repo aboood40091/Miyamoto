@@ -4982,18 +4982,16 @@ class SpriteImage_LavaGeyser(SLib.SpriteImage_StaticMultiple):  # 207
 
     @staticmethod
     def loadImages():
-        for i in range(7):
+        for i in range(6):
             SLib.loadIfNotInImageCache('LavaGeyser%d' % i, 'lava_geyser_%d.png' % i)
 
     def dataChanged(self):
-        size = self.parent.spritedata[4] >> 4; size = 0 if size > 6 else size
+        size = self.parent.spritedata[4] >> 4; size = 0 if size > 5 else size
         self.image = ImageCache['LavaGeyser%d' % size]
 
-        startsOn = self.parent.spritedata[5] & 1
-        self.alpha = 0.75 if startsOn else 0.5
+        startsOn = self.parent.spritedata[5] & 3
+        self.alpha = (startsOn + 1) / 4.0
 
-        self.yOffset = -160
-        
         if size == 1:
             self.yOffset = -152
 
@@ -5009,8 +5007,8 @@ class SpriteImage_LavaGeyser(SLib.SpriteImage_StaticMultiple):  # 207
         elif size == 5:
             self.yOffset = -96
 
-        elif size == 6:
-            self.yOffset = -48
+        else:
+            self.yOffset = -160
 
         super().dataChanged()
 
