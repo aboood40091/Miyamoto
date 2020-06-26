@@ -151,19 +151,6 @@ class SpriteImage_Pipe(SLib.SpriteImage):
             painter.drawPixmap(self.topX, self.topY, ImageCache['Pipe%s%s%s%s' % (d, t, self.type, self.color)])
 
 
-class SpriteImage_Useless(SLib.SpriteImage_Static):  # X
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Useless'],
-        )
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('Useless', 'useless.png')
-
-
 class SpriteImage_Crash(SLib.SpriteImage_Static):  # X
     def __init__(self, parent):
         super().__init__(
@@ -10260,7 +10247,6 @@ ImageClasses = {
     98: SpriteImage_PipeEnemyGenerator,
     99: SpriteImage_MegaUrchin,
     101: SpriteImage_CheepCheep,
-    102: SpriteImage_Useless,
     103: SpriteImage_RotatingBillCanon,
     104: SpriteImage_QuestionSwitch,
     105: SpriteImage_PSwitch,
@@ -10287,7 +10273,6 @@ ImageClasses = {
     129: SpriteImage_JumpingCheepCheep,
     132: SpriteImage_ShiftingRectangle,
     133: SpriteImage_SpineCoaster,
-    134: SpriteImage_Useless,
     135: SpriteImage_Thwomp,
     136: SpriteImage_GiantThwomp,
     137: SpriteImage_DryBones,
@@ -10389,7 +10374,6 @@ ImageClasses = {
     241: SpriteImage_BoltMushroom,
     242: SpriteImage_BoltMushroomNoBolt,
     243: SpriteImage_BabyYoshi,
-    244: SpriteImage_Useless,
     246: SpriteImage_BoomBoom,
     247: SpriteImage_PricklyGoomba,
     248: SpriteImage_GhostHouseBoxFrame,
@@ -10546,11 +10530,9 @@ ImageClasses = {
     443: SpriteImage_BonyBeetle,
     446: SpriteImage_FliprusSnowball,
     447: SpriteImage_SpikeTop,
-    449: SpriteImage_Useless,
     451: SpriteImage_NabbitPlacement,
     452: SpriteImage_Crash,
     455: SpriteImage_ClapCrowd,
-    456: SpriteImage_Useless,
     457: SpriteImage_WobbyBonePlatform,
     458: SpriteImage_GoldenPipeDown,
     462: SpriteImage_Bowser,
@@ -10621,7 +10603,6 @@ ImageClasses = {
     548: SpriteImage_Sprite548,
     549: SpriteImage_DesertBlock,
     550: SpriteImage_GiantPipePiranha,
-    551: SpriteImage_Useless,
     552: SpriteImage_Muncher,
     553: SpriteImage_SteerablePlatform,
     555: SpriteImage_Crash,
