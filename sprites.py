@@ -9964,17 +9964,28 @@ class SpriteImage_SwingingChain(SLib.SpriteImage_Static):  # 602
         SLib.loadIfNotInImageCache('SwingingChain', 'swinging_chain.png')
 
 
-class SpriteImage_BigBuzzyBeetle(SLib.SpriteImage_Static):  # 606
+class SpriteImage_BigBuzzyBeetle(SLib.SpriteImage_StaticMultiple):  # 606
+    yOffsets = (0, 0, -4, 4)
+
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
-            ImageCache['BigBuzzyBeetle'],
         )
+
+        self.xOffset = -4
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('BigBuzzyBeetle', 'big_buzzy_beetle.png')
+        for i in range(4):
+            SLib.loadIfNotInImageCache('BigBuzzyBeetle%d' % i, 'big_buzzy_beetle_%d.png' % i)
+
+    def dataChanged(self):
+        type = self.parent.spritedata[5] & 3
+        self.image = ImageCache['BigBuzzyBeetle%d' % type]
+        self.yOffset = SpriteImage_BigBuzzyBeetle.yOffsets[type]
+
+        super().dataChanged()
 
 
 class SpriteImage_IggyRoom(SLib.SpriteImage):  # 609
