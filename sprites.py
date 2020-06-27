@@ -5398,37 +5398,33 @@ class SpriteImage_GreyBlock(SLib.SpriteImage_StaticMultiple):  # 250
         super().dataChanged()
 
 
-class SpriteImage_GiantBubble(SLib.SpriteImage):  # 251
-    def __init__(self, parent, scale=3.75):
-        super().__init__(parent, scale)
-        self.spritebox.shown = False
+class SpriteImage_FloatingBubble(SLib.SpriteImage_StaticMultiple):  # 251
+    offsets = (
+        (-60, -60),
+        (-36, -76),
+        (-76, -36),
+    )
+
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
 
     @staticmethod
     def loadImages():
-        if 'GiantBubble0' not in ImageCache:
+        if 'FloatingBubble0' not in ImageCache:
             for shape in range(4):
-                ImageCache['GiantBubble%d' % shape] = SLib.GetImg('giant_bubble_%d.png' % shape)
+                ImageCache['FloatingBubble%d' % shape] = SLib.GetImg('floating_bubble_%d.png' % shape)
 
     def dataChanged(self):
+        shape = self.parent.spritedata[4] >> 4
+        if shape > 2: shape = 0
+
+        self.image = ImageCache['FloatingBubble%d' % shape]
+        self.offset = SpriteImage_FloatingBubble.offsets[shape]
+
         super().dataChanged()
-
-        self.shape = self.parent.spritedata[4] >> 4
-        self.direction = self.parent.spritedata[5] & 15
-
-        if self.shape == 0 or self.shape > 3:
-            self.size = (122, 137)
-        elif self.shape == 1:
-            self.size = (76, 170)
-        elif self.shape == 2:
-            self.size = (160, 81)
-
-        self.xOffset = -(self.width / 2) + 8
-        self.yOffset = -(self.height / 2) + 8
-
-    def paint(self, painter):
-        super().paint(painter)
-
-        painter.drawPixmap(0, 0, ImageCache['GiantBubble%d' % self.shape])
 
 
 class SpriteImage_RopeLadder(SLib.SpriteImage_StaticMultiple):  # 252
@@ -10443,7 +10439,7 @@ ImageClasses = {
     248: SpriteImage_GhostHouseBoxFrame,
     249: SpriteImage_Wiggler,
     250: SpriteImage_GreyBlock,
-    251: SpriteImage_GiantBubble,
+    251: SpriteImage_FloatingBubble,
     252: SpriteImage_RopeLadder,
     253: SpriteImage_LightCircle,
     254: SpriteImage_UnderwaterLamp,
