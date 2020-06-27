@@ -581,8 +581,7 @@
 			<entry value="6">Super Mushroom</entry>
 			<entry value="7">Super Mushroom</entry>
 		</list>
-		<value nybble="12" title="Coin Set ID" comment="Use this to link up 8 coins. 0 is a valid value."/>
-		<value nybble="21-22" title="Movement ID" comment="Use this to assign the ring to a movement controller."/>
+		<checkbox nybble="12" title="Shift 1/2 block to the right" comment="This shifts the coin ring 1/2 block to the right."/>
 	</sprite>
 	<sprite id="45" name="Star Coin" notes="There may be a nybble to disable falling from a pow block.">
 		<value nybble="3-4" title="Target Event ID" comment="Triggers this Event when collected."/>
@@ -699,9 +698,8 @@
 		<value nybble="9" title="Unknown Value 9"/>
 		<value nybble="10" title="Z-Order" comment="Possible values are 0, 1, and 2."/>
 		<value nybble="12" title="Unknown Value 12"/>
-		<value nybble="19" title="Coin Set ID" comment="Use this to link this coin to a red coin ring. 0 is a valid ID."/>
+		<value nybble="19" title="Unknown Value 19"/>
 		<value nybble="21-22" title="Movement ID" comment="Can also be linked to rotation movement controllers."/>
-		<value nybble="23-24" title="Coin ID"/>
 	</sprite>
 	<sprite id="50" name="Set of Green Coins" notes="A set of 3 green coins that spins around. Once collected it will spawn in another set.">
 		<value nybble="3-4" title="Triggering Event ID"/>
@@ -2640,7 +2638,7 @@
 		</list>
 	</sprite>
 	<sprite id="165" name="Pivotal-rotation-controlled Coin Circle" notes="Spawns circle of coins(87).">
-		<checkbox nybble="5" title="Coin Battle Only*" comment="Seems to only work on sprite 166. If checked the ring only appears in Coin Battle Mode."/>
+		<checkbox nybble="5" title="Coin Battle Only*" comment="Seems to only work on sprite 166. If checked the circle only appears in Coin Battle Mode."/>
 		<checkbox nybble="6" title="Upside-Down Coins"/>
 		<checkbox nybble="6" title="Gyroscopic Coins*" mask="2" comment="*Does not work together with Upside-Down or Tilting, this will always take priority."/>
 		<checkbox nybble="6" title="Tilted Coins" mask="4"/>
@@ -2693,7 +2691,7 @@
 		<value nybble="23-24" title="Coin ID"/>
 	</sprite>
 	<sprite id="166" name="Pivotal-rotation-controlled Dash Coin Circle">
-		<checkbox nybble="5" title="Coin Battle Only" comment="If checked the ring only appears in Coin Battle Mode."/>
+		<checkbox nybble="5" title="Coin Battle Only" comment="If checked the circle only appears in Coin Battle Mode."/>
 		<checkbox nybble="6" title="Upside-Down Coins"/>
 		<checkbox nybble="6" title="Gyroscopic Coins*" mask="2" comment="*Does not work together with Upside-Down or Tilting, this will always take priority."/>
 		<checkbox nybble="6" title="Tilted Coins" mask="4"/>
@@ -5654,7 +5652,7 @@
 	<sprite id="469" name="Peach" notes="Peach. She adjusts herself to view the player."/>
 	<sprite id="470" name="Red Ring (2) [UNUSED]" notes="A duplicate of the Red Ring, but it has a different output for the reward. (1-UP)">
 		<value nybble="3-4" title="Target Event ID" comment="The event that the ring triggers."/>
-		<value nybble="12" title="Coin Set ID" comment="Use this to connect the ring to Red Coins. 0 is a valid value."/>
+		<checkbox nybble="12" title="Shift 1/2 block to the right" comment="This shifts the coin ring 1/2 block to the right."/>
 	</sprite>
 	<sprite id="471" name="Medium Goomba"/>
 	<sprite id="472" name="Big Goomba">
@@ -7175,7 +7173,7 @@
 		<value nybble="3" title="Unknown Value 3"/>
 		<value nybble="4" title="Unknown Value 4"/>
 		<value nybble="9" title="Unknown Value 9"/>
-		<value nybble="12" title="Unknown Value 12"/>
+		<checkbox nybble="12" title="Shift 1/2 block to the right" comment="This shifts the coin ring 1/2 block to the right."/>
 	</sprite>
 	<sprite id="663" name="Movement-controlled Coin - NSLU">
 		<value nybble="21-22" title="Movement ID"/>

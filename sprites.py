@@ -1055,18 +1055,36 @@ class SpriteImage_EventControllerTimer(SpriteImage_EventController):  # 43
         super().__init__(parent, 'Event\nTMR')
 
 
-class SpriteImage_RedRing(SLib.SpriteImage_Static):  # 44
+class SpriteImage_CoinRing(SLib.SpriteImage_Static):  # 44, 402, 470, 662
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
-            ImageCache['RedRing'],
-            (-12, -12),
         )
+
+        if self.parent.type == 402:
+            self.image = ImageCache['GreenRing']
+
+        elif self.parent.type == 662:
+            self.image = ImageCache['BlueRing']
+
+        else:
+            self.image = ImageCache['RedRing']
+
+        self.yOffset = -12
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('RedRing', 'red_ring.png')
+        if 'RedRing' in ImageCache: return
+        for C, c in (('Red', 'red'), ('Green', 'green'), ('Blue', 'blue')):
+            SLib.loadIfNotInImageCache('%sRing' % C, '%s_ring.png' % c)
+
+    def dataChanged(self):
+        self.xOffset = -12
+        if self.parent.spritedata[5] & 1:
+            self.xOffset += 8
+
+        super().dataChanged()
 
 
 class SpriteImage_StarCoin(SLib.SpriteImage_Static):  # 45, 47, 48, 480
@@ -7843,22 +7861,6 @@ class SpriteImage_LanternPlatform(SLib.SpriteImage):  # 400
                 painter.drawPixmap(135 + self.platformLength * 60, 0, ImageCache['LanternPlatformRightLamp'])
 
 
-class SpriteImage_GreenRing(SLib.SpriteImage_Static):  # 402
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['GreenRing'],
-        )
-
-        self.yOffset = -14
-        self.xOffset = -7
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('GreenRing', 'green_ring.png')
-
-
 class SpriteImage_Iggy(SLib.SpriteImage_Static):  # 403
     def __init__(self, parent):
         super().__init__(
@@ -10077,22 +10079,6 @@ class SpriteImage_SuperGuideNSLU(SLib.SpriteImage_Static):  # 634
         SLib.loadIfNotInImageCache('SuperGuideNSLU', 'guide_block_nslu.png')
 
 
-class SpriteImage_BlueRing(SLib.SpriteImage_Static):  # 662
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['BlueRing'],
-        )
-
-        self.yOffset = -14
-        self.xOffset = -7
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('BlueRing', 'blue_ring.png')
-
-
 class SpriteImage_GearLuigi(SLib.SpriteImage_StaticMultiple):  # 675
     def __init__(self, parent):
         super().__init__(
@@ -10193,7 +10179,7 @@ ImageClasses = {
     41: SpriteImage_LocationTrigger,
     42: SpriteImage_EventControllerMultiChainer,
     43: SpriteImage_EventControllerTimer,
-    44: SpriteImage_RedRing,
+    44: SpriteImage_CoinRing,
     45: SpriteImage_StarCoin,
     46: SpriteImage_LineControlledStarCoin,
     47: SpriteImage_StarCoin,
@@ -10505,7 +10491,7 @@ ImageClasses = {
     397: SpriteImage_QBlock,
     398: SpriteImage_BrickBlock,
     400: SpriteImage_LanternPlatform,
-    402: SpriteImage_GreenRing,
+    402: SpriteImage_CoinRing,
     403: SpriteImage_Iggy,
     404: SpriteImage_PipeUp,
     405: SpriteImage_Crash,
@@ -10542,6 +10528,7 @@ ImageClasses = {
     467: SpriteImage_BowserShutter,
     468: SpriteImage_BowserFireball,
     469: SpriteImage_Peach,
+    470: SpriteImage_CoinRing,
     471: SpriteImage_MediumGoomba,
     472: SpriteImage_BigGoomba,
     473: SpriteImage_MegaBowser,
@@ -10676,7 +10663,7 @@ ImageClasses = {
     658: SpriteImage_MovingLinePlatform,
     659: SpriteImage_BigGrrrol,
     661: SpriteImage_SumoBro,
-    662: SpriteImage_BlueRing,
+    662: SpriteImage_CoinRing,
     663: SpriteImage_Coin,
     667: SpriteImage_PipeCannon,
     669: SpriteImage_MovementControlledTowerBlock,
