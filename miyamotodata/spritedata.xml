@@ -5718,14 +5718,15 @@
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
 	<sprite id="481" name="Waddlewing">
-		<checkbox nybble="10" title="Holding an Acorn Mushroom" comment="Only used as 0 and 1. TODO: Test what happens if you set it to 2 or 3."/>
+		<checkbox nybble="10" title="Holding an Acorn Mushroom"/>
 		<checkbox nybble="11" title="Spawn flying"/>
-		<list nybble="12" title="Starts..." comment="For values 1 and 2, the side in parentheses is the side of the Waddlewing the wall is on.">
-			<entry value="0">Walking?</entry>
-			<entry value="1">Hanging on a wall (right) or flying left if there is no wall</entry>
-			<entry value="2">Hanging on a wall (left) or flying right if there is no wall</entry>
-			<entry value="3">Flying?</entry>
+		<list nybble="12" title="Direction*" comment="*Value 3 forces the Waddlewing not to spawn, and if it's holding an acorn the acorn will just freeze in place.">
+			<entry value="0">Towards Player</entry>
+			<entry value="1">Left</entry>
+			<entry value="2">Right</entry>
+			<entry value="3">Doesn't Spawn*</entry>
 		</list>
+		<value nybble="20" title="Unknown Value 20"/>
 	</sprite>
 	<sprite id="482" name="Mecha Cheep"/>
 	<sprite id="483" name="Multi-bar Fire Bar">
@@ -6412,7 +6413,24 @@
 	</sprite>
 	<sprite id="551" name="Nothing. [UNUSED]"/>
 	<sprite id="552" name="Movement-controlled Muncher" notes="This muncher differs from the other sprite. You can hit it from the side and take no damage. It can also be connected to sprite 70 (Two-way Line.)">
-		<value nybble="7" title="Tilt" comment="Value + 22.5"/>
+		<list nybble="7" title="Tilt">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0; (Quadrant)</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0; (Semicircle)</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0; (Three-quarter circle)</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
+		</list>
 		<value nybble="21-22" title="Movement ID" comment="Can only work with sprite 70."/>
 	</sprite>
 	<sprite id="553" name="4-part Steerable Platform [UNUSED]" notes="Spawns 4 platforms, side by side. The order of the arrows are Left, Up, Down, Right. Stepping on the pictured arrow sends the platform in the direction. Goes the other way if it touches some ground.&#13;&#10;Kinda like an advanced version of the platform used in NSMB, and unused in NSMBW.">
