@@ -6998,6 +6998,7 @@ class SpriteImage_SuperGuide(SLib.SpriteImage_Static):  # 348
             parent,
             3.75,
             ImageCache['SuperGuide'],
+            (-4, -4)
         )
 
     @staticmethod
@@ -8124,7 +8125,7 @@ class SpriteImage_SnowyBoxes(SLib.SpriteImage_StaticMultiple):  # 427
             3.75,
         )
 
-        self.xOffset = -2
+        self.xOffset = -4
 
     @staticmethod
     def loadImages():
@@ -8138,12 +8139,13 @@ class SpriteImage_SnowyBoxes(SLib.SpriteImage_StaticMultiple):  # 427
 
         if amount == 2:
             self.image = ImageCache['SnowyBoxes2']
-            self.yOffset = -47.5
+            self.yOffset = -48
         elif amount == 3:
             self.image = ImageCache['SnowyBoxes3']
-            self.yOffset = -95
+            self.yOffset = -96
         else:
             self.image = ImageCache['SnowyBoxes1']
+            self.yOffset = 0
 
         super().dataChanged()
 
@@ -8280,8 +8282,8 @@ class SpriteImage_Fliprus(SLib.SpriteImage_StaticMultiple):  # 441
             3.75,
         )
 
-        self.yOffset = -16
-        self.xOffset = -6
+        self.yOffset = -12
+        self.xOffset = -8
 
     @staticmethod
     def loadImages():
@@ -8326,8 +8328,7 @@ class SpriteImage_FliprusSnowball(SLib.SpriteImage_Static):  # 446
             ImageCache['Snowball'],
         )
 
-        self.yOffset = -10
-        # self.xOffset = -6
+        self.yOffset = -4
 
     @staticmethod
     def loadImages():
@@ -9265,7 +9266,7 @@ class SpriteImage_RockyWrench(SLib.SpriteImage_Static):  # 536
             parent,
             3.75,
             ImageCache['RockyWrench'],
-            (4, -41),
+            (-4, -20),
         )
 
     @staticmethod
