@@ -777,7 +777,7 @@ class SpriteImage_LimitD(SLib.SpriteImage_StaticMultiple):  # 30
         super().dataChanged()
 
 
-class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple):  # 31, 630
+class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple):  # 31, 503, 630, 631
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -790,15 +790,21 @@ class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple):  # 31, 630
         self.aux.append(SLib.AuxiliaryImage(parent, 390, 375))
         self.aux[0].setPos(135 + 13*60, 4*60 - 15)
         self.aux[0].alpha = 0.5
+
+        self.painted = self.parent.type in (503, 631)
         self.dataChanged()
 
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('FlagPole', 'flag_pole.png')
+        SLib.loadIfNotInImageCache('FlagPolePaint', 'flag_pole_paint.png')
         SLib.loadIfNotInImageCache('FlagPoleSecret', 'flag_pole_secret.png')
+        SLib.loadIfNotInImageCache('FlagPoleSecretPaint', 'flag_pole_secret_paint.png')
         SLib.loadIfNotInImageCache('Castle', 'castle.png')
+        SLib.loadIfNotInImageCache('CastlePaint', 'castle_paint.png')
         SLib.loadIfNotInImageCache('CastleSnow', 'castle_snow.png')
         SLib.loadIfNotInImageCache('CastleSecret', 'castle_secret.png')
+        SLib.loadIfNotInImageCache('CastleSecretPaint', 'castle_secret_paint.png')
         SLib.loadIfNotInImageCache('CastleSecretSnow', 'castle_secret_snow.png')
 
     def dataChanged(self):
@@ -809,19 +815,19 @@ class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple):  # 31, 630
         snow =   (self.parent.spritedata[5] & 1)    != 0
 
         if secret:
-            self.image = ImageCache['FlagPoleSecret']
+            self.image = ImageCache['FlagPoleSecret' + ('Paint' if self.painted else '')]
             
-            if snow:
+            if snow and not self.painted:
                 self.aux[0].image = ImageCache['CastleSecretSnow']
             else:
-                self.aux[0].image = ImageCache['CastleSecret']
+                self.aux[0].image = ImageCache['CastleSecret' + ('Paint' if self.painted else '')]
         else:
-            self.image = ImageCache['FlagPole']
+            self.image = ImageCache['FlagPole' + ('Paint' if self.painted else '')]
             
-            if snow:
+            if snow and not self.painted:
                 self.aux[0].image = ImageCache['CastleSnow']
             else:
-                self.aux[0].image = ImageCache['Castle']
+                self.aux[0].image = ImageCache['Castle' + ('Paint' if self.painted else '')]
 
         if not castle:
             self.aux[0].image = None
@@ -6219,51 +6225,125 @@ class SpriteImage_Bush(SLib.SpriteImage_StaticMultiple):  # 288
         super().dataChanged()
 
 
-class SpriteImage_ContinuousBurner(SLib.SpriteImage_StaticMultiple):  # 289
+class SpriteImage_ContinuousBurner(SLib.SpriteImage):  # 289
+    offsets = (
+        (-24, -28),
+        (-40, -28),
+        (-28, -40),
+        (-28, -24),
+    )
+
+    dims = (
+        (0, 0, 64, 16),
+        (-48, 0, 64, 16),
+        (0, -48, 16, 64),
+        (0, 0, 16, 48),
+    )
+
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
         )
-        self.imgName = 'ContinuousBurner'
+
+        self.spritebox.shown = False
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('ContinuousBurner', 'continuous_burner.png')
+        for i in range(4):
+            SLib.loadIfNotInImageCache('Burner%d' % i, 'burner_%d.png' % i)
 
     def dataChanged(self):
+        direction = self.parent.spritedata[5] & 3
+
+        self.dimensions = SpriteImage_ContinuousBurner.dims[direction]
+        self.aux[0].setImage(ImageCache['Burner%d' % direction], *SpriteImage_ContinuousBurner.offsets[direction], True)
+
         super().dataChanged()
-        
-        self.direction = self.parent.spritedata[5] & 3
-        self.xOffset = 0
-        self.yOffset = 0
-
-        if self.direction == 1:
-            self.image = ImageCache[self.imgName].transformed(QTransform().scale(-1, 1))
-            self.xOffset = -(self.image.width() / 60) * 16 + 16
-            
-        elif self.direction == 2:
-            self.image = ImageCache[self.imgName].transformed(QTransform().rotate(-90))
-            self.yOffset = -(self.image.height() / 60) * 16 + 16
-            
-        elif self.direction == 3:
-            self.image = ImageCache[self.imgName].transformed(QTransform().rotate(-90).scale(-1, 1))
-
-        else:
-            self.image = ImageCache[self.imgName]
-
-        self.width = (self.image.width() / 60) * 16
-        self.height = (self.image.height() / 60) * 16
 
 
-class SpriteImage_ContinuousBurnerLong(SpriteImage_ContinuousBurner):  # 290
+class SpriteImage_ContinuousBurnerLong(SLib.SpriteImage):  # 290
+    offsets = (
+        (0, -28),
+        (-16, -28),
+        (-28, -16),
+        (-28, 0),
+    )
+
+    dims = (
+        (0, 0, 112, 16),
+        (-96, 0, 112, 16),
+        (0, -96, 16, 112),
+        (0, 0, 16, 112),
+    )
+
     def __init__(self, parent):
-        super().__init__(parent)
-        self.imgName = 'ContinuousBurnerLong'
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+        self.spritebox.shown = False
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('ContinuousBurnerLong', 'continuous_burner_long.png')
+        for i in range(4):
+            SLib.loadIfNotInImageCache('BurnerLong%d' % i, 'burner_long_%d.png' % i)
+
+    def dataChanged(self):
+        direction = self.parent.spritedata[5] & 3
+
+        self.dimensions = SpriteImage_ContinuousBurnerLong.dims[direction]
+        self.aux[0].setImage(ImageCache['BurnerLong%d' % direction], *SpriteImage_ContinuousBurnerLong.offsets[direction], True)
+
+        super().dataChanged()
+
+
+class SpriteImage_SyncBurner(SLib.SpriteImage_StaticMultiple):  # 292
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+    @staticmethod
+    def loadImages():
+        for i in range(4):
+            SLib.loadIfNotInImageCache('SyncBurner%d' % i, 'burner_sync_%d.png' % i)
+
+    def dataChanged(self):
+        direction = self.parent.spritedata[5] & 3
+        self.image = ImageCache['SyncBurner%d' % direction]
+
+        super().dataChanged()
+
+
+class SpriteImage_RotatingBurner(SLib.SpriteImage_StaticMultiple):  # 293
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+    @staticmethod
+    def loadImages():
+        for i in range(4):
+            SLib.loadIfNotInImageCache('RotatingBurner%d' % i, 'burner_rot_%d.png' % i)
+
+    def dataChanged(self):
+        direction = self.parent.spritedata[5] >> 4 & 3
+        self.image = ImageCache['RotatingBurner%d' % direction]
+
+        self.offset = (0, 0)
+        if direction == 0:
+            self.yOffset = -8
+
+        elif direction == 3:
+            self.xOffset = -8
+
+        super().dataChanged()
 
 
 class SpriteImage_PurplePole(SLib.SpriteImage):  # 309
@@ -6656,14 +6736,18 @@ class SpriteImage_Broozer(SLib.SpriteImage_Static):  # 320
         SLib.loadIfNotInImageCache('Broozer', 'broozer.png')
 
 
-class SpriteImage_Bulber(SLib.SpriteImage_Static):  # 321
+class SpriteImage_Bulber(SLib.SpriteImage):  # 321
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
-            ImageCache['Bulber'],
-            (-16, -12),
         )
+
+        self.spritebox.shown = False
+        self.dimensions = (-20, -12, 52, 44)
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+        self.aux[0].setImage(ImageCache['Bulber'], -32, -24, True)
 
     @staticmethod
     def loadImages():
@@ -8891,33 +8975,6 @@ class SpriteImage_World7Platform(SLib.SpriteImage_StaticMultiple):  # 493
         super().dataChanged()
 
 
-class SpriteImage_PaintGoal(SLib.SpriteImage_StaticMultiple):  # 503
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-        )
-
-        self.xOffset = -48
-        self.yOffset = -160
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('PaintFlagReg', 'flag_paint_reg.png')
-        SLib.loadIfNotInImageCache('PaintFlagSec', 'flag_paint_sec.png')
-
-    def dataChanged(self):
-
-        secret = self.parent.spritedata[2] >> 4
-
-        if secret == 1:
-            self.image = ImageCache['PaintFlagSec']
-        else:
-            self.image = ImageCache['PaintFlagReg']
-
-        super().dataChanged()
-
-
 class SpriteImage_BowserAmp(SLib.SpriteImage_Static):  # 500
     def __init__(self, parent):
         super().__init__(
@@ -10483,6 +10540,8 @@ ImageClasses = {
     288: SpriteImage_Bush,
     289: SpriteImage_ContinuousBurner,
     290: SpriteImage_ContinuousBurnerLong,
+    292: SpriteImage_SyncBurner,
+    293: SpriteImage_RotatingBurner,
     294: SpriteImage_PurplePole,
     295: SpriteImage_NoteBlock,
     298: SpriteImage_Clampy,
@@ -10634,7 +10693,7 @@ ImageClasses = {
     499: SpriteImage_MovingGrassPlatform,
     500: SpriteImage_BowserAmp,
     502: SpriteImage_BowserAmp,
-    503: SpriteImage_PaintGoal,
+    503: SpriteImage_Flagpole,
     504: SpriteImage_Grrrol,
     505: SpriteImage_BigGrrrol,
     506: SpriteImage_ChallengeOnlyBlock,
@@ -10721,7 +10780,7 @@ ImageClasses = {
     626: SpriteImage_SumoBro,
     627: SpriteImage_MovingBonePlatform,
     630: SpriteImage_Flagpole,
-    631: SpriteImage_PaintGoal,
+    631: SpriteImage_Flagpole,
     632: SpriteImage_SeesawMushroomBlue,
     633: SpriteImage_GirderRising,
     634: SpriteImage_SuperGuideNSLU,
