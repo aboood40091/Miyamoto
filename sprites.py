@@ -6219,51 +6219,125 @@ class SpriteImage_Bush(SLib.SpriteImage_StaticMultiple):  # 288
         super().dataChanged()
 
 
-class SpriteImage_ContinuousBurner(SLib.SpriteImage_StaticMultiple):  # 289
+class SpriteImage_ContinuousBurner(SLib.SpriteImage):  # 289
+    offsets = (
+        (-24, -28),
+        (-40, -28),
+        (-28, -40),
+        (-28, -24),
+    )
+
+    dims = (
+        (0, 0, 64, 16),
+        (-48, 0, 64, 16),
+        (0, -48, 16, 64),
+        (0, 0, 16, 48),
+    )
+
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
         )
-        self.imgName = 'ContinuousBurner'
+
+        self.spritebox.shown = False
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('ContinuousBurner', 'continuous_burner.png')
+        for i in range(4):
+            SLib.loadIfNotInImageCache('Burner%d' % i, 'burner_%d.png' % i)
 
     def dataChanged(self):
+        direction = self.parent.spritedata[5] & 3
+
+        self.dimensions = SpriteImage_ContinuousBurner.dims[direction]
+        self.aux[0].setImage(ImageCache['Burner%d' % direction], *SpriteImage_ContinuousBurner.offsets[direction], True)
+
         super().dataChanged()
-        
-        self.direction = self.parent.spritedata[5] & 3
-        self.xOffset = 0
-        self.yOffset = 0
-
-        if self.direction == 1:
-            self.image = ImageCache[self.imgName].transformed(QTransform().scale(-1, 1))
-            self.xOffset = -(self.image.width() / 60) * 16 + 16
-            
-        elif self.direction == 2:
-            self.image = ImageCache[self.imgName].transformed(QTransform().rotate(-90))
-            self.yOffset = -(self.image.height() / 60) * 16 + 16
-            
-        elif self.direction == 3:
-            self.image = ImageCache[self.imgName].transformed(QTransform().rotate(-90).scale(-1, 1))
-
-        else:
-            self.image = ImageCache[self.imgName]
-
-        self.width = (self.image.width() / 60) * 16
-        self.height = (self.image.height() / 60) * 16
 
 
-class SpriteImage_ContinuousBurnerLong(SpriteImage_ContinuousBurner):  # 290
+class SpriteImage_ContinuousBurnerLong(SLib.SpriteImage):  # 290
+    offsets = (
+        (0, -28),
+        (-16, -28),
+        (-28, -16),
+        (-28, 0),
+    )
+
+    dims = (
+        (0, 0, 112, 16),
+        (-96, 0, 112, 16),
+        (0, -96, 16, 112),
+        (0, 0, 16, 112),
+    )
+
     def __init__(self, parent):
-        super().__init__(parent)
-        self.imgName = 'ContinuousBurnerLong'
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+        self.spritebox.shown = False
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('ContinuousBurnerLong', 'continuous_burner_long.png')
+        for i in range(4):
+            SLib.loadIfNotInImageCache('BurnerLong%d' % i, 'burner_long_%d.png' % i)
+
+    def dataChanged(self):
+        direction = self.parent.spritedata[5] & 3
+
+        self.dimensions = SpriteImage_ContinuousBurnerLong.dims[direction]
+        self.aux[0].setImage(ImageCache['BurnerLong%d' % direction], *SpriteImage_ContinuousBurnerLong.offsets[direction], True)
+
+        super().dataChanged()
+
+
+class SpriteImage_SyncBurner(SLib.SpriteImage_StaticMultiple):  # 292
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+    @staticmethod
+    def loadImages():
+        for i in range(4):
+            SLib.loadIfNotInImageCache('SyncBurner%d' % i, 'burner_sync_%d.png' % i)
+
+    def dataChanged(self):
+        direction = self.parent.spritedata[5] & 3
+        self.image = ImageCache['SyncBurner%d' % direction]
+
+        super().dataChanged()
+
+
+class SpriteImage_RotatingBurner(SLib.SpriteImage_StaticMultiple):  # 293
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+
+    @staticmethod
+    def loadImages():
+        for i in range(4):
+            SLib.loadIfNotInImageCache('RotatingBurner%d' % i, 'burner_rot_%d.png' % i)
+
+    def dataChanged(self):
+        direction = self.parent.spritedata[5] >> 4 & 3
+        self.image = ImageCache['RotatingBurner%d' % direction]
+
+        self.offset = (0, 0)
+        if direction == 0:
+            self.yOffset = -8
+
+        elif direction == 3:
+            self.xOffset = -8
+
+        super().dataChanged()
 
 
 class SpriteImage_PurplePole(SLib.SpriteImage):  # 309
@@ -6656,14 +6730,18 @@ class SpriteImage_Broozer(SLib.SpriteImage_Static):  # 320
         SLib.loadIfNotInImageCache('Broozer', 'broozer.png')
 
 
-class SpriteImage_Bulber(SLib.SpriteImage_Static):  # 321
+class SpriteImage_Bulber(SLib.SpriteImage):  # 321
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
-            ImageCache['Bulber'],
-            (-16, -12),
         )
+
+        self.spritebox.shown = False
+        self.dimensions = (-20, -12, 52, 44)
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+        self.aux[0].setImage(ImageCache['Bulber'], -32, -24, True)
 
     @staticmethod
     def loadImages():
@@ -10479,6 +10557,8 @@ ImageClasses = {
     288: SpriteImage_Bush,
     289: SpriteImage_ContinuousBurner,
     290: SpriteImage_ContinuousBurnerLong,
+    292: SpriteImage_SyncBurner,
+    293: SpriteImage_RotatingBurner,
     294: SpriteImage_PurplePole,
     295: SpriteImage_NoteBlock,
     298: SpriteImage_Clampy,
