@@ -5472,14 +5472,18 @@ class SpriteImage_LightCircle(SLib.SpriteImage):  # 253
         super().dataChanged()
 
 
-class SpriteImage_UnderwaterLamp(SLib.SpriteImage_Static):  # 254
+class SpriteImage_UnderwaterLamp(SLib.SpriteImage):  # 254
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
-            ImageCache['UnderwaterLamp'],
-            (-24, -24),
         )
+
+        self.spritebox.shown = False
+        self.dimensions = (-4, -4, 24, 24)
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+        self.aux[0].setImage(ImageCache['UnderwaterLamp'], -36, -36, True)
 
     @staticmethod
     def loadImages():
@@ -9011,13 +9015,18 @@ class SpriteImage_ChallengeOnlyBlock(SLib.SpriteImage):  # 506
         painter.drawTiledPixmap(0, 0, self.width * 3.75, self.height * 3.75, ImageCache['NabbitMetal'])
 
 
-class SpriteImage_ShootingStar(SLib.SpriteImage_Static):  # 507
+class SpriteImage_ShootingStar(SLib.SpriteImage):  # 507
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
-            ImageCache['ShootingStar'],
         )
+
+        self.spritebox.shown = False
+        self.dimensions = (-4, -4, 24, 20)
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+        self.aux[0].setImage(ImageCache['ShootingStar'], -12, -52, True)
 
     @staticmethod
     def loadImages():
