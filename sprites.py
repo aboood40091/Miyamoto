@@ -4638,14 +4638,18 @@ class SpriteImage_Boo(SLib.SpriteImage):  # 218, 220
         SLib.loadIfNotInImageCache('Boo1', 'boo1.png')
 
 
-class SpriteImage_BigBoo(SLib.SpriteImage_Static):  # 219
+class SpriteImage_BigBoo(SLib.SpriteImage):  # 219
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
-            ImageCache['BigBoo'],
-            (-72, -120),
         )
+
+        self.spritebox.shown = False
+        self.dimensions = (-48, -80, 108, 96)
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+        self.aux[0].setImage(ImageCache['BigBoo'], -24, -40, True)
 
     @staticmethod
     def loadImages():
