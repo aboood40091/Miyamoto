@@ -5400,9 +5400,9 @@ class SpriteImage_GreyBlock(SLib.SpriteImage_StaticMultiple):  # 250
 
 class SpriteImage_FloatingBubble(SLib.SpriteImage_StaticMultiple):  # 251
     offsets = (
-        (-60, -60),
-        (-36, -76),
-        (-76, -36),
+        (-56, -64),
+        (-32, -80),
+        (-68, -36),
     )
 
     def __init__(self, parent):
