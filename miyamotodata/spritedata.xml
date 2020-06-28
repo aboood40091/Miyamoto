@@ -2378,7 +2378,7 @@
 	</sprite>
 	<sprite id="155" name="Pipe Cannon">
 		<value nybble="5" title="Unknown Value 5"/>
-		<value nybble="10" title="Height" comment="Height is value+4."/>
+		<value nybble="10" title="Height" comment="Value + 4."/>
 		<checkbox nybble="11" title="Unused Flag 11"/>
 		<list nybble="12" title="Firing Direction" comment="The direction that the cannon fires.">
 			<entry value="0">30&#xB0; Right</entry>
@@ -2389,6 +2389,9 @@
 			<entry value="5">45&#xB0; Right</entry>
 			<entry value="6">45&#xB0; Left</entry>
 			<entry value="7">45&#xB0; Right</entry>
+			<entry value="8">45&#xB0; Left</entry>
+			<entry value="9">15&#xB0; Right</entry>
+			<entry value="10">15&#xB0; Left</entry>
 		</list>
 	</sprite>
 	<sprite id="156" name="Water Geyser" notes="A geyser of water. It's height, rise time, delay, and all can be edited.&#13;&#10;Do &lt;b&gt;not&lt;/b&gt; place this sprite visible for the player ; it leaves a very bad looking texture when it's not active. Place it inside the water.">
@@ -7212,17 +7215,20 @@
 	<sprite id="667" name="Pipe Cannon - NSLU" notes="A pipe that fires the player in a specified direction. When entered, 100 seconds are added to the timer. ">
 		<value nybble="5" title="Unknown Value 5" comment="Must be 3 or lower."/>
 		<checkbox nybble="6" title="Unknown Flag 6"/>
-		<value nybble="10" title="Y-Offset" comment="Moves the cannon value blocks up."/>
+		<value nybble="10" title="Height" comment="Value + 4."/>
 		<checkbox nybble="11" title="Unknown Flag 11"/>
-		<list nybble="12" title="Firing Direction" comment="For main pipe cannon sprite">
-			<entry value="0">UNUSED</entry>
-			<entry value="1">UNUSED</entry>
-			<entry value="2">UNUSED</entry>
-			<entry value="3">UNUSED</entry>
-			<entry value="4">Straight up</entry>
-			<entry value="5">UNKNOWN</entry>
-			<entry value="6">UNUSED</entry>
-			<entry value="7">UNKNOWN</entry>
+		<list nybble="12" title="Firing Direction" comment="The direction that the cannon fires.">
+			<entry value="0">30&#xB0; Right</entry>
+			<entry value="1">30&#xB0; Left</entry>
+			<entry value="2">15&#xB0; Right</entry>
+			<entry value="3">15&#xB0; Left</entry>
+			<entry value="4">Straight Up</entry>
+			<entry value="5">45&#xB0; Right</entry>
+			<entry value="6">45&#xB0; Left</entry>
+			<entry value="7">45&#xB0; Right</entry>
+			<entry value="8">45&#xB0; Left</entry>
+			<entry value="9">15&#xB0; Right</entry>
+			<entry value="10">15&#xB0; Left</entry>
 		</list>
 	</sprite>
 	<sprite id="668" name="Airship Hand - NSLU">

@@ -70,7 +70,7 @@ def main():
     Resets Sprites.py to its original settings
     """
     global OutlineColor, OutlinePen, OutlineBrush, ImageCache, SpritesFolders
-    OutlinePen = QtGui.QPen(OutlineColor, 4)
+    OutlinePen = QtGui.QPen(OutlineColor, 4 * (TileWidth/24))
     OutlineBrush = QtGui.QBrush(OutlineColor)
 
     for i in range(256):
