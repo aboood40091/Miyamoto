@@ -4840,7 +4840,7 @@ class SpriteImage_Larry(SLib.SpriteImage_Static):  # 230
             parent,
             3.75,
             ImageCache['Larry'],
-            (-16.8, -32)
+            (-20, -32)
         )
 
     @staticmethod
@@ -6364,7 +6364,7 @@ class SpriteImage_Lemmy(SLib.SpriteImage_Static):  # 296
             parent,
             3.75,
             ImageCache['Lemmy'],
-            (-8, -64),
+            (-8, -56),
         )
 
     @staticmethod
@@ -7320,7 +7320,7 @@ class SpriteImage_Morton(SLib.SpriteImage_Static):  # 368
             parent,
             3.75,
             ImageCache['Morton'],
-            (-32, -48)
+            (-32, -40)
         )
 
     @staticmethod
@@ -7484,7 +7484,7 @@ class SpriteImage_Wendy(SLib.SpriteImage_Static):  # 383
             parent,
             3.75,
             ImageCache['Wendy'],
-            (-16, -32)
+            (-4, -28)
         )
 
     @staticmethod
@@ -7498,7 +7498,7 @@ class SpriteImage_Ludwig(SLib.SpriteImage_Static):  # 385
             parent,
             3.75,
             ImageCache['Ludwig'],
-            (-32, -32)
+            (-24, -28)
         )
 
     @staticmethod
@@ -7608,7 +7608,7 @@ class SpriteImage_Roy(SLib.SpriteImage_Static):  # 389
             parent,
             3.75,
             ImageCache['Roy'],
-            (-48, -48)
+            (-36, -44)
         )
 
     @staticmethod
@@ -7867,7 +7867,7 @@ class SpriteImage_Iggy(SLib.SpriteImage_Static):  # 403
             parent,
             3.75,
             ImageCache['Iggy'],
-            (-16, -48)
+            (-20, -48)
         )
 
     @staticmethod
