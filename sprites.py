@@ -4846,7 +4846,7 @@ class SpriteImage_Larry(SLib.SpriteImage_Static):  # 230
             parent,
             3.75,
             ImageCache['Larry'],
-            (-16.8, -32)
+            (-20, -32)
         )
 
     @staticmethod
@@ -6448,7 +6448,7 @@ class SpriteImage_Lemmy(SLib.SpriteImage_Static):  # 296
             parent,
             3.75,
             ImageCache['Lemmy'],
-            (-8, -64),
+            (-8, -56),
         )
 
     @staticmethod
@@ -7408,7 +7408,7 @@ class SpriteImage_Morton(SLib.SpriteImage_Static):  # 368
             parent,
             3.75,
             ImageCache['Morton'],
-            (-32, -48)
+            (-32, -40)
         )
 
     @staticmethod
@@ -7572,7 +7572,7 @@ class SpriteImage_Wendy(SLib.SpriteImage_Static):  # 383
             parent,
             3.75,
             ImageCache['Wendy'],
-            (-16, -32)
+            (-4, -28)
         )
 
     @staticmethod
@@ -7586,7 +7586,7 @@ class SpriteImage_Ludwig(SLib.SpriteImage_Static):  # 385
             parent,
             3.75,
             ImageCache['Ludwig'],
-            (-32, -32)
+            (-24, -28)
         )
 
     @staticmethod
@@ -7696,7 +7696,7 @@ class SpriteImage_Roy(SLib.SpriteImage_Static):  # 389
             parent,
             3.75,
             ImageCache['Roy'],
-            (-48, -48)
+            (-36, -44)
         )
 
     @staticmethod
@@ -7955,7 +7955,7 @@ class SpriteImage_Iggy(SLib.SpriteImage_Static):  # 403
             parent,
             3.75,
             ImageCache['Iggy'],
-            (-16, -48)
+            (-20, -48)
         )
 
     @staticmethod
@@ -9592,10 +9592,13 @@ class SpriteImage_Sprite548(SLib.SpriteImage_Static):  # 548
             ImageCache['Sprite548'],
             (4, 0),
         )
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+        self.aux[0].setImage(ImageCache['NabbitMetal'], -15, 0)
 
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Sprite548', 'sprite548.png')
+        SLib.loadIfNotInImageCache('NabbitMetal', 'nabbit_metal.png')
 
 
 class SpriteImage_DesertBlock(SLib.SpriteImage_Static):  # 549
@@ -9826,6 +9829,7 @@ class SpriteImage_NabbitPrize(SLib.SpriteImage_Static):  # 569
             parent,
             3.75,
             ImageCache['NabbitPrize'],
+            (-76, -16)
         )
 
     @staticmethod
