@@ -6002,7 +6002,8 @@
 	</sprite>
 	<sprite id="502" name="Single Bowser Amp [UNUSED]" notes="Just one Bowser amp. "/>
 	<sprite id="503" name="Painted Goal Pole" notes="Likely to have unused nybbles.">
-		<checkbox nybble="5" title="Secret Exit" comment="Gives the castle and the flagpole a different texture as well."/>
+		<checkbox nybble="5" title="Secret Exit" comment="Makes the path when the level is completed lead to the secret path, and changes the appearance."/>
+		<checkbox nybble="11" title="No Castle" comment="There is no castle. Mario will just walk to the right for a while and then stand still."/>
 	</sprite>
 	<sprite id="504" name="Grrrol">
 		<value nybble="3-4" title="No-spawn Triggering Event ID" comment="When this value is nonzero, the Grrrol only spawns if this event is deactivated."/>
@@ -6930,14 +6931,15 @@
 		<value nybble="10" title="Location ID"/>
 		<value nybble="13" title="Amount of Lakitu" comment="Value + 1"/>
 	</sprite>
-	<sprite id="630" name="Goal - NSLU" notes="Only used in all NSLU levels instead of the NSMBU goal flagpole. Probably has to do with the 1-UPs Nabbit gets.">
-		<checkbox nybble="5" title="Secret Exit" comment="When checked, the flagpole and the castle will have a different texture too."/>
-		<checkbox nybble="11" title="Walks off screen" comment="If checked, there will be no castle. Luigi and his friends will just walk off the screen instead."/>
+	<sprite id="630" name="Goal Pole - NSLU" notes="Only used in all NSLU levels instead of the NSMBU goal flagpole. Probably has to do with the 1-UPs Nabbit gets.">
+		<checkbox nybble="5" title="Secret Exit" comment="Makes the path when the level is completed lead to the secret path, and changes the appearance."/>
+		<checkbox nybble="11" title="No Castle" comment="There is no castle. Mario will just walk to the right for a while and then stand still."/>
 		<checkbox nybble="12" title="Snowy exit" comment="When checked, the castle will be covered in snow."/>
 		<value nybble="24" title="Unknown Value 24"/>
 	</sprite>
-	<sprite id="631" name="Painted Goal - NSLU">
-		<checkbox nybble="5" title="Secret Exit" comment="When checked, the Painted Goal will get a different texture as well."/>
+	<sprite id="631" name="Painted Goal Pole - NSLU">
+		<checkbox nybble="5" title="Secret Exit" comment="Makes the path when the level is completed lead to the secret path, and changes the appearance."/>
+		<checkbox nybble="11" title="No Castle" comment="There is no castle. Mario will just walk to the right for a while and then stand still."/>
 	</sprite>
 	<sprite id="632" name="Seesaw Blue Mushroom Platform - NSLU" notes="An platform that tilts depending on the weight of the players standing on it. Includes stem. The option to make it icy can be changed in the sprite settings.">
 		<list nybble="9" title="Icy" comment="Determines if the platform is Icy or not. This is always Yes in-game, but No is just regular ground.">
