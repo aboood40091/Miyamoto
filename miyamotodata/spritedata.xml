@@ -3730,8 +3730,8 @@
 	</sprite>
 	<sprite id="239" name="Bolt-controlled Metal Platform" notes="An almost unused platform, appearing in the unused level 13-4.&#13;&#10;Works fine.">
 		<value nybble="6" title="Unknown Value 6"/>
-		<value nybble="17-18" title="Width" comment="Width of the platform."/>
-		<value nybble="19-20" title="Height" comment="Height of the platform."/>
+		<value nybble="18" title="Width" comment="Width of the platform."/>
+		<value nybble="20" title="Height" comment="Height of the platform."/>
 		<value nybble="21-22" title="Bolt ID" comment="Use this to attach the sprite to a bolt."/>
 	</sprite>
 	<sprite id="240" name="Big Floating Log"/>
