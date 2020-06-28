@@ -9526,10 +9526,13 @@ class SpriteImage_Sprite548(SLib.SpriteImage_Static):  # 548
             ImageCache['Sprite548'],
             (4, 0),
         )
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+        self.aux[0].setImage(ImageCache['NabbitMetal'], -15, 0)
 
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Sprite548', 'sprite548.png')
+        SLib.loadIfNotInImageCache('NabbitMetal', 'nabbit_metal.png')
 
 
 class SpriteImage_DesertBlock(SLib.SpriteImage_Static):  # 549
@@ -9760,6 +9763,7 @@ class SpriteImage_NabbitPrize(SLib.SpriteImage_Static):  # 569
             parent,
             3.75,
             ImageCache['NabbitPrize'],
+            (-76, -16)
         )
 
     @staticmethod
