@@ -1801,7 +1801,7 @@ class SpriteImage_BroIce(SLib.SpriteImage_Static):  # 75
             parent,
             3.75,
             ImageCache['BroIce'],
-            (-4, -24),
+            (-8, -24),
         )
 
     @staticmethod
@@ -1815,7 +1815,7 @@ class SpriteImage_BroHammer(SLib.SpriteImage_Static):  # 76
             parent,
             3.75,
             ImageCache['BroHammer'],
-            (-4, -24),
+            (-8, -24),
         )
 
     @staticmethod
@@ -1829,7 +1829,7 @@ class SpriteImage_BroSledge(SLib.SpriteImage_Static):  # 77
             parent,
             3.75,
             ImageCache['BroSledge'],
-            (-16, -32),
+            (-16, -28),
         )
 
     @staticmethod
@@ -1843,7 +1843,7 @@ class SpriteImage_BroBoomerang(SLib.SpriteImage_Static):  # 78
             parent,
             3.75,
             ImageCache['BroBoomerang'],
-            (-4, -24),
+            (-8, -24),
         )
 
     @staticmethod
@@ -1857,7 +1857,7 @@ class SpriteImage_BroFire(SLib.SpriteImage_Static):  # 79
             parent,
             3.75,
             ImageCache['BroFire'],
-            (-4, -24),
+            (-8, -24),
         )
 
     @staticmethod
@@ -4468,7 +4468,7 @@ class SpriteImage_Fuzzy(SLib.SpriteImage_StaticMultiple):  # 204
         giant = self.parent.spritedata[4] & 1
 
         self.image = ImageCache['FuzzyGiant'] if giant else ImageCache['Fuzzy']
-        self.offset = (-20, -20) if giant else (-8, -8)
+        self.offset = (-24, -20) if giant else (-12, -8)
 
         super().dataChanged()
 
@@ -5703,17 +5703,27 @@ class SpriteImage_BigCannon(SLib.SpriteImage):  # 260
             painter.drawPixmap(0, 0, 60, 134, ImageCache['BigCannonFront2Inverted'])
 
 
-class SpriteImage_Parabeetle(SLib.SpriteImage_Static):  # 261, 652
+class SpriteImage_Parabeetle(SLib.SpriteImage_StaticMultiple):  # 261, 652
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
-            ImageCache['Parabeetle'],
         )
+        self.xOffset = 4
+        self.yOffset = 4
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('Parabeetle', 'parabeetle.png')
+        SLib.loadIfNotInImageCache('Parabeetle0', 'parabeetle2.png')
+        SLib.loadIfNotInImageCache('Parabeetle1', 'parabeetle.png')
+
+    def dataChanged(self):
+        direction = self.parent.spritedata[5] & 0xF
+        if direction > 1:
+            direction = 0
+        
+        self.image = ImageCache['Parabeetle%d' % direction]
+        super().dataChanged()
 
 
 class SpriteImage_HeavyParabeetle(SLib.SpriteImage_StaticMultiple):  # 262
@@ -7199,7 +7209,7 @@ class SpriteImage_MovingStoneBlock(SLib.SpriteImage_Static):  # 350
             parent,
             3.75,
             ImageCache['MovingStoneBlock'],
-            (-4, 0),
+            (-4, -4),
         )
 
     @staticmethod
@@ -7532,10 +7542,8 @@ class SpriteImage_TorpedoLauncher(SLib.SpriteImage_Static):  # 378
             parent,
             3.75,
             ImageCache['TorpedoLauncher'],
+            (-16, -16),
         )
-
-        # self.yOffset = -17
-        self.xOffset = -22
 
     @staticmethod
     def loadImages():
@@ -9359,6 +9367,7 @@ class SpriteImage_MovementControlledTowerBlock(SLib.SpriteImage_Static):  # 524,
             parent,
             3.75,
             ImageCache['TowerBlock'],
+            (-4, -4),
         )
 
     @staticmethod
@@ -10066,6 +10075,20 @@ class SpriteImage_Goombrat(SLib.SpriteImage_Static):  # 595
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Goombrat', 'goombrat.png')
+
+
+class SpriteImage_TorpedoLauncherRed(SLib.SpriteImage_Static):  # 596
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['TorpedoLauncherRed'],
+            (-16, -16),
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('TorpedoLauncherRed', 'torpedo_launcher_red.png')
 
 
 class SpriteImage_MoonBlock(SLib.SpriteImage_Static):  # 600
@@ -10837,6 +10860,7 @@ ImageClasses = {
     591: SpriteImage_MediumEepCheep,
     593: SpriteImage_SumoBro,
     595: SpriteImage_Goombrat,
+    596: SpriteImage_TorpedoLauncherRed,
     600: SpriteImage_MoonBlock,
     602: SpriteImage_SwingingChain,
     606: SpriteImage_BigBuzzyBeetle,
