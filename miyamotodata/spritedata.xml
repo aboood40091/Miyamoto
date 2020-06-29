@@ -423,7 +423,7 @@
 			<entry value="5">1.0 / 1.0</entry>
 		</list>
 	</sprite>
-	<sprite id="36" name="Zone-Enter-Triggered Event Controller" notes="This sprite activates or deactivates up to 2 events when you enter a zone.">
+	<sprite id="36" name="Event Controller - ZONE (Zone-Enter-Triggered)" notes="This sprite activates or deactivates up to 2 events when you enter a zone.">
 		<value nybble="1-2" title="Target Event ID 1"/>
 		<value nybble="3-4" title="Target Event ID 2"/>
 		<value nybble="5-6" title="Time active" comment="Only used if the sprite is activating an event."/>
@@ -480,7 +480,7 @@
 			<entry value="1">Deactivates Target</entry>
 		</list>
 	</sprite>
-	<sprite id="40" name="Event Controller - Chainer (&quot;if X, do Y&quot;)">
+	<sprite id="40" name="Event Controller - IF (&quot;if X, do Y&quot;)">
 		<value nybble="1-2" title="Triggering Event ID" comment="Operation is performed when this event is activated."/>
 		<value nybble="3-4" title="Target Event ID" comment="This is the event the operation is performed on."/>
 		<value nybble="5-6" title="Delay / Duration" comment="The delay between the activation of the Triggering Event ID and the operation."/>
@@ -503,7 +503,7 @@
 		<checkbox nybble="20" title="Special deletion flag" comment="Only useful if two chainers are used that are placed on top of each other, and both have this flag enabled. If one of the two chainers gets activated (this one must be set to single use), the game deletes the other one when reloading the zone, making sure that chainer is never activated."/>
 		<value nybble="21-22" title="Useless" comment="Nintendo used the movement id nybbles a few times, but it isn't used by the game."/>
 	</sprite>
-	<sprite id="41" name="Location-State-Triggered Event Controller">
+	<sprite id="41" name="Event Controller - LOCATION (Location-State-Triggered)">
 		<list nybble="2" title="Players that must be in the location">
 			<entry value="0">Any</entry>
 			<entry value="1">Mario</entry>
@@ -554,7 +554,7 @@
 			<entry value="1">Deactivates Target</entry>
 		</list>
 	</sprite>
-	<sprite id="42" name="Event Controller - Multi-chainer (&quot;if X, do Y through Z&quot;)">
+	<sprite id="42" name="Event Controller - CHAINER (&quot;if X, do Y through Z&quot;)">
 		<value nybble="1-2" title="Triggering Event ID"/>
 		<value nybble="3-4" title="Last Event ID"/>
 		<value nybble="5-6" title="Delay" comment="10 frames per value"/>
@@ -563,7 +563,7 @@
 			<entry value="1">Multi use</entry>
 		</list>
 	</sprite>
-	<sprite id="43" name="Timed Event State Switch Controller" notes="After the delay, the sprite starts activating, and after a while deactivating, the event. All these delays go up to 255. Their unit is 10 frames.">
+	<sprite id="43" name="Event Controller - TIMER (Timed State Switch)" notes="After the delay, the sprite starts activating, and after a while deactivating, the event. All these delays go up to 255. Their unit is 10 frames.">
 		<value nybble="3-4" title="Target Event ID" comment="Event ID that is affected"/>
 		<value nybble="5-6" title="Duration OFF" comment="The time the event is activated"/>
 		<value nybble="7-8" title="Duration ON" comment="The time the event is activated"/>
@@ -7700,7 +7700,7 @@
 		<checkbox nybble="17" title="Big"/>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
-	<sprite id="715" name="Location-state-triggered Event Controller - NSLU">
+	<sprite id="715" name="Event Controller - LOCATION (Location-state-triggered) - NSLU">
 		<value nybble="3-4" title="Triggering Event ID"/>
 		<value nybble="5-6" title="Player Location"/>
 		<checkbox nybble="5-6" title="Ignore Player Location" mask="255"/>

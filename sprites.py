@@ -969,32 +969,6 @@ class SpriteImage_Seaweed(SLib.SpriteImage_StaticMultiple):  # 35
         super().dataChanged()
 
 
-class SpriteImage_ZoneTrigger(SLib.SpriteImage_Static):  # 36
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['ZoneTrigger'],
-        )
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('ZoneTrigger', 'zone_trigger.png')
-
-
-class SpriteImage_LocationTrigger(SLib.SpriteImage_Static):  # 41
-    def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['LocationTrigger'],
-        )
-
-    @staticmethod
-    def loadImages():
-        SLib.loadIfNotInImageCache('LocationTrigger', 'location_trigger.png')
-
-
 class SpriteImage_EventController(SLib.SpriteImage):  # X
     font = QtGui.QFont(globals.NumberFont)
     font.setPointSize(17)
@@ -1031,6 +1005,11 @@ class SpriteImage_EventController(SLib.SpriteImage):  # X
         painter.setPen(oldP)
         
 
+class SpriteImage_EventControllerZone(SpriteImage_EventController):  # 36
+    def __init__(self, parent):
+        super().__init__(parent, 'Event\nZONE')
+
+
 class SpriteImage_EventControllerAnd(SpriteImage_EventController):  # 37
     def __init__(self, parent):
         super().__init__(parent, 'Event\nAND')
@@ -1049,6 +1028,19 @@ class SpriteImage_EventControllerRandom(SpriteImage_EventController):  # 39
 class SpriteImage_EventControllerChainer(SpriteImage_EventController):  # 40
     def __init__(self, parent):
         super().__init__(parent, 'Event\nIF')
+
+
+class SpriteImage_LocationTrigger(SLib.SpriteImage_Static):  # 41
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['LocationTrigger'],
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('LocationTrigger', 'location_trigger.png')
 
 
 class SpriteImage_EventControllerMultiChainer(SpriteImage_EventController):  # 42
@@ -8608,6 +8600,20 @@ class SpriteImage_WobbyBonePlatform(SLib.SpriteImage):  # 457
             painter.drawPixmap((self.width - 16) * 3.75, 0, ImageCache['WobbyBoneR'])
 
 
+class SpriteImage_BowserJrCastle(SLib.SpriteImage_Static):  # 459
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['BowserJrCastle'],
+            (-16, -20),
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('BowserJrCastle', 'bowser_jr_castle.png')
+
+
 class SpriteImage_Bowser(SLib.SpriteImage_Static):  # 462
     def __init__(self, parent):
         super().__init__(
@@ -8747,10 +8753,8 @@ class SpriteImage_MegaBowser(SLib.SpriteImage_Static):  # 473
             parent,
             3.75,
             ImageCache['MegaBowser'],
+            (-196, -312)
         )
-
-        self.yOffset = -245
-        self.xOffset = -210
 
     @staticmethod
     def loadImages():
@@ -8852,6 +8856,20 @@ class SpriteImage_GiantKoopaTroopa(SLib.SpriteImage_StaticMultiple):  # 476
             self.image = ImageCache['GiantKoopatroopaR' if shellcolour else 'GiantKoopatroopaG']
 
         super().dataChanged()
+
+
+class SpriteImage_FinalBowserJr(SLib.SpriteImage_Static):  # 477
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+            ImageCache['FinalBowserJr'],
+            (-16, -16)
+        )
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('FinalBowserJr', 'bowser_jr_final.png')
 
 
 class SpriteImage_BowserJrBlock(SLib.SpriteImage_Static):  # 478
@@ -10404,7 +10422,7 @@ ImageClasses = {
     33: SpriteImage_Grrrol,
     34: SpriteImage_BigGrrrol,
     35: SpriteImage_Seaweed,
-    36: SpriteImage_ZoneTrigger,
+    36: SpriteImage_EventControllerZone,
     37: SpriteImage_EventControllerAnd,
     38: SpriteImage_EventControllerOr,
     39: SpriteImage_EventControllerRandom,
@@ -10758,6 +10776,7 @@ ImageClasses = {
     455: SpriteImage_ClapCrowd,
     457: SpriteImage_WobbyBonePlatform,
     458: SpriteImage_GoldenPipeDown,
+    459: SpriteImage_BowserJrCastle,
     462: SpriteImage_Bowser,
     464: SpriteImage_BowserBridge,
     465: SpriteImage_KamekFloor,
@@ -10771,6 +10790,7 @@ ImageClasses = {
     474: SpriteImage_ToadHouseCannon,
     475: SpriteImage_BigQBlock,
     476: SpriteImage_GiantKoopaTroopa,
+    477: SpriteImage_FinalBowserJr,
     478: SpriteImage_BowserJrBlock,
     479: SpriteImage_Crash,
     480: SpriteImage_StarCoin,
