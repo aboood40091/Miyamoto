@@ -2148,7 +2148,7 @@ class SpriteImage_PipeEnemyGenerator(SLib.SpriteImage):  # 98
         super().dataChanged()
 
         self.spritebox.size = (16, 16)
-        direction = (self.parent.spritedata[5] & 0xF) % 4
+        direction = self.parent.spritedata[5] & 3
 
         if direction in (0, 1):  # vertical pipe
             self.spritebox.size = (32, 16)
@@ -2216,7 +2216,7 @@ class SpriteImage_RotatingBillCanon(SLib.SpriteImage_StaticMultiple):  # 103
     def dataChanged(self):
         super().dataChanged()
 
-        self.pieces = (self.parent.spritedata[3] & 0xF) % 8 + 1
+        self.pieces = (self.parent.spritedata[3] & 7) + 1
         
         tempNothing = self.parent.spritedata[4]
 
@@ -3231,13 +3231,26 @@ class SpriteImage_FlyingQBlock(SLib.SpriteImage):  # 154
             painter.drawPixmap(45, 57.5, self.imagecache)
 
 
-class SpriteImage_PipeCannon(SLib.SpriteImage):  # 155, 667
+class SpriteImage_PipeCannon(SpriteImage_Pipe):  # 155, 667
+    aux_offsets = (
+        (0, 0),
+        (-32, 0),
+        (0, -4),
+        (-12, -4),
+        (-24, -60),
+        (0, 0),
+        (-36, 0),
+    )
+
     def __init__(self, parent):
         super().__init__(parent, 3.75)
-        self.spritebox.shown = False
+
+        self.middleY = 60
+        self.width, self.pipeWidth = 32, 120
 
         # self.aux[0] is the pipe image
-        self.aux.append(SLib.AuxiliaryImage(parent, 60, 60))
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+        self.aux[0].setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
         self.aux[0].hover = False
 
         # self.aux[1] is the trajectory indicator
@@ -3246,78 +3259,128 @@ class SpriteImage_PipeCannon(SLib.SpriteImage):  # 155, 667
 
         self.aux[0].setZValue(self.aux[1].zValue() + 1)
 
-        self.size = (32, 64)
-
     @staticmethod
     def loadImages():
-        if 'PipeCannon0' in ImageCache: return
+        if 'PipeCannon0' in ImageCache:
+            return
+
+        SpriteImage_Pipe.loadImages()
         for i in range(7):
             ImageCache['PipeCannon%d' % i] = SLib.GetImg('pipe_cannon_%d.png' % i)
 
     def dataChanged(self):
-        fireDirection = (self.parent.spritedata[5] & 0xF) % 8
-        if fireDirection == 7: fireDirection = 5
+        length = (self.parent.spritedata[4] & 0xF) + 3
+        self.height, self.pipeHeight = (length+1) * 16, length * 60
+        self.yOffset = -(length-3) * 16
 
-        self.aux[0].image = ImageCache['PipeCannon%d' % (fireDirection)]
+        fireDirection = self.parent.spritedata[5] & 0xF
+        if fireDirection > 10:
+            fireDirection = 0
 
+        imgDirection = fireDirection
+        if fireDirection in (7, 8):
+            imgDirection -= 2
+
+        elif fireDirection in (9, 10):
+            imgDirection -= 7
+
+        self.aux[0].setImage(ImageCache['PipeCannon%d' % imgDirection], *SpriteImage_PipeCannon.aux_offsets[imgDirection], True)
+        self.aux[0].alpha = 1 if fireDirection == 4 else 0.5
+
+        # TODO: CLEAN ME UP
+
+        # 30 deg to the right
         if fireDirection == 0:
-            # 30 deg to the right
-            self.aux[0].setSize(84 * 2.5, 101 * 2.5, 0, -5 * 2.5)
             path = QtGui.QPainterPath(QtCore.QPoint(0, 184 * 2.5))
             path.cubicTo(QtCore.QPoint(152 * 2.5, -24 * 2.5), QtCore.QPoint(168 * 2.5, -24 * 2.5),
                          QtCore.QPoint(264 * 2.5, 48 * 2.5))
             path.lineTo(QtCore.QPoint(480 * 2.5, 216 * 2.5))
-            self.aux[1].setSize(480 * 2.5, 216 * 2.5, 24 * 2.5, -120 * 2.5)
+            self.aux[1].setSize(480 * 2.5, 216 * 2.5, 24 * 2.5, -120 * 2.5 + 30)
+
+        # 30 deg to the left
         elif fireDirection == 1:
-            # 30 deg to the left
-            self.aux[0].setSize(85 * 2.5, 101 * 2.5, -36 * 2.5, -5 * 2.5)
             path = QtGui.QPainterPath(QtCore.QPoint(480 * 2.5 - 0, 184 * 2.5))
             path.cubicTo(QtCore.QPoint(480 * 2.5 - 152 * 2.5, -24 * 2.5),
                          QtCore.QPoint(480 * 2.5 - 168 * 2.5, -24 * 2.5),
                          QtCore.QPoint(480 * 2.5 - 264 * 2.5, 48 * 2.5))
             path.lineTo(QtCore.QPoint(480 * 2.5 - 480 * 2.5, 216 * 2.5))
-            self.aux[1].setSize(480 * 2.5, 216 * 2.5, -480 * 2.5 + 24 * 2.5, -120 * 2.5)
+            self.aux[1].setSize(480 * 2.5, 216 * 2.5, -480 * 2.5 + 24 * 2.5, -120 * 2.5 + 30)
+
+        # 15 deg to the right
         elif fireDirection == 2:
-            # 15 deg to the right
-            self.aux[0].setSize(60 * 2.5, 102 * 2.5, 0 * 2.5, -6 * 2.5)
             path = QtGui.QPainterPath(QtCore.QPoint(0, 188 * 2.5))
             path.cubicTo(QtCore.QPoint(36 * 2.5, -36 * 2.5), QtCore.QPoint(60 * 2.5, -36 * 2.5),
                          QtCore.QPoint(96 * 2.5, 84 * 2.5))
             path.lineTo(QtCore.QPoint(144 * 2.5, 252 * 2.5))
-            self.aux[1].setSize(144 * 2.5, 252 * 2.5, 30 * 2.5, -156 * 2.5)
+            self.aux[1].setSize(144 * 2.5, 252 * 2.5, 30 * 2.5 + 15, -156 * 2.5 + 15)
+
+        # 15 deg to the left
         elif fireDirection == 3:
-            # 15 deg to the left
-            self.aux[0].setSize(61 * 2.5, 102 * 2.5, -12 * 2.5, -6 * 2.5)
             path = QtGui.QPainterPath(QtCore.QPoint(144 * 2.5 - 0, 188 * 2.5))
             path.cubicTo(QtCore.QPoint(144 * 2.5 - 36 * 2.5, -36 * 2.5), QtCore.QPoint(144 * 2.5 - 60 * 2.5, -36 * 2.5),
                          QtCore.QPoint(144 * 2.5 - 96 * 2.5, 84 * 2.5))
             path.lineTo(QtCore.QPoint(144 * 2.5 - 144 * 2.5, 252 * 2.5))
-            self.aux[1].setSize(144 * 2.5, 252 * 2.5, -144 * 2.5 + 18 * 2.5, -156 * 2.5)
+            self.aux[1].setSize(144 * 2.5, 252 * 2.5, -144 * 2.5 + 30 * 2.5 - 45, -156 * 2.5 + 15)
+
+        # Straight up
         elif fireDirection == 4:
-            # Straight up
-            self.aux[0].setSize(135 * 2.5, 132 * 2.5, -43 * 2.5, -35 * 2.5)
             path = QtGui.QPainterPath(QtCore.QPoint(26 * 2.5, 0))
             path.lineTo(QtCore.QPoint(26 * 2.5, 656 * 2.5))
             self.aux[1].setSize(48 * 2.5, 656 * 2.5, 0, -632 * 2.5)
+
+        # 45 deg to the right
         elif fireDirection == 5:
-            # 45 deg to the right
-            self.aux[0].setSize(90 * 2.5, 98 * 2.5, 0, -1 * 2.5)
             path = QtGui.QPainterPath(QtCore.QPoint(0, 320 * 2.5))
             path.lineTo(QtCore.QPoint(264 * 2.5, 64 * 2.5))
             path.cubicTo(QtCore.QPoint(348 * 2.5, -14 * 2.5), QtCore.QPoint(420 * 2.5, -14 * 2.5),
                          QtCore.QPoint(528 * 2.5, 54 * 2.5))
-            path.lineTo(QtCore.QPoint(1036 * 2.5, 348 * 2.5))
-            self.aux[1].setSize(1036 * 2.5, 348 * 2.5, 24 * 2.5, -252 * 2.5)
+            path.lineTo(QtCore.QPoint(1036 * 2.5, 348 * 2.5 + 60))
+            self.aux[1].setSize(1036 * 2.5, 348 * 2.5 + 30, 24 * 2.5, -252 * 2.5 + 30)
+
+        # 45 deg to the left
         elif fireDirection == 6:
-            # 45 deg to the left
-            self.aux[0].setSize(91 * 2.5, 98 * 2.5, -42 * 2.5, -1 * 2.5)
             path = QtGui.QPainterPath(QtCore.QPoint(1036 * 2.5 - 0 * 2.5, 320 * 2.5))
             path.lineTo(QtCore.QPoint(1036 * 2.5 - 264 * 2.5, 64 * 2.5))
             path.cubicTo(QtCore.QPoint(1036 * 2.5 - 348 * 2.5, -14 * 2.5),
                          QtCore.QPoint(1036 * 2.5 - 420 * 2.5, -14 * 2.5),
                          QtCore.QPoint(1036 * 2.5 - 528 * 2.5, 54 * 2.5))
-            path.lineTo(QtCore.QPoint(1036 * 2.5 - 1036 * 2.5, 348 * 2.5))
-            self.aux[1].setSize(1036 * 2.5, 348 * 2.5, -1036 * 2.5 + 24 * 2.5, -252 * 2.5)
+            path.lineTo(QtCore.QPoint(1036 * 2.5 - 1036 * 2.5, 348 * 2.5 + 60))
+            self.aux[1].setSize(1036 * 2.5, 348 * 2.5 - 60, -1036 * 2.5 + 24 * 2.5, -252 * 2.5 + 30)
+
+        # 45 deg to the right (lower initial velocity)
+        elif fireDirection == 7:
+            path = QtGui.QPainterPath(QtCore.QPoint(1.5 * 24 * 2.5, 320 * 2.5 - 1.5 * 24 * 2.5))
+            path.lineTo(QtCore.QPoint(264 * 2.5, 64 * 2.5))
+            path.cubicTo(QtCore.QPoint(348 * 2.5, -14 * 2.5), QtCore.QPoint(420 * 2.5, -14 * 2.5),
+                         QtCore.QPoint(528 * 2.5, 54 * 2.5))
+            path.lineTo(QtCore.QPoint(1036 * 2.5, 348 * 2.5 + 60))
+            self.aux[1].setSize(1036 * 2.5, 348 * 2.5 - 60, 24 * 2.5 - 90, -252 * 2.5 + 30 + 30 + 60)
+
+        # 45 deg to the left (lower initial velocity)
+        elif fireDirection == 8:
+            path = QtGui.QPainterPath(QtCore.QPoint(1036 * 2.5 - 0 * 2.5 - 1.5 * 24 * 2.5, 320 * 2.5 - 1.5 * 24 * 2.5))
+            path.lineTo(QtCore.QPoint(1036 * 2.5 - 264 * 2.5, 64 * 2.5))
+            path.cubicTo(QtCore.QPoint(1036 * 2.5 - 348 * 2.5, -14 * 2.5),
+                         QtCore.QPoint(1036 * 2.5 - 420 * 2.5, -14 * 2.5),
+                         QtCore.QPoint(1036 * 2.5 - 528 * 2.5, 54 * 2.5))
+            path.lineTo(QtCore.QPoint(1036 * 2.5 - 1036 * 2.5, 348 * 2.5 + 60))
+            self.aux[1].setSize(1036 * 2.5, 348 * 2.5 - 60, -1036 * 2.5 + 24 * 2.5 + 90, -252 * 2.5 + 30 + 30 + 60)
+
+        # 15 deg to the right (higher initial velocity)
+        elif fireDirection == 9:
+            path = QtGui.QPainterPath(QtCore.QPoint(30, 252 * 2.5 + 5*60))
+            path.cubicTo(QtCore.QPoint(36 * 2.5 + 90, -36 * 2.5), QtCore.QPoint(60 * 2.5 + 90, -36 * 2.5), QtCore.QPoint(96 * 2.5 + 90, 84 * 2.5))
+            path.lineTo(QtCore.QPoint(144 * 2.5 + 4*60, 252 * 2.5 + 8*60))
+            self.aux[1].setSize(144 * 2.5 + 4*60, 252 * 2.5 + 8*60, 30 * 2.5 - 15, -156 * 2.5 - 7.5*60)
+
+        # 15 deg to the left (higher initial velocity)
+        else:
+            path = QtGui.QPainterPath(QtCore.QPoint(144 * 2.5 - 0 + 4*60, 252 * 2.5 + 5*60))
+            path.cubicTo(QtCore.QPoint(144 * 2.5 - 36 * 2.5 + 4*60 - 60, -36 * 2.5), QtCore.QPoint(144 * 2.5 - 60 * 2.5 + 4*60 - 60, -36 * 2.5),
+                         QtCore.QPoint(144 * 2.5 - 96 * 2.5 + 4*60 - 60, 84 * 2.5))
+            path.lineTo(QtCore.QPoint(144 * 2.5 - 144 * 2.5 + 30, 252 * 2.5 + 8*60))
+            self.aux[1].setSize(144 * 2.5 + 4*60, 252 * 2.5 + 8*60, -144 * 2.5 + 30 * 2.5 - 45 - 4*60, -156 * 2.5 - 7.5*60)
+
         self.aux[1].SetPath(path)
 
         super().dataChanged()
