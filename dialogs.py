@@ -1431,12 +1431,17 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.separate = QtWidgets.QCheckBox()
                 self.separate.setChecked(globals.isEmbeddedSeparate)
 
+                # Add the option to modify the inner sarc name
+                self.modifyInnerName = QtWidgets.QCheckBox()
+                self.modifyInnerName.setChecked(globals.modifyInnerName)
+
                 # Create the main layout
                 L = QtWidgets.QFormLayout()
                 L.addRow(globals.trans.string('PrefsDlg', 14), self.Trans)
                 L.addRow(globals.trans.string('PrefsDlg', 15), ClearRecentBtn)
                 L.addRow(globals.trans.string('PrefsDlg', 32), self.compLevel)
                 L.addRow(globals.trans.string('PrefsDlg', 43), self.separate)
+                L.addRow(globals.trans.string('PrefsDlg', 44), self.modifyInnerName)
                 self.setLayout(L)
 
                 # Set the buttons
