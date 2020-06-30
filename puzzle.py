@@ -1582,8 +1582,11 @@ class tileOverlord(QtWidgets.QWidget):
             if object.upperslope[0] != 0x90:
                 object.upperslope = [0x90, 1]
 
-            if object.lowerslope[0] != 0x84:
-                object.lowerslope = [0x84, object.height - 1]
+                if object.height == 1:
+                    object.lowerslope = [0, 0]
+
+                else:
+                    object.lowerslope = [0x84, object.height - 1]
 
             self.tiles.slope = object.upperslope[1]
 
@@ -1593,8 +1596,11 @@ class tileOverlord(QtWidgets.QWidget):
             if object.upperslope[0] != 0x91:
                 object.upperslope = [0x91, 1]
 
-            if object.lowerslope[0] != 0x84:
-                object.lowerslope = [0x84, object.height - 1]
+                if object.height == 1:
+                    object.lowerslope = [0, 0]
+
+                else:
+                    object.lowerslope = [0x84, object.height - 1]
 
             self.tiles.slope = object.upperslope[1]
 
@@ -1602,10 +1608,13 @@ class tileOverlord(QtWidgets.QWidget):
             object.clearRepetitionXY()
 
             if object.upperslope[0] != 0x92:
-                object.upperslope = [0x92, object.height - 1]
+                object.upperslope = [0x92, 1]
 
-            if object.lowerslope[0] != 0x84:
-                object.lowerslope = [0x84, 1]
+                if object.height == 1:
+                    object.lowerslope = [0, 0]
+
+                else:
+                    object.lowerslope = [0x84, object.height - 1]
 
             self.tiles.slope = -object.upperslope[1]
 
@@ -1613,10 +1622,13 @@ class tileOverlord(QtWidgets.QWidget):
             object.clearRepetitionXY()
 
             if object.upperslope[0] != 0x93:
-                object.upperslope = [0x93, object.height - 1]
+                object.upperslope = [0x93, 1]
 
-            if object.lowerslope[0] != 0x84:
-                object.lowerslope = [0x84, 1]
+                if object.height == 1:
+                    object.lowerslope = [0, 0]
+
+                else:
+                    object.lowerslope = [0x84, object.height - 1]
 
             self.tiles.slope = -object.upperslope[1]
 
@@ -2897,32 +2909,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 if object.upperslope[0] & 0x2:
                     a = struct.pack('>B', object.upperslope[0])
 
-                    if not object.lowerslope[1]:
-                        for row in range(0, object.upperslope[1]):
+                    for row in range(object.lowerslope[1], object.height):
+                        for tile in object.tiles[row]:
+                            a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                        a += b'\xfe'
+
+                    if object.height > 1 and object.lowerslope[1]:
+                        a += struct.pack('>B', object.lowerslope[0])
+
+                        for row in range(0, object.lowerslope[1]):
                             for tile in object.tiles[row]:
                                 a += struct.pack('>BBB', tile[0], tile[1], tile[2])
                             a += b'\xfe'
-
-                    else:
-                        if object.height == 1:
-                            iterationsA = 0
-                            iterationsB = 1
-                        else:
-                            iterationsA = object.upperslope[1]
-                            iterationsB = object.lowerslope[1] + object.upperslope[1]
-
-                        for row in range(iterationsA, iterationsB):
-                            for tile in object.tiles[row]:
-                                a += struct.pack('>BBB', tile[0], tile[1], tile[2])
-                            a += b'\xfe'
-
-                        if object.height > 1:
-                            a += struct.pack('>B', object.lowerslope[0])
-
-                            for row in range(0, object.upperslope[1]):
-                                for tile in object.tiles[row]:
-                                    a += struct.pack('>BBB', tile[0], tile[1], tile[2])
-                                a += b'\xfe'
 
                     a += b'\xff'
                     objectStrings.append(a)
@@ -3279,32 +3277,18 @@ class MainWindow(QtWidgets.QMainWindow):
             if object.upperslope[0] & 0x2:
                 a = struct.pack('>B', object.upperslope[0])
 
-                if not object.lowerslope[1]:
-                    for row in range(0, object.upperslope[1]):
+                for row in range(object.lowerslope[1], object.height):
+                    for tile in object.tiles[row]:
+                        a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                    a += b'\xfe'
+
+                if object.height > 1 and object.lowerslope[1]:
+                    a += struct.pack('>B', object.lowerslope[0])
+
+                    for row in range(0, object.lowerslope[1]):
                         for tile in object.tiles[row]:
                             a += struct.pack('>BBB', tile[0], tile[1], tile[2])
                         a += b'\xfe'
-
-                else:
-                    if object.height == 1:
-                        iterationsA = 0
-                        iterationsB = 1
-                    else:
-                        iterationsA = object.upperslope[1]
-                        iterationsB = object.lowerslope[1] + object.upperslope[1]
-
-                    for row in range(iterationsA, iterationsB):
-                        for tile in object.tiles[row]:
-                            a += struct.pack('>BBB', tile[0], tile[1], tile[2])
-                        a += b'\xfe'
-
-                    if object.height > 1:
-                        a += struct.pack('>B', object.lowerslope[0])
-
-                        for row in range(0, object.upperslope[1]):
-                            for tile in object.tiles[row]:
-                                a += struct.pack('>BBB', tile[0], tile[1], tile[2])
-                            a += b'\xfe'
 
                 a += b'\xff'
 
