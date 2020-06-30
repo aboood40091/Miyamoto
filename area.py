@@ -500,7 +500,7 @@ class Area_NSMBU(AbstractArea):
         """
         pathdata = self.blocks[13]
         pathcount = len(pathdata) // 12
-        pathstruct = struct.Struct('>BbHHHxxxx')  # updated struct -- MrRean
+        pathstruct = struct.Struct('>BbHHHxxxx')
         offset = 0
         unpack = pathstruct.unpack_from
         pathinfo = []

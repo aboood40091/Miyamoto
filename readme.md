@@ -11,41 +11,38 @@ GitHub: https://github.com/aboood40091/Miyamoto
 
 ### Credits
 #### Reggie! & Reggie! Next
-* Treeki -- Creator of Reggie!
+* Treeki & Tempus -- Creators of Reggie!
 * RoadrunnerWMC -- Creator of Reggie! Next
+* Grop, Hiccup, Kinnay, MrRean and RoadrunnerWMC -- Reggie! Next NSMBU
   
 #### Miyamoto
-* AboodXD -- Lead Coder, Spritedata, Graphics
-* Gota7 -- Coding, Spritedata, Graphics
-* Grop -- Coding, Spritedata
-* Gregory Haskins -- Gibberish
+* AboodXD -- Lead Coder, Icons & Graphics, Sprite Images & Coding
+* Gota7 -- Founder, Icons
 * John10v10 -- Quick Paint Tool
+* mrbengtsson -- Sprite Images & Coding
+  
+#### Level and Tileset Data Reverse-engineering
+* AboodXD
+* Kinnay
+  
+#### Spritedata Reverse-engineering
+* AboodXD
+* mrbengtsson
+* Kinnay
+* Grop
+  
+#### Others
+* Gota7 -- Spritedata, Testing on Linux
+* Grop -- Sprite images offset fixes from RNM4
+* Gregory Haskins -- Gibberish
 * libtxc_dxtn -- Original DXT5 (De)compressor in C
-* Luzifer -- Graphics
-* Mayro -- Graphics
-* mrbengtsson -- Coding, Spritedata, Graphics
 * Meorge -- Testing on macOS
 * NVIDIA -- NVCOMPRESS
-* RicBent -- Graphics
-* reece stone -- Spritedata, Graphics
-* Shawn Shea -- Graphics
-* Toms -- Spritedata, Graphics, Testing on macOS
+* reece stone -- Spritedata
+* RoadrunnerWMC -- Stamps offset fixes
+* Toms -- Spritedata, Testing on macOS
 * Wexos -- Original BC3 Compressor in C#
 * Wiimm -- WSZST
-  
-#### Reggie NSMBU
-* Grop -- Coding, Spritedata, Graphics
-* Hiccup -- Spritedata
-* Kinnay -- Spritedata
-* MrRean -- Coding, Spritedata, Categories, Graphics
-* RoadrunnerWMC -- Coding, Spritedata, Graphics
-
-----------------------------------------------------------------
-
-### TODO
-- Get unknown area fields figured out
-- Sprite images / HD screenshots (a lot of them)
-- Improve Zones and Objects resizing
 
 ----------------------------------------------------------------
 
