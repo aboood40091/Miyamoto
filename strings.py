@@ -657,6 +657,7 @@ class MiyamotoTranslation:
                 41: '8',
                 42: '9: Best',
                 43: 'Split Embedded tab:',
+                44: 'Modify Internal Name:',
                 },
             'QuickPaint': {
                 1: "WOAH! Watch out!",

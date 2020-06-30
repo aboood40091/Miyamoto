@@ -2785,6 +2785,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.isEmbeddedSeparate = dlg.generalTab.separate.isChecked()
         setSetting('isEmbeddedSeparate', globals.isEmbeddedSeparate)
 
+        # Determine if the inner sarc name should be modifiable
+        globals.modifyInnerName = dlg.generalTab.modifyInnerName.isChecked()
+        setSetting('ModifyInternalName', globals.modifyInnerName)
+
         # Get the Toolbar tab settings
         boxes = (
         dlg.toolbarTab.FileBoxes, dlg.toolbarTab.EditBoxes, dlg.toolbarTab.ViewBoxes, dlg.toolbarTab.SettingsBoxes,
@@ -2965,9 +2969,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         return True
 
     def getInnerSarcName(self):
-        name = QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
-                                              "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):",
-                                              QtWidgets.QLineEdit.Normal)[0]
+        name = os.path.splitext(self.fileTitle)[0]
+
+        if name == None or name == '' or globals.modifyInnerName:
+            name = QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
+                                                  "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):",
+                                                  QtWidgets.QLineEdit.Normal)[0]
 
         if "/" in name or "\\" in name:
             warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning', r'The input name included "/" or "\", aborting...')
@@ -5655,6 +5662,7 @@ def main():
     globals.CommentsShown = setting('ShowComments', True)
     globals.PathsShown = setting('ShowPaths', True)
     globals.isEmbeddedSeparate = setting('isEmbeddedSeparate', False)
+    globals.modifyInnerName = setting('ModifyInternalName', False)
 
     if globals.libyaz0_available:
         globals.CompLevel = setting('CompLevel', 1)
