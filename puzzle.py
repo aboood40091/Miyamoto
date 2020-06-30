@@ -299,8 +299,13 @@ class TilesetClass:
         self.tiles.append(self.Tile(image, nml, collision))
 
 
-    def addObject(self, height = 1, width = 1, randByte = 0, uslope = [0, 0], lslope = [0, 0], tilelist = [[(0, 0, 0)]]):
+    def addObject(self, height = 1, width = 1, randByte = 0, uslope = [0, 0], lslope = [0, 0], tilelist = None, new = False):
         '''Adds a new object'''
+
+        global Tileset
+
+        if new:
+            tilelist = [[(0, 0, Tileset.slot)]]
 
         self.objects.append(self.Object(height, width, randByte, uslope, lslope, tilelist))
 
@@ -985,7 +990,7 @@ class RepeatXModifiers(QtWidgets.QWidget):
     def update(self):
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1072,7 +1077,7 @@ class RepeatXModifiers(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1099,7 +1104,7 @@ class RepeatXModifiers(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1126,7 +1131,7 @@ class RepeatXModifiers(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1164,7 +1169,7 @@ class RepeatXModifiers(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1237,7 +1242,7 @@ class RepeatYModifiers(QtWidgets.QWidget):
     def update(self):
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1263,7 +1268,7 @@ class RepeatYModifiers(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1283,7 +1288,7 @@ class RepeatYModifiers(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1429,17 +1434,20 @@ class tileOverlord(QtWidgets.QWidget):
     def addObj(self):
         global Tileset
 
-        Tileset.addObject()
+        Tileset.addObject(new=True)
 
         pix = QtGui.QPixmap(24, 24)
         pix.fill(Qt.transparent)
-        if Tileset.slot == 0:
-            painter = QtGui.QPainter(pix)
-            painter.drawPixmap(0, 0, Tileset.tiles[0].image.scaledToWidth(24, Qt.SmoothTransformation))
-            painter.end()
+
+        painter = QtGui.QPainter(pix)
+        painter.drawPixmap(0, 0, Tileset.tiles[0].image.scaledToWidth(24, Qt.SmoothTransformation))
+        painter.end()
+        del painter
 
         count = len(Tileset.objects)
-        window.objmodel.appendRow(QtGui.QStandardItem(QtGui.QIcon(pix), 'Object {0}'.format(count-1)))
+        item = QtGui.QStandardItem(QtGui.QIcon(pix), 'Object {0}'.format(count-1))
+        item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+        window.objmodel.appendRow(item)
         index = window.objectList.currentIndex()
         window.objectList.setCurrentIndex(index)
         self.setObject(index)
@@ -1451,10 +1459,12 @@ class tileOverlord(QtWidgets.QWidget):
     def removeObj(self):
         global Tileset
 
-        index = window.objectList.currentIndex()
+        index = window.objectList.currentIndex().row()
+        if index < 0 or index >= len(Tileset.objects):
+            return
 
-        Tileset.removeObject(index.row())
-        window.objmodel.removeRow(index.row())
+        Tileset.removeObject(index)
+        window.objmodel.removeRow(index)
         self.tiles.clear()
 
         SetupObjectModel(window.objmodel, Tileset.objects, Tileset.tiles)
@@ -1517,12 +1527,16 @@ class tileOverlord(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.objectList.currentIndex()
-        object = Tileset.objects[index.row()]
+        index = window.objectList.currentIndex().row()
+        if index < 0 or index >= len(Tileset.objects):
+            return
+
+        object = Tileset.objects[index]
         if object.tilingMethodIdx == listindex:
             return
 
         object.tilingMethodIdx = listindex
+        self.tiles.slope = 0
 
         if listindex == 0:  # No Repetition
             object.clearRepetitionXY()
@@ -1610,6 +1624,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def addRowHandler(self):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1618,6 +1635,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def removeRowHandler(self):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1626,6 +1646,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def addColumnHandler(self):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1634,6 +1657,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def removeColumnHandler(self):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1642,6 +1668,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def changeRandX(self, toggled):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1651,6 +1680,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def changeRandY(self, toggled):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1660,6 +1692,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def changeRandLen(self, val):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1730,7 +1765,7 @@ class tileWidget(QtWidgets.QWidget):
 
         self.update()
         self.updateList()
-        
+
         window.tileWidget.repeatX.update()
 
 
@@ -1752,7 +1787,7 @@ class tileWidget(QtWidgets.QWidget):
         for row in self.tiles:
             if len(row) > 1:
                 row.pop()
-                
+
         for row in curObj.tiles:
             if len(row) > 1:
                 row.pop()
@@ -1774,7 +1809,7 @@ class tileWidget(QtWidgets.QWidget):
 
         self.update()
         self.updateList()
-        
+
         window.tileWidget.repeatX.update()
 
 
@@ -1894,6 +1929,12 @@ class tileWidget(QtWidgets.QWidget):
         if event.button() == 2:
             return
 
+        index = window.objectList.currentIndex()
+        self.object = index.row()
+
+        if self.object < 0 or self.object >= len(Tileset.objects):
+            return
+
         if Tileset.placeNullChecked:
             centerPoint = self.contentsRect().center()
 
@@ -1998,17 +2039,22 @@ class tileWidget(QtWidgets.QWidget):
         upperLeftY = centerPoint.y() - self.size[1]*12
         lowerRightY = centerPoint.y() + self.size[1]*12
 
+        index = window.objectList.currentIndex()
+        self.object = index.row()
 
-        if 0 <= self.object < len(Tileset.objects):
-            object = Tileset.objects[self.object]
-            for y, row in enumerate(object.tiles):
-                painter.fillRect(upperLeftX, upperLeftY + y * 24, len(row) * 24, 24, QtGui.QColor(205, 205, 255))
+        if self.object < 0 or self.object >= len(Tileset.objects):
+            painter.end()
+            return
+
+        object = Tileset.objects[self.object]
+        for y, row in enumerate(object.tiles):
+            painter.fillRect(upperLeftX, upperLeftY + y * 24, len(row) * 24, 24, QtGui.QColor(205, 205, 255))
 
         for y, row in enumerate(self.tiles):
             for x, pix in enumerate(row):
                 painter.drawPixmap(upperLeftX + (x * 24), upperLeftY + (y * 24), pix)
 
-        if not self.slope == 0:
+        if object.upperslope[0] & 0x80:
             pen = QtGui.QPen()
             pen.setStyle(Qt.DashLine)
             pen.setWidth(2)
@@ -2030,7 +2076,7 @@ class tileWidget(QtWidgets.QWidget):
                 painter.drawText(upperLeftX+1, upperLeftY+10, 'Main')
                 painter.drawText(upperLeftX+1, upperLeftY + (slope * 24) + 9, 'Sub')
 
-            elif self.slope < 0:
+            else:
                 painter.drawText(upperLeftX+1, upperLeftY + self.size[1]*24 - 4, 'Main')
                 painter.drawText(upperLeftX+1, upperLeftY + (slope * 24) - 3, 'Sub')
 
