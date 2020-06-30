@@ -787,9 +787,18 @@ class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple):  # 31, 503, 630, 63
         self.yOffset = -144
 
         self.parent.setZValue(24999)
+
         self.aux.append(SLib.AuxiliaryImage(parent, 390, 375))
         self.aux[0].setPos(135 + 13*60, 4*60 - 15)
         self.aux[0].alpha = 0.5
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 390, 375))
+        self.aux[1].setImage(ImageCache['Chest'], 488, 132, True)
+        self.aux[1].alpha = 0.5
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 390, 375))
+        self.aux[2].setImage(ImageCache['ToadL'], 540, 128, True)
+        self.aux[2].alpha = 0.5
 
         self.painted = self.parent.type in (503, 631)
         self.dataChanged()
@@ -806,6 +815,9 @@ class SpriteImage_Flagpole(SLib.SpriteImage_StaticMultiple):  # 31, 503, 630, 63
         SLib.loadIfNotInImageCache('CastleSecret', 'castle_secret.png')
         SLib.loadIfNotInImageCache('CastleSecretPaint', 'castle_secret_paint.png')
         SLib.loadIfNotInImageCache('CastleSecretSnow', 'castle_secret_snow.png')
+
+        SLib.loadIfNotInImageCache('Chest', 'chest.png')
+        SLib.loadIfNotInImageCache('ToadL', 'toad.png')
 
     def dataChanged(self):
         super().dataChanged()
@@ -8062,7 +8074,7 @@ class SpriteImage_BumpPlatform(SLib.SpriteImage):  # 407
             painter.drawPixmap(0, 0, ImageCache['BumpPlatformL'])
 
 
-class SpriteImage_Toad(SLib.SpriteImage_StaticMultiple):  # 408
+class SpriteImage_Toad(SLib.SpriteImage_StaticMultiple):  # 408, 543
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -8072,6 +8084,9 @@ class SpriteImage_Toad(SLib.SpriteImage_StaticMultiple):  # 408
 
     @staticmethod
     def loadImages():
+        if 'ToadR' in ImageCache:
+            return
+
         SLib.loadIfNotInImageCache('ToadL', 'toad.png')
         ImageCache['ToadR'] = ImageCache['ToadL'].transformed(QTransform().scale(-1, 1))
 
@@ -8525,12 +8540,16 @@ class SpriteImage_NabbitPlacement(SLib.SpriteImage_Static):  # 451
         super().__init__(
             parent,
             3.75,
-            ImageCache['NabbitP'],
+            ImageCache['Nabbit'],
+            (-8, -16)
         )
+
+        self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
+        self.aux[0].setSize(1410, 810, -1110, -570)
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('NabbitP', 'nabbit_placement.png')
+        SLib.loadIfNotInImageCache('Nabbit', 'nabbit.png')
 
 
 class SpriteImage_ClapCrowd(SLib.SpriteImage_Static):  # 455
@@ -10842,6 +10861,7 @@ ImageClasses = {
     538: SpriteImage_Crash,
     539: SpriteImage_RollingIceBlock,
     542: SpriteImage_MushroomPlatform,
+    543: SpriteImage_Toad,
     544: SpriteImage_MushroomMovingPlatform,
     546: SpriteImage_Flowers,
     548: SpriteImage_Sprite548,
