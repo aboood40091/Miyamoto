@@ -3896,12 +3896,12 @@ class LoadingTab(QtWidgets.QWidget):
         self.timelimit2 = QtWidgets.QSpinBox()
         self.timelimit2.setRange(0, 999)
         self.timelimit2.setToolTip(globals.trans.string('AreaDlg', 38))
-        self.timelimit2.setValue(globals.Area.timelimit2 - 100)
+        self.timelimit2.setValue(globals.Area.timelimit2)
 
         self.timelimit3 = QtWidgets.QSpinBox()
         self.timelimit3.setRange(200, 999)
         self.timelimit3.setToolTip(globals.trans.string('AreaDlg', 38))
-        self.timelimit3.setValue(globals.Area.timelimit3 + 200)
+        self.timelimit3.setValue(globals.Area.timelimit3)
 
         settingsLayout = QtWidgets.QFormLayout()
         settingsLayout.addRow(globals.trans.string('AreaDlg', 3), self.timer)

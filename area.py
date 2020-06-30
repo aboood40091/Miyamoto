@@ -186,14 +186,14 @@ class Area_NSMBU(AbstractArea):
         self.eventBits64 = 0
         self.wrapFlag = False
         self.unkFlag1 = False
-        self.timelimit = 400
+        self.timelimit = 500
         self.unkFlag2 = True
         self.unkFlag3 = True
         self.unkFlag4 = True
         self.startEntrance = 0
         self.startEntranceCoinBoost = 0
         self.timelimit2 = 300
-        self.timelimit3 = 0
+        self.timelimit3 = 200
 
         # Lists of things
         self.entrances = []
