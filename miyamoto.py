@@ -2970,16 +2970,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
     def getInnerSarcName(self):
         name = os.path.splitext(self.fileTitle)[0]
-
-        if name == None or name == '' or globals.modifyInnerName:
+        if not name or "/" in name or "\\" in name or globals.modifyInnerName:
             name = QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
                                                   "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):",
                                                   QtWidgets.QLineEdit.Normal)[0]
 
-        if "/" in name or "\\" in name:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning', r'The input name included "/" or "\", aborting...')
-            warningBox.exec_()
-            return ''
+            if "/" in name or "\\" in name:
+                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning', r'The input name included "/" or "\", aborting...')
+                warningBox.exec_()
+                return ''
 
         if globals.levelNameCache == "untitled":
             globals.levelNameCache = name
@@ -3432,6 +3431,26 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             event.accept()
 
+    def LoadDefaultTileset(self, name, silent=False):
+        path = globals.miyamoto_path + "/miyamotoextras/%s.szs" % name
+        if not os.path.isfile(path):
+            if not silent:
+                QtWidgets.QMessageBox.warning(self, 'Warning', '"%s.szs" not found in miyamotoextras!' \
+                                                               '\nDid you download the main tilesets pack?' % name,
+                                              QtWidgets.QMessageBox.Ok)
+
+            return False
+
+        with open(path, "rb") as inf:
+            inb = inf.read()
+
+        data = DecompYaz0(inb)
+        globals.szsData[name] = data
+
+        self.tilesets[0].append(name)
+
+        return True
+
     def LoadLevel(self, game, name, isFullPath, areaNum, loadLevel=False):
         """
         Load a level from any game into the editor
@@ -3443,12 +3462,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.fileSavePath = False
             self.fileTitle = 'untitled'
 
-            with open(globals.miyamoto_path + "/miyamotoextras/Pa0_jyotyu.szs", "rb") as inf:
-                inb = inf.read()
+            globals.szsData = {}
+            self.tilesets = [[], [], [], []]
 
-            data = DecompYaz0(inb)
-            globals.szsData = {'Pa0_jyotyu': data}
-            self.tilesets = [['Pa0_jyotyu'], [], [], []]
+            for tileset_name in globals.Pa0Tilesets:
+                ret = self.LoadDefaultTileset(tileset_name)
+                if not ret:
+                    return False
 
         else:
             globals.levName = os.path.basename(name)
@@ -3883,6 +3903,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.commentList.addItem(com.listitem)
             self.scene.addItem(com)
             com.UpdateListItem()
+
+        for tileset_name in globals.Pa0Tilesets:
+            self.LoadDefaultTileset(tileset_name, True)
 
     def ReloadTilesets(self, soft=False):
         """

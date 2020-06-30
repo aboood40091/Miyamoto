@@ -91,12 +91,27 @@ class AbstractArea:
         self.tileset1 = bytes_to_string(data[1])
         self.tileset2 = bytes_to_string(data[2])
         self.tileset3 = bytes_to_string(data[3])
+
         if self.tileset0 not in globals.szsData:
-            self.tileset0 = ''
+            ret = False
+            if self.tileset0 in globals.Pa0Tilesets:
+                reply = QtWidgets.QMessageBox.question(globals.mainWindow, 'Warning',
+                                                       '"%s" tileset was not found in the level data!\n' \
+                                                       'Do you want to load the default one from miyamotoextras?' % self.tileset0,
+                                                       QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+                if reply == QtWidgets.QMessageBox.Yes:
+                    ret = globals.mainWindow.LoadDefaultTileset(self.tileset0)
+
+            if not ret:
+                self.tileset0 = ''
+
         if self.tileset1 not in globals.szsData:
             self.tileset1 = ''
+
         if self.tileset2 not in globals.szsData:
             self.tileset2 = ''
+
         if self.tileset3 not in globals.szsData:
             self.tileset3 = ''
 

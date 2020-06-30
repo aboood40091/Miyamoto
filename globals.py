@@ -104,3 +104,5 @@ names_bg = []
 
 # Game enums
 FileExtentions = ('.szs', '.sarc')
+Pa0Tilesets = ('Pa0_jyotyu', 'Pa0_jyotyu_chika',
+               'Pa0_jyotyu_yougan', 'Pa0_jyotyu_yougan2')
