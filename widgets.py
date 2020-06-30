@@ -5179,6 +5179,13 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 numStepsY = numSteps.y()
                 globals.mainWindow.ZoomWidget.slider.setSliderPosition(globals.mainWindow.ZoomWidget.slider.value() + numStepsY)
 
+        elif QtWidgets.QApplication.keyboardModifiers() == Qt.ShiftModifier:
+            numDegrees = event.angleDelta() / 8
+            if not numDegrees.isNull():
+                numSteps = numDegrees / 15
+                numStepsY = numSteps.y()
+                globals.mainWindow.view.XScrollBar.setSliderPosition(globals.mainWindow.view.XScrollBar.value() - numStepsY * 24 * 8)
+
         else:
             QtWidgets.QGraphicsView.wheelEvent(self, event)
 
