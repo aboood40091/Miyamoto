@@ -101,7 +101,7 @@ class AbstractArea:
                                                        QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
 
                 if reply == QtWidgets.QMessageBox.Yes:
-                    ret = globals.mainWindow.LoadDefaultTileset(self.tileset0)
+                    ret = globals.mainWindow.LoadDefaultTileset(self.tileset0, dirty=True)
 
             if not ret:
                 self.tileset0 = ''

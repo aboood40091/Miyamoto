@@ -3431,7 +3431,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             event.accept()
 
-    def LoadDefaultTileset(self, name, silent=False):
+    def LoadDefaultTileset(self, name, silent=False, dirty=False):
         path = globals.miyamoto_path + "/miyamotoextras/%s.szs" % name
         if not os.path.isfile(path):
             if not silent:
@@ -3448,6 +3448,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.szsData[name] = data
 
         self.tilesets[0].append(name)
+
+        if dirty:
+            dirtyOverride = globals.DirtyOverride
+            globals.DirtyOverride = 0
+            SetDirty()
+            globals.DirtyOverride = dirtyOverride
 
         return True
 
