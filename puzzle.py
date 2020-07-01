@@ -1499,7 +1499,7 @@ class tileOverlord(QtWidgets.QWidget):
         layout.setRowStretch(2, 1)
         layout.setRowStretch(3, 5)
         layout.setRowStretch(6, 5)
-        
+
         layout.addLayout(tilesLyt, 3, 1, 4, 6)
 
         layout.addWidget(self.placeNull, 3, 7, 1, 1)

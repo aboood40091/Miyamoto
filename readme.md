@@ -24,13 +24,13 @@ GitHub: https://github.com/aboood40091/Miyamoto/tree/deluxe
 #### Level and Tileset Data Reverse-engineering
 * AboodXD
 * Kinnay
-
+  
 #### Spritedata Reverse-engineering
 * AboodXD
 * mrbengtsson
 * Kinnay
 * Grop
-
+  
 #### Others
 * Grop -- Sprite images offset fixes from RNM4
 * Meorge -- Testing on macOS
