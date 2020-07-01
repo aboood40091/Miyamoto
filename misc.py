@@ -574,6 +574,9 @@ class Metadata:
                 # Add the data (data length bytes)
                 for d in typeData: data.append(d)
 
+        if bytes(data) == b'MD2_':
+            return[]
+
         return data
 
 
