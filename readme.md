@@ -32,9 +32,11 @@ GitHub: https://github.com/aboood40091/Miyamoto/tree/deluxe
 * Grop
   
 #### Others
+* Gota7 -- Spritedata, Testing on Linux
 * Grop -- Sprite images offset fixes from RNM4
 * Meorge -- Testing on macOS
 * reece stone -- Spritedata
+* RoadrunnerWMC -- Stamps offset fixes
 * Toms -- Spritedata, Testing on macOS
 * Wiimm -- WSZST
 
