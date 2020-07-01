@@ -11,37 +11,32 @@ GitHub: https://github.com/aboood40091/Miyamoto/tree/deluxe
 
 ### Credits
 #### Reggie! & Reggie! Next
-* Treeki -- Creator of Reggie!
+* Treeki & Tempus -- Creators of Reggie!
 * RoadrunnerWMC -- Creator of Reggie! Next
+* Grop, Hiccup, Kinnay, MrRean and RoadrunnerWMC -- Reggie! Next NSMBU
   
 #### Miyamoto
-* AboodXD -- Lead Coder, Spritedata, Graphics
-* Gota7 -- Coding, Spritedata, Graphics
-* Grop -- Coding, Spritedata
+* AboodXD -- Lead Coder, Icons & Graphics, Sprite Images & Coding
+* Gota7 -- Founder, Icons
 * John10v10 -- Quick Paint Tool
-* Luzifer -- Graphics
-* Mayro -- Graphics
-* mrbengtsson -- Coding, Spritedata, Graphics
-* Meorge -- Testing on macOS
-* RicBent -- Graphics
-* reece stone -- Spritedata, Graphics
-* Shawn Shea -- Graphics
-* Toms -- Spritedata, Graphics, Testing on macOS
-* Wiimm -- WSZST
+* mrbengtsson -- Sprite Images & Coding
   
-#### Reggie NSMBU
-* Grop -- Coding, Spritedata, Graphics
-* Hiccup -- Spritedata
-* Kinnay -- Spritedata
-* MrRean -- Coding, Spritedata, Categories, Graphics
-* RoadrunnerWMC -- Coding, Spritedata, Graphics
+#### Level and Tileset Data Reverse-engineering
+* AboodXD
+* Kinnay
 
-----------------------------------------------------------------
+#### Spritedata Reverse-engineering
+* AboodXD
+* mrbengtsson
+* Kinnay
+* Grop
 
-### TODO
-- Get unknown area fields figured out
-- Sprite images / HD screenshots (a lot of them)
-- Improve Zones and Objects resizing
+#### Others
+* Grop -- Sprite images offset fixes from RNM4
+* Meorge -- Testing on macOS
+* reece stone -- Spritedata
+* Toms -- Spritedata, Testing on macOS
+* Wiimm -- WSZST
 
 ----------------------------------------------------------------
 

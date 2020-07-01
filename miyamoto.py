@@ -4795,8 +4795,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             globals.Area.unkFlag4 = dlg.LoadingTab.unk4.isChecked()
             globals.Area.startEntrance = dlg.LoadingTab.entrance.value()
             globals.Area.startEntranceCoinBoost = dlg.LoadingTab.entranceCoinBoost.value()
-            globals.Area.timelimit2 = dlg.LoadingTab.timelimit2.value() + 100
-            globals.Area.timelimit3 = dlg.LoadingTab.timelimit3.value() - 200
+            globals.Area.timelimit2 = dlg.LoadingTab.timelimit2.value()
+            globals.Area.timelimit3 = dlg.LoadingTab.timelimit3.value()
 
             oldnames = [globals.Area.tileset0, globals.Area.tileset1, globals.Area.tileset2, globals.Area.tileset3]
             assignments = ['globals.Area.tileset0', 'globals.Area.tileset1', 'globals.Area.tileset2', 'globals.Area.tileset3']

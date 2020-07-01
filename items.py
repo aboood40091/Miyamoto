@@ -2133,7 +2133,7 @@ class SpriteItem(LevelEditorItem):
 
             return
 
-        newitem = SpriteItem(self.type, self.objx, self.objy, self.spritedata)
+        newitem = SpriteItem(self.type, self.objx, self.objy, self.spritedata, self.layer, self.initialState)
 
         import widgets
         newitem.listitem = widgets.ListWidgetItem_SortsByOther(newitem, newitem.ListString())

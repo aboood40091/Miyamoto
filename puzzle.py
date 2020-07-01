@@ -308,8 +308,13 @@ class TilesetClass:
         self.tiles.append(self.Tile(image, nml, collision))
 
 
-    def addObject(self, height = 1, width = 1, randByte = 0, uslope = [0, 0], lslope = [0, 0], tilelist = [[(0, 0, 0)]]):
+    def addObject(self, height = 1, width = 1, randByte = 0, uslope = [0, 0], lslope = [0, 0], tilelist = None, new = False):
         '''Adds a new object'''
+
+        global Tileset
+
+        if new:
+            tilelist = [[(0, 0, Tileset.slot)]]
 
         self.objects.append(self.Object(height, width, randByte, uslope, lslope, tilelist))
 
@@ -994,7 +999,7 @@ class RepeatXModifiers(QtWidgets.QWidget):
     def update(self):
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1081,7 +1086,7 @@ class RepeatXModifiers(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1108,7 +1113,7 @@ class RepeatXModifiers(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1135,7 +1140,7 @@ class RepeatXModifiers(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1173,7 +1178,7 @@ class RepeatXModifiers(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1246,7 +1251,7 @@ class RepeatYModifiers(QtWidgets.QWidget):
     def update(self):
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1272,7 +1277,7 @@ class RepeatYModifiers(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1292,7 +1297,7 @@ class RepeatYModifiers(QtWidgets.QWidget):
 
         global Tileset
 
-        index = window.tileWidget.tiles.object
+        index = window.objectList.currentIndex().row()
         if index < 0 or index >= len(Tileset.objects):
             return
 
@@ -1304,6 +1309,75 @@ class RepeatYModifiers(QtWidgets.QWidget):
         spinbox2.setRange(object.repeatY[0]+1, object.height)
 
         window.tileWidget.tiles.update()
+
+
+class SlopeLineModifier(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setVisible(False)
+
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0,0,0,0)
+
+        self.spinbox = QtWidgets.QSpinBox()
+        self.spinbox.setFixedSize(32, 24)
+        self.spinbox.valueChanged.connect(self.valChanged)
+        layout.addWidget(self.spinbox)
+
+        self.updating = False
+
+        self.setFixedWidth(32)
+
+
+    def update(self):
+        global Tileset
+
+        index = window.objectList.currentIndex().row()
+        if index < 0 or index >= len(Tileset.objects):
+            return
+
+        object = Tileset.objects[index]
+        if object.upperslope[0] == 0:
+            return
+
+        self.updating = True
+
+        self.spinbox.setRange(1, object.height)
+        self.spinbox.setValue(object.upperslope[1])
+
+        self.updating = False
+
+
+    def valChanged(self, val):
+        if self.updating:
+            return
+
+        global Tileset
+
+        index = window.objectList.currentIndex().row()
+        if index < 0 or index >= len(Tileset.objects):
+            return
+
+        object = Tileset.objects[index]
+        if object.height == 1:
+            object.upperslope[1] = 1
+            object.lowerslope = [0, 0]
+
+        else:
+            object.upperslope[1] = val
+            object.lowerslope = [0x84, object.height - val]
+
+        tiles = window.tileWidget.tiles
+
+        if object.upperslope[0] & 2:
+            tiles.slope = -object.upperslope[1]
+
+        else:
+            tiles.slope = object.upperslope[1]
+
+        tiles.update()
 
 
 class tileOverlord(QtWidgets.QWidget):
@@ -1397,13 +1471,18 @@ class tileOverlord(QtWidgets.QWidget):
         repeatYLyt = QtWidgets.QHBoxLayout()
         repeatYLyt.addWidget(self.repeatY)
 
+        self.slopeLine = SlopeLineModifier()
+        slopeLineLyt = QtWidgets.QVBoxLayout()
+        slopeLineLyt.addWidget(self.slopeLine)
+
         tilesLyt = QtWidgets.QGridLayout()
         tilesLyt.setSpacing(0)
         tilesLyt.setContentsMargins(0,0,0,0)
 
-        tilesLyt.addWidget(self.tiles, 0, 0, 3, 5)
-        tilesLyt.addLayout(repeatXLyt, 0, 5, 3, 1)
-        tilesLyt.addLayout(repeatYLyt, 3, 0, 1, 5)
+        tilesLyt.addWidget(self.tiles, 0, 0, 3, 4)
+        tilesLyt.addLayout(repeatXLyt, 0, 4, 3, 1)
+        tilesLyt.addLayout(repeatYLyt, 3, 0, 1, 4)
+        tilesLyt.addLayout(slopeLineLyt, 0, 5, 3, 1)
 
         layout = QtWidgets.QGridLayout()
 
@@ -1438,17 +1517,20 @@ class tileOverlord(QtWidgets.QWidget):
     def addObj(self):
         global Tileset
 
-        Tileset.addObject()
+        Tileset.addObject(new=True)
 
         pix = QtGui.QPixmap(24, 24)
         pix.fill(Qt.transparent)
-        if Tileset.slot == 0:
-            painter = QtGui.QPainter(pix)
-            painter.drawPixmap(0, 0, Tileset.tiles[0].image.scaledToWidth(24, Qt.SmoothTransformation))
-            painter.end()
+
+        painter = QtGui.QPainter(pix)
+        painter.drawPixmap(0, 0, Tileset.tiles[0].image.scaledToWidth(24, Qt.SmoothTransformation))
+        painter.end()
+        del painter
 
         count = len(Tileset.objects)
-        window.objmodel.appendRow(QtGui.QStandardItem(QtGui.QIcon(pix), 'Object {0}'.format(count-1)))
+        item = QtGui.QStandardItem(QtGui.QIcon(pix), 'Object {0}'.format(count-1))
+        item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+        window.objmodel.appendRow(item)
         index = window.objectList.currentIndex()
         window.objectList.setCurrentIndex(index)
         self.setObject(index)
@@ -1460,10 +1542,12 @@ class tileOverlord(QtWidgets.QWidget):
     def removeObj(self):
         global Tileset
 
-        index = window.objectList.currentIndex()
+        index = window.objectList.currentIndex().row()
+        if index < 0 or index >= len(Tileset.objects):
+            return
 
-        Tileset.removeObject(index.row())
-        window.objmodel.removeRow(index.row())
+        Tileset.removeObject(index)
+        window.objmodel.removeRow(index)
         self.tiles.clear()
 
         SetupObjectModel(window.objmodel, Tileset.objects, Tileset.tiles)
@@ -1495,43 +1579,55 @@ class tileOverlord(QtWidgets.QWidget):
         if listindex == 0:  # No Repetition
             self.repeatX.setVisible(False)
             self.repeatY.setVisible(False)
+            self.slopeLine.setVisible(False)
 
         elif listindex == 1:  # Repeat X
             self.repeatX.setVisible(True)
             self.repeatY.setVisible(False)
+            self.slopeLine.setVisible(False)
 
         elif listindex == 2:  # Repeat Y
             self.repeatX.setVisible(False)
             self.repeatY.setVisible(True)
+            self.slopeLine.setVisible(False)
 
         elif listindex == 3:  # Repeat X and Y
             self.repeatX.setVisible(True)
             self.repeatY.setVisible(True)
+            self.slopeLine.setVisible(False)
 
         elif listindex == 4:  # Upward Slope
             self.repeatX.setVisible(False)
             self.repeatY.setVisible(False)
+            self.slopeLine.setVisible(True)
 
         elif listindex == 5:  # Downward Slope
             self.repeatX.setVisible(False)
             self.repeatY.setVisible(False)
+            self.slopeLine.setVisible(True)
 
         elif listindex == 6:  # Upward Reverse Slope
             self.repeatX.setVisible(False)
             self.repeatY.setVisible(False)
+            self.slopeLine.setVisible(True)
 
         elif listindex == 7:  # Downward Reverse Slope
             self.repeatX.setVisible(False)
             self.repeatY.setVisible(False)
+            self.slopeLine.setVisible(True)
 
         global Tileset
 
-        index = window.objectList.currentIndex()
-        object = Tileset.objects[index.row()]
+        index = window.objectList.currentIndex().row()
+        if index < 0 or index >= len(Tileset.objects):
+            return
+
+        object = Tileset.objects[index]
         if object.tilingMethodIdx == listindex:
             return
 
         object.tilingMethodIdx = listindex
+        self.tiles.slope = 0
 
         if listindex == 0:  # No Repetition
             object.clearRepetitionXY()
@@ -1577,10 +1673,14 @@ class tileOverlord(QtWidgets.QWidget):
             if object.upperslope[0] != 0x90:
                 object.upperslope = [0x90, 1]
 
-            if object.lowerslope[0] != 0x84:
-                object.lowerslope = [0x84, object.height - 1]
+                if object.height == 1:
+                    object.lowerslope = [0, 0]
+
+                else:
+                    object.lowerslope = [0x84, object.height - 1]
 
             self.tiles.slope = object.upperslope[1]
+            self.slopeLine.update()
 
         elif listindex == 5:  # Downward Slope
             object.clearRepetitionXY()
@@ -1588,37 +1688,52 @@ class tileOverlord(QtWidgets.QWidget):
             if object.upperslope[0] != 0x91:
                 object.upperslope = [0x91, 1]
 
-            if object.lowerslope[0] != 0x84:
-                object.lowerslope = [0x84, object.height - 1]
+                if object.height == 1:
+                    object.lowerslope = [0, 0]
+
+                else:
+                    object.lowerslope = [0x84, object.height - 1]
 
             self.tiles.slope = object.upperslope[1]
+            self.slopeLine.update()
 
         elif listindex == 6:  # Upward Reverse Slope
             object.clearRepetitionXY()
 
             if object.upperslope[0] != 0x92:
-                object.upperslope = [0x92, object.height - 1]
+                object.upperslope = [0x92, 1]
 
-            if object.lowerslope[0] != 0x84:
-                object.lowerslope = [0x84, 1]
+                if object.height == 1:
+                    object.lowerslope = [0, 0]
+
+                else:
+                    object.lowerslope = [0x84, object.height - 1]
 
             self.tiles.slope = -object.upperslope[1]
+            self.slopeLine.update()
 
         elif listindex == 7:  # Downward Reverse Slope
             object.clearRepetitionXY()
 
             if object.upperslope[0] != 0x93:
-                object.upperslope = [0x93, object.height - 1]
+                object.upperslope = [0x93, 1]
 
-            if object.lowerslope[0] != 0x84:
-                object.lowerslope = [0x84, 1]
+                if object.height == 1:
+                    object.lowerslope = [0, 0]
+
+                else:
+                    object.lowerslope = [0x84, object.height - 1]
 
             self.tiles.slope = -object.upperslope[1]
+            self.slopeLine.update()
 
         self.tiles.update()
 
 
     def addRowHandler(self):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1627,6 +1742,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def removeRowHandler(self):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1635,6 +1753,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def addColumnHandler(self):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1643,6 +1764,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def removeColumnHandler(self):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1651,6 +1775,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def changeRandX(self, toggled):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1660,6 +1787,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def changeRandY(self, toggled):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1669,6 +1799,9 @@ class tileOverlord(QtWidgets.QWidget):
 
 
     def changeRandLen(self, val):
+        index = window.objectList.currentIndex()
+        self.tiles.object = index.row()
+
         if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
             return
 
@@ -1739,7 +1872,7 @@ class tileWidget(QtWidgets.QWidget):
 
         self.update()
         self.updateList()
-        
+
         window.tileWidget.repeatX.update()
 
 
@@ -1761,7 +1894,7 @@ class tileWidget(QtWidgets.QWidget):
         for row in self.tiles:
             if len(row) > 1:
                 row.pop()
-                
+
         for row in curObj.tiles:
             if len(row) > 1:
                 row.pop()
@@ -1783,7 +1916,7 @@ class tileWidget(QtWidgets.QWidget):
 
         self.update()
         self.updateList()
-        
+
         window.tileWidget.repeatX.update()
 
 
@@ -1814,11 +1947,15 @@ class tileWidget(QtWidgets.QWidget):
         else:
             curObj.tiles.append([(0, 0, 0) for _ in range(curObj.width)])
 
+        if curObj.upperslope[0] != 0:
+            curObj.lowerslope = [0x84, curObj.lowerslope[1] + 1]
+
         self.update()
         self.updateList()
 
         window.tileWidget.repeatX.update()
         window.tileWidget.repeatY.update()
+        window.tileWidget.slopeLine.update()
 
 
     def removeRow(self):
@@ -1852,11 +1989,25 @@ class tileWidget(QtWidgets.QWidget):
             if [start, end] != curObj.repeatY:
                 curObj.createRepetitionY(start, end)
 
+        if curObj.upperslope[0] != 0:
+            if curObj.upperslope[1] > curObj.height or curObj.height == 1:
+                curObj.upperslope[1] = curObj.height
+                curObj.lowerslope = [0, 0]
+
+                if curObj.upperslope[0] & 2:
+                    self.slope = -curObj.upperslope[1]
+                else:
+                    self.slope = curObj.upperslope[1]
+
+            else:
+                curObj.lowerslope = [0x84, curObj.lowerslope[1] - 1]
+
         self.update()
         self.updateList()
 
         window.tileWidget.repeatX.update()
         window.tileWidget.repeatY.update()
+        window.tileWidget.slopeLine.update()
 
 
     def setObject(self, object):
@@ -1895,12 +2046,19 @@ class tileWidget(QtWidgets.QWidget):
 
         window.tileWidget.repeatX.update()
         window.tileWidget.repeatY.update()
+        window.tileWidget.slopeLine.update()
 
 
     def mousePressEvent(self, event):
         global Tileset
 
         if event.button() == 2:
+            return
+
+        index = window.objectList.currentIndex()
+        self.object = index.row()
+
+        if self.object < 0 or self.object >= len(Tileset.objects):
             return
 
         if Tileset.placeNullChecked:
@@ -2007,17 +2165,22 @@ class tileWidget(QtWidgets.QWidget):
         upperLeftY = centerPoint.y() - self.size[1]*12
         lowerRightY = centerPoint.y() + self.size[1]*12
 
+        index = window.objectList.currentIndex()
+        self.object = index.row()
 
-        if 0 <= self.object < len(Tileset.objects):
-            object = Tileset.objects[self.object]
-            for y, row in enumerate(object.tiles):
-                painter.fillRect(upperLeftX, upperLeftY + y * 24, len(row) * 24, 24, QtGui.QColor(205, 205, 255))
+        if self.object < 0 or self.object >= len(Tileset.objects):
+            painter.end()
+            return
+
+        object = Tileset.objects[self.object]
+        for y, row in enumerate(object.tiles):
+            painter.fillRect(upperLeftX, upperLeftY + y * 24, len(row) * 24, 24, QtGui.QColor(205, 205, 255))
 
         for y, row in enumerate(self.tiles):
             for x, pix in enumerate(row):
                 painter.drawPixmap(upperLeftX + (x * 24), upperLeftY + (y * 24), pix)
 
-        if not self.slope == 0:
+        if object.upperslope[0] & 0x80:
             pen = QtGui.QPen()
             pen.setStyle(Qt.DashLine)
             pen.setWidth(2)
@@ -2039,7 +2202,7 @@ class tileWidget(QtWidgets.QWidget):
                 painter.drawText(upperLeftX+1, upperLeftY+10, 'Main')
                 painter.drawText(upperLeftX+1, upperLeftY + (slope * 24) + 9, 'Sub')
 
-            elif self.slope < 0:
+            else:
                 painter.drawText(upperLeftX+1, upperLeftY + self.size[1]*24 - 4, 'Main')
                 painter.drawText(upperLeftX+1, upperLeftY + (slope * 24) - 3, 'Sub')
 
@@ -2907,32 +3070,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 if object.upperslope[0] & 0x2:
                     a = struct.pack('<B', object.upperslope[0])
 
-                    if not object.lowerslope[1]:
-                        for row in range(0, object.upperslope[1]):
+                    for row in range(object.lowerslope[1], object.height):
+                        for tile in object.tiles[row]:
+                            a += struct.pack('<BBB', tile[0], tile[1], tile[2])
+                        a += b'\xfe'
+
+                    if object.height > 1 and object.lowerslope[1]:
+                        a += struct.pack('<B', object.lowerslope[0])
+
+                        for row in range(0, object.lowerslope[1]):
                             for tile in object.tiles[row]:
                                 a += struct.pack('<BBB', tile[0], tile[1], tile[2])
                             a += b'\xfe'
-
-                    else:
-                        if object.height == 1:
-                            iterationsA = 0
-                            iterationsB = 1
-                        else:
-                            iterationsA = object.upperslope[1]
-                            iterationsB = object.lowerslope[1] + object.upperslope[1]
-
-                        for row in range(iterationsA, iterationsB):
-                            for tile in object.tiles[row]:
-                                a += struct.pack('<BBB', tile[0], tile[1], tile[2])
-                            a += b'\xfe'
-
-                        if object.height > 1:
-                            a += struct.pack('<B', object.lowerslope[0])
-
-                            for row in range(0, object.upperslope[1]):
-                                for tile in object.tiles[row]:
-                                    a += struct.pack('<BBB', tile[0], tile[1], tile[2])
-                                a += b'\xfe'
 
                     a += b'\xff'
                     objectStrings.append(a)
@@ -3290,32 +3439,18 @@ class MainWindow(QtWidgets.QMainWindow):
             if object.upperslope[0] & 0x2:
                 a = struct.pack('>B', object.upperslope[0])
 
-                if not object.lowerslope[1]:
-                    for row in range(0, object.upperslope[1]):
+                for row in range(object.lowerslope[1], object.height):
+                    for tile in object.tiles[row]:
+                        a += struct.pack('>BBB', tile[0], tile[1], tile[2])
+                    a += b'\xfe'
+
+                if object.height > 1 and object.lowerslope[1]:
+                    a += struct.pack('>B', object.lowerslope[0])
+
+                    for row in range(0, object.lowerslope[1]):
                         for tile in object.tiles[row]:
                             a += struct.pack('>BBB', tile[0], tile[1], tile[2])
                         a += b'\xfe'
-
-                else:
-                    if object.height == 1:
-                        iterationsA = 0
-                        iterationsB = 1
-                    else:
-                        iterationsA = object.upperslope[1]
-                        iterationsB = object.lowerslope[1] + object.upperslope[1]
-
-                    for row in range(iterationsA, iterationsB):
-                        for tile in object.tiles[row]:
-                            a += struct.pack('>BBB', tile[0], tile[1], tile[2])
-                        a += b'\xfe'
-
-                    if object.height > 1:
-                        a += struct.pack('>B', object.lowerslope[0])
-
-                        for row in range(0, object.upperslope[1]):
-                            for tile in object.tiles[row]:
-                                a += struct.pack('>BBB', tile[0], tile[1], tile[2])
-                            a += b'\xfe'
 
                 a += b'\xff'
 
