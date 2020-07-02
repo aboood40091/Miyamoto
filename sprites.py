@@ -576,6 +576,7 @@ class SpriteImage_KoopaParatroopa(SLib.SpriteImage_StaticMultiple):  # 20
         )
 
         self.offset = (-4, -16)
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, 0, 0, 0))
 
     @staticmethod
     def loadImages():
@@ -583,12 +584,54 @@ class SpriteImage_KoopaParatroopa(SLib.SpriteImage_StaticMultiple):  # 20
         SLib.loadIfNotInImageCache('KoopaParatroopaR', 'koopa_paratroopa_red.png')
 
     def dataChanged(self):
-        shellcolour = self.parent.spritedata[5] & 1
+        color = self.parent.spritedata[5] & 1
+        mode = self.parent.spritedata[5] >> 4 & 3
+        direction = self.parent.spritedata[4] >> 4 & 3
 
-        if shellcolour == 0:
+        if color == 0:
             self.image = ImageCache['KoopaParatroopaG']
+
         else:
             self.image = ImageCache['KoopaParatroopaR']
+
+        track = self.aux[0]
+
+        if mode not in (1, 2) or direction not in (1, 2):
+            track.setSize(0, 0)
+
+        else:
+            onEdge = self.parent.spritedata[4] & 1
+
+            width = self.width * 3.75
+            height = self.height * 3.75
+
+            if mode == 1:
+                track.direction = SLib.AuxiliaryTrackObject.Horizontal
+                track.setSize(9 * 16, 16)
+
+                if onEdge:
+                    if direction == 1:
+                        track.setPos(-0.125 * 60 + width / 2, -0.25 * 60 + height / 2)
+
+                    else:
+                        track.setPos(-9.125 * 60 + width / 2, -0.25 * 60 + height / 2)
+
+                else:
+                    track.setPos(-4.625 * 60 + width / 2, -0.25 * 60 + height / 2)
+
+            else:
+                track.direction = SLib.AuxiliaryTrackObject.Vertical
+                track.setSize(16, 9 * 16)
+
+                if onEdge:
+                    if direction == 1:
+                        track.setPos(-0.25 * 60 + width / 2, -9.125 * 60 + height / 2)
+
+                    else:
+                        track.setPos(-0.25 * 60 + width / 2, -0.125 * 60 + height / 2)
+
+                else:
+                    track.setPos(-0.25 * 60 + width / 2, -4.625 * 60 + height / 2)
 
         super().dataChanged()
 

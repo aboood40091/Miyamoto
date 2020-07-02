@@ -143,17 +143,18 @@
 	</sprite>
 	<sprite id="20" name="Koopa Paratroopa" notes="A koopa troopa with wings. Can either jump or fly depending on what you set it to. The default is &quot;jumping&quot;. Red koopa paratroopas will not walk off cliffs, and the green ones will. The size of the koopa paratroopas wings are also different (green having shorter wings, red having longer wings).">
 		<list nybble="9" title="Initial direction" comment="The movement of the Koopa Paratroopa when it is spawned.">
-			<entry value="0">Start Going Up / Right</entry>
-			<entry value="1">Start going Down / Left</entry>
+			<entry value="0">Start Going Towards Player</entry>
+			<entry value="1">Start Going Up / Right</entry>
+			<entry value="2">Start going Down / Left</entry>
 		</list>
 		<list nybble="10" title="Flying Start Position" comment="The path starts from this position relative to the location of the Koopa Paratroopa's placement.">
 			<entry value="0">Midway</entry>
-			<entry value="1">Start Bottom / Left</entry>
+			<entry value="1">Edge of Flying Path</entry>
 		</list>
-		<list nybble="11" title="Type of Movement">
+		<list nybble="11" title="Movement Type">
 			<entry value="0">Jumping</entry>
-			<entry value="1">Flying Horizontally</entry>
-			<entry value="2">Flying Vertically</entry>
+			<entry value="1">Flying Left and Right</entry>
+			<entry value="2">Flying Up and Down</entry>
 		</list>
 		<list nybble="12" title="Color" comment="Red Koopa Troopas don't walk off ledges.">
 			<entry value="0">Green</entry>
@@ -162,18 +163,19 @@
 	</sprite>
 	<sprite id="21" name="Grouped Koopa Paratroopa" notes="A Koopa Troopa with wings which allow it to jump or even fly. It can jump two blocks high at max. Jumping on it makes it a normal Koopa Troopa. This Koopa Paratroopa's movements can be linked together with others for synchronization.">
 		<value nybble="5-6" title="Group ID" comment="The ID used to chain sprites together. Use sprite 196 to create the groups. If not linked, the Koopa Paratroopa will appear frozen and collisionless. If linked, this sprite's movement is synced to other Koopa Paratroopa's that are linked to the same group controller."/>
-		<list nybble="9" title="Initial direction">
-			<entry value="0">Left/Up</entry>
-			<entry value="1">Right/Down</entry>
+		<list nybble="9" title="Initial direction" comment="The movement of the Koopa Paratroopa when it is spawned.">
+			<entry value="0">Start Going Towards Player</entry>
+			<entry value="1">Start Going Up / Right</entry>
+			<entry value="2">Start going Down / Left</entry>
 		</list>
 		<list nybble="10" title="Flying Start Position" comment="The path starts from this position relative to the location of the Koopa Paratroopa's placement.">
 			<entry value="0">Midway</entry>
-			<entry value="1">Start Bottom / Left</entry>
+			<entry value="1">Edge of Flying Path</entry>
 		</list>
-		<list nybble="11" title="Type of Movement">
+		<list nybble="11" title="Movement Type">
 			<entry value="0">Jumping</entry>
-			<entry value="1">Flying Horizontally</entry>
-			<entry value="2">Flying Vertically</entry>
+			<entry value="1">Flying Left and Right</entry>
+			<entry value="2">Flying Up and Down</entry>
 		</list>
 		<list nybble="12" title="Color" comment="Red Koopa Troopas don't walk off ledges.">
 			<entry value="0">Green</entry>
