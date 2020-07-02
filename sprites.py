@@ -611,13 +611,13 @@ class SpriteImage_KoopaParatroopa(SLib.SpriteImage_StaticMultiple):  # 20
 
                 if onEdge:
                     if direction == 1:
-                        track.setPos(-0.125 * 60 + width / 2, -0.25 * 60 + height / 2)
+                        track.setPos(-0.625 * 60 + width / 2, -0.625 * 60 + height / 2)
 
                     else:
-                        track.setPos(-9.125 * 60 + width / 2, -0.25 * 60 + height / 2)
+                        track.setPos(-8.625 * 60 + width / 2, -0.625 * 60 + height / 2)
 
                 else:
-                    track.setPos(-4.625 * 60 + width / 2, -0.25 * 60 + height / 2)
+                    track.setPos(-4.625 * 60 + width / 2, -0.625 * 60 + height / 2)
 
             else:
                 track.direction = SLib.AuxiliaryTrackObject.Vertical
@@ -625,13 +625,13 @@ class SpriteImage_KoopaParatroopa(SLib.SpriteImage_StaticMultiple):  # 20
 
                 if onEdge:
                     if direction == 1:
-                        track.setPos(-0.25 * 60 + width / 2, -9.125 * 60 + height / 2)
+                        track.setPos(-0.625 * 60 + width / 2, -9.125 * 60 + height / 2)
 
                     else:
-                        track.setPos(-0.25 * 60 + width / 2, -0.125 * 60 + height / 2)
+                        track.setPos(-0.625 * 60 + width / 2, -0.125 * 60 + height / 2)
 
                 else:
-                    track.setPos(-0.25 * 60 + width / 2, -4.625 * 60 + height / 2)
+                    track.setPos(-0.625 * 60 + width / 2, -4.125 * 60 + height / 2)
 
         super().dataChanged()
 
