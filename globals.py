@@ -28,7 +28,7 @@
 import os, sys
 
 MiyamotoID = 'Miyamoto! Level Editor by AboodXD, Gota7, John10v10, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
-MiyamotoVersion = '28.0'
+MiyamotoVersion = '28.0b'
 MiyamotoVersionFloat = 28.0
 
 generateStringsXML = False
@@ -104,3 +104,5 @@ names_bg = []
 
 # Game enums
 FileExtentions = ('.szs', '.sarc')
+Pa0Tilesets = ('Pa0_jyotyu', 'Pa0_jyotyu_chika',
+               'Pa0_jyotyu_yougan', 'Pa0_jyotyu_yougan2')

@@ -3893,16 +3893,17 @@
 		</list>
 	</sprite>
 	<sprite id="261" name="Para-Beetle">
-		<list nybble="9" title="Direction" comment="The direction the Parabeetle faces">
-			<entry value="0">Left</entry>
-			<entry value="1">Right</entry>
+		<value nybble="9" title="Unknown Value 9"/>
+		<value nybble="10" title="Speed"/>
+		<list nybble="11" title="Movement Direction">
+			<entry value="0">Right</entry>
+			<entry value="1">Left</entry>
 		</list>
-		<list nybble="10" title="Flying Direction" comment="The direction the Parabeetle flies in">
-			<entry value="0">Left</entry>
-			<entry value="1">Right</entry>
+		<list nybble="12" title="Model Facing Direction" comment="Direction the Parabeetle model faces.">
+			<entry value="0">Right</entry>
+			<entry value="1">Left</entry>
+			<entry value="2">Towards Screen</entry>
 		</list>
-		<value nybble="11" title="Unknown Value 11"/>
-		<value nybble="12" title="Unknown Value 12"/>
 	</sprite>
 	<sprite id="262" name="Heavy Para-Beetle">
 		<value nybble="9" title="Delay (?)" comment="Seems to be related to delay."/>
@@ -7080,11 +7081,15 @@
 	</sprite>
 	<sprite id="652" name="Para-Beetle - NSLU">
 		<value nybble="9" title="Unknown Value 9"/>
-		<value nybble="10" title="Unknown Value 10"/>
-		<value nybble="11" title="Unknown Value 11"/>
-		<list nybble="12" title="Direction" comment="Direction the Parabeetle flies to.">
+		<value nybble="10" title="Speed"/>
+		<list nybble="11" title="Movement Direction">
 			<entry value="0">Right</entry>
 			<entry value="1">Left</entry>
+		</list>
+		<list nybble="12" title="Model Facing Direction" comment="Direction the Parabeetle model faces.">
+			<entry value="0">Right</entry>
+			<entry value="1">Left</entry>
+			<entry value="2">Towards Screen</entry>
 		</list>
 	</sprite>
 	<sprite id="653" name="King Bill - NSLU" notes="A much larger bullet bill that will launch towards the player.">

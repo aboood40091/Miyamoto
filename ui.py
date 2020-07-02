@@ -455,7 +455,7 @@ def SetAppStyle(styleKey=''):
         color = globals.theme.color('ui').getRgb()
         bgColor = "#%02x%02x%02x" % tuple(map(lambda x: x // 2, color[:3]))
         globals.app.setStyleSheet("""
-            QListView, QTreeWidget, QLineEdit, QDoubleSpinBox, QSpinBox, QTextEdit, QPlainTextEdit{
+            QListView, QTreeWidget, QLineEdit, QDoubleSpinBox, QSpinBox, QTextEdit{
                 background-color: %s;
             }""" % bgColor)
 

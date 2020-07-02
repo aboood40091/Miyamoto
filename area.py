@@ -91,12 +91,27 @@ class AbstractArea:
         self.tileset1 = bytes_to_string(data[1])
         self.tileset2 = bytes_to_string(data[2])
         self.tileset3 = bytes_to_string(data[3])
+
         if self.tileset0 not in globals.szsData:
-            self.tileset0 = ''
+            ret = False
+            if self.tileset0 in globals.Pa0Tilesets:
+                reply = QtWidgets.QMessageBox.question(globals.mainWindow, 'Warning',
+                                                       '"%s" tileset was not found in the level data!\n' \
+                                                       'Do you want to load the default one from miyamotoextras?' % self.tileset0,
+                                                       QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+                if reply == QtWidgets.QMessageBox.Yes:
+                    ret = globals.mainWindow.LoadDefaultTileset(self.tileset0, dirty=True)
+
+            if not ret:
+                self.tileset0 = ''
+
         if self.tileset1 not in globals.szsData:
             self.tileset1 = ''
+
         if self.tileset2 not in globals.szsData:
             self.tileset2 = ''
+
         if self.tileset3 not in globals.szsData:
             self.tileset3 = ''
 
@@ -171,14 +186,14 @@ class Area_NSMBU(AbstractArea):
         self.eventBits64 = 0
         self.wrapFlag = False
         self.unkFlag1 = False
-        self.timelimit = 400
+        self.timelimit = 500
         self.unkFlag2 = True
         self.unkFlag3 = True
         self.unkFlag4 = True
         self.startEntrance = 0
         self.startEntranceCoinBoost = 0
         self.timelimit2 = 300
-        self.timelimit3 = 0
+        self.timelimit3 = 200
 
         # Lists of things
         self.entrances = []
@@ -485,7 +500,7 @@ class Area_NSMBU(AbstractArea):
         """
         pathdata = self.blocks[13]
         pathcount = len(pathdata) // 12
-        pathstruct = struct.Struct('>BbHHHxxxx')  # updated struct -- MrRean
+        pathstruct = struct.Struct('>BbHHHxxxx')
         offset = 0
         unpack = pathstruct.unpack_from
         pathinfo = []

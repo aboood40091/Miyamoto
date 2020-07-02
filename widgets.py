@@ -3896,12 +3896,12 @@ class LoadingTab(QtWidgets.QWidget):
         self.timelimit2 = QtWidgets.QSpinBox()
         self.timelimit2.setRange(0, 999)
         self.timelimit2.setToolTip(globals.trans.string('AreaDlg', 38))
-        self.timelimit2.setValue(globals.Area.timelimit2 - 100)
+        self.timelimit2.setValue(globals.Area.timelimit2)
 
         self.timelimit3 = QtWidgets.QSpinBox()
-        self.timelimit3.setRange(200, 999)
+        self.timelimit3.setRange(0, 999)
         self.timelimit3.setToolTip(globals.trans.string('AreaDlg', 38))
-        self.timelimit3.setValue(globals.Area.timelimit3 + 200)
+        self.timelimit3.setValue(globals.Area.timelimit3)
 
         settingsLayout = QtWidgets.QFormLayout()
         settingsLayout.addRow(globals.trans.string('AreaDlg', 3), self.timer)
@@ -4930,9 +4930,24 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         clickedy += 8 - (clickedy % 8)
 
                     if obj.objx != clickedx or obj.objy != clickedy:
+                        oldx = obj.objx
+                        oldy = obj.objy
+
                         obj.objx = clickedx
                         obj.objy = clickedy
+
                         obj.setPos(int(clickedx * globals.TileWidth / 16), int(clickedy * globals.TileWidth / 16))
+
+                        if isinstance(obj, type_path) or isinstance(obj, type_nPath):
+                            obj.updatePos()
+                            obj.pathinfo['peline'].nodePosChanged()
+
+                        elif isinstance(obj, type_com):
+                            obj.UpdateTooltip()
+                            obj.handlePosChange(oldx, oldy)
+
+                        obj.UpdateListItem()
+
             event.accept()
 
         elif event.buttons() == Qt.RightButton and self.currentobj is not None and self.dragstamp:
