@@ -237,9 +237,15 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 92, 198, 201
 
 
 class SpriteImage_PlatformBase(SLib.SpriteImage):  # X
-    def __init__(self, parent):
+    def __init__(self, parent, hasAux=False):
         super().__init__(parent, 3.75)
         self.spritebox.shown = False
+        self.hasAux = hasAux
+
+        if self.hasAux:
+            self.aux.append(SLib.AuxiliaryTrackObject(parent, 0, 0, 0))
+            self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+            self.aux[1].alpha = 0.5
 
     @staticmethod
     def loadImages():
@@ -278,15 +284,19 @@ class SpriteImage_PlatformBase(SLib.SpriteImage):  # X
         """
         return (-4, 0)
 
-    def dataChanged(self):
-        super().dataChanged()
-        self.offset = self.getPlatformOffset()
-        self.imgType = self.getPlatformType()
-        self.width = self.getPlatformWidth() * 16
-        self.height = max(ImageCache['MovPlat%sL' % self.imgType].height(), ImageCache['MovPlat%sM' % self.imgType].height(), ImageCache['MovPlat%sR' % self.imgType].height()) / 3.75
+    def getPlatformMoveDir(self):
+        """
+        Return a string with 'U', 'D', 'L' or 'R' specifying the movement direction of the platform.
+        """
+        return 'U'
 
-    def paint(self, painter):
-        super().paint(painter)
+    def getPlatformMoveDist(self):
+        """
+        Return an integer specifying the movement distance of the platform.
+        """
+        return 0
+
+    def paintPlatform(self, painter):
         left = ImageCache['MovPlat%sL' % self.imgType]
         mid = ImageCache['MovPlat%sM' % self.imgType]
         right = ImageCache['MovPlat%sR' % self.imgType]
@@ -296,6 +306,51 @@ class SpriteImage_PlatformBase(SLib.SpriteImage):  # X
 
         if self.width > (left.width() + right.width()) / 3.75:
             painter.drawTiledPixmap(int(left.width()), 0, self.width * 3.75 - (left.width() + right.width()), mid.height(), mid)
+
+    def dataChanged(self):
+        self.offset = self.getPlatformOffset()
+        self.imgType = self.getPlatformType()
+        self.width = self.getPlatformWidth() * 16
+        self.height = max(ImageCache['MovPlat%sL' % self.imgType].height(), ImageCache['MovPlat%sM' % self.imgType].height(), ImageCache['MovPlat%sR' % self.imgType].height()) / 3.75
+
+        if self.hasAux:
+            pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+            pix.fill(Qt.transparent)
+            painter = QtGui.QPainter(pix)
+            self.paintPlatform(painter)
+            painter = None
+
+            moveDir = self.getPlatformMoveDir()
+            moveDist = self.getPlatformMoveDist()
+
+            if moveDir == 'L' or moveDir == 'R':
+                self.aux[0].setSize((moveDist + 1) * 16, 16)
+                self.aux[0].direction = SLib.AuxiliaryTrackObject.Horizontal
+            else:
+                self.aux[0].setSize(16, (moveDist + 1) * 16)
+                self.aux[0].direction = SLib.AuxiliaryTrackObject.Vertical
+            
+            xOffset = 0
+            yOffset = 0
+            
+            if moveDir == 'L':
+                xOffset = -moveDist * 16
+            elif moveDir == 'U':
+                yOffset = -moveDist * 16
+                
+            self.aux[0].setPos((xOffset + self.width * 0.5 - 8) * 3.75, yOffset * 3.75)
+            
+            if moveDir == 'R':
+                xOffset = moveDist * 16
+            elif moveDir == 'D':
+                yOffset = moveDist * 16
+                
+            self.aux[1].setImage(pix, xOffset, yOffset, True)
+        super().dataChanged()
+
+    def paint(self, painter):
+        super().paint(painter)
+        self.paintPlatform(painter)
 
 
 class SpriteImage_Goomba(SLib.SpriteImage_Static):  # 0
@@ -4290,7 +4345,7 @@ class SpriteImage_Spike(SLib.SpriteImage_StaticMultiple):  # 180, 181, 651
 
 class SpriteImage_MovingPlatform(SpriteImage_PlatformBase):  # 182, 186, 534, 535
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, hasAux=True)
 
     def getPlatformWidth(self):
         if self.getPlatformType() == 'C':
@@ -4320,6 +4375,15 @@ class SpriteImage_MovingPlatform(SpriteImage_PlatformBase):  # 182, 186, 534, 53
             return (-4, -4)
         else:
             return (-4, 0)
+
+    def getPlatformMoveDir(self):
+        if self.parent.spritedata[3] & 1:
+            return 'D' if self.parent.type == 182 or self.parent.type == 535 else 'L'
+        else:
+            return 'U' if self.parent.type == 182 or self.parent.type == 535 else 'R'
+
+    def getPlatformMoveDist(self):
+        return self.parent.spritedata[7] >> 4
 
 
 class SpriteImage_FallingIcicle(SLib.SpriteImage_StaticMultiple):  # 183, 185
@@ -7700,9 +7764,12 @@ class SpriteImage_GreyBlock2(SLib.SpriteImage_StaticMultiple):  # 371, 373
         self.image = ImageCache['GrayBlock'].transformed(QTransform().scale(width, height))
         super().dataChanged()
 
+
 class SpriteImage_MovingOneWayPlatform(SpriteImage_PlatformBase):  # 372
+    directions = ['U', 'D', 'R', 'L']
+    
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, hasAux=True)
 
     def getPlatformWidth(self):
         width = (self.parent.spritedata[8] & 0xF) << 1
@@ -7714,6 +7781,17 @@ class SpriteImage_MovingOneWayPlatform(SpriteImage_PlatformBase):  # 372
 
     def getPlatformOffset(self):
         return (-self.getPlatformWidth() * 8, 0)
+
+    def getPlatformMoveDir(self):
+        return self.directions[self.parent.spritedata[3] & 3]
+
+    def getPlatformMoveDist(self):
+        distance = self.parent.spritedata[7] >> 4
+
+        if distance == 1:
+            return 14
+        else:
+            return distance << 4
 
 
 class SpriteImage_ChainHolder(SLib.SpriteImage_Static):  # 374
@@ -9239,7 +9317,7 @@ class SpriteImage_MovingGrassPlatform(SLib.SpriteImage):  # 499
 
 class SpriteImage_MovingBonePlatform(SpriteImage_PlatformBase):  # 491, 492, 627
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, hasAux = parent.type != 627)
         
     def getPlatformWidth(self):
         width = (self.parent.spritedata[8] & 0xF) + 1
@@ -9250,6 +9328,15 @@ class SpriteImage_MovingBonePlatform(SpriteImage_PlatformBase):  # 491, 492, 627
 
     def getPlatformType(self):
         return 'B'
+
+    def getPlatformMoveDir(self):
+        if self.parent.spritedata[3] & 1:
+            return 'D' if self.parent.type == 491 else 'L'
+        else:
+            return 'U' if self.parent.type == 491 else 'R'
+
+    def getPlatformMoveDist(self):
+        return self.parent.spritedata[7] >> 4
 
 
 class SpriteImage_World7Platform(SLib.SpriteImage_StaticMultiple):  # 493
