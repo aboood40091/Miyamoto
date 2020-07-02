@@ -1467,12 +1467,27 @@ class SpriteImage_StalkingPiranha(SLib.SpriteImage_Static):  # 63
             parent,
             3.75,
             ImageCache['StalkingPiranha'],
-            (-2.4, -24),
+            (-4, -24),
         )
+
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+        self.aux[0].setImage(ImageCache['StalkingPiranhaExt'], 0, -26, True)
+        self.aux[0].alpha = 0.5
+
+        self.aux.append(SLib.AuxiliaryTrackObject(
+            parent, 16, 16, SLib.AuxiliaryTrackObject.Horizontal
+        ))
 
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('StalkingPiranha', 'stalking_piranha.png')
+        SLib.loadIfNotInImageCache('StalkingPiranhaExt', 'stalking_piranha_extending.png')
+
+    def dataChanged(self):
+        distance = (self.parent.spritedata[5] & 0xF) * 2 + 3
+
+        self.aux[1].setSize(distance * 16, 16)
+        self.aux[1].setPos(distance * -30 + 45, 90)
 
 
 class SpriteImage_WaterPlant(SLib.SpriteImage_Static):  # 64, 682

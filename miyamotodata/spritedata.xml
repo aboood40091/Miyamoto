@@ -897,7 +897,7 @@
 	<sprite id="63" name="Stalking Piranha Plant" notes="A piranha plant with legs! It can walk around and stretch it's head up in the air after a short amount of time.">
 		<value nybble="10" title="Delay Before Stretching" comment="The delay the piranha plant has before it stretches upwards."/>
 		<value nybble="11" title="Delay Before Stretching (2)" comment="Does the same thing as nybble 10?"/>
-		<value nybble="12" title="Unknown Value 12" comment="I see nothing"/>
+		<value nybble="12" title="Movement Distance" comment="How far the piranha plant will wander in both directions from its starting point."/>
 		<checkbox nybble="20" title="Starts Moving Left" comment="Moves left when ticked."/>
 	</sprite>
 	<sprite id="64" name="River Piranha Plant" notes="A piranha plant that sits on a lilipad and spits out a cactus ball and keeps it in the air by blowing on it."/>
