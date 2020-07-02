@@ -10128,6 +10128,30 @@ class SpriteImage_TorpedoLauncherRed(SLib.SpriteImage_Static):  # 596
         SLib.loadIfNotInImageCache('TorpedoLauncherRed', 'torpedo_launcher_red.png')
 
 
+class SpriteImage_NoCoinArea(SLib.SpriteImage):  # 598
+    def __init__(self, parent):
+        super().__init__(
+            parent,
+            3.75,
+        )
+        self.spritebox.shown = False
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('NoCoinArea0', 'no_coin_area_platform.png')
+        SLib.loadIfNotInImageCache('NoCoinArea1', 'no_coin_area.png')
+
+    def dataChanged(self):
+        self.areaType = self.parent.spritedata[4] & 1
+        self.width = (self.parent.spritedata[8] & 0xF) * 16 + 16
+        self.height = (self.parent.spritedata[9] & 0xF) * 16 + 16
+        super().dataChanged()
+
+    def paint(self, painter):
+        super().paint(painter)
+        painter.drawTiledPixmap(0, 0, self.width * 3.75, self.height * 3.75, ImageCache['NoCoinArea%d' % self.areaType])
+
+
 class SpriteImage_MoonBlock(SLib.SpriteImage_Static):  # 600
     def __init__(self, parent):
         super().__init__(
@@ -10901,6 +10925,7 @@ ImageClasses = {
     593: SpriteImage_SumoBro,
     595: SpriteImage_Goombrat,
     596: SpriteImage_TorpedoLauncherRed,
+    598: SpriteImage_NoCoinArea,
     600: SpriteImage_MoonBlock,
     602: SpriteImage_SwingingChain,
     606: SpriteImage_BigBuzzyBeetle,
