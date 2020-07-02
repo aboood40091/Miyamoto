@@ -116,7 +116,7 @@
 	</sprite>
 	<sprite id="19" name="Koopa Troopa" notes="A familiar shelled foe: The Koopa Troopa. Since 1989.&#13;&#10;Jumping on it makes it hide in its shell which can then be kicked or picked up and then thrown by the player. After a specific amount of time, it comes out of its shell again.">
 		<list nybble="5" title="Spawns" comment="Can't be higher than 7. But seems to be a flag?">
-			<entry value="0">Using Walk Direction</entry>
+			<entry value="0">Normal (Using Walk Direction)</entry>
 			<entry value="1">Pipe Exit (Right)</entry>
 			<entry value="2">Pipe Exit (Left)</entry>
 			<entry value="3">Pipe Exit (Up)</entry>
@@ -768,7 +768,7 @@
 	</sprite>
 	<sprite id="55" name="Koopa Troopa (2)" notes="Another Koopa Troopa.">
 		<list nybble="5" title="Spawns" comment="Can't be higher than 7. But seems to be a flag?">
-			<entry value="0">Using Walk Direction</entry>
+			<entry value="0">Normal (Using Walk Direction)</entry>
 			<entry value="1">Pipe Exit (Right)</entry>
 			<entry value="2">Pipe Exit (Left)</entry>
 			<entry value="3">Pipe Exit (Up)</entry>
@@ -5867,7 +5867,7 @@
 	</sprite>
 	<sprite id="476" name="Big Koopa Troopa" notes="Loaded Files: nokonokoBig.szs">
 		<list nybble="5" title="Spawns" comment="Can't be higher than 7. But seems to be a flag?">
-			<entry value="0">Using Walk Direction</entry>
+			<entry value="0">Normal (Using Walk Direction)</entry>
 			<entry value="1">Pipe Exit (Right)</entry>
 			<entry value="2">Pipe Exit (Left)</entry>
 			<entry value="3">Pipe Exit (Up)</entry>
