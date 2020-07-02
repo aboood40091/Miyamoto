@@ -72,9 +72,7 @@ if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
 
 # Check if Miyamoto is being run on a supported platform
 if platform.system() not in ['Windows', 'Linux', 'Darwin']:
-    warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
-    warningBox.exec_()
-    raise NotImplementedError("Unsupported platform!")
+    raise NotImplementedError("Unsupported platform: Not a supported platform, sadly...")
 
 # Import the "globals" module
 import globals
@@ -2787,7 +2785,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # Determine if the inner sarc name should be modifiable
         globals.modifyInnerName = dlg.generalTab.modifyInnerName.isChecked()
-        setSetting('ModifyInternalName', globals.modifyInnerName)
+        setSetting('ModifyInnerName', globals.modifyInnerName)
 
         # Get the Toolbar tab settings
         boxes = (
@@ -2970,16 +2968,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
     def getInnerSarcName(self):
         name = os.path.splitext(self.fileTitle)[0]
-
-        if name == None or name == '' or globals.modifyInnerName:
+        if not name or "/" in name or "\\" in name or globals.modifyInnerName:
             name = QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
-                                                  "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):",
+                                                  "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):" \
+                                                  "\n(To make Miyamoto automatically set the internal filename to the filename of the level file," \
+                                                  "\nGo to Preferences and uncheck \"Modify Internal Name\".)",
                                                   QtWidgets.QLineEdit.Normal)[0]
 
-        if "/" in name or "\\" in name:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning', r'The input name included "/" or "\", aborting...')
-            warningBox.exec_()
-            return ''
+            if "/" in name or "\\" in name:
+                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning', r'The input name included "/" or "\", aborting...')
+                warningBox.exec_()
+                return ''
 
         if globals.levelNameCache == "untitled":
             globals.levelNameCache = name
@@ -3130,6 +3129,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if globals.Area is not None:
             for com in globals.Area.comments:
                 com.setVisible(globals.CommentsShown)
+
+            if not globals.CommentsShown:
+                for com in globals.Area.comments:
+                    com.TextEdit.setVisible(False)
 
         setSetting('ShowComments', globals.CommentsShown)
         self.scene.update()
@@ -3432,6 +3435,32 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             event.accept()
 
+    def LoadDefaultTileset(self, name, silent=False, dirty=False):
+        path = globals.miyamoto_path + "/miyamotoextras/%s.szs" % name
+        if not os.path.isfile(path):
+            if not silent:
+                QtWidgets.QMessageBox.warning(self, 'Warning', '"%s.szs" not found in miyamotoextras!' \
+                                                               '\nDid you download the main tilesets pack?' % name,
+                                              QtWidgets.QMessageBox.Ok)
+
+            return False
+
+        with open(path, "rb") as inf:
+            inb = inf.read()
+
+        data = DecompYaz0(inb)
+        globals.szsData[name] = data
+
+        self.tilesets[0].append(name)
+
+        if dirty:
+            dirtyOverride = globals.DirtyOverride
+            globals.DirtyOverride = 0
+            SetDirty()
+            globals.DirtyOverride = dirtyOverride
+
+        return True
+
     def LoadLevel(self, game, name, isFullPath, areaNum, loadLevel=False):
         """
         Load a level from any game into the editor
@@ -3443,12 +3472,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.fileSavePath = False
             self.fileTitle = 'untitled'
 
-            with open(globals.miyamoto_path + "/miyamotoextras/Pa0_jyotyu.szs", "rb") as inf:
-                inb = inf.read()
+            globals.szsData = {}
+            self.tilesets = [[], [], [], []]
 
-            data = DecompYaz0(inb)
-            globals.szsData = {'Pa0_jyotyu': data}
-            self.tilesets = [['Pa0_jyotyu'], [], [], []]
+            for tileset_name in globals.Pa0Tilesets:
+                ret = self.LoadDefaultTileset(tileset_name)
+                if not ret:
+                    return False
 
         else:
             globals.levName = os.path.basename(name)
@@ -3883,6 +3913,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.commentList.addItem(com.listitem)
             self.scene.addItem(com)
             com.UpdateListItem()
+
+        for tileset_name in globals.Pa0Tilesets:
+            self.LoadDefaultTileset(tileset_name, True)
 
     def ReloadTilesets(self, soft=False):
         """
@@ -5020,8 +5053,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             globals.Area.unkFlag4 = dlg.LoadingTab.unk4.isChecked()
             globals.Area.startEntrance = dlg.LoadingTab.entrance.value()
             globals.Area.startEntranceCoinBoost = dlg.LoadingTab.entranceCoinBoost.value()
-            globals.Area.timelimit2 = dlg.LoadingTab.timelimit2.value() + 100
-            globals.Area.timelimit3 = dlg.LoadingTab.timelimit3.value() - 200
+            globals.Area.timelimit2 = dlg.LoadingTab.timelimit2.value()
+            globals.Area.timelimit3 = dlg.LoadingTab.timelimit3.value()
 
             fname = dlg.TilesetsTab.value()
 
@@ -5662,7 +5695,7 @@ def main():
     globals.CommentsShown = setting('ShowComments', True)
     globals.PathsShown = setting('ShowPaths', True)
     globals.isEmbeddedSeparate = setting('isEmbeddedSeparate', False)
-    globals.modifyInnerName = setting('ModifyInternalName', False)
+    globals.modifyInnerName = setting('ModifyInnerName', True)
 
     if globals.libyaz0_available:
         globals.CompLevel = setting('CompLevel', 1)
