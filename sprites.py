@@ -6668,8 +6668,8 @@ class SpriteImage_MovingFence(SLib.SpriteImage):  # 307
 class SpriteImage_ScalePlatform(SLib.SpriteImage):  # 309
     def __init__(self, parent):
         super().__init__(parent, 3.75)
-        self.spritebox.shown = False
-        self.yOffset = -12
+        self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
+        self.aux[0].alpha = 0.5
 
     @staticmethod
     def loadImages():
@@ -6683,58 +6683,63 @@ class SpriteImage_ScalePlatform(SLib.SpriteImage):  # 309
         SLib.loadIfNotInImageCache('MovPlatSM', 'wood_platform_snow_middle.png')
         SLib.loadIfNotInImageCache('MovPlatSR', 'wood_platform_snow_right.png')
 
-
     def dataChanged(self):
-        super().dataChanged()
-        self.leftRopeLength = self.parent.spritedata[4] & 0xF
-        self.leftRopeLength = 0.5 if self.leftRopeLength < 1 else self.leftRopeLength
-        self.rightRopeLength = self.parent.spritedata[5] >> 4
-        self.rightRopeLength = 0.5 if self.rightRopeLength < 1 else self.rightRopeLength
-        self.snowy = self.parent.spritedata[4] & 0x10 != 0
-        self.middleRopeLength = (self.parent.spritedata[5] & 0xF) + ((self.parent.spritedata[3] & 0xF) << 4)
-        self.leftPlatfromWidth = (self.parent.spritedata[8] & 0xF) + 3
-        self.rightPlatfromWidth = (self.parent.spritedata[9] >> 4) + 3
+        leftRopeLength = self.parent.spritedata[4] & 0xF
+        leftRopeLength = 0.5 if leftRopeLength < 1 else leftRopeLength
+        rightRopeLength = self.parent.spritedata[5] >> 4
+        rightRopeLength = 0.5 if rightRopeLength < 1 else rightRopeLength
+        snowy = self.parent.spritedata[4] & 0x10 != 0
+        middleRopeLength = (self.parent.spritedata[5] & 0xF) + ((self.parent.spritedata[3] & 0xF) << 4)
+        leftPlatfromWidth = (self.parent.spritedata[8] & 0xF) + 3
+        rightPlatfromWidth = (self.parent.spritedata[9] >> 4) + 3
 
-        self.leftPlatformOffset = (self.leftPlatfromWidth + 0.5) / 2
-        self.rightPlatformOffset = (self.rightPlatfromWidth + 0.5) / 2
+        leftPlatformOffset = (leftPlatfromWidth + 0.5) / 2
+        rightPlatformOffset = (rightPlatfromWidth + 0.5) / 2
 
-        if self.middleRopeLength + self.leftPlatformOffset < self.rightPlatformOffset:
-            self.width = self.rightPlatformOffset * 2 * 16
-            self.xOffset = -(self.rightPlatformOffset - self.middleRopeLength) * 16
-        elif self.middleRopeLength + self.rightPlatformOffset < self.leftPlatformOffset:
-            self.width = self.leftPlatformOffset * 2 * 16
-            self.xOffset = -self.leftPlatformOffset * 16
+        xOffset = 0
+
+        if middleRopeLength + leftPlatformOffset < rightPlatformOffset:
+            width = rightPlatformOffset * 2 * 60
+            xOffset = -(rightPlatformOffset - middleRopeLength) * 60
+        elif middleRopeLength + rightPlatformOffset < leftPlatformOffset:
+            width = leftPlatformOffset * 2 * 60
+            xOffset = -leftPlatformOffset * 60
         else:
-            self.width = (self.leftPlatformOffset + self.middleRopeLength + self.rightPlatformOffset) * 16
-            self.xOffset = -self.leftPlatformOffset * 16
+            width = (leftPlatformOffset + middleRopeLength + rightPlatformOffset) * 60
+            xOffset = -leftPlatformOffset * 60
 
-        self.height = (self.leftRopeLength if self.leftRopeLength > self.rightRopeLength else self.rightRopeLength) * 16 + 20
+        height = (leftRopeLength if leftRopeLength > rightRopeLength else rightRopeLength) * 60 + 75
 
-    def paint(self, painter):
-        super().paint(painter)
+        pix = QtGui.QPixmap(width, height)
+        pix.fill(Qt.transparent)
+        painter = QtGui.QPainter(pix)
 
-        leftSideOffset = self.leftPlatformOffset * 60 - 15
-        if self.middleRopeLength + self.leftPlatformOffset < self.rightPlatformOffset:
-            leftSideOffset = (self.rightPlatformOffset - self.middleRopeLength) * 60 - 15
+        leftSideOffset = leftPlatformOffset * 60 - 15
+        if middleRopeLength + leftPlatformOffset < rightPlatformOffset:
+            leftSideOffset = (rightPlatformOffset - middleRopeLength) * 60 - 15
 
         #Draw ropes and wheels
-        painter.drawTiledPixmap(leftSideOffset, 30, 30, self.leftRopeLength * 60 - 15, ImageCache['ScaleRopeV'])
-        painter.drawTiledPixmap(leftSideOffset + self.middleRopeLength * 60, 30, 30, self.rightRopeLength * 60 - 15, ImageCache['ScaleRopeV'])
-        painter.drawTiledPixmap(leftSideOffset + 30, 0, self.middleRopeLength * 60 - 30, 30, ImageCache['ScaleRopeH'])
+        painter.drawTiledPixmap(leftSideOffset, 30, 30, leftRopeLength * 60 - 15, ImageCache['ScaleRopeV'])
+        painter.drawTiledPixmap(leftSideOffset + middleRopeLength * 60, 30, 30, rightRopeLength * 60 - 15, ImageCache['ScaleRopeV'])
+        painter.drawTiledPixmap(leftSideOffset + 30, 0, middleRopeLength * 60 - 30, 30, ImageCache['ScaleRopeH'])
         painter.drawPixmap(leftSideOffset, 0, ImageCache['ScaleWheel'])
-        painter.drawPixmap(leftSideOffset + self.middleRopeLength * 60 - 30, 0, ImageCache['ScaleWheel'])
+        painter.drawPixmap(leftSideOffset + middleRopeLength * 60 - 30, 0, ImageCache['ScaleWheel'])
 
-        imgType = 'MovPlat%s' % ('S' if self.snowy else 'N')
+        imgType = 'MovPlat%s' % ('S' if snowy else 'N')
         
         # Draw left platform
-        painter.drawPixmap(leftSideOffset + 15 - self.leftPlatformOffset * 60 + 75 - ImageCache[imgType + 'L'].width(), self.leftRopeLength * 60 + 15, ImageCache[imgType + 'L'])
-        painter.drawTiledPixmap(leftSideOffset + 15 - self.leftPlatformOffset * 60 + 75, self.leftRopeLength * 60 + 15, (self.leftPlatfromWidth - 2) * 60, 60, ImageCache[imgType + 'M'])
-        painter.drawPixmap(leftSideOffset + 15 - self.leftPlatformOffset * 60 + 75 + (self.leftPlatfromWidth - 2) * 60, self.leftRopeLength * 60 + 15, ImageCache[imgType + 'R'])
+        painter.drawPixmap(leftSideOffset + 15 - leftPlatformOffset * 60 + 75 - ImageCache[imgType + 'L'].width(), leftRopeLength * 60 + 15, ImageCache[imgType + 'L'])
+        painter.drawTiledPixmap(leftSideOffset + 15 - leftPlatformOffset * 60 + 75, leftRopeLength * 60 + 15, (leftPlatfromWidth - 2) * 60, 60, ImageCache[imgType + 'M'])
+        painter.drawPixmap(leftSideOffset + 15 - leftPlatformOffset * 60 + 75 + (leftPlatfromWidth - 2) * 60, leftRopeLength * 60 + 15, ImageCache[imgType + 'R'])
 
         # Draw right platform
-        painter.drawPixmap(10 + leftSideOffset + 15 + (self.middleRopeLength - self.rightPlatformOffset) * 60 + 75 - ImageCache[imgType + 'L'].width(), self.rightRopeLength * 60 + 15, ImageCache[imgType + 'L'])
-        painter.drawTiledPixmap(9 + leftSideOffset + 15 + (self.middleRopeLength - self.rightPlatformOffset) * 60 + 75, self.rightRopeLength * 60 + 15, (self.rightPlatfromWidth - 2) * 60, 60, ImageCache[imgType + 'M'])
-        painter.drawPixmap(7 + leftSideOffset + 15 + (self.middleRopeLength - self.rightPlatformOffset) * 60 + 75 + (self.rightPlatfromWidth - 2) * 60, self.rightRopeLength * 60 + 15, ImageCache[imgType + 'R'])
+        painter.drawPixmap(10 + leftSideOffset + 15 + (middleRopeLength - rightPlatformOffset) * 60 + 75 - ImageCache[imgType + 'L'].width(), rightRopeLength * 60 + 15, ImageCache[imgType + 'L'])
+        painter.drawTiledPixmap(9 + leftSideOffset + 15 + (middleRopeLength - rightPlatformOffset) * 60 + 75, rightRopeLength * 60 + 15, (rightPlatfromWidth - 2) * 60, 60, ImageCache[imgType + 'M'])
+        painter.drawPixmap(7 + leftSideOffset + 15 + (middleRopeLength - rightPlatformOffset) * 60 + 75 + (rightPlatfromWidth - 2) * 60, rightRopeLength * 60 + 15, ImageCache[imgType + 'R'])
+
+        painter = None
+        self.aux[0].setImage(pix, xOffset, -45)
+        super().dataChanged()
 
 
 class SpriteImage_Blooper(SLib.SpriteImage_StaticMultiple):  # 313, 322
