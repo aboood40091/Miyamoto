@@ -4212,7 +4212,7 @@ class SpriteImage_GrrrolSpawner(SLib.SpriteImage):  # 188
         if direction == 2:
             self.width = 2.5 * 16
             self.height = length * 16
-            self.offset = (-12, -self.height + 8)
+            self.offset = (-4, -self.height + 8)
 
         else:
             self.width = length * 16
