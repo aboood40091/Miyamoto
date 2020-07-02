@@ -1274,6 +1274,9 @@ class SpriteImage_FishBone(SLib.SpriteImage_StaticMultiple):  # 57
         )
 
         self.yOffset = -4
+        self.aux.append(SLib.AuxiliaryTrackObject(
+            parent, 16, 16, SLib.AuxiliaryTrackObject.Horizontal
+        ))
 
     @staticmethod
     def loadImages():
@@ -1285,14 +1288,25 @@ class SpriteImage_FishBone(SLib.SpriteImage_StaticMultiple):  # 57
 
     def dataChanged(self):
         direction = (self.parent.spritedata[5] >> 4) & 1
+        distance = self.parent.spritedata[5] & 0xF
+        if distance == 0:
+            distance = 5
+        elif distance == 1:
+            distance = 7
+        else:
+            distance = 9
+
+        self.aux[0].setSize(distance * 16, 16)
 
         if direction == 1:
             self.image = ImageCache['FishBoneL']
             self.xOffset = -8
+            self.aux[0].setPos(distance * -30 + 60, 15)
 
         else:
             self.image = ImageCache['FishBoneR']
             self.xOffset = -4
+            self.aux[0].setPos(distance * -30 + 45, 15)
 
         super().dataChanged()
 
