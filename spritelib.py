@@ -512,15 +512,15 @@ class AuxiliaryTrackObject(AuxiliarySpriteItem):
         painter.setPen(OutlinePen)
 
         if self.direction == self.Horizontal:
-            lineY = self.height * 0.75
-            painter.drawLine(20, lineY, (self.width * (TileWidth/16)) - 20, lineY)
-            painter.drawEllipse(8, lineY - 4, 8, 8)
-            painter.drawEllipse((self.width * (TileWidth/16)) - 16, lineY - 4, 8, 8)
+            lineY = self.height * 0.75 * (TileWidth/24)
+            painter.drawLine(20 * (TileWidth/24), lineY, (self.width * (TileWidth/16)) - 20 * (TileWidth/24), lineY)
+            painter.drawEllipse(8 * (TileWidth/24), lineY - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
+            painter.drawEllipse((self.width * (TileWidth/16)) - 16 * (TileWidth/24), lineY - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
         else:
-            lineX = self.width * 0.75
-            painter.drawLine(lineX, 20, lineX, (self.height * (TileWidth/16)) - 20)
-            painter.drawEllipse(lineX - 4, 8, 8, 8)
-            painter.drawEllipse(lineX - 4, (self.height * (TileWidth/16)) - 16, 8, 8)
+            lineX = self.width * 0.75 * (TileWidth/24)
+            painter.drawLine(lineX, 20 * (TileWidth/24), lineX, (self.height * (TileWidth/16)) - 20 * (TileWidth/24))
+            painter.drawEllipse(lineX - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
+            painter.drawEllipse(lineX - 4 * (TileWidth/24), (self.height * (TileWidth/16)) - 16 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
 
 
 class AuxiliaryCircleOutline(AuxiliarySpriteItem):

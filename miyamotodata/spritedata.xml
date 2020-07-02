@@ -143,17 +143,18 @@
 	</sprite>
 	<sprite id="20" name="Koopa Paratroopa" notes="A koopa troopa with wings. Can either jump or fly depending on what you set it to. The default is &quot;jumping&quot;. Red koopa paratroopas will not walk off cliffs, and the green ones will. The size of the koopa paratroopas wings are also different (green having shorter wings, red having longer wings).">
 		<list nybble="9" title="Initial direction" comment="The movement of the Koopa Paratroopa when it is spawned.">
-			<entry value="0">Start Going Up / Right</entry>
-			<entry value="1">Start going Down / Left</entry>
+			<entry value="0">Start Going Towards Player</entry>
+			<entry value="1">Start Going Up / Right</entry>
+			<entry value="2">Start going Down / Left</entry>
 		</list>
 		<list nybble="10" title="Flying Start Position" comment="The path starts from this position relative to the location of the Koopa Paratroopa's placement.">
 			<entry value="0">Midway</entry>
-			<entry value="1">Start Bottom / Left</entry>
+			<entry value="1">Edge of Flying Path</entry>
 		</list>
-		<list nybble="11" title="Type of Movement">
+		<list nybble="11" title="Movement Type">
 			<entry value="0">Jumping</entry>
-			<entry value="1">Flying Horizontally</entry>
-			<entry value="2">Flying Vertically</entry>
+			<entry value="1">Flying Left and Right</entry>
+			<entry value="2">Flying Up and Down</entry>
 		</list>
 		<list nybble="12" title="Color" comment="Red Koopa Troopas don't walk off ledges.">
 			<entry value="0">Green</entry>
@@ -162,18 +163,19 @@
 	</sprite>
 	<sprite id="21" name="Grouped Koopa Paratroopa" notes="A Koopa Troopa with wings which allow it to jump or even fly. It can jump two blocks high at max. Jumping on it makes it a normal Koopa Troopa. This Koopa Paratroopa's movements can be linked together with others for synchronization.">
 		<value nybble="5-6" title="Group ID" comment="The ID used to chain sprites together. Use sprite 196 to create the groups. If not linked, the Koopa Paratroopa will appear frozen and collisionless. If linked, this sprite's movement is synced to other Koopa Paratroopa's that are linked to the same group controller."/>
-		<list nybble="9" title="Initial direction">
-			<entry value="0">Left/Up</entry>
-			<entry value="1">Right/Down</entry>
+		<list nybble="9" title="Initial direction" comment="The movement of the Koopa Paratroopa when it is spawned.">
+			<entry value="0">Start Going Towards Player</entry>
+			<entry value="1">Start Going Up / Right</entry>
+			<entry value="2">Start going Down / Left</entry>
 		</list>
 		<list nybble="10" title="Flying Start Position" comment="The path starts from this position relative to the location of the Koopa Paratroopa's placement.">
 			<entry value="0">Midway</entry>
-			<entry value="1">Start Bottom / Left</entry>
+			<entry value="1">Edge of Flying Path</entry>
 		</list>
-		<list nybble="11" title="Type of Movement">
+		<list nybble="11" title="Movement Type">
 			<entry value="0">Jumping</entry>
-			<entry value="1">Flying Horizontally</entry>
-			<entry value="2">Flying Vertically</entry>
+			<entry value="1">Flying Left and Right</entry>
+			<entry value="2">Flying Up and Down</entry>
 		</list>
 		<list nybble="12" title="Color" comment="Red Koopa Troopas don't walk off ledges.">
 			<entry value="0">Green</entry>
@@ -895,7 +897,7 @@
 	<sprite id="63" name="Stalking Piranha Plant" notes="A piranha plant with legs! It can walk around and stretch it's head up in the air after a short amount of time.">
 		<value nybble="10" title="Delay Before Stretching" comment="The delay the piranha plant has before it stretches upwards."/>
 		<value nybble="11" title="Delay Before Stretching (2)" comment="Does the same thing as nybble 10?"/>
-		<value nybble="12" title="Unknown Value 12" comment="I see nothing"/>
+		<value nybble="12" title="Movement Distance" comment="How far the piranha plant will wander in both directions from its starting point."/>
 		<checkbox nybble="20" title="Starts Moving Left" comment="Moves left when ticked."/>
 	</sprite>
 	<sprite id="64" name="River Piranha Plant" notes="A piranha plant that sits on a lilipad and spits out a cactus ball and keeps it in the air by blowing on it."/>
@@ -1185,7 +1187,24 @@
 			<entry value="2">Up</entry>
 			<entry value="3">Down</entry>
 		</list>
-		<value nybble="7" title="Tilt" comment="Increases by 22.5&amp;deg; counterclockwise per value"/>
+		<list nybble="7" title="Tilt" comment="Counter-clockwise around the center of the platform.">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0;</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0;</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0;</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
+		</list>
 		<value nybble="13" title="Delay before moving" comment="Delay before the platform starts to move"/>
 		<value nybble="14" title="Delay before returning" comment="Delay before the platform starts to return after moving"/>
 		<value nybble="15" title="Movement Distance"/>
@@ -1205,7 +1224,24 @@
 			<entry value="2">Up</entry>
 			<entry value="3">Down</entry>
 		</list>
-		<value nybble="7" title="Tilt" comment="Increases by 22.5&#xB0; counterclockwise per value"/>
+		<list nybble="7" title="Tilt" comment="Counter-clockwise around the center of the platform.">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0;</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0;</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0;</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
+		</list>
 		<value nybble="13" title="Delay before moving" comment="Delay before the platform starts to move"/>
 		<value nybble="14" title="Delay before returning" comment="Delay before the platform starts to return after moving"/>
 		<value nybble="15" title="Movement Distance"/>
