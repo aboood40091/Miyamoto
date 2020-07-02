@@ -10,6 +10,7 @@ miyamotoextras/
 *.qpp
 *.spec
 build.bat
+build_32.bat
 dlls.zip
 log.txt
 settings.ini

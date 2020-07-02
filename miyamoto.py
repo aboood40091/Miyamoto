@@ -2787,7 +2787,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # Determine if the inner sarc name should be modifiable
         globals.modifyInnerName = dlg.generalTab.modifyInnerName.isChecked()
-        setSetting('ModifyInternalName', globals.modifyInnerName)
+        setSetting('ModifyInnerName', globals.modifyInnerName)
 
         # Get the Toolbar tab settings
         boxes = (
@@ -2972,7 +2972,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         name = os.path.splitext(self.fileTitle)[0]
         if not name or "/" in name or "\\" in name or globals.modifyInnerName:
             name = QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
-                                                  "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):",
+                                                  "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):" \
+                                                  "\n(To make Miyamoto automatically set the internal filename to the filename of the level file," \
+                                                  "\nGo to Preferences and uncheck \"Modify Internal Name\".)",
                                                   QtWidgets.QLineEdit.Normal)[0]
 
             if "/" in name or "\\" in name:
@@ -5691,7 +5693,7 @@ def main():
     globals.CommentsShown = setting('ShowComments', True)
     globals.PathsShown = setting('ShowPaths', True)
     globals.isEmbeddedSeparate = setting('isEmbeddedSeparate', False)
-    globals.modifyInnerName = setting('ModifyInternalName', False)
+    globals.modifyInnerName = setting('ModifyInnerName', True)
 
     if globals.libyaz0_available:
         globals.CompLevel = setting('CompLevel', 1)
