@@ -1616,9 +1616,14 @@ class SpriteImage_TwoWay(SLib.SpriteImage_StaticMultiple):  # 70
         super().dataChanged()
 
 
-class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71
+class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71, 80, 430
     def __init__(self, parent):
         super().__init__(parent, 3.75)
+
+        self.hasTrack = self.parent.type == 80
+        if self.hasTrack:
+            self.aux.append(SLib.AuxiliaryTrackObject(parent, 0, 0, 0))
+            self.aux[0].setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
 
         self.spritebox.shown = False
 
@@ -1636,6 +1641,35 @@ class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71
 
     def dataChanged(self):
         super().dataChanged()
+
+        if self.hasTrack:
+            track = self.aux[0]
+
+            distance = (self.parent.spritedata[7] >> 4) + 1
+            if distance == 1:
+                track.setSize(0, 0)
+
+            direction = self.parent.spritedata[2] & 3
+            xOffset = 0
+            yOffset = 0
+
+            if direction & 2:
+                track.direction = SLib.AuxiliaryTrackObject.Vertical
+                if distance != 1:
+                    track.setSize(16, distance * 16)
+
+            else:
+                track.direction = SLib.AuxiliaryTrackObject.Horizontal
+                if distance != 1:
+                    track.setSize(distance * 16, 16)
+
+            if direction == 1:
+                xOffset = (-distance + 1) * 60
+
+            elif direction == 2:
+                yOffset = (-distance + 1) * 60
+
+            track.setPos(xOffset, yOffset)
 
         self.width = (self.parent.spritedata[8] & 0xF) * 16 + 16
         self.height = (self.parent.spritedata[9] & 0xF) * 16 + 16
@@ -1722,9 +1756,14 @@ class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovITopM'])
 
 
-class SpriteImage_MovingLandBlock(SLib.SpriteImage):  # 72
+class SpriteImage_MovingLandBlock(SLib.SpriteImage):  # 72, 81
     def __init__(self, parent):
         super().__init__(parent, 3.75)
+
+        self.hasTrack = self.parent.type == 81
+        if self.hasTrack:
+            self.aux.append(SLib.AuxiliaryTrackObject(parent, 0, 0, 0))
+            self.aux[0].setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
 
         self.spritebox.shown = False
 
@@ -1742,6 +1781,36 @@ class SpriteImage_MovingLandBlock(SLib.SpriteImage):  # 72
 
     def dataChanged(self):
         super().dataChanged()
+
+        if self.hasTrack:
+            
+            track = self.aux[0]
+
+            distance = (self.parent.spritedata[7] >> 4) + 1
+            if distance == 1:
+                track.setSize(0, 0)
+
+            direction = self.parent.spritedata[2] & 3
+            xOffset = 0
+            yOffset = 0
+
+            if direction & 2:
+                track.direction = SLib.AuxiliaryTrackObject.Vertical
+                if distance != 1:
+                    track.setSize(16, distance * 16)
+
+            else:
+                track.direction = SLib.AuxiliaryTrackObject.Horizontal
+                if distance != 1:
+                    track.setSize(distance * 16, 16)
+
+            if direction == 1:
+                xOffset = (-distance + 1) * 60
+
+            elif direction == 2:
+                yOffset = (-distance + 1) * 60
+
+            track.setPos(xOffset, yOffset)
 
         self.width = (self.parent.spritedata[8] & 0xF) * 16 + 16
         self.height = (self.parent.spritedata[9] & 0xF) * 16 + 16
@@ -2142,6 +2211,8 @@ class SpriteImage_BouncyCloud(SLib.SpriteImage_StaticMultiple):  # 94
         )
 
         self.xOffset = -4
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, 0, 0, 0))
+        self.aux[0].setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
 
     @staticmethod
     def loadImages():
@@ -2149,15 +2220,46 @@ class SpriteImage_BouncyCloud(SLib.SpriteImage_StaticMultiple):  # 94
         SLib.loadIfNotInImageCache('BouncyCloudL', 'bouncy_cloud_large.png')
 
     def dataChanged(self):
-        size = self.parent.spritedata[8] & 0xF
+        track = self.aux[0]
 
+        distance = (self.parent.spritedata[7] >> 4) + 1
+        if distance == 1:
+            track.setSize(0, 0)
+
+        direction = self.parent.spritedata[2] & 3
+        xOffset = 0
+        yOffset = 0
+
+        if direction & 2:
+            track.direction = SLib.AuxiliaryTrackObject.Vertical
+            if distance != 1:
+                track.setSize(16, distance * 16)
+
+        else:
+            track.direction = SLib.AuxiliaryTrackObject.Horizontal
+            if distance != 1:
+                track.setSize(distance * 16, 16)
+
+        if direction == 1:
+            xOffset = (-distance + 1) * 60
+
+        elif direction == 2:
+            yOffset = (-distance + 1) * 60
+
+        size = self.parent.spritedata[8] & 0xF
         if size == 1:
             self.image = ImageCache['BouncyCloudL']
             self.yOffset = -8
+            if direction & 2:
+                xOffset += 3.5 * 60
+            track.setPos(15 + xOffset, 30 + yOffset)
 
         else:
             self.image = ImageCache['BouncyCloudS']
             self.yOffset = -4
+            if direction & 2:
+                xOffset += 1.5 * 60
+            track.setPos(15 + xOffset, 15 + yOffset)
 
         super().dataChanged()
 

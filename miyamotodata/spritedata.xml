@@ -1187,7 +1187,24 @@
 			<entry value="2">Up</entry>
 			<entry value="3">Down</entry>
 		</list>
-		<value nybble="7" title="Tilt" comment="Increases by 22.5&amp;deg; counterclockwise per value"/>
+		<list nybble="7" title="Tilt" comment="Counter-clockwise around the center of the platform.">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0;</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0;</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0;</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
+		</list>
 		<value nybble="13" title="Delay before moving" comment="Delay before the platform starts to move"/>
 		<value nybble="14" title="Delay before returning" comment="Delay before the platform starts to return after moving"/>
 		<value nybble="15" title="Movement Distance"/>
@@ -1207,7 +1224,24 @@
 			<entry value="2">Up</entry>
 			<entry value="3">Down</entry>
 		</list>
-		<value nybble="7" title="Tilt" comment="Increases by 22.5&#xB0; counterclockwise per value"/>
+		<list nybble="7" title="Tilt" comment="Counter-clockwise around the center of the platform.">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">22.5&#xB0;</entry>
+			<entry value="2">45&#xB0;</entry>
+			<entry value="3">67.5&#xB0;</entry>
+			<entry value="4">90&#xB0;</entry>
+			<entry value="5">112.5&#xB0;</entry>
+			<entry value="6">135&#xB0;</entry>
+			<entry value="7">157.5&#xB0;</entry>
+			<entry value="8">180&#xB0;</entry>
+			<entry value="9">202.5&#xB0;</entry>
+			<entry value="10">225&#xB0;</entry>
+			<entry value="11">247.5&#xB0;</entry>
+			<entry value="12">270&#xB0;</entry>
+			<entry value="13">292.5&#xB0;</entry>
+			<entry value="14">315&#xB0;</entry>
+			<entry value="15">337.5&#xB0;</entry>
+		</list>
 		<value nybble="13" title="Delay before moving" comment="Delay before the platform starts to move"/>
 		<value nybble="14" title="Delay before returning" comment="Delay before the platform starts to return after moving"/>
 		<value nybble="15" title="Movement Distance"/>
