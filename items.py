@@ -1371,6 +1371,8 @@ class LocationItem(LevelEditorItem):
         self.dragging = False
         self.setZValue(24000)
 
+        self.setVisible(globals.LocationsShown)
+
     def ListString(self):
         """
         Returns a string that can be used to describe the location in a list
@@ -1706,6 +1708,8 @@ class SpriteItem(LevelEditorItem):
                 int(self.objy * (globals.TileWidth / 16)),
             )
         globals.DirtyOverride -= 1
+
+        self.setVisible(globals.SpritesShown)
 
     def SetType(self, type):
         """
@@ -2954,6 +2958,8 @@ class CommentItem(LevelEditorItem):
         self.setZValue(zval + 1)
         self.UpdateTooltip()
 
+        self.setVisible(globals.CommentsShown)
+
         self.CreateTextEdit()
 
     def CreateTextEdit(self):
@@ -3037,7 +3043,7 @@ class CommentItem(LevelEditorItem):
 
         # Set the text edit visibility
         try:
-            shouldBeVisible = (len(globals.mainWindow.scene.selectedItems()) == 1) and self.isSelected()
+            shouldBeVisible = (len(globals.mainWindow.scene.selectedItems()) == 1) and self.isSelected() and globals.CommentsShown
 
         except RuntimeError:
             shouldBeVisible = False

@@ -73,9 +73,7 @@ if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
 
 # Check if Miyamoto is being run on a supported platform
 if platform.system() not in ['Windows', 'Linux', 'Darwin']:
-    warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO', 'Not a supported platform, sadly...')
-    warningBox.exec_()
-    raise NotImplementedError("Unsupported platform!")
+    raise NotImplementedError("Unsupported platform: Not a supported platform, sadly...")
 
 # Import the "globals" module
 import globals
@@ -3036,6 +3034,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if globals.Area is not None:
             for com in globals.Area.comments:
                 com.setVisible(globals.CommentsShown)
+
+            if not globals.CommentsShown:
+                for com in globals.Area.comments:
+                    com.TextEdit.setVisible(False)
 
         setSetting('ShowComments', globals.CommentsShown)
         self.scene.update()
