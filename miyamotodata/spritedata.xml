@@ -39,7 +39,6 @@
 			<entry value="7">Balloon</entry>
 			<entry value="8">Kamek Battle</entry>
 		</list>
-		<checkbox nybble="20" title="Spawn on ground"/>
 	</sprite>
 	<sprite id="1" name="Paragoomba" notes="A Goomba that is able to jump using its wings. It can jump two blocks high at max. Jumping on it makes it a normal Goomba.">
 		<checkbox nybble="8" title="Z-Order" comment="This places the sprite behind Layer 1 tiles if checked."/>
@@ -2928,6 +2927,7 @@
 		</list>
 	</sprite>
 	<sprite id="182" name="Vertically-moving Platform" notes="A platform that moves up and down. It can be a certain length, move a certain distance, and more.">
+		<checkbox nybble="5" title="Unknown Checkbox 5"/>
 		<list nybble="7" title="Type" comment="The type of platform.">
 			<entry value="0">Gold</entry>
 			<entry value="1">Rocky</entry>
@@ -2977,6 +2977,7 @@
 		</list>
 	</sprite>
 	<sprite id="186" name="Horizontally-moving Platform" notes="A platform that moves horizontally.">
+		<checkbox nybble="5" title="Unknown Checkbox 5"/>
 		<list nybble="7" title="Type" comment="The type of platform.">
 			<entry value="0">Gold</entry>
 			<entry value="1">Rocky</entry>
@@ -2989,7 +2990,10 @@
 			<entry value="1">Left to Right</entry>
 		</list>
 		<value nybble="15" title="Distance" comment="Distance for the platform to move."/>
-		<value nybble="16" title="Speed" comment="Speed of the platform."/>
+		<list nybble="16" title="Speed" comment="The speed it moves.">
+			<entry value="0">Fast</entry>
+			<entry value="1">Slow</entry>
+		</list>
 		<value nybble="18" title="Length" comment="Length of the platform."/>
 	</sprite>
 	<sprite id="187" name="Scaredy Rat" notes="A white rat creature that first appeared in New Super Mario Bros. Wii. They appear to have black sclera, red pupils, orange feet and huge buck teeth. They slightly resemble Little Mousers. Their name is a pun on the term scaredy cat, which is a childish term for a coward.">

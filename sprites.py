@@ -4114,11 +4114,14 @@ class SpriteImage_Spike(SLib.SpriteImage_StaticMultiple):  # 180, 181, 651
         super().dataChanged()
 
 
-class SpriteImage_MovingPlatform(SpriteImage_PlatformBase):  # 182, 186
+class SpriteImage_MovingPlatform(SpriteImage_PlatformBase):  # 182, 186, 534, 535
     def __init__(self, parent):
         super().__init__(parent)
 
     def getPlatformWidth(self):
+        if self.getPlatformType() == 'C':
+            return 2.5
+
         width = (self.parent.spritedata[8] & 0xF) + 1
         if width == 1:
             width = 2
@@ -4126,15 +4129,23 @@ class SpriteImage_MovingPlatform(SpriteImage_PlatformBase):  # 182, 186
         return width + 0.5
 
     def getPlatformType(self):
-        type_ = (self.parent.spritedata[3] >> 4) & 0x3
+        type_ = self.parent.spritedata[3] >> 4
         imgType = 'N'
 
         if type_ == 1:
             imgType = 'R'
         elif type_ == 3:
             imgType = 'S'
+        elif type_ == 4:
+            imgType = 'C'
             
         return imgType
+
+    def getPlatformOffset(self):
+        if self.getPlatformType() == 'C':
+            return (-4, -4)
+        else:
+            return (-4, 0)
 
 
 class SpriteImage_FallingIcicle(SLib.SpriteImage_StaticMultiple):  # 183, 185
@@ -9444,39 +9455,6 @@ class SpriteImage_WendyIcicle(SLib.SpriteImage_Static):  # 533
         SLib.loadIfNotInImageCache('WendyIcicle', 'wendy_icicle.png')
 
 
-class SpriteImage_MovingGroupedPlatform(SpriteImage_PlatformBase):  # 534, 535
-    def __init__(self, parent):
-        super().__init__(parent)
-
-    def getPlatformWidth(self):
-        if self.getPlatformType() == 'C':
-            return 2.5
-        
-        width = (self.parent.spritedata[8] & 0xF) + 1
-        if width < 2:
-            width = 2
-
-        return width + 0.5
-
-    def getPlatformType(self):
-        type_ = self.parent.spritedata[3] >> 4
-
-        if type_ == 1:
-            return 'R'
-        elif type_ == 3:
-            return 'S'
-        elif type_ == 4:
-            return 'C'
-        else:
-            return 'N'
-
-    def getPlatformOffset(self):
-        if self.getPlatformType() == 'C':
-            return (-4, -4)
-        else:
-            return (-4, 0)
-
-
 class SpriteImage_RockyWrench(SLib.SpriteImage_Static):  # 536
     def __init__(self, parent):
         super().__init__(
@@ -10878,8 +10856,8 @@ ImageClasses = {
     529: SpriteImage_Crash,
     530: SpriteImage_BoltStoneBlock,
     533: SpriteImage_WendyIcicle,
-    534: SpriteImage_MovingGroupedPlatform,
-    535: SpriteImage_MovingGroupedPlatform,
+    534: SpriteImage_MovingPlatform,
+    535: SpriteImage_MovingPlatform,
     536: SpriteImage_RockyWrench,
     537: SpriteImage_Wrench,
     538: SpriteImage_Crash,
