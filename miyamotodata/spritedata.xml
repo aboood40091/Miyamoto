@@ -6125,21 +6125,33 @@
 	<sprite id="490" name="Airship Collar">
 		<value nybble="9" title="Unknown Value 9"/>
 	</sprite>
-	<sprite id="491" name="Vertically-moving Bone Platform">
-		<checkbox nybble="5" title="Start with delay" comment="But only if no event is active"/>
-		<value nybble="7" title="Useless" comment="This nybble doesn't seem to be read by the game"/>
-		<checkbox nybble="8" title="Inverted Movement" comment="When checked, it will move Down and Up, rather than Up and Down. (Unused)"/>
-		<value nybble="15" title="Distance Traveled" comment="The distance the platform travels. 0 will not move at all."/>
-		<list nybble="16" title="Speed">
-			<entry value="0">1.0</entry>
-			<entry value="1">0.5</entry>
+	<sprite id="491" name="Vertically-moving Bone Platform" notes="Falls down when hit by Bowser Jr. in his flying clown car.">
+		<checkbox nybble="5" title="Start with delay" comment="But only if no event is active (?)"/>
+		<value nybble="7" title="Type (Useless)" comment="This nybble doesn't seem to be read by the game"/>
+		<list nybble="8" title="Movement Direction">
+			<entry value="0">Up</entry>
+			<entry value="1">Down</entry>
 		</list>
-		<value nybble="18" title="Width" comment="The platform width."/>
+		<value nybble="15" title="Distance"/>
+		<list nybble="16" title="Speed">
+			<entry value="0">Fast</entry>
+			<entry value="1">Slow</entry>
+		</list>
+		<value nybble="18" title="Platform Length"/>
 	</sprite>
 	<sprite id="492" name="Horizontally-moving Bone Platform" notes="Falls down when hit by Bowser Jr. in his flying clown car.">
-		<value nybble="7" title="Unknown Value 7"/>
-		<value nybble="15" title="Distance Moved" comment="Movement distance of the platform."/>
-		<value nybble="18" title="Length" comment="Length of the platform."/>
+		<checkbox nybble="5" title="Start with delay" comment="But only if no event is active (?)"/>
+		<value nybble="7" title="Type (Useless)" comment="This nybble doesn't seem to be read by the game"/>
+		<list nybble="8" title="Movement Direction">
+			<entry value="0">Right</entry>
+			<entry value="1">Left</entry>
+		</list>
+		<value nybble="15" title="Distance"/>
+		<list nybble="16" title="Speed">
+			<entry value="0">Fast</entry>
+			<entry value="1">Slow</entry>
+		</list>
+		<value nybble="18" title="Platform Length"/>
 	</sprite>
 	<sprite id="493" name="World 7 Tileset Platform - Follows Screen" notes="This is a platform, available in two sizes, that looks like the grass tileset in World 7. It follows the screen vertically, to provide a visual trick that makes the ship in 7-Ship look like it's moving relative to the ground.">
 		<list nybble="12" title="Size" comment="The size of the platform">
