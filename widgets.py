@@ -4967,9 +4967,24 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         clickedy += 8 - (clickedy % 8)
 
                     if obj.objx != clickedx or obj.objy != clickedy:
+                        oldx = obj.objx
+                        oldy = obj.objy
+
                         obj.objx = clickedx
                         obj.objy = clickedy
+
                         obj.setPos(int(clickedx * globals.TileWidth / 16), int(clickedy * globals.TileWidth / 16))
+
+                        if isinstance(obj, type_path) or isinstance(obj, type_nPath):
+                            obj.updatePos()
+                            obj.pathinfo['peline'].nodePosChanged()
+
+                        elif isinstance(obj, type_com):
+                            obj.UpdateTooltip()
+                            obj.handlePosChange(oldx, oldy)
+
+                        obj.UpdateListItem()
+
             event.accept()
 
         elif event.buttons() == Qt.RightButton and self.currentobj is not None and self.dragstamp:
