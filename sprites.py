@@ -1672,9 +1672,10 @@ class SpriteImage_TwoWay(SLib.SpriteImage_StaticMultiple):  # 70
 
 
 class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71, 80, 430
-    def __init__(self, parent):
+    def __init__(self, parent, rotatable=True):
         super().__init__(parent, 3.75)
 
+        self.rotatable = rotatable
         self.hasTrack = self.parent.type == 80
         if self.hasTrack:
             self.aux.append(SLib.AuxiliaryTrackObject(parent, 0, 0, 0))
@@ -1694,9 +1695,17 @@ class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71, 80, 430
         ImageCache['MovIBottomM'] = SLib.GetImg('mov_iron_bottom_m.png')
         ImageCache['MovIBottomR'] = SLib.GetImg('mov_iron_bottom_r.png')
 
-    def dataChanged(self):
-        super().dataChanged()
+    def setWidth(self):
+        self.width = (self.parent.spritedata[8] & 0xF) * 16 + 16
+        self.height = (self.parent.spritedata[9] & 0xF) * 16 + 16
 
+        if self.width < 32:
+            self.width = 32
+
+        if self.height < 32:
+            self.height = 32
+
+    def dataChanged(self):
         if self.hasTrack:
             track = self.aux[0]
 
@@ -1726,17 +1735,11 @@ class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71, 80, 430
 
             track.setPos(xOffset, yOffset)
 
-        self.width = (self.parent.spritedata[8] & 0xF) * 16 + 16
-        self.height = (self.parent.spritedata[9] & 0xF) * 16 + 16
+        self.setWidth()
 
-        if self.width < 32:
-            self.width = 32
-
-        if self.height < 32:
-            self.height = 32
-
-    def paint(self, painter):
-        super().paint(painter)
+        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix.fill(Qt.transparent)
+        painter = QtGui.QPainter(pix)
 
         # Time to code this lazily.
 
@@ -1810,6 +1813,31 @@ class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71, 80, 430
                 painter.drawPixmap(0, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovIBottomM'])
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovITopM'])
 
+        painter = None
+        
+        if not self.rotatable:
+            self.transformed = pix
+            self.imgxOffset = 0
+            self.imgyOffset = 0
+        else:
+            rotation = (self.parent.spritedata[3] >> 4) * 22.5
+            self.transformed = pix.transformed(QTransform().rotate(-rotation))
+            
+            oldxOffset = (pix.width() - self.transformed.width()) / 7.5
+            oldyOffset = (pix.height() - self.transformed.height()) / 7.5
+            self.xOffset = math.floor(oldxOffset / 4) * 4
+            self.yOffset = math.floor(oldyOffset / 4) * 4
+
+            self.imgxOffset = (oldxOffset - self.xOffset)
+            self.imgyOffset = (oldyOffset - self.yOffset)
+            self.width = self.transformed.width() / 3.75 + self.imgxOffset
+            self.height = self.transformed.height() / 3.75 + self.imgyOffset
+        super().dataChanged()
+
+    def paint(self, painter):
+        super().paint(painter)
+        painter.drawPixmap(self.imgxOffset * 3.75, self.imgyOffset * 3.75, self.transformed)
+
 
 class SpriteImage_MovingLandBlock(SLib.SpriteImage):  # 72, 81
     def __init__(self, parent):
@@ -1835,8 +1863,6 @@ class SpriteImage_MovingLandBlock(SLib.SpriteImage):  # 72, 81
         ImageCache['MovLBottomR'] = SLib.GetImg('mov_land_bottom_r.png')
 
     def dataChanged(self):
-        super().dataChanged()
-
         if self.hasTrack:
             
             track = self.aux[0]
@@ -1876,8 +1902,9 @@ class SpriteImage_MovingLandBlock(SLib.SpriteImage):  # 72, 81
         if self.height < 32:
             self.height = 32
 
-    def paint(self, painter):
-        super().paint(painter)
+        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix.fill(Qt.transparent)
+        painter = QtGui.QPainter(pix)
 
         # Time to code this lazily.
 
@@ -1950,6 +1977,25 @@ class SpriteImage_MovingLandBlock(SLib.SpriteImage):  # 72, 81
             if self.height > 1:
                 painter.drawPixmap(0, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovLBottomM'])
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovLTopM'])
+
+        painter = None
+        rotation = (self.parent.spritedata[3] >> 4) * 22.5
+        self.transformed = pix.transformed(QTransform().rotate(-rotation))
+        
+        oldxOffset = (pix.width() - self.transformed.width()) / 7.5
+        oldyOffset = (pix.height() - self.transformed.height()) / 7.5
+        self.xOffset = math.floor(oldxOffset / 4) * 4
+        self.yOffset = math.floor(oldyOffset / 4) * 4
+
+        self.imgxOffset = (oldxOffset - self.xOffset)
+        self.imgyOffset = (oldyOffset - self.yOffset)
+        self.width = self.transformed.width() / 3.75 + self.imgxOffset
+        self.height = self.transformed.height() / 3.75 + self.imgyOffset
+        super().dataChanged()
+
+    def paint(self, painter):
+        super().paint(painter)
+        painter.drawPixmap(self.imgxOffset * 3.75, self.imgyOffset * 3.75, self.transformed)
 
 
 class SpriteImage_CoinSpawner(SLib.SpriteImage_Liquid):  # 73
@@ -2085,12 +2131,34 @@ class SpriteImage_Urchin(SLib.SpriteImage_Static):  # 86, 695, 713
             parent,
             3.75,
             ImageCache['Urchin'],
-            (-8, -4),
+            (-4, -4),
         )
+        self.aux.append(SLib.AuxiliaryTrackObject(parent, 0, 0, 0))
 
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Urchin', 'urchin.png')
+        
+    def dataChanged(self):
+        behavior = self.parent.spritedata[4] >> 4
+        dirType = self.parent.spritedata[5] & 0xF
+        distance = self.parent.spritedata[5] >> 4
+
+        if distance > 0:
+            distance = (distance + 1) * 2 + 1
+
+        if dirType == 1:
+            self.aux[0].direction = SLib.AuxiliaryTrackObject.Horizontal
+            self.aux[0].setSize(distance * 16, 16)
+            self.aux[0].setPos(-distance * 30 + self.width * 1.875, self.height * 1.875 - 30)
+        elif dirType != 2 or (dirType == 2 and behavior == 0):
+            self.aux[0].direction = SLib.AuxiliaryTrackObject.Vertical
+            self.aux[0].setSize(16, distance * 16)
+            self.aux[0].setPos(self.width * 1.875 - 30, -distance * 30 + self.height * 1.875)
+        else:
+            self.aux[0].setSize(0, 0)
+        
+        super().dataChanged()
 
 
 class SpriteImage_MovingCoin(SLib.SpriteImage_Static):  # 87
@@ -8703,10 +8771,9 @@ class SpriteImage_MortonStoneBlock(SLib.SpriteImage):  # 431
 
 class SpriteImage_RotatingIronBlock(SpriteImage_MovingIronBlock):  # 434, 709, 711
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, rotatable=False)
 
-    def dataChanged(self):
-        super().dataChanged()
+    def setWidth(self):
         self.width = (self.parent.spritedata[8] & 0xF) * 16 + 48
         self.height = (self.parent.spritedata[9] & 0xF) * 16 + 48
 
@@ -9264,6 +9331,8 @@ class SpriteImage_FrameSetting(SLib.SpriteImage_Static):  # 486
 
 
 class SpriteImage_MovingGrassPlatform(SLib.SpriteImage):  # 499
+    rotations = [0, 11.25, 22.5, 33.75, 45, -11.25, -22.5, -33.75, -45]
+
     def __init__(self, parent):
         super().__init__(parent, 3.75)
         # self.aux.append(SLib.AuxiliaryRectOutline(parent, 0, 0))
@@ -9280,8 +9349,6 @@ class SpriteImage_MovingGrassPlatform(SLib.SpriteImage):  # 499
         ImageCache['MovGMiddleR'] = SLib.GetImg('mov_grass_middle_r.png')
 
     def dataChanged(self):
-        super().dataChanged()
-
         self.width = (self.parent.spritedata[8] & 0xF) * 16 + 16
         if self.width == 16: self.width *= 2
 
@@ -9293,8 +9360,9 @@ class SpriteImage_MovingGrassPlatform(SLib.SpriteImage):  # 499
         zOrder = (self.parent.spritedata[5] & 0xF) + 1
         self.parent.setZValue(24999 // zOrder)
 
-    def paint(self, painter):
-        super().paint(painter)
+        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix.fill(Qt.transparent)
+        painter = QtGui.QPainter(pix)
 
         # Top
         if self.width / 16 < 3:
@@ -9313,6 +9381,27 @@ class SpriteImage_MovingGrassPlatform(SLib.SpriteImage):  # 499
             painter.drawPixmap(0, 60, 60, 900, ImageCache['MovGMiddleL'])
             painter.drawTiledPixmap(60, 60, ((self.width / 16) - 2) * 60, 900, ImageCache['MovGMiddleM'])
             painter.drawPixmap(60 + ((self.width / 16 - 2) * 60), 60, 60, 900, ImageCache['MovGMiddleR'])
+
+        painter = None
+        rot = (self.parent.spritedata[3] >> 4)
+        if rot > 8:
+            rot = 0
+        self.transformed = pix.transformed(QTransform().rotate(-self.rotations[rot]))
+        
+        oldxOffset = (pix.width() - self.transformed.width()) / 7.5
+        oldyOffset = (pix.height() - self.transformed.height()) / 7.5
+        self.xOffset = math.floor(oldxOffset / 4) * 4
+        self.yOffset = math.floor(oldyOffset / 4) * 4
+
+        self.imgxOffset = (oldxOffset - self.xOffset)
+        self.imgyOffset = (oldyOffset - self.yOffset)
+        self.width = self.transformed.width() / 3.75 + self.imgxOffset
+        self.height = self.transformed.height() / 3.75 + self.imgyOffset
+        super().dataChanged()
+
+    def paint(self, painter):
+        super().paint(painter)
+        painter.drawPixmap(self.imgxOffset * 3.75, self.imgyOffset * 3.75, self.transformed)
 
 
 class SpriteImage_MovingBonePlatform(SpriteImage_PlatformBase):  # 491, 492, 627
@@ -10118,8 +10207,6 @@ class SpriteImage_MovingSkyBlock(SLib.SpriteImage):  # 562, 563
         SLib.loadIfNotInImageCache('MovSkyBR', 'mov_sky_bottom_r.png')
 
     def dataChanged(self):
-        super().dataChanged()
-
         self.w = (self.parent.spritedata[8] & 0xF) + 1
         self.h = (self.parent.spritedata[9] & 0xF) + 1
 
@@ -10131,8 +10218,10 @@ class SpriteImage_MovingSkyBlock(SLib.SpriteImage):  # 562, 563
         self.width = self.w << 4
         self.height = self.h << 4
 
-    def paint(self, painter):
-        super().paint(painter)
+        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix.fill(Qt.transparent)
+        painter = QtGui.QPainter(pix)
+        
         # Draw top row
         painter.drawPixmap(0, 0, ImageCache['MovSkyTL'])
         painter.drawTiledPixmap(60, 0, (self.w - 2) * 60, 60, ImageCache['MovSkyTM'])
@@ -10147,6 +10236,25 @@ class SpriteImage_MovingSkyBlock(SLib.SpriteImage):  # 562, 563
         painter.drawPixmap(0, (self.h - 1) * 60, ImageCache['MovSkyBL'])
         painter.drawTiledPixmap(60, (self.h - 1) * 60, (self.w - 2) * 60, 60, ImageCache['MovSkyBM'])
         painter.drawPixmap((self.w - 1) * 60, (self.h - 1) * 60, ImageCache['MovSkyBR'])
+
+        painter = None
+        rotation = (self.parent.spritedata[3] >> 4) * 22.5
+        self.transformed = pix.transformed(QTransform().rotate(-rotation))
+        
+        oldxOffset = (pix.width() - self.transformed.width()) / 7.5
+        oldyOffset = (pix.height() - self.transformed.height()) / 7.5
+        self.xOffset = math.floor(oldxOffset / 4) * 4
+        self.yOffset = math.floor(oldyOffset / 4) * 4
+
+        self.imgxOffset = (oldxOffset - self.xOffset)
+        self.imgyOffset = (oldyOffset - self.yOffset)
+        self.width = self.transformed.width() / 3.75 + self.imgxOffset
+        self.height = self.transformed.height() / 3.75 + self.imgyOffset
+        super().dataChanged()
+
+    def paint(self, painter):
+        super().paint(painter)
+        painter.drawPixmap(self.imgxOffset * 3.75, self.imgyOffset * 3.75, self.transformed)
 
 
 class SpriteImage_Magmaw(SLib.SpriteImage_Static):  # 565

@@ -6232,11 +6232,21 @@
 	</sprite>
 	<sprite id="499" name="Moving Acorn Plains Semi-solid Land Block" notes="Needs to be hooked to a Two-Way Movement Controller (sprite 70) to show up ingame.">
 		<value nybble="6" title="Unknown Value 6"/>
-		<value nybble="7" title="Rotation"/>
+		<list nybble="7" title="Rotation">
+			<entry value="0">0&#xB0;</entry>
+			<entry value="1">11.25&#xB0;</entry>
+			<entry value="2">22.5&#xB0;</entry>
+			<entry value="3">33.75&#xB0;</entry>
+			<entry value="4">45&#xB0;</entry>
+			<entry value="5">-11.25&#xB0;</entry>
+			<entry value="6">-22.5&#xB0;</entry>
+			<entry value="7">-33.75&#xB0;</entry>
+			<entry value="8">-45&#xB0;</entry>
+		</list>
 		<value nybble="11" title="Unknown Value 11"/>
 		<value nybble="12" title="Z-Order" comment="Higher Values = Further back. Use this if you use more than one of this sprites and they're overlapping."/>
-		<value nybble="18" title="Width" comment="Value + 1"/>
-		<value nybble="20" title="Unknown Value 20" comment="Useless."/>
+		<value nybble="18" title="Width"/>
+		<value nybble="20" title="Height (Useless)"/>
 		<value nybble="21-22" title="Movement ID" comment="Use this to make other sprites move along with the platform."/>
 	</sprite>
 	<sprite id="500" name="Bowser Amps">
