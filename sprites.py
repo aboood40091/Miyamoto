@@ -1706,35 +1706,6 @@ class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71, 80, 430
             self.height = 32
 
     def dataChanged(self):
-        if self.hasTrack:
-            track = self.aux[0]
-
-            distance = (self.parent.spritedata[7] >> 4) + 1
-            if distance == 1:
-                track.setSize(0, 0)
-
-            direction = self.parent.spritedata[2] & 3
-            xOffset = 0
-            yOffset = 0
-
-            if direction & 2:
-                track.direction = SLib.AuxiliaryTrackObject.Vertical
-                if distance != 1:
-                    track.setSize(16, distance * 16)
-
-            else:
-                track.direction = SLib.AuxiliaryTrackObject.Horizontal
-                if distance != 1:
-                    track.setSize(distance * 16, 16)
-
-            if direction == 1:
-                xOffset = (-distance + 1) * 60
-
-            elif direction == 2:
-                yOffset = (-distance + 1) * 60
-
-            track.setPos(xOffset, yOffset)
-
         self.setWidth()
 
         pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
@@ -1819,6 +1790,7 @@ class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71, 80, 430
             self.transformed = pix
             self.imgxOffset = 0
             self.imgyOffset = 0
+
         else:
             rotation = (self.parent.spritedata[3] >> 4) * 22.5
             self.transformed = pix.transformed(QTransform().rotate(-rotation))
@@ -1832,6 +1804,36 @@ class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71, 80, 430
             self.imgyOffset = (oldyOffset - self.yOffset)
             self.width = self.transformed.width() / 3.75 + self.imgxOffset
             self.height = self.transformed.height() / 3.75 + self.imgyOffset
+
+        if self.hasTrack:
+            track = self.aux[0]
+
+            distance = (self.parent.spritedata[7] >> 4) + 1
+            if distance == 1:
+                track.setSize(0, 0)
+
+            direction = self.parent.spritedata[2] & 3
+            xOffset = -self.xOffset * 3.75
+            yOffset = -self.yOffset * 3.75
+
+            if direction & 2:
+                track.direction = SLib.AuxiliaryTrackObject.Vertical
+                if distance != 1:
+                    track.setSize(16, distance * 16)
+
+            else:
+                track.direction = SLib.AuxiliaryTrackObject.Horizontal
+                if distance != 1:
+                    track.setSize(distance * 16, 16)
+
+            if direction == 1:
+                xOffset += (-distance + 1) * 60
+
+            elif direction == 2:
+                yOffset += (-distance + 1) * 60
+
+            track.setPos(xOffset, yOffset)
+
         super().dataChanged()
 
     def paint(self, painter):
@@ -1863,36 +1865,6 @@ class SpriteImage_MovingLandBlock(SLib.SpriteImage):  # 72, 81
         ImageCache['MovLBottomR'] = SLib.GetImg('mov_land_bottom_r.png')
 
     def dataChanged(self):
-        if self.hasTrack:
-            
-            track = self.aux[0]
-
-            distance = (self.parent.spritedata[7] >> 4) + 1
-            if distance == 1:
-                track.setSize(0, 0)
-
-            direction = self.parent.spritedata[2] & 3
-            xOffset = 0
-            yOffset = 0
-
-            if direction & 2:
-                track.direction = SLib.AuxiliaryTrackObject.Vertical
-                if distance != 1:
-                    track.setSize(16, distance * 16)
-
-            else:
-                track.direction = SLib.AuxiliaryTrackObject.Horizontal
-                if distance != 1:
-                    track.setSize(distance * 16, 16)
-
-            if direction == 1:
-                xOffset = (-distance + 1) * 60
-
-            elif direction == 2:
-                yOffset = (-distance + 1) * 60
-
-            track.setPos(xOffset, yOffset)
-
         self.width = (self.parent.spritedata[8] & 0xF) * 16 + 16
         self.height = (self.parent.spritedata[9] & 0xF) * 16 + 16
 
@@ -1991,6 +1963,36 @@ class SpriteImage_MovingLandBlock(SLib.SpriteImage):  # 72, 81
         self.imgyOffset = (oldyOffset - self.yOffset)
         self.width = self.transformed.width() / 3.75 + self.imgxOffset
         self.height = self.transformed.height() / 3.75 + self.imgyOffset
+
+        if self.hasTrack:
+            track = self.aux[0]
+
+            distance = (self.parent.spritedata[7] >> 4) + 1
+            if distance == 1:
+                track.setSize(0, 0)
+
+            direction = self.parent.spritedata[2] & 3
+            xOffset = -self.xOffset * 3.75
+            yOffset = -self.yOffset * 3.75
+
+            if direction & 2:
+                track.direction = SLib.AuxiliaryTrackObject.Vertical
+                if distance != 1:
+                    track.setSize(16, distance * 16)
+
+            else:
+                track.direction = SLib.AuxiliaryTrackObject.Horizontal
+                if distance != 1:
+                    track.setSize(distance * 16, 16)
+
+            if direction == 1:
+                xOffset += (-distance + 1) * 60
+
+            elif direction == 2:
+                yOffset += (-distance + 1) * 60
+
+            track.setPos(xOffset, yOffset)
+
         super().dataChanged()
 
     def paint(self, painter):
