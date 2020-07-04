@@ -4984,8 +4984,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         if event.key() == Qt.Key_Delete or event.key() == Qt.Key_Backspace:
             sel = self.scene.selectedItems()
-            self.SelectionUpdateFlag = True
             if len(sel) > 0:
+                self.SelectionUpdateFlag = True
                 # Get the previous flower/grass type
                 oldGrassType = 5
                 for sprite in globals.Area.sprites:
