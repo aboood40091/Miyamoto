@@ -729,7 +729,7 @@
 			<entry value="1">Pivotal Rotation (68, 69, 116, 118)</entry>
 			<entry value="2">Bolt (238)</entry>
 			<entry value="3">Path (100)</entry>
-			<entry value="4">Two Way (70, 642)</entry>
+			<entry value="4">Two-Way (70, 642)</entry>
 			<entry value="5">UNKNOWN</entry>
 			<entry value="6">Bolt Mushroom Platform (241)</entry>
 			<entry value="7">Bolt Mushroom Platform - No bolt (242)</entry>
@@ -951,7 +951,7 @@
 		<checkbox nybble="17" title="Unknown Checkbox 17" comment="Used in challenge mode only."/>
 		<list nybble="19" title="Movement Type" comment="Value 8 is used all over 6-23, but with no movement-controller attached.">
 			<entry value="0">Path (100)</entry>
-			<entry value="1">Two Way (70, 642)</entry>
+			<entry value="1">Two-Way (70, 642)</entry>
 			<entry value="8">UNKNOWN</entry>
 		</list>
 		<value nybble="20" title="Unknown Value 20"/>
@@ -1134,7 +1134,7 @@
 		<value nybble="20" title="Useless 2" comment="Used by Nintendo, but ignored by the game"/>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
-	<sprite id="71" name="Two-way Movement-controlled Iron Tower Platform [UNUSED]">
+	<sprite id="71" name="Moving Iron Tower Platform (Two-Way) [UNUSED]">
 		<value nybble="18" title="Width" comment="Width of the block. Value + 1."/>
 		<value nybble="20" title="Height" comment="Height of the block. Value + 1."/>
 		<value nybble="21-22" title="Movement ID" comment="The movement ID of the sprite. "/>
@@ -2404,7 +2404,7 @@
 		</list>
 		<list nybble="10" title="Movement Type" comment="Always used as 2 in retail.">
 			<entry value="0">Path (100) (Doesn't work)</entry>
-			<entry value="1">Two Way (70, 642) (Doesn't work)</entry>
+			<entry value="1">Two-Way (70, 642) (Doesn't work)</entry>
 			<entry value="2">Pivotal Rotation (68, 69, 116, 118)</entry>
 		</list>
 		<checkbox nybble="12" title="Crash" comment="Tries to set the animation types to the ghost house variants but those don't exist in the model so it crashes the game."/>
@@ -3681,7 +3681,7 @@
 		</list>
 		<list nybble="10" title="Movement Type">
 			<entry value="0">Path (100)</entry>
-			<entry value="1">Two Way (70, 642)</entry>
+			<entry value="1">Two-Way (70, 642)</entry>
 			<entry value="2">Pivotal Rotation (68, 69, 116, 118)</entry>
 		</list>
 		<value nybble="21-22" title="Movement ID"/>
@@ -3939,7 +3939,7 @@
 		</list>
 		<list nybble="10" title="Movement Type">
 			<entry value="0">Path (100)</entry>
-			<entry value="1">Two Way (70, 642)</entry>
+			<entry value="1">Two-Way (70, 642)</entry>
 			<entry value="2">Pivotal Rotation (68, 69, 116, 118)</entry>
 		</list>
 		<value nybble="12" title="Unknown Value 12"/>
@@ -3974,7 +3974,7 @@
 		<checkbox nybble="11" title="Starts Stretched" comment="Makes the mushroom start stretched."/>
 		<value nybble="12" title="Stem Length" comment="Value + 2. The length of the stem that supports the mushroom."/>
 	</sprite>
-	<sprite id="259" name="Muncher" notes="A little black muncher.">
+	<sprite id="259" name="Moving Muncher (Two-Way)" notes="A little black muncher.">
 		<value nybble="8" title="Unknown Value 8" comment="No effect."/>
 		<value nybble="9" title="Unknown Value 9" comment="No effect."/>
 		<checkbox nybble="12" title="Frozen" comment="Unused in NSMBU. If checked, the Muncher will spawn frozen in an ice block."/>
@@ -6660,7 +6660,7 @@
 	<sprite id="549" name="Movement-controlled Desert Block" notes="A desert block that can move.">
 		<value nybble="18" title="Width (Useless)"/>
 		<value nybble="20" title="Height (Useless)"/>
-		<value nybble="22" title="Movement ID" comment="Match this to a two way movement controller (sprite 70)."/>
+		<value nybble="22" title="Movement ID" comment="Match this to a Two-Way movement controller (sprite 70)."/>
 	</sprite>
 	<sprite id="550" name="Giant Pipe Piranha Plant">
 		<list nybble="5" title="Orientation" comment="Sets the direction of the piranha plant. 2 and 3 are unused.">
@@ -6671,7 +6671,7 @@
 		</list>
 	</sprite>
 	<sprite id="551" name="Nothing. [UNUSED]"/>
-	<sprite id="552" name="Movement-controlled Muncher" notes="This muncher differs from the other sprite. You can hit it from the side and take no damage. It can also be connected to sprite 70 (Two-way Line.)">
+	<sprite id="552" name="Moving Tiltable Muncher (Two-Way)" notes="This muncher differs from the other sprite. You can hit it from the side and take no damage. It can also be connected to sprite 70 (Two-Way).">
 		<list nybble="7" title="Tilt">
 			<entry value="0">0&#xB0;</entry>
 			<entry value="1">22.5&#xB0;</entry>
@@ -6758,7 +6758,7 @@
 		<value nybble="20" title="Height"/>
 	</sprite>
 	<sprite id="563" name="Movement-controlled Tile Platform [UNUSED]">
-		<value nybble="21-22" title="Movement ID" comment="Link this sprite to a two-way movement controller (sprite 70)"/>
+		<value nybble="21-22" title="Movement ID" comment="Link this sprite to a Two-Way movement controller (sprite 70)"/>
 	</sprite>
 	<sprite id="564" name="Flower/Grass Type Setter" notes="This sprite changes the type of flowers that are used in the zone. If this sprite is not present in the zone, the standard flowers are used.">
 		<list nybble="12" title="Type">
@@ -7218,7 +7218,7 @@
 		<value nybble="21-22" title="Bolt ID" comment="Use this ID to assign the sprite to a bolt."/>
 	</sprite>
 	<sprite id="626" name="Stationary Sumo Bro. - NSLU"/>
-	<sprite id="627" name="Movement-controlled Bone Platform - NSLU" notes="Platform falls when Bowser Jr.'s clown car hits it. Used with sprite 70 (two-way-line), but it might be able to pair with other controllers as well...">
+	<sprite id="627" name="Movement-controlled Bone Platform - NSLU" notes="Platform falls when Bowser Jr.'s clown car hits it. Used with sprite 70 (Two-Way), but it might be able to pair with other controllers as well...">
 		<value nybble="18" title="Width" comment="Value + 1"/>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
@@ -7316,7 +7316,7 @@
 	<sprite id="641" name="Chain Chomp - NSLU">
 		<value nybble="12" title="Unknown Value 12"/>
 	</sprite>
-	<sprite id="642" name="Movement controller - Two Way - NSLU">
+	<sprite id="642" name="Movement controller - Two-Way - NSLU">
 		<value nybble="3-4" title="Triggering Event ID"/>
 		<checkbox nybble="6" title="Slower Acceleration"/>
 		<value nybble="7" title="Unknown Value 7"/>
