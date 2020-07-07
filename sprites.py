@@ -3622,6 +3622,8 @@ class SpriteImage_Spotlight(SLib.SpriteImage_PivotRotationControlled):  # 153
         self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
         self.aux.append(SLib.AuxiliaryImage(parent, 0, 0))
 
+        self.aux[1].alpha = 0.5
+
         self.previousType = 0
 
     @staticmethod

@@ -447,15 +447,10 @@ class SpriteImage_MovementControlled(SpriteImage_StaticMultiple):
             self.controller = None
             return
 
-        id = self.getMovementID()
-        if id == 0:
-            self.controller = None
-            return
-
         for sprite in globals.Area.sprites:
             if ( sprite.nearestZone() == zoneId and sprite.type in types
                  and isinstance(sprite.ImageObj, SpriteImage_MovementController) ):
-                if sprite.ImageObj.getMovementID() == id:
+                if sprite.ImageObj.getMovementID() == self.getMovementID():
                     self.controller = sprite.ImageObj
                     sprite.ImageObj.controlled.append(self)
                     break
@@ -469,8 +464,7 @@ class SpriteImage_MovementControlled(SpriteImage_StaticMultiple):
             self.controller = None
 
     def dataChanged(self):
-        id = self.getMovementID()
-        if not self.controller or self.controller.getMovementID() != id or id == 0:
+        if not self.controller or self.controller.getMovementID() != self.getMovementID():
             self.unhookController()
             self.findController()
 
