@@ -724,19 +724,19 @@
 			<entry value="4">Five</entry>
 		</list>
 		<value nybble="12" title="Unused Value 12"/>
-		<list nybble="19" title="Movement Type">
+		<list nybble="19" title="Movement Type?">
 			<entry value="0">None</entry>
-			<entry value="1">Rotation / Swaying (68/69/116/118)</entry>
+			<entry value="1">Pivotal Rotation (68, 69, 116, 118)</entry>
 			<entry value="2">Bolt (238)</entry>
 			<entry value="3">Path (100)</entry>
-			<entry value="4">Two Way (70)</entry>
-			<entry value="5">Nothing?</entry>
-			<entry value="6">Screw Mushroom With Bolt (241)</entry>
-			<entry value="7">Screw Mushroom Without Bolt (242)</entry>
-			<entry value="8">Rotating Plates (132)</entry>
+			<entry value="4">Two Way (70, 642)</entry>
+			<entry value="5">UNKNOWN</entry>
+			<entry value="6">Bolt Mushroom Platform (241)</entry>
+			<entry value="7">Bolt Mushroom Platform - No bolt (242)</entry>
+			<entry value="8">Shifting Rectangle Platforms (132)</entry>
 			<entry value="9">Rotation (214/484)</entry>
 			<entry value="10">Rolling Hill (265)</entry>
-			<entry value="11">Color Mushroom Lift (210)</entry>
+			<entry value="11">Moving Mushroom Platform (210)</entry>
 		</list>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
@@ -951,8 +951,8 @@
 		<checkbox nybble="17" title="Unknown Checkbox 17" comment="Used in challenge mode only."/>
 		<list nybble="19" title="Movement Type" comment="Value 8 is used all over 6-23, but with no movement-controller attached.">
 			<entry value="0">Path (100)</entry>
-			<entry value="1">Two Way (70)</entry>
-			<entry value="8">Two Way (70) - Unknown difference</entry>
+			<entry value="1">Two Way (70, 642)</entry>
+			<entry value="8">UNKNOWN</entry>
 		</list>
 		<value nybble="20" title="Unknown Value 20"/>
 		<value nybble="21-22" title="Movement ID" comment="Can match to 70 for sure."/>
@@ -2403,10 +2403,9 @@
 			<entry value="2">Event Activated/Deactivated</entry>
 		</list>
 		<list nybble="10" title="Movement Type" comment="Always used as 2 in retail.">
-			<entry value="0">Path Controlled (Doesn't work)</entry>
-			<entry value="1">Two Way (Doesn't work)</entry>
-			<entry value="2">Spinning</entry>
-			<entry value="3">Swaying/Two-in-one</entry>
+			<entry value="0">Path (100) (Doesn't work)</entry>
+			<entry value="1">Two Way (70, 642) (Doesn't work)</entry>
+			<entry value="2">Pivotal Rotation (68, 69, 116, 118)</entry>
 		</list>
 		<checkbox nybble="12" title="Crash" comment="Tries to set the animation types to the ghost house variants but those don't exist in the model so it crashes the game."/>
 		<value nybble="21-22" title="Movement ID"/>
@@ -2529,7 +2528,7 @@
 		</list>
 	</sprite>
 	<sprite id="157" name="Movement-controlled Bar Center" notes="This is the center piece of the movement controlled bar. It has no collision."/>
-	<sprite id="158" name="Dash Coin (Coin Outline)">
+	<sprite id="158" name="Dash Coin (Coin Outline, Pivotal-rotation-controlled)">
 		<value nybble="4" title="Unknown Value 4"/>
 		<checkbox nybble="5" title="Appears in Coin Battle only"/>
 		<checkbox nybble="6" mask="1" title="Upside Down"/>
@@ -3088,7 +3087,7 @@
 		<checkbox nybble="20" title="Grrrols die when crushed"/>
 	</sprite>
 	<sprite id="189" name="Lakitu Block [UNUSED]" notes="Crashes. Unused port from NSMBW"/>
-	<sprite id="190" name="Pivotal-rotation-controlled Question Block" notes="Matches to many movement controllers.">
+	<sprite id="190" name="Pivotal-rotation-controlled Question Block" notes="Matches to pivotal rotation controllers.">
 		<value nybble="4" title="Unknown Value 4"/>
 		<value nybble="6" title="Unknown Value 6" comment="4 bitfields"/>
 		<value nybble="9" title="Unused Value 9"/>
@@ -3681,10 +3680,9 @@
 			<entry value="2">Event Activated/Deactivated</entry>
 		</list>
 		<list nybble="10" title="Movement Type">
-			<entry value="0">Path Controlled</entry>
-			<entry value="1">Two Way</entry>
-			<entry value="2">Spinning</entry>
-			<entry value="3">Swaying/Two-in-one</entry>
+			<entry value="0">Path (100)</entry>
+			<entry value="1">Two Way (70, 642)</entry>
+			<entry value="2">Pivotal Rotation (68, 69, 116, 118)</entry>
 		</list>
 		<value nybble="21-22" title="Movement ID"/>
 	</sprite>
@@ -3906,7 +3904,7 @@
 		<value nybble="20" title="Height"/>
 		<value nybble="21-22" title="Movement ID" comment="The movement id to hook this sprite to a movement controller (68, 69, 116, 118)."/>
 	</sprite>
-	<sprite id="251" name="Floating Bubble" notes="A bubble which players can swim inside.">
+	<sprite id="251" name="Floating Bubble (Path-controlled)" notes="A bubble which players can swim inside.">
 		<list nybble="9" title="Size" comment="Sets the size of the bubble.">
 			<entry value="0">Round</entry>
 			<entry value="1"> Tall and Skinny</entry>
@@ -3921,7 +3919,7 @@
 			<entry value="1">Left and Right</entry>
 		</list>
 		<value nybble="15" title="Moving Distance" comment="This nybble changes how far the bubble moves."/>
-		<value nybble="21-22" title="Movement ID" comment="Hook this ID to a path controller (sprite 100) and this bubble will move."/>
+		<value nybble="21-22" title="Movement ID" comment="Hook this ID to a path controller (sprite 100) and this bubble will move. Seen in some retail levels hooked to a pivotal rotation controller with no effects."/>
 	</sprite>
 	<sprite id="252" name="Rope Ladder" notes="Loaded Files: hashigo.szs">
 		<list nybble="12" title="Length" comment="The number in parenthesis includes top block.">
@@ -3940,10 +3938,9 @@
 			<entry value="2">Event Activated/Deactivated</entry>
 		</list>
 		<list nybble="10" title="Movement Type">
-			<entry value="0">Path Controlled</entry>
-			<entry value="1">Two Way</entry>
-			<entry value="2">Spinning</entry>
-			<entry value="3">Swaying/Two-in-one</entry>
+			<entry value="0">Path (100)</entry>
+			<entry value="1">Two Way (70, 642)</entry>
+			<entry value="2">Pivotal Rotation (68, 69, 116, 118)</entry>
 		</list>
 		<value nybble="12" title="Unknown Value 12"/>
 		<value nybble="21-22" title="Movement ID"/>
@@ -4056,12 +4053,12 @@
 		<value nybble="16" title="Speed"/>
 		<value nybble="21-22" title="Rolling Hill ID" comment="Use this to use the rolling hill as a movement controller for sprites that support it"/>
 	</sprite>
-	<sprite id="266" name="Swaying, Path-controlled Ghost House Box">
+	<sprite id="266" name="Ghost House Box (Pivotal-rotation-controlled / Path-controlled)">
 		<value nybble="6" title="Unknown Value 6"/>
 		<value nybble="17" title="Z-order"/>
 		<value nybble="18" title="Width" comments="Value + 3"/>
 		<value nybble="20" title="Height" comments="Value + 3"/>
-		<value nybble="22" title="Movement ID" comment="Should be linked to a path controller (sprite 100)..."/>
+		<value nybble="22" title="Movement ID" comment="Should be linked to a path controller (sprite 100) or pivotal rotation controller (68, 69, 116, 118)..."/>
 	</sprite>
 	<sprite id="267" name="Giant Koopa Shell Cave [UNUSED]" notes="Crashes the game."/>
 	<sprite id="268" name="1 x 1 Customizable Ice Block [UNUSED]" notes="A small ice chunk. Can't be thrown.">
@@ -7655,7 +7652,7 @@
 		<value nybble="16" title="Rotation Speed" comment="Ignored if a movement-controller is used."/>
 		<value nybble="21-22" title="Movement ID" comment="Use this to match it to a movement controller (68, 69, 116, 118)."/>
 	</sprite>
-	<sprite id="676" name="Blue Platform - NSLU">
+	<sprite id="676" name="Pivotal-rotation-controlled Castle Platform - NSLU">
 		<value nybble="5" title="Unknown Value 5"/>
 		<checkbox  nybble="7" title="Dry Bones On Platform*" comment="*A dry bone sprite must be placed somewhere in the level or it will crash when this is activated."/>
 		<checkbox nybble="9" title="Z-Order" comment="This will place the sprite in front of other sprites. The chains will also be in front of the player."/>
@@ -7865,10 +7862,11 @@
 			<entry value="2">Chasing / Geyser (and Sinking)</entry>
 		</list>
 	</sprite>
-	<sprite id="696" name="Ghost Block - NSLU" notes="Probably has height on nybble 20.">
+	<sprite id="696" name="Ghost House Box (Pivotal-rotation-controlled / Path-controlled) - NSLU">
 		<value nybble="6" title="Unknown Value 6"/>
-		<value nybble="18" title="Width" comment="Value + 3"/>
-		<value nybble="21-22" title="Movement ID"/>
+		<value nybble="18" title="Width" comments="Value + 3"/>
+		<value nybble="20" title="Height" comments="Value + 3"/>
+		<value nybble="22" title="Movement ID" comment="Should be linked to a path controller (sprite 100) or pivotal rotation controller (68, 69, 116, 118)..."/>
 	</sprite>
 	<sprite id="697" name="Metal Box (2) - NSLU">
 		<value nybble="7" title="Unknown Value 7"/>
@@ -8025,7 +8023,7 @@
 			<entry value="15">15 seconds</entry>
 		</list>
 	</sprite>
-	<sprite id="706" name="Brick Block (3) - NSLU">
+	<sprite id="706" name="Pivotal-rotation-controlled Brick Block - NSLU 9-9">
 		<value nybble="6" title="Unknown Value 6"/>
 		<list nybble="20" title="Contents" comment="What the Brick Block contains.">
 			<entry value="0">Nothing</entry>
@@ -8047,7 +8045,7 @@
 		</list>
 		<value nybble="21-22" title="Movement ID" comment="Use this to link the block to a movement controller."/>
 	</sprite>
-	<sprite id="707" name="Question Block - NSLU">
+	<sprite id="707" name="Pivotal-rotation-controlled Question Block - NSLU 9-9">
 		<value nybble="6" title="Unknown Value 6"/>
 		<checkbox nybble="13" title="Spawn Acorn Mushroom" comment="When checked, it will spawn an Acorn Mushroom."/>
 		<value nybble="21-22" title="Movement ID" comment="Use this to attach a sprite to a movement controller."/>

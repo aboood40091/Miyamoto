@@ -613,6 +613,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         )
 
         self.CreateAction(
+            'showrotation', self.HandleRotationPreview, GetIcon('rotation'),
+            globals.trans.string('MenuItems', 150),
+            globals.trans.string('MenuItems', 151),
+            QtGui.QKeySequence('Ctrl+R'), True,
+        )
+
+        self.CreateAction(
             'showlocations', self.HandleLocationsVisibility, GetIcon('locations'),
             globals.trans.string('MenuItems', 58),
             globals.trans.string('MenuItems', 59),
@@ -788,6 +795,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         self.actions['showsprites'].setChecked(globals.SpritesShown)
         self.actions['showspriteimages'].setChecked(globals.SpriteImagesShown)
+        self.actions['showrotation'].setChecked(globals.RotationShown)
         self.actions['showlocations'].setChecked(globals.LocationsShown)
         self.actions['showcomments'].setChecked(globals.CommentsShown)
         self.actions['showpaths'].setChecked(globals.PathsShown)
@@ -864,6 +872,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         vmenu.addSeparator()
         vmenu.addAction(self.actions['showsprites'])
         vmenu.addAction(self.actions['showspriteimages'])
+        vmenu.addAction(self.actions['showrotation'])
         vmenu.addAction(self.actions['showlocations'])
         vmenu.addAction(self.actions['showcomments'])
         vmenu.addAction(self.actions['showpaths'])
@@ -993,6 +1002,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             ), (
                 'showsprites',
                 'showspriteimages',
+                'showrotation',
                 'showlocations',
                 'showpaths',
             ), (
@@ -3102,6 +3112,38 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         spr.objx * (globals.TileWidth / 16),
                         spr.objy * (globals.TileWidth / 16),
                     )
+                spr.UpdateDynamicSizing()
+            globals.DirtyOverride -= 1
+            globals.OverrideSnapping = False
+
+        self.scene.update()
+
+    def HandleRotationPreview(self, checked):
+        """
+        Handle toggling of sprite images
+        """
+        globals.RotationShown = checked
+        setSetting('RotationShown', globals.RotationShown)
+
+        if globals.RotationShown and globals.RotationNoticeShown and not globals.Initializing:
+            noticeShown = QtWidgets.QCheckBox('Don\'t show again')
+            box = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Pivotal Rotation Preview',
+                                        'All sprites connected to a Pivotal Rotation controller will now have their sprite images affected accordingly. ' \
+                                        'If the sprites are connected, you will not be able to move said sprites until you disable the preview.\n\n' \
+                                        'This only works if both the sprite and the controller belong to the same zone.\n',
+                                        QtWidgets.QMessageBox.Ok)
+            box.setCheckBox(noticeShown)
+            box.exec_()
+
+            globals.RotationNoticeShown = not noticeShown.isChecked()
+            setSetting('RotationNoticeShown', globals.RotationNoticeShown)
+
+        if globals.Area is not None:
+            globals.OverrideSnapping = True
+            globals.DirtyOverride += 1
+            for spr in globals.Area.sprites:
+                if isinstance(spr.ImageObj, SLib.SpriteImage_MovementControlled) and spr.ImageObj.controller:
+                    spr.UpdateDynamicSizing()
             globals.DirtyOverride -= 1
             globals.OverrideSnapping = False
 
@@ -4146,12 +4188,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.selectionLabel.setText(text)
 
         self.CurrentSelection = selitems
-
-        for thing in selitems:
-            # This helps sync non-objects with objects while dragging
-            if not isinstance(thing, ObjectItem):
-                thing.dragoffsetx = (((thing.objx // 16) * 16) - thing.objx) * globals.TileWidth / 16
-                thing.dragoffsety = (((thing.objy // 16) * 16) - thing.objy) * globals.TileWidth / 16
 
         self.spriteEditorDock.setVisible(showSpritePanel)
         self.entranceEditorDock.setVisible(showEntrancePanel)
@@ -5412,6 +5448,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 QtWidgets.QMessageBox.information(None, globals.trans.string('BGDlg', 22),
                                                   globals.trans.string('BGDlg', 23))
 
+            for spr in globals.Area.sprites:
+                if isinstance(spr.ImageObj, SLib.SpriteImage_MovementControlled):
+                    if spr.ImageObj.controller:
+                        spr.ImageObj.controller = None
+
+                    spr.UpdateDynamicSizing()
+
         self.levelOverview.update()
 
     def HandleScreenshot(self):
@@ -5696,6 +5739,8 @@ def main():
     globals.PathsShown = setting('ShowPaths', True)
     globals.isEmbeddedSeparate = setting('isEmbeddedSeparate', False)
     globals.modifyInnerName = setting('ModifyInnerName', True)
+    globals.RotationShown = setting('RotationShown', False)
+    globals.RotationNoticeShown = setting('RotationNoticeShown', True)
 
     if globals.libyaz0_available:
         globals.CompLevel = setting('CompLevel', 1)

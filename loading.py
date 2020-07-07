@@ -758,6 +758,7 @@ def LoadActionsLists():
         (globals.trans.string('MenuItems', 52), True, 'showlay2'),
         (globals.trans.string('MenuItems', 54), True, 'showsprites'),
         (globals.trans.string('MenuItems', 56), False, 'showspriteimages'),
+        (globals.trans.string('MenuItems', 150), True, 'showrotation'),
         (globals.trans.string('MenuItems', 58), True, 'showlocations'),
         (globals.trans.string('MenuItems', 138), True, 'showpaths'),
         (globals.trans.string('MenuItems', 60), True, 'grid'),

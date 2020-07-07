@@ -28,6 +28,7 @@
 ############ Imports ############
 
 import base64
+from math import copysign
 import random
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -52,8 +53,6 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
     """
     positionChanged = None  # Callback: positionChanged(LevelEditorItem obj, int oldx, int oldy, int x, int y)
     autoPosChange = False
-    dragoffsetx = 0
-    dragoffsety = 0
     objx, objy = 0, 0
 
     def __init__(self):
@@ -73,55 +72,38 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
         Makes sure positions don't go out of bounds and updates them as necessary
         """
 
-        tileWidthMult = globals.TileWidth / 16
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
-            # snap to 24x24
+            if self.scene() is None:
+                return value
+
+            tileWidthMult = globals.TileWidth / 16
+
+            # Snap to 1x1
             newpos = value
+            newpos.setX(int((newpos.x() + tileWidthMult / 2) / tileWidthMult) * tileWidthMult)
+            newpos.setY(int((newpos.y() + tileWidthMult / 2) / tileWidthMult) * tileWidthMult)
 
-            # snap even further if Alt isn't held
-            # but -only- if globals.OverrideSnapping is off
-            doSnap = False
-            if (not globals.OverrideSnapping) and (not self.autoPosChange):
-                doSnap = True
-
-            if hasattr(self, 'dragging') and self.dragging:
-                doSnap = False
-
-            if doSnap:
-                if self.scene() is None:
-                    objectsSelected = False
-                else:
-                    objectsSelected = any([isinstance(thing, ObjectItem) for thing in globals.mainWindow.CurrentSelection])
-                if QtWidgets.QApplication.keyboardModifiers() == Qt.AltModifier and not isinstance(self, LocationItem):
-                    # Alt is held; don't snap
-                    newpos.setX(int(int((newpos.x() + 0.75) / tileWidthMult) * tileWidthMult))
-                    newpos.setY(int(int((newpos.y() + 0.75) / tileWidthMult) * tileWidthMult))
-                elif not objectsSelected and self.isSelected() and len(globals.mainWindow.CurrentSelection) > 1:
-                    # Snap to 8x8, but with the dragoffsets
-                    dragoffsetx, dragoffsety = int(self.dragoffsetx), int(self.dragoffsety)
-                    if dragoffsetx < -(globals.TileWidth / 2): dragoffsetx += globals.TileWidth / 2
-                    if dragoffsety < -(globals.TileWidth / 2): dragoffsety += globals.TileWidth / 2
-                    if dragoffsetx == 0: dragoffsetx = -(globals.TileWidth / 2)
-                    if dragoffsety == 0: dragoffsety = -(globals.TileWidth / 2)
-                    referenceX = int(
-                        (newpos.x() + globals.TileWidth / 4 + globals.TileWidth / 2 + dragoffsetx) / (globals.TileWidth / 2)) * globals.TileWidth / 2
-                    referenceY = int(
-                        (newpos.y() + globals.TileWidth / 4 + globals.TileWidth / 2 + dragoffsety) / (globals.TileWidth / 2)) * globals.TileWidth / 2
-                    newpos.setX(referenceX - (globals.TileWidth / 2 + dragoffsetx))
-                    newpos.setY(referenceY - (globals.TileWidth / 2 + dragoffsety))
+            # Snap even further if Alt isn't held
+            if not (globals.OverrideSnapping or QtWidgets.QApplication.keyboardModifiers() == Qt.AltModifier or self.autoPosChange or hasattr(self, 'dragging') and self.dragging):
+                objectsSelected = any([isinstance(thing, ObjectItem) for thing in globals.mainWindow.CurrentSelection])
+                if not objectsSelected and self.isSelected() and len(globals.mainWindow.CurrentSelection) > 1:
+                    # Move in sync by snapping to block halves (8x8)
+                    old_x, old_y = self.objx * tileWidthMult, self.objy * tileWidthMult
+                    new_x, new_y = newpos.x(), newpos.y()
+                    delta_x, delta_y = new_x - old_x, new_y - old_y
+                    newpos.setX(old_x + int(copysign((abs(delta_x) + globals.TileWidth / 4) / (globals.TileWidth // 2), delta_x)) * (globals.TileWidth // 2))
+                    newpos.setY(old_y + int(copysign((abs(delta_y) + globals.TileWidth / 4) / (globals.TileWidth // 2), delta_y)) * (globals.TileWidth // 2))
                 elif objectsSelected and self.isSelected():
-                    # Objects are selected, too; move in sync by snapping to whole blocks
-                    dragoffsetx, dragoffsety = int(self.dragoffsetx), int(self.dragoffsety)
-                    if dragoffsetx == 0: dragoffsetx = -globals.TileWidth
-                    if dragoffsety == 0: dragoffsety = -globals.TileWidth
-                    referenceX = int((newpos.x() + globals.TileWidth / 2 + globals.TileWidth + dragoffsetx) / globals.TileWidth) * globals.TileWidth
-                    referenceY = int((newpos.y() + globals.TileWidth / 2 + globals.TileWidth + dragoffsety) / globals.TileWidth) * globals.TileWidth
-                    newpos.setX(referenceX - (globals.TileWidth + dragoffsetx))
-                    newpos.setY(referenceY - (globals.TileWidth + dragoffsety))
+                    # Objects are selected, too; move in sync by snapping to whole blocks (16x16)
+                    old_x, old_y = self.objx * tileWidthMult, self.objy * tileWidthMult
+                    new_x, new_y = newpos.x(), newpos.y()
+                    delta_x, delta_y = new_x - old_x, new_y - old_y
+                    newpos.setX(old_x + int(copysign((abs(delta_x) + (globals.TileWidth // 2)) / globals.TileWidth, delta_x)) * globals.TileWidth)
+                    newpos.setY(old_y + int(copysign((abs(delta_y) + (globals.TileWidth // 2)) / globals.TileWidth, delta_y)) * globals.TileWidth)
                 else:
                     # Snap to 8x8
-                    newpos.setX(int(int((newpos.x() + globals.TileWidth / 4) / (globals.TileWidth / 2)) * globals.TileWidth / 2))
-                    newpos.setY(int(int((newpos.y() + globals.TileWidth / 4) / (globals.TileWidth / 2)) * globals.TileWidth / 2))
+                    newpos.setX(int(int((newpos.x() + globals.TileWidth / 4) / (globals.TileWidth // 2)) * (globals.TileWidth // 2)))
+                    newpos.setY(int(int((newpos.y() + globals.TileWidth / 4) / (globals.TileWidth // 2)) * (globals.TileWidth // 2)))
 
             x = newpos.x()
             y = newpos.y()
@@ -304,6 +286,9 @@ class ObjectItem(LevelEditorItem):
         self.setFlag(self.ItemIsMovable, not globals.ObjectsFrozen)
         self.setFlag(self.ItemIsSelectable, not globals.ObjectsFrozen)
         self.UpdateRects()
+
+        self.TLGrabbed = self.TRGrabbed = self.BLGrabbed = self.BRGrabbed = False
+        self.MTGrabbed = self.MLGrabbed = self.MBGrabbed = self.MRGrabbed = False
 
         self.dragging = False
         self.dragstartx = -1
@@ -570,10 +555,14 @@ class ObjectItem(LevelEditorItem):
             scene = self.scene()
             if scene is None: return value
 
-            # snap to 24x24
+            # Snap to whole blocks
             newpos = value
-            newpos.setX(int((newpos.x() + globals.TileWidth / 2) / globals.TileWidth) * globals.TileWidth)
-            newpos.setY(int((newpos.y() + globals.TileWidth / 2) / globals.TileWidth) * globals.TileWidth)
+            old_x, old_y = self.objx * globals.TileWidth, self.objy * globals.TileWidth
+            new_x, new_y = newpos.x(), newpos.y()
+            delta_x, delta_y = new_x - old_x, new_y - old_y
+            newpos.setX(old_x + int(copysign((abs(delta_x) + (globals.TileWidth // 2)) / globals.TileWidth, delta_x)) * globals.TileWidth)
+            newpos.setY(old_y + int(copysign((abs(delta_y) + (globals.TileWidth // 2)) / globals.TileWidth, delta_y)) * globals.TileWidth)
+
             x = newpos.x()
             y = newpos.y()
 
@@ -676,8 +665,8 @@ class ObjectItem(LevelEditorItem):
         ):
             # start dragging
             self.dragging = True
-            self.dragstartx = int((event.pos().x() - globals.TileWidth / 2) / globals.TileWidth)
-            self.dragstarty = int((event.pos().y() - globals.TileWidth / 2) / globals.TileWidth)
+            self.dragstartx = int((event.pos().x() - globals.TileWidth // 2) / globals.TileWidth)
+            self.dragstarty = int((event.pos().y() - globals.TileWidth // 2) / globals.TileWidth)
             self.objsDragging = {}
 
             for selitem in globals.mainWindow.scene.selectedItems():
@@ -694,6 +683,7 @@ class ObjectItem(LevelEditorItem):
             self.objsDragging = {}
 
         self.UpdateTooltip()
+        self.update()
 
     def UpdateObj(self, oldX, oldY):
         """
@@ -734,8 +724,8 @@ class ObjectItem(LevelEditorItem):
             dsx = self.dragstartx
             dsy = self.dragstarty
 
-            clickedx = int((event.pos().x() - globals.TileWidth / 2) / globals.TileWidth)
-            clickedy = int((event.pos().y() - globals.TileWidth / 2) / globals.TileWidth)
+            clickedx = int((event.pos().x() - globals.TileWidth // 2) / globals.TileWidth)
+            clickedy = int((event.pos().y() - globals.TileWidth // 2) / globals.TileWidth)
 
             cx = self.objx
             cy = self.objy
@@ -983,8 +973,13 @@ class ObjectItem(LevelEditorItem):
         """
         Disables "dragging" when the mouse is released
         """
-        self.dragging = False
         LevelEditorItem.mouseReleaseEvent(self, event)
+
+        self.TLGrabbed = self.TRGrabbed = self.BLGrabbed = self.BRGrabbed = False
+        self.MTGrabbed = self.MLGrabbed = self.MBGrabbed = self.MRGrabbed = False
+        self.dragging = False
+
+        self.update()
 
     def delete(self):
         """
@@ -1699,13 +1694,13 @@ class SpriteItem(LevelEditorItem):
         globals.DirtyOverride += 1
         if globals.SpriteImagesShown:
             self.setPos(
-                int((self.objx + self.ImageObj.xOffset) * (globals.TileWidth / 16)),
-                int((self.objy + self.ImageObj.yOffset) * (globals.TileWidth / 16)),
+                (self.objx + self.ImageObj.xOffset) * (globals.TileWidth / 16),
+                (self.objy + self.ImageObj.yOffset) * (globals.TileWidth / 16),
             )
         else:
             self.setPos(
-                int(self.objx * (globals.TileWidth / 16)),
-                int(self.objy * (globals.TileWidth / 16)),
+                self.objx * (globals.TileWidth / 16),
+                self.objy * (globals.TileWidth / 16),
             )
         globals.DirtyOverride -= 1
 
@@ -1893,8 +1888,8 @@ class SpriteItem(LevelEditorItem):
             self.UpdateRects()
             self.ChangingPos = True
             self.setPos(
-                int((self.objx + self.ImageObj.xOffset) * (globals.TileWidth / 16)),
-                int((self.objy + self.ImageObj.yOffset) * (globals.TileWidth / 16)),
+                (self.objx + self.ImageObj.xOffset) * (globals.TileWidth / 16),
+                (self.objy + self.ImageObj.yOffset) * (globals.TileWidth / 16),
             )
             self.ChangingPos = False
 
@@ -2003,10 +1998,11 @@ class SpriteItem(LevelEditorItem):
         Makes sure positions don't go out of bounds and updates them as necessary
         """
 
-        tileWidthMult = globals.TileWidth / 16
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             if self.scene() is None: return value
             if self.ChangingPos: return value
+
+            tileWidthMult = globals.TileWidth / 16
 
             if globals.SpriteImagesShown:
                 xOffset, xOffsetAdjusted = self.ImageObj.xOffset, self.ImageObj.xOffset * tileWidthMult
@@ -2015,49 +2011,34 @@ class SpriteItem(LevelEditorItem):
                 xOffset, xOffsetAdjusted = 0, 0
                 yOffset, yOffsetAdjusted = 0, 0
 
-            # snap to 24x24
+            # Snap to 1x1
             newpos = value
+            newpos.setX(int((newpos.x() + tileWidthMult / 2 - xOffsetAdjusted) / tileWidthMult) * tileWidthMult + xOffsetAdjusted)
+            newpos.setY(int((newpos.y() + tileWidthMult / 2 - yOffsetAdjusted) / tileWidthMult) * tileWidthMult + yOffsetAdjusted)
 
-            # snap even further if Shift isn't held
-            # but -only- if globals.OverrideSnapping is off
-            if not globals.OverrideSnapping:
+            # Snap even further if Alt isn't held
+            if not (globals.OverrideSnapping or QtWidgets.QApplication.keyboardModifiers() == Qt.AltModifier):
                 objectsSelected = any([isinstance(thing, ObjectItem) for thing in globals.mainWindow.CurrentSelection])
-                if QtWidgets.QApplication.keyboardModifiers() == Qt.AltModifier:
-                    # Alt is held; don't snap
-                    newpos.setX((int((newpos.x() + 0.75) / tileWidthMult) * tileWidthMult))
-                    newpos.setY((int((newpos.y() + 0.75) / tileWidthMult) * tileWidthMult))
-                elif not objectsSelected and self.isSelected() and len(globals.mainWindow.CurrentSelection) > 1:
-                    # Snap to 8x8, but with the dragoffsets
-                    dragoffsetx, dragoffsety = int(self.dragoffsetx), int(self.dragoffsety)
-                    if dragoffsetx < -(globals.TileWidth / 2): dragoffsetx += globals.TileWidth / 2
-                    if dragoffsety < -(globals.TileWidth / 2): dragoffsety += globals.TileWidth / 2
-                    if dragoffsetx == 0: dragoffsetx = -(globals.TileWidth / 2)
-                    if dragoffsety == 0: dragoffsety = -(globals.TileWidth / 2)
-                    referenceX = int(
-                        (newpos.x() + (globals.TileWidth / 4) + (globals.TileWidth / 2) + dragoffsetx - xOffsetAdjusted) / (
-                        globals.TileWidth / 2)) * (globals.TileWidth / 2)
-                    referenceY = int(
-                        (newpos.y() + (globals.TileWidth / 4) + (globals.TileWidth / 2) + dragoffsety - yOffsetAdjusted) / (
-                        globals.TileWidth / 2)) * (globals.TileWidth / 2)
-                    newpos.setX(referenceX - ((globals.TileWidth / 2) + dragoffsetx) + xOffsetAdjusted)
-                    newpos.setY(referenceY - ((globals.TileWidth / 2) + dragoffsety) + yOffsetAdjusted)
+                if not objectsSelected and self.isSelected() and len(globals.mainWindow.CurrentSelection) > 1:
+                    # Move in sync by snapping to block halves (8x8)
+                    old_x, old_y = self.objx * tileWidthMult, self.objy * tileWidthMult
+                    new_x, new_y = newpos.x() - xOffsetAdjusted, newpos.y() - yOffsetAdjusted
+                    delta_x, delta_y = new_x - old_x, new_y - old_y
+                    newpos.setX(old_x + int(copysign((abs(delta_x) + globals.TileWidth / 4) / (globals.TileWidth // 2), delta_x)) * (globals.TileWidth // 2) + xOffsetAdjusted)
+                    newpos.setY(old_y + int(copysign((abs(delta_y) + globals.TileWidth / 4) / (globals.TileWidth // 2), delta_y)) * (globals.TileWidth // 2) + yOffsetAdjusted)
                 elif objectsSelected and self.isSelected():
-                    # Objects are selected, too; move in sync by snapping to whole blocks
-                    dragoffsetx, dragoffsety = int(self.dragoffsetx), int(self.dragoffsety)
-                    if dragoffsetx == 0: dragoffsetx = -globals.TileWidth
-                    if dragoffsety == 0: dragoffsety = -globals.TileWidth
-                    referenceX = int((newpos.x() + (
-                    globals.TileWidth / 2) + globals.TileWidth + dragoffsetx - xOffsetAdjusted) / globals.TileWidth) * globals.TileWidth
-                    referenceY = int((newpos.y() + (
-                    globals.TileWidth / 2) + globals.TileWidth + dragoffsety - yOffsetAdjusted) / globals.TileWidth) * globals.TileWidth
-                    newpos.setX(referenceX - (globals.TileWidth + dragoffsetx) + xOffsetAdjusted)
-                    newpos.setY(referenceY - (globals.TileWidth + dragoffsety) + yOffsetAdjusted)
+                    # Objects are selected, too; move in sync by snapping to whole blocks (16x16)
+                    old_x, old_y = self.objx * tileWidthMult, self.objy * tileWidthMult
+                    new_x, new_y = newpos.x() - xOffsetAdjusted, newpos.y() - yOffsetAdjusted
+                    delta_x, delta_y = new_x - old_x, new_y - old_y
+                    newpos.setX(old_x + int(copysign((abs(delta_x) + (globals.TileWidth // 2)) / globals.TileWidth, delta_x)) * globals.TileWidth + xOffsetAdjusted)
+                    newpos.setY(old_y + int(copysign((abs(delta_y) + (globals.TileWidth // 2)) / globals.TileWidth, delta_y)) * globals.TileWidth + yOffsetAdjusted)
                 else:
                     # Snap to 8x8
-                    newpos.setX(int(int((newpos.x() + (globals.TileWidth / 4) - xOffsetAdjusted) / (globals.TileWidth / 2)) * (
-                    globals.TileWidth / 2) + xOffsetAdjusted))
-                    newpos.setY(int(int((newpos.y() + (globals.TileWidth / 4) - yOffsetAdjusted) / (globals.TileWidth / 2)) * (
-                    globals.TileWidth / 2) + yOffsetAdjusted))
+                    newpos.setX(int(int((newpos.x() + (globals.TileWidth / 4) - xOffsetAdjusted) / (globals.TileWidth // 2)) * (
+                    globals.TileWidth // 2)) + xOffsetAdjusted)
+                    newpos.setY(int(int((newpos.y() + (globals.TileWidth / 4) - yOffsetAdjusted) / (globals.TileWidth // 2)) * (
+                    globals.TileWidth // 2)) + yOffsetAdjusted)
 
             x = newpos.x()
             y = newpos.y()
@@ -2159,7 +2140,10 @@ class SpriteItem(LevelEditorItem):
         Calls a modified MapPositionToZoneID (if obj = True, it returns the actual ZoneItem object)
         """
         if not hasattr(globals.Area, 'zones'):
-            return None
+            if obj:
+                return None
+            else:
+                return -1
 
         id = SLib.MapPositionToZoneID(globals.Area.zones, self.objx, self.objy, True)
 
@@ -2241,6 +2225,11 @@ class SpriteItem(LevelEditorItem):
         globals.mainWindow.UpdateFlag = False
         sprlist.selectionModel().clearSelection()
         globals.Area.sprites.remove(self)
+
+        obj = self.ImageObj
+        if obj:
+            obj.delete()
+
         # self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
         self.scene().update()  # The zone painters need for the whole thing to update
 
