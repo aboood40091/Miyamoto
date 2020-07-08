@@ -6086,7 +6086,7 @@ class SpriteImage_Wiggler(SLib.SpriteImage_Static):  # 249, 702
         SLib.loadIfNotInImageCache('Wiggler', 'wiggler.png')
 
 
-class SpriteImage_GreyBlock(SLib.SpriteImage_StaticMultiple):  # 250
+class SpriteImage_GreyBlock(SLib.SpriteImage_PivotRotationControlled):  # 250
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -6098,15 +6098,20 @@ class SpriteImage_GreyBlock(SLib.SpriteImage_StaticMultiple):  # 250
         SLib.loadIfNotInImageCache('GrayBlock', 'gray_block.png')
 
     def dataChanged(self):
+        self.offset = (0, 0)
+
         width = self.parent.spritedata[8] & 0xF
         height = self.parent.spritedata[9] & 0xF
 
         if width == 0 or height == 0:
             self.spritebox.shown = True
+            self.size = (16, 16)
             self.image = None
+
         else:
             self.spritebox.shown = False
             self.image = ImageCache['GrayBlock'].transformed(QTransform().scale(width, height))
+
         super().dataChanged()
 
 
