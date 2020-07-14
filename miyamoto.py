@@ -3957,7 +3957,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             com.UpdateListItem()
 
         for tileset_name in globals.Pa0Tilesets:
-            self.LoadDefaultTileset(tileset_name, True)
+            if tileset_name not in globals.szsData:
+                self.LoadDefaultTileset(tileset_name, True)
 
     def ReloadTilesets(self, soft=False):
         """
