@@ -4540,7 +4540,7 @@
 		<value nybble="12" title="Unknown Value 12"/>
 	</sprite>
 	<sprite id="316" name="Pivotal-rotation-controlled Crystal Block">
-		<checkbox nybble="8" title="Unknown Flag 8"/>
+		<checkbox nybble="8" title="Ignore Model Rotation" comment="When hooked to a pivotal rotation controller, the Crystal Block's model will not rotate and only its position will be affected."/>
 		<list nybble="10" title="Colour/Size" comment="Colour (width x height). Blue square is placed in the top-left corner. * means that the shape is not a rectangle, but it has a smaller rectangle removed from the bottom-left corner. ** Really weird shape. *** Rectangle with another rectangle at the top, slanted ~100 deg.">
 			<entry value="0">Purple (12x10)</entry>
 			<entry value="1">Purple (16x10)</entry>

@@ -7473,6 +7473,8 @@ class SpriteImage_Crystal(SLib.SpriteImage_PivotRotationControlled):  # 316
         if size > 10:
             size = 0
 
+        self.affectImage = (self.parent.spritedata[3] & 1) != 1
+
         self.image = ImageCache['Crystal%d' % size]
         self.offset = SpriteImage_Crystal.offsets[size]
 
