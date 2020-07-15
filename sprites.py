@@ -3283,7 +3283,11 @@ class SpriteImage_BigDryBones(SLib.SpriteImage_Static):  # 138
 
 class SpriteImage_PipeUp(SpriteImage_Pipe):  # 139, 404, 577
     def dataChanged(self):
-        self.hasTop = (self.parent.spritedata[2] >> 4 & 3) < 2
+        if self.parent.type == 577:
+            self.hasTop = (self.parent.spritedata[2] >> 4) > 0
+        else:
+            self.hasTop = (self.parent.spritedata[2] >> 4 & 2) != 2
+
         self.middleY = 0
 
         type = self.parent.spritedata[3] & 0xF
@@ -3321,7 +3325,10 @@ class SpriteImage_PipeDown(SpriteImage_Pipe):  # 140, 511, 578
 
     def dataChanged(self):
         self.yOffset = 0
-        self.hasTop = (self.parent.spritedata[2] >> 4 & 3) < 2
+        if self.parent.type == 578:
+            self.hasTop = (self.parent.spritedata[2] >> 4) > 0
+        else:
+            self.hasTop = (self.parent.spritedata[2] >> 4 & 2) != 2
 
         type = self.parent.spritedata[3] & 0xF
         if type > 2:
@@ -3355,7 +3362,11 @@ class SpriteImage_PipeLeft(SpriteImage_Pipe):  # 141, 510, 575
         self.direction = 2
 
     def dataChanged(self):
-        self.hasTop = (self.parent.spritedata[2] >> 4 & 3) < 2
+        if self.parent.type == 575:
+            self.hasTop = (self.parent.spritedata[2] >> 4) > 0
+        else:
+            self.hasTop = (self.parent.spritedata[2] >> 4 & 2) != 2
+
         self.middleX = 0
 
         type = self.parent.spritedata[3] & 0xF
@@ -3393,7 +3404,10 @@ class SpriteImage_PipeRight(SpriteImage_Pipe):  # 142, 509, 576
 
     def dataChanged(self):
         self.xOffset = 0
-        self.hasTop = (self.parent.spritedata[2] >> 4 & 3) < 2
+        if self.parent.type == 576:
+            self.hasTop = (self.parent.spritedata[2] >> 4) > 0
+        else:
+            self.hasTop = (self.parent.spritedata[2] >> 4 & 2) != 2
 
         type = self.parent.spritedata[3] & 0xF
         if type > 2:

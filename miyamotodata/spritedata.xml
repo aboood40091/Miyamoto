@@ -2155,12 +2155,8 @@
 		<checkbox nybble="20" title="On moving platform" comment="Check this option if you want to place a Big Dry Bones on a moving platform (place Big Dry Bones right above it)."/>
 	</sprite>
 	<sprite id="139" name="Pipe - Up" notes="This sprite seems to be required for pipes to work correctly in-game. If this pipe is inside a quicksand (maybe other liquids as well) location, another pipe has to be placed directly on top of it to make the pipe show in front of the quicksand (maybe other liquids as well)...&#13;&#10;&#13;&#10;&lt;b&gt;NOTE:&lt;/b&gt; This sprite cannot function as an entrance unless there are pipe tiles (from Pa0) behind the entire sprite!">
-		<list nybble="5" title="Height-related" comment="The value with an asterisk has some glitchy behaviour when used as an enterable pipe.">
-			<entry value="0">Has a top*</entry>
-			<entry value="1">Has a top</entry>
-			<entry value="2">UNUSED</entry>
-			<entry value="3">Doesn't have a top</entry>
-		</list>
+		<checkbox nybble="5" title="Enterable / Exiting" comment="This option exists to prevent glitchy behavior when placing an entrance over this pipe. This option is almost always checked in the retail game."/>
+		<checkbox nybble="5" title="Doesn't have a top" mask="2"/>
 		<list nybble="8" title="Type" comment="If the type is &quot;Painted&quot;, 1 block extra is added to the height.&lt;br&gt;&lt;br&gt;If the type is &quot;Big&quot;, 2 blocks extra are added to the height.&lt;br&gt;&lt;br&gt;There probably is a fourth option...">
 			<entry value="0">Normal</entry>
 			<entry value="1">Painted</entry>
@@ -2175,12 +2171,8 @@
 		<value nybble="12" title="Height" comment="Value + 1 by default. If height-related is a value with an asterisk, the increment is 2 instead of 1. Additionally, another 2 blocks are added to the height if the type is &quot;Big&quot;, or 1 extra block if the type is &quot;Painted&quot;."/>
 	</sprite>
 	<sprite id="140" name="Pipe - Down" notes="This sprite seems to be required for pipes to work correctly in-game. If this pipe is inside a quicksand (maybe others as well) location, another pipe has to be placed directly on top of it to make the pipe show in front of the quicksand (maybe others as well)...&#13;&#10;&#13;&#10;&lt;b&gt;NOTE:&lt;/b&gt; This sprite cannot function as an entrance unless there are pipe tiles (from Pa0) behind the entire sprite!">
-		<list nybble="5" title="Height-related" comment="The value with an asterisk has some glitchy behaviour when used as an enterable pipe.">
-			<entry value="0">Has a top*</entry>
-			<entry value="1">Has a top</entry>
-			<entry value="2">UNUSED</entry>
-			<entry value="3">Doesn't have a top</entry>
-		</list>
+		<checkbox nybble="5" title="Enterable / Exiting" comment="This option exists to prevent glitchy behavior when placing an entrance over this pipe. This option is almost always checked in the retail game."/>
+		<checkbox nybble="5" title="Doesn't have a top" mask="2"/>
 		<list nybble="8" title="Type" comment="If the type is &quot;Painted&quot;, 1 block extra is added to the height.&lt;br&gt;&lt;br&gt;If the type is &quot;Big&quot;, 2 blocks extra are added to the height.&lt;br&gt;&lt;br&gt;There probably is a fourth option...">
 			<entry value="0">Normal</entry>
 			<entry value="1">Painted</entry>
@@ -2195,12 +2187,8 @@
 		<value nybble="12" title="Height" comment="Value + 1 by default. If height-related is a value with an asterisk, the increment is 2 instead of 1. Additionally, another 2 blocks are added to the height if the type is &quot;Big&quot;, or 1 extra block if the type is &quot;Painted&quot;."/>
 	</sprite>
 	<sprite id="141" name="Pipe - Left" notes="This sprite seems to be required for pipes to work correctly in-game. If this pipe is inside a quicksand (maybe other liquids as well) location, another pipe has to be placed directly on top of it to make the pipe show in front of the quicksand...&#13;&#10;&#13;&#10;&lt;b&gt;NOTE:&lt;/b&gt; This sprite cannot function as an entrance unless there are pipe tiles (from Pa0) behind the entire sprite!">
-		<list nybble="5" title="Length-related" comment="The value with an asterisk has some glitchy behaviour when used as an enterable pipe.">
-			<entry value="0">Has a top*</entry>
-			<entry value="1">Has a top</entry>
-			<entry value="2">UNUSED</entry>
-			<entry value="3">Doesn't have a top</entry>
-		</list>
+		<checkbox nybble="5" title="Enterable / Exiting" comment="This option exists to prevent glitchy behavior when placing an entrance over this pipe. This option is almost always checked in the retail game."/>
+		<checkbox nybble="5" title="Doesn't have a top" mask="2"/>
 		<list nybble="8" title="Type" comment="If the type is &quot;Painted&quot;, 1 block extra is added to the length.&lt;br&gt;&lt;br&gt;If the type is &quot;Big&quot;, 2 blocks extra are added to the length.&lt;br&gt;&lt;br&gt;There probably is a fourth option...">
 			<entry value="0">Normal</entry>
 			<entry value="1">Painted</entry>
@@ -2215,12 +2203,8 @@
 		<value nybble="12" title="Length" comment="Value + 1 by default. If length-related is a value with an asterisk, the increment is 2 instead of 1. Additionally, another 2 blocks are added to the length if the type is &quot;Big&quot;, or 1 extra block if the type is &quot;Painted&quot;."/>
 	</sprite>
 	<sprite id="142" name="Pipe - Right" notes="This sprite seems to be required for pipes to work correctly in-game. If this pipe is inside a quicksand (maybe other liquids as well) location, another pipe has to be placed directly on top of it to make the pipe show in front of the quicksand...&#13;&#10;&#13;&#10;&lt;b&gt;NOTE:&lt;/b&gt; This sprite cannot function as an entrance unless there are pipe tiles (from Pa0) behind the entire sprite!">
-		<list nybble="5" title="Length-related" comment="The value with an asterisk has some glitchy behaviour when used as an enterable pipe.">
-			<entry value="0">Has a top*</entry>
-			<entry value="1">Has a top</entry>
-			<entry value="2">UNUSED</entry>
-			<entry value="3">Doesn't have a top</entry>
-		</list>
+		<checkbox nybble="5" title="Enterable / Exiting" comment="This option exists to prevent glitchy behavior when placing an entrance over this pipe. This option is almost always checked in the retail game."/>
+		<checkbox nybble="5" title="Doesn't have a top" mask="2"/>
 		<list nybble="8" title="Type" comment="If the type is &quot;Painted&quot;, 1 block extra is added to the length.&lt;br&gt;&lt;br&gt;If the type is &quot;Big&quot;, 2 blocks extra are added to the length.&lt;br&gt;&lt;br&gt;There probably is a fourth option...">
 			<entry value="0">Normal</entry>
 			<entry value="1">Painted</entry>
@@ -4972,14 +4956,14 @@
 			<entry value="4">-45 degrees</entry>
 		</list>
 	</sprite>
-	<sprite id="355" name="Rolling Hill with 1 Pipe [Crashes] [UNUSED]" notes="Diameter is 50 blocks. Crashes for two reasons; the first being the rolling hill's resources being missing and the other is that the resources list in the code forgets to list one of the resources. The pipe's hitbox is also probably broken, making it probably not enterable.">
+	<sprite id="355" name="Rolling Hill with 1 Pipe (Enterable) [Crashes] [UNUSED]" notes="Diameter is 50 blocks. Crashes for two reasons; the first being the rolling hill's resources missing from the game files and the other is that the resources list in the code forgets to list one of the resources. To enter the pipe, you would need to be holding up instead of down.">
 		<value nybble="6" title="Initial Rotation"/>
 		<list nybble="7" title="Type">
 			<entry value="0">Overworld</entry>
 			<entry value="1">Underground</entry>
 		</list>
 		<value nybble="8" title="Z-Order"/>
-		<value nybble="10" title="Entrance ID"/>
+		<value nybble="10" title="Entrance ID" comment="The pipe will use this entrance's destination."/>
 		<checkbox nybble="12" title="Spin Counter-Clockwise" comment="Makes the hill spin counter-clockwise."/>
 		<value nybble="16" title="Speed"/>
 	</sprite>
@@ -5452,12 +5436,13 @@
 	</sprite>
 	<sprite id="403" name="Iggy Koopa" notes="Spawns the boss Iggy Koopa. Also interesting to note that fire particles spawn with him."/>
 	<sprite id="404" name="Pipe - Up (Enterable)" notes="A pipe that can get hooked to a path or line controller. Unlike the other pipes, this one doesn't need the Pa0 tileset over it for collision. What's even cooler, it creates it's own entrance! Only for entrance 0, however.">
+		<checkbox nybble="5" title="Doesn't have a top" mask="2"/>
 		<list nybble="8" title="Type" comment="The pipe type.">
 			<entry value="0">Normal</entry>
 			<entry value="1">Painted</entry>
 			<entry value="2">Big</entry>
 		</list>
-		<value nybble="10" title="Destination Entrance ID" comment="Actually makes it's own entrance! Type in the destination value here."/>
+		<value nybble="10" title="Entrance ID" comment="The pipe will use this entrance's destination."/>
 		<list nybble="11" title="Color" comment="The color of the pipe.">
 			<entry value="0">Green</entry>
 			<entry value="1">Red</entry>
@@ -5766,11 +5751,11 @@
 	<sprite id="457" name="Wobbly Bone Platform" notes="Wobbles when hit by Bowser jr in flying clown car. ">
 		<value nybble="17-18" title="Width" comment="Width of the platform."/>
 	</sprite>
-	<sprite id="458" name="Golden Pipe (Down)" notes="This sprite appears once enough coins are collected in the area is in.">
+	<sprite id="458" name="Golden Pipe - Down (Enterable)" notes="This sprite appears once enough coins are collected in the area is in.">
 		<value nybble="5" title="Mode 2: Coin Multiplier"/>
 		<value bit="24-26" title="Mode 1: Time" comment="(Value * 10) seconds."/>
 		<value nybble="8" title="Mode 0: Coins Needed" comment="Value * 10"/>
-		<value nybble="10" title="Entrance ID"/>
+		<value nybble="10" title="Entrance ID" comment="The pipe will use this entrance's destination."/>
 		<checkbox nybble="11" title="Mode 2: Ignore blue coins" mask="1"/>
 		<checkbox nybble="11" title="Mode 2: Ignore yellow coins" mask="2"/>
 		<checkbox nybble="11" title="Mode 2: Ignore brick blocks (P-Switch yellow coins)" mask="4"/>
@@ -6323,12 +6308,13 @@
 		<value nybble="16" title="Unknown Value 16"/>
 	</sprite>
 	<sprite id="509" name="Pipe - Right (Enterable) [UNUSED]" notes="A pipe that you can enter without having an entrance on the sprite. Seems to only send you to 0, though.">
+		<checkbox nybble="5" title="Doesn't have a top" mask="2"/>
 		<list nybble="8" title="Type" comment="The type of pipe.">
 			<entry value="0">Normal</entry>
 			<entry value="1">Painted</entry>
 			<entry value="2">Big</entry>
 		</list>
-		<value nybble="10" title="Destination Entrance ID" comment="Actually makes it's own entrance! Type in the destination value here."/>
+		<value nybble="10" title="Entrance ID" comment="The pipe will use this entrance's destination."/>
 		<list nybble="11" title="Color" comment="Color of the pipe.">
 			<entry value="0">Green</entry>
 			<entry value="1">Red</entry>
@@ -6338,12 +6324,13 @@
 		<value nybble="12" title="Length" comment="Length of the pipe."/>
 	</sprite>
 	<sprite id="510" name="Pipe - Left (Enterable) [UNUSED]" notes="A pipe that you can enter without having an entrance on the sprite. Seems to only send you to 0, though">
+		<checkbox nybble="5" title="Doesn't have a top" mask="2"/>
 		<list nybble="8" title="Type" comment="The type of pipe.">
 			<entry value="0">Normal</entry>
 			<entry value="1">Painted</entry>
 			<entry value="2">Big</entry>
 		</list>
-		<value nybble="10" title="Destination Entrance ID" comment="Actually makes it's own entrance! Type in the destination value here."/>
+		<value nybble="10" title="Entrance ID" comment="The pipe will use this entrance's destination."/>
 		<list nybble="11" title="Color" comment="The color of the pipe.">
 			<entry value="0">Green</entry>
 			<entry value="1">Red</entry>
@@ -6353,12 +6340,13 @@
 		<value nybble="12" title="Length" comment="The pipe length."/>
 	</sprite>
 	<sprite id="511" name="Pipe - Down (Enterable)">
+		<checkbox nybble="5" title="Doesn't have a top" mask="2"/>
 		<list nybble="8" title="Type" comment="The type of pipe.">
 			<entry value="0">Normal</entry>
 			<entry value="1">Painted</entry>
 			<entry value="2">Big</entry>
 		</list>
-		<value nybble="10" title="Destination Entrance ID" comment="Actually makes it's own entrance! Type in the destination value here."/>
+		<value nybble="10" title="Entrance ID" comment="The pipe will use this entrance's destination."/>
 		<list nybble="11" title="Color" comment="Value 3 is a wild guess, as it's unused in the retail game.">
 			<entry value="0">Green</entry>
 			<entry value="1">Red</entry>
@@ -6820,11 +6808,11 @@
 		</list>
 		<value nybble="18" title="Width" comment="The width of the platform. (0 will not spawn anything.)"/>
 	</sprite>
-	<sprite id="574" name="Golden Pipe (Up)" notes="This sprite appears once enough coins are collected in the area is in.">
+	<sprite id="574" name="Golden Pipe - Up (Enterable)" notes="This sprite appears once enough coins are collected in the area is in.">
 		<value nybble="5" title="Mode 2: Coin Multiplier"/>
 		<value bit="24-26" title="Mode 1: Time" comment="(Value * 10) seconds."/>
 		<value nybble="8" title="Mode 0: Coins Needed" comment="Value * 10"/>
-		<value nybble="10" title="Entrance ID"/>
+		<value nybble="10" title="Entrance ID" comment="The pipe will use this entrance's destination."/>
 		<checkbox nybble="11" title="Mode 2: Ignore blue coins" mask="1"/>
 		<checkbox nybble="11" title="Mode 2: Ignore yellow coins" mask="2"/>
 		<checkbox nybble="11" title="Mode 2: Ignore brick blocks (P-Switch yellow coins)" mask="4"/>
@@ -7127,11 +7115,11 @@
 			<entry value="3">Solid-on-right</entry>
 		</list>
 	</sprite>
-	<sprite id="613" name="Golden Pipe (Left) [UNUSED]" notes="This sprite appears once enough coins are collected in the area is in.">
+	<sprite id="613" name="Golden Pipe - Left (Enterable) [UNUSED]" notes="This sprite appears once enough coins are collected in the area is in.">
 		<value nybble="5" title="Mode 2: Coin Multiplier"/>
 		<value bit="24-26" title="Mode 1: Time" comment="(Value * 10) seconds."/>
 		<value nybble="8" title="Mode 0: Coins Needed" comment="Value * 10"/>
-		<value nybble="10" title="Entrance ID"/>
+		<value nybble="10" title="Entrance ID" comment="The pipe will use this entrance's destination."/>
 		<checkbox nybble="11" title="Mode 2: Ignore blue coins" mask="1"/>
 		<checkbox nybble="11" title="Mode 2: Ignore yellow coins" mask="2"/>
 		<checkbox nybble="11" title="Mode 2: Ignore brick blocks (P-Switch yellow coins)" mask="4"/>
@@ -7142,11 +7130,11 @@
 			<entry value="2">Use coins in zone</entry>
 		</list>
 	</sprite>
-	<sprite id="614" name="Golden Pipe (Right) [UNUSED]" notes="This sprite appears once enough coins are collected in the area is in.">
+	<sprite id="614" name="Golden Pipe - Right (Enterable) [UNUSED]" notes="This sprite appears once enough coins are collected in the area is in.">
 		<value nybble="5" title="Mode 2: Coin Multiplier"/>
 		<value bit="24-26" title="Mode 1: Time" comment="(Value * 10) seconds."/>
 		<value nybble="8" title="Mode 0: Coins Needed" comment="Value * 10"/>
-		<value nybble="10" title="Entrance ID"/>
+		<value nybble="10" title="Entrance ID" comment="The pipe will use this entrance's destination."/>
 		<checkbox nybble="11" title="Mode 2: Ignore blue coins" mask="1"/>
 		<checkbox nybble="11" title="Mode 2: Ignore yellow coins" mask="2"/>
 		<checkbox nybble="11" title="Mode 2: Ignore brick blocks (P-Switch yellow coins)" mask="4"/>
