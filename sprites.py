@@ -1276,18 +1276,24 @@ class SpriteImage_MovementStarCoin(SLib.SpriteImage_MovementControlled):  # 48
         super().dataChanged()
 
 
-class SpriteImage_RedCoin(SLib.SpriteImage_Static):  # 49
-    # Red Coin
+class SpriteImage_RedCoin(SLib.SpriteImage_PivotRotationControlled):  # 49
     def __init__(self, parent):
         super().__init__(
             parent,
             3.75,
-            ImageCache['RedCoin'],
         )
 
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('RedCoin', 'red_coin.png')
+
+    def dataChanged(self):
+        self.offset = (0, 0)
+        self.image = ImageCache['RedCoin']
+
+        # TODO: Add tilt
+
+        super().dataChanged()
 
 
 class SpriteImage_GreenCoin(SLib.SpriteImage_Static):  # 50
@@ -6594,7 +6600,7 @@ class SpriteImage_CustomizableIceBlock(SLib.SpriteImage_StaticMultiple):  # 268
         super().dataChanged()
 
 
-class SpriteImage_Gear(SLib.SpriteImage_StaticMultiple):  # 269
+class SpriteImage_Gear(SLib.SpriteImage_PivotRotationControlled):  # 269
     def __init__(self, parent):
         super().__init__(
             parent,
@@ -11183,7 +11189,7 @@ class SpriteImage_SuperGuideNSLU(SLib.SpriteImage_Static):  # 634
         SLib.loadIfNotInImageCache('SuperGuideNSLU', 'guide_block_nslu.png')
 
 
-class SpriteImage_GearLuigi(SLib.SpriteImage_StaticMultiple):  # 675
+class SpriteImage_GearLuigi(SLib.SpriteImage_PivotRotationControlled):  # 675
     def __init__(self, parent):
         super().__init__(
             parent,
