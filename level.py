@@ -233,8 +233,8 @@ class Level_NSMBU(AbstractLevel):
         if os.path.isdir(globals.miyamoto_path + '/data'):
             szsNewData = {}
 
-            szsNewData[innerfilename] = innersarc
-            szsNewData['levelname'] = innerfilename.encode('utf-8')
+            szsNewData[innerfilename] = globals.szsData[innerfilename]
+            szsNewData['levelname'] = globals.szsData['levelname']
 
             paths = [globals.miyamoto_path + '/miyamotodata/spriteresources.xml']
             for path in globals.gamedef.recursiveFiles('spriteresources'):
@@ -321,6 +321,11 @@ class Level_NSMBU(AbstractLevel):
                 if tileset_name in globals.szsData:
                     outerArchive.addFile(SarcLib.File(tileset_name, globals.szsData[tileset_name]))
                     szsNewData[tileset_name] = globals.szsData[tileset_name]
+
+            # Add the other default Pa0 tilesets to our new dict
+            for def_tileset in globals.Pa0Tilesets:
+                if def_tileset not in szsNewData and def_tileset in globals.szsData:
+                    szsNewData[def_tileset] = globals.szsData[def_tileset]
 
             globals.szsData = szsNewData
 
