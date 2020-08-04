@@ -3568,7 +3568,7 @@ class SpriteImage_MovementPipe(SpriteImage_Pipe):  # 146, 679
         super().dataChanged()
 
 
-class SpriteImage_StoneEye(SLib.SpriteImage_StaticMultiple):  # 150, 719
+class SpriteImage_StoneEye(SLib.SpriteImage_PivotRotationControlled):  # 150, 719
     def __init__(self, parent):
         super().__init__(
             parent,
