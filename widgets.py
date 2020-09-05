@@ -2815,7 +2815,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         if (self.spritetype == type) and not reset: return
 
         self.spritetype = type
-        if type != 1000:
+        if type != 1000 and type >= 0 and type < globals.NumSprites:
             sprite = globals.Sprites[type]
 
         else:
