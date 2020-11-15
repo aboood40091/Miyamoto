@@ -35,7 +35,7 @@ import globals
 
 from items import ObjectItem, ZoneItem, LocationItem
 from items import SpriteItem, EntranceItem, PathItem
-from items import NabbitPathItem, CommentItem
+from items import CommentItem
 
 from loading import LoadTileset
 from misc import Metadata
@@ -72,7 +72,7 @@ class AbstractArea:
         Loads self.blocks from the course file
         """
         self.blocks = [None] * 15
-        getblock = struct.Struct('>II')
+        getblock = struct.Struct('<II')
         for i in range(15):
             data = getblock.unpack_from(course, i * 8)
             if data[1] == 0:
@@ -92,29 +92,6 @@ class AbstractArea:
         self.tileset2 = bytes_to_string(data[2])
         self.tileset3 = bytes_to_string(data[3])
 
-        if self.tileset0 not in globals.szsData:
-            ret = False
-            if self.tileset0 in globals.Pa0Tilesets:
-                reply = QtWidgets.QMessageBox.question(globals.mainWindow, 'Warning',
-                                                       '"%s" tileset was not found in the level data!\n' \
-                                                       'Do you want to load the default one from miyamotoextras?' % self.tileset0,
-                                                       QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
-
-                if reply == QtWidgets.QMessageBox.Yes:
-                    ret = globals.mainWindow.LoadDefaultTileset(self.tileset0, dirty=True)
-
-            if not ret:
-                self.tileset0 = ''
-
-        if self.tileset1 not in globals.szsData:
-            self.tileset1 = ''
-
-        if self.tileset2 not in globals.szsData:
-            self.tileset2 = ''
-
-        if self.tileset3 not in globals.szsData:
-            self.tileset3 = ''
-
     def LoadBackgrounds(self):
         """
         Loads block 5, the background data
@@ -122,7 +99,7 @@ class AbstractArea:
         bgData = self.blocks[4]
         bgCount = len(bgData) // 28
 
-        bgStruct = struct.Struct('>HHHH16sxBxx')
+        bgStruct = struct.Struct('<HHHH16sxBxx')
         offset = 0
 
         bgs = {}
@@ -140,7 +117,7 @@ class AbstractArea:
         """
         spritedata = self.blocks[7]
         sprcount = len(spritedata) // 24
-        sprstruct = struct.Struct('>HHHHIIBB2sBxxx')
+        sprstruct = struct.Struct('<HHHHIIBB2sBxxx')
         offset = 0
         sprites = []
 
@@ -213,7 +190,7 @@ class Area_NSMBU(AbstractArea):
 
         # BG data
         self.bgs = {}
-        bg = struct.unpack('>HHHH16sxBxx', self.blocks[4])
+        bg = struct.unpack('<HHHH16sxBxx', self.blocks[4])
         self.bgs[bg[0]] = bg
 
     def load(self, course, L0, L1, L2, progress=None):
@@ -306,7 +283,7 @@ class Area_NSMBU(AbstractArea):
 
         course = bytearray()
         for i in range(FileLength): course.append(0)
-        saveblock = struct.Struct('>II')
+        saveblock = struct.Struct('<II')
 
         HeaderOffset = 0
         FileOffset = (15 * 8) + len(rdata)
@@ -379,7 +356,7 @@ class Area_NSMBU(AbstractArea):
         Loads block 2, the general options
         """
         optdata = self.blocks[1]
-        optstruct = struct.Struct('>IIHHxBBBBxxBHH')
+        optstruct = struct.Struct('<IIHHxBBBBxxBHH')
         offset = 0
         data = optstruct.unpack_from(optdata, offset)
         self.eventBits32, self.eventBits64, wrapByte, self.timelimit, unk1, unk2, unk3, self.startEntrance, self.startEntranceCoinBoost, self.timelimit2, self.timelimit3 = data
@@ -395,7 +372,7 @@ class Area_NSMBU(AbstractArea):
         """
         entdata = self.blocks[6]
         entcount = len(entdata) // 24
-        entstruct = struct.Struct('>HHhhBBBBBBxBHBBBBBx')
+        entstruct = struct.Struct('<HHhhBBBBBBxBHBBBBBx')
         offset = 0
         entrances = []
         for i in range(entcount):
@@ -412,7 +389,7 @@ class Area_NSMBU(AbstractArea):
         # Block 3 - bounding data
         bdngdata = self.blocks[2]
         count = len(bdngdata) // 28
-        bdngstruct = struct.Struct('>llllHHxxxxxxxx')
+        bdngstruct = struct.Struct('<llllHHxxxxxxxx')
         offset = 0
         bounding = []
         for i in range(count):
@@ -426,7 +403,7 @@ class Area_NSMBU(AbstractArea):
 
         # Block 10 - zone data
         zonedata = self.blocks[9]
-        zonestruct = struct.Struct('>HHHHHHBBBBxBBxBxBBxBxx')
+        zonestruct = struct.Struct('<HHHHHHBBBBxBBxBxBBxBxx')
         count = len(zonedata) // 28
         offset = 0
         zones = []
@@ -456,7 +433,7 @@ class Area_NSMBU(AbstractArea):
         Loads block 11, the locations
         """
         locdata = self.blocks[10]
-        locstruct = struct.Struct('>HHHHBxxx')
+        locstruct = struct.Struct('<HHHHBxxx')
         count = len(locdata) // 12
         offset = 0
         locations = []
@@ -471,7 +448,7 @@ class Area_NSMBU(AbstractArea):
         Loads a specific object layer from a bytes object
         """
         objcount = len(layerdata) // 16
-        objstruct = struct.Struct('>HhhHHB')
+        objstruct = struct.Struct('<HhhHHB')
         offset = 0
         z = (2 - idx) * 8192
 
@@ -500,17 +477,13 @@ class Area_NSMBU(AbstractArea):
         """
         pathdata = self.blocks[13]
         pathcount = len(pathdata) // 12
-        pathstruct = struct.Struct('>BbHHHxxxx')
+        pathstruct = struct.Struct('<BbHHHxxxx')
         offset = 0
         unpack = pathstruct.unpack_from
         pathinfo = []
         paths = []
         for i in range(pathcount):
             data = unpack(pathdata, offset)
-
-            if data[0] == 90:
-                self.LoadNabbitPath(data)
-                continue
 
             nodes = self.LoadPathNodes(data[2], data[3])
             add2p = {'id': int(data[0]),
@@ -523,25 +496,11 @@ class Area_NSMBU(AbstractArea):
             offset += 12
 
         for xpi in pathinfo:
-            if xpi['id'] == 90:
-                continue
             for j, xpj in enumerate(xpi['nodes']):
                 paths.append(PathItem(xpj['x'], xpj['y'], xpi, xpj, 0, 0, 0, 0))
 
         self.pathdata = pathinfo
         self.paths = paths
-
-    def LoadNabbitPath(self, data):
-        nodes = self.LoadNabbitPathNodes(data[2], data[3])
-
-        add2p = {'nodes': [node for node in nodes]}
-
-        paths = []
-        for j, xpj in enumerate(add2p['nodes']):
-            paths.append(NabbitPathItem(xpj['x'], xpj['y'], add2p, xpj, 0, 0, 0, 0))
-
-        self.nPathdata = add2p
-        self.nPaths = paths
 
     def LoadPathNodes(self, startindex, count):
         """
@@ -549,7 +508,7 @@ class Area_NSMBU(AbstractArea):
         """
         ret = []
         nodedata = self.blocks[14]
-        nodestruct = struct.Struct('>HHffhHBBBx')
+        nodestruct = struct.Struct('<HHffhHBBBx')
         offset = startindex * 20
         unpack = nodestruct.unpack_from
         for i in range(count):
@@ -559,28 +518,6 @@ class Area_NSMBU(AbstractArea):
                         'speed': float(data[2]),
                         'accel': float(data[3]),
                         'delay': int(data[4]),
-                        })
-            offset += 20
-        return ret
-
-    def LoadNabbitPathNodes(self, startindex, count):
-        """
-        Loads the Nabbit path nodes
-        """
-        ret = []
-        nodedata = self.blocks[14]
-        nodestruct = struct.Struct('>HHffhHBBBx')
-        offset = startindex * 20
-        unpack = nodestruct.unpack_from
-        for i in range(count):
-            data = unpack(nodedata, offset)
-            ret.append({'x': int(data[0]),
-                        'y': int(data[1]),
-                        'action': int(data[4]),
-                        'unk1': int(data[5]),
-                        'unk2': int(data[6]),
-                        'unk3': int(data[7]),
-                        'unk4': int(data[8]),
                         })
             offset += 20
         return ret
@@ -650,7 +587,7 @@ class Area_NSMBU(AbstractArea):
         unk2 = 100 if self.unkFlag3 else 0
         unk3 = 100 if self.unkFlag4 else 0
 
-        optstruct = struct.Struct('>IIHHxBBBBxxBHH')
+        optstruct = struct.Struct('<IIHHxBBBBxxBHH')
         buffer = bytearray(0x18)
         optstruct.pack_into(buffer, 0, self.eventBits32, self.eventBits64, wrapByte, self.timelimit,
                             unk1, unk2, unk3, self.startEntrance, self.startEntranceCoinBoost, self.timelimit2, self.timelimit3)
@@ -666,7 +603,7 @@ class Area_NSMBU(AbstractArea):
         layer.sort(key=lambda obj: obj.zValue())
 
         offset = 0
-        objstruct = struct.Struct('>HhhHHB')
+        objstruct = struct.Struct('<HhhHHB')
         buffer = bytearray((len(layer) * 16) + 2)
         f_int = int
         for obj in layer:
@@ -688,7 +625,7 @@ class Area_NSMBU(AbstractArea):
         Saves the entrances back to block 7
         """
         offset = 0
-        entstruct = struct.Struct('>HHhhBBBBBBxBHBBBBBx')
+        entstruct = struct.Struct('<HHhhBBBBBBxBHBBBBBx')
         buffer = bytearray(len(self.entrances) * 24)
         zonelist = self.zones
         for entrance in self.entrances:
@@ -711,7 +648,7 @@ class Area_NSMBU(AbstractArea):
         """
         Saves the paths back to block 14 and 15
         """
-        pathstruct = struct.Struct('>BbHHHxxxx')
+        pathstruct = struct.Struct('<BbHHHxxxx')
         nodecount = 0
         for path in self.pathdata:
             nodecount += len(path['nodes'])
@@ -726,20 +663,8 @@ class Area_NSMBU(AbstractArea):
             pathcount += 1
         buffer = bytearray(pathcount * 12)
 
-        nPathSaved = False
-
         for path in self.pathdata:
             if len(path['nodes']) < 1: continue
-
-            if path['id'] > 90 and not nPathSaved and self.nPathdata:
-                self.WriteNabbitPathNodes(nodebuffer, nodeoffset, self.nPathdata['nodes'])
-
-                pathstruct.pack_into(buffer, offset, 90, 0, int(nodeindex), int(len(self.nPathdata['nodes'])), 0)
-                offset += 12
-                nodeoffset += len(self.nPathdata['nodes']) * 20
-                nodeindex += len(self.nPathdata['nodes'])
-
-                nPathSaved = True
 
             self.WritePathNodes(nodebuffer, nodeoffset, path['nodes'])
 
@@ -749,55 +674,22 @@ class Area_NSMBU(AbstractArea):
             nodeoffset += len(path['nodes']) * 20
             nodeindex += len(path['nodes'])
 
-        if not nPathSaved and self.nPathdata:
-            self.WriteNabbitPathNodes(nodebuffer, nodeoffset, self.nPathdata['nodes'])
-
-            pathstruct.pack_into(buffer, offset, 90, 0, int(nodeindex), int(len(self.nPathdata['nodes'])), 0)
-            offset += 12
-            nodeoffset += len(self.nPathdata['nodes']) * 20
-            nodeindex += len(self.nPathdata['nodes'])
-
         self.blocks[13] = bytes(buffer)
         self.blocks[14] = bytes(nodebuffer)
-
-    def WritePathNodes(self, buffer, offst, nodes):
-        """
-        Writes the path node data to the block 15 bytearray
-        """
-        offset = int(offst)
-
-        nodestruct = struct.Struct('>HHffhHBBBx')
-        for node in nodes:
-            nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), float(node['speed']),
-                                 float(node['accel']), int(node['delay']), 0, 0, 0, 0)
-            offset += 20
-
-    def WriteNabbitPathNodes(self, buffer, offst, nodes):
-        """
-        Writes the Nabbit path node data to the block 15 bytearray
-        """
-        offset = int(offst)
-
-        nodestruct = struct.Struct('>HHffhHBBBx')
-        for node in nodes:
-            nodestruct.pack_into(buffer, offset, int(node['x']), int(node['y']), 0.0,
-                                 0.0, int(node['action']), int(node['unk1']), int(node['unk2']),
-                                 int(node['unk3']), int(node['unk4']))
-            offset += 20
 
     def SaveSprites(self):
         """
         Saves the sprites back to block 8
         """
         offset = 0
-        sprstruct = struct.Struct('>HHHHIIBB2sBxxx')
+        sprstruct = struct.Struct('<HHHHIIBB2sBxxx')
         buffer = bytearray((len(self.sprites) * 24) + 4)
         f_int = int
         for sprite in self.sprites:
             zoneID = SLib.MapPositionToZoneID(self.zones, sprite.objx, sprite.objy, True)
             try:
                 sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy),
-                                    struct.unpack(">H", sprite.spritedata[:2])[0], struct.unpack(">I", sprite.spritedata[2:6])[0], struct.unpack(">I", sprite.spritedata[6:10])[0],
+                                    struct.unpack("<H", sprite.spritedata[:2])[0], struct.unpack("<I", sprite.spritedata[2:6])[0], struct.unpack("<I", sprite.spritedata[6:10])[0],
                                     zoneID, sprite.layer, sprite.spritedata[10:], sprite.initialState)
             except struct.error:
                 # Hopefully this will solve the mysterious bug, and will
@@ -833,7 +725,7 @@ class Area_NSMBU(AbstractArea):
         ls.sort()
 
         offset = 0
-        sprstruct = struct.Struct('>Hxx')
+        sprstruct = struct.Struct('<Hxx')
         buffer = bytearray(len(ls) * 4)
         for s in ls:
             sprstruct.pack_into(buffer, offset, int(s))
@@ -844,9 +736,9 @@ class Area_NSMBU(AbstractArea):
         """
         Saves blocks 10, 3, and 5; the zone data, boundings, and background data respectively
         """
-        bdngstruct = struct.Struct('>llllHHxxxxxxxx')
-        bgStruct = struct.Struct('>HHHH16sxBxx')
-        zonestruct = struct.Struct('>HHHHHHBBBBxBBxBxBBxBxx')
+        bdngstruct = struct.Struct('<llllHHxxxxxxxx')
+        bgStruct = struct.Struct('<HHHH16sxBxx')
+        zonestruct = struct.Struct('<HHHHHHBBBBxBBxBxBBxBxx')
         offset = 0
         bdngs, bdngcount = self.GetOptimizedBoundings()
         bgs, bgcount = self.GetOptimizedBGs()
@@ -876,7 +768,7 @@ class Area_NSMBU(AbstractArea):
 
     def GetOptimizedBoundings(self):
         bdngs = {}
-        bdngstruct = struct.Struct('>llllHHxxxxxxxx')
+        bdngstruct = struct.Struct('<llllHHxxxxxxxx')
         for z in globals.Area.zones:
             bdng = bdngstruct.pack(z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, 0, z.unknownbnf)
             if bdng not in bdngs:
@@ -893,7 +785,7 @@ class Area_NSMBU(AbstractArea):
 
     def GetOptimizedBGs(self):
         bgs = {}
-        bgStruct = struct.Struct('>HHHH16sxBxx')
+        bgStruct = struct.Struct('<HHHH16sxBxx')
         for z in globals.Area.zones:
             bg = bgStruct.pack(0, z.background[1], z.background[2], z.background[3], z.background[4], z.background[5])
             if bg not in bgs:
@@ -912,7 +804,7 @@ class Area_NSMBU(AbstractArea):
         """
         Saves block 11, the location data
         """
-        locstruct = struct.Struct('>HHHHBxxx')
+        locstruct = struct.Struct('<HHHHBxxx')
         offset = 0
         zcount = len(globals.Area.locations)
         buffer = bytearray(12 * zcount)

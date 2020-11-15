@@ -27,6 +27,7 @@
 
 ############ Imports ############
 
+import os
 from PyQt5 import QtGui, QtWidgets
 import struct
 from xml.etree import ElementTree as etree
@@ -39,7 +40,7 @@ import SarcLib
 from strings import MiyamotoTranslation
 
 from tileset import TilesetTile, ObjectDef
-from tileset import loadGTX, ProcessOverrides
+from tileset import loadCTPK, ProcessOverrides
 from tileset import CascadeTilesetNames_Category
 from tileset import SortTilesetNames_Category
 
@@ -341,8 +342,16 @@ def LoadSpriteCategories(reload_=False):
 
                     sprite = attach.attrib['sprite']
                     if '-' not in sprite:
-                        if int(sprite) not in CurrentCategory:
-                            CurrentCategory.append(int(sprite))
+                        if ',' not in sprite:
+                            if int(sprite) not in CurrentCategory:
+                                CurrentCategory.append(int(sprite))
+                        else:
+                            for i in sprite.split(','):
+                                i = ''.join(i.split())
+                                if not i:
+                                    break
+                                if int(i) not in CurrentCategory:
+                                    CurrentCategory.append(int(i))
                     else:
                         x = sprite.split('-')
                         for i in range(int(x[0]), int(x[1]) + 1):
@@ -420,10 +429,28 @@ def _LoadTileset(idx, name):
     Load in a tileset into a specific slot
     """
 
-    # if this file's not found, return
-    if name not in globals.szsData: return
+    TilesetPaths = reversed(globals.gamedef.GetGamePaths())
 
-    sarcdata = globals.szsData[name]
+    found = False
+    for path in TilesetPaths:
+        if path is None:
+            break
+
+        sarcname = os.path.join(os.path.dirname(path), 'Unit', name + '.sarc')
+        if os.path.isfile(sarcname):
+            found = True
+            break
+
+    # warning if not found
+    if not found:
+        QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_MissingTileset', 0),
+                                      globals.trans.string('Err_MissingTileset', 1, '[file]', name))
+        return False
+
+    # get the data
+    with open(sarcname, 'rb') as fileobj:
+        sarcdata = fileobj.read()
+
     sarc = SarcLib.SARC_Archive()
     sarc.load(sarcdata)
 
@@ -431,8 +458,7 @@ def _LoadTileset(idx, name):
 
     # Decompress the textures
     try:
-        comptiledata = sarc['BG_tex/%s.gtx' % name].data
-        nmldata = sarc['BG_tex/%s_nml.gtx' % name].data
+        comptiledata = sarc['BG_tex/%s.ctpk' % name].data
         colldata = sarc['BG_chk/d_bgchk_%s.bin' % name].data
 
     except KeyError:
@@ -444,113 +470,24 @@ def _LoadTileset(idx, name):
         return False
 
     # load in the textures
-    img = loadGTX(comptiledata)
-    nml = loadGTX(nmldata)
+    img = loadCTPK(comptiledata, name)
 
     # Divide it into individual tiles and
     # add collisions at the same time
     def getTileFromImage(tilemap, xtilenum, ytilenum):
-        return tilemap.copy((xtilenum * 64) + 2, (ytilenum * 64) + 2, 60, 60)
+        return tilemap.copy((xtilenum * 24) + 2, (ytilenum * 24) + 2, 20, 20)
 
     dest = QtGui.QPixmap.fromImage(img)
-    dest2 = QtGui.QPixmap.fromImage(nml)
     sourcex = 0
     sourcey = 0
     for i in range(tileoffset, tileoffset + 256):
-        T = TilesetTile(getTileFromImage(dest, sourcex, sourcey), getTileFromImage(dest2, sourcex, sourcey))
+        T = TilesetTile(getTileFromImage(dest, sourcex, sourcey))
         T.setCollisions(struct.unpack_from('<Q', colldata, (i - tileoffset) * 8)[0])
         globals.Tiles[i] = T
         sourcex += 1
-        if sourcex >= 32:
+        if sourcex >= 21:
             sourcex = 0
             sourcey += 1
-
-    def exists(fn):
-        nonlocal sarc
-
-        try:
-            sarc[fn]
-
-        except KeyError:
-            return False
-
-        return True
-    
-    # Load the tileset animations, if there are any
-    if idx == 0:
-        tileoffset = idx * 256
-
-        hatena_anime = None
-        block_anime = None
-        tuka_coin_anime = None
-        belt_conveyor_anime = None
-
-        fn = 'BG_tex/hatena_anime.gtx'
-        found = exists(fn)
-
-        if found:
-            hatena_anime = loadGTX(sarc[fn].data)
-
-        fn = 'BG_tex/block_anime.gtx'
-        found = exists(fn)
-
-        if found:
-            block_anime = loadGTX(sarc[fn].data)
-
-        fn = 'BG_tex/tuka_coin_anime.gtx'
-        found = exists(fn)
-
-        if found:
-            tuka_coin_anime = loadGTX(sarc[fn].data)
-
-        fn = 'BG_tex/belt_conveyor_anime.gtx'
-        found = exists(fn)
-
-        if found:
-            belt_conveyor_anime = loadGTX(sarc[fn].data, True)
-
-        for i in range(tileoffset, tileoffset + 256):
-            if globals.Tiles[i].coreType == 7:
-                if hatena_anime:
-                    globals.Tiles[i].addAnimationData(hatena_anime)
-
-            elif globals.Tiles[i].coreType == 6:
-                if block_anime:
-                    globals.Tiles[i].addAnimationData(block_anime)
-
-            elif globals.Tiles[i].coreType == 2:
-                if tuka_coin_anime:
-                    globals.Tiles[i].addAnimationData(tuka_coin_anime)
-
-            elif globals.Tiles[i].coreType == 17:
-                if belt_conveyor_anime:
-                    for x in range(2):
-                        if i == 144 + x * 16:
-                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 0, True)
-
-                        elif i == 145 + x * 16:
-                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 1, True)
-
-                        elif i == 146 + x * 16:
-                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 2, True)
-
-                        elif i == 147 + x * 16:
-                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 0)
-
-                        elif i == 148 + x * 16:
-                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 1)
-
-                        elif i == 149 + x * 16:
-                            globals.Tiles[i].addConveyorAnimationData(belt_conveyor_anime, 2)
-
-        for tile in globals.Overrides:
-            if tile.coreType == 7:
-                if hatena_anime:
-                    tile.addAnimationData(hatena_anime)
-
-            elif tile.coreType == 6:
-                if block_anime:
-                    tile.addAnimationData(block_anime)
 
     # Load the object definitions
     defs = [None] * 256
@@ -558,7 +495,7 @@ def _LoadTileset(idx, name):
     indexfile = sarc['BG_unt/%s_hd.bin' % name].data
     deffile = sarc['BG_unt/%s.bin' % name].data
     objcount = len(indexfile) // 6
-    indexstruct = struct.Struct('>HBBH')
+    indexstruct = struct.Struct('<HBBH')
 
     for i in range(objcount):
         data = indexstruct.unpack_from(indexfile, i * 6)
@@ -571,7 +508,7 @@ def _LoadTileset(idx, name):
 
     globals.ObjectDefinitions[idx] = defs
 
-    ProcessOverrides(name)
+    #ProcessOverrides(name)
 
 
 def LoadTileset(idx, name, reload=False):
@@ -584,15 +521,15 @@ def LoadOverrides():
     """
     OverrideBitmap = QtGui.QPixmap('miyamotodata/overrides.png')
     idx = 0
-    xcount = OverrideBitmap.width() // globals.TileWidth
-    ycount = OverrideBitmap.height() // globals.TileWidth
+    xcount = OverrideBitmap.width() // 60
+    ycount = OverrideBitmap.height() // 60
     globals.Overrides = [None] * (xcount * ycount)
     sourcex = 0
     sourcey = 0
 
     for y in range(ycount):
         for x in range(xcount):
-            bmp = OverrideBitmap.copy(sourcex, sourcey, globals.TileWidth, globals.TileWidth)
+            bmp = OverrideBitmap.copy(sourcex, sourcey, 60, 60)
             globals.Overrides[idx] = TilesetTile(bmp)
 
             # Set collisions if it's a brick or question
@@ -600,15 +537,15 @@ def LoadOverrides():
             elif x < 12 and y == 1: globals.Overrides[idx].setBrickCollisions()
 
             idx += 1
-            sourcex += globals.TileWidth
+            sourcex += 60
         sourcex = 0
-        sourcey += globals.TileWidth
+        sourcey += 60
         if idx % 16 != 0:
             idx -= (idx % 16)
             idx += 16
 
     # ? Block for Sprite 59
-    bmp = OverrideBitmap.copy(14 * globals.TileWidth, 2 * globals.TileWidth, globals.TileWidth, globals.TileWidth)
+    bmp = OverrideBitmap.copy(14 * 60, 2 * 60, 60, 60)
     globals.Overrides.append(TilesetTile(bmp))
 
 
@@ -674,14 +611,14 @@ def LoadGameDef(name=None, dlg=None):
         LoadTilesetNames(True)  # reloads tileset names
 
         # Load sprites.py
-        SLib.SpritesFolders = globals.gamedef.recursiveFiles('sprites', False, True)
+        SLib.SpritesFolders = []  #globals.gamedef.recursiveFiles('sprites', False, True)
 
         SLib.ImageCache.clear()
         SLib.SpriteImagesLoaded.clear()
         SLib.loadVines()
 
         if globals.Area is not None:
-            spriteClasses = globals.gamedef.getImageClasses()
+            spriteClasses = []  #globals.gamedef.getImageClasses()
 
             for s in globals.Area.sprites:
                 if s.type in SLib.SpriteImagesLoaded: continue

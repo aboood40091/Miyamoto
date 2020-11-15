@@ -277,9 +277,14 @@ class SpriteDefinition:
                 # parameters: title, bit, mask, comment
                 if 'nybble' in attribs:
                     sbit = attribs['nybble']
+                    if '-' in sbit:
+                        sbit = '%d-%d' % tuple((int(val) + 1) for val in sbit.split('-'))
+                    else:
+                        sbit = str(int(sbit)+1)
                     sft = 2
 
                 else:
+                    raise Exception from None
                     sbit = attribs['bit']
                     sft = 0
 
@@ -309,9 +314,14 @@ class SpriteDefinition:
                 # parameters: title, bit, model, comment
                 if 'nybble' in attribs:
                     sbit = attribs['nybble']
+                    if '-' in sbit:
+                        sbit = '%d-%d' % tuple((int(val) + 1) for val in sbit.split('-'))
+                    else:
+                        sbit = str(int(sbit)+1)
                     sft = 2
 
                 else:
+                    raise Exception from None
                     sbit = attribs['bit']
                     sft = 0
 
@@ -348,9 +358,14 @@ class SpriteDefinition:
                 # parameters: title, bit, max, comment
                 if 'nybble' in attribs:
                     sbit = attribs['nybble']
+                    if '-' in sbit:
+                        sbit = '%d-%d' % tuple((int(val) + 1) for val in sbit.split('-'))
+                    else:
+                        sbit = str(int(sbit)+1)
                     sft = 2
 
                 else:
+                    raise Exception from None
                     sbit = attribs['bit']
                     sft = 0
 

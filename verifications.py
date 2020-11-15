@@ -112,8 +112,8 @@ def isValidGamePath(check='ug'):
 
     if check is None or check == '': return False
     if not os.path.isdir(check): return False
-    if not (
-        os.path.isfile(os.path.join(check, '1-1.szs')) or os.path.isfile(os.path.join(check, '1-1.sarc'))): return False
+    if not os.path.isdir(os.path.join(os.path.dirname(check), 'Unit')): return False
+    if not os.path.isfile(os.path.join(check, '1-1.sarc')): return False
 
     return True
 

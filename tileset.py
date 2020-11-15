@@ -68,13 +68,13 @@ class TilesetTile:
             main.fill(Qt.transparent)
             self.exists = False
 
-        self.main = main
+        self.main = main.scaledToWidth(globals.TileWidth, Qt.FastTransformation)
 
         if not nml:
             nml = QtGui.QPixmap(60, 60)
             nml.fill(QtGui.QColor(128, 128, 255))
 
-        self.nml = nml
+        self.nml = nml.scaledToWidth(globals.TileWidth, Qt.FastTransformation)
         self.isAnimated = False
         self.animFrame = 0
         self.animTiles = []
@@ -625,7 +625,7 @@ class ObjectDef:
                     source += b'\0' * (i + 3 - len(source)) + b'\xfe\xff'
 
                 extra = source[i + 2]
-                tile = [cbyte, source[i + 1] | ((extra & 3) << 8), extra >> 2]
+                tile = [cbyte, source[i + 1] | ((extra >> 1 & 3) << 8), extra >> 2]
                 row.append(tile)
                 i += 3
 
@@ -1034,7 +1034,7 @@ def exportObject(name, baseName, idx, objNum):
 
     jsonData['objlyt'] = baseName + ".objlyt"
 
-    indexfile = struct.pack('>HBBH', 0, obj.width, obj.height, obj.randByte)
+    indexfile = struct.pack('<HBBH', 0, obj.width, obj.height, obj.randByte)
 
     with open(name + ".meta", "wb+") as meta:
         meta.write(indexfile)
@@ -1165,13 +1165,7 @@ def generateTilesetNames():
     """
     Generate 3 Tileset names
     """
-    words = gibberish.generate_words(3)
-    tilesetNames = ['Pa%d_%s_%d_%s' % (i + 1, globals.levelNameCache, globals.CurrentArea, word) for i, word in enumerate(words)]
-    for name in tilesetNames:
-        if name in globals.szsData:
-            # Not safe, but... ¯\_(ツ)_/¯
-            return generateTilesetNames()
-
+    tilesetNames = ['Pa%d_%s_%d' % (i + 1, globals.levelNameCache, globals.CurrentArea) for i in range(3)]
     return tilesetNames
 
 
@@ -1371,7 +1365,7 @@ def SaveTileset(idx):
         if obj is None:
             break
 
-        indexfile += struct.pack('>HBBH', len(deffile), obj.width, obj.height, obj.randByte)
+        indexfile += struct.pack('<HBBH', len(deffile), obj.width, obj.height, obj.randByte)
 
         for row in obj.rows:
             for tile in row:
@@ -1505,6 +1499,46 @@ def loadGTX(gtxdata, useAddrLib=False):
             udata = _loadGTX_addrlib(width, height, format_, use, tileMode, swizzle_, data)
 
     return QtGui.QImage(udata, width, height, QtGui.QImage.Format_RGBA8888)
+
+
+def loadCTPK(tiledata, name):
+    with open('texturipper/texture.ctpk', 'wb') as binfile:
+        binfile.write(tiledata)
+
+    with subprocess.Popen('texturipper/texturipper_1.2.exe texture.ctpk', cwd='texturipper') as proc:
+        pass
+
+    pngname = None
+    for filename in os.listdir('texturipper'):
+        if filename.endswith('.png'):
+            pngname = filename
+    if not pngname: raise Exception
+
+    with open(os.path.join('texturipper', pngname), 'rb') as pngfile:
+        img = QtGui.QImage(os.path.join('texturipper', pngname))
+
+    for filename in os.listdir('texturipper'):
+        if filename == 'texturipper_1.2.exe': continue
+        os.remove(os.path.join('texturipper', filename))
+
+    """
+    img = img.convertToFormat(QtGui.QImage.Format_RGBA8888)
+
+    imgData = img.bits()
+    imgData.setsize(img.byteCount())
+    udata = bytearray(imgData.asstring())
+
+    width, height = img.width(), img.height()
+
+    for y in range(height):
+        for x in range(width):
+            udata[(y * width + x) * 4 + 3] = 255
+
+    img = QtGui.QImage(udata, width, height, QtGui.QImage.Format_RGBA8888)
+    img.save('%s.png' % name)
+    """
+
+    return img
 
 
 def CascadeTilesetNames_Category(lower, upper):
@@ -1668,7 +1702,7 @@ def _RenderObject(obj, width, height, fullslope=False):
         afterRepeat = []
 
         for row in obj.rows:
-            if row and (row[0][0] & 2) != 0:
+            if row and ((row[0][0] & 2) != 0 or (row[0][0] & 4) != 0):
                 repeatFound = True
                 inRepeat.append(row)
 
@@ -1746,7 +1780,7 @@ def RenderStandardRow(dest, row, width):
     afterRepeat = []
 
     for tile in row:
-        if tile[0] & 1:
+        if tile[0] & 1 or ((row[0][0] & 4) != 0 and (tile[0] & 4) == 0):
             repeatFound = True
             inRepeat.append(tile)
 
@@ -2130,4 +2164,7 @@ def SimpleTilesetNames():
         return result
 
     pa0 = sorted(ParseCategory(globals.TilesetNames[0][0]), key=lambda entry: entry[1])
-    return pa0
+    pa1 = sorted(ParseCategory(globals.TilesetNames[1][0]), key=lambda entry: entry[1])
+    pa2 = sorted(ParseCategory(globals.TilesetNames[2][0]), key=lambda entry: entry[1])
+    pa3 = sorted(ParseCategory(globals.TilesetNames[3][0]), key=lambda entry: entry[1])
+    return (pa0, pa1, pa2, pa3)

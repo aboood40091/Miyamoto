@@ -91,8 +91,8 @@ AutoSaveData = b''
 AutoOpenScriptEnabled = False
 ExceptionRaised = False
 CurrentLevelNameForAutoOpenScript = 'AAAAAAAAAAAAAAAAAAAAAAAAAA'
-TileWidth = 60
-szsData = {}
+TileWidth = 20
+#szsData = {}
 levelNameCache = ''
 UseRGBA8 = False
 NumSprites = 0
@@ -103,6 +103,6 @@ err_msg = ''
 names_bg = []
 
 # Game enums
-FileExtentions = ('.szs', '.sarc')
+FileExtentions = ('.sarc',)
 Pa0Tilesets = ('Pa0_jyotyu', 'Pa0_jyotyu_chika',
                'Pa0_jyotyu_yougan', 'Pa0_jyotyu_yougan2')

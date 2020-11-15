@@ -1,6 +1,0 @@
-Make sure you download the main tileset pack from the releases page and extract it here!
-Files that should be included in the pack:
-- Pa0_jyotyu.szs
-- Pa0_jyotyu_chika.szs
-- Pa0_jyotyu_yougan.szs
-- Pa0_jyotyu_yougan2.szs

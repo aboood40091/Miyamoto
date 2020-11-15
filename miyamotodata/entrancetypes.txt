@@ -13,7 +13,7 @@
 12:Normal (Mispositioned)
 13:Normal (Mispositioned)
 14:Unknown
-15:Unknown
+15:Boss Door Exit
 16:Mini Pipe Facing Up
 17:Mini Pipe Facing Down
 18:Mini Pipe Facing Left
@@ -22,14 +22,11 @@
 21:Vine Entrance
 22:Pipe Facing Towards Screen
 23:Boss Entrance (Standing)
-24:Walking Right (From Entrance Pos. to 8 Blocks Right of Entrance Pos.)
+24:Jumping (Facing Left)
 25:Boss Entrance (Jumping Right)
 26:Boss Entrance (Falling Right)
 27:Door Entrance
-28:Unknown (Crash)
-29:Credits (Player 1)
-30:Credits (Player 2)
-31:Credits (Player 3)
-32:Credits (Player 4)
-33:Title Screen
-34:Ambush entrance (Center)
+28:Unknown 2 (Crash)
+29:Bowser Battle Exit
+30:Walking Right (from 4 blocks behind entrance pos. to entrance pos.)
+31:Walking Left (from 4 blocks behind entrance pos. to entrance pos.)

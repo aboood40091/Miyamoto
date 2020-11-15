@@ -232,11 +232,6 @@ class ObjectItem(LevelEditorItem):
         """
         super().__init__()
 
-        # Specify the data value for each Item-containing block
-        items = {16: 1, 17: 2, 18: 3, 19: 4, 20: 5, 21: 6, 22: 7, 23: 8,
-                 24: 9, 25: 10, 26: 11, 27: 12, 28: data, 29: 14, 30: 15,
-                 31: 16, 32: 17, 33: 18, 34: 19, 35: 20, 36: 21, 37: 22, 38: 23, 39: 24}
-
         self.tileset = tileset
         self.type = type
         self.original_type = type
@@ -245,41 +240,7 @@ class ObjectItem(LevelEditorItem):
         self.layer = layer
         self.width = width
         self.height = height
-
-        if self.tileset == 0 and self.type in items:
-            # Set the data value for
-            # each Item-containing block.
-            self.data = items[self.type]
-
-            # Transform Item-containing blocks into
-            # ? blocks with specific data values.
-
-            # Technically, we don't even need to do this
-            # but this is how Nintendo did it, so... ¯\_(ツ)_/¯
-            self.type = 28
-
-            # Nintendo didn't use value 0 for ?
-            # blocks even though it's fully functional.
-            # Let's use value 13, like them.
-            if self.data == 0: self.data = 13
-
-        else:
-            # In NSMBU, you can transform *any* object
-            # from *any* tileset into a brick/?/stone/etc.
-            # block by changing its data value.
-            # (from 0 to something else)
-
-            # This was discovered by flzmx
-            # and AboodXD by an accident.
-
-            # The tiles' properties can also effect
-            # what the object will turn into
-            # when its data value is not 0.
-
-            # Let's hardcode the object's data value to 0
-            # to prevent funny stuff from happening ingame.
-            if data > 0: SetDirty()
-            self.data = 0
+        self.data = data
 
         self.objdata = None
 
@@ -1104,16 +1065,16 @@ class ZoneItem(LevelEditorItem):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
         # Paint liquids/fog
-        if globals.SpritesShown and globals.RealViewEnabled:
-            zoneRect = QtCore.QRectF(self.objx * globals.TileWidth / 16, self.objy * globals.TileWidth / 16, self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)
-            viewRect = globals.mainWindow.view.mapToScene(globals.mainWindow.view.viewport().rect()).boundingRect()
+        #if globals.SpritesShown and globals.RealViewEnabled:
+        #    zoneRect = QtCore.QRectF(self.objx * globals.TileWidth / 16, self.objy * globals.TileWidth / 16, self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)
+        #    viewRect = globals.mainWindow.view.mapToScene(globals.mainWindow.view.viewport().rect()).boundingRect()
 
-            for sprite in globals.Area.sprites:
-                if sprite.type in [88, 89, 90, 92, 198, 201]:
-                    spriteZoneID = SLib.MapPositionToZoneID(globals.Area.zones, sprite.objx, sprite.objy)
+        #    for sprite in globals.Area.sprites:
+        #        if sprite.type in [88, 89, 90, 92, 198, 201]:
+        #            spriteZoneID = SLib.MapPositionToZoneID(globals.Area.zones, sprite.objx, sprite.objy)
 
-                    if self.id == spriteZoneID:
-                        sprite.ImageObj.realViewZone(painter, zoneRect, viewRect)
+        #            if self.id == spriteZoneID:
+        #                sprite.ImageObj.realViewZone(painter, zoneRect, viewRect)
 
         # Now paint the borders
         painter.setPen(QtGui.QPen(globals.theme.color('zone_lines'), 3 * globals.TileWidth / 24))
@@ -2338,7 +2299,7 @@ class EntranceItem(LevelEditorItem):
             ei = []
             src = QtGui.QPixmap('miyamotodata/entrances.png')
             for i in range(18):
-                ei.append(src.copy(i * globals.TileWidth, 0, globals.TileWidth, globals.TileWidth))
+                ei.append(src.copy(i * 60, 0, 60, 60).scaledToWidth(globals.TileWidth, Qt.FastTransformation))
             EntranceItem.EntranceImages = ei
 
         super().__init__()

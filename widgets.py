@@ -1203,17 +1203,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                 for tile in row:
                     # If this object has data, make sure to override it properly
                     if tile > 0:
-                        offset = 0x200 * 4
-                        items = {1: 26, 2: 27, 3: 16, 4: 17, 5: 18, 6: 19,
-                                 7: 20, 8: 21, 9: 22, 10: 25, 11: 23, 12: 24,
-                                 14: 32, 15: 33, 16: 34, 17: 35, 18: 42, 19: 36,
-                                 20: 37, 21: 38, 22: 41, 23: 39, 24: 40}
-
-                        if item.data in items:
-                            destrow[destx] = offset + items[item.data]
-
-                        else:
-                            destrow[destx] = tile
+                        destrow[destx] = tile
 
                     elif not exists:
                         destrow[destx] = -1
@@ -1985,7 +1975,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
                         y += globals.TileWidth
                     p.end()
 
-                    pm = pm.scaledToWidth(pm.width() * 32 / globals.TileWidth, Qt.SmoothTransformation)
+                    pm = pm.scaledToWidth(pm.width() * min(globals.TileWidth, 32) / globals.TileWidth, Qt.SmoothTransformation)
                     if pm.width() > 256:
                         pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
                     if pm.height() > 256:
@@ -2167,7 +2157,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
                 p.end()
 
                 # Resize the preview for a good looking layout
-                pm = pm.scaledToWidth(pm.width() * 32 / globals.TileWidth, Qt.SmoothTransformation)
+                pm = pm.scaledToWidth(pm.width() * min(globals.TileWidth, 32) / globals.TileWidth, Qt.SmoothTransformation)
                 if pm.width() > 256:
                     pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
                 if pm.height() > 256:
@@ -3945,63 +3935,96 @@ class TilesetsTab(QtWidgets.QWidget):
         super().__init__()
 
         self.tile0 = QtWidgets.QComboBox()
+        self.tile1 = QtWidgets.QComboBox()
+        self.tile2 = QtWidgets.QComboBox()
+        self.tile3 = QtWidgets.QComboBox()
 
-        name = globals.Area.tileset0
-        slot = self.HandleTileset0Choice
+        self.widgets = [self.tile0, self.tile1, self.tile2, self.tile3]
+        names = [globals.Area.tileset0, globals.Area.tileset1, globals.Area.tileset2, globals.Area.tileset3]
+        slots = [self.HandleTileset0Choice, self.HandleTileset1Choice, self.HandleTileset2Choice,
+                 self.HandleTileset3Choice]
 
-        self.currentChoice = None
+        self.currentChoices = [None, None, None, None]
 
-        data = SimpleTilesetNames()
+        TilesetNamesIterable = SimpleTilesetNames()
 
-        # First, find the current index and custom-tileset strings
-        if name == '':  # No tileset selected, the current index should be None
-            ts_index = globals.trans.string('AreaDlg', 15)  # None
-            custom = ''
-            custom_fname = globals.trans.string('AreaDlg', 16)  # [CUSTOM]
-        else:  # Tileset selected
-            ts_index = globals.trans.string('AreaDlg', 18, '[name]', name)  # Custom filename... [name]
-            custom = name
-            custom_fname = globals.trans.string('AreaDlg', 17, '[name]', name)  # [CUSTOM] [name]
+        for idx, widget, name, data, slot in zip(range(4), self.widgets, names, TilesetNamesIterable, slots):
+            # This loop runs once for each tileset.
+            # First, find the current index and custom-tileset strings
+            if name == '':  # No tileset selected, the current index should be None
+                ts_index = globals.trans.string('AreaDlg', 15)  # None
+                custom = ''
+                custom_fname = globals.trans.string('AreaDlg', 16)  # [CUSTOM]
+            else:  # Tileset selected
+                ts_index = globals.trans.string('AreaDlg', 18, '[name]', name)  # Custom filename... [name]
+                custom = name
+                custom_fname = globals.trans.string('AreaDlg', 17, '[name]', name)  # [CUSTOM] [name]
 
-        # Add items to the widget:
-        # - None
-        self.tile0.addItem(globals.trans.string('AreaDlg', 15), '')  # None
-        # - Retail Tilesets
-        for tfile, tname in data:
-            if tfile in globals.szsData:
+            # Add items to the widget:
+            # - None
+            widget.addItem(globals.trans.string('AreaDlg', 15), '')  # None
+            # - Retail Tilesets
+            for tfile, tname in data:
                 text = globals.trans.string('AreaDlg', 19, '[name]', tname, '[file]', tfile)  # [name] ([file])
-                self.tile0.addItem(text, tfile)
+                widget.addItem(text, tfile)
                 if name == tfile:
                     ts_index = text
                     custom = ''
-        # - Custom Tileset
-        self.tile0.addItem(globals.trans.string('AreaDlg', 18, '[name]', custom), custom_fname)  # Custom filename... [name]
+            # - Custom Tileset
+            widget.addItem(globals.trans.string('AreaDlg', 18, '[name]', custom), custom_fname)  # Custom filename... [name]
 
-        # Set the current index
-        item_idx = self.tile0.findText(ts_index)
-        self.currentChoice = item_idx
-        self.tile0.setCurrentIndex(item_idx)
+            # Set the current index
+            item_idx = widget.findText(ts_index)
+            self.currentChoices[idx] = item_idx
+            widget.setCurrentIndex(item_idx)
 
-        # Handle combobox changes
-        self.tile0.activated.connect(slot)
+            # Handle combobox changes
+            widget.activated.connect(slot)
 
         # don't allow ts0 to be removable
         self.tile0.removeItem(0)
 
         mainLayout = QtWidgets.QVBoxLayout()
         tile0Box = QtWidgets.QGroupBox(globals.trans.string('AreaDlg', 11))
+        tile1Box = QtWidgets.QGroupBox(globals.trans.string('AreaDlg', 12))
+        tile2Box = QtWidgets.QGroupBox(globals.trans.string('AreaDlg', 13))
+        tile3Box = QtWidgets.QGroupBox(globals.trans.string('AreaDlg', 14))
 
         t0 = QtWidgets.QVBoxLayout()
         t0.addWidget(self.tile0)
+        t1 = QtWidgets.QVBoxLayout()
+        t1.addWidget(self.tile1)
+        t2 = QtWidgets.QVBoxLayout()
+        t2.addWidget(self.tile2)
+        t3 = QtWidgets.QVBoxLayout()
+        t3.addWidget(self.tile3)
 
         tile0Box.setLayout(t0)
+        tile1Box.setLayout(t1)
+        tile2Box.setLayout(t2)
+        tile3Box.setLayout(t3)
 
         mainLayout.addWidget(tile0Box)
+        mainLayout.addWidget(tile1Box)
+        mainLayout.addWidget(tile2Box)
+        mainLayout.addWidget(tile3Box)
         mainLayout.addStretch(1)
         self.setLayout(mainLayout)
 
     def HandleTileset0Choice(self, index):
-        w = self.tile0
+        self.HandleTilesetChoice(0, index)
+
+    def HandleTileset1Choice(self, index):
+        self.HandleTilesetChoice(1, index)
+
+    def HandleTileset2Choice(self, index):
+        self.HandleTilesetChoice(2, index)
+
+    def HandleTileset3Choice(self, index):
+        self.HandleTilesetChoice(3, index)
+
+    def HandleTilesetChoice(self, tileset, index):
+        w = self.widgets[tileset]
 
         if index == (w.count() - 1):
             fname = str(w.itemData(index))
@@ -4019,7 +4042,7 @@ class TilesetsTab(QtWidgets.QWidget):
 
             if result == QtWidgets.QDialog.Accepted:
                 fname = str(dbox.textbox.text())
-                if fname.endswith('.szs') or fname.endswith('.sarc'): fname = fname[:-3]
+                if fname.endswith('.szs'): fname = fname[:-4]
 
                 w.setItemText(index, globals.trans.string('AreaDlg', 18, '[name]', fname))
                 w.setItemData(index, globals.trans.string('AreaDlg', 17, '[name]', fname))
@@ -4027,15 +4050,19 @@ class TilesetsTab(QtWidgets.QWidget):
                 w.setCurrentIndex(self.currentChoice)
                 return
 
-        self.currentChoice = index
+        self.currentChoices[tileset] = index
 
-    def value(self):
+    def values(self):
         """
-        Returns the main tileset choice
+        Returns all 4 tileset choices
         """
-        idx = self.tile0.currentIndex()
-        name = str(self.tile0.itemData(idx))
-        return name
+        result = []
+        for i in range(4):
+            widget = eval('self.tile%d' % i)
+            idx = widget.currentIndex()
+            name = str(widget.itemData(idx))
+            result.append(name)
+        return tuple(result)
 
 
 class LevelViewWidget(QtWidgets.QGraphicsView):

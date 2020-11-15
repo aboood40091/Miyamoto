@@ -35,7 +35,7 @@ from xml.etree import ElementTree as etree
 
 import globals
 from misc import setting, setSetting
-import sprites
+#import sprites
 
 #################################
 
@@ -87,7 +87,7 @@ class MiyamotoGameDefinition:
         self.description = globals.trans.string('Gamedefs', 14)  # 'A new adventure, and in HD!' and the date
         self.version = '1.0'
 
-        self.sprites = sprites
+        #self.sprites = sprites
 
         self.files = {
             'bg': gdf(None, False),
@@ -162,6 +162,7 @@ class MiyamotoGameDefinition:
         # Get rid of the XML stuff
         del tree, root
 
+        """
         # Load sprites.py if provided
         if 'sprites' in self.files:
             file = open(self.files['sprites'].path, 'r')
@@ -175,6 +176,7 @@ class MiyamotoGameDefinition:
             exec(filedata, new_module.__dict__)
             sys.modules[new_module.__name__] = new_module
             self.sprites = new_module
+        """
 
     def GetGamePath(self):
         """
@@ -340,7 +342,7 @@ class MiyamotoGameDefinition:
     def getImageClasses(self):
         """
         Gets all image classes
-        """
+
         if not self.custom:
             return self.sprites.ImageClasses
 
@@ -352,6 +354,8 @@ class MiyamotoGameDefinition:
         if hasattr(self.sprites, 'ImageClasses'):
             images.update(self.sprites.ImageClasses)
         return images
+        """
+        return {}
 
 
 def GetPath(id_):

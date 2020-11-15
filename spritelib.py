@@ -46,7 +46,6 @@ OutlinePen = None
 OutlineBrush = None
 ImageCache = {}
 Tiles = {}
-TileWidth = 60
 SpriteImagesLoaded = set()
 MapPositionToZoneID = None
 
@@ -64,9 +63,16 @@ def loadVines():
     """
     Loads vines
     """
-    loadIfNotInImageCache('VineTop', 'vine_top.png')
-    loadIfNotInImageCache('VineMid', 'vine_mid.png')
-    loadIfNotInImageCache('VineBtm', 'vine_btm.png')
+    if 'VineTop' in ImageCache:
+        return
+
+    top = GetImg('vine_top.png'); top = top.scaledToWidth(top.width()/60*globals.TileWidth, Qt.FastTransformation)
+    mid = GetImg('vine_mid.png'); mid = mid.scaledToWidth(mid.width()/60*globals.TileWidth, Qt.FastTransformation)
+    btm = GetImg('vine_btm.png'); btm = btm.scaledToWidth(btm.width()/60*globals.TileWidth, Qt.FastTransformation)
+
+    ImageCache['VineTop'] = top
+    ImageCache['VineMid'] = mid
+    ImageCache['VineBtm'] = btm
 
 
 def main():
@@ -74,7 +80,7 @@ def main():
     Resets Sprites.py to its original settings
     """
     global OutlineColor, OutlinePen, OutlineBrush, ImageCache, SpritesFolders
-    OutlinePen = QtGui.QPen(OutlineColor, 4 * (TileWidth/24))
+    OutlinePen = QtGui.QPen(OutlineColor, 4 * (globals.TileWidth/24))
     OutlineBrush = QtGui.QBrush(OutlineColor)
 
     for i in range(256):
@@ -190,7 +196,7 @@ class SpriteImage:
         """
         self.parent = parent
 
-        if scale is None: scale = TileWidth / 16
+        if scale is None: scale = globals.TileWidth / 16
 
         self.alpha = 1.0
         self.image = None
@@ -296,7 +302,7 @@ class SpriteImage_Liquid(SpriteImage):
         if self.image is None: return
         painter.save()
         painter.setOpacity(self.alpha)
-        painter.scale(16 * self.scale / TileWidth, 16 * self.scale / TileWidth) # rescale images not based on a 60x60 block size
+        painter.scale(16 * self.scale / globals.TileWidth, 16 * self.scale / globals.TileWidth) # rescale images not based on a 60x60 block size
         painter.setRenderHint(painter.SmoothPixmapTransform)
         painter.drawPixmap(0, 0, self.image)
         painter.restore()
@@ -335,7 +341,7 @@ class SpriteImage_Static(SpriteImage):
         if self.image is None: return
         painter.save()
         painter.setOpacity(self.alpha)
-        painter.scale(16 * self.scale / TileWidth, 16 * self.scale / TileWidth) # rescale images not based on a 60x60 block size
+        painter.scale(16 * self.scale / globals.TileWidth, 16 * self.scale / globals.TileWidth) # rescale images not based on a 60x60 block size
         painter.setRenderHint(painter.SmoothPixmapTransform)
         painter.drawPixmap(0, 0, self.image)
         painter.restore()
@@ -563,7 +569,7 @@ class Spritebox:
         self.width = 16
         self.height = 16
 
-        if scale is None: scale = TileWidth / 16
+        if scale is None: scale = globals.TileWidth / 16
         self.scale = scale
 
     # Offset property
@@ -677,7 +683,7 @@ class AuxiliarySpriteItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         self.setParentItem(parent)
         self.hover = False
 
-        self.BoundingRect = QtCore.QRectF(0, 0, TileWidth, TileWidth)
+        self.BoundingRect = QtCore.QRectF(0, 0, globals.TileWidth, globals.TileWidth)
 
     def setIsBehindSprite(self, behind):
         """
@@ -707,7 +713,7 @@ class AuxiliaryTrackObject(AuxiliarySpriteItem):
         """
         super().__init__(parent)
 
-        self.BoundingRect = QtCore.QRectF(0, 0, width * (TileWidth/16), height * (TileWidth/16))
+        self.BoundingRect = QtCore.QRectF(0, 0, width * (globals.TileWidth/16), height * (globals.TileWidth/16))
         self.setPos(0, 0)
         self.width = width
         self.height = height
@@ -716,7 +722,7 @@ class AuxiliaryTrackObject(AuxiliarySpriteItem):
 
     def setSize(self, width, height):
         self.prepareGeometryChange()
-        self.BoundingRect = QtCore.QRectF(0, 0, width * (TileWidth/16), height * (TileWidth/16))
+        self.BoundingRect = QtCore.QRectF(0, 0, width * (globals.TileWidth/16), height * (globals.TileWidth/16))
         self.width = width
         self.height = height
 
@@ -729,15 +735,15 @@ class AuxiliaryTrackObject(AuxiliarySpriteItem):
         painter.setPen(OutlinePen)
 
         if self.direction == self.Horizontal:
-            lineY = self.height * 0.75 * (TileWidth/24)
-            painter.drawLine(20 * (TileWidth/24), lineY, (self.width * (TileWidth/16)) - 20 * (TileWidth/24), lineY)
-            painter.drawEllipse(8 * (TileWidth/24), lineY - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
-            painter.drawEllipse((self.width * (TileWidth/16)) - 16 * (TileWidth/24), lineY - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
+            lineY = self.height * 0.75 * (globals.TileWidth/24)
+            painter.drawLine(20 * (globals.TileWidth/24), lineY, (self.width * (globals.TileWidth/16)) - 20 * (globals.TileWidth/24), lineY)
+            painter.drawEllipse(8 * (globals.TileWidth/24), lineY - 4 * (globals.TileWidth/24), 8 * (globals.TileWidth/24), 8 * (globals.TileWidth/24))
+            painter.drawEllipse((self.width * (globals.TileWidth/16)) - 16 * (globals.TileWidth/24), lineY - 4 * (globals.TileWidth/24), 8 * (globals.TileWidth/24), 8 * (globals.TileWidth/24))
         else:
-            lineX = self.width * 0.75 * (TileWidth/24)
-            painter.drawLine(lineX, 20 * (TileWidth/24), lineX, (self.height * (TileWidth/16)) - 20 * (TileWidth/24))
-            painter.drawEllipse(lineX - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
-            painter.drawEllipse(lineX - 4 * (TileWidth/24), (self.height * (TileWidth/16)) - 16 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
+            lineX = self.width * 0.75 * (globals.TileWidth/24)
+            painter.drawLine(lineX, 20 * (globals.TileWidth/24), lineX, (self.height * (globals.TileWidth/16)) - 20 * (globals.TileWidth/24))
+            painter.drawEllipse(lineX - 4 * (globals.TileWidth/24), 8 * (globals.TileWidth/24), 8 * (globals.TileWidth/24), 8 * (globals.TileWidth/24))
+            painter.drawEllipse(lineX - 4 * (globals.TileWidth/24), (self.height * (globals.TileWidth/16)) - 16 * (globals.TileWidth/24), 8 * (globals.TileWidth/24), 8 * (globals.TileWidth/24))
 
 
 class AuxiliaryCircleOutline(AuxiliarySpriteItem):
@@ -753,10 +759,10 @@ class AuxiliaryCircleOutline(AuxiliarySpriteItem):
 
     def setSize(self, width):
         self.prepareGeometryChange()
-        self.BoundingRect = QtCore.QRectF(0, 0, width * (TileWidth/16), width * (TileWidth/16))
+        self.BoundingRect = QtCore.QRectF(0, 0, width * (globals.TileWidth/16), width * (globals.TileWidth/16))
 
-        centerOffset = (8 - (width / 2)) * (TileWidth/16)
-        fullOffset = -(width * (TileWidth/16)) + TileWidth
+        centerOffset = (8 - (width / 2)) * (globals.TileWidth/16)
+        fullOffset = -(width * (globals.TileWidth/16)) + globals.TileWidth
 
         xval = 0
         if self.alignMode & Qt.AlignHCenter:
@@ -791,8 +797,8 @@ class AuxiliaryRotationAreaOutline(AuxiliarySpriteItem):
         """
         super().__init__(parent)
 
-        self.BoundingRect = QtCore.QRectF(0, 0, width * (TileWidth/16), width * (TileWidth/16))
-        self.setPos((8 - (width / 2)) * (TileWidth/16), (8 - (width / 2)) * (TileWidth/16))
+        self.BoundingRect = QtCore.QRectF(0, 0, width * (globals.TileWidth/16), width * (globals.TileWidth/16))
+        self.setPos((8 - (width / 2)) * (globals.TileWidth/16), (8 - (width / 2)) * (globals.TileWidth/16))
         self.width = width
         self.startAngle = 0
         self.spanAngle = 0
@@ -893,8 +899,8 @@ class AuxiliaryImage(AuxiliarySpriteItem):
 
     def setImage(self, image, xoff=0, yoff=0, doScale=False):
         if doScale:
-            xoff *= TileWidth / 16
-            yoff *= TileWidth / 16
+            xoff *= globals.TileWidth / 16
+            yoff *= globals.TileWidth / 16
 
         width, height = image.width(), image.height()
         self.setSize(width, height, xoff, yoff)
@@ -1015,7 +1021,7 @@ class AuxiliaryZoneItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         if parent is not None:
             parent.aux.add(self)
 
-        self.BoundingRect = QtCore.QRectF(0, 0, TileWidth, TileWidth)
+        self.BoundingRect = QtCore.QRectF(0, 0, globals.TileWidth, globals.TileWidth)
 
     def setIsBehindZone(self, behind):
         """
@@ -1053,7 +1059,7 @@ class AuxiliaryZoneItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         if self.parent is not None:
             self.BoundingRect = QtCore.QRectF(self.parent.BoundingRect)
         else:
-            self.BoundingRect = QtCore.QRectF(0, 0, TileWidth, TileWidth)
+            self.BoundingRect = QtCore.QRectF(0, 0, globals.TileWidth, globals.TileWidth)
 
     def zoneRepositioned(self):
         """
@@ -1084,7 +1090,7 @@ class AuxiliaryLocationItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         self.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, False)
         self.setParentItem(parent)
         self.hover = False
-        self.BoundingRect = QtCore.QRectF(0, 0, TileWidth, TileWidth)
+        self.BoundingRect = QtCore.QRectF(0, 0, globals.TileWidth, globals.TileWidth)
 
     def setIsBehindLocation(self, behind):
         """
