@@ -701,13 +701,13 @@ def LoadGameDef(name=None, dlg=None):
         LoadTilesetNames(True)  # reloads tileset names
 
         # Load sprites.py
+        SLib.SpritesFolders = globals.gamedef.recursiveFiles('sprites', False, True)
+
+        SLib.ImageCache.clear()
+        SLib.SpriteImagesLoaded.clear()
+        SLib.loadVines()
+
         if globals.Area is not None:
-            SLib.SpritesFolders = globals.gamedef.recursiveFiles('sprites', False, True)
-
-            SLib.ImageCache.clear()
-            SLib.SpriteImagesLoaded.clear()
-            SLib.loadVines()
-
             spriteClasses = globals.gamedef.getImageClasses()
 
             for s in globals.Area.sprites:
@@ -724,8 +724,7 @@ def LoadGameDef(name=None, dlg=None):
                 else:
                     s.setImageObj(SLib.SpriteImage)
 
-        # Reload the sprite-picker text
-        if globals.Area is not None:
+            # Reload the sprite-picker text
             for spr in globals.Area.sprites:
                 spr.UpdateListItem()  # Reloads the sprite-picker text
 
@@ -784,6 +783,7 @@ def LoadActionsLists():
         (globals.trans.string('MenuItems', 52), True, 'showlay2'),
         (globals.trans.string('MenuItems', 54), True, 'showsprites'),
         (globals.trans.string('MenuItems', 56), False, 'showspriteimages'),
+        (globals.trans.string('MenuItems', 151), True, 'showrotation'),
         (globals.trans.string('MenuItems', 58), True, 'showlocations'),
         (globals.trans.string('MenuItems', 138), True, 'showpaths'),
         (globals.trans.string('MenuItems', 60), True, 'grid'),

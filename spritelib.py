@@ -30,10 +30,14 @@
 
 ############ Imports ############
 
+from math import sin, cos, radians
 import os.path
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
+QTransform = QtGui.QTransform
+
+import globals
 
 #################################
 
@@ -147,6 +151,29 @@ def MapPositionToZoneID(zones, x, y, useid=False):
     return rval
 
 
+def rotatePoint(x, y, angle, pivotX=0, pivotY=0):
+    """
+    Rotate the point (x, y) about (pivotX, pivotY)
+    angle must be in radians!
+    """
+    # Move the pivot to origin
+    x -= pivotX
+    y -= pivotY
+
+    # Calculate the sine and cosine of angle
+    s = sin(angle)
+    c = cos(angle)
+
+    # Rotate the point
+    x_rotated = x * c - y * s
+    y_rotated = x * s + y * c
+
+    # Move the pivot back
+    x = x_rotated + pivotX
+    y = y_rotated + pivotY
+
+    return x, y
+
 
 ################################################################
 ################################################################
@@ -194,6 +221,12 @@ class SpriteImage:
     def paint(self, painter):
         """
         Paints the sprite
+        """
+        pass
+
+    def delete(self):
+        """
+        Called when the sprite is deleted
         """
         pass
 
@@ -308,17 +341,6 @@ class SpriteImage_Static(SpriteImage):
         painter.restore()
 
 
-class SpriteImage_MovementController(SpriteImage_Static):
-    """
-    A special class for movement controllers
-    """
-    def __init__(self, parent, scale=None, image=None):
-        super().__init__(parent, scale, image)
-
-    def getMovementID(self):
-        return self.parent.spritedata[10]
-
-
 class SpriteImage_StaticMultiple(SpriteImage_Static):
     """
     A class that acts like a SpriteImage_Static but lets you change
@@ -327,6 +349,201 @@ class SpriteImage_StaticMultiple(SpriteImage_Static):
     def __init__(self, parent, scale=None, image=None, offset=None):
         super().__init__(parent, scale, image, offset)
     # no other changes needed yet
+
+
+class SpriteImage_MovementController(SpriteImage_StaticMultiple):
+    """
+    A special class for movement controllers
+    """
+    def __init__(self, parent, scale=None, image=None):
+        super().__init__(parent, scale, image)
+
+        self.controlled = []
+        self.previousId = 0
+
+        self.parent.setZValue(500000)
+
+    def getMovementID(self):
+        return self.parent.spritedata[10]
+
+    def getStartRotation(self):
+        return 0
+
+    def getPivot(self):
+        return (self.parent.objx + 8, self.parent.objy + 8)
+
+    def updateControlled(self):
+        for controlled in self.controlled:
+            controlled.parent.UpdateDynamicSizing()
+
+    def detachControlled(self):
+        if self.controlled:
+            for controlled in self.controlled:
+                controlled.controller = None
+                controlled.parent.UpdateDynamicSizing()
+
+            self.controlled = []
+
+        for sprite in globals.Area.sprites:
+            if isinstance(sprite.ImageObj, SpriteImage_MovementControlled) and not sprite.ImageObj.controller:
+                sprite.UpdateDynamicSizing()
+
+    def dataChanged(self):
+        id = self.getMovementID()
+        if id != self.previousId:
+            self.previousId = id
+            self.detachControlled()
+
+        else:
+            self.updateControlled()
+
+        super().dataChanged()
+
+    def positionChanged(self):
+        self.updateControlled()
+
+    def delete(self):
+        self.detachControlled()
+
+
+class SpriteImage_MovementControlled(SpriteImage_StaticMultiple):
+    """
+    A class to handle movement-controlled sprites
+    and apply the movement to them (rotation, for now)
+
+    Only self.image and AuxiliaryImage objects will be affected
+
+    Make sure you always reset the self.offset,
+    self.image and aux.image (if existent) in your dataChanged()!
+
+    If you have a sprite with an aux image and no self.image,
+    it is recommended that you make the selection rectangle
+    (self.width, self.height) a square
+    """
+
+    # If set to false, the image will be moved around but not rotated
+    affectImage = True
+    affectAUXImage = True
+
+    def __init__(self, parent, scale=None, image=None):
+        super().__init__(parent, scale, image)
+
+        self.controller = None
+
+    def getMovementID(self):
+        return self.parent.spritedata[10]
+
+    def allowedMovementControllers(self):
+        return tuple()
+
+    def findController(self):
+        zoneId = self.parent.nearestZone()
+        if zoneId == -1:
+            self.controller = None
+            return
+
+        types = self.allowedMovementControllers()
+        if not types:
+            self.controller = None
+            return
+
+        for sprite in globals.Area.sprites:
+            if ( sprite.nearestZone() == zoneId and sprite.type in types
+                 and isinstance(sprite.ImageObj, SpriteImage_MovementController) ):
+                if sprite.ImageObj.getMovementID() == self.getMovementID():
+                    self.controller = sprite.ImageObj
+                    sprite.ImageObj.controlled.append(self)
+                    break
+
+        else:
+            self.controller = None
+
+    def unhookController(self):
+        if self.controller:
+            self.controller.controlled.remove(self)
+            self.controller = None
+
+    def dataChanged(self):
+        if not self.controller or self.controller.getMovementID() != self.getMovementID():
+            self.unhookController()
+            self.findController()
+
+        if self.controller and globals.RotationShown:
+            angle = self.controller.getStartRotation()
+            angle_radian = radians(angle)
+            pivot = self.controller.getPivot()
+
+            xOffset = self.xOffset
+            yOffset = self.yOffset
+
+            if not self.image:
+                centerX = (self.parent.objx + self.width / 2) + xOffset
+                centerY = (self.parent.objy + self.height / 2) + yOffset
+
+                centerX, centerY = rotatePoint(centerX, centerY, angle_radian, *pivot)
+
+                self.xOffset = centerX - (self.parent.objx + self.width / 2)
+                self.yOffset = centerY - (self.parent.objy + self.height / 2)
+
+            else:
+                old_image = self.image
+                if self.affectImage:
+                    image = old_image.transformed(QTransform().rotate(angle))
+
+                else:
+                    image = old_image
+
+                centerX = self.parent.objx + xOffset + old_image.width() / (2 * self.scale)
+                centerY = self.parent.objy + yOffset + old_image.height() / (2 * self.scale)
+
+                centerX, centerY = rotatePoint(centerX, centerY, angle_radian, *pivot)
+        
+                self.xOffset = centerX - image.width() / (2 * self.scale) - self.parent.objx
+                self.yOffset = centerY - image.height() / (2 * self.scale) - self.parent.objy
+
+                self.width = image.width() / self.scale
+                self.height = image.height() / self.scale
+                self.image = image
+
+            for aux in self.aux:
+                if not isinstance(aux, AuxiliaryImage) or not aux.image:
+                    continue
+
+                old_image = aux.image
+                if self.affectAUXImage:
+                    image = old_image.transformed(QTransform().rotate(angle))
+
+                else:
+                    image = old_image
+
+                centerX = self.parent.objx + xOffset + aux.x() / self.scale + old_image.width() / (2 * self.scale)
+                centerY = self.parent.objy + yOffset + aux.y() / self.scale + old_image.height() / (2 * self.scale)
+
+                centerX, centerY = rotatePoint(centerX, centerY, angle_radian, *pivot)
+        
+                aux_xOffset = centerX - image.width() / (2 * self.scale) - (self.parent.objx + self.xOffset)
+                aux_yOffset = centerY - image.height() / (2 * self.scale) - (self.parent.objy + self.yOffset)
+
+                aux.setImage(image, aux_xOffset, aux_yOffset, True)
+
+            self.parent.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
+
+        else:
+            if self.image:
+                super().dataChanged()
+
+            self.parent.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, not globals.SpritesFrozen)
+
+    def positionChanged(self):
+        self.parent.UpdateDynamicSizing()
+
+    def delete(self):
+        self.unhookController()
+
+
+class SpriteImage_PivotRotationControlled(SpriteImage_MovementControlled):
+    def allowedMovementControllers(self):
+        return 68, 116, 69, 118
 
 
 ################################################################
@@ -512,15 +729,15 @@ class AuxiliaryTrackObject(AuxiliarySpriteItem):
         painter.setPen(OutlinePen)
 
         if self.direction == self.Horizontal:
-            lineY = self.height * 0.75
-            painter.drawLine(20, lineY, (self.width * (TileWidth/16)) - 20, lineY)
-            painter.drawEllipse(8, lineY - 4, 8, 8)
-            painter.drawEllipse((self.width * (TileWidth/16)) - 16, lineY - 4, 8, 8)
+            lineY = self.height * 0.75 * (TileWidth/24)
+            painter.drawLine(20 * (TileWidth/24), lineY, (self.width * (TileWidth/16)) - 20 * (TileWidth/24), lineY)
+            painter.drawEllipse(8 * (TileWidth/24), lineY - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
+            painter.drawEllipse((self.width * (TileWidth/16)) - 16 * (TileWidth/24), lineY - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
         else:
-            lineX = self.width * 0.75
-            painter.drawLine(lineX, 20, lineX, (self.height * (TileWidth/16)) - 20)
-            painter.drawEllipse(lineX - 4, 8, 8, 8)
-            painter.drawEllipse(lineX - 4, (self.height * (TileWidth/16)) - 16, 8, 8)
+            lineX = self.width * 0.75 * (TileWidth/24)
+            painter.drawLine(lineX, 20 * (TileWidth/24), lineX, (self.height * (TileWidth/16)) - 20 * (TileWidth/24))
+            painter.drawEllipse(lineX - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
+            painter.drawEllipse(lineX - 4 * (TileWidth/24), (self.height * (TileWidth/16)) - 16 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
 
 
 class AuxiliaryCircleOutline(AuxiliarySpriteItem):

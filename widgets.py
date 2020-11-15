@@ -2815,7 +2815,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         if (self.spritetype == type) and not reset: return
 
         self.spritetype = type
-        if type != 1000:
+        if type != 1000 and type >= 0 and type < globals.NumSprites:
             sprite = globals.Sprites[type]
 
         else:
@@ -3014,8 +3014,12 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.allowEntryCheckbox.setToolTip(globals.trans.string('EntranceDataEditor', 9))
         self.allowEntryCheckbox.clicked.connect(self.HandleAllowEntryClicked)
 
+        self.unkFlagCheckbox = QtWidgets.QCheckBox("Unknown Flag")
+        self.unkFlagCheckbox.setToolTip("It is unknown what the purpose of this option is.")
+        self.unkFlagCheckbox.clicked.connect(self.HandleUnknownFlagClicked)
+
         self.faceLeftCheckbox = QtWidgets.QCheckBox("Face left")
-        self.faceLeftCheckbox.setToolTip("Makes the player face left when spawning")
+        self.faceLeftCheckbox.setToolTip("Makes the player face left when spawning.")
         self.faceLeftCheckbox.clicked.connect(self.HandleFaceLeftClicked)
 
         self.player1Checkbox = QtWidgets.QCheckBox("Player 1")
@@ -3093,6 +3097,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         layout.addWidget(createHorzLine(), 6, 0, 1, 6)
 
         layout.addWidget(self.allowEntryCheckbox, 7, 1, 1, 2)
+        layout.addWidget(self.unkFlagCheckbox, 7, 2, 1, 2)
         layout.addWidget(self.faceLeftCheckbox, 7, 4, 1, 2)
 
         layout.addWidget(createHorzLine(), 8, 0, 1, 6)
@@ -3156,6 +3161,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.transition.setCurrentIndex(ent.transition)
 
         self.allowEntryCheckbox.setChecked(((ent.entsettings & 0x80) == 0))
+        self.unkFlagCheckbox.setChecked(((ent.entsettings & 2) != 0))
         self.faceLeftCheckbox.setChecked(((ent.entsettings & 1) != 0))
         self.player1Checkbox.setChecked(((ent.players & 1) != 0))
         self.player2Checkbox.setChecked(((ent.players & 2) != 0))
@@ -3296,13 +3302,26 @@ class EntranceEditorWidget(QtWidgets.QWidget):
         self.ent.UpdateTooltip()
         self.ent.UpdateListItem()
 
+    def HandleUnknownFlagClicked(self, checked):
+        """
+        Handle for the Unknown Flag checkbox being clicked
+        """
+        if self.UpdateFlag: return
+        SetDirty()
+        if checked:
+            self.ent.entsettings |= 2
+        else:
+            self.ent.entsettings &= ~2
+        self.ent.UpdateTooltip()
+        self.ent.UpdateListItem()
+
     def HandleFaceLeftClicked(self, checked):
         """
         Handle for the Face Left checkbox being clicked
         """
         if self.UpdateFlag: return
         SetDirty()
-        if not checked:
+        if checked:
             self.ent.entsettings |= 1
         else:
             self.ent.entsettings &= ~1

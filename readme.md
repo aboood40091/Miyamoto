@@ -33,7 +33,6 @@ GitHub: https://github.com/aboood40091/Miyamoto/tree/deluxe
   
 #### Others
 * Gota7 -- Spritedata, Testing on Linux
-* Grop -- Sprite images offset fixes from RNM4
 * Meorge -- Testing on macOS
 * reece stone -- Spritedata
 * RoadrunnerWMC -- Stamps offset fixes

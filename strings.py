@@ -531,6 +531,8 @@ class MiyamotoTranslation:
                 148: 'Raise selected objects to the front of all other objects in the scene.',
                 149: 'Lower to Bottom',
                 150: 'Lower selected objects behind all other objects in the scene.',
+                151: 'Preview Pivotal Rotation',
+                152: 'Toggle previewing of pivotal rotation with sprite images',
                 },
             'Objects': {
                 0: '[b]Tileset [tileset], object [obj]:[/b][br][width]x[height] on layer [layer]',

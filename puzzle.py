@@ -866,6 +866,11 @@ class objectList(QtWidgets.QListView):
         self.setMinimumHeight(140)
         self.setMaximumHeight(140)
 
+        self.noneIdx = self.currentIndex()
+
+    def clearCurrentIndex(self):
+        self.setCurrentIndex(self.noneIdx)
+
 
 
 def SetupObjectModel(self, objects, tiles):
@@ -1563,6 +1568,11 @@ class tileOverlord(QtWidgets.QWidget):
 
     def setObject(self, index):
         global Tileset
+
+        self.tiles.object = index.row()
+        if self.tiles.object < 0 or self.tiles.object >= len(Tileset.objects):
+            return
+
         object = Tileset.objects[index.row()]
 
         self.randStuff.setVisible((object.width, object.height) == (1, 1))
@@ -2077,14 +2087,22 @@ class tileWidget(QtWidgets.QWidget):
             if event.x() < upperLeftX or event.y() < upperLeftY or event.x() > lowerRightX or event.y() > lowerRightY:
                 return
 
-            pix = QtGui.QPixmap(24,24)
-            pix.fill(QtGui.QColor(0,0,0,0))
+            if Tileset.slot == 0:
+                try:
+                    self.tiles[y][x] = Tileset.tiles[0].image.scaledToWidth(24, Qt.SmoothTransformation)
+                    Tileset.objects[self.object].tiles[y][x] = (Tileset.objects[self.object].tiles[y][x][0], 0, 0)
+                except IndexError:
+                    pass
 
-            try:
-                self.tiles[y][x] = pix
-                Tileset.objects[self.object].tiles[y][x] = (Tileset.objects[self.object].tiles[y][x][0], 0, 0)
-            except IndexError:
-                pass
+            else:
+                pix = QtGui.QPixmap(24,24)
+                pix.fill(QtGui.QColor(0,0,0,0))
+
+                try:
+                    self.tiles[y][x] = pix
+                    Tileset.objects[self.object].tiles[y][x] = (Tileset.objects[self.object].tiles[y][x][0], 0, 0)
+                except IndexError:
+                    pass
 
         else:
             if window.tileDisplay.selectedIndexes() == []:
@@ -2422,21 +2440,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setuptile()
 
-        cobj = 0
-        crow = 0
-        ctile = 0
-        for object in Tileset.objects:
-            for row in object.tiles:
-                for tile in row:
-                    if tile[2] & 3 or not Tileset.slot:
-                        Tileset.objects[cobj].tiles[crow][ctile] = (tile[0], tile[1], (tile[2] & 0xFC) | Tileset.slot)
-                    ctile += 1
-                crow += 1
-                ctile = 0
-            cobj += 1
-            crow = 0
-            ctile = 0
-
 
     @staticmethod
     def getData(arc):
@@ -2740,6 +2743,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setuptile()
         SetupObjectModel(self.objmodel, Tileset.objects, Tileset.tiles)
 
+        self.objectList.clearCurrentIndex()
+        self.tileWidget.setObject(self.objectList.currentIndex())
+
+        self.objectList.update()
+        self.tileWidget.update()
+
 
     def openImage(self, nml=False):
         '''Opens an Image from png, and creates a new tileset from it.'''
@@ -2778,7 +2787,16 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
 
+        index = self.objectList.currentIndex()
+
         self.setuptile()
+        SetupObjectModel(self.objmodel, Tileset.objects, Tileset.tiles)
+
+        self.objectList.setCurrentIndex(index)
+        self.tileWidget.setObject(index)
+
+        self.objectList.update()
+        self.tileWidget.update()
 
 
     def saveImage(self, nml=False):
@@ -3172,6 +3190,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setuptile()
 
+        self.tileWidget.setObject(self.objectList.currentIndex())
+        self.tileWidget.update()
+
     def showInfo(self):
         usedTiles = len(Tileset.getUsedTiles())
         freeTiles = 256 - usedTiles
@@ -3383,12 +3404,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
             painter.end()
 
-        self.objmodel.appendRow(QtGui.QStandardItem(QtGui.QIcon(tex), 'Object {0}'.format(count-1)))
+        self.setuptile()
+
+        self.objmodel.appendRow(QtGui.QStandardItem(QtGui.QIcon(tex.scaledToWidth(tex.width() / 60 * 24, Qt.SmoothTransformation)), 'Object {0}'.format(count-1)))
         index = self.objectList.currentIndex()
         self.objectList.setCurrentIndex(index)
         self.tileWidget.setObject(index)
-
-        self.setuptile()
 
         self.objectList.update()
         self.tileWidget.update()
