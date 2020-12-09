@@ -382,7 +382,7 @@ class paletteWidget(QtWidgets.QWidget):
             ['Reverse Slope', QtGui.QIcon(path + 'Core/RSlope.png'), 'Defines an upside-down slope.\n\nSloped tiles have sloped collisions,\nwhich Mario can hit.'],
             ['Liquid', QtGui.QIcon(path + 'Core/Quicksand.png'), 'Creates a liquid area. All seen to be non-functional, except for Quicksand, which should be used with the "Quicksand" terrain type.'],
             ['Climbable Terrian', QtGui.QIcon(path + 'Core/Climb.png'), 'Creates terrain that can be\nclimbed on.\n\nClimable terrain cannot be walked on.\n\nWhen Mario is on top of a climable\ntile and the player presses up, Mario\nwill enter a climbing state.'],
-            ['Spike', QtGui.QIcon(path + 'Core/Spike.png'), 'Dangerous spikey spikes.\n\nSpike tiles will damage Mario one hit\nwhen they are touched.'],
+            ['Damage Tile', QtGui.QIcon(path + 'Core/Spike.png'), 'Various damaging tiles.\n\nIcicle/Spike tiles will damage Mario one hit\nwhen they are touched, whereas lava and poison water will instantly kill Mario and play the corresponding death animation.'],
             ['Pipe or Pipe Joint', QtGui.QIcon(path + 'Core/Pipe.png'), 'Denotes a pipe tile, or a pipe joint.\n\nPipe tiles are specified according to\nthe part of the pipe. It\'s important\nto specify the right parts or\nentrances may not function correctly.'],
             ['Conveyor Belt', QtGui.QIcon(path + 'Core/Conveyor.png'), 'Defines moving tiles.\n\nMoving tiles will move Mario in one\ndirection or another.'],
             ['Donut Block', QtGui.QIcon(path + 'Core/Donut.png'), 'Creates a falling donut block.\n\nThese blocks fall after they have been\nstood on for a few seconds, and then\nrespawn later. They are replaced by\nthe game with 3D models, so you can\'t\neasily make your own.'],
@@ -564,7 +564,7 @@ class paletteWidget(QtWidgets.QWidget):
             ['Climbable Fence', QtGui.QIcon(path + 'Core/Default.png')],
         ]
 
-        SpikeParams = [
+        DamageTileParams = [
             ['Icicle', QtGui.QIcon(path + 'Core/Default.png')],
             ['Long Icicle 1', QtGui.QIcon(path + 'Core/Default.png')],
             ['Long Icicle 2', QtGui.QIcon(path + 'Core/Default.png')],
@@ -652,7 +652,7 @@ class paletteWidget(QtWidgets.QWidget):
             ReverseSlopeParams,     # 0x0C
             LiquidParams,           # 0x0D
             ClimbableParams,        # 0x0E
-            SpikeParams,            # 0x0F
+            DamageTileParams,       # 0x0F
             PipeParams,             # 0x10
             ConveyorParams,         # 0x11
             None,                   # 0x12
@@ -663,8 +663,8 @@ class paletteWidget(QtWidgets.QWidget):
         ]
 
 
-        SpikeParams2 = [
-            ['Spikes', QtGui.QIcon(path + 'Spikes/Spikes.png')],
+        DamageTileParams2 = [
+            ['Default', QtGui.QIcon(path + 'Core/Default.png')],
             ['Muncher (no visible difference)', QtGui.QIcon(path + 'Spikes/Muncher.png')],
         ]
 
@@ -676,29 +676,29 @@ class paletteWidget(QtWidgets.QWidget):
         ]
 
         self.ParameterList2 = [
-            None,          # 0x0
-            None,          # 0x1
-            None,          # 0x2
-            None,          # 0x3
-            None,          # 0x4
-            None,          # 0x5
-            None,          # 0x6
-            None,          # 0x7
-            None,          # 0x8
-            None,          # 0x9
-            None,          # 0xA
-            None,          # 0xB
-            None,          # 0xC
-            None,          # 0xD
-            None,          # 0xE
-            SpikeParams2,  # 0xF
-            PipeParams2,   # 0x10
-            None,          # 0x11
-            None,          # 0x12
-            None,          # 0x13
-            None,          # 0x14
-            None,          # 0x15
-            None,          # 0x16
+            None,               # 0x0
+            None,               # 0x1
+            None,               # 0x2
+            None,               # 0x3
+            None,               # 0x4
+            None,               # 0x5
+            None,               # 0x6
+            None,               # 0x7
+            None,               # 0x8
+            None,               # 0x9
+            None,               # 0xA
+            None,               # 0xB
+            None,               # 0xC
+            None,               # 0xD
+            None,               # 0xE
+            DamageTileParams2,  # 0xF
+            PipeParams2,        # 0x10
+            None,               # 0x11
+            None,               # 0x12
+            None,               # 0x13
+            None,               # 0x14
+            None,               # 0x15
+            None,               # 0x16
         ]
 
 
