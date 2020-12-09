@@ -687,26 +687,42 @@ class paletteWidget(QtWidgets.QWidget):
         L.addWidget(self.terrainType)
 
         # Quicksand is unused.
-        self.terrainTypes = [['Default', QtGui.QIcon(path + 'Core/Default.png')],
-                        ['Ice', QtGui.QIcon(path + 'Terrain/Ice.png')],
-                        ['Snow', QtGui.QIcon(path + 'Terrain/Snow.png')],
-                        ['Quicksand', QtGui.QIcon(path + 'Terrain/Quicksand.png')],
-                        ['Sand', QtGui.QIcon(path + 'Terrain/Sand.png')],
-                        ['Grass', QtGui.QIcon(path + 'Terrain/Grass.png')],
-                        ]
+        self.terrainTypes = [
+            ['Default', QtGui.QIcon(path + 'Core/Default.png')],         # 0
+            ['Ice', QtGui.QIcon(path + 'Terrain/Ice.png')],              # 1
+            ['Snow', QtGui.QIcon(path + 'Terrain/Snow.png')],            # 2
+            ['Quicksand', QtGui.QIcon(path + 'Terrain/Quicksand.png')],  # 3
+            ['Sand', QtGui.QIcon(path + 'Terrain/Sand.png')],            # 4
+            ['Grass', QtGui.QIcon(path + 'Terrain/Grass.png')],          # 5
+            ['Cloud', QtGui.QIcon(path + 'Core/Default.png')],           # 6
+            ['Beach Sand', QtGui.QIcon(path + 'Core/Default.png')],      # 7
+            ['Carpet', QtGui.QIcon(path + 'Core/Default.png')],          # 8
+            ['Leaves', QtGui.QIcon(path + 'Core/Default.png')],          # 9
+            ['Wood', QtGui.QIcon(path + 'Core/Default.png')],            # 10
+            ['Water', QtGui.QIcon(path + 'Core/Default.png')],           # 11
+            ['Beanstalk Leaf', QtGui.QIcon(path + 'Core/Default.png')],  # 12
+        ]
 
         for item in range(len(self.terrainTypes)):
             self.terrainType.addItem(self.terrainTypes[item][1], self.terrainTypes[item][0])
         self.terrainType.setIconSize(QtCore.QSize(24, 24))
-        self.terrainType.setToolTip('Set the various types of terrain.\n\n'
+        self.terrainType.setToolTip(
+            'Set the various types of terrain.\n\n'
 
-                                    '<b>Default:</b>\nTerrain with no paticular properties.\n\n'
-                                    '<b>Ice:</b>\nWill be slippery.\n\n'
-                                    '<b>Snow:</b>\nWill emit puffs of snow and snow noises.\n\n'
-                                    '<b>Quicksand:</b>\nWill emit puffs of sand. Use with the "Quicksand" core type.\n\n'
-                                    '<b>Grass:</b>\nWill emit grass-like footstep noises.\n\n'
-                                    '<b>Beach Sand:</b>\nWill create sand tufts around\nMario\'s feet.'.replace('\n', '<br>')
-                                   )
+            '<b>Default:</b>\nTerrain with no paticular properties.\n\n'
+            '<b>Ice:</b>\nWill be slippery.\n\n'
+            '<b>Snow:</b>\nWill emit puffs of snow and snow noises.\n\n'
+            '<b>Quicksand:</b>\nWill emit puffs of sand. Use with the "Quicksand" core type.\n\n'
+            '<b>Sand:</b>\nWill create dark-colored sand tufts around\nMario\'s feet.\n\n'
+            '<b>Grass:</b>\nWill emit grass-like footstep noises.\n\n'
+            '<b>Cloud:</b>\nWill emit footstep noises for cloud platforms.\n\n'
+            '<b>Beach Sand:</b>\nWill create light-colored sand tufts around\nMario\'s feet.\n\n'
+            '<b>Carpet:</b>\nWill emit footstep noises for carpets.\n\n'
+            '<b>Leaves:</b>\nWill emit footstep noises for Palm Tree leaves.\n\n'
+            '<b>Wood:</b>\nWill emit footstep noises for wood.\n\n'
+            '<b>Water:</b>\nWill emit small splashes of water around\nMario\'s feet.\n\n'
+            '<b>Beanstalk Leaf:</b>\nWill emit footstep noises for Beanstalk leaves.'.replace('\n', '<br>')
+        )
 
 
 
