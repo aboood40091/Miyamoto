@@ -382,8 +382,8 @@ class paletteWidget(QtWidgets.QWidget):
             ['Reverse Slope', QtGui.QIcon(path + 'Core/RSlope.png'), 'Defines an upside-down slope.\n\nSloped tiles have sloped collisions,\nwhich Mario can hit.'],
             ['Liquid', QtGui.QIcon(path + 'Core/Quicksand.png'), 'Creates a liquid area. All seen to be non-functional, except for Quicksand, which should be used with the "Quicksand" terrain type.'],
             ['Climbable Terrian', QtGui.QIcon(path + 'Core/Climb.png'), 'Creates terrain that can be\nclimbed on.\n\nClimable terrain cannot be walked on.\n\nWhen Mario is on top of a climable\ntile and the player presses up, Mario\nwill enter a climbing state.'],
-            ['Damage Tile', QtGui.QIcon(path + 'Core/Spike.png'), 'Various damaging tiles.\n\nIcicle/Spike tiles will damage Mario one hit\nwhen they are touched, whereas lava and poison water will instantly kill Mario and play the corresponding death animation.'],
-            ['Pipe or Pipe Joint', QtGui.QIcon(path + 'Core/Pipe.png'), 'Denotes a pipe tile, or a pipe joint.\n\nPipe tiles are specified according to\nthe part of the pipe. It\'s important\nto specify the right parts or\nentrances may not function correctly.'],
+            ['Damage Tile', QtGui.QIcon(path + 'Core/Skull.png'), 'Various damaging tiles.\n\nIcicle/Spike tiles will damage Mario one hit\nwhen they are touched, whereas lava and poison water will instantly kill Mario and play the corresponding death animation.'],
+            ['Pipe/Joint', QtGui.QIcon(path + 'Core/Pipe.png'), 'Denotes a pipe tile, or a pipe joint.\n\nPipe tiles are specified according to\nthe part of the pipe. It\'s important\nto specify the right parts or\nentrances may not function correctly.'],
             ['Conveyor Belt', QtGui.QIcon(path + 'Core/Conveyor.png'), 'Defines moving tiles.\n\nMoving tiles will move Mario in one\ndirection or another.'],
             ['Donut Block', QtGui.QIcon(path + 'Core/Donut.png'), 'Creates a falling donut block.\n\nThese blocks fall after they have been\nstood on for a few seconds, and then\nrespawn later. They are replaced by\nthe game with 3D models, so you can\'t\neasily make your own.'],
             ['Cave Entrance', QtGui.QIcon(path + 'Core/Cave.png'), 'Creates a cave entrance.\n\nCave entrances are used to mark secret\nareas hidden behind Layer 0 tiles.'],
@@ -476,9 +476,9 @@ class paletteWidget(QtWidgets.QWidget):
         ]
 
         CoinParams = [
-            ['Generic Coin', QtGui.QIcon(path + 'Coin/Coin.png')],
+            ['Generic Coin', QtGui.QIcon(path + 'Core/Coin.png')],
             ['Nothing', QtGui.QIcon(path + 'Core/Default.png')],
-            ['Blue Coin', QtGui.QIcon(path + 'Coin/BlueCoin.png')],
+            ['Blue Coin', QtGui.QIcon(path + 'Core/BlueCoin.png')],
         ]
 
         ExplodableBlockParams = [
@@ -559,22 +559,22 @@ class paletteWidget(QtWidgets.QWidget):
         ]
 
         ClimbableParams = [
-            ['Vine', QtGui.QIcon(path + 'Core/Default.png')],
+            ['Vine', QtGui.QIcon(path + 'Climbable/Vine.png')],
             ['Climbable Wall', QtGui.QIcon(path + 'Core/Climb.png')],
-            ['Climbable Fence', QtGui.QIcon(path + 'Core/Default.png')],
+            ['Climbable Fence', QtGui.QIcon(path + 'Climbable/Fence.png')],
         ]
 
         DamageTileParams = [
-            ['Icicle', QtGui.QIcon(path + 'Core/Default.png')],
-            ['Long Icicle 1', QtGui.QIcon(path + 'Core/Default.png')],
-            ['Long Icicle 2', QtGui.QIcon(path + 'Core/Default.png')],
-            ['Left-Facing Spikes', QtGui.QIcon(path + 'Spikes/SpikeLeft.png')],
-            ['Right-Facing Spikes', QtGui.QIcon(path + 'Spikes/SpikeRight.png')],
-            ['Up-Facing Spikes', QtGui.QIcon(path + 'Spikes/Spike.png')],
-            ['Down-Facing Spikes', QtGui.QIcon(path + 'Spikes/SpikeDown.png')],
-            ['Instant Death', QtGui.QIcon(path + 'Core/Default.png')],
-            ['Lava', QtGui.QIcon(path + 'Core/Default.png')],
-            ['Poison Water', QtGui.QIcon(path + 'Core/Default.png')],
+            ['Icicle', QtGui.QIcon(path + 'Damage/Icicle1x1.png')],
+            ['Long Icicle 1', QtGui.QIcon(path + 'Damage/Icicle1x2Top.png')],
+            ['Long Icicle 2', QtGui.QIcon(path + 'Damage/Icicle1x2Bottom.png')],
+            ['Left-Facing Spikes', QtGui.QIcon(path + 'Damage/SpikeLeft.png')],
+            ['Right-Facing Spikes', QtGui.QIcon(path + 'Damage/SpikeRight.png')],
+            ['Up-Facing Spikes', QtGui.QIcon(path + 'Damage/Spike.png')],
+            ['Down-Facing Spikes', QtGui.QIcon(path + 'Damage/SpikeDown.png')],
+            ['Instant Death', QtGui.QIcon(path + 'Core/Skull.png')],
+            ['Lava', QtGui.QIcon(path + 'Damage/Lava.png')],
+            ['Poison Water', QtGui.QIcon(path + 'Damage/Poison.png')],
         ]
 
         PipeParams = [
@@ -592,12 +592,12 @@ class paletteWidget(QtWidgets.QWidget):
             ['Horiz. Mini Pipe Right', QtGui.QIcon(path + 'Pipes/MiniRight.png')],
             ['Vert. Center Left', QtGui.QIcon(path + 'Pipes/VertCenterLeft.png')],
             ['Vert. Center Right', QtGui.QIcon(path + 'Pipes/VertCenterRight.png')],
-            ['Vert. Pipe Intersection Top/Bottom Left', QtGui.QIcon(path + 'Core/Default.png')],
-            ['Vert. Pipe Intersection Top/Bottom Right', QtGui.QIcon(path + 'Core/Default.png')],
+            ['Vert. Intersection Left', QtGui.QIcon(path + 'Pipes/VertIntersectLeft.png')],
+            ['Vert. Intersection Right', QtGui.QIcon(path + 'Pipes/VertIntersectRight.png')],
             ['Horiz. Center Top', QtGui.QIcon(path + 'Pipes/HorizCenterTop.png')],
             ['Horiz. Center Bottom', QtGui.QIcon(path + 'Pipes/HorizCenterBottom.png')],
-            ['Horiz. Pipe Intersection Top Left/Right', QtGui.QIcon(path + 'Core/Default.png')],
-            ['Horiz. Pipe Intersection Bottom Left/Right', QtGui.QIcon(path + 'Core/Default.png')],
+            ['Horiz. Intersection Top', QtGui.QIcon(path + 'Pipes/HorizIntersectTop.png')],
+            ['Horiz. Intersection Bottom', QtGui.QIcon(path + 'Pipes/HorizIntersectBottom.png')],
             ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
             ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
             ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
@@ -614,8 +614,8 @@ class paletteWidget(QtWidgets.QWidget):
             ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
             ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
             ['Pipe Joint', QtGui.QIcon(path + 'Pipes/Joint.png')],
-            ['Vert. Mini Pipe Intersection', QtGui.QIcon(path + 'Core/Default.png')],
-            ['Horiz. Mini Pipe Intersection', QtGui.QIcon(path + 'Core/Default.png')],
+            ['Vert. Mini Pipe Intersection', QtGui.QIcon(path + 'Pipes/MiniVertIntersect.png')],
+            ['Horiz. Mini Pipe Intersection', QtGui.QIcon(path + 'Pipes/MiniHorizIntersect.png')],
         ]
 
         ConveyorParams = [
@@ -665,14 +665,14 @@ class paletteWidget(QtWidgets.QWidget):
 
         DamageTileParams2 = [
             ['Default', QtGui.QIcon(path + 'Core/Default.png')],
-            ['Muncher (no visible difference)', QtGui.QIcon(path + 'Spikes/Muncher.png')],
+            ['Muncher (no visible difference)', QtGui.QIcon(path + 'Damage/Muncher.png')],
         ]
 
         PipeParams2 = [
             ['Green', QtGui.QIcon(path + 'PipeColors/Green.png')],
             ['Red', QtGui.QIcon(path + 'PipeColors/Red.png')],
             ['Yellow', QtGui.QIcon(path + 'PipeColors/Yellow.png')],
-            ['Blue', QtGui.QIcon(path + 'Core/Default.png')],
+            ['Blue', QtGui.QIcon(path + 'PipeColors/Blue.png')],
         ]
 
         self.ParameterList2 = [
@@ -713,9 +713,9 @@ class paletteWidget(QtWidgets.QWidget):
             ['Solid', QtGui.QIcon(path + 'Collisions/Solid.png')],
             ['Solid-on-Top', QtGui.QIcon(path + 'Collisions/SolidOnTop.png')],
             ['Solid-on-Bottom', QtGui.QIcon(path + 'Collisions/SolidOnBottom.png')],
-            ['Solid-on-Top and Bottom', QtGui.QIcon(path + 'Core/Default.png')],
-            ['Slide (2x1)', QtGui.QIcon(path + 'Core/Default.png')],
-            ['Steep Slide (1x1)', QtGui.QIcon(path + 'Core/Default.png')],
+            ['Solid-on-Top and Bottom', QtGui.QIcon(path + 'Collisions/SolidOnTopBottom.png')],
+            ['Slide (1)', QtGui.QIcon(path + 'Collisions/SlopedSlide.png')],
+            ['Slide (2)', QtGui.QIcon(path + 'Collisions/SlopedSlide.png')],
             ['Staircase (1)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
             ['Staircase (2)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
         ]
@@ -731,10 +731,10 @@ class paletteWidget(QtWidgets.QWidget):
             '<b>Solid-on-Top:</b>\nThe tile can only be stood on.\n\n'
             '<b>Solid-on-Bottom:</b>\nThe tile can only be hit from below.\n\n'
             '<b>Solid-on-Top and Bottom:</b>\nThe tile can be stood on and hit from below, but not any other side.\n\n'
-            '<b>Staircase (1):</b>\nUsed for Staircase (1)s in Ghost Houses and Castle rooftop.\n\n'
-            '<b>Staircase (2):</b>\nUsed for Staircase (2)s in the main tilesets.\n\n'
-            'The difference between <b>Staircase (1):</b> and <b>Staircase (2):</b> is that the former will\n'
-            'let you go past it by default (unless you add a solid tile edge), where as the latter will\n'
+            '<b>Staircase (1):</b>\nUsed for staricases in Ghost Houses and Castle rooftop.\n\n'
+            '<b>Staircase (2):</b>\nUsed for staircases in the main tilesets and Ghost Houses.\n\n'
+            'The difference between <b>Slide/Staircase (1)</b> and <b>Slide/Staircase (2)</b> is that (1) will\n'
+            'let you go past it by default (unless you add a solid tile edge), where as (2) will\n'
             'force you to climb it (without the need of a solid tile edge).\n\n'.replace('\n', '<br>')
         )
 
@@ -747,19 +747,19 @@ class paletteWidget(QtWidgets.QWidget):
 
         # Quicksand is unused.
         self.terrainTypes = [
-            ['Default', QtGui.QIcon(path + 'Core/Default.png')],         # 0x0
-            ['Ice', QtGui.QIcon(path + 'Terrain/Ice.png')],              # 0x1
-            ['Snow', QtGui.QIcon(path + 'Terrain/Snow.png')],            # 0x2
-            ['Quicksand', QtGui.QIcon(path + 'Terrain/Quicksand.png')],  # 0x3
-            ['Sand', QtGui.QIcon(path + 'Terrain/Sand.png')],            # 0x4
-            ['Grass', QtGui.QIcon(path + 'Terrain/Grass.png')],          # 0x5
-            ['Cloud', QtGui.QIcon(path + 'Core/Default.png')],           # 0x6
-            ['Beach Sand', QtGui.QIcon(path + 'Core/Default.png')],      # 0x7
-            ['Carpet', QtGui.QIcon(path + 'Core/Default.png')],          # 0x8
-            ['Leaves', QtGui.QIcon(path + 'Core/Default.png')],          # 0x9
-            ['Wood', QtGui.QIcon(path + 'Core/Default.png')],            # 0xA
-            ['Water', QtGui.QIcon(path + 'Core/Default.png')],           # 0xB
-            ['Beanstalk Leaf', QtGui.QIcon(path + 'Core/Default.png')],  # 0xC
+            ['Default', QtGui.QIcon(path + 'Core/Default.png')],                  # 0x0
+            ['Ice', QtGui.QIcon(path + 'Terrain/Ice.png')],                       # 0x1
+            ['Snow', QtGui.QIcon(path + 'Terrain/Snow.png')],                     # 0x2
+            ['Quicksand', QtGui.QIcon(path + 'Terrain/Quicksand.png')],           # 0x3
+            ['Desert Sand', QtGui.QIcon(path + 'Terrain/Sand.png')],              # 0x4
+            ['Grass', QtGui.QIcon(path + 'Terrain/Grass.png')],                   # 0x5
+            ['Cloud', QtGui.QIcon(path + 'Terrain/Cloud.png')],                   # 0x6
+            ['Beach Sand', QtGui.QIcon(path + 'Terrain/BeachSand.png')],          # 0x7
+            ['Carpet', QtGui.QIcon(path + 'Terrain/Carpet.png')],                 # 0x8
+            ['Leaves', QtGui.QIcon(path + 'Terrain/Leaves.png')],                 # 0x9
+            ['Wood', QtGui.QIcon(path + 'Terrain/Wood.png')],                     # 0xA
+            ['Water', QtGui.QIcon(path + 'Terrain/Water.png')],                   # 0xB
+            ['Beanstalk Leaf', QtGui.QIcon(path + 'Terrain/BeanstalkLeaf.png')],  # 0xC
         ]
 
         for item in range(len(self.terrainTypes)):
@@ -3699,9 +3699,9 @@ class MainWindow(QtWidgets.QMainWindow):
         elif curTile.solidity == 4:
             propertyList.append('Solid-on-Top and Bottom')
         elif curTile.solidity == 0x11:
-            propertyList.append('Slide (2x1)')
+            propertyList.append('Slide (1)')
         elif curTile.solidity == 0x12:
-            propertyList.append('Steep Slide (1x1)')
+            propertyList.append('Slide (2)')
         elif curTile.solidity == 0x21:
             propertyList.append('Staircase (1)')
         elif curTile.solidity == 0x22:
