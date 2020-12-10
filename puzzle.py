@@ -731,8 +731,8 @@ class paletteWidget(QtWidgets.QWidget):
             '<b>Solid-on-Top:</b>\nThe tile can only be stood on.\n\n'
             '<b>Solid-on-Bottom:</b>\nThe tile can only be hit from below.\n\n'
             '<b>Solid-on-Top and Bottom:</b>\nThe tile can be stood on and hit from below, but not any other side.\n\n'
-            '<b>Staircase (1):</b>\nUsed for staricases in Ghost Houses and Castle rooftop.\n\n'
-            '<b>Staircase (2):</b>\nUsed for staircases in the main tilesets and Ghost Houses.\n\n'
+            '<b>Slide:</b>\nThe player starts sliding without being able to jump when interacting with this solidity.\n\n'
+            '<b>Staircase:</b>\nUsed for staircases in Ghost Houses, Castle rooftop and in the main tilesets.\n\n'
             'The difference between <b>Slide/Staircase (1)</b> and <b>Slide/Staircase (2)</b> is that (1) will\n'
             'let you go past it by default (unless you add a solid tile edge), where as (2) will\n'
             'force you to climb it (without the need of a solid tile edge).\n\n'.replace('\n', '<br>')
