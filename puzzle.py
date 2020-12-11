@@ -288,6 +288,7 @@ class TilesetClass:
 
         self.tiles = []
         self.objects = []
+        self.overrides = [None] * 256
 
         self.slot = 0
         self.placeNullChecked = False
@@ -302,10 +303,8 @@ class TilesetClass:
     def addObject(self, height = 1, width = 1, randByte = 0, uslope = [0, 0], lslope = [0, 0], tilelist = None, new = False):
         '''Adds a new object'''
 
-        global Tileset
-
         if new:
-            tilelist = [[(0, 0, Tileset.slot)]]
+            tilelist = [[(0, 0, self.slot)]]
 
         self.objects.append(self.Object(height, width, randByte, uslope, lslope, tilelist))
 
@@ -327,13 +326,234 @@ class TilesetClass:
         self.objects = []
 
 
+    def processOverrides(self):
+        if self.slot != 0:
+            return
+
+        try:
+            t = self.overrides
+            o = globals.Overrides
+
+            # Invisible, brick and ? blocks
+            ## Invisible
+            replace = 3
+            for i in [3, 4, 5, 6, 7, 8, 9, 10, 13, 29]:
+                t[i] = o[replace].main
+                replace += 1
+
+            ## Brick
+            for i in range(16, 28):
+                t[i] = o[i].main
+
+            ## ?
+            t[49] = o[46].main
+            for i in range(32, 43):
+                t[i] = o[i].main
+
+            # Collisions
+            ## Full block
+            t[1] = o[1].main
+
+            ## Vine stopper
+            t[2] = o[2].main
+
+            ## Solid-on-top
+            t[11] = o[13].main
+
+            ## Half block
+            t[12] = o[14].main
+
+            ## Muncher (hit)
+            t[45] = o[45].main
+
+            ## Muncher (hit) 2
+            t[209] = o[44].main
+
+            ## Donut lift
+            t[53] = o[43].main
+
+            ## Conveyor belts
+            ### Left
+            #### Fast
+            replace = 115
+            for i in range(163, 166):
+                t[i] = o[replace].main
+                replace += 1
+            #### Slow
+            replace = 99
+            for i in range(147, 150):
+                t[i] = o[replace].main
+                replace += 1
+
+            ### Right
+            #### Fast
+            replace = 112
+            for i in range(160, 163):
+                t[i] = o[replace].main
+                replace += 1
+            #### Slow
+            replace = 96
+            for i in range(144, 147):
+                t[i] = o[replace].main
+                replace += 1
+
+            ## Pipes
+            ### Green
+            #### Vertical
+            t[64] = o[48].main
+            t[65] = o[49].main
+            t[80] = o[64].main
+            t[81] = o[65].main
+            t[96] = o[80].main
+            t[97] = o[81].main
+            #### Horizontal
+            t[87] = o[71].main
+            t[103] = o[87].main
+            t[88] = o[72].main
+            t[104] = o[88].main
+            t[89] = o[73].main
+            t[105] = o[89].main
+            ### Yellow
+            #### Vertical
+            t[66] = o[50].main
+            t[67] = o[51].main
+            t[82] = o[66].main
+            t[83] = o[67].main
+            t[98] = o[82].main
+            t[99] = o[83].main
+            #### Horizontal
+            t[90] = o[74].main
+            t[106] = o[90].main
+            t[91] = o[75].main
+            t[107] = o[91].main
+            t[92] = o[76].main
+            t[108] = o[92].main
+            ### Red
+            #### Vertical
+            t[68] = o[52].main
+            t[69] = o[53].main
+            t[84] = o[68].main
+            t[85] = o[69].main
+            t[100] = o[84].main
+            t[101] = o[85].main
+            #### Horizontal
+            t[93] = o[77].main
+            t[109] = o[93].main
+            t[94] = o[78].main
+            t[110] = o[94].main
+            t[95] = o[79].main
+            t[111] = o[95].main
+            ### Mini (green)
+            #### Vertical
+            t[70] = o[54].main
+            t[86] = o[70].main
+            t[102] = o[86].main
+            #### Horizontal
+            t[120] = o[104].main
+            t[121] = o[105].main
+            t[137] = o[121].main
+            ### Joints
+            #### Normal
+            t[118] = o[102].main
+            t[119] = o[103].main
+            t[134] = o[118].main
+            t[135] = o[119].main
+            #### Mini
+            t[136] = o[120].main
+
+            # Coins
+            t[30] = o[30].main
+            ## Outline
+            t[31] = o[29].main
+            ### Multiplayer
+            t[28] = o[28].main
+            ## Blue
+            t[46] = o[47].main
+
+            # Flowers / Grass
+            grassType = 5
+            for sprite in globals.Area.sprites:
+                if sprite.type == 564:
+                    grassType = min(sprite.spritedata[5] & 0xf, 5)
+                    if grassType < 2:
+                        grassType = 0
+
+                    elif grassType in [3, 4]:
+                        grassType = 3
+
+            if grassType == 0:  # Forest
+                replace_flowers = 160
+                replace_grass = 163
+                replace_both = 168
+
+            elif grassType == 2:  # Underground
+                replace_flowers = 55
+                replace_grass = 171
+                replace_both = 188
+
+            elif grassType == 3:  # Sky
+                replace_flowers = 176
+                replace_grass = 179
+                replace_both = 184
+
+            else:  # Normal
+                replace_flowers = 55
+                replace_grass = 58
+                replace_both = 106
+
+            ## Flowers
+            replace = replace_flowers
+            for i in range(210, 213):
+                t[i] = o[replace].main
+                replace += 1
+            ## Grass
+            replace = replace_grass
+            for i in range(178, 183):
+                t[i] = o[replace].main
+                replace += 1
+            ## Flowers and grass
+            replace = replace_both
+            for i in range(213, 216):
+                t[i] = o[replace].main
+                replace += 1
+
+            # Lines
+            ## Straight lines
+            ### Normal
+            t[216] = o[128].main
+            t[217] = o[63].main
+            ### Corners and diagonals
+            replace = 122
+            for i in range(218, 231):
+                if i != 224:  # random empty tile
+                    t[i] = o[replace].main
+                replace += 1
+
+            ## Circles and stops
+            for i in range(231, 256):
+                t[i] = o[replace].main
+                replace += 1
+
+        except Exception:
+            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
+                                               'Whoops, something went wrong while processing the overrides...')
+            warningBox.exec_()
+
+
     def getUsedTiles(self):
         usedTiles = []
+
+        if self.slot == 0:
+            usedTiles.append(0)
+
+            for i, tile in enumerate(self.overrides):
+                if tile is not None:
+                    usedTiles.append(i)
 
         for object in self.objects:
             for i in range(len(object.tiles)):
                 for tile in object.tiles[i]:
-                    if not tile[2] & 3 and Tileset.slot:  # Pa0 tile 0 used in another slot, don't count it
+                    if not tile[2] & 3 and self.slot:  # Pa0 tile 0 used in another slot, don't count it
                         continue
 
                     if object.randLen > 0:
@@ -430,7 +650,7 @@ class paletteWidget(QtWidgets.QWidget):
 
 
         GenericParams = [
-            ['Normal', QtGui.QIcon(path + 'Core/Default.png')],
+            ['Normal', QtGui.QIcon()],
             ['Beanstalk Stop', QtGui.QIcon(path + '/Generic/Beanstopper.png')],
         ]
 
@@ -477,7 +697,7 @@ class paletteWidget(QtWidgets.QWidget):
 
         CoinParams = [
             ['Generic Coin', QtGui.QIcon(path + 'Core/Coin.png')],
-            ['Nothing', QtGui.QIcon(path + 'Core/Default.png')],
+            ['Nothing', QtGui.QIcon()],
             ['Blue Coin', QtGui.QIcon(path + 'Core/BlueCoin.png')],
         ]
 
@@ -664,7 +884,7 @@ class paletteWidget(QtWidgets.QWidget):
 
 
         DamageTileParams2 = [
-            ['Default', QtGui.QIcon(path + 'Core/Default.png')],
+            ['Default', QtGui.QIcon()],
             ['Muncher (no visible difference)', QtGui.QIcon(path + 'Damage/Muncher.png')],
         ]
 
@@ -747,7 +967,7 @@ class paletteWidget(QtWidgets.QWidget):
 
         # Quicksand is unused.
         self.terrainTypes = [
-            ['Default', QtGui.QIcon(path + 'Core/Default.png')],                  # 0x0
+            ['Default', QtGui.QIcon()],                                           # 0x0
             ['Ice', QtGui.QIcon(path + 'Terrain/Ice.png')],                       # 0x1
             ['Snow', QtGui.QIcon(path + 'Terrain/Snow.png')],                     # 0x2
             ['Quicksand', QtGui.QIcon(path + 'Terrain/Quicksand.png')],           # 0x3
@@ -955,7 +1175,10 @@ def SetupObjectModel(self, objects, tiles):
         for i in range(len(object.tiles)):
             for tile in object.tiles[i]:
                 if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
-                    painter.drawPixmap(Xoffset, Yoffset, tiles[tile[1]].image.scaledToWidth(24, Qt.SmoothTransformation))
+                    image = Tileset.overrides[tile[1]] if Tileset.slot == 0 and window.overrides else None
+                    if not image:
+                        image = tiles[tile[1]].image
+                    painter.drawPixmap(Xoffset, Yoffset, image.scaledToWidth(24, Qt.SmoothTransformation))
                 Xoffset += 24
             Xoffset = 0
             Yoffset += 24
@@ -2106,7 +2329,10 @@ class tileWidget(QtWidgets.QWidget):
             self.tiles.append([])
             for tile in row:
                 if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
-                    self.tiles[-1].append(Tileset.tiles[tile[1]].image.scaledToWidth(24, Qt.SmoothTransformation))
+                    image = Tileset.overrides[tile[1]] if Tileset.slot == 0 and window.overrides else None
+                    if not image:
+                        image = Tileset.tiles[tile[1]].image
+                    self.tiles[-1].append(image.scaledToWidth(24, Qt.SmoothTransformation))
                 else:
                     pix = QtGui.QPixmap(24,24)
                     pix.fill(QtGui.QColor(0,0,0,0))
@@ -2197,7 +2423,10 @@ class tileWidget(QtWidgets.QWidget):
                     return
 
                 try:
-                    self.tiles[y][x] = Tileset.tiles[tile].image.scaledToWidth(24, Qt.SmoothTransformation)
+                    image = Tileset.overrides[tile] if Tileset.slot == 0 and window.overrides else None
+                    if not image:
+                        image = Tileset.tiles[tile].image
+                    self.tiles[y][x] = image.scaledToWidth(24, Qt.SmoothTransformation)
                     Tileset.objects[self.object].tiles[y][x] = (Tileset.objects[self.object].tiles[y][x][0], tile, Tileset.slot)
                 except IndexError:
                     pass
@@ -2403,6 +2632,7 @@ class MainWindow(QtWidgets.QMainWindow):
         global window
         window = self
 
+        self.overrides = True
         self.saved = False
         self.con = con
 
@@ -2480,6 +2710,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.normalmap:
             for tile in Tileset.tiles:
                 self.model.addPieces(tile.normalmap.scaledToWidth(24, Qt.SmoothTransformation))
+        elif Tileset.slot == 0 and window.overrides:
+            for i in range(len(Tileset.tiles)):
+                image = Tileset.overrides[i]
+                if not image:
+                    image = Tileset.tiles[i].image
+                self.model.addPieces(image.scaledToWidth(24, Qt.SmoothTransformation))
         else:
             for tile in Tileset.tiles:
                 self.model.addPieces(tile.image.scaledToWidth(24, Qt.SmoothTransformation))
@@ -2501,7 +2737,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for i in range(256):
             Tileset.addTile(EmptyPix, normalmap)
 
-        Tileset.slot = self.slot
+        Tileset.slot = self.slot; Tileset.processOverrides()
         self.tileWidget.tilesetType.setText('Pa{0}'.format(Tileset.slot))
 
         self.setuptile()
@@ -2652,7 +2888,7 @@ class MainWindow(QtWidgets.QMainWindow):
             upperslope = [0, 0]
             lowerslope = [0, 0]
 
-        Tileset.slot = self.slot
+        Tileset.slot = self.slot; Tileset.processOverrides()
         self.tileWidget.tilesetType.setText('Pa%d' % Tileset.slot)
 
         cobj = 0
@@ -3193,6 +3429,7 @@ class MainWindow(QtWidgets.QMainWindow):
         taskMenu = self.menuBar().addMenu("&Tasks")
 
         taskMenu.addAction("Toggle Normal Map", self.toggleNormal, QtGui.QKeySequence('Ctrl+Shift+N'))
+        taskMenu.addAction("Toggle Overrides", self.toggleOverrides, QtGui.QKeySequence('Ctrl+Shift+O'))
         taskMenu.addAction("Show Tiles info...", self.showInfo, QtGui.QKeySequence('Ctrl+P'))
         taskMenu.addAction("Import object from file...", self.importObjFromFile, '')
         taskMenu.addAction("Export object...", self.saveObject, '')
@@ -3209,6 +3446,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setuptile()
 
         self.tileWidget.setObject(self.objectList.currentIndex())
+        self.tileWidget.update()
+
+    def toggleOverrides(self):
+        self.overrides = not self.overrides
+
+        index = self.objectList.currentIndex()
+
+        self.setuptile()
+        SetupObjectModel(self.objmodel, Tileset.objects, Tileset.tiles)
+
+        self.objectList.setCurrentIndex(index)
+        self.tileWidget.setObject(index)
+
+        self.objectList.update()
         self.tileWidget.update()
 
     def showInfo(self):
