@@ -1062,7 +1062,7 @@ class InfoBox(QtWidgets.QWidget):
 
 
         self.collisionOverlay = QtWidgets.QCheckBox('Overlay Collision')
-        self.collisionOverlay.clicked.connect(window.tileDisplay.update)
+        self.collisionOverlay.clicked.connect(self.updateCollision)
 
 
         self.coreInfo = QtWidgets.QLabel()
@@ -1129,6 +1129,12 @@ class InfoBox(QtWidgets.QWidget):
         infoLayout.addRow(self.hexdata)
         superLayout.addLayout(infoLayout, 0, 1, 2, 1)
         self.setLayout(superLayout)
+
+    def updateCollision(self):
+        window.setuptile()
+
+        window.tileWidget.setObject(window.objectList.currentIndex())
+        window.tileWidget.update()
 
 
 
