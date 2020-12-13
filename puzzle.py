@@ -39,7 +39,6 @@ from tileset import updateCollisionOverlay
 
 
 Tileset = None
-PuzzleVersion = '2.7'
 
 #############################################################################################
 ########################## Tileset Class and Tile/Object Subclasses #########################
@@ -2627,6 +2626,11 @@ class frameByFrameTab(QtWidgets.QWidget):
         self.deleteButton.released.connect(self.deleteFrame)
         self.deleteButton.setEnabled(False)
 
+        self.playButton = QtWidgets.QPushButton('Play Preview')
+        self.playButton.setCheckable(True)
+        self.playButton.toggled.connect(self.playPreview)
+        self.playButton.setEnabled(False)
+
         self.tiles = frameByFrameTab.tileWidget(parent)
 
         self.frameIdx = QtWidgets.QSpinBox()
@@ -2642,8 +2646,12 @@ class frameByFrameTab(QtWidgets.QWidget):
         layout.addWidget(self.exportButton, 4, 0, 1, 1)
         layout.addWidget(self.addButton, 3, 4, 1, 1)
         layout.addWidget(self.deleteButton, 4, 4, 1, 1)
+        layout.addWidget(self.playButton, 4, 1, 1, 3)
 
         self.setLayout(layout)
+
+        self.previewTimer = QtCore.QTimer()
+        self.previewTimer.timeout.connect(lambda: self.frameIdxChanged(self.getNextFrame()))
 
     def update(self):
         self.tiles.update()
@@ -2740,6 +2748,35 @@ class frameByFrameTab(QtWidgets.QWidget):
 
         self.frameIdx.setValue(min(idx, max(len(frames), 1) - 1))
         self.parent.update()
+
+    def getNextFrame(self):
+        idx = self.tiles.idx + 1
+        if idx > max(len(self.parent.frames), 1) - 1:
+            idx = 0
+
+        return idx
+
+    def playPreview(self, checked):
+        if checked:
+            self.importButton.setEnabled(False)
+            self.exportButton.setEnabled(False)
+            self.addButton.setEnabled(False)
+            self.deleteButton.setEnabled(False)
+            self.frameIdx.setEnabled(False)
+            self.parent.allFramesTab.importButton.setEnabled(False)
+
+            self.previewTimer.start(62.5)
+
+        else:
+            self.importButton.setEnabled(True)
+            self.exportButton.setEnabled(True)
+            self.addButton.setEnabled(True)
+            self.deleteButton.setEnabled(True)
+            self.frameIdx.setEnabled(True)
+            self.parent.allFramesTab.importButton.setEnabled(True)
+
+            self.previewTimer.stop()
+            self.frameIdx.setValue(self.tiles.idx)
 
 
 class scrollArea(QtWidgets.QScrollArea):
@@ -2970,6 +3007,7 @@ class tileAnime(QtWidgets.QTabWidget):
         _frameByFrameTab.importButton.setEnabled(nFrames)
         _frameByFrameTab.exportButton.setEnabled(nFrames)
         _frameByFrameTab.deleteButton.setEnabled(nFrames)
+        _frameByFrameTab.playButton.setEnabled(nFrames)
         _frameByFrameTab.frameIdx.setRange(0, max(nFrames, 1) - 1)
         _frameByFrameTab.frameIdx.setEnabled(nFrames)
         _frameByFrameTab.update()
@@ -3218,7 +3256,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tileImage = QtGui.QPixmap()
         self.normalmap = False
 
-        global Tileset, PuzzleVersion
+        global Tileset
         Tileset = TilesetClass()
 
         self.name = name
@@ -3242,7 +3280,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed,
                 QtWidgets.QSizePolicy.Fixed))
-        self.setWindowTitle(name + ' - Puzzle NSMBU v%s' % PuzzleVersion)
+        self.setWindowTitle(name + ' - Puzzle NSMBU')
 
 
     def closeEvent(self, event):
@@ -3274,6 +3312,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if not self.saved and self.con:
             exec("globals.Area.tileset%d = ''" % self.slot)
+
+        if self.slot == 0:
+            self.animWidget.block.frameByFrameTab.previewTimer.stop()
+            self.animWidget.hatena.frameByFrameTab.previewTimer.stop()
+            self.animWidget.blockL.frameByFrameTab.previewTimer.stop()
+            self.animWidget.hatenaL.frameByFrameTab.previewTimer.stop()
+            self.animWidget.tuka.frameByFrameTab.previewTimer.stop()
+            self.animWidget.belt.frameByFrameTab.previewTimer.stop()
 
         super().closeEvent(event)
 

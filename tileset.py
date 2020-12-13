@@ -689,7 +689,7 @@ def CreateTilesets():
 
     globals.TilesetAnimTimer = QtCore.QTimer()
     globals.TilesetAnimTimer.timeout.connect(IncrementTilesetFrame)
-    globals.TilesetAnimTimer.start(90)
+    globals.TilesetAnimTimer.start(62.5)
 
     globals.ObjectDefinitions = [None] * 4
 
