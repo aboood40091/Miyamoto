@@ -17,6 +17,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
 import globals
+from gtx import RAWtoGTX
 import SarcLib
 from tileset import HandleTilesetEdited, loadGTX, writeGTX
 from tileset import updateCollisionOverlay
@@ -2555,6 +2556,576 @@ class tileWidget(QtWidgets.QWidget):
 
 
 #############################################################################################
+################################## Pa0 Tileset Animation Tab ################################
+
+
+class frameTileWidget(QtWidgets.QWidget):
+    def __init__(self, parent):
+        super().__init__()
+        self.parent = parent
+
+    def width(self):
+        return 0
+
+    def height(self):
+        return 0
+
+    def pixmap(self):
+        return None
+
+    def paintEvent(self, event):
+        if not self.parent.frames:
+            return
+
+        painter = QtGui.QPainter()
+        painter.begin(self)
+
+        width = self.width()
+        height = self.height()
+        pixmap = self.pixmap()
+
+        centerPoint = self.contentsRect().center()
+        upperLeftX = centerPoint.x() - width * 30
+        upperLeftY = centerPoint.y() - height * 30
+
+        painter.fillRect(upperLeftX, upperLeftY, width * 60, height * 60, QtGui.QColor(205, 205, 255))
+        painter.drawPixmap(upperLeftX, upperLeftY, pixmap)
+
+
+class frameByFrameTab(QtWidgets.QWidget):
+    class tileWidget(frameTileWidget):
+        def __init__(self, parent):
+            super().__init__(parent)
+            self.idx = 0
+
+        def width(self):
+            return self.parent.blockWidth
+
+        def height(self):
+            return self.parent.blockHeight
+
+        def pixmap(self):
+            return self.parent.frames[self.idx]
+
+    def __init__(self, parent):
+        super().__init__()
+
+        self.parent = parent
+
+        self.importButton = QtWidgets.QPushButton('Import')
+        self.importButton.released.connect(self.importFrame)
+        self.importButton.setEnabled(False)
+
+        self.exportButton = QtWidgets.QPushButton('Export')
+        self.exportButton.released.connect(self.exportFrame)
+        self.exportButton.setEnabled(False)
+
+        self.addButton = QtWidgets.QPushButton('Add Frame')
+        self.addButton.released.connect(self.addFrame)
+
+        self.deleteButton = QtWidgets.QPushButton('Delete Frame')
+        self.deleteButton.released.connect(self.deleteFrame)
+        self.deleteButton.setEnabled(False)
+
+        self.tiles = frameByFrameTab.tileWidget(parent)
+
+        self.frameIdx = QtWidgets.QSpinBox()
+        self.frameIdx.setRange(0, 0)
+        self.frameIdx.valueChanged.connect(self.frameIdxChanged)
+        self.frameIdx.setEnabled(False)
+
+        layout = QtWidgets.QGridLayout()
+
+        layout.addWidget(self.tiles, 0, 1, 2, 3)
+        layout.addWidget(self.frameIdx, 3, 2, 1, 1)
+        layout.addWidget(self.importButton, 3, 0, 1, 1)
+        layout.addWidget(self.exportButton, 4, 0, 1, 1)
+        layout.addWidget(self.addButton, 3, 4, 1, 1)
+        layout.addWidget(self.deleteButton, 4, 4, 1, 1)
+
+        self.setLayout(layout)
+
+    def update(self):
+        self.tiles.update()
+
+        super().update()
+
+    def frameIdxChanged(self, idx):
+        self.tiles.idx = idx
+        self.update()
+
+    def importPixmap(self):
+        path = QtWidgets.QFileDialog.getOpenFileName(self, "Open Image", '',
+                                                     '.png (*.png)')[0]
+        if not path:
+            return None
+
+        pixmap = QtGui.QPixmap(path)
+        width = pixmap.width()
+        height = pixmap.height()
+
+        blockWidth = self.parent.blockWidth
+        blockHeight = self.parent.blockHeight
+
+        requiredWidth = blockWidth * 60
+        requiredHeight = blockHeight * 60
+
+        try:
+            assert width == requiredWidth
+            assert height == requiredHeight
+
+        except AssertionError:
+            requiredWidthPadded = blockWidth * 64
+            requiredHeightPadded = blockHeight * 64
+
+            try:
+                assert width == requiredWidthPadded
+                assert height == requiredHeightPadded
+
+            except AssertionError:
+                QtWidgets.QMessageBox.warning(self, "Open Image",
+                    "The image was not the proper dimensions.\n"
+                    "Please resize the image to %dx%d pixels." % (requiredWidth, requiredHeight),
+                    QtWidgets.QMessageBox.Cancel)
+
+                return None
+
+            paddedPixmap = pixmap
+
+            pixmap = QtGui.QPixmap(requiredWidth, requiredHeight)
+            pixmap.fill(Qt.transparent)
+
+            for y in range(height // 64):
+                for x in range(width // 64):
+                    painter = QtGui.QPainter(pixmap)
+                    painter.drawPixmap(x * 60, y * 60, paddedPixmap.copy(x*64 + 2, y*64 + 2, 60, 60))
+                    painter.end()
+
+            del paddedPixmap
+
+        return pixmap
+
+    def importFrame(self):
+        pixmap = self.importPixmap()
+        if not pixmap:
+            return
+
+        del self.parent.frames[self.tiles.idx]
+        self.parent.frames.insert(self.tiles.idx, pixmap)
+        self.parent.update()
+
+    def exportFrame(self):
+        path = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", ''
+                                                     , '.png (*.png)')[0]
+        if not path:
+            return
+
+        self.tiles.pixmap().save(path)
+
+    def addFrame(self):
+        pixmap = self.importPixmap()
+        if not pixmap:
+            return
+
+        newIdx = len(self.parent.frames)
+        self.parent.frames.append(pixmap)
+        self.parent.update()
+
+        self.frameIdx.setValue(newIdx)
+
+    def deleteFrame(self):
+        idx = self.tiles.idx
+        frames = self.parent.frames
+        del frames[idx]
+
+        self.frameIdx.setValue(min(idx, max(len(frames), 1) - 1))
+        self.parent.update()
+
+
+class scrollArea(QtWidgets.QScrollArea):
+    def __init__(self, widget):
+        super().__init__()
+
+        self.setWidgetResizable(True)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setWidget(widget)
+
+        self.deltaWidth = globals.app.style().pixelMetric(QtWidgets.QStyle.PM_ScrollBarExtent)
+        self.width = widget.sizeHint().width() + self.deltaWidth
+        self.height = widget.sizeHint().height() + self.deltaWidth
+
+    def sizeHint(self):
+        return QtCore.QSize(self.width, self.height)
+
+    def update(self):
+        widget = self.widget()
+        self.width = widget.sizeHint().width() + self.deltaWidth
+        self.height = widget.sizeHint().height() + self.deltaWidth
+
+        super().update()
+
+
+class allFramesTab(QtWidgets.QWidget):
+    class tileWidget(frameTileWidget):
+        def width(self):
+            return self.parent.blockWidth
+
+        def height(self):
+            return self.parent.blockHeight * len(self.parent.frames)
+
+        def pixmap(self):
+            pixmap = QtGui.QPixmap(self.width() * 60, self.height() * 60)
+            pixmap.fill(Qt.transparent)
+
+            blockHeight = self.parent.blockHeight
+
+            for i, frame in enumerate(self.parent.frames):
+                painter = QtGui.QPainter(pixmap)
+                painter.drawPixmap(0, i * blockHeight * 60, frame)
+                painter.end()
+
+            return pixmap
+
+    def __init__(self, parent):
+        super().__init__()
+
+        self.parent = parent
+
+        self.importButton = QtWidgets.QPushButton('Import')
+        self.importButton.released.connect(self.importFrame)
+
+        self.exportButton = QtWidgets.QPushButton('Export')
+        self.exportButton.released.connect(self.exportFrame)
+
+        self.tiles = allFramesTab.tileWidget(parent)
+        self.tilesScroll = scrollArea(self.tiles)
+
+        layout = QtWidgets.QGridLayout()
+
+        layout.addWidget(self.importButton, 0, 0, 1, 2)
+        layout.addWidget(self.exportButton, 0, 2, 1, 2)
+        layout.addWidget(self.tilesScroll, 1, 0, 1, 4)
+
+        self.setLayout(layout)
+
+    def update(self):
+        self.tiles.update()
+        self.tilesScroll.update()
+
+        super().update()
+
+    def importFrame(self):
+        path = QtWidgets.QFileDialog.getOpenFileName(self, "Open Image", '',
+                                                     '.png (*.png)')[0]
+        if not path:
+            return
+
+        pixmap = QtGui.QPixmap(path)
+        width = pixmap.width()
+        height = pixmap.height()
+
+        blockWidth = self.parent.blockWidth
+        blockHeight = self.parent.blockHeight
+
+        requiredWidth = blockWidth * 60
+        requiredHeight = blockHeight * 60
+
+        padded = False
+
+        try:
+            assert width == requiredWidth
+            assert height % requiredHeight == 0
+
+        except AssertionError:
+            requiredWidthPadded = blockWidth * 64
+            requiredHeightPadded = blockHeight * 64
+
+            try:
+                assert width == requiredWidthPadded
+                assert height % requiredHeightPadded == 0
+
+            except AssertionError:
+                QtWidgets.QMessageBox.warning(self, "Open Image",
+                    "The image was not the proper dimensions.\n"
+                    "Please resize the image to a width of %d and height multiple of %d." % (requiredWidth, requiredHeight),
+                    QtWidgets.QMessageBox.Cancel)
+
+                return
+
+            padded = True
+
+        if padded:
+            frames = [QtGui.QPixmap(requiredWidth, requiredHeight) for _ in range(height // requiredHeightPadded)]
+            for frame in frames:
+                frame.fill(Qt.transparent)
+
+            for y in range(height // 64):
+                for x in range(width // 64):
+                    painter = QtGui.QPainter(frames[y // blockHeight])
+                    painter.drawPixmap(x * 60, y % blockHeight * 60, pixmap.copy(x*64 + 2, y*64 + 2, 60, 60))
+                    painter.end()
+
+        else:
+            frames = [QtGui.QPixmap(requiredWidth, requiredHeight) for _ in range(height // requiredHeight)]
+            for frame in frames:
+                frame.fill(Qt.transparent)
+
+            for y in range(0, height, requiredHeight):
+                painter = QtGui.QPainter(frames[y // requiredHeight])
+                painter.drawPixmap(0, 0, pixmap.copy(0, y, requiredWidth, requiredHeight))
+                painter.end()
+
+        del pixmap
+        del self.parent.frames
+
+        self.parent.frames = frames
+        self.parent.update()
+
+    def exportFrame(self):
+        path = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", ''
+                                                     , '.png (*.png)')[0]
+        if not path:
+            return
+
+        self.tiles.pixmap().save(path)
+
+
+class tileAnime(QtWidgets.QTabWidget):
+    def __init__(self, name, blockWidth, blockHeight, tiles):
+        super().__init__()
+
+        self.name = name
+
+        self.blockWidth = blockWidth
+        self.blockHeight = blockHeight
+        self.tiles = tiles  # TODO: Highlight tiles in the palette when this tab is selected
+
+        self.frames = []
+
+        self.frameByFrameTab = frameByFrameTab(self)
+        self.allFramesTab = allFramesTab(self)
+
+        self.addTab(self.frameByFrameTab, "Frame-by-frame View")
+        self.addTab(self.allFramesTab, "All-Frames View")
+
+        self.setStyleSheet("""
+        QTabWidget::tab-bar {
+            alignment: center;
+        }
+        """)
+
+        self.setTabPosition(QtWidgets.QTabWidget.South)
+
+    def load(self, useAddrLib=False):
+        global window
+        arc = window.arc
+
+        data = b''
+        for folder in arc.contents:
+            if folder.name == 'BG_tex':
+                for file in folder.contents:
+                    if file.name == '%s.gtx' % self.name:
+                        data = file.data
+
+        if not data:
+            print("Failed to acquired %s.gtx" % self.name)
+            frames = []
+
+        else:
+            image = QtGui.QPixmap.fromImage(loadGTX(data, useAddrLib))
+            width = image.width()
+            height = image.height()
+
+            blockWidth = self.blockWidth
+            blockHeight = self.blockHeight
+
+            try:
+                assert width == blockWidth * 64
+                assert height % blockHeight * 64 == 0
+
+            except AssertionError:
+                print("Invalid dimensions for %s.gtx: (%d, %d)" % (self.name, width, height))
+                frames = []
+
+            else:
+                frames = [QtGui.QPixmap(blockWidth * 60, blockHeight * 60) for _ in range(height // (blockHeight * 64))]
+                for frame in frames:
+                    frame.fill(Qt.transparent)
+
+                for y in range(height // 64):
+                    for x in range(width // 64):
+                        painter = QtGui.QPainter(frames[y // blockHeight])
+                        painter.drawPixmap(x * 60, y % blockHeight * 60, image.copy(x*64 + 2, y*64 + 2, 60, 60))
+                        painter.end()
+
+        del self.frames
+        self.frames = frames
+        self.update()
+
+    def update(self):
+        nFrames = len(self.frames)
+        _frameByFrameTab = self.frameByFrameTab
+        _frameByFrameTab.tiles.setMinimumSize(_frameByFrameTab.tiles.width() * 60, _frameByFrameTab.tiles.height() * 60)
+        _frameByFrameTab.importButton.setEnabled(nFrames)
+        _frameByFrameTab.exportButton.setEnabled(nFrames)
+        _frameByFrameTab.deleteButton.setEnabled(nFrames)
+        _frameByFrameTab.frameIdx.setRange(0, max(nFrames, 1) - 1)
+        _frameByFrameTab.frameIdx.setEnabled(nFrames)
+        _frameByFrameTab.update()
+
+        _allFramesTab = self.allFramesTab
+        _allFramesTab.tiles.setMinimumSize(_allFramesTab.tiles.width() * 60, _allFramesTab.tiles.height() * 60)
+        _allFramesTab.exportButton.setEnabled(nFrames)
+        _allFramesTab.update()
+
+        super().update()
+
+
+class animWidget(QtWidgets.QTabWidget):
+    def __init__(self):
+        super().__init__()
+
+        global window
+        if window.slot:
+            return
+
+        self.block = tileAnime('block_anime', 1, 1, (48,))
+        self.hatena = tileAnime('hatena_anime', 1, 1, (49,))
+        self.blockL = tileAnime('block_anime_L', 2, 2, (112, 113, 128, 129))
+        self.hatenaL = tileAnime('hatena_anime_L', 2, 2, (114, 115, 130, 131))
+        self.tuka = tileAnime('tuka_coin_anime', 1, 1, (31,))
+        self.belt = tileAnime('belt_conveyor_anime', 3, 1, (144, 145, 146, 147, 148, 149,
+                                                           160, 161, 162, 163, 164, 165))
+
+        path = globals.miyamoto_path + '/miyamotodata/Icons/'
+
+        self.addTab(self.block, QtGui.QIcon(path + 'Core/Brick.png'), 'Brick Block')
+        self.addTab(self.hatena, QtGui.QIcon(path + 'Core/Qblock.png'), '? Block')
+        self.addTab(self.blockL, QtGui.QIcon(path + 'Core/Brick.png'), 'Big Brick Block')
+        self.addTab(self.hatenaL, QtGui.QIcon(path + 'Core/Qblock.png'), 'Big ? Block')
+        self.addTab(self.tuka, QtGui.QIcon(path + 'Core/DashCoin.png'), 'Dash Coin')
+        self.addTab(self.belt, QtGui.QIcon(path + 'Core/Conveyor.png'), 'Conveyor Belt')
+
+        self.setTabToolTip(0, "Brick Block animation.<br><b>Needs to be 16 frames!")
+        self.setTabToolTip(1, "Question Block animation.<br><b>Needs to be 16 frames!")
+        self.setTabToolTip(2, "Big Brick Block animation.<br><b>Needs to be 16 frames!")
+        self.setTabToolTip(3, "Big Question Block animation.<br><b>Needs to be 16 frames!")
+        self.setTabToolTip(4, "Dash Coin animation.<br><b>Needs to be 8 frames!")
+        self.setTabToolTip(5, "Conveyor Belt animation.<br><b>Needs to be 8 frames!")
+
+        #self.setTabShape(QtWidgets.QTabWidget.Triangular)
+        self.setTabPosition(QtWidgets.QTabWidget.South)
+
+    def load(self):
+        global window
+        if window.slot:
+            return
+
+        self.block.load()
+        self.hatena.load()
+        self.blockL.load()
+        self.hatenaL.load()
+        self.tuka.load()
+        self.belt.load(True)
+
+    def save(self):
+        global window
+        if window.slot:
+            return []
+
+        packTexture = self.packTexture
+        anime = []
+
+        if self.block.frames:
+            anime.append((self.block.name, packTexture(self.block.allFramesTab.tiles.pixmap())))
+
+        if self.hatena.frames:
+            anime.append((self.hatena.name, packTexture(self.hatena.allFramesTab.tiles.pixmap())))
+
+        if self.blockL.frames:
+            anime.append((self.blockL.name, packTexture(self.blockL.allFramesTab.tiles.pixmap())))
+
+        if self.hatenaL.frames:
+            anime.append((self.hatenaL.name, packTexture(self.hatenaL.allFramesTab.tiles.pixmap())))
+
+        if self.tuka.frames:
+            anime.append((self.tuka.name, packTexture(self.tuka.allFramesTab.tiles.pixmap())))
+
+        if self.belt.frames:
+            anime.append((self.belt.name, packTexture(self.belt.allFramesTab.tiles.pixmap())))
+
+        return anime
+
+    @staticmethod
+    def packTexture(pixmap):
+        width = pixmap.width() // 60
+        height = pixmap.height() // 60
+
+        tex = QtGui.QImage(width * 64, height * 64, QtGui.QImage.Format_RGBA8888)
+        tex.fill(Qt.transparent)
+        painter = QtGui.QPainter(tex)
+
+        for y in range(height):
+            for x in range(width):
+                tile = QtGui.QImage(64, 64, QtGui.QImage.Format_RGBA8888)
+                tile.fill(Qt.transparent)
+
+                tilePainter = QtGui.QPainter(tile)
+                tilePainter.drawPixmap(2, 2, pixmap.copy(x * 60, y * 60, 60, 60))
+                tilePainter.end()
+
+                for i in range(2, 62):
+                    color = tile.pixel(i, 2)
+                    for pix in range(0,2):
+                        tile.setPixel(i, pix, color)
+
+                    color = tile.pixel(2, i)
+                    for p in range(0,2):
+                        tile.setPixel(p, i, color)
+
+                    color = tile.pixel(i, 61)
+                    for p in range(62,64):
+                        tile.setPixel(i, p, color)
+
+                    color = tile.pixel(61, i)
+                    for p in range(62,64):
+                        tile.setPixel(p, i, color)
+
+                color = tile.pixel(2, 2)
+                for a in range(0, 2):
+                    for b in range(0, 2):
+                        tile.setPixel(a, b, color)
+
+                color = tile.pixel(61, 2)
+                for a in range(62, 64):
+                    for b in range(0, 2):
+                        tile.setPixel(a, b, color)
+
+                color = tile.pixel(2, 61)
+                for a in range(0, 2):
+                    for b in range(62, 64):
+                        tile.setPixel(a, b, color)
+
+                color = tile.pixel(61, 61)
+                for a in range(62, 64):
+                    for b in range(62, 64):
+                        tile.setPixel(a, b, color)
+
+
+                painter.drawImage(x * 64, y * 64, tile)
+
+        painter.end()
+
+        bits = tex.bits()
+        bits.setsize(tex.byteCount())
+        data = bits.asstring()
+
+        return RAWtoGTX(width * 64, height * 64, 0x1a, bytes(4), len(data), [0, 1, 2, 3], 1, data)
+
+
+
+#############################################################################################
 ############################ Subclassed one dimension Item Model ############################
 
 
@@ -2644,9 +3215,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.con = con
 
         self.slot = int(slot)
-        if self.slot == 0:
-            self.anime = ['belt_conveyor_anime', 'block_anime', 'block_anime_L', 'hatena_anime', 'hatena_anime_L', 'tuka_coin_anime']
-
         self.tileImage = QtGui.QPixmap()
         self.normalmap = False
 
@@ -2745,7 +3313,7 @@ class MainWindow(QtWidgets.QMainWindow):
             Tileset.addTile(EmptyPix, normalmap)
 
         Tileset.slot = self.slot; Tileset.processOverrides()
-        self.tileWidget.tilesetType.setText('Pa{0}'.format(Tileset.slot))
+        self.tileWidget.tilesetType.setText('Pa%d' % Tileset.slot)
 
         self.setuptile()
 
@@ -2897,6 +3465,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         Tileset.slot = self.slot; Tileset.processOverrides()
         self.tileWidget.tilesetType.setText('Pa%d' % Tileset.slot)
+        self.animWidget.load()
 
         cobj = 0
         crow = 0
@@ -3044,6 +3613,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         Tileset.slot = self.slot
         self.tileWidget.tilesetType.setText('Pa%d' % Tileset.slot)
+        self.animWidget.load()
 
         cobj = 0
         crow = 0
@@ -3101,7 +3671,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
             QtWidgets.QMessageBox.warning(self, "Open Image",
-                    "The image was not the proper dimensions."
+                    "The image was not the proper dimensions.\n"
                     "Please resize the image to 960x960 pixels.",
                     QtWidgets.QMessageBox.Cancel)
             return
@@ -3229,13 +3799,8 @@ class MainWindow(QtWidgets.QMainWindow):
         tex.addFile(SarcLib.File('%s.gtx' % name, textureBuffer))
         tex.addFile(SarcLib.File('%s_nml.gtx' % name, textureBufferNml))
 
-        if self.slot == 0:
-            for folder in self.arc.contents:
-                if folder.name == 'BG_tex':
-                    for file in folder.contents:
-                        for name2 in self.anime:
-                            if file.name == '%s.gtx' % name2:
-                                tex.addFile(SarcLib.File('%s.gtx' % name2, file.data))
+        for (animName, data) in self.animWidget.save():
+            tex.addFile(SarcLib.File('%s.gtx' % animName, data))
 
         chk = SarcLib.Folder('BG_chk'); arc.addFolder(chk)
         chk.addFile(SarcLib.File('d_bgchk_%s.bin' % name, tileBuffer))
@@ -3914,16 +4479,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tileWidget = tileOverlord()
         self.paletteWidget = paletteWidget(self)
 
-        # Second Tab
+        # Objects Tab
         self.container = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.objectList)
         layout.addWidget(self.tileWidget)
         self.container.setLayout(layout)
 
+        # Animations Tab
+        self.animWidget = animWidget()
+
         # Sets the Tabs
         self.tabWidget.addTab(self.paletteWidget, 'Behaviours')
         self.tabWidget.addTab(self.container, 'Objects')
+
+        self.tabWidget.addTab(self.animWidget, 'Animations')
+        self.tabWidget.setTabEnabled(2, self.slot == 0)
 
         # Connections do things!
         self.tileDisplay.clicked.connect(self.paintFormat)

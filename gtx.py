@@ -168,10 +168,7 @@ def getAlignBlockSize(dataOffset, alignment):
     return alignSize
 
 
-def writeGFD(f):
-    width, height, format_, fourcc, dataSize, compSel, numMips, data = dds.readDDS(f)
-    numMips += 1
-
+def writeGFDRaw(width, height, format_, fourcc, dataSize, compSel, numMips, data):
     tileMode = addrlib.getDefaultGX2TileMode(1, width, height, 1, format_, 0, 1)
 
     bpp = addrlib.surfaceGetBitsPerPixel(format_) >> 3
@@ -294,6 +291,30 @@ def writeGFD(f):
             output += swizzled_data[i]
 
     return output
+
+
+def RAWtoGTX(width, height, format_, fourcc, dataSize, compSel, numMips, data):
+    head_struct = GFDHeader()
+    head = head_struct.pack(b"Gfx2", 32, 7, 1, 2, 1, 0, 0)
+
+    outData = head
+
+    imgblk = writeGFDRaw(width, height, format_, fourcc, dataSize, compSel, numMips, data)
+    outData += imgblk
+
+    block_head_struct = GFDBlockHeader()
+    eof_blk_head = block_head_struct.pack(b"BLK{", 32, 1, 0, 1, 0, 0, 0)
+
+    outData += eof_blk_head
+
+    return outData
+
+
+def writeGFD(f):
+    width, height, format_, fourcc, dataSize, compSel, numMips, data = dds.readDDS(f)
+    numMips += 1
+
+    return writeGFDRaw(width, height, format_, fourcc, dataSize, compSel, numMips, data)
 
 
 def DDStoGTX(f):
