@@ -979,6 +979,7 @@ class MiyamotoTranslation:
                 79: 'Snap to 16x16 Grid',
                 80: 'Small / Small Focus Light',
                 81: '[b]Visibility:[/b][br]Small - A small, centered spotlight affords visibility through layer 0.[br]Small Focuslight - A small spotlight which changes size based on player movement.',
+                82: 'Clone',
                 },
             'Zones': {
                 0: 'Zone [num]',

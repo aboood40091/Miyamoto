@@ -577,10 +577,12 @@ class ZonesDialog(QtWidgets.QDialog):
 
         self.NewButton = QtWidgets.QPushButton(globals.trans.string('ZonesDlg', 4))
         self.DeleteButton = QtWidgets.QPushButton(globals.trans.string('ZonesDlg', 5))
+        self.CloneButton = QtWidgets.QPushButton(globals.trans.string('ZonesDlg', 82))
 
         buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         buttonBox.addButton(self.NewButton, buttonBox.ActionRole);
         buttonBox.addButton(self.DeleteButton, buttonBox.ActionRole);
+        buttonBox.addButton(self.CloneButton, buttonBox.ActionRole);
 
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
@@ -588,6 +590,8 @@ class ZonesDialog(QtWidgets.QDialog):
         self.NewButton.setEnabled(len(self.zoneTabs) < 8)
         self.NewButton.clicked.connect(self.NewZone)
         self.DeleteButton.clicked.connect(self.DeleteZone)
+        self.CloneButton.setEnabled(len(self.zoneTabs) < 8)
+        self.CloneButton.clicked.connect(self.CloneZone)
 
         mainLayout = QtWidgets.QVBoxLayout()
         mainLayout.addWidget(self.tabWidget)
@@ -627,6 +631,7 @@ class ZonesDialog(QtWidgets.QDialog):
                 self.tabWidget.setTabText(tab, str(tab + 1))
 
         self.NewButton.setEnabled(len(self.zoneTabs) < 8)
+        self.CloneButton.setEnabled(len(self.zoneTabs) < 8)
 
         self.resize(self.sizeHint())
         self.setFixedWidth(self.sizeHint().width())
@@ -650,6 +655,43 @@ class ZonesDialog(QtWidgets.QDialog):
                 self.tabWidget.setTabText(tab, globals.trans.string('ZonesDlg', 3, '[num]', tab + 1))
 
                 # self.NewButton.setEnabled(len(self.zoneTabs) < 8)
+
+        self.resize(self.sizeHint())
+        self.setFixedWidth(self.sizeHint().width())
+
+    def CloneZone(self):
+        if len(self.zoneTabs) >= 15:
+            result = QtWidgets.QMessageBox.warning(self, globals.trans.string('ZonesDlg', 6), globals.trans.string('ZonesDlg', 7),
+                                                   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            if result == QtWidgets.QMessageBox.No:
+                return
+        
+        z0 = self.zoneTabs[self.tabWidget.currentIndex()].zoneObj
+
+        id = len(self.zoneTabs)
+        z = ZoneItem(z0.objx, z0.objy, z0.width, z0.height, z0.modeldark, z0.terraindark, id, z0.block3id, z0.cammode, z0.camzoom, z0.visibility, id, z0.camtrack, z0.music, z0.sfxmod, z0.type, (z0.yupperbound, z0.ylowerbound, z0.yupperbound2, z0.ylowerbound2, z0.entryid, z0.unknownbnf), z0.background, id)
+        ZoneTabName = globals.trans.string('ZonesDlg', 3, '[num]', id + 1)
+        tab = ZoneTab(z); tab.adjustSize()
+        self.zoneTabs.append(tab)
+
+        bgTab = BGTab(z.background)
+        bgTab.adjustSize()
+        self.BGTabs.append(bgTab)
+
+        tabWidget = QtWidgets.QTabWidget()
+        tabWidget.addTab(tab, 'Options')
+        tabWidget.addTab(bgTab, 'Background')
+        tabWidget.adjustSize()
+
+        scrollArea = ZonesDialog.ScrollArea(tabWidget)
+        self.tabWidget.addTab(scrollArea, ZoneTabName)
+
+        if self.tabWidget.count() > 5:
+            for tab in range(0, self.tabWidget.count()):
+                self.tabWidget.setTabText(tab, str(tab + 1))
+
+        self.NewButton.setEnabled(len(self.zoneTabs) < 8)
+        self.CloneButton.setEnabled(len(self.zoneTabs) < 8)
 
         self.resize(self.sizeHint())
         self.setFixedWidth(self.sizeHint().width())
