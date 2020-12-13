@@ -295,6 +295,14 @@ class MiyamotoTranslation:
             'Err_Save': {
                 0: 'Error',
                 1: 'Error while Miyamoto was trying to save the level:[br](#[err1]) [err2][br][br](Your work has not been saved! Try saving it under a different filename or in a different folder.)',
+                2: 'Warning',
+                3: 'The level internal size exceeded 70 MB, which is the maximum capacity the game can handle.\n'
+                   'It is recommended to make the level smaller to prevent the game from crashing.\n'
+                   'This can be done by doing some of the following:\n'
+                   '- Deleting all instances of some sprites.\n'
+                   '- Having less areas.\n'
+                   '- Having less used tiles per area.\n',
+                   '- Not using RGBA8 for tilesets.\n',
                 },
             'FileDlgs': {
                 0: 'Choose a level archive',

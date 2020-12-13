@@ -2867,6 +2867,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             return False
 
         data = globals.Level.save(name)
+        if len(data) > 73295462:
+            QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 2),
+                                          globals.trans.string('Err_Save', 3))
+
         globals.levelNameCache = name
         try:
             if self.fileSavePath.endswith('.szs'):
@@ -2907,6 +2911,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             return False
 
         data = globals.Level.saveNewArea(name, course, L0, L1, L2)
+        if len(data) > 73295462:
+            QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 2),
+                                          globals.trans.string('Err_Save', 3))
+
         globals.levelNameCache = name
         try:
             if self.fileSavePath.endswith('.szs'):
@@ -2958,6 +2966,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             warningBox.exec_()
 
         data = globals.Level.save(name)
+        if len(data) > 73295462:
+            QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 2),
+                                          globals.trans.string('Err_Save', 3))
+
         globals.levelNameCache = name
 
         if self.fileSavePath.endswith('.szs'):
