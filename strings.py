@@ -296,13 +296,13 @@ class MiyamotoTranslation:
                 0: 'Error',
                 1: 'Error while Miyamoto was trying to save the level:[br](#[err1]) [err2][br][br](Your work has not been saved! Try saving it under a different filename or in a different folder.)',
                 2: 'Warning',
-                3: 'The level internal size exceeded 70 MB, which is the maximum capacity the game can handle.\n'
-                   'It is recommended to make the level smaller to prevent the game from crashing.\n'
-                   'This can be done by doing some of the following:\n'
-                   '- Deleting all instances of some sprites.\n'
-                   '- Having less areas.\n'
-                   '- Having less used tiles per area.\n',
-                   '- Not using RGBA8 for tilesets.\n',
+                3: 'The level internal size exceeded 70 MB, which is the maximum capacity the game can handle.[br]'
+                   'It is recommended to make the level smaller to prevent the game from crashing.[br]'
+                   'This can be done by doing some of the following:[br]'
+                   '- Deleting all instances of some sprites.[br]'
+                   '- Having less areas.[br]'
+                   '- Having less used tiles per area.[br]'
+                   '- Not using RGBA8 for tilesets.[br]',
                 },
             'FileDlgs': {
                 0: 'Choose a level archive',
@@ -882,7 +882,7 @@ class MiyamotoTranslation:
                 18: '[b]Preset:[/b][br]Snaps the zone to common sizes.[br]The number before each entry specifies which zoom level works best with each size.',
                 19: 'Rendering and Camera',
                 20: 'Zone Theme:',
-                21: '[b]Zone Theme:[/b][br]Completely useless because it\'s automatically determined by the background.\nChanges the way models and parts of the background are rendered (for blurring, darkness, lava effects, and so on). Themes with * next to them are used in the game, but look the same as the overworld theme.',
+                21: '[b]Zone Theme:[/b][br]Completely useless because it\'s automatically determined by the background.[br]Changes the way models and parts of the background are rendered (for blurring, darkness, lava effects, and so on). Themes with * next to them are used in the game, but look the same as the overworld theme.',
                 22: 'Terrain Lighting:',
                 23: '[b]Terrain Lighting:[/b][br]Changes the way the terrain is rendered. It also affects the parts of the background which the Zone Theme doesn\'t change.',
                 24: 'Normal',
