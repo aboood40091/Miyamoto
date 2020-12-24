@@ -30,7 +30,7 @@
 
 ############ Imports ############
 
-from math import sin, cos, radians
+from math import sin, cos
 import os.path
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -53,7 +53,9 @@ MapPositionToZoneID = None
 SpritesFolders = []
 RealViewEnabled = False
 Area = None
-
+RotationTimer = None
+RotationFrame = 0
+RotationFPS = 30
 
 ################################################################
 ################################################################
@@ -69,11 +71,43 @@ def loadVines():
     loadIfNotInImageCache('VineBtm', 'vine_btm.png')
 
 
+def updateMovement():
+    """
+    Updates movement-controlled sprites
+    """
+    global RotationFrame
+    RotationFrame += 1
+
+    mainWindow = globals.mainWindow
+    view = mainWindow.view
+    size = view.size()
+
+    movementControlledType = SpriteImage_MovementControlled
+
+    scale = 24 * mainWindow.ZoomLevel / 100.0
+    windowRect = QtCore.QRectF(view.XScrollBar.value() / scale,
+                               view.YScrollBar.value() / scale,
+                               size.width() / scale, size.height() / scale)
+
+    globals.OverrideSnapping = True
+    globals.DirtyOverride += 1
+    for spr in globals.Area.sprites:
+        imageObj = spr.ImageObj
+        if isinstance(imageObj, movementControlledType):
+            controller = spr.ImageObj.controller
+            if controller and controller.active() and windowRect.intersects(controller.parent.LevelRect | spr.LevelRect):
+                spr.UpdateDynamicSizing()
+    globals.DirtyOverride -= 1
+    globals.OverrideSnapping = False
+
+    mainWindow.levelOverview.update()
+
+
 def main():
     """
     Resets Sprites.py to its original settings
     """
-    global OutlineColor, OutlinePen, OutlineBrush, ImageCache, SpritesFolders
+    global OutlineColor, OutlinePen, OutlineBrush, ImageCache, SpritesFolders, RotationTimer, RotationFrame, RotationFPS
     OutlinePen = QtGui.QPen(OutlineColor, 4 * (TileWidth/24))
     OutlineBrush = QtGui.QBrush(OutlineColor)
 
@@ -88,6 +122,9 @@ def main():
     loadVines()
 
     SpritesFolders = []
+
+    RotationTimer = QtCore.QTimer()
+    RotationTimer.timeout.connect(updateMovement)
 
 
 def GetImg(imgname, image=False):
@@ -149,30 +186,6 @@ def MapPositionToZoneID(zones, x, y, useid=False):
         id += 1
 
     return rval
-
-
-def rotatePoint(x, y, angle, pivotX=0, pivotY=0):
-    """
-    Rotate the point (x, y) about (pivotX, pivotY)
-    angle must be in radians!
-    """
-    # Move the pivot to origin
-    x -= pivotX
-    y -= pivotY
-
-    # Calculate the sine and cosine of angle
-    s = sin(angle)
-    c = cos(angle)
-
-    # Rotate the point
-    x_rotated = x * c - y * s
-    y_rotated = x * s + y * c
-
-    # Move the pivot back
-    x = x_rotated + pivotX
-    y = y_rotated + pivotY
-
-    return x, y
 
 
 ################################################################
@@ -286,9 +299,7 @@ class SpriteImage_Liquid(SpriteImage):
             self.size = (
                 (self.image.width() / self.scale) + 1,
                 (self.image.height() / self.scale) + 2,
-                )
-        else:
-            del self.size
+            )
 
     def paint(self, painter):
         super().paint(painter)
@@ -325,9 +336,7 @@ class SpriteImage_Static(SpriteImage):
             self.size = (
                 (self.image.width() / self.scale) + 1,
                 (self.image.height() / self.scale) + 2,
-                )
-        else:
-            del self.size
+            )
 
     def paint(self, painter):
         super().paint(painter)
@@ -372,6 +381,9 @@ class SpriteImage_MovementController(SpriteImage_StaticMultiple):
     def getPivot(self):
         return (self.parent.objx + 8, self.parent.objy + 8)
 
+    def active(self):
+        return False
+
     def updateControlled(self):
         for controlled in self.controlled:
             controlled.parent.UpdateDynamicSizing()
@@ -410,23 +422,16 @@ class SpriteImage_MovementControlled(SpriteImage_StaticMultiple):
     """
     A class to handle movement-controlled sprites
     and apply the movement to them (rotation, for now)
-
-    Only self.image and AuxiliaryImage objects will be affected
-
-    Make sure you always reset the self.offset,
-    self.image and aux.image (if existent) in your dataChanged()!
-
-    If you have a sprite with an aux image and no self.image,
-    it is recommended that you make the selection rectangle
-    (self.width, self.height) a square
     """
 
-    # If set to false, the image will be moved around but not rotated
+    # If set to False, the image/AUX will be moved around but not rotated
     affectImage = True
     affectAUXImage = True
 
-    def __init__(self, parent, scale=None, image=None):
-        super().__init__(parent, scale, image)
+    affectedByIdZero = True
+
+    def __init__(self, parent, scale=None, image=None, offset=None):
+        super().__init__(parent, scale, image, offset)
 
         self.controller = None
 
@@ -451,6 +456,8 @@ class SpriteImage_MovementControlled(SpriteImage_StaticMultiple):
             if ( sprite.nearestZone() == zoneId and sprite.type in types
                  and isinstance(sprite.ImageObj, SpriteImage_MovementController) ):
                 if sprite.ImageObj.getMovementID() == self.getMovementID():
+                    if not self.affectedByIdZero and sprite.ImageObj.getMovementID() == 0:
+                        continue
                     self.controller = sprite.ImageObj
                     sprite.ImageObj.controlled.append(self)
                     break
@@ -464,75 +471,107 @@ class SpriteImage_MovementControlled(SpriteImage_StaticMultiple):
             self.controller = None
 
     def dataChanged(self):
+        # Find and hook the controller
         if not self.controller or self.controller.getMovementID() != self.getMovementID():
             self.unhookController()
             self.findController()
 
+        parent = self.parent
+
         if self.controller and globals.RotationShown:
+            # The angle of the rotation to be performed
             angle = self.controller.getStartRotation()
-            angle_radian = radians(angle)
-            pivot = self.controller.getPivot()
 
-            xOffset = self.xOffset
-            yOffset = self.yOffset
+            # The pivot of the rotation in 16x16
+            pivotX, pivotY = self.controller.getPivot()
 
-            if not self.image:
-                centerX = (self.parent.objx + self.width / 2) + xOffset
-                centerY = (self.parent.objy + self.height / 2) + yOffset
+            # The pivot of the rotation, scaled to TileWidthxTileWidth, relative to this object
+            originX = (pivotX * self.scale) - parent.x()
+            originY = (pivotY * self.scale) - parent.y()
 
-                centerX, centerY = rotatePoint(centerX, centerY, angle_radian, *pivot)
+            # Set the rotation origin point and apply rotation
+            parent.setTransformOriginPoint(originX, originY)
+            parent.setRotation(angle)
+            parent.resetTransform()
 
-                self.xOffset = centerX - (self.parent.objx + self.width / 2)
-                self.yOffset = centerY - (self.parent.objy + self.height / 2)
+            # Bounding Rect without transformations
+            boundingRect = parent.boundingRect()
+            # Bounding Rect with transformations
+            sceneBoundingRect = parent.sceneBoundingRect()
+            # Distance from the old center to the new center
+            deltaX = (sceneBoundingRect.x() + sceneBoundingRect.width() / 2) - (parent.x() + boundingRect.width() / 2)
+            deltaY = (sceneBoundingRect.y() + sceneBoundingRect.height() / 2) - (parent.y() + boundingRect.height() / 2)
+
+            if self.affectImage:
+                # The pivot of the rotation, relative to the object after moving
+                auxOriginDeltaX = originX - deltaX
+                auxOriginDeltaY = originY - deltaY
+
+                nAngle = -angle
+
+                # The translation to apply instead of rotation
+                transform = QTransform.fromTranslate(deltaX, deltaY)
+
+                for aux in self.aux:
+                    if self.affectAUXImage and not aux.gyro:
+                        # Reset transformations that might have been set due to affectAUXImage changing from False to True
+                        aux.resetTransform()
+                        aux.setTransformOriginPoint(0, 0)
+                        aux.setRotation(0)
+
+                    else:
+                        # Reverse parent transformations
+                        aux.setTransformOriginPoint(auxOriginDeltaX - aux.x(), auxOriginDeltaY - aux.y())
+                        aux.setRotation(nAngle)
+
+                        # Apply special transformations to AUX
+                        aux.setTransform(transform)
 
             else:
-                old_image = self.image
-                if self.affectImage:
-                    image = old_image.transformed(QTransform().rotate(angle))
+                # Undo the rotation since we only did it to acquire the new position of the center after rotation
+                parent.setTransformOriginPoint(0, 0)
+                parent.setRotation(0)
 
-                else:
-                    image = old_image
+                # Apply translation instead of rotation
+                parent.setTransform(QTransform.fromTranslate(deltaX, deltaY))
 
-                centerX = self.parent.objx + xOffset + old_image.width() / (2 * self.scale)
-                centerY = self.parent.objy + yOffset + old_image.height() / (2 * self.scale)
+                nDeltaX = -deltaX
+                nDeltaY = -deltaY
 
-                centerX, centerY = rotatePoint(centerX, centerY, angle_radian, *pivot)
-        
-                self.xOffset = centerX - image.width() / (2 * self.scale) - self.parent.objx
-                self.yOffset = centerY - image.height() / (2 * self.scale) - self.parent.objy
+                for aux in self.aux:
+                    if self.affectAUXImage and not aux.gyro:
+                        # Reverse parent transformations
+                        aux.setTransform(QTransform.fromTranslate(nDeltaX, nDeltaY))
 
-                self.width = image.width() / self.scale
-                self.height = image.height() / self.scale
-                self.image = image
+                        # Apply special transformations to AUX
+                        aux.setTransformOriginPoint(originX - aux.x(), originY - aux.y())
+                        aux.setRotation(angle)
 
-            for aux in self.aux:
-                if not isinstance(aux, AuxiliaryImage) or not aux.image:
-                    continue
+                    else:
+                        # Reset transformations that might have been set due to affectAUXImage changing from True to False
+                        aux.resetTransform()
+                        aux.setTransformOriginPoint(0, 0)
+                        aux.setRotation(0)
 
-                old_image = aux.image
-                if self.affectAUXImage:
-                    image = old_image.transformed(QTransform().rotate(angle))
-
-                else:
-                    image = old_image
-
-                centerX = self.parent.objx + xOffset + aux.x() / self.scale + old_image.width() / (2 * self.scale)
-                centerY = self.parent.objy + yOffset + aux.y() / self.scale + old_image.height() / (2 * self.scale)
-
-                centerX, centerY = rotatePoint(centerX, centerY, angle_radian, *pivot)
-        
-                aux_xOffset = centerX - image.width() / (2 * self.scale) - (self.parent.objx + self.xOffset)
-                aux_yOffset = centerY - image.height() / (2 * self.scale) - (self.parent.objy + self.yOffset)
-
-                aux.setImage(image, aux_xOffset, aux_yOffset, True)
-
-            self.parent.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
+            # Prevent this object from being movable if rotated
+            parent.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
 
         else:
-            if self.image:
-                super().dataChanged()
+            # Reset all transformations
+            parent.resetTransform()
+            parent.setTransformOriginPoint(0, 0)
+            parent.setRotation(0)
 
-            self.parent.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, not globals.SpritesFrozen)
+            for aux in self.aux:
+                aux.resetTransform()
+                aux.setTransformOriginPoint(0, 0)
+                aux.setRotation(0)
+
+            # Reset movable flag
+            parent.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, not globals.SpritesFrozen)
+
+        super().dataChanged()
+
 
     def positionChanged(self):
         self.parent.UpdateDynamicSizing()
@@ -676,6 +715,7 @@ class AuxiliarySpriteItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         self.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, True)
         self.setParentItem(parent)
         self.hover = False
+        self.gyro = False
 
         self.BoundingRect = QtCore.QRectF(0, 0, TileWidth, TileWidth)
 

@@ -2750,11 +2750,7 @@ class frameByFrameTab(QtWidgets.QWidget):
         self.parent.update()
 
     def getNextFrame(self):
-        idx = self.tiles.idx + 1
-        if idx > max(len(self.parent.frames), 1) - 1:
-            idx = 0
-
-        return idx
+        return (self.tiles.idx + 1) % max(len(self.parent.frames), 1)
 
     def playPreview(self, checked):
         if checked:

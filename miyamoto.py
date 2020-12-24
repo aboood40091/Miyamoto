@@ -308,6 +308,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         toggleHandlers = {
             self.HandleSpritesVisibility: globals.SpritesShown,
             self.HandleSpriteImages: globals.SpriteImagesShown,
+            self.HandleRotationPreview: globals.RotationShown,
             self.HandleLocationsVisibility: globals.LocationsShown,
             self.HandleCommentsVisibility: globals.CommentsShown,
             self.HandlePathsVisibility: globals.PathsShown,
@@ -3129,6 +3130,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             globals.OverrideSnapping = False
 
         self.scene.update()
+        self.levelOverview.update()
 
     def HandleRotationPreview(self, checked):
         """
@@ -3150,16 +3152,24 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             globals.RotationNoticeShown = not noticeShown.isChecked()
             setSetting('RotationNoticeShown', globals.RotationNoticeShown)
 
-        if globals.Area is not None:
-            globals.OverrideSnapping = True
-            globals.DirtyOverride += 1
-            for spr in globals.Area.sprites:
-                if isinstance(spr.ImageObj, SLib.SpriteImage_MovementControlled) and spr.ImageObj.controller:
-                    spr.UpdateDynamicSizing()
-            globals.DirtyOverride -= 1
-            globals.OverrideSnapping = False
+        SLib.RotationFrame = 0
+
+        globals.OverrideSnapping = True
+        globals.DirtyOverride += 1
+        for spr in globals.Area.sprites:
+            if isinstance(spr.ImageObj, SLib.SpriteImage_MovementControlled) and spr.ImageObj.controller:
+                spr.UpdateDynamicSizing()
+        globals.DirtyOverride -= 1
+        globals.OverrideSnapping = False
+
+        if globals.Area is not None and globals.RotationShown:
+            SLib.RotationTimer.start(1000 / SLib.RotationFPS)
+
+        else:
+            SLib.RotationTimer.stop()
 
         self.scene.update()
+        self.levelOverview.update()
 
     def HandleLocationsVisibility(self, checked):
         """
@@ -3470,6 +3480,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.nabbitPathEditorDock.setVisible(False)
             self.locationEditorDock.setVisible(False)
             self.defaultPropDock.setVisible(False)
+
+            SLib.RotationTimer.stop()
 
             # state: determines positions of docks
             # geometry: determines the main window position
@@ -4615,6 +4627,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if oldx == x and oldy == y: return
             obj.UpdateListItem()
             SetDirty()
+        self.levelOverview.update()
 
     def SpriteDataUpdated(self, data):
         """
@@ -4698,6 +4711,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         obj.UpdateListItem()
         if obj == self.selObj:
             SetDirty()
+        self.levelOverview.update()
 
     def HandlePathPosChange(self, obj, oldx, oldy, x, y):
         """
@@ -4709,6 +4723,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         obj.UpdateListItem()
         if obj == self.selObj:
             SetDirty()
+        self.levelOverview.update()
 
     def HandleComPosChange(self, obj, oldx, oldy, x, y):
         """
@@ -4721,6 +4736,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if obj == self.selObj:
             self.SaveComments()
             SetDirty()
+        self.levelOverview.update()
 
     def HandleComTxtChange(self, obj):
         """
