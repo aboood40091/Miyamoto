@@ -1263,7 +1263,7 @@ class SpriteImage_MovementStarCoin(SLib.SpriteImage_MovementControlled):  # 48
         type = self.getMovementType()
         if type != self.previousType:
             self.previousType = type
-            self.controller = None
+            self.unhookController()
 
         if type == 0:
             self.offset = (-16, -8)
@@ -1311,11 +1311,27 @@ class SpriteImage_RedCoin(SpriteImage_PivotCoinBase):  # 49
             3.75,
         )
 
+        self.previousType = 0
+
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('RedCoin', 'red_coin.png')
 
+    def getMovementType(self):
+        return self.parent.spritedata[9] >> 4
+
+    def allowedMovementControllers(self):
+        if self.getMovementType() == 1:
+            return 68, 116, 69, 118
+
+        return tuple()
+
     def dataChanged(self):
+        type = self.getMovementType()
+        if type != self.previousType:
+            self.previousType = type
+            self.unhookController()
+
         self.updateImage(ImageCache['RedCoin'])
         super().dataChanged()
 
@@ -3703,7 +3719,7 @@ class SpriteImage_Spotlight(SLib.SpriteImage_PivotRotationControlled):  # 153
         type = self.getMovementType()
         if type != self.previousType:
             self.previousType = type
-            self.controller = None
+            self.unhookController()
 
         rotation = (self.parent.spritedata[3] & 0xF) * 22.5
 
@@ -5640,7 +5656,7 @@ class SpriteImage_LightBlock(SLib.SpriteImage_PivotRotationControlled):  # 232
         type = self.getMovementType()
         if type != self.previousType:
             self.previousType = type
-            self.controller = None
+            self.unhookController()
 
         super().dataChanged()
 
@@ -6230,7 +6246,7 @@ class SpriteImage_LightCircle(SLib.SpriteImage_PivotRotationControlled):  # 253
         type = self.getMovementType()
         if type != self.previousType:
             self.previousType = type
-            self.controller = None
+            self.unhookController()
 
         self.aux[0].setSize(((self.parent.spritedata[3] & 0xF) + 2) * 48)
         self.aux[0].setPos(self.aux[0].x(), self.aux[0].y())

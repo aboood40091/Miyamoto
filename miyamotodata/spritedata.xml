@@ -705,7 +705,20 @@
 		<value nybble="9" title="Unknown Value 9"/>
 		<value nybble="10" title="Z-Order" comment="Possible values are 0, 1, and 2."/>
 		<value nybble="12" title="Unknown Value 12"/>
-		<value nybble="19" title="Unknown Value 19"/>
+		<list nybble="19" title="Movement Type?">
+			<entry value="0">None</entry>
+			<entry value="1">Pivotal Rotation (68, 69, 116, 118)</entry>
+			<entry value="2">Bolt (238)</entry>
+			<entry value="3">Path (100)</entry>
+			<entry value="4">Two-Way (70, 642)</entry>
+			<entry value="5">UNKNOWN</entry>
+			<entry value="6">Bolt Mushroom Platform (241)</entry>
+			<entry value="7">Bolt Mushroom Platform - No bolt (242)</entry>
+			<entry value="8">Shifting Rectangle Platforms (132)</entry>
+			<entry value="9">Rotation (214/484)</entry>
+			<entry value="10">Rolling Hill (265)</entry>
+			<entry value="11">Moving Mushroom Platform (210)</entry>
+		</list>
 		<value nybble="21-22" title="Movement ID" comment="Can also be linked to rotation movement controllers."/>
 	</sprite>
 	<sprite id="50" name="Set of Green Coins" notes="A set of 3 green coins that spins around. Once collected it will spawn in another set.">
