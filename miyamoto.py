@@ -2088,15 +2088,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         clipboard_o.sort(key=lambda x: x.zValue())
 
         for item in clipboard_o:
-            convclip.append('0:%d:%d:%d:%d:%d:%d:%d' % (
-            item.tileset, item.type, item.layer, item.objx, item.objy, item.width, item.height))
+            convclip.append('0:%d:%d:%d:%d:%d:%d:%d:%d' % (
+            item.tileset, item.type, item.layer, item.objx, item.objy, item.width, item.height, item.data))
 
         # get sprites
         for item in clipboard_s:
             data = item.spritedata
-            convclip.append('1:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d' % (
+            convclip.append('1:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d' % (
             item.type, item.objx, item.objy, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
-            data[8], data[9], data[10], data[11]))
+            data[8], data[9], data[10], data[11], item.layer, item.initialState))
 
         convclip.append('%')
         return '|'.join(convclip)
@@ -2257,7 +2257,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 split = item.split(':')
                 if split[0] == '0':
                     # object
-                    if len(split) != 8: continue
+                    if len(split) != 9: continue
 
                     tileset = int(split[1])
                     type = int(split[2])
@@ -2266,6 +2266,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     objy = int(split[5])
                     width = int(split[6])
                     height = int(split[7])
+                    data = int(split[8])
 
                     # basic sanity checks
                     if tileset < 0 or tileset > 3: continue
@@ -2275,22 +2276,25 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     if objy < 0 or objy > 511: continue
                     if width < 1 or width > 1023: continue
                     if height < 1 or height > 511: continue
+                    if data < 0 or data > 24: continue
 
-                    newitem = ObjectItem(tileset, type, layer, objx, objy, width, height, 1)
+                    newitem = ObjectItem(tileset, type, layer, objx, objy, width, height, 1, data)
 
                     layers[layer].append(newitem)
 
                 elif split[0] == '1':
                     # sprite
-                    if len(split) != 16: continue
+                    if len(split) != 18: continue
 
                     objx = int(split[2])
                     objy = int(split[3])
                     data = bytes(map(int,
                                      [split[4], split[5], split[6], split[7], split[8], split[9],
                                       split[10], split[11], split[12], split[13], split[14], split[15]]))
+                    layer = int(split[16])
+                    initialState = int(split[17])
 
-                    newitem = SpriteItem(int(split[1]), objx, objy, data)
+                    newitem = SpriteItem(int(split[1]), objx, objy, data, layer, initialState)
                     sprites.append(newitem)
 
         except ValueError:
