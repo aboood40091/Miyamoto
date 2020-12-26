@@ -1090,7 +1090,13 @@
 			<entry value="14">315&#xB0;</entry>
 			<entry value="15">337.5&#xB0;</entry>
 		</list>
-		<checkbox nybble="8" title="Starts already spinning" comment="When ticked, it will spin."/>
+		<list nybble="8" title="Event Mode" comment="This changes how events interact with this controller.">
+			<entry value="0">Event Triggered - Rotates Back When Deactivated (Fastest)</entry>
+			<entry value="1">Already Spinning - Event Reverses Direction</entry>
+			<entry value="2">Continuous Spinning While Event Active</entry>
+			<entry value="4">Event Triggered - Rotates Back When Deactivated (Slow)</entry>
+			<entry value="8">Event Triggered - Rotates Back When Deactivated (Slowest)</entry>
+		</list>
 		<checkbox nybble="9" title="Spins Clockwise" comment="Makes the sprite spin clockwise."/>
 		<list nybble="10" title="Effect">
 			<entry value="0">No Effect</entry>
