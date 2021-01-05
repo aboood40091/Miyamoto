@@ -433,7 +433,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             'exit', self.HandleExit, GetIcon('delete'),
             globals.trans.string('MenuItems', 20),
             globals.trans.string('MenuItems', 21),
-            QtGui.QKeySequence('Ctrl+Q'),
+            QtGui.QKeySequence.Quit,
         )
 
         # Edit

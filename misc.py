@@ -136,6 +136,7 @@ class LevelScene(QtWidgets.QGraphicsScene):
 
             painter.save()
             painter.translate(x1 * globals.TileWidth, y1 * globals.TileWidth)
+            drawPixmap = painter.drawPixmap
             desty = 0
             for row in tmap:
                 destx = 0
@@ -149,7 +150,7 @@ class LevelScene(QtWidgets.QGraphicsScene):
                         pix = tiles[tile].getCurrentTile()
 
                     if pix is not None:
-                        painter.drawPixmap(destx, desty, pix)
+                        drawPixmap(destx, desty, pix)
 
                     destx += globals.TileWidth
                 desty += globals.TileWidth

@@ -1096,7 +1096,7 @@ class SpriteImage_Seaweed(SLib.SpriteImage_StaticMultiple):  # 35
 
 class SpriteImage_EventController(SLib.SpriteImage):  # X
     font = QtGui.QFont(globals.NumberFont)
-    font.setPointSize(17)
+    font.setPixelSize((9 / 24) * globals.TileWidth)
     font.setBold(True)
     
     def __init__(self, parent, text):

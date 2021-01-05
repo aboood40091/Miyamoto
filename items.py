@@ -2510,7 +2510,7 @@ class PathItem(LevelEditorItem):
         self.setPos(int(objx * globals.TileWidth / 16), int(objy * globals.TileWidth / 16))
         globals.DirtyOverride -= 1
 
-        self.setZValue(25002)
+        self.setZValue(25003)
         self.UpdateTooltip()
 
         self.setVisible(globals.PathsShown)
@@ -2531,7 +2531,7 @@ class PathItem(LevelEditorItem):
         return globals.trans.string('Paths', 1, '[path]', self.pathid, '[node]', self.nodeid)
 
     def __lt__(self, other):
-        return (self.pathid * 10000 + self.nodeid) < (other.pathid * 10000 + other.nodeid)
+        return (self.pathid, self.nodeid) < (other.pathid, other.nodeid)
 
     def updatePos(self):
         """
@@ -2633,7 +2633,7 @@ class NabbitPathItem(LevelEditorItem):
         self.setPos(int(self.objx * globals.TileWidth / 16), int(self.objy * globals.TileWidth / 16))
         globals.DirtyOverride -= 1
 
-        self.setZValue(25002)
+        self.setZValue(25003)
         self.UpdateTooltip()
 
         self.setVisible(globals.PathsShown)
@@ -2786,21 +2786,27 @@ class PathEditorLineItem(LevelEditorItem):
         painter.setBrush(QtGui.QBrush(color))
         painter.setPen(QtGui.QPen(color, 3 * globals.TileWidth / 24, join=Qt.RoundJoin, cap=Qt.RoundCap))
 
+        mult = globals.TileWidth / 16
         lines = []
 
         snl = self.nodelist
-        mult = globals.TileWidth / 16
-        for j, node in enumerate(snl):
-            if ((j + 1) < len(snl)):
-                a = QtCore.QPointF(float((snl[j]['x'] + 8) * mult) - self.x(), float((snl[j]['y'] + 8) * mult) - self.y())
-                b = QtCore.QPointF(float((snl[j + 1]['x'] + 8) * mult) - self.x(), float((snl[j + 1]['y'] + 8) * mult) - self.y())
-                lines.append(QtCore.QLineF(a, b))
-            elif self.loops and (j + 1) == len(snl):
-                a = QtCore.QPointF(float((snl[j]['x'] + 8) * mult) - self.x(), float((snl[j]['y'] + 8) * mult) - self.y())
-                b = QtCore.QPointF(float((snl[0]['x'] + 8) * mult) - self.x(), float((snl[0]['y'] + 8) * mult) - self.y())
-                lines.append(QtCore.QLineF(a, b))
+        for j in range(len(self.nodelist)):
+            if (j+1) < len(self.nodelist):
+                lines.append(QtCore.QLineF(
+                    float((snl[j  ]['x'] + 8) * mult) - self.x(),
+                    float((snl[j  ]['y'] + 8) * mult) - self.y(),
+                    float((snl[j+1]['x'] + 8) * mult) - self.x(),
+                    float((snl[j+1]['y'] + 8) * mult) - self.y()))
 
         painter.drawLines(lines)
+
+        painter.setPen(QtGui.QPen(color, 3 * globals.TileWidth / 24, join=Qt.RoundJoin, cap=Qt.RoundCap, style=Qt.DotLine))
+        if self.loops:
+            painter.drawLine(QtCore.QLineF(
+                float((snl[-1]['x'] + 8) * mult) - self.x(),
+                float((snl[-1]['y'] + 8) * mult) - self.y(),
+                float((snl[ 0]['x'] + 8) * mult) - self.x(),
+                float((snl[ 0]['y'] + 8) * mult) - self.y()))
 
     def delete(self):
         """
@@ -2841,19 +2847,17 @@ class NabbitPathEditorLineItem(PathEditorLineItem):
         painter.setBrush(QtGui.QBrush(color))
         painter.setPen(QtGui.QPen(color, 3 * globals.TileWidth / 24, join=Qt.RoundJoin, cap=Qt.RoundCap))
 
+        mult = globals.TileWidth / 16
         lines = []
 
         snl = self.nodelist
-        mult = globals.TileWidth / 16
-        for j, node in enumerate(snl):
-            if ((j + 1) < len(snl)):
-                a = QtCore.QPointF(float(snl[j]['x'] * mult) - self.x(), float(snl[j]['y'] * mult) - self.y())
-                b = QtCore.QPointF(float(snl[j + 1]['x'] * mult) - self.x(), float(snl[j + 1]['y'] * mult) - self.y())
-                lines.append(QtCore.QLineF(a, b))
-            elif self.loops and (j + 1) == len(snl):
-                a = QtCore.QPointF(float(snl[j]['x'] * mult) - self.x(), float(snl[j]['y'] * mult) - self.y())
-                b = QtCore.QPointF(float(snl[0]['x'] * mult) - self.x(), float(snl[0]['y'] * mult) - self.y())
-                lines.append(QtCore.QLineF(a, b))
+        for j in range(len(self.nodelist)):
+            if (j+1) < len(self.nodelist):
+                lines.append(QtCore.QLineF(
+                    float(snl[j  ]['x'] * mult) - self.x(),
+                    float(snl[j  ]['y'] * mult) - self.y(),
+                    float(snl[j+1]['x'] * mult) - self.x(),
+                    float(snl[j+1]['y'] * mult) - self.y()))
 
         painter.drawLines(lines)
 

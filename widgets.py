@@ -2815,7 +2815,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         if (self.spritetype == type) and not reset: return
 
         self.spritetype = type
-        if type != 1000 and type >= 0 and type < globals.NumSprites:
+        if type != 1000 and 0 <= type < globals.NumSprites:
             sprite = globals.Sprites[type]
 
         else:
@@ -3505,8 +3505,8 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
     def HandleLoopsChanged(self, i):
         if self.UpdateFlag: return
         SetDirty()
-        self.path.pathinfo['loops'] = (i == Qt.Checked)
-        self.path.pathinfo['peline'].loops = (i == Qt.Checked)
+        self.path.pathinfo['peline'].loops = self.path.pathinfo['loops'] = (i == Qt.Checked)
+        self.path.pathinfo['peline'].update()
         globals.mainWindow.scene.update()
 
 
@@ -4076,6 +4076,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         if event.button() == Qt.MidButton:
             self.__prevMousePos = event.pos()
+            QtWidgets.QGraphicsView.mousePressEvent(self, event)
 
         elif event.button() == Qt.RightButton:
             if globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
@@ -4745,8 +4746,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             offset = self.__prevMousePos - event.pos()
             self.__prevMousePos = event.pos()
 
-            self.YScrollBar.setValue(self.verticalScrollBar().value() + offset.y())
-            self.XScrollBar.setValue(self.horizontalScrollBar().value() + offset.x())
+            self.YScrollBar.setValue(self.YScrollBar.value() + offset.y())
+            self.XScrollBar.setValue(self.XScrollBar.value() + (-offset.x() if self.isRightToLeft() else offset.x()))
 
         elif event.buttons() == Qt.RightButton and globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
                 mw = globals.mainWindow
@@ -5179,21 +5180,20 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         Overrides mouse release events if needed
         """
-        if event.button() == Qt.RightButton and globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
-            if globals.mainWindow.quickPaint.QuickPaintMode == 'PAINT':
-                QuickPaintOperations.PaintFromPrePaintedObjects()
+        if event.button() == Qt.RightButton:
+            if globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
+                if globals.mainWindow.quickPaint.QuickPaintMode == 'PAINT':
+                    QuickPaintOperations.PaintFromPrePaintedObjects()
 
-            elif globals.mainWindow.quickPaint.QuickPaintMode == 'ERASE':
-                QuickPaintOperations.EraseFromPreErasedObjects()
+                elif globals.mainWindow.quickPaint.QuickPaintMode == 'ERASE':
+                    QuickPaintOperations.EraseFromPreErasedObjects()
 
-            QuickPaintOperations.optimizeObjects()
+                QuickPaintOperations.optimizeObjects()
 
-        elif event.button() == Qt.RightButton:
-            self.currentobj = None
-            event.accept()
+            else:
+                self.currentobj = None
 
-        else:
-            QtWidgets.QGraphicsView.mouseReleaseEvent(self, event)
+        QtWidgets.QGraphicsView.mouseReleaseEvent(self, event)
 
     def paintEvent(self, e):
         """
