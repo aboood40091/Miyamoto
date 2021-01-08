@@ -3929,7 +3929,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         painter.end()
 
-        return writeGTX(tex, Tileset.slot)
+        return writeGTX(tex, Tileset.slot, normalmap)
 
 
     def PackTiles(self):

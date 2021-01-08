@@ -1222,7 +1222,7 @@ def generateTilesetNames():
     return tilesetNames
 
 
-def _compressBC3_nvcompress(tex, tile_path):
+def _compressBC3_nvcompress(tex, tile_path, nml):
     """
     RGBA8 QPixmap -> BC3 DDS
     Uses `nvcompress`
@@ -1235,7 +1235,11 @@ def _compressBC3_nvcompress(tex, tile_path):
     os.chdir(tile_path)
 
     if platform.system() == 'Windows':
-        os.system('nvcompress.exe -bc3 tmp.png tmp.dds')
+        if nml:
+            os.system('nvcompress.exe -normal -alpha -mipfilter box -bc3 tmp.png tmp.dds')
+
+        else:
+            os.system('nvcompress.exe -color -alpha -mipfilter box -bc3 tmp.png tmp.dds')
 
     else:
         os.system('chmod +x nvcompress.elf')
@@ -1275,7 +1279,7 @@ def _compressBC3_libtxc_dxtn(tex, tile_path):
             out.write(data)
 
 
-def writeGTX(tex, idx):
+def writeGTX(tex, idx, nml=False):
     """
     Generates a GTX file from a QImage
     """
@@ -1294,7 +1298,7 @@ def writeGTX(tex, idx):
 
         else:
             try:
-                _compressBC3_nvcompress(tex, tile_path)
+                _compressBC3_nvcompress(tex, tile_path, nml)
 
             except:
                 pass
@@ -1386,7 +1390,7 @@ def PackTexture(idx, nml=False):
 
     painter.end()
 
-    outData = writeGTX(tex, idx)
+    outData = writeGTX(tex, idx, nml)
 
     return outData
 
