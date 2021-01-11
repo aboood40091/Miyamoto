@@ -466,10 +466,59 @@ class ObjectItem(LevelEditorItem):
         """
         Updates the rendered object data with custom width and height
         """
-        save = (self.width, self.height)
-        self.width, self.height = width, height
-        self.updateObjCache()
-        self.width, self.height = save
+        # if we don't have to randomise, simply rerender everything
+        if globals.ObjectDefinitions is None \
+           or globals.ObjectDefinitions[self.tileset] is None \
+           or globals.ObjectDefinitions[self.tileset][self.type] is None \
+           or globals.ObjectDefinitions[self.tileset][self.type].rows is None \
+           or globals.ObjectDefinitions[self.tileset][self.type].rows[0] is None \
+           or globals.ObjectDefinitions[self.tileset][self.type].rows[0][0] is None \
+           or len(globals.ObjectDefinitions[self.tileset][self.type].rows[0][0]) == 1:
+            # no randomisation info -> exit
+            save = (self.width, self.height)
+            self.width, self.height = width, height
+            self.updateObjCache()
+            self.width, self.height = save
+            return
+
+        obj = globals.ObjectDefinitions[self.tileset][self.type]
+        if (obj.width, obj.height) != (1, 1) or obj.randByte & 0xF < 2:
+            # cannot randomise -> exit
+            save = (self.width, self.height)
+            self.width, self.height = width, height
+            self.updateObjCache()
+            self.width, self.height = save
+            return
+
+        self.objdata = self.objdata[:self.height]
+        for y in range(len(self.objdata)):
+            self.objdata[y] = self.objdata[y][:self.width]
+
+        self.height = len(self.objdata)
+        self.width = 0 if self.height == 0 else len(self.objdata[0])
+
+        if width == self.width and height == self.height:
+            return
+
+        if height < self.height:
+            self.objdata = self.objdata[:height]
+
+        elif height > self.height:
+            self.objdata += RenderObject(self.tileset, self.type, self.width, height - self.height)
+            self.randomise(0, self.height, self.width, height - self.height)
+
+        if width < self.width:
+            for y in range(len(self.objdata)):
+                self.objdata[y] = self.objdata[y][:width]
+
+        elif width > self.width:
+            new = RenderObject(self.tileset, self.type, width - self.width, height)
+            for y in range(len(self.objdata)):
+                self.objdata[y] += new[y]
+
+            self.randomise(self.width, 0, width - self.width, height)
+
+        self.UpdateSearchDatabase()
 
     def UpdateRects(self):
         """
