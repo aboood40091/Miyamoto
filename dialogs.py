@@ -1057,7 +1057,7 @@ class ZoneTab(QtWidgets.QWidget):
 
             items = []
             for i, (options, asterisk) in enumerate(heights):
-                items.append(', '.join(('%04.1f blocks' % o) for o in options) + asterisk)
+                items.append('%d: ' % i + ' -> '.join(('%s blocks' % str(o)) for o in options) + asterisk)
 
             self.Zone_screenheights.clear()
             self.Zone_screenheights.addItems(items)
