@@ -1101,6 +1101,8 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                 if (self.object_database[obj]['i'] is not None):
                     self.object_database[obj]['i'].updateObjCacheWH(self.object_database[obj]['w'],
                                                                     self.object_database[obj]['h'])
+                    self.object_database[obj]['i'].width = self.object_database[obj]['w']
+                    self.object_database[obj]['i'].height = self.object_database[obj]['h']
 
         def AddDisplayObject(self, type, x, y, width, height):
             """
