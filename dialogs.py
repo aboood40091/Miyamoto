@@ -905,53 +905,51 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_visibility = QtWidgets.QComboBox()
         self.zv = z.visibility
 
-        if self.zv & 16 == 16:
+        if self.zv & 0x10:
             self.Zone_vspotlight.setChecked(True)
-        if self.zv & 32 == 32:
+        if self.zv & 0x20:
             self.Zone_vfulldark.setChecked(True)
 
-        self.ChangeList()
-        self.Zone_vspotlight.clicked.connect(self.ChangeList)
-        self.Zone_vfulldark.clicked.connect(self.ChangeList)
+        self.ChangeVisibilityList()
+        self.Zone_vspotlight.clicked.connect(self.ChangeVisibilityList)
+        self.Zone_vfulldark.clicked.connect(self.ChangeVisibilityList)
 
-        self.Zone_xtrack = QtWidgets.QCheckBox()
-        self.Zone_xtrack.setToolTip(globals.trans.string('ZonesDlg', 31))
-        if z.cammode in [0, 3, 6]:
-            self.Zone_xtrack.setChecked(True)
-        self.Zone_ytrack = QtWidgets.QCheckBox()
-        self.Zone_ytrack.setToolTip(globals.trans.string('ZonesDlg', 33))
-        if z.cammode in [0, 1, 3, 4]:
-            self.Zone_ytrack.setChecked(True)
+        self.zm = -1
 
-        self.Zone_camerazoom = QtWidgets.QComboBox()
-        self.Zone_camerazoom.setToolTip(globals.trans.string('ZonesDlg', 35))
-        newItems1 = ['-2', '-1', '0', '1', '2', '3', '4']
-        self.Zone_camerazoom.addItems(newItems1)
-        if z.camzoom == 8:
-            self.Zone_camerazoom.setCurrentIndex(0)
-        elif (z.camzoom == 9 and z.cammode in [3, 4]) or (z.camzoom in [19, 20] and z.cammode == 9):
-            self.Zone_camerazoom.setCurrentIndex(1)
-        elif (z.camzoom in [0, 1, 2] and z.cammode in [0, 1, 6]) or (z.camzoom in [10, 11] and z.cammode in [3, 4]) or (
-                z.camzoom == 13 and z.cammode == 9):
-            self.Zone_camerazoom.setCurrentIndex(2)
-        elif z.camzoom in [5, 6, 7, 9, 10] and z.cammode in [0, 1, 6] or (z.camzoom == 12 and z.cammode == 9):
-            self.Zone_camerazoom.setCurrentIndex(3)
-        elif (z.camzoom in [4, 11] and z.cammode in [0, 1, 6]) or (z.camzoom in [1, 5] and z.cammode in [3, 4]) or (
-                z.camzoom == 14 and z.cammode == 9):
-            self.Zone_camerazoom.setCurrentIndex(4)
-        elif (z.camzoom == 3 and z.cammode in [0, 1, 6]) or (z.camzoom == 2 and z.cammode in [3, 4]) or (
-                z.camzoom == 15 and z.cammode == 9):
-            self.Zone_camerazoom.setCurrentIndex(5)
-        elif (z.camzoom == 16 and z.cammode in [0, 1, 6]) or (z.camzoom in [3, 7] and z.cammode in [3, 4]) or (
-                z.camzoom == 16 and z.cammode == 9):
-            self.Zone_camerazoom.setCurrentIndex(6)
-        else:
-            self.Zone_camerazoom.setCurrentIndex(2)
+        self.Zone_cammodebuttongroup = QtWidgets.QButtonGroup()
+        cammodebuttons = []
+        for i, name, tooltip in [
+                    (0, 'Normal', 'The standard camera mode, appropriate for most situations.'),
+                    (3, 'Static Zoom', 'In this mode, the camera will not zoom out during multiplayer.'),
+                    (4, 'Static Zoom, Y Tracking Only', 'In this mode, the camera will not zoom out during multiplayer, and will be centered horizontally in the zone.'),
+                    (5, 'Static Zoom, Event-Controlled*', 'In this mode, the camera will not zoom out during multiplayer, and will use event-controlled camera settings.<br>' \
+                        '*Event-controlled camera settings were removed in NSMBU and therefore this option is not usable.'),
+                    (6, 'X Tracking Only', 'In this mode, the camera will only move horizontally. It will be aligned to the bottom edge of the zone.'),
+                    (7, 'X Expanding Only', 'In this mode, the camera will only zoom out during multiplayer if the players are far apart horizontally.'),
+                    (1, 'Y Tracking Only', 'In this mode, the camera will only move vertically. It will be centered horizontally in the zone.'),
+                    (2, 'Y Expanding Only', 'In this mode, the camera will zoom out during multiplayer if the players are far apart vertically.'),
+                ]:
 
-        self.Zone_camerabias = QtWidgets.QCheckBox()
-        self.Zone_camerabias.setToolTip(globals.trans.string('ZonesDlg', 37))
-        if z.camzoom in [1, 2, 3, 4, 5, 6, 9, 10]:
-            self.Zone_camerabias.setChecked(True)
+            rb = QtWidgets.QRadioButton('%d: %s' % (i, name))
+            rb.setToolTip('<b>' + name + ':</b><br>' + tooltip)
+            self.Zone_cammodebuttongroup.addButton(rb, i)
+            cammodebuttons.append(rb)
+
+            if i == z.cammode:
+                rb.setChecked(True)
+
+            rb.clicked.connect(self.ChangeCamModeList)
+
+        self.Zone_screenheights = QtWidgets.QComboBox()
+        self.Zone_screenheights.setToolTip("<b>Screen Heights:</b><br>Selects screen heights (in blocks) the camera can use during multiplayer. " \
+                                           "The camera will zoom out if the players are too far apart, and zoom back in when they get closer together. " \
+                                           "Values represent screen heights, measured in tiles.<br><br>In single-player, only the smallest height will be used.<br><br>" \
+                                           "Value of 00.0 means the actual value is not known and needs further testing.<br><br>" \
+                                           "Options marked with * or ** are glitchy if zone bounds are set to 0; see the Upper/Lower Bounds tooltips for more info.<br>" \
+                                           "Options marked with ** are also unplayably glitchy in multiplayer.")
+
+        self.ChangeCamModeList()
+        self.Zone_screenheights.setCurrentIndex(z.camzoom)
 
         directionmodeValues = globals.trans.stringList('ZonesDlg', 38)
         self.Zone_directionmode = QtWidgets.QComboBox()
@@ -964,13 +962,12 @@ class ZoneTab(QtWidgets.QWidget):
             self.Zone_directionmode.setCurrentIndex(0)
 
         # Layouts
-        ZoneZoomLayout = QtWidgets.QFormLayout()
-        ZoneZoomLayout.addRow(globals.trans.string('ZonesDlg', 34), self.Zone_camerazoom)
-
+        ZoneCameraModesLayout = QtWidgets.QGridLayout()
+        for i, b in enumerate(cammodebuttons):
+            ZoneCameraModesLayout.addWidget(b, i % 4, i // 4)
         ZoneCameraLayout = QtWidgets.QFormLayout()
-        ZoneCameraLayout.addRow(globals.trans.string('ZonesDlg', 30), self.Zone_xtrack)
-        ZoneCameraLayout.addRow(globals.trans.string('ZonesDlg', 32), self.Zone_ytrack)
-        ZoneCameraLayout.addRow(globals.trans.string('ZonesDlg', 36), self.Zone_camerabias)
+        ZoneCameraLayout.addRow('Camera Mode:', ZoneCameraModesLayout)
+        ZoneCameraLayout.addRow('Screen Heights:', self.Zone_screenheights)
 
         ZoneVisibilityLayout = QtWidgets.QHBoxLayout()
         ZoneVisibilityLayout.addWidget(self.Zone_vspotlight)
@@ -979,19 +976,15 @@ class ZoneTab(QtWidgets.QWidget):
         ZoneDirectionLayout = QtWidgets.QFormLayout()
         ZoneDirectionLayout.addRow(globals.trans.string('ZonesDlg', 39), self.Zone_directionmode)
 
-        TopLayout = QtWidgets.QHBoxLayout()
-        TopLayout.addLayout(ZoneCameraLayout)
-        TopLayout.addLayout(ZoneZoomLayout)
-
         InnerLayout = QtWidgets.QVBoxLayout()
-        InnerLayout.addLayout(TopLayout)
+        InnerLayout.addLayout(ZoneCameraLayout)
         InnerLayout.addLayout(ZoneVisibilityLayout)
         InnerLayout.addWidget(self.Zone_visibility)
         InnerLayout.addLayout(ZoneDirectionLayout)
         self.Visibility.setLayout(InnerLayout)
 
-    def ChangeList(self):
-        SelectedIndex = self.zv & 15
+    def ChangeVisibilityList(self):
+        SelectedIndex = self.zv & 0x0F
         self.Zone_visibility.clear()
 
         if not self.Zone_vspotlight.isChecked() and not self.Zone_vfulldark.isChecked():
@@ -1012,6 +1005,64 @@ class ZoneTab(QtWidgets.QWidget):
             if SelectedIndex > 5: SelectedIndex = 5
         
         self.Zone_visibility.setCurrentIndex(SelectedIndex)
+
+    def ChangeCamModeList(self):
+        mode = self.Zone_cammodebuttongroup.checkedId()
+
+        oldListChoice = [1, 1, 2, 3, 3, 3, 1, 1][self.zm]
+        newListChoice = [1, 1, 2, 3, 3, 3, 1, 1][mode]
+
+        if self.zm == -1 or oldListChoice != newListChoice:
+
+            if newListChoice == 1:
+                heights = [
+                    ([14, 19  ]    , ''),
+                    ([14, 19  , 24], ''),
+                    ([14, 19  , 28], ''),
+                    ([20, 24  ]    , ''),
+                    ([19, 24  , 28], ''),
+                    ([17, 24  ]    , ''),
+                    ([17, 24  , 28], ''),
+                    ([17, 20  ]    , ''),
+                    ([ 7, 11  , 28], '**'),
+                    ([17, 20.5, 24], ''),
+                    ([17, 20  , 28], ''),
+                    ([20,  0  ,  0], ''),  # Needs further testing
+                ]
+            elif newListChoice == 2:
+                heights = [
+                    ([14, 19  ]    , ''),
+                    ([14, 19  , 24], ''),
+                    ([14, 19  , 28], ''),
+                    ([19, 19  , 24], ''),
+                    ([19, 24  , 28], ''),
+                    ([19, 24  , 28], ''),
+                    ([17, 24  , 28], ''),
+                    ([17, 20.5, 24], ''),
+                    ([17,  0  ,  0], ''),  # Needs further testing
+                ]
+            else:
+                heights = [
+                    ([14  ], ''),
+                    ([19  ], ''),
+                    ([24  ], ''),
+                    ([28  ], ''),
+                    ([17  ], ''),
+                    ([20  ], ''),
+                    ([16  ], ''),
+                    ([28  ], ''),
+                    ([ 7  ], '*'),
+                    ([10.5], '*'),
+                ]
+
+            items = []
+            for i, (options, asterisk) in enumerate(heights):
+                items.append(', '.join(('%04.1f blocks' % o) for o in options) + asterisk)
+
+            self.Zone_screenheights.clear()
+            self.Zone_screenheights.addItems(items)
+            self.Zone_screenheights.setCurrentIndex(0)
+            self.zm = mode
 
     def createBounds(self, z):
         self.Bounds = QtWidgets.QGroupBox(globals.trans.string('ZonesDlg', 47))
