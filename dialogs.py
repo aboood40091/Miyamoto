@@ -915,6 +915,22 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_vfulldark.clicked.connect(self.ChangeVisibilityList)
 
         self.zm = -1
+        cammode = z.cammode
+        if cammode > 7:
+            cammode = 3
+
+        camzoom = z.camzoom
+        if cammode == 2:
+            if camzoom > 9-1:
+                camzoom = 0
+
+        elif 1 < cammode < 6:
+            if camzoom > 10-1:
+                camzoom = 0
+
+        else:
+            if camzoom > 12-1:
+                camzoom = 0
 
         self.Zone_cammodebuttongroup = QtWidgets.QButtonGroup()
         cammodebuttons = []
@@ -935,7 +951,7 @@ class ZoneTab(QtWidgets.QWidget):
             self.Zone_cammodebuttongroup.addButton(rb, i)
             cammodebuttons.append(rb)
 
-            if i == z.cammode:
+            if i == cammode:
                 rb.setChecked(True)
 
             rb.clicked.connect(self.ChangeCamModeList)
@@ -949,7 +965,7 @@ class ZoneTab(QtWidgets.QWidget):
                                            "Options marked with ** are also unplayably glitchy in multiplayer.")
 
         self.ChangeCamModeList()
-        self.Zone_screenheights.setCurrentIndex(z.camzoom)
+        self.Zone_screenheights.setCurrentIndex(camzoom)
 
         directionmodeValues = globals.trans.stringList('ZonesDlg', 38)
         self.Zone_directionmode = QtWidgets.QComboBox()
