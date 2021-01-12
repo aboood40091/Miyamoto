@@ -974,7 +974,7 @@ class MiyamotoTranslation:
                 75: '[b]Enable Scrolling vertically?:[/b][br]The level can\'t scroll vertically if this is not checked Seems to be always checked.',
                 76: 'Flags',
                 77: (
-                    'Start Zoomed Out:',
+                    'Start Zoom as Screen Height:[br](No initial zoom out/in)',
                     'Center Camera X-pos On Load:',
                     'Camera Follows on Y-axis:',
                     'Camera Stops At Zone End:',
@@ -1154,8 +1154,31 @@ class MiyamotoTranslation:
         """
         Returns a list of strings
         """
-        try: return self.strings[section][numcode]
-        except Exception: return ('MiyamotoTranslation.stringList() ERROR:', section, numcode)
+        try:
+            strings = self.strings[section][numcode]
+        except Exception:
+            return ('MiyamotoTranslation.stringList() ERROR:', section, numcode)
+
+        strings = list(strings)
+
+        for i in range(len(strings)):
+            # Do some automatic replacements
+            replace = {
+                '[br]': '<br>',
+                '[b]': '<b>',
+                '[/b]': '</b>',
+                '[i]': '<i>',
+                '[/i]': '</i>',
+                '[a': '<a',
+                '"]': '">', # workaround
+                '[/a]': '</a>',
+                '\\n': '\n',
+                '//n': '\n',
+                }
+            for old in replace:
+                strings[i] = strings[i].replace(old, replace[old])
+
+        return tuple(strings)
 
     def path(self, key):
         """

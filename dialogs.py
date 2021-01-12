@@ -958,8 +958,9 @@ class ZoneTab(QtWidgets.QWidget):
 
         self.Zone_screenheights = QtWidgets.QComboBox()
         self.Zone_screenheights.setToolTip("<b>Screen Heights:</b><br>Selects screen heights (in blocks) the camera can use during multiplayer. " \
-                                           "The camera will zoom out if the players are too far apart, and zoom back in when they get closer together. " \
-                                           "Values represent screen heights, measured in tiles.<br><br>In single-player, only the smallest height will be used.<br><br>" \
+                                           "The camera will zoom out if the players are too far apart, and zoom back in when they get closer together.<br>" \
+                                           "If the screen height specified is larger than the zone height (in blocks), the zone height will be used as the screen height instead.<br><br>" \
+                                           "In single-player, only the smallest height will be used.<br><br>" \
                                            "Value of 00.0 means the actual value is not known and needs further testing.<br><br>" \
                                            "Options marked with * or ** are glitchy if zone bounds are set to 0; see the Upper/Lower Bounds tooltips for more info.<br>" \
                                            "Options marked with ** are also unplayably glitchy in multiplayer.")
