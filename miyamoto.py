@@ -2232,7 +2232,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         return added
 
-    def getEncodedObjects(self, encoded):
+    def getEncodedObjects(self, encoded, countCheck = True):
         """
         Create the objects from a MiyamotoClip
         """
@@ -2241,15 +2241,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         sprites = []
 
         try:
-            if not (encoded.startswith('MiyamotoClip|') and encoded.endswith('|%')): return
+            if not (encoded.startswith('MiyamotoClip|') and encoded.endswith('|%')):
+                return layers, sprites
 
-            clip = encoded[11:-2].split('|')
+            clip = encoded[13:-2].split('|')
 
-            if len(clip) > 300:
+            if countCheck and len(clip) > 300:
                 result = QtWidgets.QMessageBox.warning(self, 'Miyamoto!', globals.trans.string('MainWindow', 1),
                                                        QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
                 if result == QtWidgets.QMessageBox.No:
-                    return
+                    return layers, sprites
 
             for item in clip:
                 # Check to see whether it's an object or sprite
@@ -4473,7 +4474,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                     ## Check if the object is used as a stamp
                     for stamp in self.stampChooser.model.items:
-                        layers, _ = self.getEncodedObjects(stamp.MiyamotoClip)
+                        layers, _ = self.getEncodedObjects(stamp.MiyamotoClip, False)
                         for layer in layers:
                             for obj in layer:
                                 if obj.tileset == idx and obj.type == objNum:
@@ -4486,7 +4487,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     ## Check if the object is in the clipboard
                     if self.clipboard is not None:
                         if self.clipboard.startswith('MiyamotoClip|') and self.clipboard.endswith('|%'):
-                            layers, _ = self.getEncodedObjects(self.clipboard)
+                            layers, _ = self.getEncodedObjects(self.clipboard, False)
                             for layer in layers:
                                 for obj in layer:
                                     if obj.tileset == idx and obj.type == objNum:
@@ -5236,9 +5237,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 z.unknownbnf = 0xF if tab.Zone_boundflg.isChecked() else 0
 
                 z.music = tab.Zone_musicid.value()
-                z.sfxmod = (tab.Zone_sfx.currentIndex() * 16)
+                z.sfxmod = (tab.Zone_sfx.currentIndex() & 0x0F) << 4
                 if tab.Zone_boss.isChecked():
-                    z.sfxmod = z.sfxmod + 1
+                    z.sfxmod |= 1
 
                 z.type = 0
                 for i in range(8):

@@ -1755,7 +1755,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         ## Check if the object is used as a stamp
         usedAsStamp = False
         for stamp in globals.mainWindow.stampChooser.model.items:
-            layers, _ = globals.mainWindow.getEncodedObjects(stamp.MiyamotoClip)
+            layers, _ = globals.mainWindow.getEncodedObjects(stamp.MiyamotoClip, False)
             for layer in layers:
                 for obj in layer:
                     if obj.tileset == idx and obj.type == objNum:
@@ -1775,7 +1775,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         inClipboard = False
         if globals.mainWindow.clipboard is not None:
             if globals.mainWindow.clipboard.startswith('MiyamotoClip|') and globals.mainWindow.clipboard.endswith('|%'):
-                layers, _ = globals.mainWindow.getEncodedObjects(globals.mainWindow.clipboard)
+                layers, _ = globals.mainWindow.getEncodedObjects(globals.mainWindow.clipboard, False)
                 for layer in layers:
                     for obj in layer:
                         if obj.tileset == idx and obj.type == objNum:

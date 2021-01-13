@@ -1179,7 +1179,7 @@ def DeleteObject(idx, objNum, soft=False):
                     obj.SetType(obj.tileset, obj.type - 1)
 
     for stamp in globals.mainWindow.stampChooser.model.items:
-        layers, sprites = globals.mainWindow.getEncodedObjects(stamp.MiyamotoClip)
+        layers, sprites = globals.mainWindow.getEncodedObjects(stamp.MiyamotoClip, False)
         objects = []
 
         for layer in layers:
@@ -1194,7 +1194,7 @@ def DeleteObject(idx, objNum, soft=False):
 
     if globals.mainWindow.clipboard is not None:
         if globals.mainWindow.clipboard.startswith('MiyamotoClip|') and globals.mainWindow.clipboard.endswith('|%'):
-            layers, sprites = globals.mainWindow.getEncodedObjects(globals.mainWindow.clipboard)
+            layers, sprites = globals.mainWindow.getEncodedObjects(globals.mainWindow.clipboard, False)
             objects = []
 
             for layer in layers:

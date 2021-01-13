@@ -1148,11 +1148,11 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_sfx.setToolTip(globals.trans.string('ZonesDlg', 56))
         newItems3 = globals.trans.stringList('ZonesDlg', 57)
         self.Zone_sfx.addItems(newItems3)
-        self.Zone_sfx.setCurrentIndex(z.sfxmod / 16)
+        self.Zone_sfx.setCurrentIndex(z.sfxmod >> 4)
 
         self.Zone_boss = QtWidgets.QCheckBox()
         self.Zone_boss.setToolTip(globals.trans.string('ZonesDlg', 59))
-        self.Zone_boss.setChecked(z.sfxmod % 16)
+        self.Zone_boss.setChecked(z.sfxmod & 0x0F)
 
         ZoneAudioLayout = QtWidgets.QFormLayout()
         ZoneAudioLayout.addRow(globals.trans.string('ZonesDlg', 53), self.Zone_music)
