@@ -1101,6 +1101,8 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
                 if (self.object_database[obj]['i'] is not None):
                     self.object_database[obj]['i'].updateObjCacheWH(self.object_database[obj]['w'],
                                                                     self.object_database[obj]['h'])
+                    self.object_database[obj]['i'].width = self.object_database[obj]['w']
+                    self.object_database[obj]['i'].height = self.object_database[obj]['h']
 
         def AddDisplayObject(self, type, x, y, width, height):
             """
@@ -1753,7 +1755,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         ## Check if the object is used as a stamp
         usedAsStamp = False
         for stamp in globals.mainWindow.stampChooser.model.items:
-            layers, _ = globals.mainWindow.getEncodedObjects(stamp.MiyamotoClip)
+            layers, _ = globals.mainWindow.getEncodedObjects(stamp.MiyamotoClip, False)
             for layer in layers:
                 for obj in layer:
                     if obj.tileset == idx and obj.type == objNum:
@@ -1773,7 +1775,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         inClipboard = False
         if globals.mainWindow.clipboard is not None:
             if globals.mainWindow.clipboard.startswith('MiyamotoClip|') and globals.mainWindow.clipboard.endswith('|%'):
-                layers, _ = globals.mainWindow.getEncodedObjects(globals.mainWindow.clipboard)
+                layers, _ = globals.mainWindow.getEncodedObjects(globals.mainWindow.clipboard, False)
                 for layer in layers:
                     for obj in layer:
                         if obj.tileset == idx and obj.type == objNum:
@@ -2815,7 +2817,7 @@ class SpriteEditorWidget(QtWidgets.QWidget):
         if (self.spritetype == type) and not reset: return
 
         self.spritetype = type
-        if type != 1000 and type >= 0 and type < globals.NumSprites:
+        if type != 1000 and 0 <= type < globals.NumSprites:
             sprite = globals.Sprites[type]
 
         else:
@@ -3505,8 +3507,8 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
     def HandleLoopsChanged(self, i):
         if self.UpdateFlag: return
         SetDirty()
-        self.path.pathinfo['loops'] = (i == Qt.Checked)
-        self.path.pathinfo['peline'].loops = (i == Qt.Checked)
+        self.path.pathinfo['peline'].loops = self.path.pathinfo['loops'] = (i == Qt.Checked)
+        self.path.pathinfo['peline'].update()
         globals.mainWindow.scene.update()
 
 
@@ -4113,6 +4115,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         if event.button() == Qt.MidButton:
             self.__prevMousePos = event.pos()
+            QtWidgets.QGraphicsView.mousePressEvent(self, event)
 
         elif event.button() == Qt.RightButton:
             if globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
@@ -4782,8 +4785,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             offset = self.__prevMousePos - event.pos()
             self.__prevMousePos = event.pos()
 
-            self.YScrollBar.setValue(self.verticalScrollBar().value() + offset.y())
-            self.XScrollBar.setValue(self.horizontalScrollBar().value() + offset.x())
+            self.YScrollBar.setValue(self.YScrollBar.value() + offset.y())
+            self.XScrollBar.setValue(self.XScrollBar.value() + (-offset.x() if self.isRightToLeft() else offset.x()))
 
         elif event.buttons() == Qt.RightButton and globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
                 mw = globals.mainWindow
@@ -5216,21 +5219,20 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         Overrides mouse release events if needed
         """
-        if event.button() == Qt.RightButton and globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
-            if globals.mainWindow.quickPaint.QuickPaintMode == 'PAINT':
-                QuickPaintOperations.PaintFromPrePaintedObjects()
+        if event.button() == Qt.RightButton:
+            if globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
+                if globals.mainWindow.quickPaint.QuickPaintMode == 'PAINT':
+                    QuickPaintOperations.PaintFromPrePaintedObjects()
 
-            elif globals.mainWindow.quickPaint.QuickPaintMode == 'ERASE':
-                QuickPaintOperations.EraseFromPreErasedObjects()
+                elif globals.mainWindow.quickPaint.QuickPaintMode == 'ERASE':
+                    QuickPaintOperations.EraseFromPreErasedObjects()
 
-            QuickPaintOperations.optimizeObjects()
+                QuickPaintOperations.optimizeObjects()
 
-        elif event.button() == Qt.RightButton:
-            self.currentobj = None
-            event.accept()
+            else:
+                self.currentobj = None
 
-        else:
-            QtWidgets.QGraphicsView.mouseReleaseEvent(self, event)
+        QtWidgets.QGraphicsView.mouseReleaseEvent(self, event)
 
     def paintEvent(self, e):
         """
@@ -5681,24 +5683,7 @@ class RecentFilesMenu(QtWidgets.QMenu):
             act = QtWidgets.QAction(ico, filename, self)
             if i <= 9: act.setShortcut(QtGui.QKeySequence('Ctrl+Alt+%d' % i))
             act.setToolTip(str(self.FileList[i]))
-
-            # This is a TERRIBLE way to do this, but I can't think of anything simpler. :(
-            if i == 0:  handler = self.HandleOpenRecentFile0
-            if i == 1:  handler = self.HandleOpenRecentFile1
-            if i == 2:  handler = self.HandleOpenRecentFile2
-            if i == 3:  handler = self.HandleOpenRecentFile3
-            if i == 4:  handler = self.HandleOpenRecentFile4
-            if i == 5:  handler = self.HandleOpenRecentFile5
-            if i == 6:  handler = self.HandleOpenRecentFile6
-            if i == 7:  handler = self.HandleOpenRecentFile7
-            if i == 8:  handler = self.HandleOpenRecentFile8
-            if i == 9:  handler = self.HandleOpenRecentFile9
-            if i == 10: handler = self.HandleOpenRecentFile10
-            if i == 11: handler = self.HandleOpenRecentFile11
-            if i == 12: handler = self.HandleOpenRecentFile12
-            if i == 13: handler = self.HandleOpenRecentFile13
-            if i == 14: handler = self.HandleOpenRecentFile14
-            act.triggered.connect(handler)
+            act.triggered.connect(lambda checked, x=i: self.HandleOpenRecentFile(x))
 
             self.addAction(act)
 
@@ -5737,44 +5722,15 @@ class RecentFilesMenu(QtWidgets.QMenu):
         self.writeSettings()
         self.updateActionList()
 
-    def HandleOpenRecentFile0(self):
-        self.HandleOpenRecentFile(0)
-    def HandleOpenRecentFile1(self):
-        self.HandleOpenRecentFile(1)
-    def HandleOpenRecentFile2(self):
-        self.HandleOpenRecentFile(2)
-    def HandleOpenRecentFile3(self):
-        self.HandleOpenRecentFile(3)
-    def HandleOpenRecentFile4(self):
-        self.HandleOpenRecentFile(4)
-    def HandleOpenRecentFile5(self):
-        self.HandleOpenRecentFile(5)
-    def HandleOpenRecentFile6(self):
-        self.HandleOpenRecentFile(6)
-    def HandleOpenRecentFile7(self):
-        self.HandleOpenRecentFile(7)
-    def HandleOpenRecentFile8(self):
-        self.HandleOpenRecentFile(8)
-    def HandleOpenRecentFile9(self):
-        self.HandleOpenRecentFile(9)
-    def HandleOpenRecentFile10(self):
-        self.HandleOpenRecentFile(10)
-    def HandleOpenRecentFile11(self):
-        self.HandleOpenRecentFile(11)
-    def HandleOpenRecentFile12(self):
-        self.HandleOpenRecentFile(12)
-    def HandleOpenRecentFile13(self):
-        self.HandleOpenRecentFile(13)
-    def HandleOpenRecentFile14(self):
-        self.HandleOpenRecentFile(14)
-
     def HandleOpenRecentFile(self, number):
         """
         Open a recently opened level picked from the main menu
         """
-        if globals.mainWindow.CheckDirty(): return
+        if globals.mainWindow.CheckDirty():
+            return
 
-        if not globals.mainWindow.LoadLevel(None, self.FileList[number], True, 1, True): self.RemoveFromList(number)
+        if not globals.mainWindow.LoadLevel(None, self.FileList[number], True, 1, True):
+            self.RemoveFromList(number)
 
 
 class ZoomWidget(QtWidgets.QWidget):

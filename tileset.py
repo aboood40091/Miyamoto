@@ -209,21 +209,44 @@ def updateCollisionOverlay(tile, x, y, tileWidth, painter):
         Updates the collisions overlay for this pixmap
         """
         # Sets the colour based on terrain type
-        if tile.terrain == 1:  # Ice
-            color = QtGui.QColor(0, 0, 255, 120)
+        if tile.coreType == 15 and (tile.solidity == 1 and tile.params in (3, 4, 5, 6) or tile.solidity == 0 and tile.params in (0, 1, 2, 7, 8, 9)):
+            if tile.params == 7:
+                color = QtGui.QColor(128, 128, 128, 120)
+            elif tile.params == 9:
+                color = QtGui.QColor(255, 0, 255, 120)
+            else:
+                color = QtGui.QColor(255, 0, 0, 120)
+        elif tile.terrain == 1:  # Ice
+            color = QtGui.QColor(120, 208, 255, 120)
         elif tile.terrain == 2:  # Snow
             color = QtGui.QColor(120, 120, 255, 120)
-        elif tile.terrain == 4:  # Sand
+        elif tile.terrain == 3:  # Quicksand
+            color = QtGui.QColor(224, 160, 0, 120)
+        elif tile.terrain == 4:  # Desert Sand
             color = QtGui.QColor(128, 64, 0, 120)
         elif tile.terrain == 5:  # Grass
             color = QtGui.QColor(0, 255, 0, 120)
+        elif tile.terrain == 6:  # Cloud
+            color = QtGui.QColor(208, 255, 255, 120)
+        elif tile.terrain == 7:  # Beach Sand
+            color = QtGui.QColor(240, 224, 96, 120)
+        elif tile.terrain == 8:  # Carpet
+            color = QtGui.QColor(240, 96, 128, 120)
+        elif tile.terrain == 9:  # Leaves
+            color = QtGui.QColor(0, 144, 32, 120)
+        elif tile.terrain == 10:  # Wood
+            color = QtGui.QColor(144, 96, 0, 120)
+        elif tile.terrain == 11:  # Water
+            color = QtGui.QColor(32, 208, 224, 120)
+        elif tile.terrain == 12:  # Beanstalk Leaf
+            color = QtGui.QColor(96, 208, 0, 120)
         else:
             color = QtGui.QColor(0, 0, 0, 120)
 
         # Sets Brush style for fills
-        if tile.coreType in [14, 20, 21]:  # Climbing Grid
+        if tile.coreType in (14, 20, 22) and tile.solidity == 0 or tile.coreType == 21 and tile.solidity == 1:  # Climbing Grid
             style = Qt.DiagCrossPattern
-        elif tile.coreType in [5, 6, 7]:  # Breakable
+        elif tile.coreType in (5, 6, 7):  # Breakable
             style = Qt.Dense5Pattern
         else:
             style = Qt.SolidPattern
@@ -233,7 +256,7 @@ def updateCollisionOverlay(tile, x, y, tileWidth, painter):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
         # Paints shape based on other junk
-        if tile.coreType == 0xB:  # Slope
+        if tile.coreType == 0xB and tile.solidity not in (0, 3):  # Slope
             if not tile.params:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
                                                     QtCore.QPoint(x + tileWidth, y + tileWidth),
@@ -322,7 +345,7 @@ def updateCollisionOverlay(tile, x, y, tileWidth, painter):
                                                     QtCore.QPoint(x, y + tileWidth * 0.75),
                                                     QtCore.QPoint(x, y + tileWidth)]))
 
-        elif tile.coreType == 0xC:  # Reverse Slope
+        elif tile.coreType == 0xC and tile.solidity not in (0, 2):  # Reverse Slope
             if not tile.params:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
                                                     QtCore.QPoint(x + tileWidth, y + tileWidth),
@@ -411,7 +434,7 @@ def updateCollisionOverlay(tile, x, y, tileWidth, painter):
                                                     QtCore.QPoint(x + tileWidth, y),
                                                     QtCore.QPoint(x, y + tileWidth * 0.25)]))
 
-        elif tile.coreType == 9:  # Partial
+        elif tile.coreType == 9 and tile.solidity:  # Partial
             if tile.params == 0:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
                                                     QtCore.QPoint(x + tileWidth * 0.5, y),
@@ -500,35 +523,36 @@ def updateCollisionOverlay(tile, x, y, tileWidth, painter):
                                                     QtCore.QPoint(x + tileWidth, y + tileWidth),
                                                     QtCore.QPoint(x, y + tileWidth)]))
 
-        elif tile.solidity == 3:  # Solid-on-bottom
-            painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
-                                                QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                QtCore.QPoint(x + tileWidth, y + tileWidth * 0.75),
-                                                QtCore.QPoint(x, y + tileWidth * 0.75)]))
+        elif tile.solidity in (2, 3, 4, 17, 18, 33, 34):
+            if tile.solidity in (3, 4):  # Solid-on-bottom
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
+                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.75),
+                                                    QtCore.QPoint(x, y + tileWidth * 0.75)]))
 
-            painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.625, y),
-                                                QtCore.QPoint(x + tileWidth * 0.625, y + tileWidth * 0.5),
-                                                QtCore.QPoint(x + tileWidth * 0.75, y + tileWidth * 0.5),
-                                                QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * (17 / 24)),
-                                                QtCore.QPoint(x + tileWidth * 0.25, y + tileWidth * 0.5),
-                                                QtCore.QPoint(x + tileWidth * 0.375, y + tileWidth * 0.5),
-                                                QtCore.QPoint(x + tileWidth * 0.375, y)]))
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.625, y),
+                                                    QtCore.QPoint(x + tileWidth * 0.625, y + tileWidth * 0.5),
+                                                    QtCore.QPoint(x + tileWidth * 0.75, y + tileWidth * 0.5),
+                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * (17 / 24)),
+                                                    QtCore.QPoint(x + tileWidth * 0.25, y + tileWidth * 0.5),
+                                                    QtCore.QPoint(x + tileWidth * 0.375, y + tileWidth * 0.5),
+                                                    QtCore.QPoint(x + tileWidth * 0.375, y)]))
 
-        elif tile.solidity == 2:  # Solid-on-top
-            painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                QtCore.QPoint(x + tileWidth, y),
-                                                QtCore.QPoint(x + tileWidth, y + tileWidth * 0.25),
-                                                QtCore.QPoint(x, y + tileWidth * 0.25)]))
+            if tile.solidity != 3:  # Solid-on-top
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
+                                                    QtCore.QPoint(x + tileWidth, y),
+                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.25),
+                                                    QtCore.QPoint(x, y + tileWidth * 0.25)]))
 
-            painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.625, y + tileWidth),
-                                                QtCore.QPoint(x + tileWidth * 0.625, y + tileWidth * 0.5),
-                                                QtCore.QPoint(x + tileWidth * 0.75, y + tileWidth * 0.5),
-                                                QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * 0.295),
-                                                QtCore.QPoint(x + tileWidth * 0.25, y + tileWidth * 0.5),
-                                                QtCore.QPoint(x + tileWidth * 0.375, y + tileWidth * 0.5),
-                                                QtCore.QPoint(x + tileWidth * 0.375, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.625, y + tileWidth),
+                                                    QtCore.QPoint(x + tileWidth * 0.625, y + tileWidth * 0.5),
+                                                    QtCore.QPoint(x + tileWidth * 0.75, y + tileWidth * 0.5),
+                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * 0.295),
+                                                    QtCore.QPoint(x + tileWidth * 0.25, y + tileWidth * 0.5),
+                                                    QtCore.QPoint(x + tileWidth * 0.375, y + tileWidth * 0.5),
+                                                    QtCore.QPoint(x + tileWidth * 0.375, y + tileWidth)]))
 
-        elif tile.coreType == 15:  # Spikes
+        elif tile.coreType == 15 and tile.solidity == 1:  # Spikes
             if tile.params == 3:
                 painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y),
                                                     QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
@@ -558,7 +582,30 @@ def updateCollisionOverlay(tile, x, y, tileWidth, painter):
                                                     QtCore.QPoint(x + tileWidth, y),
                                                     QtCore.QPoint(x + tileWidth * 0.75, y + tileWidth)]))
 
-        elif tile.solidity == 1:  # Solid
+            elif tile.params in (0, 1, 2, 7, 8, 9):
+                painter.drawRect(x, y, tileWidth, tileWidth)
+
+        elif tile.coreType == 15 and tile.solidity == 0:  # Damage Tiles
+            if tile.params == 0:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
+                                                    QtCore.QPoint(x + tileWidth, y),
+                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth)]))
+
+            elif tile.params == 1:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
+                                                    QtCore.QPoint(x + tileWidth, y),
+                                                    QtCore.QPoint(x + tileWidth * 0.75, y + tileWidth),
+                                                    QtCore.QPoint(x + tileWidth * 0.25, y + tileWidth)]))
+
+            elif tile.params == 2:
+                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.25, y),
+                                                    QtCore.QPoint(x + tileWidth * 0.75, y),
+                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth)]))
+
+            elif tile.params in (7, 8, 9):
+                painter.drawRect(x, y, tileWidth, tileWidth)
+
+        elif tile.solidity == 1 or tile.coreType in (14, 20, 22) and tile.solidity == 0:  # Solid or Climbable
             painter.drawRect(x, y, tileWidth, tileWidth)
 
 
@@ -638,7 +685,7 @@ def CreateTilesets():
 
     globals.TilesetAnimTimer = QtCore.QTimer()
     globals.TilesetAnimTimer.timeout.connect(IncrementTilesetFrame)
-    globals.TilesetAnimTimer.start(90)
+    globals.TilesetAnimTimer.start(62.5)
 
     globals.ObjectDefinitions = [None] * 4
 
@@ -1128,7 +1175,7 @@ def DeleteObject(idx, objNum, soft=False):
                     obj.SetType(obj.tileset, obj.type - 1)
 
     for stamp in globals.mainWindow.stampChooser.model.items:
-        layers, sprites = globals.mainWindow.getEncodedObjects(stamp.MiyamotoClip)
+        layers, sprites = globals.mainWindow.getEncodedObjects(stamp.MiyamotoClip, False)
         objects = []
 
         for layer in layers:
@@ -1143,7 +1190,7 @@ def DeleteObject(idx, objNum, soft=False):
 
     if globals.mainWindow.clipboard is not None:
         if globals.mainWindow.clipboard.startswith('MiyamotoClip|') and globals.mainWindow.clipboard.endswith('|%'):
-            layers, sprites = globals.mainWindow.getEncodedObjects(globals.mainWindow.clipboard)
+            layers, sprites = globals.mainWindow.getEncodedObjects(globals.mainWindow.clipboard, False)
             objects = []
 
             for layer in layers:

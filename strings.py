@@ -879,7 +879,7 @@ class MiyamotoTranslation:
                 18: '[b]Preset:[/b][br]Snaps the zone to common sizes.[br]The number before each entry specifies which zoom level works best with each size.',
                 19: 'Rendering and Camera',
                 20: 'Zone Theme:',
-                21: '[b]Zone Theme:[/b][br]Completely useless because it\'s automatically determined by the background.\nChanges the way models and parts of the background are rendered (for blurring, darkness, lava effects, and so on). Themes with * next to them are used in the game, but look the same as the overworld theme.',
+                21: '[b]Zone Theme:[/b][br]Completely useless because it\'s automatically determined by the background.[br]Changes the way models and parts of the background are rendered (for blurring, darkness, lava effects, and so on). Themes with * next to them are used in the game, but look the same as the overworld theme.',
                 22: 'Terrain Lighting:',
                 23: '[b]Terrain Lighting:[/b][br]Changes the way the terrain is rendered. It also affects the parts of the background which the Zone Theme doesn\'t change.',
                 24: 'Normal',
@@ -971,7 +971,7 @@ class MiyamotoTranslation:
                 75: '[b]Enable Scrolling vertically?:[/b][br]The level can\'t scroll vertically if this is not checked Seems to be always checked.',
                 76: 'Flags',
                 77: (
-                    'Start Zoomed Out:',
+                    'Start Zoom as Screen Height:[br](No initial zoom out/in)',
                     'Center Camera X-pos On Load:',
                     'Camera Follows on Y-axis:',
                     'Camera Stops At Zone End:',
@@ -984,6 +984,7 @@ class MiyamotoTranslation:
                 79: 'Snap to 16x16 Grid',
                 80: 'Small / Small Focus Light',
                 81: '[b]Visibility:[/b][br]Small - A small, centered spotlight affords visibility through layer 0.[br]Small Focuslight - A small spotlight which changes size based on player movement.',
+                82: 'Clone',
                 },
             'Zones': {
                 0: 'Zone [num]',
@@ -1150,8 +1151,31 @@ class MiyamotoTranslation:
         """
         Returns a list of strings
         """
-        try: return self.strings[section][numcode]
-        except Exception: return ('MiyamotoTranslation.stringList() ERROR:', section, numcode)
+        try:
+            strings = self.strings[section][numcode]
+        except Exception:
+            return ('MiyamotoTranslation.stringList() ERROR:', section, numcode)
+
+        strings = list(strings)
+
+        for i in range(len(strings)):
+            # Do some automatic replacements
+            replace = {
+                '[br]': '<br>',
+                '[b]': '<b>',
+                '[/b]': '</b>',
+                '[i]': '<i>',
+                '[/i]': '</i>',
+                '[a': '<a',
+                '"]': '">', # workaround
+                '[/a]': '</a>',
+                '\\n': '\n',
+                '//n': '\n',
+                }
+            for old in replace:
+                strings[i] = strings[i].replace(old, replace[old])
+
+        return tuple(strings)
 
     def path(self, key):
         """

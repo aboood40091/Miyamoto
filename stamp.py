@@ -54,7 +54,7 @@ class Stamp:
         """
         minX, minY, maxX, maxY = 24576, 12288, 0, 0
 
-        layers, sprites = globals.mainWindow.getEncodedObjects(self.MiyamotoClip)
+        layers, sprites = globals.mainWindow.getEncodedObjects(self.MiyamotoClip, False)
 
         # Go through the sprites and find the maxs and mins
         for spr in sprites:

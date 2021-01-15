@@ -47,7 +47,6 @@ import misc
 
 
 Tileset = None
-PuzzleVersion = '2.7'
 
 #############################################################################################
 ########################## Tileset Class and Tile/Object Subclasses #########################
@@ -297,6 +296,7 @@ class TilesetClass:
 
         self.tiles = []
         self.objects = []
+        self.overrides = [None] * 256
 
         self.slot = 0
         self.placeNullChecked = False
@@ -311,10 +311,8 @@ class TilesetClass:
     def addObject(self, height = 1, width = 1, randByte = 0, uslope = [0, 0], lslope = [0, 0], tilelist = None, new = False):
         '''Adds a new object'''
 
-        global Tileset
-
         if new:
-            tilelist = [[(0, 0, Tileset.slot)]]
+            tilelist = [[(0, 0, self.slot)]]
 
         self.objects.append(self.Object(height, width, randByte, uslope, lslope, tilelist))
 
@@ -336,13 +334,234 @@ class TilesetClass:
         self.objects = []
 
 
+    def processOverrides(self):
+        if self.slot != 0:
+            return
+
+        try:
+            t = self.overrides
+            o = globals.Overrides
+
+            # Invisible, brick and ? blocks
+            ## Invisible
+            replace = 3
+            for i in [3, 4, 5, 6, 7, 8, 9, 10, 13, 29]:
+                t[i] = o[replace].main
+                replace += 1
+
+            ## Brick
+            for i in range(16, 28):
+                t[i] = o[i].main
+
+            ## ?
+            t[49] = o[46].main
+            for i in range(32, 43):
+                t[i] = o[i].main
+
+            # Collisions
+            ## Full block
+            t[1] = o[1].main
+
+            ## Vine stopper
+            t[2] = o[2].main
+
+            ## Solid-on-top
+            t[11] = o[13].main
+
+            ## Half block
+            t[12] = o[14].main
+
+            ## Muncher (hit)
+            t[45] = o[45].main
+
+            ## Muncher (hit) 2
+            t[209] = o[44].main
+
+            ## Donut lift
+            t[53] = o[43].main
+
+            ## Conveyor belts
+            ### Left
+            #### Fast
+            replace = 115
+            for i in range(163, 166):
+                t[i] = o[replace].main
+                replace += 1
+            #### Slow
+            replace = 99
+            for i in range(147, 150):
+                t[i] = o[replace].main
+                replace += 1
+
+            ### Right
+            #### Fast
+            replace = 112
+            for i in range(160, 163):
+                t[i] = o[replace].main
+                replace += 1
+            #### Slow
+            replace = 96
+            for i in range(144, 147):
+                t[i] = o[replace].main
+                replace += 1
+
+            ## Pipes
+            ### Green
+            #### Vertical
+            t[64] = o[48].main
+            t[65] = o[49].main
+            t[80] = o[64].main
+            t[81] = o[65].main
+            t[96] = o[80].main
+            t[97] = o[81].main
+            #### Horizontal
+            t[87] = o[71].main
+            t[103] = o[87].main
+            t[88] = o[72].main
+            t[104] = o[88].main
+            t[89] = o[73].main
+            t[105] = o[89].main
+            ### Yellow
+            #### Vertical
+            t[66] = o[50].main
+            t[67] = o[51].main
+            t[82] = o[66].main
+            t[83] = o[67].main
+            t[98] = o[82].main
+            t[99] = o[83].main
+            #### Horizontal
+            t[90] = o[74].main
+            t[106] = o[90].main
+            t[91] = o[75].main
+            t[107] = o[91].main
+            t[92] = o[76].main
+            t[108] = o[92].main
+            ### Red
+            #### Vertical
+            t[68] = o[52].main
+            t[69] = o[53].main
+            t[84] = o[68].main
+            t[85] = o[69].main
+            t[100] = o[84].main
+            t[101] = o[85].main
+            #### Horizontal
+            t[93] = o[77].main
+            t[109] = o[93].main
+            t[94] = o[78].main
+            t[110] = o[94].main
+            t[95] = o[79].main
+            t[111] = o[95].main
+            ### Mini (green)
+            #### Vertical
+            t[70] = o[54].main
+            t[86] = o[70].main
+            t[102] = o[86].main
+            #### Horizontal
+            t[120] = o[104].main
+            t[121] = o[105].main
+            t[137] = o[121].main
+            ### Joints
+            #### Normal
+            t[118] = o[102].main
+            t[119] = o[103].main
+            t[134] = o[118].main
+            t[135] = o[119].main
+            #### Mini
+            t[136] = o[120].main
+
+            # Coins
+            t[30] = o[30].main
+            ## Outline
+            t[31] = o[29].main
+            ### Multiplayer
+            t[28] = o[28].main
+            ## Blue
+            t[46] = o[47].main
+
+            # Flowers / Grass
+            grassType = 5
+            for sprite in globals.Area.sprites:
+                if sprite.type == 564:
+                    grassType = min(sprite.spritedata[5] & 0xf, 5)
+                    if grassType < 2:
+                        grassType = 0
+
+                    elif grassType in [3, 4]:
+                        grassType = 3
+
+            if grassType == 0:  # Forest
+                replace_flowers = 160
+                replace_grass = 163
+                replace_both = 168
+
+            elif grassType == 2:  # Underground
+                replace_flowers = 55
+                replace_grass = 171
+                replace_both = 188
+
+            elif grassType == 3:  # Sky
+                replace_flowers = 176
+                replace_grass = 179
+                replace_both = 184
+
+            else:  # Normal
+                replace_flowers = 55
+                replace_grass = 58
+                replace_both = 106
+
+            ## Flowers
+            replace = replace_flowers
+            for i in range(210, 213):
+                t[i] = o[replace].main
+                replace += 1
+            ## Grass
+            replace = replace_grass
+            for i in range(178, 183):
+                t[i] = o[replace].main
+                replace += 1
+            ## Flowers and grass
+            replace = replace_both
+            for i in range(213, 216):
+                t[i] = o[replace].main
+                replace += 1
+
+            # Lines
+            ## Straight lines
+            ### Normal
+            t[216] = o[128].main
+            t[217] = o[63].main
+            ### Corners and diagonals
+            replace = 122
+            for i in range(218, 231):
+                if i != 224:  # random empty tile
+                    t[i] = o[replace].main
+                replace += 1
+
+            ## Circles and stops
+            for i in range(231, 256):
+                t[i] = o[replace].main
+                replace += 1
+
+        except Exception:
+            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
+                                               'Whoops, something went wrong while processing the overrides...')
+            warningBox.exec_()
+
+
     def getUsedTiles(self):
         usedTiles = []
+
+        if self.slot == 0:
+            usedTiles.append(0)
+
+            for i, tile in enumerate(self.overrides):
+                if tile is not None:
+                    usedTiles.append(i)
 
         for object in self.objects:
             for i in range(len(object.tiles)):
                 for tile in object.tiles[i]:
-                    if not tile[2] & 3 and Tileset.slot:  # Pa0 tile 0 used in another slot, don't count it
+                    if not tile[2] & 3 and self.slot:  # Pa0 tile 0 used in another slot, don't count it
                         continue
 
                     if object.randLen > 0:
@@ -375,34 +594,35 @@ class paletteWidget(QtWidgets.QWidget):
 
         path = globals.miyamoto_path + '/miyamotodata/Icons/'
 
-        self.coreTypes = [  ['Default', QtGui.QIcon(path + 'Core/Default.png'), 'The standard type for tiles.\n\nAny regular terrain or backgrounds\nshould be of this generic type.'],
-                            ['Rails', QtGui.QIcon(path + 'Core/Rails.png'), 'Used for all types of rails.\n\nRails are replaced in-game with\n3D models, so modifying these\ntiles with different graphics\nwill have no effect.'],
-                            ['Dash Coin', QtGui.QIcon(path + 'Core/DashCoin.png'), 'Creates a dash coin.\n\nDash coins, also known as\n"coin outlines," turn into\na coin a second or so after they\nare touched by the player.'],
-                            ['Coin', QtGui.QIcon(path + 'Core/Coin.png'), 'Creates a coin.\n\nCoins have no solid collision,\nand when touched will disappear\nand increment the coin counter.\nUnused Blue Coins go in this\ncategory, too.'],
-                            ['Blue Coin', QtGui.QIcon(path + 'Core/BlueCoin.png'), 'This is used for the blue coin in Pa0_jyotyu\nthat has a black checkerboard outline.'],
-                            ['Used Item Block, Stone Block, Wood Block, Red Block', QtGui.QIcon(path + 'Core/UsedWoodStoneRed.png'), 'Defines a used item block, a stone\nblock, a wooden block or a red block.'],
-                            ['Brick Block', QtGui.QIcon(path + 'Core/Brick.png'), 'Defines a brick block.'],
-                            ['? Block', QtGui.QIcon(path + 'Core/Qblock.png'), 'Defines a ? block.'],
-                            ['Quicksand', QtGui.QIcon(path + 'Core/Quicksand.png'), 'Creates a quicksand area. Use with the "Quicksand" terrain type.'],
-                            ['Partial Block', QtGui.QIcon(path + 'Core/Partial.png'), 'DOESN\'T WORK!\n\nUsed for blocks with partial collisions.\n\nVery useful for Mini-Mario secret\nareas, but also for providing a more\naccurate collision map for your tiles.\nUse with the "Solid" setting.'],
-                            ['Invisible Block with Item', QtGui.QIcon(path + 'Core/Invisible.png'), 'Used for invisible item blocks.'],
-                            ['Slope', QtGui.QIcon(path + 'Core/Slope.png'), 'Defines a sloped tile.\n\nSloped tiles have sloped collisions,\nwhich Mario can slide on.'],
-                            ['Reverse Slope', QtGui.QIcon(path + 'Core/RSlope.png'), 'Defines an upside-down slope.\n\nSloped tiles have sloped collisions,\nwhich Mario can hit.'],
-                            ['Default 2', QtGui.QIcon(path + 'Core/Default.png'), 'This is an unused type which seems to be the same as Default.'],
-                            ['Climbable Wall with Ledge', QtGui.QIcon(path + 'Core/ClimbLedge.png'), 'Creates terrain that can be\nclimbed on, with a ledge at\nthe top.\n\nClimable terrain cannot be walked on.\n\nWhen Mario is on top of a climable\ntile and the player presses up, Mario\nwill enter a climbing state.'],
-                            ['Spike', QtGui.QIcon(path + 'Core/Spike.png'), 'Dangerous spikey spikes.\n\nSpike tiles will damage Mario one hit\nwhen they are touched.'],
-                            ['Pipe or Pipe Joint', QtGui.QIcon(path + 'Core/Pipe.png'), 'Denotes a pipe tile, or a pipe joint.\n\nPipe tiles are specified according to\nthe part of the pipe. It\'s important\nto specify the right parts or\nentrances may not function correctly.'],
-                            ['Conveyor Belt', QtGui.QIcon(path + 'Core/Conveyor.png'), 'Defines moving tiles.\n\nMoving tiles will move Mario in one\ndirection or another.'],
-                            ['Donut Block', QtGui.QIcon(path + 'Core/Donut.png'), 'Creates a falling donut block.\n\nThese blocks fall after they have been\nstood on for a few seconds, and then\nrespawn later. They are replaced by\nthe game with 3D models, so you can\'t\neasily make your own.'],
-                            ['Cave Entrance', QtGui.QIcon(path + 'Core/Cave.png'), 'Creates a cave entrance.\n\nCave entrances are used to mark secret\nareas hidden behind Layer 0 tiles.'],
-                            ['Hanging Ledge/Climbable Wall', QtGui.QIcon(path + 'Core/ClimbLedge.png'), 'Creates a hanging ledge, or terrain that can be\nclimbed on.\n\nYou cannot climb down from the ledge\nif climable terrian is under it,\nand you cannot climb up from the climable terrian\nif the ledge is above it.'],
-                            ['Rope', QtGui.QIcon(path + 'Core/Rope.png'), 'Unused type that produces a rope you can hang to. If solidity is set to "None," it will have no effect. "Solid on Top" and "Solid on Bottom" produce no useful behavior.'],
-                            ['Climbable Pole', QtGui.QIcon(path + 'Core/Pole.png'), 'Creates a pole that can be climbed. Use with "No Solidity."'],
-                        ]
+        self.coreTypes = [
+            ['Default', QtGui.QIcon(path + 'Core/Default.png'), 'The standard type for tiles.\n\nAny regular terrain or backgrounds\nshould be of this generic type.'],
+            ['Rails', QtGui.QIcon(path + 'Core/Rails.png'), 'Used for all types of rails.\n\nRails are replaced in-game with\n3D models, so modifying these\ntiles with different graphics\nwill have no effect.'],
+            ['Dash Coin', QtGui.QIcon(path + 'Core/DashCoin.png'), 'Creates a dash coin.\n\nDash coins, also known as\n"coin outlines," turn into\na coin a second or so after they\nare touched by the player.'],
+            ['Coin', QtGui.QIcon(path + 'Core/Coin.png'), 'Creates a coin.\n\nCoins have no solid collision,\nand when touched will disappear\nand increment the coin counter.\nUnused Blue Coins go in this\ncategory, too.'],
+            ['Blue Coin', QtGui.QIcon(path + 'Core/BlueCoin.png'), 'This is used for the blue coin in Pa0_jyotyu\nthat has a black checkerboard outline.'],
+            ['Explodable Block', QtGui.QIcon(path + 'Core/UsedWoodStoneRed.png'), 'Defines a used item block, a stone\nblock, a wooden block or a red block.'],
+            ['Brick Block', QtGui.QIcon(path + 'Core/Brick.png'), 'Defines a brick block.'],
+            ['? Block', QtGui.QIcon(path + 'Core/Qblock.png'), 'Defines a ? block.'],
+            ['Red Block Outline(?)', QtGui.QIcon(path + 'Unknown.png'), 'Looking at NSMB2, this is supposedly the core type for Red Block Outline.'],
+            ['Partial Block', QtGui.QIcon(path + 'Core/Partial.png'), '<b>DOESN\'T WORK!</b>\n\nUsed for blocks with partial collisions.\n\nVery useful for Mini-Mario secret\nareas, but also for providing a more\naccurate collision map for your tiles.\nUse with the "Solid" setting.'],
+            ['Invisible Block', QtGui.QIcon(path + 'Core/Invisible.png'), 'Used for invisible item blocks.'],
+            ['Slope', QtGui.QIcon(path + 'Core/Slope.png'), 'Defines a sloped tile.\n\nSloped tiles have sloped collisions,\nwhich Mario can slide on.'],
+            ['Reverse Slope', QtGui.QIcon(path + 'Core/RSlope.png'), 'Defines an upside-down slope.\n\nSloped tiles have sloped collisions,\nwhich Mario can hit.'],
+            ['Liquid', QtGui.QIcon(path + 'Core/Quicksand.png'), 'Creates a liquid area. All seen to be non-functional, except for Quicksand, which should be used with the "Quicksand" terrain type.'],
+            ['Climbable Terrian', QtGui.QIcon(path + 'Core/Climb.png'), 'Creates terrain that can be\nclimbed on.\n\nClimable terrain cannot be walked on.\n\nWhen Mario is on top of a climable\ntile and the player presses up, Mario\nwill enter a climbing state.'],
+            ['Damage Tile', QtGui.QIcon(path + 'Core/Skull.png'), 'Various damaging tiles.\n\nIcicle/Spike tiles will damage Mario one hit\nwhen they are touched, whereas lava and poison water will instantly kill Mario and play the corresponding death animation.'],
+            ['Pipe/Joint', QtGui.QIcon(path + 'Core/Pipe.png'), 'Denotes a pipe tile, or a pipe joint.\n\nPipe tiles are specified according to\nthe part of the pipe. It\'s important\nto specify the right parts or\nentrances may not function correctly.'],
+            ['Conveyor Belt', QtGui.QIcon(path + 'Core/Conveyor.png'), 'Defines moving tiles.\n\nMoving tiles will move Mario in one\ndirection or another.'],
+            ['Donut Block', QtGui.QIcon(path + 'Core/Donut.png'), 'Creates a falling donut block.\n\nThese blocks fall after they have been\nstood on for a few seconds, and then\nrespawn later. They are replaced by\nthe game with 3D models, so you can\'t\neasily make your own.'],
+            ['Cave Entrance', QtGui.QIcon(path + 'Core/Cave.png'), 'Creates a cave entrance.\n\nCave entrances are used to mark secret\nareas hidden behind Layer 0 tiles.'],
+            ['Hanging Ledge', QtGui.QIcon(path + 'Core/Ledge.png'), 'Creates a hanging ledge, or terrain that can be\nclimbed on with a ledge.\n\nYou cannot climb down from the <b>hanging</b> ledge\nif climable terrian is under it,\nand you cannot climb up from the climable terrian\nif the <b>hanging</b> ledge is above it.\n\nFor such behavior, you need the climbable wall with ledge.'],
+            ['Rope', QtGui.QIcon(path + 'Core/Rope.png'), 'Unused type that produces a rope you can hang to. If solidity is set to "None," it will have no effect. "Solid on Top" and "Solid on Bottom" produce no useful behavior.'],
+            ['Climbable Pole', QtGui.QIcon(path + 'Core/Pole.png'), 'Creates a pole that can be climbed. Use with "No Solidity."'],
+        ]
 
         for i, item in enumerate(self.coreTypes):
             self.coreWidgets.append(QtWidgets.QRadioButton())
-            if i in [0, 13]:
+            if i == 0:
                 self.coreWidgets[i].setText(item[0])
 
             else:
@@ -437,228 +657,277 @@ class paletteWidget(QtWidgets.QWidget):
         self.parametersGroup.setLayout(parametersLayout)
 
 
-        GenericParams = [['Normal', QtGui.QIcon(path + 'Core/Default.png')],
-                         ['Beanstalk Stop', QtGui.QIcon(path + '/Generic/Beanstopper.png')]]
+        GenericParams = [
+            ['Normal', QtGui.QIcon()],
+            ['Beanstalk Stop', QtGui.QIcon(path + '/Generic/Beanstopper.png')],
+        ]
 
-        RailParams = [['Upslope', QtGui.QIcon(path + 'Rails/Upslope.png')],
-                      ['Downslope', QtGui.QIcon(path + 'Rails/Downslope.png')],
-                      ['Top-Left Corner', QtGui.QIcon(path + 'Rails/Top-Left Corner.png')],
-                      ['Bottom-Right Corner', QtGui.QIcon(path + 'Rails/Bottom-Right Corner.png')],
-                      ['Horizontal', QtGui.QIcon(path + 'Rails/Horizontal.png')],
-                      ['Vertical', QtGui.QIcon(path + 'Rails/Vertical.png')],
-                      ['Blank', QtGui.QIcon()],
-                      ['Gentle Upslope 2', QtGui.QIcon(path + 'Rails/Gentle Upslope 2.png')],
-                      ['Gentle Upslope 1', QtGui.QIcon(path + 'Rails/Gentle Upslope 1.png')],
-                      ['Gentle Downslope 2', QtGui.QIcon(path + 'Rails/Gentle Downslope 2.png')],
-                      ['Gentle Downslope 1', QtGui.QIcon(path + 'Rails/Gentle Downslope 1.png')],
-                      ['Steep Upslope 2', QtGui.QIcon(path + 'Rails/Steep Upslope 2.png')],
-                      ['Steep Upslope 1', QtGui.QIcon(path + 'Rails/Steep Upslope 1.png')],
-                      ['Steep Downslope 2', QtGui.QIcon(path + 'Rails/Steep Downslope 2.png')],
-                      ['Steep Downslope 1', QtGui.QIcon(path + 'Rails/Steep Downslope 1.png')],
-                      ['1x1 Circle', QtGui.QIcon(path + 'Rails/1x1 Circle.png')],
-                      ['2x2 Circle Upper Right', QtGui.QIcon(path + 'Rails/2x2 Circle Upper Right.png')],
-                      ['2x2 Circle Upper Left', QtGui.QIcon(path + 'Rails/2x2 Circle Upper Left.png')],
-                      ['2x2 Circle Lower Right', QtGui.QIcon(path + 'Rails/2x2 Circle Lower Right.png')],
-                      ['2x2 Circle Lower Left', QtGui.QIcon(path + 'Rails/2x2 Circle Lower Left.png')],
+        RailParams = [
+            ['Upslope', QtGui.QIcon(path + 'Rails/Upslope.png')],
+            ['Downslope', QtGui.QIcon(path + 'Rails/Downslope.png')],
+            ['Top-Left Corner', QtGui.QIcon(path + 'Rails/Top-Left Corner.png')],
+            ['Bottom-Right Corner', QtGui.QIcon(path + 'Rails/Bottom-Right Corner.png')],
+            ['Horizontal', QtGui.QIcon(path + 'Rails/Horizontal.png')],
+            ['Vertical', QtGui.QIcon(path + 'Rails/Vertical.png')],
+            ['Blank', QtGui.QIcon()],
+            ['Gentle Upslope 2', QtGui.QIcon(path + 'Rails/Gentle Upslope 2.png')],
+            ['Gentle Upslope 1', QtGui.QIcon(path + 'Rails/Gentle Upslope 1.png')],
+            ['Gentle Downslope 2', QtGui.QIcon(path + 'Rails/Gentle Downslope 2.png')],
+            ['Gentle Downslope 1', QtGui.QIcon(path + 'Rails/Gentle Downslope 1.png')],
+            ['Steep Upslope 2', QtGui.QIcon(path + 'Rails/Steep Upslope 2.png')],
+            ['Steep Upslope 1', QtGui.QIcon(path + 'Rails/Steep Upslope 1.png')],
+            ['Steep Downslope 2', QtGui.QIcon(path + 'Rails/Steep Downslope 2.png')],
+            ['Steep Downslope 1', QtGui.QIcon(path + 'Rails/Steep Downslope 1.png')],
+            ['1x1 Circle', QtGui.QIcon(path + 'Rails/1x1 Circle.png')],
+            ['2x2 Circle Upper Right', QtGui.QIcon(path + 'Rails/2x2 Circle Upper Right.png')],
+            ['2x2 Circle Upper Left', QtGui.QIcon(path + 'Rails/2x2 Circle Upper Left.png')],
+            ['2x2 Circle Lower Right', QtGui.QIcon(path + 'Rails/2x2 Circle Lower Right.png')],
+            ['2x2 Circle Lower Left', QtGui.QIcon(path + 'Rails/2x2 Circle Lower Left.png')],
 
-                      ['4x4 Circle Top Left Corner', QtGui.QIcon(path + 'Rails/4x4 Circle Top Left Corner.png')],
-                      ['4x4 Circle Top Left', QtGui.QIcon(path + 'Rails/4x4 Circle Top Left.png')],
-                      ['4x4 Circle Top Right', QtGui.QIcon(path + 'Rails/4x4 Circle Top Right.png')],
-                      ['4x4 Circle Top Right Corner', QtGui.QIcon(path + 'Rails/4x4 Circle Top Right Corner.png')],
+            ['4x4 Circle Top Left Corner', QtGui.QIcon(path + 'Rails/4x4 Circle Top Left Corner.png')],
+            ['4x4 Circle Top Left', QtGui.QIcon(path + 'Rails/4x4 Circle Top Left.png')],
+            ['4x4 Circle Top Right', QtGui.QIcon(path + 'Rails/4x4 Circle Top Right.png')],
+            ['4x4 Circle Top Right Corner', QtGui.QIcon(path + 'Rails/4x4 Circle Top Right Corner.png')],
 
-                      ['4x4 Circle Upper Left Side', QtGui.QIcon(path + 'Rails/4x4 Circle Upper Left Side.png')],
-                      ['4x4 Circle Upper Right Side', QtGui.QIcon(path + 'Rails/4x4 Circle Upper Right Side.png')],
+            ['4x4 Circle Upper Left Side', QtGui.QIcon(path + 'Rails/4x4 Circle Upper Left Side.png')],
+            ['4x4 Circle Upper Right Side', QtGui.QIcon(path + 'Rails/4x4 Circle Upper Right Side.png')],
 
-                      ['4x4 Circle Lower Left Side', QtGui.QIcon(path + 'Rails/4x4 Circle Lower Left Side.png')],
-                      ['4x4 Circle Lower Right Side', QtGui.QIcon(path + 'Rails/4x4 Circle Lower Right Side.png')],
+            ['4x4 Circle Lower Left Side', QtGui.QIcon(path + 'Rails/4x4 Circle Lower Left Side.png')],
+            ['4x4 Circle Lower Right Side', QtGui.QIcon(path + 'Rails/4x4 Circle Lower Right Side.png')],
 
-                      ['4x4 Circle Bottom Left Corner', QtGui.QIcon(path + 'Rails/4x4 Circle Bottom Left Corner.png')],
-                      ['4x4 Circle Bottom Left', QtGui.QIcon(path + 'Rails/4x4 Circle Bottom Left.png')],
-                      ['4x4 Circle Bottom Right', QtGui.QIcon(path + 'Rails/4x4 Circle Bottom Right.png')],
-                      ['4x4 Circle Bottom Right Corner', QtGui.QIcon(path + 'Rails/4x4 Circle Bottom Right Corner.png')],
+            ['4x4 Circle Bottom Left Corner', QtGui.QIcon(path + 'Rails/4x4 Circle Bottom Left Corner.png')],
+            ['4x4 Circle Bottom Left', QtGui.QIcon(path + 'Rails/4x4 Circle Bottom Left.png')],
+            ['4x4 Circle Bottom Right', QtGui.QIcon(path + 'Rails/4x4 Circle Bottom Right.png')],
+            ['4x4 Circle Bottom Right Corner', QtGui.QIcon(path + 'Rails/4x4 Circle Bottom Right Corner.png')],
 
-                      ['End Stop', QtGui.QIcon()]]
+            ['End Stop', QtGui.QIcon()],
+        ]
 
-        CoinParams = [['Generic Coin', QtGui.QIcon(path + 'Coin/Coin.png')],
-                      ['Nothing', QtGui.QIcon(path + 'Core/Default.png')],
-                      ['Blue Coin', QtGui.QIcon(path + 'Coin/BlueCoin.png')]]
+        CoinParams = [
+            ['Generic Coin', QtGui.QIcon(path + 'Core/Coin.png')],
+            ['Nothing', QtGui.QIcon()],
+            ['Blue Coin', QtGui.QIcon(path + 'Core/BlueCoin.png')],
+        ]
 
-        UsedStoneWoodenRedParams = [['Used Item Block', QtGui.QIcon(path + 'UsedStoneWoodenRed/Used.png')],
-                                    ['Stone Block', QtGui.QIcon(path + 'UsedStoneWoodenRed/Stone.png')],
-                                    ['Wooden Block', QtGui.QIcon(path + 'UsedStoneWoodenRed/Wooden.png')],
-                                    ['Red Block', QtGui.QIcon(path + 'UsedStoneWoodenRed/Red.png')]]
+        ExplodableBlockParams = [
+            ['Used Item Block', QtGui.QIcon(path + 'ExplodableBlock/Used.png')],
+            ['Stone Block', QtGui.QIcon(path + 'ExplodableBlock/Stone.png')],
+            ['Wooden Block', QtGui.QIcon(path + 'ExplodableBlock/Wooden.png')],
+            ['Red Block', QtGui.QIcon(path + 'ExplodableBlock/Red.png')],
+        ]
 
-        PartialParams = [['Upper Left', QtGui.QIcon(path + 'Partial/UpLeft.png')], 
-                         ['Upper Right', QtGui.QIcon(path + 'Partial/UpRight.png')], 
-                         ['Top Half', QtGui.QIcon(path + 'Partial/TopHalf.png')], 
-                         ['Lower Left', QtGui.QIcon(path + 'Partial/LowLeft.png')], 
-                         ['Left Half', QtGui.QIcon(path + 'Partial/LeftHalf.png')], 
-                         ['Diagonal Downwards', QtGui.QIcon(path + 'Partial/DiagDn.png')], 
-                         ['Upper Left 3/4', QtGui.QIcon(path + 'Partial/UpLeft3-4.png')], 
-                         ['Lower Right', QtGui.QIcon(path + 'Partial/LowRight.png')], 
-                         ['Diagonal Downwards', QtGui.QIcon(path + 'Partial/DiagDn.png')], 
-                         ['Right Half', QtGui.QIcon(path + 'Partial/RightHalf.png')], 
-                         ['Upper Right 3/4', QtGui.QIcon(path + 'Partial/UpRig3-4.png')], 
-                         ['Lower Half', QtGui.QIcon(path + 'Partial/LowHalf.png')], 
-                         ['Lower Left 3/4', QtGui.QIcon(path + 'Partial/LowLeft3-4.png')], 
-                         ['Lower Right 3/4', QtGui.QIcon(path + 'Partial/LowRight3-4.png')], 
-                         ['Full Brick', QtGui.QIcon(path + 'Partial/Full.png')]]
+        PartialParams = [
+            ['Upper Left', QtGui.QIcon(path + 'Partial/UpLeft.png')],
+            ['Upper Right', QtGui.QIcon(path + 'Partial/UpRight.png')],
+            ['Top Half', QtGui.QIcon(path + 'Partial/TopHalf.png')],
+            ['Lower Left', QtGui.QIcon(path + 'Partial/LowLeft.png')],
+            ['Left Half', QtGui.QIcon(path + 'Partial/LeftHalf.png')],
+            ['Diagonal Downwards', QtGui.QIcon(path + 'Partial/DiagDn.png')],
+            ['Upper Left 3/4', QtGui.QIcon(path + 'Partial/UpLeft3-4.png')],
+            ['Lower Right', QtGui.QIcon(path + 'Partial/LowRight.png')],
+            ['Diagonal Downwards', QtGui.QIcon(path + 'Partial/DiagDn.png')],
+            ['Right Half', QtGui.QIcon(path + 'Partial/RightHalf.png')],
+            ['Upper Right 3/4', QtGui.QIcon(path + 'Partial/UpRig3-4.png')],
+            ['Lower Half', QtGui.QIcon(path + 'Partial/LowHalf.png')],
+            ['Lower Left 3/4', QtGui.QIcon(path + 'Partial/LowLeft3-4.png')],
+            ['Lower Right 3/4', QtGui.QIcon(path + 'Partial/LowRight3-4.png')],
+            ['Full Brick', QtGui.QIcon(path + 'Partial/Full.png')],
+        ]
 
-        SlopeParams = [['Steep Upslope', QtGui.QIcon(path + 'Slope/steepslopeleft.png')],
-                       ['Steep Downslope', QtGui.QIcon(path + 'Slope/steepsloperight.png')],
-                       ['Upslope 1', QtGui.QIcon(path + 'Slope/slopeleft.png')],
-                       ['Upslope 2', QtGui.QIcon(path + 'Slope/slope3left.png')],
-                       ['Downslope 1', QtGui.QIcon(path + 'Slope/slope3right.png')],
-                       ['Downslope 2', QtGui.QIcon(path + 'Slope/sloperight.png')],
-                       ['Very Steep Upslope 1', QtGui.QIcon(path + 'Slope/vsteepup1.png')],
-                       ['Very Steep Upslope 2', QtGui.QIcon(path + 'Slope/vsteepup2.png')],
-                       ['Very Steep Downslope 1', QtGui.QIcon(path + 'Slope/vsteepdown2.png')],
-                       ['Very Steep Downslope 2', QtGui.QIcon(path + 'Slope/vsteepdown1.png')],
-                       ['Slope Edge (solid)', QtGui.QIcon(path + 'Slope/edge.png')],
-                       ['Gentle Upslope 1', QtGui.QIcon(path + 'Slope/gentleupslope1.png')],
-                       ['Gentle Upslope 2', QtGui.QIcon(path + 'Slope/gentleupslope2.png')],
-                       ['Gentle Upslope 3', QtGui.QIcon(path + 'Slope/gentleupslope3.png')],
-                       ['Gentle Upslope 4', QtGui.QIcon(path + 'Slope/gentleupslope4.png')],
-                       ['Gentle Downslope 1', QtGui.QIcon(path + 'Slope/gentledownslope1.png')],
-                       ['Gentle Downslope 2', QtGui.QIcon(path + 'Slope/gentledownslope2.png')],
-                       ['Gentle Downslope 3', QtGui.QIcon(path + 'Slope/gentledownslope3.png')],
-                       ['Gentle Downslope 4', QtGui.QIcon(path + 'Slope/gentledownslope4.png')]]
+        SlopeParams = [
+            ['Steep Upslope', QtGui.QIcon(path + 'Slope/steepslopeleft.png')],
+            ['Steep Downslope', QtGui.QIcon(path + 'Slope/steepsloperight.png')],
+            ['Upslope 1', QtGui.QIcon(path + 'Slope/slopeleft.png')],
+            ['Upslope 2', QtGui.QIcon(path + 'Slope/slope3left.png')],
+            ['Downslope 1', QtGui.QIcon(path + 'Slope/slope3right.png')],
+            ['Downslope 2', QtGui.QIcon(path + 'Slope/sloperight.png')],
+            ['Very Steep Upslope 1', QtGui.QIcon(path + 'Slope/vsteepup1.png')],
+            ['Very Steep Upslope 2', QtGui.QIcon(path + 'Slope/vsteepup2.png')],
+            ['Very Steep Downslope 1', QtGui.QIcon(path + 'Slope/vsteepdown2.png')],
+            ['Very Steep Downslope 2', QtGui.QIcon(path + 'Slope/vsteepdown1.png')],
+            ['Slope Edge (solid)', QtGui.QIcon(path + 'Slope/edge.png')],
+            ['Gentle Upslope 1', QtGui.QIcon(path + 'Slope/gentleupslope1.png')],
+            ['Gentle Upslope 2', QtGui.QIcon(path + 'Slope/gentleupslope2.png')],
+            ['Gentle Upslope 3', QtGui.QIcon(path + 'Slope/gentleupslope3.png')],
+            ['Gentle Upslope 4', QtGui.QIcon(path + 'Slope/gentleupslope4.png')],
+            ['Gentle Downslope 1', QtGui.QIcon(path + 'Slope/gentledownslope1.png')],
+            ['Gentle Downslope 2', QtGui.QIcon(path + 'Slope/gentledownslope2.png')],
+            ['Gentle Downslope 3', QtGui.QIcon(path + 'Slope/gentledownslope3.png')],
+            ['Gentle Downslope 4', QtGui.QIcon(path + 'Slope/gentledownslope4.png')],
+        ]
 
-        ReverseSlopeParams = [['Steep Downslope', QtGui.QIcon(path + 'Slope/Rsteepslopeleft.png')],
-                              ['Steep Upslope', QtGui.QIcon(path + 'Slope/Rsteepsloperight.png')],
-                              ['Downslope 1', QtGui.QIcon(path + 'Slope/Rslopeleft.png')],
-                              ['Downslope 2', QtGui.QIcon(path + 'Slope/Rslope3left.png')],
-                              ['Upslope 1', QtGui.QIcon(path + 'Slope/Rslope3right.png')],
-                              ['Upslope 2', QtGui.QIcon(path + 'Slope/Rsloperight.png')],
-                              ['Very Steep Downslope 1', QtGui.QIcon(path + 'Slope/Rvsteepdown1.png')],
-                              ['Very Steep Downslope 2', QtGui.QIcon(path + 'Slope/Rvsteepdown2.png')],
-                              ['Very Steep Upslope 1', QtGui.QIcon(path + 'Slope/Rvsteepup2.png')],
-                              ['Very Steep Upslope 2', QtGui.QIcon(path + 'Slope/Rvsteepup1.png')],
-                              ['Slope Edge (solid)', QtGui.QIcon(path + 'Slope/edge.png')],
-                              ['Gentle Downslope 1', QtGui.QIcon(path + 'Slope/Rgentledownslope1.png')],
-                              ['Gentle Downslope 2', QtGui.QIcon(path + 'Slope/Rgentledownslope2.png')],
-                              ['Gentle Downslope 3', QtGui.QIcon(path + 'Slope/Rgentledownslope3.png')],
-                              ['Gentle Downslope 4', QtGui.QIcon(path + 'Slope/Rgentledownslope4.png')],
-                              ['Gentle Upslope 1', QtGui.QIcon(path + 'Slope/Rgentleupslope1.png')],
-                              ['Gentle Upslope 2', QtGui.QIcon(path + 'Slope/Rgentleupslope2.png')],
-                              ['Gentle Upslope 3', QtGui.QIcon(path + 'Slope/Rgentleupslope3.png')],
-                              ['Gentle Upslope 4', QtGui.QIcon(path + 'Slope/Rgentleupslope4.png')]]
+        ReverseSlopeParams = [
+            ['Steep Downslope', QtGui.QIcon(path + 'Slope/Rsteepslopeleft.png')],
+            ['Steep Upslope', QtGui.QIcon(path + 'Slope/Rsteepsloperight.png')],
+            ['Downslope 1', QtGui.QIcon(path + 'Slope/Rslopeleft.png')],
+            ['Downslope 2', QtGui.QIcon(path + 'Slope/Rslope3left.png')],
+            ['Upslope 1', QtGui.QIcon(path + 'Slope/Rslope3right.png')],
+            ['Upslope 2', QtGui.QIcon(path + 'Slope/Rsloperight.png')],
+            ['Very Steep Downslope 1', QtGui.QIcon(path + 'Slope/Rvsteepdown1.png')],
+            ['Very Steep Downslope 2', QtGui.QIcon(path + 'Slope/Rvsteepdown2.png')],
+            ['Very Steep Upslope 1', QtGui.QIcon(path + 'Slope/Rvsteepup2.png')],
+            ['Very Steep Upslope 2', QtGui.QIcon(path + 'Slope/Rvsteepup1.png')],
+            ['Slope Edge (solid)', QtGui.QIcon(path + 'Slope/edge.png')],
+            ['Gentle Downslope 1', QtGui.QIcon(path + 'Slope/Rgentledownslope1.png')],
+            ['Gentle Downslope 2', QtGui.QIcon(path + 'Slope/Rgentledownslope2.png')],
+            ['Gentle Downslope 3', QtGui.QIcon(path + 'Slope/Rgentledownslope3.png')],
+            ['Gentle Downslope 4', QtGui.QIcon(path + 'Slope/Rgentledownslope4.png')],
+            ['Gentle Upslope 1', QtGui.QIcon(path + 'Slope/Rgentleupslope1.png')],
+            ['Gentle Upslope 2', QtGui.QIcon(path + 'Slope/Rgentleupslope2.png')],
+            ['Gentle Upslope 3', QtGui.QIcon(path + 'Slope/Rgentleupslope3.png')],
+            ['Gentle Upslope 4', QtGui.QIcon(path + 'Slope/Rgentleupslope4.png')],
+        ]
 
-        SpikeParams = [['No Spikes', QtGui.QIcon(path + 'Unknown.png')],
-                       ['No Spikes', QtGui.QIcon(path + 'Unknown.png')],
-                       ['Glitchy', QtGui.QIcon(path + 'Unknown.png')],
-                       ['Left-Facing Spikes', QtGui.QIcon(path + 'Spikes/SpikeLeft.png')],
-                       ['Right-Facing Spikes', QtGui.QIcon(path + 'Spikes/SpikeRight.png')],
-                       ['Up-Facing Spikes', QtGui.QIcon(path + 'Spikes/Spike.png')],
-                       ['Down-Facing Spikes', QtGui.QIcon(path + 'Spikes/SpikeDown.png')]]
+        LiquidParams = [
+            ['Unknown 0', QtGui.QIcon(path + 'Unknown.png')],
+            ['Unknown 1', QtGui.QIcon(path + 'Unknown.png')],
+            ['Unknown 2', QtGui.QIcon(path + 'Unknown.png')],
+            ['Unknown 3', QtGui.QIcon(path + 'Unknown.png')],
+            ['Quicksand', QtGui.QIcon(path + 'Core/Quicksand.png')],
+        ]
 
-        PipeParams = [['Vert. Top Entrance Left', QtGui.QIcon(path + 'Pipes/UpLeft.png')],
-                      ['Vert. Top Entrance Right', QtGui.QIcon(path + 'Pipes/UpRight.png')],
-                      ['Vert. Bottom Entrance Left', QtGui.QIcon(path + 'Pipes/DownLeft.png')],
-                      ['Vert. Bottom Entrance Right', QtGui.QIcon(path + 'Pipes/DownRight.png')],
-                      ['Horiz. Left Entrance Top', QtGui.QIcon(path + 'Pipes/LeftTop.png')],
-                      ['Horiz. Left Entrance Bottom', QtGui.QIcon(path + 'Pipes/LeftBottom.png')],
-                      ['Horiz. Right Entrance Top', QtGui.QIcon(path + 'Pipes/RightTop.png')],
-                      ['Horiz. Right Entrance Bottom', QtGui.QIcon(path + 'Pipes/RightBottom.png')],
-                      ['Vert. Mini Pipe Top', QtGui.QIcon(path + 'Pipes/MiniUp.png')],
-                      ['Vert. Mini Pipe Bottom', QtGui.QIcon(path + 'Pipes/MiniDown.png')],
-                      ['Horiz. Mini Pipe Left', QtGui.QIcon(path + 'Pipes/MiniLeft.png')],
-                      ['Horiz. Mini Pipe Right', QtGui.QIcon(path + 'Pipes/MiniRight.png')],
-                      ['Vert. Center Left', QtGui.QIcon(path + 'Pipes/VertCenterLeft.png')],
-                      ['Vert. Center Right', QtGui.QIcon(path + 'Pipes/VertCenterRight.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['Horiz. Center Top', QtGui.QIcon(path + 'Pipes/HorizCenterTop.png')],
-                      ['Horiz. Center Bottom', QtGui.QIcon(path + 'Pipes/HorizCenterBottom.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['Vert. Mini Pipe Center', QtGui.QIcon(path + 'Pipes/MiniVertCenter.png')],
-                      ['Horiz. Mini Pipe Center', QtGui.QIcon(path + 'Pipes/MiniHorizCenter.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
-                      ['Pipe Joint', QtGui.QIcon(path + 'Pipes/Joint.png')]]
+        ClimbableParams = [
+            ['Vine', QtGui.QIcon(path + 'Climbable/Vine.png')],
+            ['Climbable Wall', QtGui.QIcon(path + 'Core/Climb.png')],
+            ['Climbable Fence', QtGui.QIcon(path + 'Climbable/Fence.png')],
+        ]
 
-        ConveyorParams = [['Left', QtGui.QIcon(path + 'Conveyor/Left.png')],
-                          ['Left Fast', QtGui.QIcon(path + 'Conveyor/LeftFast.png')],
-                          ['Right', QtGui.QIcon(path + 'Conveyor/Right.png')],
-                          ['Right Fast', QtGui.QIcon(path + 'Conveyor/RightFast.png')]]
+        DamageTileParams = [
+            ['Icicle', QtGui.QIcon(path + 'Damage/Icicle1x1.png')],
+            ['Long Icicle 1', QtGui.QIcon(path + 'Damage/Icicle1x2Top.png')],
+            ['Long Icicle 2', QtGui.QIcon(path + 'Damage/Icicle1x2Bottom.png')],
+            ['Left-Facing Spikes', QtGui.QIcon(path + 'Damage/SpikeLeft.png')],
+            ['Right-Facing Spikes', QtGui.QIcon(path + 'Damage/SpikeRight.png')],
+            ['Up-Facing Spikes', QtGui.QIcon(path + 'Damage/Spike.png')],
+            ['Down-Facing Spikes', QtGui.QIcon(path + 'Damage/SpikeDown.png')],
+            ['Instant Death', QtGui.QIcon(path + 'Core/Skull.png')],
+            ['Lava', QtGui.QIcon(path + 'Damage/Lava.png')],
+            ['Poison Water', QtGui.QIcon(path + 'Damage/Poison.png')],
+        ]
 
-        CaveParams = [['Left', QtGui.QIcon(path + 'Cave/Left.png')],
-                      ['Right', QtGui.QIcon(path + 'Cave/Right.png')]]
+        PipeParams = [
+            ['Vert. Top Entrance Left', QtGui.QIcon(path + 'Pipes/UpLeft.png')],
+            ['Vert. Top Entrance Right', QtGui.QIcon(path + 'Pipes/UpRight.png')],
+            ['Vert. Bottom Entrance Left', QtGui.QIcon(path + 'Pipes/DownLeft.png')],
+            ['Vert. Bottom Entrance Right', QtGui.QIcon(path + 'Pipes/DownRight.png')],
+            ['Horiz. Left Entrance Top', QtGui.QIcon(path + 'Pipes/LeftTop.png')],
+            ['Horiz. Left Entrance Bottom', QtGui.QIcon(path + 'Pipes/LeftBottom.png')],
+            ['Horiz. Right Entrance Top', QtGui.QIcon(path + 'Pipes/RightTop.png')],
+            ['Horiz. Right Entrance Bottom', QtGui.QIcon(path + 'Pipes/RightBottom.png')],
+            ['Vert. Mini Pipe Top', QtGui.QIcon(path + 'Pipes/MiniUp.png')],
+            ['Vert. Mini Pipe Bottom', QtGui.QIcon(path + 'Pipes/MiniDown.png')],
+            ['Horiz. Mini Pipe Left', QtGui.QIcon(path + 'Pipes/MiniLeft.png')],
+            ['Horiz. Mini Pipe Right', QtGui.QIcon(path + 'Pipes/MiniRight.png')],
+            ['Vert. Center Left', QtGui.QIcon(path + 'Pipes/VertCenterLeft.png')],
+            ['Vert. Center Right', QtGui.QIcon(path + 'Pipes/VertCenterRight.png')],
+            ['Vert. Intersection Left', QtGui.QIcon(path + 'Pipes/VertIntersectLeft.png')],
+            ['Vert. Intersection Right', QtGui.QIcon(path + 'Pipes/VertIntersectRight.png')],
+            ['Horiz. Center Top', QtGui.QIcon(path + 'Pipes/HorizCenterTop.png')],
+            ['Horiz. Center Bottom', QtGui.QIcon(path + 'Pipes/HorizCenterBottom.png')],
+            ['Horiz. Intersection Top', QtGui.QIcon(path + 'Pipes/HorizIntersectTop.png')],
+            ['Horiz. Intersection Bottom', QtGui.QIcon(path + 'Pipes/HorizIntersectBottom.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['Vert. Mini Pipe Center', QtGui.QIcon(path + 'Pipes/MiniVertCenter.png')],
+            ['Horiz. Mini Pipe Center', QtGui.QIcon(path + 'Pipes/MiniHorizCenter.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['UNUSED', QtGui.QIcon(path + 'Unknown.png')],
+            ['Pipe Joint', QtGui.QIcon(path + 'Pipes/Joint.png')],
+            ['Vert. Mini Pipe Intersection', QtGui.QIcon(path + 'Pipes/MiniVertIntersect.png')],
+            ['Horiz. Mini Pipe Intersection', QtGui.QIcon(path + 'Pipes/MiniHorizIntersect.png')],
+        ]
 
-        ClimbLedgeParams = [['Hanging Ledge', QtGui.QIcon(path + 'Core/Ledge.png')],
-                            ['Climbable Wall', QtGui.QIcon(path + 'Core/Climb.png')]]
+        ConveyorParams = [
+            ['Left', QtGui.QIcon(path + 'Conveyor/Left.png')],
+            ['Right', QtGui.QIcon(path + 'Conveyor/Right.png')],
+            ['Left Fast', QtGui.QIcon(path + 'Conveyor/LeftFast.png')],
+            ['Right Fast', QtGui.QIcon(path + 'Conveyor/RightFast.png')],
+        ]
+
+        CaveParams = [
+            ['Left', QtGui.QIcon(path + 'Cave/Left.png')],
+            ['Right', QtGui.QIcon(path + 'Cave/Right.png')],
+        ]
+
+        ClimbLedgeParams = [
+            ['Hanging Ledge', QtGui.QIcon(path + 'Core/Ledge.png')],
+            ['Climbable Wall with Ledge', QtGui.QIcon(path + 'Core/ClimbLedge.png')],
+        ]
 
 
-        self.ParameterList = [GenericParams, # 0x00
-                              RailParams, # 0x01
-                              None, # 0x02
-                              CoinParams, # 0x03
-                              None, # 0x04
-                              UsedStoneWoodenRedParams, # 0x05
-                              None, # 0x06
-                              None, # 0x07
-                              None, # 0x08
-                              PartialParams, # 0x09
-                              None, # 0x0A
-                              SlopeParams, # 0x0B
-                              ReverseSlopeParams, # 0x0C
-                              None, # 0x0D
-                              None, # 0x0E
-                              SpikeParams, # 0x0F
-                              PipeParams, # 0x10
-                              ConveyorParams, # 0x11
-                              None, # 0x12
-                              CaveParams, # 0x13
-                              ClimbLedgeParams, # 0x14
-                              None, # 0x15
-                              None, # 0x16
-                              ]
+        self.ParameterList = [
+            GenericParams,          # 0x00
+            RailParams,             # 0x01
+            None,                   # 0x02
+            CoinParams,             # 0x03
+            None,                   # 0x04
+            ExplodableBlockParams,  # 0x05
+            None,                   # 0x06
+            None,                   # 0x07
+            None,                   # 0x08
+            PartialParams,          # 0x09
+            None,                   # 0x0A
+            SlopeParams,            # 0x0B
+            ReverseSlopeParams,     # 0x0C
+            LiquidParams,           # 0x0D
+            ClimbableParams,        # 0x0E
+            DamageTileParams,       # 0x0F
+            PipeParams,             # 0x10
+            ConveyorParams,         # 0x11
+            None,                   # 0x12
+            CaveParams,             # 0x13
+            ClimbLedgeParams,       # 0x14
+            None,                   # 0x15
+            None,                   # 0x16
+        ]
 
 
-        SpikeParams2 = [['Spikes', QtGui.QIcon(path + 'Spikes/Spikes.png')],
-                        ['Muncher (no visible difference)', QtGui.QIcon(path + 'Spikes/Muncher.png')]]
+        DamageTileParams2 = [
+            ['Default', QtGui.QIcon()],
+            ['Muncher (no visible difference)', QtGui.QIcon(path + 'Damage/Muncher.png')],
+        ]
 
-        PipeParams2 = [['Green', QtGui.QIcon(path + 'PipeColors/Green.png')],
-                       ['Red', QtGui.QIcon(path + 'PipeColors/Red.png')],
-                       ['Yellow', QtGui.QIcon(path + 'PipeColors/Yellow.png')]]
+        PipeParams2 = [
+            ['Green', QtGui.QIcon(path + 'PipeColors/Green.png')],
+            ['Red', QtGui.QIcon(path + 'PipeColors/Red.png')],
+            ['Yellow', QtGui.QIcon(path + 'PipeColors/Yellow.png')],
+            ['Blue', QtGui.QIcon(path + 'PipeColors/Blue.png')],
+        ]
 
         self.ParameterList2 = [
-                            None, # 0x0
-                            None, # 0x1
-                            None, # 0x2
-                            None, # 0x3
-                            None, # 0x4
-                            None, # 0x5
-                            None, # 0x6
-                            None, # 0x7
-                            None, # 0x8
-                            None, # 0x9
-                            None, # 0xA
-                            None, # 0xB
-                            None, # 0xC
-                            None, # 0xD
-                            None, # 0xE
-                            SpikeParams2, # 0xF
-                            PipeParams2, # 0x10
-                            None, # 0x11
-                            None, # 0x12
-                            None, # 0x13
-                            None, # 0x14
-                            None, # 0x15
-                            None, # 0x16
-                            ]
+            None,               # 0x0
+            None,               # 0x1
+            None,               # 0x2
+            None,               # 0x3
+            None,               # 0x4
+            None,               # 0x5
+            None,               # 0x6
+            None,               # 0x7
+            None,               # 0x8
+            None,               # 0x9
+            None,               # 0xA
+            None,               # 0xB
+            None,               # 0xC
+            None,               # 0xD
+            None,               # 0xE
+            DamageTileParams2,  # 0xF
+            PipeParams2,        # 0x10
+            None,               # 0x11
+            None,               # 0x12
+            None,               # 0x13
+            None,               # 0x14
+            None,               # 0x15
+            None,               # 0x16
+        ]
 
 
         # Collision Type
@@ -667,26 +936,35 @@ class paletteWidget(QtWidgets.QWidget):
         L = QtWidgets.QVBoxLayout(self.collsGroup)
         L.addWidget(self.collsType)
 
-        self.collsTypes = [['No Solidity', QtGui.QIcon(path + 'Collisions/NoSolidity.png')],
-                           ['Solid', QtGui.QIcon(path + 'Collisions/Solid.png')],
-                           ['Solid-on-Top', QtGui.QIcon(path + 'Collisions/SolidOnTop.png')],
-                           ['Solid-on-Bottom', QtGui.QIcon(path + 'Collisions/SolidOnBottom.png')],
-                           ['Sloped Solid-on-Top (1)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
-                           ['Sloped Solid-on-Top (2)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
-                           ]
+        self.collsTypes = [
+            ['No Solidity', QtGui.QIcon(path + 'Collisions/NoSolidity.png')],
+            ['Solid', QtGui.QIcon(path + 'Collisions/Solid.png')],
+            ['Solid-on-Top', QtGui.QIcon(path + 'Collisions/SolidOnTop.png')],
+            ['Solid-on-Bottom', QtGui.QIcon(path + 'Collisions/SolidOnBottom.png')],
+            ['Solid-on-Top and Bottom', QtGui.QIcon(path + 'Collisions/SolidOnTopBottom.png')],
+            ['Slide (1)', QtGui.QIcon(path + 'Collisions/SlopedSlide.png')],
+            ['Slide (2)', QtGui.QIcon(path + 'Collisions/SlopedSlide.png')],
+            ['Staircase (1)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
+            ['Staircase (2)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
+        ]
 
         for item in self.collsTypes:
             self.collsType.addItem(item[1], item[0])
         self.collsType.setIconSize(QtCore.QSize(24, 24))
-        self.collsType.setToolTip('Set the collision style of the terrain.\n\n'
+        self.collsType.setToolTip(
+            'Set the collision style of the terrain.\n\n'
 
-                                    '<b>No Solidity:</b>\nThe tile cannot be stood on or hit.\n\n'
-                                    '<b>Solid:</b>\nThe tile can be stood on and hit from all sides.\n\n'
-                                    '<b>Solid-on-Top:</b>\nThe tile can only be stood on.\n\n'
-                                    '<b>Solid-on-Bottom:</b>\nThe tile can only be hit from below.\n\n'
-                                    '<b>Sloped Solid-on-Top (1):</b>\nDoes not seem to work in-game.\n\n'
-                                    '<b>Sloped Solid-on-Top (2):</b>\nDoes not seem to work in-game.'.replace('\n', '<br>')
-                                   )
+            '<b>No Solidity:</b>\nThe tile cannot be stood on or hit.\n\n'
+            '<b>Solid:</b>\nThe tile can be stood on and hit from all sides.\n\n'
+            '<b>Solid-on-Top:</b>\nThe tile can only be stood on.\n\n'
+            '<b>Solid-on-Bottom:</b>\nThe tile can only be hit from below.\n\n'
+            '<b>Solid-on-Top and Bottom:</b>\nThe tile can be stood on and hit from below, but not any other side.\n\n'
+            '<b>Slide:</b>\nThe player starts sliding without being able to jump when interacting with this solidity.\n\n'
+            '<b>Staircase:</b>\nUsed for staircases in Ghost Houses, Castle rooftop and in the main tilesets.\n\n'
+            'The difference between <b>Slide/Staircase (1)</b> and <b>Slide/Staircase (2)</b> is that (1) will\n'
+            'let you go past it by default (unless you add a solid tile edge), where as (2) will\n'
+            'force you to climb it (without the need of a solid tile edge).\n\n'.replace('\n', '<br>')
+        )
 
 
         # Terrain Type
@@ -696,26 +974,42 @@ class paletteWidget(QtWidgets.QWidget):
         L.addWidget(self.terrainType)
 
         # Quicksand is unused.
-        self.terrainTypes = [['Default', QtGui.QIcon(path + 'Core/Default.png')],
-                        ['Ice', QtGui.QIcon(path + 'Terrain/Ice.png')],
-                        ['Snow', QtGui.QIcon(path + 'Terrain/Snow.png')],
-                        ['Quicksand', QtGui.QIcon(path + 'Terrain/Quicksand.png')],
-                        ['Sand', QtGui.QIcon(path + 'Terrain/Sand.png')],
-                        ['Grass', QtGui.QIcon(path + 'Terrain/Grass.png')],
-                        ]
+        self.terrainTypes = [
+            ['Default', QtGui.QIcon()],                                           # 0x0
+            ['Ice', QtGui.QIcon(path + 'Terrain/Ice.png')],                       # 0x1
+            ['Snow', QtGui.QIcon(path + 'Terrain/Snow.png')],                     # 0x2
+            ['Quicksand', QtGui.QIcon(path + 'Terrain/Quicksand.png')],           # 0x3
+            ['Desert Sand', QtGui.QIcon(path + 'Terrain/Sand.png')],              # 0x4
+            ['Grass', QtGui.QIcon(path + 'Terrain/Grass.png')],                   # 0x5
+            ['Cloud', QtGui.QIcon(path + 'Terrain/Cloud.png')],                   # 0x6
+            ['Beach Sand', QtGui.QIcon(path + 'Terrain/BeachSand.png')],          # 0x7
+            ['Carpet', QtGui.QIcon(path + 'Terrain/Carpet.png')],                 # 0x8
+            ['Leaves', QtGui.QIcon(path + 'Terrain/Leaves.png')],                 # 0x9
+            ['Wood', QtGui.QIcon(path + 'Terrain/Wood.png')],                     # 0xA
+            ['Water', QtGui.QIcon(path + 'Terrain/Water.png')],                   # 0xB
+            ['Beanstalk Leaf', QtGui.QIcon(path + 'Terrain/BeanstalkLeaf.png')],  # 0xC
+        ]
 
         for item in range(len(self.terrainTypes)):
             self.terrainType.addItem(self.terrainTypes[item][1], self.terrainTypes[item][0])
         self.terrainType.setIconSize(QtCore.QSize(24, 24))
-        self.terrainType.setToolTip('Set the various types of terrain.\n\n'
+        self.terrainType.setToolTip(
+            'Set the various types of terrain.\n\n'
 
-                                    '<b>Default:</b>\nTerrain with no paticular properties.\n\n'
-                                    '<b>Ice:</b>\nWill be slippery.\n\n'
-                                    '<b>Snow:</b>\nWill emit puffs of snow and snow noises.\n\n'
-                                    '<b>Quicksand:</b>\nWill emit puffs of sand. Use with the "Quicksand" core type.\n\n'
-                                    '<b>Grass:</b>\nWill emit grass-like footstep noises.\n\n'
-                                    '<b>Beach Sand:</b>\nWill create sand tufts around\nMario\'s feet.'.replace('\n', '<br>')
-                                   )
+            '<b>Default:</b>\nTerrain with no paticular properties.\n\n'
+            '<b>Ice:</b>\nWill be slippery.\n\n'
+            '<b>Snow:</b>\nWill emit puffs of snow and snow noises.\n\n'
+            '<b>Quicksand:</b>\nWill emit puffs of sand. Use with the "Quicksand" core type.\n\n'
+            '<b>Sand:</b>\nWill create dark-colored sand tufts around\nMario\'s feet.\n\n'
+            '<b>Grass:</b>\nWill emit grass-like footstep noises.\n\n'
+            '<b>Cloud:</b>\nWill emit footstep noises for cloud platforms.\n\n'
+            '<b>Beach Sand:</b>\nWill create light-colored sand tufts around\nMario\'s feet.\n\n'
+            '<b>Carpet:</b>\nWill emit footstep noises for carpets.\n\n'
+            '<b>Leaves:</b>\nWill emit footstep noises for Palm Tree leaves.\n\n'
+            '<b>Wood:</b>\nWill emit footstep noises for wood.\n\n'
+            '<b>Water:</b>\nWill emit small splashes of water around\nMario\'s feet.\n\n'
+            '<b>Beanstalk Leaf:</b>\nWill emit footstep noises for Beanstalk leaves.'.replace('\n', '<br>')
+        )
 
 
 
@@ -776,7 +1070,7 @@ class InfoBox(QtWidgets.QWidget):
 
 
         self.collisionOverlay = QtWidgets.QCheckBox('Overlay Collision')
-        self.collisionOverlay.clicked.connect(window.tileDisplay.update)
+        self.collisionOverlay.clicked.connect(InfoBox.updateCollision)
 
 
         self.coreInfo = QtWidgets.QLabel()
@@ -844,6 +1138,13 @@ class InfoBox(QtWidgets.QWidget):
         superLayout.addLayout(infoLayout, 0, 1, 2, 1)
         self.setLayout(superLayout)
 
+    @staticmethod
+    def updateCollision():
+        window.setuptile()
+
+        window.tileWidget.setObject(window.objectList.currentIndex())
+        window.tileWidget.update()
+
 
 
 
@@ -889,7 +1190,10 @@ def SetupObjectModel(self, objects, tiles):
         for i in range(len(object.tiles)):
             for tile in object.tiles[i]:
                 if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
-                    painter.drawPixmap(Xoffset, Yoffset, tiles[tile[1]].image.scaledToWidth(24, Qt.SmoothTransformation))
+                    image = Tileset.overrides[tile[1]] if Tileset.slot == 0 and window.overrides else None
+                    if not image:
+                        image = tiles[tile[1]].image
+                    painter.drawPixmap(Xoffset, Yoffset, image.scaledToWidth(24, Qt.SmoothTransformation))
                 Xoffset += 24
             Xoffset = 0
             Yoffset += 24
@@ -2040,7 +2344,10 @@ class tileWidget(QtWidgets.QWidget):
             self.tiles.append([])
             for tile in row:
                 if (Tileset.slot == 0) or ((tile[2] & 3) != 0):
-                    self.tiles[-1].append(Tileset.tiles[tile[1]].image.scaledToWidth(24, Qt.SmoothTransformation))
+                    image = Tileset.overrides[tile[1]] if Tileset.slot == 0 and window.overrides else None
+                    if not image:
+                        image = Tileset.tiles[tile[1]].image
+                    self.tiles[-1].append(image.scaledToWidth(24, Qt.SmoothTransformation))
                 else:
                     pix = QtGui.QPixmap(24,24)
                     pix.fill(QtGui.QColor(0,0,0,0))
@@ -2131,7 +2438,10 @@ class tileWidget(QtWidgets.QWidget):
                     return
 
                 try:
-                    self.tiles[y][x] = Tileset.tiles[tile].image.scaledToWidth(24, Qt.SmoothTransformation)
+                    image = Tileset.overrides[tile] if Tileset.slot == 0 and window.overrides else None
+                    if not image:
+                        image = Tileset.tiles[tile].image
+                    self.tiles[y][x] = image.scaledToWidth(24, Qt.SmoothTransformation)
                     Tileset.objects[self.object].tiles[y][x] = (Tileset.objects[self.object].tiles[y][x][0], tile, Tileset.slot)
                 except IndexError:
                     pass
@@ -2253,6 +2563,608 @@ class tileWidget(QtWidgets.QWidget):
 
 
 #############################################################################################
+################################## Pa0 Tileset Animation Tab ################################
+
+
+class frameTileWidget(QtWidgets.QWidget):
+    def __init__(self, parent):
+        super().__init__()
+        self.parent = parent
+
+    def width(self):
+        return 0
+
+    def height(self):
+        return 0
+
+    def pixmap(self):
+        return None
+
+    def paintEvent(self, event):
+        if not self.parent.frames:
+            return
+
+        painter = QtGui.QPainter()
+        painter.begin(self)
+
+        width = self.width()
+        height = self.height()
+        pixmap = self.pixmap()
+
+        centerPoint = self.contentsRect().center()
+        upperLeftX = centerPoint.x() - width * 30
+        upperLeftY = centerPoint.y() - height * 30
+
+        painter.fillRect(upperLeftX, upperLeftY, width * 60, height * 60, QtGui.QColor(205, 205, 255))
+        painter.drawPixmap(upperLeftX, upperLeftY, pixmap)
+
+
+class frameByFrameTab(QtWidgets.QWidget):
+    class tileWidget(frameTileWidget):
+        def __init__(self, parent):
+            super().__init__(parent)
+            self.idx = 0
+
+        def width(self):
+            return self.parent.blockWidth
+
+        def height(self):
+            return self.parent.blockHeight
+
+        def pixmap(self):
+            return self.parent.frames[self.idx]
+
+    def __init__(self, parent):
+        super().__init__()
+
+        self.parent = parent
+
+        self.importButton = QtWidgets.QPushButton('Import')
+        self.importButton.released.connect(self.importFrame)
+        self.importButton.setEnabled(False)
+
+        self.exportButton = QtWidgets.QPushButton('Export')
+        self.exportButton.released.connect(self.exportFrame)
+        self.exportButton.setEnabled(False)
+
+        self.addButton = QtWidgets.QPushButton('Add Frame')
+        self.addButton.released.connect(self.addFrame)
+
+        self.deleteButton = QtWidgets.QPushButton('Delete Frame')
+        self.deleteButton.released.connect(self.deleteFrame)
+        self.deleteButton.setEnabled(False)
+
+        self.playButton = QtWidgets.QPushButton('Play Preview')
+        self.playButton.setCheckable(True)
+        self.playButton.toggled.connect(self.playPreview)
+        self.playButton.setEnabled(False)
+
+        self.tiles = frameByFrameTab.tileWidget(parent)
+
+        self.frameIdx = QtWidgets.QSpinBox()
+        self.frameIdx.setRange(0, 0)
+        self.frameIdx.valueChanged.connect(self.frameIdxChanged)
+        self.frameIdx.setEnabled(False)
+
+        layout = QtWidgets.QGridLayout()
+
+        layout.addWidget(self.tiles, 0, 1, 2, 3)
+        layout.addWidget(self.frameIdx, 3, 2, 1, 1)
+        layout.addWidget(self.importButton, 3, 0, 1, 1)
+        layout.addWidget(self.exportButton, 4, 0, 1, 1)
+        layout.addWidget(self.addButton, 3, 4, 1, 1)
+        layout.addWidget(self.deleteButton, 4, 4, 1, 1)
+        layout.addWidget(self.playButton, 4, 1, 1, 3)
+
+        self.setLayout(layout)
+
+        self.previewTimer = QtCore.QTimer()
+        self.previewTimer.timeout.connect(lambda: self.frameIdxChanged(self.getNextFrame()))
+
+    def update(self):
+        self.tiles.update()
+
+        super().update()
+
+    def frameIdxChanged(self, idx):
+        self.tiles.idx = idx
+        self.update()
+
+    def importPixmap(self):
+        path = QtWidgets.QFileDialog.getOpenFileName(self, "Open Image", '',
+                                                     '.png (*.png)')[0]
+        if not path:
+            return None
+
+        pixmap = QtGui.QPixmap(path)
+        width = pixmap.width()
+        height = pixmap.height()
+
+        blockWidth = self.parent.blockWidth
+        blockHeight = self.parent.blockHeight
+
+        requiredWidth = blockWidth * 60
+        requiredHeight = blockHeight * 60
+
+        try:
+            assert width == requiredWidth
+            assert height == requiredHeight
+
+        except AssertionError:
+            requiredWidthPadded = blockWidth * 64
+            requiredHeightPadded = blockHeight * 64
+
+            try:
+                assert width == requiredWidthPadded
+                assert height == requiredHeightPadded
+
+            except AssertionError:
+                QtWidgets.QMessageBox.warning(self, "Open Image",
+                    "The image was not the proper dimensions.\n"
+                    "Please resize the image to %dx%d pixels." % (requiredWidth, requiredHeight),
+                    QtWidgets.QMessageBox.Cancel)
+
+                return None
+
+            paddedPixmap = pixmap
+
+            pixmap = QtGui.QPixmap(requiredWidth, requiredHeight)
+            pixmap.fill(Qt.transparent)
+
+            for y in range(height // 64):
+                for x in range(width // 64):
+                    painter = QtGui.QPainter(pixmap)
+                    painter.drawPixmap(x * 60, y * 60, paddedPixmap.copy(x*64 + 2, y*64 + 2, 60, 60))
+                    painter.end()
+
+            del paddedPixmap
+
+        return pixmap
+
+    def importFrame(self):
+        pixmap = self.importPixmap()
+        if not pixmap:
+            return
+
+        del self.parent.frames[self.tiles.idx]
+        self.parent.frames.insert(self.tiles.idx, pixmap)
+        self.parent.update()
+
+    def exportFrame(self):
+        path = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", ''
+                                                     , '.png (*.png)')[0]
+        if not path:
+            return
+
+        self.tiles.pixmap().save(path)
+
+    def addFrame(self):
+        pixmap = self.importPixmap()
+        if not pixmap:
+            return
+
+        newIdx = len(self.parent.frames)
+        self.parent.frames.append(pixmap)
+        self.parent.update()
+
+        self.frameIdx.setValue(newIdx)
+
+    def deleteFrame(self):
+        idx = self.tiles.idx
+        frames = self.parent.frames
+        del frames[idx]
+
+        self.frameIdx.setValue(min(idx, max(len(frames), 1) - 1))
+        self.parent.update()
+
+    def getNextFrame(self):
+        return (self.tiles.idx + 1) % max(len(self.parent.frames), 1)
+
+    def playPreview(self, checked):
+        if checked:
+            self.importButton.setEnabled(False)
+            self.exportButton.setEnabled(False)
+            self.addButton.setEnabled(False)
+            self.deleteButton.setEnabled(False)
+            self.frameIdx.setEnabled(False)
+            self.parent.allFramesTab.importButton.setEnabled(False)
+
+            self.previewTimer.start(62.5)
+
+        else:
+            self.importButton.setEnabled(True)
+            self.exportButton.setEnabled(True)
+            self.addButton.setEnabled(True)
+            self.deleteButton.setEnabled(True)
+            self.frameIdx.setEnabled(True)
+            self.parent.allFramesTab.importButton.setEnabled(True)
+
+            self.previewTimer.stop()
+            self.frameIdx.setValue(self.tiles.idx)
+
+
+class scrollArea(QtWidgets.QScrollArea):
+    def __init__(self, widget):
+        super().__init__()
+
+        self.setWidgetResizable(True)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setWidget(widget)
+
+        self.deltaWidth = globals.app.style().pixelMetric(QtWidgets.QStyle.PM_ScrollBarExtent)
+        self.width = widget.sizeHint().width() + self.deltaWidth
+        self.height = widget.sizeHint().height() + self.deltaWidth
+
+    def sizeHint(self):
+        return QtCore.QSize(self.width, self.height)
+
+    def update(self):
+        widget = self.widget()
+        self.width = widget.sizeHint().width() + self.deltaWidth
+        self.height = widget.sizeHint().height() + self.deltaWidth
+
+        super().update()
+
+
+class allFramesTab(QtWidgets.QWidget):
+    class tileWidget(frameTileWidget):
+        def width(self):
+            return self.parent.blockWidth
+
+        def height(self):
+            return self.parent.blockHeight * len(self.parent.frames)
+
+        def pixmap(self):
+            pixmap = QtGui.QPixmap(self.width() * 60, self.height() * 60)
+            pixmap.fill(Qt.transparent)
+
+            blockHeight = self.parent.blockHeight
+
+            for i, frame in enumerate(self.parent.frames):
+                painter = QtGui.QPainter(pixmap)
+                painter.drawPixmap(0, i * blockHeight * 60, frame)
+                painter.end()
+
+            return pixmap
+
+    def __init__(self, parent):
+        super().__init__()
+
+        self.parent = parent
+
+        self.importButton = QtWidgets.QPushButton('Import')
+        self.importButton.released.connect(self.importFrame)
+
+        self.exportButton = QtWidgets.QPushButton('Export')
+        self.exportButton.released.connect(self.exportFrame)
+
+        self.tiles = allFramesTab.tileWidget(parent)
+        self.tilesScroll = scrollArea(self.tiles)
+
+        layout = QtWidgets.QGridLayout()
+
+        layout.addWidget(self.importButton, 0, 0, 1, 2)
+        layout.addWidget(self.exportButton, 0, 2, 1, 2)
+        layout.addWidget(self.tilesScroll, 1, 0, 1, 4)
+
+        self.setLayout(layout)
+
+    def update(self):
+        self.tiles.update()
+        self.tilesScroll.update()
+
+        super().update()
+
+    def importFrame(self):
+        path = QtWidgets.QFileDialog.getOpenFileName(self, "Open Image", '',
+                                                     '.png (*.png)')[0]
+        if not path:
+            return
+
+        pixmap = QtGui.QPixmap(path)
+        width = pixmap.width()
+        height = pixmap.height()
+
+        blockWidth = self.parent.blockWidth
+        blockHeight = self.parent.blockHeight
+
+        requiredWidth = blockWidth * 60
+        requiredHeight = blockHeight * 60
+
+        padded = False
+
+        try:
+            assert width == requiredWidth
+            assert height % requiredHeight == 0
+
+        except AssertionError:
+            requiredWidthPadded = blockWidth * 64
+            requiredHeightPadded = blockHeight * 64
+
+            try:
+                assert width == requiredWidthPadded
+                assert height % requiredHeightPadded == 0
+
+            except AssertionError:
+                QtWidgets.QMessageBox.warning(self, "Open Image",
+                    "The image was not the proper dimensions.\n"
+                    "Please resize the image to a width of %d and height multiple of %d." % (requiredWidth, requiredHeight),
+                    QtWidgets.QMessageBox.Cancel)
+
+                return
+
+            padded = True
+
+        if padded:
+            frames = [QtGui.QPixmap(requiredWidth, requiredHeight) for _ in range(height // requiredHeightPadded)]
+            for frame in frames:
+                frame.fill(Qt.transparent)
+
+            for y in range(height // 64):
+                for x in range(width // 64):
+                    painter = QtGui.QPainter(frames[y // blockHeight])
+                    painter.drawPixmap(x * 60, y % blockHeight * 60, pixmap.copy(x*64 + 2, y*64 + 2, 60, 60))
+                    painter.end()
+
+        else:
+            frames = [QtGui.QPixmap(requiredWidth, requiredHeight) for _ in range(height // requiredHeight)]
+            for frame in frames:
+                frame.fill(Qt.transparent)
+
+            for y in range(0, height, requiredHeight):
+                painter = QtGui.QPainter(frames[y // requiredHeight])
+                painter.drawPixmap(0, 0, pixmap.copy(0, y, requiredWidth, requiredHeight))
+                painter.end()
+
+        del pixmap
+        del self.parent.frames
+
+        self.parent.frames = frames
+        self.parent.update()
+
+    def exportFrame(self):
+        path = QtWidgets.QFileDialog.getSaveFileName(self, "Save Image", ''
+                                                     , '.png (*.png)')[0]
+        if not path:
+            return
+
+        self.tiles.pixmap().save(path)
+
+
+class tileAnime(QtWidgets.QTabWidget):
+    def __init__(self, name, blockWidth, blockHeight, tiles):
+        super().__init__()
+
+        self.name = name
+
+        self.blockWidth = blockWidth
+        self.blockHeight = blockHeight
+        self.tiles = tiles  # TODO: Highlight tiles in the palette when this tab is selected
+
+        self.frames = []
+
+        self.frameByFrameTab = frameByFrameTab(self)
+        self.allFramesTab = allFramesTab(self)
+
+        self.addTab(self.frameByFrameTab, "Frame-by-frame View")
+        self.addTab(self.allFramesTab, "All-Frames View")
+
+        self.setStyleSheet("""
+        QTabWidget::tab-bar {
+            alignment: center;
+        }
+        """)
+
+        self.setTabPosition(QtWidgets.QTabWidget.South)
+
+    def load(self):
+        global window
+        arc = window.arc
+
+        bfresdata = b''
+        for folder in arc.contents:
+            if folder.name == "output.bfres":  # It's a file
+                bfresdata = folder.data
+
+        try:
+            bntx = loadBNTXFromBFRES(bfresdata)
+            _image = loadTexFromBNTX(bntx, self.name)
+
+        except RuntimeError:
+            print("Failed to acquired %s from textures.bntx" % self.name)
+            frames = []
+
+        else:
+            image = QtGui.QPixmap.fromImage(_image); del _image
+            width = image.width()
+            height = image.height()
+
+            blockWidth = self.blockWidth
+            blockHeight = self.blockHeight
+
+            try:
+                assert width == blockWidth * 64
+                assert height % blockHeight * 64 == 0
+
+            except AssertionError:
+                print("Invalid dimensions for %s.gtx: (%d, %d)" % (self.name, width, height))
+                frames = []
+
+            else:
+                frames = [QtGui.QPixmap(blockWidth * 60, blockHeight * 60) for _ in range(height // (blockHeight * 64))]
+                for frame in frames:
+                    frame.fill(Qt.transparent)
+
+                for y in range(height // 64):
+                    for x in range(width // 64):
+                        painter = QtGui.QPainter(frames[y // blockHeight])
+                        painter.drawPixmap(x * 60, y % blockHeight * 60, image.copy(x*64 + 2, y*64 + 2, 60, 60))
+                        painter.end()
+
+        del self.frames
+        self.frames = frames
+        self.update()
+
+    def update(self):
+        nFrames = len(self.frames)
+        _frameByFrameTab = self.frameByFrameTab
+        _frameByFrameTab.tiles.setMinimumSize(_frameByFrameTab.tiles.width() * 60, _frameByFrameTab.tiles.height() * 60)
+        _frameByFrameTab.importButton.setEnabled(nFrames)
+        _frameByFrameTab.exportButton.setEnabled(nFrames)
+        _frameByFrameTab.deleteButton.setEnabled(nFrames)
+        _frameByFrameTab.playButton.setEnabled(nFrames)
+        _frameByFrameTab.frameIdx.setRange(0, max(nFrames, 1) - 1)
+        _frameByFrameTab.frameIdx.setEnabled(nFrames)
+        _frameByFrameTab.update()
+
+        _allFramesTab = self.allFramesTab
+        _allFramesTab.tiles.setMinimumSize(_allFramesTab.tiles.width() * 60, _allFramesTab.tiles.height() * 60)
+        _allFramesTab.exportButton.setEnabled(nFrames)
+        _allFramesTab.update()
+
+        super().update()
+
+
+class animWidget(QtWidgets.QTabWidget):
+    def __init__(self):
+        super().__init__()
+
+        global window
+        if window.slot:
+            return
+
+        self.block = tileAnime('block_anime', 1, 1, (48,))
+        self.hatena = tileAnime('hatena_anime', 1, 1, (49,))
+        self.blockL = tileAnime('block_anime_L', 2, 2, (112, 113, 128, 129))
+        self.hatenaL = tileAnime('hatena_anime_L', 2, 2, (114, 115, 130, 131))
+        self.tuka = tileAnime('tuka_coin_anime', 1, 1, (31,))
+        self.belt = tileAnime('belt_conveyor_anime', 3, 1, (144, 145, 146, 147, 148, 149,
+                                                           160, 161, 162, 163, 164, 165))
+
+        path = globals.miyamoto_path + '/miyamotodata/Icons/'
+
+        self.addTab(self.block, QtGui.QIcon(path + 'Core/Brick.png'), 'Brick Block')
+        self.addTab(self.hatena, QtGui.QIcon(path + 'Core/Qblock.png'), '? Block')
+        self.addTab(self.blockL, QtGui.QIcon(path + 'Core/Brick.png'), 'Big Brick Block')
+        self.addTab(self.hatenaL, QtGui.QIcon(path + 'Core/Qblock.png'), 'Big ? Block')
+        self.addTab(self.tuka, QtGui.QIcon(path + 'Core/DashCoin.png'), 'Dash Coin')
+        self.addTab(self.belt, QtGui.QIcon(path + 'Core/Conveyor.png'), 'Conveyor Belt')
+
+        self.setTabToolTip(0, "Brick Block animation.<br><b>Needs to be 16 frames!")
+        self.setTabToolTip(1, "Question Block animation.<br><b>Needs to be 16 frames!")
+        self.setTabToolTip(2, "Big Brick Block animation.<br><b>Needs to be 16 frames!")
+        self.setTabToolTip(3, "Big Question Block animation.<br><b>Needs to be 16 frames!")
+        self.setTabToolTip(4, "Dash Coin animation.<br><b>Needs to be 8 frames!")
+        self.setTabToolTip(5, "Conveyor Belt animation.<br><b>Needs to be 8 frames!")
+
+        #self.setTabShape(QtWidgets.QTabWidget.Triangular)
+        self.setTabPosition(QtWidgets.QTabWidget.South)
+
+    def load(self):
+        global window
+        if window.slot:
+            return
+
+        self.block.load()
+        self.hatena.load()
+        self.blockL.load()
+        self.hatenaL.load()
+        self.tuka.load()
+        self.belt.load()
+
+    def save(self):
+        global window
+        if window.slot:
+            return []
+
+        packTexture = self.packTexture
+        anime = []
+
+        if self.block.frames:
+            anime.append((self.block.name, *packTexture(self.block.allFramesTab.tiles.pixmap())))
+
+        if self.hatena.frames:
+            anime.append((self.hatena.name, *packTexture(self.hatena.allFramesTab.tiles.pixmap())))
+
+        if self.blockL.frames:
+            anime.append((self.blockL.name, *packTexture(self.blockL.allFramesTab.tiles.pixmap())))
+
+        if self.hatenaL.frames:
+            anime.append((self.hatenaL.name, *packTexture(self.hatenaL.allFramesTab.tiles.pixmap())))
+
+        if self.tuka.frames:
+            anime.append((self.tuka.name, *packTexture(self.tuka.allFramesTab.tiles.pixmap())))
+
+        if self.belt.frames:
+            anime.append((self.belt.name, *packTexture(self.belt.allFramesTab.tiles.pixmap())))
+
+        return anime
+
+    @staticmethod
+    def packTexture(pixmap):
+        width = pixmap.width() // 60
+        height = pixmap.height() // 60
+
+        tex = QtGui.QImage(width * 64, height * 64, QtGui.QImage.Format_RGBA8888)
+        tex.fill(Qt.transparent)
+        painter = QtGui.QPainter(tex)
+
+        for y in range(height):
+            for x in range(width):
+                tile = QtGui.QImage(64, 64, QtGui.QImage.Format_RGBA8888)
+                tile.fill(Qt.transparent)
+
+                tilePainter = QtGui.QPainter(tile)
+                tilePainter.drawPixmap(2, 2, pixmap.copy(x * 60, y * 60, 60, 60))
+                tilePainter.end()
+
+                for i in range(2, 62):
+                    color = tile.pixel(i, 2)
+                    for pix in range(0,2):
+                        tile.setPixel(i, pix, color)
+
+                    color = tile.pixel(2, i)
+                    for p in range(0,2):
+                        tile.setPixel(p, i, color)
+
+                    color = tile.pixel(i, 61)
+                    for p in range(62,64):
+                        tile.setPixel(i, p, color)
+
+                    color = tile.pixel(61, i)
+                    for p in range(62,64):
+                        tile.setPixel(p, i, color)
+
+                color = tile.pixel(2, 2)
+                for a in range(0, 2):
+                    for b in range(0, 2):
+                        tile.setPixel(a, b, color)
+
+                color = tile.pixel(61, 2)
+                for a in range(62, 64):
+                    for b in range(0, 2):
+                        tile.setPixel(a, b, color)
+
+                color = tile.pixel(2, 61)
+                for a in range(0, 2):
+                    for b in range(62, 64):
+                        tile.setPixel(a, b, color)
+
+                color = tile.pixel(61, 61)
+                for a in range(62, 64):
+                    for b in range(62, 64):
+                        tile.setPixel(a, b, color)
+
+
+                painter.drawImage(x * 64, y * 64, tile)
+
+        painter.end()
+        return tex, width*64, height*64
+
+
+
+#############################################################################################
 ############################ Subclassed one dimension Item Model ############################
 
 
@@ -2337,17 +3249,15 @@ class MainWindow(QtWidgets.QMainWindow):
         global window
         window = self
 
+        self.overrides = True
         self.saved = False
         self.con = con
 
         self.slot = int(slot)
-        if self.slot == 0:
-            self.anime = ['belt_conveyor_anime', 'block_anime', 'block_anime_L', 'hatena_anime', 'hatena_anime_L', 'tuka_coin_anime']
-
         self.tileImage = QtGui.QPixmap()
         self.normalmap = False
 
-        global Tileset, PuzzleVersion
+        global Tileset
         Tileset = TilesetClass()
 
         self.name = name
@@ -2371,7 +3281,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed,
                 QtWidgets.QSizePolicy.Fixed))
-        self.setWindowTitle(name + ' - Puzzle NSMBU v%s' % PuzzleVersion)
+        self.setWindowTitle(name + ' - Puzzle NSMBU')
 
 
     def closeEvent(self, event):
@@ -2404,6 +3314,14 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.saved and self.con:
             exec("globals.Area.tileset%d = ''" % self.slot)
 
+        if self.slot == 0:
+            self.animWidget.block.frameByFrameTab.previewTimer.stop()
+            self.animWidget.hatena.frameByFrameTab.previewTimer.stop()
+            self.animWidget.blockL.frameByFrameTab.previewTimer.stop()
+            self.animWidget.hatenaL.frameByFrameTab.previewTimer.stop()
+            self.animWidget.tuka.frameByFrameTab.previewTimer.stop()
+            self.animWidget.belt.frameByFrameTab.previewTimer.stop()
+
         super().closeEvent(event)
 
 
@@ -2414,6 +3332,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.normalmap:
             for tile in Tileset.tiles:
                 self.model.addPieces(tile.normalmap.scaledToWidth(24, Qt.SmoothTransformation))
+        elif Tileset.slot == 0 and window.overrides:
+            for i in range(len(Tileset.tiles)):
+                image = Tileset.overrides[i]
+                if not image:
+                    image = Tileset.tiles[i].image
+                self.model.addPieces(image.scaledToWidth(24, Qt.SmoothTransformation))
         else:
             for tile in Tileset.tiles:
                 self.model.addPieces(tile.image.scaledToWidth(24, Qt.SmoothTransformation))
@@ -2435,8 +3359,8 @@ class MainWindow(QtWidgets.QMainWindow):
         for i in range(256):
             Tileset.addTile(EmptyPix, normalmap)
 
-        Tileset.slot = self.slot
-        self.tileWidget.tilesetType.setText('Pa{0}'.format(Tileset.slot))
+        Tileset.slot = self.slot; Tileset.processOverrides()
+        self.tileWidget.tilesetType.setText('Pa%d' % Tileset.slot)
 
         self.setuptile()
 
@@ -2451,7 +3375,6 @@ class MainWindow(QtWidgets.QMainWindow):
         for folder in arc.contents:
             if folder.name == "output.bfres":  # It's a file
                 bfresdata = folder.data
-                            
             elif folder.name == 'BG_chk':
                 for file in folder.contents:
                     if file.name.startswith('d_bgchk_') and file.name.endswith('.bin'):
@@ -2476,8 +3399,6 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         arc = SarcLib.SARC_Archive(DecompYaz0(data))
-        self.arc = arc
-
         bfresdata, behaviourdata, objstrings, metadata = self.getData(arc)
 
         if not bfresdata:
@@ -2490,6 +3411,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         global Tileset
         Tileset.clear()
+        self.arc = arc
 
         # Loads the Image Data.
         bntx = loadBNTXFromBFRES(bfresdata)
@@ -2578,8 +3500,9 @@ class MainWindow(QtWidgets.QMainWindow):
             upperslope = [0, 0]
             lowerslope = [0, 0]
 
-        Tileset.slot = self.slot
+        Tileset.slot = self.slot; Tileset.processOverrides()
         self.tileWidget.tilesetType.setText('Pa%d' % Tileset.slot)
+        self.animWidget.load()
 
         cobj = 0
         crow = 0
@@ -2620,8 +3543,6 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         arc = SarcLib.SARC_Archive(DecompYaz0(data))
-        self.arc = arc
-
         bfresdata, behaviourdata, objstrings, metadata = self.getData(arc)
 
         if not bfresdata:
@@ -2634,6 +3555,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         global Tileset
         Tileset.clear()
+        self.arc = arc
 
         # Loads the Image Data.
         bntx = loadBNTXFromBFRES(bfresdata)
@@ -2724,6 +3646,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         Tileset.slot = self.slot
         self.tileWidget.tilesetType.setText('Pa%d' % Tileset.slot)
+        self.animWidget.load()
 
         cobj = 0
         crow = 0
@@ -2781,7 +3704,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
             QtWidgets.QMessageBox.warning(self, "Open Image",
-                    "The image was not the proper dimensions."
+                    "The image was not the proper dimensions.\n"
                     "Please resize the image to 960x960 pixels.",
                     QtWidgets.QMessageBox.Cancel)
             return
@@ -2954,19 +3877,7 @@ class MainWindow(QtWidgets.QMainWindow):
         arc = SarcLib.SARC_Archive(endianness='<')
 
         textures = [(name, textureBuffer, 2048, 512), ('%s_nml' % name, textureBufferNml, 2048, 512)]
-
-        if self.slot == 0:
-            for file in self.arc.contents:
-                if file.name == 'output.bfres':
-                    bntx = loadBNTXFromBFRES(file.data)
-                    for name2 in self.anime:
-                        try:
-                            tex = loadTexFromBNTX(bntx, name2)
-
-                        except RuntimeError:
-                            continue
-
-                        textures.append((name2, tex, tex.width(), tex.height()))
+        textures.extend(self.animWidget.save())
 
         bntx = writeBNTX(textures)
 
@@ -3175,6 +4086,7 @@ class MainWindow(QtWidgets.QMainWindow):
         taskMenu = self.menuBar().addMenu("&Tasks")
 
         taskMenu.addAction("Toggle Normal Map", self.toggleNormal, QtGui.QKeySequence('Ctrl+Shift+N'))
+        taskMenu.addAction("Toggle Overrides", self.toggleOverrides, QtGui.QKeySequence('Ctrl+Shift+O'))
         taskMenu.addAction("Show Tiles info...", self.showInfo, QtGui.QKeySequence('Ctrl+P'))
         taskMenu.addAction("Import object from file...", self.importObjFromFile, '')
         taskMenu.addAction("Export object...", self.saveObject, '')
@@ -3191,6 +4103,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setuptile()
 
         self.tileWidget.setObject(self.objectList.currentIndex())
+        self.tileWidget.update()
+
+    def toggleOverrides(self):
+        self.overrides = not self.overrides
+
+        index = self.objectList.currentIndex()
+
+        self.setuptile()
+        SetupObjectModel(self.objmodel, Tileset.objects, Tileset.tiles)
+
+        self.objectList.setCurrentIndex(index)
+        self.tileWidget.setObject(index)
+
+        self.objectList.update()
         self.tileWidget.update()
 
     def showInfo(self):
@@ -3638,16 +4564,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tileWidget = tileOverlord()
         self.paletteWidget = paletteWidget(self)
 
-        # Second Tab
+        # Objects Tab
         self.container = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.objectList)
         layout.addWidget(self.tileWidget)
         self.container.setLayout(layout)
 
+        # Animations Tab
+        self.animWidget = animWidget()
+
         # Sets the Tabs
         self.tabWidget.addTab(self.paletteWidget, 'Behaviours')
         self.tabWidget.addTab(self.container, 'Objects')
+
+        self.tabWidget.addTab(self.animWidget, 'Animations')
+        self.tabWidget.setTabEnabled(2, self.slot == 0)
 
         # Connections do things!
         self.tileDisplay.clicked.connect(self.paintFormat)
@@ -3678,10 +4610,16 @@ class MainWindow(QtWidgets.QMainWindow):
             propertyList.append('Solid-on-Top')
         elif curTile.solidity == 3:
             propertyList.append('Solid-on-Bottom')
+        elif curTile.solidity == 4:
+            propertyList.append('Solid-on-Top and Bottom')
+        elif curTile.solidity == 0x11:
+            propertyList.append('Slide (1)')
+        elif curTile.solidity == 0x12:
+            propertyList.append('Slide (2)')
         elif curTile.solidity == 0x21:
-            propertyList.append('Sloped Solid-on-Top (1)')
+            propertyList.append('Staircase (1)')
         elif curTile.solidity == 0x22:
-            propertyList.append('Sloped Solid-on-Top (2)')
+            propertyList.append('Staircase (2)')
 
 
         if len(propertyList) == 0:
@@ -3733,14 +4671,21 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if palette.ParameterList[i] is not None:
             curTile.params = palette.parameters1.currentIndex()
+        else:
+            curTile.params = 0
 
         if palette.ParameterList2[i] is not None:
             curTile.params2 = palette.parameters2.currentIndex()
+        else:
+            curTile.params2 = 0
 
         curTile.solidity = palette.collsType.currentIndex()
 
-        if curTile.solidity in [4, 5]:
-            curTile.solidity += 0x1D
+        if curTile.solidity in [5, 6]:
+            curTile.solidity += 0xC
+
+        elif curTile.solidity in [7, 8]:
+            curTile.solidity += 0x1A
 
         curTile.terrain = palette.terrainType.currentIndex()
 

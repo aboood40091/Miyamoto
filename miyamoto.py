@@ -305,6 +305,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         toggleHandlers = {
             self.HandleSpritesVisibility: globals.SpritesShown,
             self.HandleSpriteImages: globals.SpriteImagesShown,
+            self.HandleRotationPreview: globals.RotationShown,
             self.HandleLocationsVisibility: globals.LocationsShown,
             self.HandleCommentsVisibility: globals.CommentsShown,
             self.HandlePathsVisibility: globals.PathsShown,
@@ -443,7 +444,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             'exit', self.HandleExit, GetIcon('delete'),
             globals.trans.string('MenuItems', 20),
             globals.trans.string('MenuItems', 21),
-            QtGui.QKeySequence('Ctrl+Q'),
+            QtGui.QKeySequence.Quit,
         )
 
         # Edit
@@ -2085,15 +2086,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         clipboard_o.sort(key=lambda x: x.zValue())
 
         for item in clipboard_o:
-            convclip.append('0:%d:%d:%d:%d:%d:%d:%d' % (
-            item.tileset, item.type, item.layer, item.objx, item.objy, item.width, item.height))
+            convclip.append('0:%d:%d:%d:%d:%d:%d:%d:%d' % (
+            item.tileset, item.type, item.layer, item.objx, item.objy, item.width, item.height, item.data))
 
         # get sprites
         for item in clipboard_s:
             data = item.spritedata
-            convclip.append('1:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d' % (
+            convclip.append('1:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d' % (
             item.type, item.objx, item.objy, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
-            data[8], data[9], data[10], data[11]))
+            data[8], data[9], data[10], data[11], item.layer, item.initialState))
 
         convclip.append('%')
         return '|'.join(convclip)
@@ -2229,7 +2230,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         return added
 
-    def getEncodedObjects(self, encoded):
+    def getEncodedObjects(self, encoded, countCheck = True):
         """
         Create the objects from a MiyamotoClip
         """
@@ -2238,15 +2239,16 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         sprites = []
 
         try:
-            if not (encoded.startswith('MiyamotoClip|') and encoded.endswith('|%')): return
+            if not (encoded.startswith('MiyamotoClip|') and encoded.endswith('|%')):
+                return layers, sprites
 
-            clip = encoded[11:-2].split('|')
+            clip = encoded[13:-2].split('|')
 
-            if len(clip) > 300:
+            if countCheck and len(clip) > 300:
                 result = QtWidgets.QMessageBox.warning(self, 'Miyamoto!', globals.trans.string('MainWindow', 1),
                                                        QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
                 if result == QtWidgets.QMessageBox.No:
-                    return
+                    return layers, sprites
 
             for item in clip:
                 # Check to see whether it's an object or sprite
@@ -2254,7 +2256,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 split = item.split(':')
                 if split[0] == '0':
                     # object
-                    if len(split) != 8: continue
+                    if len(split) != 9: continue
 
                     tileset = int(split[1])
                     type = int(split[2])
@@ -2263,6 +2265,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     objy = int(split[5])
                     width = int(split[6])
                     height = int(split[7])
+                    data = int(split[8])
 
                     # basic sanity checks
                     if tileset < 0 or tileset > 3: continue
@@ -2272,22 +2275,25 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     if objy < 0 or objy > 511: continue
                     if width < 1 or width > 1023: continue
                     if height < 1 or height > 511: continue
+                    if data < 0 or data > 24: continue
 
-                    newitem = ObjectItem(tileset, type, layer, objx, objy, width, height, 1)
+                    newitem = ObjectItem(tileset, type, layer, objx, objy, width, height, 1, data)
 
                     layers[layer].append(newitem)
 
                 elif split[0] == '1':
                     # sprite
-                    if len(split) != 16: continue
+                    if len(split) != 18: continue
 
                     objx = int(split[2])
                     objy = int(split[3])
                     data = bytes(map(int,
                                      [split[4], split[5], split[6], split[7], split[8], split[9],
                                       split[10], split[11], split[12], split[13], split[14], split[15]]))
+                    layer = int(split[16])
+                    initialState = int(split[17])
 
-                    newitem = SpriteItem(int(split[1]), objx, objy, data)
+                    newitem = SpriteItem(int(split[1]), objx, objy, data, layer, initialState)
                     sprites.append(newitem)
 
         except ValueError:
@@ -3022,6 +3028,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             globals.OverrideSnapping = False
 
         self.scene.update()
+        self.levelOverview.update()
 
     def HandleRotationPreview(self, checked):
         """
@@ -3043,16 +3050,24 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             globals.RotationNoticeShown = not noticeShown.isChecked()
             setSetting('RotationNoticeShown', globals.RotationNoticeShown)
 
-        if globals.Area is not None:
-            globals.OverrideSnapping = True
-            globals.DirtyOverride += 1
-            for spr in globals.Area.sprites:
-                if isinstance(spr.ImageObj, SLib.SpriteImage_MovementControlled) and spr.ImageObj.controller:
-                    spr.UpdateDynamicSizing()
-            globals.DirtyOverride -= 1
-            globals.OverrideSnapping = False
+        SLib.RotationFrame = 0
+
+        globals.OverrideSnapping = True
+        globals.DirtyOverride += 1
+        for spr in globals.Area.sprites:
+            if isinstance(spr.ImageObj, SLib.SpriteImage_MovementControlled) and spr.ImageObj.controller:
+                spr.UpdateDynamicSizing()
+        globals.DirtyOverride -= 1
+        globals.OverrideSnapping = False
+
+        if globals.Area is not None and globals.RotationShown:
+            SLib.RotationTimer.start(1000 / SLib.RotationFPS)
+
+        else:
+            SLib.RotationTimer.stop()
 
         self.scene.update()
+        self.levelOverview.update()
 
     def HandleLocationsVisibility(self, checked):
         """
@@ -3355,6 +3370,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.nabbitPathEditorDock.setVisible(False)
             self.locationEditorDock.setVisible(False)
             self.defaultPropDock.setVisible(False)
+
+            SLib.RotationTimer.stop()
 
             # state: determines positions of docks
             # geometry: determines the main window position
@@ -4188,7 +4205,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                     ## Check if the object is used as a stamp
                     for stamp in self.stampChooser.model.items:
-                        layers, _ = self.getEncodedObjects(stamp.MiyamotoClip)
+                        layers, _ = self.getEncodedObjects(stamp.MiyamotoClip, False)
                         for layer in layers:
                             for obj in layer:
                                 if obj.tileset == idx and obj.type == objNum:
@@ -4201,7 +4218,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     ## Check if the object is in the clipboard
                     if self.clipboard is not None:
                         if self.clipboard.startswith('MiyamotoClip|') and self.clipboard.endswith('|%'):
-                            layers, _ = self.getEncodedObjects(self.clipboard)
+                            layers, _ = self.getEncodedObjects(self.clipboard, False)
                             for layer in layers:
                                 for obj in layer:
                                     if obj.tileset == idx and obj.type == objNum:
@@ -4346,6 +4363,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if oldx == x and oldy == y: return
             obj.UpdateListItem()
             SetDirty()
+        self.levelOverview.update()
 
     def SpriteDataUpdated(self, data):
         """
@@ -4429,6 +4447,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         obj.UpdateListItem()
         if obj == self.selObj:
             SetDirty()
+        self.levelOverview.update()
 
     def HandlePathPosChange(self, obj, oldx, oldy, x, y):
         """
@@ -4440,6 +4459,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         obj.UpdateListItem()
         if obj == self.selObj:
             SetDirty()
+        self.levelOverview.update()
 
     def HandleComPosChange(self, obj, oldx, oldy, x, y):
         """
@@ -4452,6 +4472,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if obj == self.selObj:
             self.SaveComments()
             SetDirty()
+        self.levelOverview.update()
 
     def HandleComTxtChange(self, obj):
         """
@@ -4930,236 +4951,14 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 z.UpdateRects()
                 z.setPos(z.objx * (globals.TileWidth / 16), z.objy * (globals.TileWidth / 16))
 
-                if tab.Zone_xtrack.isChecked():
-                    if tab.Zone_ytrack.isChecked():
-                        if tab.Zone_camerabias.isChecked():
-                            # Xtrack, YTrack, Bias
-                            if tab.Zone_camerazoom.currentIndex() == 0:
-                                z.cammode = 0
-                                z.camzoom = 8
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 62))
-                            elif tab.Zone_camerazoom.currentIndex() == 1:
-                                z.cammode = 3
-                                z.camzoom = 9
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 63))
-                            elif tab.Zone_camerazoom.currentIndex() == 2:
-                                z.cammode = 0
-                                z.camzoom = 1
-                            elif tab.Zone_camerazoom.currentIndex() == 3:
-                                z.cammode = 0
-                                z.camzoom = 6
-                            elif tab.Zone_camerazoom.currentIndex() == 4:
-                                z.cammode = 0
-                                z.camzoom = 4
-                            elif tab.Zone_camerazoom.currentIndex() == 5:
-                                z.cammode = 0
-                                z.camzoom = 3
-                            elif tab.Zone_camerazoom.currentIndex() == 6:
-                                z.cammode = 3
-                                z.camzoom = 3
-                        else:
-                            # Xtrack, YTrack, No Bias
-                            if tab.Zone_camerazoom.currentIndex() == 0:
-                                z.cammode = 0
-                                z.camzoom = 8
-                            elif tab.Zone_camerazoom.currentIndex() == 1:
-                                z.cammode = 3
-                                z.camzoom = 9
-                            elif tab.Zone_camerazoom.currentIndex() == 2:
-                                z.cammode = 0
-                                z.camzoom = 0
-                            elif tab.Zone_camerazoom.currentIndex() == 3:
-                                z.cammode = 0
-                                z.camzoom = 7
-                            elif tab.Zone_camerazoom.currentIndex() == 4:
-                                z.cammode = 0
-                                z.camzoom = 11
-                            elif tab.Zone_camerazoom.currentIndex() == 5:
-                                z.cammode = 3
-                                z.camzoom = 2
-                            elif tab.Zone_camerazoom.currentIndex() == 6:
-                                z.cammode = 3
-                                z.camzoom = 7
-                    else:
-                        if tab.Zone_camerabias.isChecked():
-                            # Xtrack, No YTrack, Bias
-                            z.cammode = 6
-                            if tab.Zone_camerazoom.currentIndex() == 0:
-                                z.camzoom = 8
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 62))
-                            elif tab.Zone_camerazoom.currentIndex() == 1:
-                                z.camzoom = 1
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 63))
-                            elif tab.Zone_camerazoom.currentIndex() == 2:
-                                z.camzoom = 2
-                            elif tab.Zone_camerazoom.currentIndex() == 3:
-                                z.camzoom = 6
-                            elif tab.Zone_camerazoom.currentIndex() == 4:
-                                z.camzoom = 4
-                            elif tab.Zone_camerazoom.currentIndex() == 5:
-                                z.camzoom = 3
-                            elif tab.Zone_camerazoom.currentIndex() == 6:
-                                z.camzoom = 16
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 65))
-                        else:
-                            # Xtrack, No YTrack, No Bias
-                            z.cammode = 6
-                            if tab.Zone_camerazoom.currentIndex() == 0:
-                                z.camzoom = 8
-                            elif tab.Zone_camerazoom.currentIndex() == 1:
-                                z.camzoom = 0
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 64))
-                            elif tab.Zone_camerazoom.currentIndex() == 2:
-                                z.camzoom = 0
-                            elif tab.Zone_camerazoom.currentIndex() == 3:
-                                z.camzoom = 7
-                            elif tab.Zone_camerazoom.currentIndex() == 4:
-                                z.camzoom = 11
-                            elif tab.Zone_camerazoom.currentIndex() == 5:
-                                z.camzoom = 3
-                            elif tab.Zone_camerazoom.currentIndex() == 6:
-                                z.camzoom = 16
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 65))
-                else:
-                    if tab.Zone_ytrack.isChecked():
-                        if tab.Zone_camerabias.isChecked():
-                            # No Xtrack, YTrack, Bias
-                            if tab.Zone_camerazoom.currentIndex() == 0:
-                                z.cammode = 1
-                                z.camzoom = 8
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 62))
-                            elif tab.Zone_camerazoom.currentIndex() == 1:
-                                z.cammode = 4
-                                z.camzoom = 9
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 63))
-                            elif tab.Zone_camerazoom.currentIndex() == 2:
-                                z.cammode = 1
-                                z.camzoom = 1
-                            elif tab.Zone_camerazoom.currentIndex() == 3:
-                                z.cammode = 1
-                                z.camzoom = 10
-                            elif tab.Zone_camerazoom.currentIndex() == 4:
-                                z.cammode = 1
-                                z.camzoom = 4
-                            elif tab.Zone_camerazoom.currentIndex() == 5:
-                                z.cammode = 1
-                                z.camzoom = 3
-                            elif tab.Zone_camerazoom.currentIndex() == 6:
-                                z.cammode = 4
-                                z.camzoom = 3
-                        else:
-                            # No Xtrack, YTrack, No Bias
-                            if tab.Zone_camerazoom.currentIndex() == 0:
-                                z.cammode = 4
-                                z.camzoom = 8
-                            elif tab.Zone_camerazoom.currentIndex() == 1:
-                                z.cammode = 4
-                                z.camzoom = 9
-                            elif tab.Zone_camerazoom.currentIndex() == 2:
-                                z.cammode = 1
-                                z.camzoom = 0
-                            elif tab.Zone_camerazoom.currentIndex() == 3:
-                                z.cammode = 1
-                                z.camzoom = 7
-                            elif tab.Zone_camerazoom.currentIndex() == 4:
-                                z.cammode = 1
-                                z.camzoom = 11
-                            elif tab.Zone_camerazoom.currentIndex() == 5:
-                                z.cammode = 4
-                                z.camzoom = 2
-                            elif tab.Zone_camerazoom.currentIndex() == 6:
-                                z.cammode = 4
-                                z.camzoom = 7
-                    else:
-                        if tab.Zone_camerabias.isChecked():
-                            # No Xtrack, No YTrack, Bias (glitchy)
-                            if tab.Zone_camerazoom.currentIndex() == 0:
-                                z.cammode = 9
-                                z.camzoom = 8
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 66))
-                            elif tab.Zone_camerazoom.currentIndex() == 1:
-                                z.cammode = 9
-                                z.camzoom = 20
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 66))
-                            elif tab.Zone_camerazoom.currentIndex() == 2:
-                                z.cammode = 9
-                                z.camzoom = 13
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 66))
-                            elif tab.Zone_camerazoom.currentIndex() == 3:
-                                z.cammode = 9
-                                z.camzoom = 12
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 66))
-                            elif tab.Zone_camerazoom.currentIndex() == 4:
-                                z.cammode = 9
-                                z.camzoom = 14
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 66))
-                            elif tab.Zone_camerazoom.currentIndex() == 5:
-                                z.cammode = 9
-                                z.camzoom = 15
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 66))
-                            elif tab.Zone_camerazoom.currentIndex() == 6:
-                                z.cammode = 9
-                                z.camzoom = 16
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 66))
-                        else:
-                            # No Xtrack, No YTrack, No Bias (glitchy)
-                            if tab.Zone_camerazoom.currentIndex() == 0:
-                                z.cammode = 9
-                                z.camzoom = 8
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 67))
-                            elif tab.Zone_camerazoom.currentIndex() == 1:
-                                z.cammode = 9
-                                z.camzoom = 19
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 67))
-                            elif tab.Zone_camerazoom.currentIndex() == 2:
-                                z.cammode = 9
-                                z.camzoom = 13
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 67))
-                            elif tab.Zone_camerazoom.currentIndex() == 3:
-                                z.cammode = 9
-                                z.camzoom = 12
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 67))
-                            elif tab.Zone_camerazoom.currentIndex() == 4:
-                                z.cammode = 9
-                                z.camzoom = 14
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 67))
-                            elif tab.Zone_camerazoom.currentIndex() == 5:
-                                z.cammode = 9
-                                z.camzoom = 15
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 67))
-                            elif tab.Zone_camerazoom.currentIndex() == 6:
-                                z.cammode = 9
-                                z.camzoom = 16
-                                QtWidgets.QMessageBox.warning(None, globals.trans.string('ZonesDlg', 61),
-                                                              globals.trans.string('ZonesDlg', 67))
+                z.cammode = tab.Zone_cammodebuttongroup.checkedId()
+                z.camzoom = tab.Zone_screenheights.currentIndex()
 
                 z.visibility = tab.Zone_visibility.currentIndex()
                 if tab.Zone_vspotlight.isChecked():
-                    z.visibility = z.visibility + 16
+                    z.visibility |= 0x10
                 if tab.Zone_vfulldark.isChecked():
-                    z.visibility = z.visibility + 32
+                    z.visibility |= 0x20
 
                 z.camtrack = tab.Zone_directionmode.currentIndex()
 
@@ -5170,9 +4969,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 z.unknownbnf = 0xF if tab.Zone_boundflg.isChecked() else 0
 
                 z.music = tab.Zone_musicid.value()
-                z.sfxmod = (tab.Zone_sfx.currentIndex() * 16)
+                z.sfxmod = (tab.Zone_sfx.currentIndex() & 0x0F) << 4
                 if tab.Zone_boss.isChecked():
-                    z.sfxmod = z.sfxmod + 1
+                    z.sfxmod |= 1
 
                 z.type = 0
                 for i in range(8):

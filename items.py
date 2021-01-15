@@ -118,14 +118,11 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
             x = int(newpos.x() / tileWidthMult)
             y = int(newpos.y() / tileWidthMult)
             if x != self.objx or y != self.objy:
-                updRect = QtCore.QRectF(
-                    self.x() + self.BoundingRect.x(),
-                    self.y() + self.BoundingRect.y(),
-                    self.BoundingRect.width(),
-                    self.BoundingRect.height(),
-                )
                 if self.scene() is not None:
-                    self.scene().update(updRect)
+                    self.scene().update(self.sceneBoundingRect())
+
+                if hasattr(self, 'LevelRect'):
+                    self.LevelRect.moveTo(x / 16, y / 16)
 
                 oldx = self.objx
                 oldy = self.objy
@@ -492,6 +489,13 @@ class ObjectItem(LevelEditorItem):
             self.updateObjCache()
             self.width, self.height = save
             return
+
+        self.objdata = self.objdata[:self.height]
+        for y in range(len(self.objdata)):
+            self.objdata[y] = self.objdata[y][:self.width]
+
+        self.height = len(self.objdata)
+        self.width = 0 if self.height == 0 else len(self.objdata[0])
 
         if width == self.width and height == self.height:
             return
@@ -1872,15 +1876,8 @@ class SpriteItem(LevelEditorItem):
         """
         Updates the sizes for dynamically sized sprites
         """
-        CurrentRect = QtCore.QRectF(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
-        CurrentAuxRects = []
-        for auxObj in self.ImageObj.aux:
-            CurrentAuxRects.append(QtCore.QRectF(
-                auxObj.x() + self.x(),
-                auxObj.y() + self.y(),
-                auxObj.BoundingRect.width(),
-                auxObj.BoundingRect.height(),
-            ))
+        CurrentRect = self.sceneBoundingRect()
+        CurrentAuxRects = [auxObj.sceneBoundingRect() for auxObj in self.ImageObj.aux]
 
         self.ImageObj.dataChanged()
 
@@ -1894,83 +1891,52 @@ class SpriteItem(LevelEditorItem):
             self.ChangingPos = False
 
         if self.scene() is not None:
+            # Update the scene at the previous location
             self.scene().update(CurrentRect)
-            self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
             for auxUpdateRect in CurrentAuxRects:
                 self.scene().update(auxUpdateRect)
+
+            # Update the scene at the current location
+            self.scene().update(self.sceneBoundingRect())
 
     def UpdateRects(self):
         """
         Creates all the rectangles for the sprite
         """
         self.prepareGeometryChange()
-
-        # Get rects
-        imgRect = QtCore.QRectF(
-            0, 0,
-            self.ImageObj.width * (globals.TileWidth / 16),
-            self.ImageObj.height * (globals.TileWidth / 16),
-        )
-        spriteboxRect = QtCore.QRectF(
-            0, 0,
-            self.ImageObj.spritebox.BoundingRect.width(),
-            self.ImageObj.spritebox.BoundingRect.height(),
-        )
-        imgOffsetRect = imgRect.translated(
-            (self.objx + self.ImageObj.xOffset) * (globals.TileWidth / 16),
-            (self.objy + self.ImageObj.yOffset) * (globals.TileWidth / 16),
-        )
-        spriteboxOffsetRect = spriteboxRect.translated(
-            (self.objx * (globals.TileWidth / 16)) + self.ImageObj.spritebox.BoundingRect.topLeft().x(),
-            (self.objy * (globals.TileWidth / 16)) + self.ImageObj.spritebox.BoundingRect.topLeft().y(),
-        )
+        boundingRect = self.ImageObj.spritebox.BoundingRect
 
         if globals.SpriteImagesShown:
-            unitedRect = imgRect.united(spriteboxRect)
-            unitedOffsetRect = imgOffsetRect.united(spriteboxOffsetRect)
+            selectionWidth = self.ImageObj.width * (globals.TileWidth / 16)
+            selectionHeight = self.ImageObj.height * (globals.TileWidth / 16)
 
-            # SelectionRect: Used to determine the size of the
-            # "this sprite is selected" translucent white box that
-            # appears when a sprite with an image is selected.
-            self.SelectionRect = QtCore.QRectF(
-                0, 0,
-                imgRect.width() - 1,
-                imgRect.height() - 1,
-            )
-
-            # LevelRect: Used by the Level Overview to determine
-            # the size and position of the sprite in the level.
-            # Measured in blocks.
-            self.LevelRect = QtCore.QRectF(
-                unitedOffsetRect.topLeft().x() / globals.TileWidth,
-                unitedOffsetRect.topLeft().y() / globals.TileWidth,
-                unitedOffsetRect.width() / globals.TileWidth,
-                unitedOffsetRect.height() / globals.TileWidth,
-            )
-
-            # BoundingRect: The sprite can only paint within
-            # this area.
-            self.BoundingRect = unitedRect.translated(
-                self.ImageObj.spritebox.BoundingRect.topLeft().x(),
-                self.ImageObj.spritebox.BoundingRect.topLeft().y(),
-            )
+            boundingRect |= QtCore.QRectF(0, 0, selectionWidth, selectionHeight)
 
         else:
-            self.SelectionRect = QtCore.QRectF(0, 0, globals.TileWidth, globals.TileWidth)
+            selectionWidth = selectionHeight = globals.TileWidth
 
-            self.LevelRect = QtCore.QRectF(
-                spriteboxOffsetRect.topLeft().x() / globals.TileWidth,
-                spriteboxOffsetRect.topLeft().y() / globals.TileWidth,
-                spriteboxOffsetRect.width() / globals.TileWidth,
-                spriteboxOffsetRect.height() / globals.TileWidth,
-            )
+        # SelectionRect: Used to determine the size of the
+        # "this sprite is selected" translucent white box that
+        # appears when a sprite with an image is selected.
+        self.SelectionRect = QtCore.QRectF(0, 0, selectionWidth, selectionHeight)
 
-            # BoundingRect: The sprite can only paint within
-            # this area.
-            self.BoundingRect = spriteboxRect.translated(
-                self.ImageObj.spritebox.BoundingRect.topLeft().x(),
-                self.ImageObj.spritebox.BoundingRect.topLeft().y(),
-            )
+        # BoundingRect: The sprite can only paint within this area.
+        self.BoundingRect = boundingRect
+
+        LevelRect = self.sceneBoundingRect()
+        if globals.SpriteImagesShown:
+            for auxObj in self.ImageObj.aux:
+                LevelRect |= auxObj.sceneBoundingRect()
+
+        # LevelRect: Used by the Level Overview to determine
+        # the size and position of the sprite in the level.
+        # Measured in blocks.
+        self.LevelRect = QtCore.QRectF(
+            LevelRect.x() / globals.TileWidth,
+            LevelRect.y() / globals.TileWidth,
+            LevelRect.width() / globals.TileWidth,
+            LevelRect.height() / globals.TileWidth,
+        )
 
     def getFullRect(self):
         """
@@ -1979,17 +1945,9 @@ class SpriteItem(LevelEditorItem):
         """
         self.UpdateRects()
 
-        br = self.BoundingRect.translated(
-            self.x(),
-            self.y(),
-        )
+        br = self.sceneBoundingRect()
         for aux in self.ImageObj.aux:
-            br = br.united(
-                aux.BoundingRect.translated(
-                    aux.x() + self.x(),
-                    aux.y() + self.y(),
-                )
-            )
+            br |= aux.sceneBoundingRect()
 
         return br
 
@@ -2056,9 +2014,9 @@ class SpriteItem(LevelEditorItem):
             if x != self.objx or y != self.objy:
                 # oldrect = self.BoundingRect
                 # oldrect.translate(self.objx*(globals.TileWidth/16), self.objy*(globals.TileWidth/16))
-                updRect = QtCore.QRectF(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
+                # updRect = QtCore.QRectF(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
                 # self.scene().update(updRect.united(oldrect))
-                self.scene().update(updRect)
+                self.scene().update(self.sceneBoundingRect())
 
                 self.LevelRect.moveTo((x + xOffset) / 16, (y + yOffset) / 16)
 
@@ -2499,14 +2457,7 @@ class EntranceItem(LevelEditorItem):
         """
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             if self.scene() is None: return value
-
-            updRect = QtCore.QRectF(
-                self.x() + self.aux.x(),
-                self.y() + self.aux.y(),
-                self.aux.BoundingRect.width(),
-                self.aux.BoundingRect.height(),
-            )
-            self.scene().update(updRect)
+            self.scene().update(self.aux.sceneBoundingRect())
 
         return super().itemChange(change, value)
 
@@ -2566,7 +2517,7 @@ class PathItem(LevelEditorItem):
         self.setPos(int(objx * globals.TileWidth / 16), int(objy * globals.TileWidth / 16))
         globals.DirtyOverride -= 1
 
-        self.setZValue(25002)
+        self.setZValue(25003)
         self.UpdateTooltip()
 
         self.setVisible(globals.PathsShown)
@@ -2587,7 +2538,7 @@ class PathItem(LevelEditorItem):
         return globals.trans.string('Paths', 1, '[path]', self.pathid, '[node]', self.nodeid)
 
     def __lt__(self, other):
-        return (self.pathid * 10000 + self.nodeid) < (other.pathid * 10000 + other.nodeid)
+        return (self.pathid, self.nodeid) < (other.pathid, other.nodeid)
 
     def updatePos(self):
         """
@@ -2689,7 +2640,7 @@ class NabbitPathItem(LevelEditorItem):
         self.setPos(int(self.objx * globals.TileWidth / 16), int(self.objy * globals.TileWidth / 16))
         globals.DirtyOverride -= 1
 
-        self.setZValue(25002)
+        self.setZValue(25003)
         self.UpdateTooltip()
 
         self.setVisible(globals.PathsShown)
@@ -2842,21 +2793,27 @@ class PathEditorLineItem(LevelEditorItem):
         painter.setBrush(QtGui.QBrush(color))
         painter.setPen(QtGui.QPen(color, 3 * globals.TileWidth / 24, join=Qt.RoundJoin, cap=Qt.RoundCap))
 
+        mult = globals.TileWidth / 16
         lines = []
 
         snl = self.nodelist
-        mult = globals.TileWidth / 16
-        for j, node in enumerate(snl):
-            if ((j + 1) < len(snl)):
-                a = QtCore.QPointF(float((snl[j]['x'] + 8) * mult) - self.x(), float((snl[j]['y'] + 8) * mult) - self.y())
-                b = QtCore.QPointF(float((snl[j + 1]['x'] + 8) * mult) - self.x(), float((snl[j + 1]['y'] + 8) * mult) - self.y())
-                lines.append(QtCore.QLineF(a, b))
-            elif self.loops and (j + 1) == len(snl):
-                a = QtCore.QPointF(float((snl[j]['x'] + 8) * mult) - self.x(), float((snl[j]['y'] + 8) * mult) - self.y())
-                b = QtCore.QPointF(float((snl[0]['x'] + 8) * mult) - self.x(), float((snl[0]['y'] + 8) * mult) - self.y())
-                lines.append(QtCore.QLineF(a, b))
+        for j in range(len(self.nodelist)):
+            if (j+1) < len(self.nodelist):
+                lines.append(QtCore.QLineF(
+                    float((snl[j  ]['x'] + 8) * mult) - self.x(),
+                    float((snl[j  ]['y'] + 8) * mult) - self.y(),
+                    float((snl[j+1]['x'] + 8) * mult) - self.x(),
+                    float((snl[j+1]['y'] + 8) * mult) - self.y()))
 
         painter.drawLines(lines)
+
+        painter.setPen(QtGui.QPen(color, 3 * globals.TileWidth / 24, join=Qt.RoundJoin, cap=Qt.RoundCap, style=Qt.DotLine))
+        if self.loops:
+            painter.drawLine(QtCore.QLineF(
+                float((snl[-1]['x'] + 8) * mult) - self.x(),
+                float((snl[-1]['y'] + 8) * mult) - self.y(),
+                float((snl[ 0]['x'] + 8) * mult) - self.x(),
+                float((snl[ 0]['y'] + 8) * mult) - self.y()))
 
     def delete(self):
         """
@@ -2897,19 +2854,17 @@ class NabbitPathEditorLineItem(PathEditorLineItem):
         painter.setBrush(QtGui.QBrush(color))
         painter.setPen(QtGui.QPen(color, 3 * globals.TileWidth / 24, join=Qt.RoundJoin, cap=Qt.RoundCap))
 
+        mult = globals.TileWidth / 16
         lines = []
 
         snl = self.nodelist
-        mult = globals.TileWidth / 16
-        for j, node in enumerate(snl):
-            if ((j + 1) < len(snl)):
-                a = QtCore.QPointF(float(snl[j]['x'] * mult) - self.x(), float(snl[j]['y'] * mult) - self.y())
-                b = QtCore.QPointF(float(snl[j + 1]['x'] * mult) - self.x(), float(snl[j + 1]['y'] * mult) - self.y())
-                lines.append(QtCore.QLineF(a, b))
-            elif self.loops and (j + 1) == len(snl):
-                a = QtCore.QPointF(float(snl[j]['x'] * mult) - self.x(), float(snl[j]['y'] * mult) - self.y())
-                b = QtCore.QPointF(float(snl[0]['x'] * mult) - self.x(), float(snl[0]['y'] * mult) - self.y())
-                lines.append(QtCore.QLineF(a, b))
+        for j in range(len(self.nodelist)):
+            if (j+1) < len(self.nodelist):
+                lines.append(QtCore.QLineF(
+                    float(snl[j  ]['x'] * mult) - self.x(),
+                    float(snl[j  ]['y'] * mult) - self.y(),
+                    float(snl[j+1]['x'] * mult) - self.x(),
+                    float(snl[j+1]['y'] * mult) - self.y()))
 
         painter.drawLines(lines)
 
