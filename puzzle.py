@@ -3400,8 +3400,6 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         arc = SarcLib.SARC_Archive(data)
-        self.arc = arc
-
         Image, NmlMap, behaviourdata, objstrings, metadata = self.getData(arc)
 
         if not Image:
@@ -3418,6 +3416,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         global Tileset
         Tileset.clear()
+        self.arc = arc
 
         # Loads the Image Data.
         dest = loadGTX(Image)
@@ -3548,8 +3547,6 @@ class MainWindow(QtWidgets.QMainWindow):
             return
 
         arc = SarcLib.SARC_Archive(data)
-        self.arc = arc
-
         Image, NmlMap, behaviourdata, objstrings, metadata = self.getData(arc)
 
         if not Image:
@@ -3566,6 +3563,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         global Tileset
         Tileset.clear()
+        self.arc = arc
 
         # Loads the Image Data.
         dest = loadGTX(Image)
