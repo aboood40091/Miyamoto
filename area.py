@@ -122,7 +122,7 @@ class AbstractArea:
         bgData = self.blocks[4]
         bgCount = len(bgData) // 28
 
-        bgStruct = struct.Struct('>HHHH16sxBxx')
+        bgStruct = struct.Struct('>Hhhh16sHxx')
         offset = 0
 
         bgs = {}
@@ -212,9 +212,7 @@ class Area_NSMBU(AbstractArea):
         self.LoadMiyamotoInfo(None)
 
         # BG data
-        self.bgs = {}
-        bg = struct.unpack('>HHHH16sxBxx', self.blocks[4])
-        self.bgs[bg[0]] = bg
+        self.bgs = self.LoadBackgrounds()
 
     def load(self, course, L0, L1, L2, progress=None):
         """
@@ -845,11 +843,11 @@ class Area_NSMBU(AbstractArea):
         Saves blocks 10, 3, and 5; the zone data, boundings, and background data respectively
         """
         bdngstruct = struct.Struct('>llllHHxxxxxxxx')
-        bgStruct = struct.Struct('>HHHH16sxBxx')
+        bgStruct = struct.Struct('>Hhhh16sHxx')
         zonestruct = struct.Struct('>HHHHHHBBBBxBBxBxBBxBxx')
         offset = 0
-        bdngs, bdngcount = self.GetOptimizedBoundings()
-        bgs, bgcount = self.GetOptimizedBGs()
+        bdngs, bdngcount = self.GetOptimizedBoundings(bdngstruct)
+        bgs, bgcount = self.GetOptimizedBGs(bgStruct)
         zcount = len(globals.Area.zones)
         buffer2 = bytearray(28 * bdngcount)
         buffer4 = bytearray(28 * bgcount)
@@ -874,9 +872,8 @@ class Area_NSMBU(AbstractArea):
         self.blocks[4] = bytes(buffer4)
         self.blocks[9] = bytes(buffer9)
 
-    def GetOptimizedBoundings(self):
+    def GetOptimizedBoundings(self, bdngstruct):
         bdngs = {}
-        bdngstruct = struct.Struct('>llllHHxxxxxxxx')
         for z in globals.Area.zones:
             bdng = bdngstruct.pack(z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, 0, z.unknownbnf)
             if bdng not in bdngs:
@@ -891,9 +888,8 @@ class Area_NSMBU(AbstractArea):
 
         return oBdngs, len(bdngs)
 
-    def GetOptimizedBGs(self):
+    def GetOptimizedBGs(self, bgStruct):
         bgs = {}
-        bgStruct = struct.Struct('>HHHH16sxBxx')
         for z in globals.Area.zones:
             bg = bgStruct.pack(0, z.background[1], z.background[2], z.background[3], z.background[4], z.background[5])
             if bg not in bgs:

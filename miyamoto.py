@@ -5247,11 +5247,11 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         z.type |= 1 << i
 
                 name = bgTab.bgFname.text()
-                unk1 = bgTab.unk1.value()
-                unk2 = bgTab.unk2.value()
-                unk3 = bgTab.unk3.value()
-                unk4 = bgTab.unk4.value()
-                z.background = (z.id, unk1, unk2, unk3, to_bytes(name, 16), unk4)
+                xPos = bgTab.xPos.value()
+                yPos = bgTab.yPos.value()
+                zPos = bgTab.zPos.value()
+                parallaxMode = bgTab.parallaxMode.currentIndex()
+                z.background = (z.id, xPos, yPos, zPos, to_bytes(name, 16), parallaxMode)
 
                 if not ygn2Used:
                     ygn2Used = name == "Yougan_2"

@@ -3987,8 +3987,8 @@ class TilesetsTab(QtWidgets.QWidget):
         # Handle combobox changes
         self.tile0.activated.connect(slot)
 
-        # don't allow ts0 to be removable
-        self.tile0.removeItem(0)
+        ## don't allow ts0 to be removable
+        #self.tile0.removeItem(0)
 
         mainLayout = QtWidgets.QVBoxLayout()
         tile0Box = QtWidgets.QGroupBox(globals.trans.string('AreaDlg', 11))

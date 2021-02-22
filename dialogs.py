@@ -972,11 +972,7 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_directionmode = QtWidgets.QComboBox()
         self.Zone_directionmode.addItems(directionmodeValues)
         self.Zone_directionmode.setToolTip(globals.trans.string('ZonesDlg', 40))
-        
-        if z.camtrack < 8:
-            self.Zone_directionmode.setCurrentIndex(z.camtrack)
-        else:
-            self.Zone_directionmode.setCurrentIndex(0)
+        self.Zone_directionmode.setCurrentIndex(z.camtrack if z.camtrack < 9 else 0)
 
         # Layouts
         ZoneCameraModesLayout = QtWidgets.QGridLayout()
@@ -1270,31 +1266,39 @@ class BGTab(QtWidgets.QWidget):
 
         self.bgFname.setEnabled(self.bgName.currentText() == 'Custom filename...')
 
-        self.unk1 = QtWidgets.QSpinBox()
-        self.unk1.setRange(0, 0xFFFF)
-        self.unk1.setValue(background[1])
+        self.xPos = QtWidgets.QSpinBox()
+        self.xPos.setRange(-32768, 32767)
+        self.xPos.setToolTip("X offset to be applied to the center of the background.\nThis option is no longer valid in the original game.")
+        self.xPos.setValue(background[1])
 
-        self.unk2 = QtWidgets.QSpinBox()
-        self.unk2.setRange(0, 0xFFFF)
-        self.unk2.setValue(background[2])
+        self.yPos = QtWidgets.QSpinBox()
+        self.yPos.setRange(-32768, 32767)
+        self.yPos.setToolTip("Y offset to be applied to the center of the background.\nThis option is no longer valid in the original game.")
+        self.yPos.setValue(background[2])
 
-        self.unk3 = QtWidgets.QSpinBox()
-        self.unk3.setRange(0, 0xFFFF)
-        self.unk3.setValue(background[3])
+        self.zPos = QtWidgets.QSpinBox()
+        self.zPos.setRange(-32768, 32767)
+        self.zPos.setToolTip("Z offset to be applied to the center of the background.\nThis option is no longer valid in the original game.")
+        self.zPos.setValue(background[3])
 
-        self.unk4 = QtWidgets.QSpinBox()
-        self.unk4.setRange(0, 0xFF)
-        self.unk4.setValue(background[5])
+        self.parallaxMode = QtWidgets.QComboBox()
+        self.parallaxMode.addItems(("Y Offset Off, All Parallax On",
+                                    "Y Offset On, All Parallax On",
+                                    "Y Offset On, All Parallax Off",
+                                    "Y Offset On, Y Parallax Off",
+                                    "Y Offset On, X Parallax Off"))
+        self.parallaxMode.setToolTip("Parallax Mode from NSMB2.\nThis option is no longer valid in the original game.")
+        self.parallaxMode.setCurrentIndex(background[5])
 
         nameLayout = QtWidgets.QFormLayout()
         nameLayout.addRow('Background:', self.bgName)
         nameLayout.addRow('Filename:', self.bgFname)
 
         settingsLayout = QtWidgets.QFormLayout()
-        settingsLayout.addRow('Unknown Value 1:', self.unk1)
-        settingsLayout.addRow('Unknown Value 2:', self.unk2)
-        settingsLayout.addRow('Unknown Value 3:', self.unk3)
-        settingsLayout.addRow('Unknown Value 4:', self.unk4)
+        settingsLayout.addRow('X Offset:', self.xPos)
+        settingsLayout.addRow('Y Offset:', self.yPos)
+        settingsLayout.addRow('Z Offset:', self.zPos)
+        settingsLayout.addRow('Parallax Mode:', self.parallaxMode)
 
         BGSettingsLayout = QtWidgets.QVBoxLayout()
         BGSettingsLayout.addLayout(nameLayout)
