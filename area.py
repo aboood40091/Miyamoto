@@ -410,12 +410,12 @@ class Area_NSMBU(AbstractArea):
         # Block 3 - bounding data
         bdngdata = self.blocks[2]
         count = len(bdngdata) // 28
-        bdngstruct = struct.Struct('>llllHHxxxxxxxx')
+        bdngstruct = struct.Struct('>llllHHll')
         offset = 0
         bounding = []
         for i in range(count):
             datab = bdngstruct.unpack_from(bdngdata, offset)
-            bounding.append([datab[0], datab[1], datab[2], datab[3], datab[4], datab[5]])
+            bounding.append([datab[0], datab[1], datab[2], datab[3], datab[4], datab[5], datab[6], datab[7]])
             offset += 28
         self.bounding = bounding
 
@@ -438,7 +438,8 @@ class Area_NSMBU(AbstractArea):
                 if checkb[4] == zoneBoundId: boundObj = checkb
 
             # Find the proper bg
-            bgObj = self.bgs[dataz[11]]
+            zoneBgId = dataz[11]
+            bgObj = self.bgs[zoneBgId] if zoneBgId in self.bgs else None
 
             zones.append(ZoneItem(
                 dataz[0], dataz[1], dataz[2], dataz[3],
@@ -842,7 +843,7 @@ class Area_NSMBU(AbstractArea):
         """
         Saves blocks 10, 3, and 5; the zone data, boundings, and background data respectively
         """
-        bdngstruct = struct.Struct('>llllHHxxxxxxxx')
+        bdngstruct = struct.Struct('>llllHHll')
         bgStruct = struct.Struct('>Hhhh16sHxx')
         zonestruct = struct.Struct('>HHHHHHBBBBxBBxBxBBxBxx')
         offset = 0
@@ -857,7 +858,7 @@ class Area_NSMBU(AbstractArea):
             if z.objy < 0: z.objy = 0
             bounding = bdngs[z.id]
             bdngstruct.pack_into(buffer2, bounding[4] * 28, bounding[0], bounding[1], bounding[2], bounding[3], bounding[4],
-                                 bounding[5])
+                                 bounding[5], bounding[6], bounding[7])
             background = bgs[z.id]
             bgStruct.pack_into(buffer4, background[0] * 28, background[0], background[1], background[2], background[3],
                                background[4], background[5])
@@ -875,7 +876,7 @@ class Area_NSMBU(AbstractArea):
     def GetOptimizedBoundings(self, bdngstruct):
         bdngs = {}
         for z in globals.Area.zones:
-            bdng = bdngstruct.pack(z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, 0, z.unknownbnf)
+            bdng = bdngstruct.pack(z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, 0, z.mpcamzoomadjust, z.yupperbound3, z.ylowerbound3)
             if bdng not in bdngs:
                 bdngs[bdng] = []
             bdngs[bdng].append(z.id)
@@ -884,7 +885,8 @@ class Area_NSMBU(AbstractArea):
         for i, bdng in enumerate(bdngs):
             for z in globals.Area.zones:
                 if z.id in bdng[1]:
-                    oBdngs[z.id] = *bdngstruct.unpack(bdng[0])[:4], i, bdngstruct.unpack(bdng[0])[5]
+                    uBdng = bdngstruct.unpack(bdng[0])
+                    oBdngs[z.id] = *uBdng[:4], i, *uBdng[5:]
 
         return oBdngs, len(bdngs)
 
@@ -900,7 +902,8 @@ class Area_NSMBU(AbstractArea):
         for i, bg in enumerate(bgs):
             for z in globals.Area.zones:
                 if z.id in bg[1]:
-                    oBgs[z.id] = i, *bgStruct.unpack(bg[0])[1:]
+                    uBdng = bgStruct.unpack(bg[0])
+                    oBgs[z.id] = i, *uBdng[1:]
 
         return oBgs, len(bgs)
 

@@ -609,7 +609,7 @@ class ZonesDialog(QtWidgets.QDialog):
                 return
 
         id = len(self.zoneTabs)
-        z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, id, 0, 1, 0, 0, (0, 0, 0, 0, 0, 0xF), (0, 0, 0, 0, to_bytes('Black', 16), 0), id)
+        z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, id, 0, 1, 0, 0, (0, 0, 0, 0, 0, 0xF, 0, 0), (0, 0, 0, 0, to_bytes('Black', 16), 0), id)
         ZoneTabName = globals.trans.string('ZonesDlg', 3, '[num]', id + 1)
         tab = ZoneTab(z); tab.adjustSize()
         self.zoneTabs.append(tab)
@@ -669,7 +669,12 @@ class ZonesDialog(QtWidgets.QDialog):
         z0 = self.zoneTabs[self.tabWidget.currentIndex()].zoneObj
 
         id = len(self.zoneTabs)
-        z = ZoneItem(z0.objx, z0.objy, z0.width, z0.height, z0.modeldark, z0.terraindark, id, z0.block3id, z0.cammode, z0.camzoom, z0.visibility, id, z0.camtrack, z0.music, z0.sfxmod, z0.type, (z0.yupperbound, z0.ylowerbound, z0.yupperbound2, z0.ylowerbound2, z0.entryid, z0.unknownbnf), z0.background, id)
+        z = ZoneItem(
+            z0.objx, z0.objy, z0.width, z0.height, z0.modeldark, z0.terraindark, id, 0,
+            z0.cammode, z0.camzoom, z0.visibility, id, z0.camtrack, z0.music, z0.sfxmod, z0.type,
+            (z0.yupperbound, z0.ylowerbound, z0.yupperbound2, z0.ylowerbound2, z0.entryid, z0.mpcamzoomadjust, z0.yupperbound3, z0.ylowerbound3),
+            z0.background, id
+        )
         ZoneTabName = globals.trans.string('ZonesDlg', 3, '[num]', id + 1)
         tab = ZoneTab(z); tab.adjustSize()
         self.zoneTabs.append(tab)
@@ -1081,37 +1086,61 @@ class ZoneTab(QtWidgets.QWidget):
         self.Bounds = QtWidgets.QGroupBox(globals.trans.string('ZonesDlg', 47))
 
         self.Zone_yboundup = QtWidgets.QSpinBox()
-        self.Zone_yboundup.setRange(-32766, 32767)
+        self.Zone_yboundup.setRange(-32768, 32767)
         self.Zone_yboundup.setToolTip(globals.trans.string('ZonesDlg', 49))
         self.Zone_yboundup.setSpecialValueText('32')
         self.Zone_yboundup.setValue(z.yupperbound)
 
         self.Zone_ybounddown = QtWidgets.QSpinBox()
-        self.Zone_ybounddown.setRange(-32766, 32767)
+        self.Zone_ybounddown.setRange(-32768, 32767)
         self.Zone_ybounddown.setToolTip(globals.trans.string('ZonesDlg', 51))
         self.Zone_ybounddown.setValue(z.ylowerbound)
 
         self.Zone_yboundup2 = QtWidgets.QSpinBox()
-        self.Zone_yboundup2.setRange(-32766, 32767)
+        self.Zone_yboundup2.setRange(-32768, 32767)
         self.Zone_yboundup2.setToolTip(globals.trans.string('ZonesDlg', 71))
         self.Zone_yboundup2.setValue(z.yupperbound2)
 
         self.Zone_ybounddown2 = QtWidgets.QSpinBox()
-        self.Zone_ybounddown2.setRange(-32766, 32767)
+        self.Zone_ybounddown2.setRange(-32768, 32767)
         self.Zone_ybounddown2.setToolTip(globals.trans.string('ZonesDlg', 73))
         self.Zone_ybounddown2.setValue(z.ylowerbound2)
 
+        self.Zone_yboundup3 = QtWidgets.QSpinBox()
+        self.Zone_yboundup3.setRange(-32768, 32767)
+        self.Zone_yboundup3.setToolTip('<b>Multiplayer Upper Bounds Adjust:</b><br>Added to the upper bounds value (regular or Lakitu) during multiplayer mode, and during the transition back to normal camera behavior after an Auto-Scrolling Controller reaches the end of its path.')
+        self.Zone_yboundup3.setValue(z.yupperbound3)
+
+        self.Zone_ybounddown3 = QtWidgets.QSpinBox()
+        self.Zone_ybounddown3.setRange(-32768, 32767)
+        self.Zone_ybounddown3.setToolTip('<b>Multiplayer Lower Bounds Adjust:</b><br>Added to the lower bounds value (regular or Lakitu) during multiplayer mode, and during the transition back to normal camera behavior after an Auto-Scrolling Controller reaches the end of its path.')
+        self.Zone_ybounddown3.setValue(z.ylowerbound3)
+
         self.Zone_boundflg = QtWidgets.QCheckBox()
         self.Zone_boundflg.setToolTip(globals.trans.string('ZonesDlg', 75))
-        self.Zone_boundflg.setChecked(z.unknownbnf == 0xF)
+        self.Zone_boundflg.setChecked(z.mpcamzoomadjust == 0xF)
+        self.Zone_boundflg.stateChanged.connect(lambda: self.Zone_mpzoomadjust.setEnabled(not self.Zone_boundflg.isChecked()))
+
+        self.Zone_mpzoomadjust = QtWidgets.QSpinBox()
+        self.Zone_mpzoomadjust.setRange(0, 14)
+        self.Zone_mpzoomadjust.setToolTip('<b>Multiplayer Screen Height Adjust:</b><br>Increases the height of the screen during multiplayer mode. ' \
+                                          'Requires "Enable Upward Scrolling" to be unchecked.<br><br>This causes very glitchy behavior when ' \
+                                          'the zone is much taller than the adjusted screen height, the screen becomes more than 28 blocks tall ' \
+                                          'or the camera zooms in during the end-of-level celebration.')
+        self.Zone_mpzoomadjust.setEnabled(not self.Zone_boundflg.isChecked())
+        if z.mpcamzoomadjust < 0xF:
+            self.Zone_mpzoomadjust.setValue(z.mpcamzoomadjust)
 
         LA = QtWidgets.QFormLayout()
         LA.addRow(globals.trans.string('ZonesDlg', 48), self.Zone_yboundup)
         LA.addRow(globals.trans.string('ZonesDlg', 50), self.Zone_ybounddown)
         LA.addRow(globals.trans.string('ZonesDlg', 74), self.Zone_boundflg)
+        LA.addRow('Multiplayer Screen Height Adjust', self.Zone_mpzoomadjust)
         LB = QtWidgets.QFormLayout()
         LB.addRow(globals.trans.string('ZonesDlg', 70), self.Zone_yboundup2)
         LB.addRow(globals.trans.string('ZonesDlg', 72), self.Zone_ybounddown2)
+        LB.addRow('Multiplayer Upper Bounds Adjust', self.Zone_yboundup3)
+        LB.addRow('Multiplayer Lower Bounds Adjust:', self.Zone_ybounddown3)
         LC = QtWidgets.QGridLayout()
         LC.addLayout(LA, 0, 0)
         LC.addLayout(LB, 0, 1)

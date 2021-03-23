@@ -1015,11 +1015,11 @@ class ZoneItem(LevelEditorItem):
         self.modeldark = e
         self.terraindark = f
         self.id = g
-        self.block3id = h
+        #self.block3id = h
         self.cammode = i
         self.camzoom = j
         self.visibility = k
-        self.block5id = l
+        #self.block5id = l
         self.camtrack = m
         self.music = n
         self.sfxmod = o
@@ -1039,14 +1039,18 @@ class ZoneItem(LevelEditorItem):
             self.yupperbound2 = bounding[2]
             self.ylowerbound2 = bounding[3]
             self.entryid = bounding[4]
-            self.unknownbnf = bounding[5]
+            self.mpcamzoomadjust = bounding[5]
+            self.yupperbound3 = bounding[6]
+            self.ylowerbound3 = bounding[7]
         else:
             self.yupperbound = 0
             self.ylowerbound = 0
             self.yupperbound2 = 0
             self.ylowerbound2 = 0
             self.entryid = 0
-            self.unknownbnf = 0
+            self.mpcamzoomadjust = 0xF
+            self.yupperbound3 = 0
+            self.ylowerbound3 = 0
 
         if bg is not None:
             self.background = bg

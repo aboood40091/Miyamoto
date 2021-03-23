@@ -5234,7 +5234,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 z.ylowerbound = tab.Zone_ybounddown.value()
                 z.yupperbound2 = tab.Zone_yboundup2.value()
                 z.ylowerbound2 = tab.Zone_ybounddown2.value()
-                z.unknownbnf = 0xF if tab.Zone_boundflg.isChecked() else 0
+                z.yupperbound3 = tab.Zone_yboundup3.value()
+                z.ylowerbound3 = tab.Zone_ybounddown3.value()
+                z.mpcamzoomadjust = 0xF if tab.Zone_boundflg.isChecked() else tab.Zone_mpzoomadjust.value()
 
                 z.music = tab.Zone_musicid.value()
                 z.sfxmod = (tab.Zone_sfx.currentIndex() & 0x0F) << 4
