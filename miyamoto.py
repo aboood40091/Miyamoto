@@ -174,8 +174,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if shortcut is not None: act.setShortcut(shortcut)
         if statustext is not None: act.setStatusTip(statustext)
-        if toggle:
-            act.setCheckable(True)
+        if toggle: act.setCheckable(True)
         if function is not None: act.triggered.connect(function)
 
         self.actions[shortname] = act
@@ -5230,10 +5229,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 z.camtrack = tab.Zone_directionmode.currentIndex()
 
-                z.yupperbound = tab.Zone_yboundup.value()
-                z.ylowerbound = tab.Zone_ybounddown.value()
-                z.yupperbound2 = tab.Zone_yboundup2.value()
-                z.ylowerbound2 = tab.Zone_ybounddown2.value()
+                z.yupperbound = tab.Zone_yboundup.value() - 80
+                z.ylowerbound = -tab.Zone_ybounddown.value() + 80
+                z.yupperbound2 = tab.Zone_yboundup2.value() - 88
+                z.ylowerbound2 = -tab.Zone_ybounddown2.value() + 88
                 z.yupperbound3 = tab.Zone_yboundup3.value()
                 z.ylowerbound3 = tab.Zone_ybounddown3.value()
                 z.mpcamzoomadjust = 0xF if tab.Zone_boundflg.isChecked() else tab.Zone_mpzoomadjust.value()
