@@ -1086,22 +1086,22 @@ class ZoneTab(QtWidgets.QWidget):
         self.Bounds = QtWidgets.QGroupBox(globals.trans.string('ZonesDlg', 47))
 
         self.Zone_yboundup = QtWidgets.QSpinBox()
-        self.Zone_yboundup.setRange(-2147483568, 2147483727)
+        self.Zone_yboundup.setRange(-32688, 32847)
         self.Zone_yboundup.setToolTip(globals.trans.string('ZonesDlg', 49))
         self.Zone_yboundup.setValue(80 + z.yupperbound)
 
         self.Zone_ybounddown = QtWidgets.QSpinBox()
-        self.Zone_ybounddown.setRange(-2147483575, 2147483720)
+        self.Zone_ybounddown.setRange(-32695, 32840)
         self.Zone_ybounddown.setToolTip(globals.trans.string('ZonesDlg', 51))
         self.Zone_ybounddown.setValue(72 - z.ylowerbound)
 
         self.Zone_yboundup2 = QtWidgets.QSpinBox()
-        self.Zone_yboundup2.setRange(-2147483560, 2147483735)
+        self.Zone_yboundup2.setRange(-32680, 32855)
         self.Zone_yboundup2.setToolTip(globals.trans.string('ZonesDlg', 71))
         self.Zone_yboundup2.setValue(88 + z.yupperbound2)
 
         self.Zone_ybounddown2 = QtWidgets.QSpinBox()
-        self.Zone_ybounddown2.setRange(-2147483559, 2147483736)
+        self.Zone_ybounddown2.setRange(-32679, 32856)
         self.Zone_ybounddown2.setToolTip(globals.trans.string('ZonesDlg', 73))
         self.Zone_ybounddown2.setValue(88 - z.ylowerbound2)
 
