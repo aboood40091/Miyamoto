@@ -410,7 +410,7 @@ class Area_NSMBU(AbstractArea):
         # Block 3 - bounding data
         bdngdata = self.blocks[2]
         count = len(bdngdata) // 28
-        bdngstruct = struct.Struct('>llllHHll')
+        bdngstruct = struct.Struct('>llllHHhhxxxx')
         offset = 0
         bounding = []
         for i in range(count):
@@ -843,7 +843,7 @@ class Area_NSMBU(AbstractArea):
         """
         Saves blocks 10, 3, and 5; the zone data, boundings, and background data respectively
         """
-        bdngstruct = struct.Struct('>llllHHll')
+        bdngstruct = struct.Struct('>llllHHhhxxxx')
         bgStruct = struct.Struct('>Hhhh16sHxx')
         zonestruct = struct.Struct('>HHHHHHBBBBxBBxBxBBxBxx')
         offset = 0

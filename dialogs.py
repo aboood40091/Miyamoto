@@ -1086,24 +1086,24 @@ class ZoneTab(QtWidgets.QWidget):
         self.Bounds = QtWidgets.QGroupBox(globals.trans.string('ZonesDlg', 47))
 
         self.Zone_yboundup = QtWidgets.QSpinBox()
-        self.Zone_yboundup.setRange(-32688, 32847)
+        self.Zone_yboundup.setRange(-2147483568, 2147483727)
         self.Zone_yboundup.setToolTip(globals.trans.string('ZonesDlg', 49))
-        self.Zone_yboundup.setValue(z.yupperbound + 80)
+        self.Zone_yboundup.setValue(80 + z.yupperbound)
 
         self.Zone_ybounddown = QtWidgets.QSpinBox()
-        self.Zone_ybounddown.setRange(-32687, 32848)
+        self.Zone_ybounddown.setRange(-2147483575, 2147483720)
         self.Zone_ybounddown.setToolTip(globals.trans.string('ZonesDlg', 51))
-        self.Zone_ybounddown.setValue(-z.ylowerbound + 80)
+        self.Zone_ybounddown.setValue(72 - z.ylowerbound)
 
         self.Zone_yboundup2 = QtWidgets.QSpinBox()
-        self.Zone_yboundup2.setRange(-32680, 32855)
+        self.Zone_yboundup2.setRange(-2147483560, 2147483735)
         self.Zone_yboundup2.setToolTip(globals.trans.string('ZonesDlg', 71))
-        self.Zone_yboundup2.setValue(z.yupperbound2 + 88)
+        self.Zone_yboundup2.setValue(88 + z.yupperbound2)
 
         self.Zone_ybounddown2 = QtWidgets.QSpinBox()
-        self.Zone_ybounddown2.setRange(-32679, 32856)
+        self.Zone_ybounddown2.setRange(-2147483559, 2147483736)
         self.Zone_ybounddown2.setToolTip(globals.trans.string('ZonesDlg', 73))
-        self.Zone_ybounddown2.setValue(-z.ylowerbound2 + 88)
+        self.Zone_ybounddown2.setValue(88 - z.ylowerbound2)
 
         self.Zone_yboundup3 = QtWidgets.QSpinBox()
         self.Zone_yboundup3.setRange(-32768, 32767)
@@ -1112,10 +1112,10 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_yboundup3.setValue(z.yupperbound3)
 
         self.Zone_ybounddown3 = QtWidgets.QSpinBox()
-        self.Zone_ybounddown3.setRange(-32768, 32767)
+        self.Zone_ybounddown3.setRange(-32767, 32768)
         self.Zone_ybounddown3.setToolTip('<b>Multiplayer Lower Bounds Adjust:</b><br>Added to the lower bounds value (regular or Lakitu) during multiplayer mode, ' \
                                          'and during the transition back to normal camera behavior after an Auto-Scrolling Controller reaches the end of its path.')
-        self.Zone_ybounddown3.setValue(z.ylowerbound3)
+        self.Zone_ybounddown3.setValue(-z.ylowerbound3)
 
         self.Zone_boundflg = QtWidgets.QCheckBox()
         self.Zone_boundflg.setToolTip(globals.trans.string('ZonesDlg', 75))
