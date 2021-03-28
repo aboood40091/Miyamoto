@@ -100,7 +100,7 @@ class LevelScene(QtWidgets.QGraphicsScene):
                  20: 37, 21: 38, 22: 41, 23: 39, 24: 40}
 
         # create and draw the tilemaps
-        for layer in [layer2, layer1, layer0]:
+        for idx, layer in (2, layer2), (1, layer1), (0, layer0):
             if not layer:
                 continue
 
@@ -147,7 +147,7 @@ class LevelScene(QtWidgets.QGraphicsScene):
                         # Draw unknown tiles
                         pix = tiles[0x800].getCurrentTile()
                     elif tile is not None:
-                        pix = tiles[tile].getCurrentTile()
+                        pix = tiles[tile].getCurrentTile(idx == 1)
 
                     if pix is not None:
                         drawPixmap(destx, desty, pix)
