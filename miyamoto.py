@@ -4243,18 +4243,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             SetDirty()
         self.levelOverview.update()
 
-    def CreationTabChanged(self, nt):
+    def CreationTabChanged(self, idx):
         """
         Handles the selected palette tab changing
         """
-        idx = self.creationTabs.currentIndex()
         CPT = -1
         if idx == 0:  # objects
             CPT = self.objAllTab.currentIndex()
             if CPT == 1:
                 CPT = 10 # "All" objects
-        elif idx == 1:  # sprites
-            if self.sprAllTab.currentIndex() != 1: CPT = 4
+        elif idx == 1 and self.sprAllTab.currentIndex() != 1:  # sprites
+            CPT = 4
         elif idx == 2:
             CPT = 5  # entrances
         elif idx == 3:
@@ -4268,8 +4267,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         elif idx == 8:
             CPT = 9  # comment
 
+        type = -1
+        if CPT in (0, 2, 10):
+            index = self.objPicker.currentIndex()
+            if index.isValid():
+                if CPT == 2:
+                    type, CPT = self.objTS123Tab.getObjectAndPaintType(index.row())
+                else:
+                    type = index.row()
+
         globals.CurrentPaintType = CPT
-        globals.CurrentObject = -1
+        globals.CurrentObject = type
 
     def ObjTabChanged(self, nt):
         """
@@ -4523,7 +4531,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Handles a new object being chosen
         """
-        if globals.CurrentPaintType not in [0, 10]:
+        if globals.CurrentPaintType not in (0, 10):
             globals.CurrentObject, globals.CurrentPaintType = self.objTS123Tab.getObjectAndPaintType(type)
 
         else:

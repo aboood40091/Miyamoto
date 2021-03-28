@@ -1939,6 +1939,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
             self.itemsize = []
             self.tooltips = []
 
+            mainWindow = globals.mainWindow
             self.beginResetModel()
 
             globals.numObj = []
@@ -2009,6 +2010,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
                 globals.numObj.append(z)
 
             self.endResetModel()
+            mainWindow.CreationTabChanged(mainWindow.creationTabs.currentIndex())
 
         def LoadFromFolder(self):
             """
@@ -2023,11 +2025,13 @@ class ObjectPickerWidget(QtWidgets.QListView):
             self.itemsize = []
             self.tooltips = []
 
+            mainWindow = globals.mainWindow
             self.beginResetModel()
 
             # Fixes issues if the user selects the wrong Objects Folder
             if not globals.mainWindow.folderPicker.currentText():
                 self.endResetModel()
+                mainWindow.CreationTabChanged(mainWindow.creationTabs.currentIndex())
                 return
 
             z = 0
@@ -2182,6 +2186,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
                 z += 1
 
             self.endResetModel()
+            mainWindow.CreationTabChanged(mainWindow.creationTabs.currentIndex())
 
 
 class StampChooserWidget(QtWidgets.QListView):
