@@ -3022,12 +3022,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
         Handle activated signals for areaComboBox
         """
-        if self.CheckDirty():
-            self.areaComboBox.setCurrentIndex(globals.Area.areanum)
+        prevIdx = globals.Area.areanum - 1
+        if idx == prevIdx:
             return
 
-        if globals.Area.areanum != idx + 1:
-            self.LoadLevel(None, self.fileSavePath, True, idx + 1)
+        if self.CheckDirty() or not self.LoadLevel(None, self.fileSavePath, True, idx + 1):
+            globals.Area.areanum = prevIdx + 1
+            self.areaComboBox.setCurrentIndex(prevIdx)
 
     def HandleUpdateLayer0(self, checked):
         """
