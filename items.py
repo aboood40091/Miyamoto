@@ -63,9 +63,7 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
         self.setFlag(self.ItemSendsGeometryChanges, True)
 
     def __lt__(self, other):
-        if self.objx != other.objx:
-            return self.objx < other.objx
-        return self.objy < other.objy
+        return (self.objx, self.objy) < (other.objx, other.objy)
 
     def itemChange(self, change, value):
         """
@@ -1073,6 +1071,9 @@ class ZoneItem(LevelEditorItem):
         """
         self.title = globals.trans.string('Zones', 0, '[num]', self.id + 1)
 
+    def __lt__(self, other):
+        return self.id < other.id
+
     def UpdateRects(self):
         """
         Updates the zone's bounding rectangle
@@ -1080,7 +1081,6 @@ class ZoneItem(LevelEditorItem):
         self.prepareGeometryChange()
         mult = globals.TileWidth / 16
         self.BoundingRect = QtCore.QRectF(0, 0, self.width * mult, self.height * mult)
-        self.ScalingRect = QtCore.QRectF(self.objx * mult, self.objy * mult, self.width * mult, self.height * mult)
         self.ZoneRect = QtCore.QRectF(self.objx, self.objy, self.width, self.height)
         self.DrawRect = QtCore.QRectF(3, 3, int(self.width * mult) - 6, int(self.height * mult) - 6)
 
@@ -1116,16 +1116,16 @@ class ZoneItem(LevelEditorItem):
             zoneRect = QtCore.QRectF(self.objx * globals.TileWidth / 16, self.objy * globals.TileWidth / 16, self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)
             viewRect = globals.mainWindow.view.mapToScene(globals.mainWindow.view.viewport().rect()).boundingRect()
 
-            for sprite in globals.Area.sprites:
-                if sprite.type in [88, 89, 90, 92, 198, 201]:
-                    spriteZoneID = SLib.MapPositionToZoneID(globals.Area.zones, sprite.objx, sprite.objy)
+            f_MapPositionToZoneID = SLib.MapPositionToZoneID
+            zonelist = globals.Area.zones
 
-                    if self.id == spriteZoneID:
-                        sprite.ImageObj.realViewZone(painter, zoneRect, viewRect)
+            for sprite in globals.Area.sprites:
+                if sprite.type in (88, 89, 90, 92, 198, 201) and self.id == f_MapPositionToZoneID(zonelist, sprite.objx, sprite.objy, True):
+                    sprite.ImageObj.realViewZone(painter, zoneRect, viewRect)
 
         # Now paint the borders
         painter.setPen(QtGui.QPen(globals.theme.color('zone_lines'), 3 * globals.TileWidth / 24))
-        if (self.visibility >= 32) and globals.RealViewEnabled:
+        if (self.visibility & 0x20) and globals.RealViewEnabled:
             painter.setBrush(QtGui.QBrush(globals.theme.color('zone_dark_fill')))
         painter.drawRect(self.DrawRect)
 
@@ -1397,9 +1397,9 @@ class LocationItem(LevelEditorItem):
         """
         Updates the location's bounding rectangle
         """
+        if self.width < 8: self.width = 8
+        if self.height < 8: self.height = 8
         self.prepareGeometryChange()
-        if self.width == 0: self.width == 8
-        if self.height == 0: self.height == 8
         mult = globals.TileWidth / 16
 
         self.BoundingRect = QtCore.QRectF(0, 0, self.width * mult, self.height * mult)
@@ -1688,12 +1688,6 @@ class SpriteItem(LevelEditorItem):
         SLib.SpriteImage.loadImages()
         self.ImageObj = SLib.SpriteImage(self)
 
-        try:
-            sname = globals.Sprites[type].name
-            self.name = sname
-        except:
-            self.name = 'UNKNOWN'
-
         self.InitializeSprite()
 
         self.setFlag(self.ItemIsMovable, not globals.SpritesFrozen)
@@ -1833,7 +1827,7 @@ class SpriteItem(LevelEditorItem):
 
     def __lt__(self, other):
         # Sort by objx, then objy, then sprite type
-        score = lambda sprite: (sprite.objx * 100000 + sprite.objy) * 1000 + sprite.type
+        score = lambda sprite: (sprite.objx, sprite.objy, sprite.type)
 
         return score(self) < score(other)
 
@@ -1843,10 +1837,12 @@ class SpriteItem(LevelEditorItem):
         """
         type = self.type
 
-        if type > len(globals.Sprites): return
+        try:
+            self.name = globals.Sprites[type].name
+        except:
+            self.name = 'UNKNOWN'
 
-        self.name = globals.Sprites[type].name
-        self.setToolTip(globals.trans.string('Sprites', 0, '[type]', self.type, '[name]', self.name))
+        self.setToolTip(globals.trans.string('Sprites', 0, '[type]', type, '[name]', self.name))
         self.UpdateListItem()
 
         imgs = globals.gamedef.getImageClasses()
@@ -2076,7 +2072,7 @@ class SpriteItem(LevelEditorItem):
             LevelEditorItem.mousePressEvent(self, event)
 
             if not globals.SpriteImagesShown:
-                self.setNewObjPos(oldpos[0], oldpos[1])
+                self.setNewObjPos(*oldpos)
 
             return
 
@@ -2097,24 +2093,22 @@ class SpriteItem(LevelEditorItem):
         newitem.UpdateListItem()
         SetDirty()
 
-    def nearestZone(self, obj=False):
+    def nearestZone(self, obj=False, zonelist=None):
         """
         Calls a modified MapPositionToZoneID (if obj = True, it returns the actual ZoneItem object)
         """
-        if not hasattr(globals.Area, 'zones'):
-            if obj:
-                return None
-            else:
-                return -1
+        if zonelist is None:
+            if not hasattr(globals.Area, 'zones'):
+                return None if obj else -1
 
-        id = SLib.MapPositionToZoneID(globals.Area.zones, self.objx, self.objy, True)
+            zonelist = globals.Area.zones
 
-        if obj:
-            for z in globals.Area.zones:
-                if z.id == id:
-                    return z
-        else:
-            return id
+        id = SLib.MapPositionToZoneID(zonelist, self.objx, self.objy)
+        if id == -1:
+            return None if obj else -1
+
+        zone = zonelist[id]
+        return zone if obj else zone.id
 
     def updateScene(self):
         """

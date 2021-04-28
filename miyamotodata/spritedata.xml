@@ -4289,8 +4289,8 @@
 	<sprite id="289" name="Stationary Burner" notes="A burner that sprays a flame continuously with no rotation. The flames are 2 blocks long.">
 		<checkbox nybble="7" title="Affected by gravity" mask="2"/>
 		<list nybble="12" title="Direction" comment="Sets the direction of the burner.">
-			<entry value="0">Left</entry>
-			<entry value="1">Right</entry>
+			<entry value="0">Right</entry>
+			<entry value="1">Left</entry>
 			<entry value="2">Up</entry>
 			<entry value="3">Down</entry>
 		</list>
@@ -4298,8 +4298,8 @@
 	<sprite id="290" name="Stationary Burner (Long Fire) [UNUSED]" notes="A larger varient of sprite 289.">
 		<checkbox nybble="7" title="Affected by gravity" mask="2"/>
 		<list nybble="12" title="Direction" comment="Sets the direction of the burner.">
-			<entry value="0">Left</entry>
-			<entry value="1">Right</entry>
+			<entry value="0">Right</entry>
+			<entry value="1">Left</entry>
 			<entry value="2">Up</entry>
 			<entry value="3">Down</entry>
 		</list>

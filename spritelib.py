@@ -30,7 +30,7 @@
 
 ############ Imports ############
 
-from math import sin, cos
+from math import sin, cos, sqrt
 import os.path
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -48,7 +48,6 @@ ImageCache = {}
 Tiles = {}
 TileWidth = 60
 SpriteImagesLoaded = set()
-MapPositionToZoneID = None
 
 SpritesFolders = []
 RealViewEnabled = False
@@ -160,32 +159,25 @@ def MapPositionToZoneID(zones, x, y, useid=False):
     """
     Returns the zone ID containing or nearest the specified position
     """
-    id = 0
+    f_sqrt = sqrt
     minimumdist = -1
     rval = -1
 
-    for zone in zones:
+    for id, zone in enumerate(zones):
         r = zone.ZoneRect
-        if r.contains(x, y) and useid:
-            return zone.id
-        elif r.contains(x, y) and not useid:
-            return id
+        if r.contains(x, y):
+            return zone.id if useid else id
 
-        xdist = 0
-        ydist = 0
-        if x <= r.left(): xdist = r.left() - x
-        if x >= r.right(): xdist = x - r.right()
-        if y <= r.top(): ydist = r.top() - y
-        if y >= r.bottom(): ydist = y - r.bottom()
+        l, t, r, b = r.getCoords()
 
-        dist = (xdist ** 2 + ydist ** 2) ** 0.5
+        xdist = l - x if x < l else x - r if x > r else 0
+        ydist = t - y if y < t else y - b if y > b else 0
+        dist = ydist if xdist == 0 else xdist if ydist == 0 else f_sqrt(xdist * xdist + ydist * ydist)
         if dist < minimumdist or minimumdist == -1:
             minimumdist = dist
-            rval = zone.id
+            rval = id
 
-        id += 1
-
-    return rval
+    return zones[rval].id if useid and rval != -1 else rval
 
 
 ################################################################
@@ -814,11 +806,7 @@ class AuxiliaryCircleOutline(AuxiliarySpriteItem):
         self.width = width
 
     def paint(self, painter, option, widget=None):
-
-        if option is not None:
-            painter.setClipRect(option.exposedRect)
-            painter.setRenderHint(QtGui.QPainter.Antialiasing)
-
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
         painter.setPen(OutlinePen)
         painter.setBrush(OutlineBrush)
         painter.drawEllipse(self.BoundingRect)
@@ -843,11 +831,7 @@ class AuxiliaryRotationAreaOutline(AuxiliarySpriteItem):
         self.spanAngle = spanAngle * 16
 
     def paint(self, painter, option, widget=None):
-
-        if option is not None:
-            painter.setClipRect(option.exposedRect)
-            painter.setRenderHint(QtGui.QPainter.Antialiasing)
-
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
         painter.setPen(OutlinePen)
         painter.setBrush(OutlineBrush)
         painter.drawPie(self.BoundingRect, self.startAngle, self.spanAngle)
@@ -1129,7 +1113,7 @@ class AuxiliaryLocationItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
     def setIsBehindLocation(self, behind):
         """
         This allows you to choose whether the auiliary item will display
-        behind the zone or in front of it. Default is for the item to
+        behind the location or in front of it. Default is for the item to
         be in front of the location.
         """
         self.setFlag(QtWidgets.QGraphicsItem.ItemStacksBehindParent, behind)
@@ -1139,11 +1123,15 @@ class AuxiliaryLocationItem(AuxiliaryItem, QtWidgets.QGraphicsItem):
         Resets the position and size of the AuxiliaryLocationItem to that of the location
         """
         self.setPos(0, 0)
-        self.setSize(self.parent.width(), self.parent.height())
+
+        if self.parent is None:
+            self.setSize(TileWidth, TileWidth)
+        else:
+            self.setSize(self.parent.width(), self.parent.height())
 
     def boundingRect(self):
         """
         Required for Qt
         """
-        return self.BoundingRect
+        return self.BoundingRect if self.parent is None else self.parent.boundingRect()
 

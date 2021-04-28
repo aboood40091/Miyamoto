@@ -47,15 +47,22 @@ class LevelScene(QtWidgets.QGraphicsScene):
     """
 
     def __init__(self, *args):
-        self.bgbrush = QtGui.QBrush(globals.theme.color('bg'))
         super().__init__(*args)
+        self.setBackgroundBrush(QtGui.QBrush(globals.theme.color('bg')))
+
+    def drawForeground(self, painter, rect):
+        """
+        Draw a foreground grid (only called when taking a screenshot)
+        """
+        drawForegroundGrid(painter, rect)
 
     def drawBackground(self, painter, rect):
         """
         Draws all visible tiles
         """
-        painter.fillRect(rect, self.bgbrush)
-        if not hasattr(globals.Area, 'layers'): return
+        super().drawBackground(painter, rect)
+        if not hasattr(globals.Area, 'layers'):
+            return
 
         drawrect = QtCore.QRectF(rect.x() / globals.TileWidth, rect.y() / globals.TileWidth, rect.width() / globals.TileWidth + 1,
                                  rect.height() / globals.TileWidth + 1)
@@ -662,3 +669,105 @@ def SetGamePath(newpath):
     # isValidGamePath crashes in os.path.join if QString is used..
     # so we must change it to a Python string manually
     globals.gamedef.SetGamePath(str(newpath))
+
+
+def drawForegroundGrid(painter, rect):
+    """
+    Draws a foreground grid
+    """
+    if globals.GridType is None:
+        return
+
+    Zoom = globals.mainWindow.ZoomLevel
+    drawLine = painter.drawLine
+    GridColor = globals.theme.color('grid')
+
+    if globals.GridType == 'grid':  # draw a classic grid
+        startx = rect.x()
+        startx -= (startx % globals.TileWidth)
+        endx = startx + rect.width() + globals.TileWidth
+
+        starty = rect.y()
+        starty -= (starty % globals.TileWidth)
+        endy = starty + rect.height() + globals.TileWidth
+
+        x = startx - globals.TileWidth
+        while x <= endx:
+            x += globals.TileWidth
+            if x % (globals.TileWidth * 8) == 0:
+                painter.setPen(QtGui.QPen(GridColor, 2 * globals.TileWidth / 24, Qt.DashLine))
+                drawLine(x, starty, x, endy)
+            elif x % (globals.TileWidth * 4) == 0:
+                if Zoom < 25: continue
+                painter.setPen(QtGui.QPen(GridColor, 1 * globals.TileWidth / 24, Qt.DashLine))
+                drawLine(x, starty, x, endy)
+            else:
+                if Zoom < 50: continue
+                painter.setPen(QtGui.QPen(GridColor, 1 * globals.TileWidth / 24, Qt.DotLine))
+                drawLine(x, starty, x, endy)
+
+        y = starty - globals.TileWidth
+        while y <= endy:
+            y += globals.TileWidth
+            if y % (globals.TileWidth * 8) == 0:
+                painter.setPen(QtGui.QPen(GridColor, 2 * globals.TileWidth / 24, Qt.DashLine))
+                drawLine(startx, y, endx, y)
+            elif y % (globals.TileWidth * 4) == 0 and Zoom >= 25:
+                painter.setPen(QtGui.QPen(GridColor, 1 * globals.TileWidth / 24, Qt.DashLine))
+                drawLine(startx, y, endx, y)
+            elif Zoom >= 50:
+                painter.setPen(QtGui.QPen(GridColor, 1 * globals.TileWidth / 24, Qt.DotLine))
+                drawLine(startx, y, endx, y)
+
+    else:  # draw a checkerboard
+        L = 0.2
+        D = 0.1  # Change these values to change the checkerboard opacity
+
+        Light = QtGui.QColor(GridColor)
+        Dark = QtGui.QColor(GridColor)
+        Light.setAlpha(Light.alpha() * L)
+        Dark.setAlpha(Dark.alpha() * D)
+
+        size = globals.TileWidth if Zoom >= 50 else globals.TileWidth * 8
+
+        board = QtGui.QPixmap(8 * size, 8 * size)
+        board.fill(QtGui.QColor(0, 0, 0, 0))
+        p = QtGui.QPainter(board)
+        p.setPen(Qt.NoPen)
+
+        p.setBrush(QtGui.QBrush(Light))
+        for x, y in ((0, size), (size, 0)):
+            p.drawRect(x + (4 * size), y, size, size)
+            p.drawRect(x + (4 * size), y + (2 * size), size, size)
+            p.drawRect(x + (6 * size), y, size, size)
+            p.drawRect(x + (6 * size), y + (2 * size), size, size)
+
+            p.drawRect(x, y + (4 * size), size, size)
+            p.drawRect(x, y + (6 * size), size, size)
+            p.drawRect(x + (2 * size), y + (4 * size), size, size)
+            p.drawRect(x + (2 * size), y + (6 * size), size, size)
+        p.setBrush(QtGui.QBrush(Dark))
+        for x, y in ((0, 0), (size, size)):
+            p.drawRect(x, y, size, size)
+            p.drawRect(x, y + (2 * size), size, size)
+            p.drawRect(x + (2 * size), y, size, size)
+            p.drawRect(x + (2 * size), y + (2 * size), size, size)
+
+            p.drawRect(x, y + (4 * size), size, size)
+            p.drawRect(x, y + (6 * size), size, size)
+            p.drawRect(x + (2 * size), y + (4 * size), size, size)
+            p.drawRect(x + (2 * size), y + (6 * size), size, size)
+
+            p.drawRect(x + (4 * size), y, size, size)
+            p.drawRect(x + (4 * size), y + (2 * size), size, size)
+            p.drawRect(x + (6 * size), y, size, size)
+            p.drawRect(x + (6 * size), y + (2 * size), size, size)
+
+            p.drawRect(x + (4 * size), y + (4 * size), size, size)
+            p.drawRect(x + (4 * size), y + (6 * size), size, size)
+            p.drawRect(x + (6 * size), y + (4 * size), size, size)
+            p.drawRect(x + (6 * size), y + (6 * size), size, size)
+
+        del p
+
+        painter.drawTiledPixmap(rect, board, QtCore.QPointF(rect.x(), rect.y()))

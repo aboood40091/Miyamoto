@@ -359,10 +359,12 @@ def GetPath(id_):
     Checks the game definition and the translation and returns the appropriate path
     """
     # If there's a custom gamedef, use that
-    if globals.gamedef.custom and globals.gamedef.file(id_) is not None:
-        return globals.gamedef.file(id_)
-    else:
-        return globals.trans.path(id_)
+    if globals.gamedef.custom:
+        path = globals.gamedef.file(id_)
+        if path is not None:
+            return path
+
+    return globals.trans.path(id_)
 
 
 def getMusic():

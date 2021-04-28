@@ -340,27 +340,12 @@ class Area_NSMBU(AbstractArea):
         """
         Sorts the sprite list by zone ID so it will work in-game
         """
+        def compKey(zonelist, sprite):
+            id = SLib.MapPositionToZoneID(zonelist, sprite.objx, sprite.objy)
+            sprite.zoneID = zonelist[id].id if id != -1 else -1
+            return id
 
-        split = {}
-        zones = []
-
-        f_MapPositionToZoneID = SLib.MapPositionToZoneID
-        zonelist = self.zones
-
-        for sprite in self.sprites:
-            zone = f_MapPositionToZoneID(zonelist, sprite.objx, sprite.objy)
-            sprite.zoneID = zone
-            if not zone in split:
-                split[zone] = []
-                zones.append(zone)
-            split[zone].append(sprite)
-
-        newlist = []
-        zones.sort()
-        for z in zones:
-            newlist += split[z]
-
-        self.sprites = newlist
+        self.sprites.sort(key=lambda sprite: compKey(self.zones, sprite))
 
     def LoadMiyamotoInfo(self, data):
         if (data is None) or (len(data) == 0):
@@ -689,9 +674,10 @@ class Area_NSMBU(AbstractArea):
         offset = 0
         entstruct = struct.Struct('>HHhhBBBBBBxBHBBBBBx')
         buffer = bytearray(len(self.entrances) * 24)
+        f_MapPositionToZoneID = SLib.MapPositionToZoneID
         zonelist = self.zones
         for entrance in self.entrances:
-            zoneID = SLib.MapPositionToZoneID(zonelist, entrance.objx, entrance.objy)
+            zoneID = f_MapPositionToZoneID(zonelist, entrance.objx, entrance.objy, True)
             try:
                 entstruct.pack_into(buffer, offset, int(entrance.objx), int(entrance.objy), int(entrance.camerax),
                                     int(entrance.cameray), int(entrance.entid), int(entrance.destarea), int(entrance.destentrance),
@@ -793,15 +779,14 @@ class Area_NSMBU(AbstractArea):
         buffer = bytearray((len(self.sprites) * 24) + 4)
         f_int = int
         for sprite in self.sprites:
-            zoneID = SLib.MapPositionToZoneID(self.zones, sprite.objx, sprite.objy, True)
             try:
                 sprstruct.pack_into(buffer, offset, f_int(sprite.type), f_int(sprite.objx), f_int(sprite.objy),
                                     struct.unpack(">H", sprite.spritedata[:2])[0], struct.unpack(">I", sprite.spritedata[2:6])[0], struct.unpack(">I", sprite.spritedata[6:10])[0],
-                                    zoneID, sprite.layer, sprite.spritedata[10:], sprite.initialState)
+                                    sprite.zoneID, sprite.layer, sprite.spritedata[10:], sprite.initialState)
             except struct.error:
                 # Hopefully this will solve the mysterious bug, and will
                 # soon no longer be necessary.
-                if zoneID < 0:
+                if sprite.zoneID < 0:
                     raise ValueError('Sprite %d at (%d, %d) is too far from any zone\'s boundaries!\nPlease place it near a zone.' % (sprite.type, sprite.objx, sprite.objy)) from None
                 else:
                     raise ValueError('SaveSprites struct.error. Current sprite data dump:\n' + \
@@ -810,7 +795,7 @@ class Area_NSMBU(AbstractArea):
                                      str(sprite.objx) + '\n' + \
                                      str(sprite.objy) + '\n' + \
                                      str(sprite.spritedata[:10]) + '\n' + \
-                                     str(zoneID) + '\n' + \
+                                     str(sprite.zoneID) + '\n' + \
                                      str(sprite.layer) + '\n' + \
                                      str(sprite.spritedata[10:]) + '\n' + \
                                      str(sprite.initialState) + '\n',
@@ -849,11 +834,11 @@ class Area_NSMBU(AbstractArea):
         offset = 0
         bdngs, bdngcount = self.GetOptimizedBoundings(bdngstruct)
         bgs, bgcount = self.GetOptimizedBGs(bgStruct)
-        zcount = len(globals.Area.zones)
+        zcount = len(self.zones)
         buffer2 = bytearray(28 * bdngcount)
         buffer4 = bytearray(28 * bgcount)
         buffer9 = bytearray(28 * zcount)
-        for z in globals.Area.zones:
+        for z in self.zones:
             if z.objx < 0: z.objx = 0
             if z.objy < 0: z.objy = 0
             bounding = bdngs[z.id]
@@ -875,7 +860,7 @@ class Area_NSMBU(AbstractArea):
 
     def GetOptimizedBoundings(self, bdngstruct):
         bdngs = {}
-        for z in globals.Area.zones:
+        for z in self.zones:
             bdng = bdngstruct.pack(z.yupperbound, z.ylowerbound, z.yupperbound2, z.ylowerbound2, 0, z.mpcamzoomadjust, z.yupperbound3, z.ylowerbound3)
             if bdng not in bdngs:
                 bdngs[bdng] = []
@@ -883,7 +868,7 @@ class Area_NSMBU(AbstractArea):
         bdngs = sorted(bdngs.items(), key=lambda kv: min(kv[1]))
         oBdngs = {}
         for i, bdng in enumerate(bdngs):
-            for z in globals.Area.zones:
+            for z in self.zones:
                 if z.id in bdng[1]:
                     uBdng = bdngstruct.unpack(bdng[0])
                     oBdngs[z.id] = *uBdng[:4], i, *uBdng[5:]
@@ -892,7 +877,7 @@ class Area_NSMBU(AbstractArea):
 
     def GetOptimizedBGs(self, bgStruct):
         bgs = {}
-        for z in globals.Area.zones:
+        for z in self.zones:
             bg = bgStruct.pack(0, z.background[1], z.background[2], z.background[3], z.background[4], z.background[5])
             if bg not in bgs:
                 bgs[bg] = []
@@ -900,7 +885,7 @@ class Area_NSMBU(AbstractArea):
         bgs = sorted(bgs.items(), key=lambda kv: min(kv[1]))
         oBgs = {}
         for i, bg in enumerate(bgs):
-            for z in globals.Area.zones:
+            for z in self.zones:
                 if z.id in bg[1]:
                     uBdng = bgStruct.unpack(bg[0])
                     oBgs[z.id] = i, *uBdng[1:]
@@ -913,10 +898,10 @@ class Area_NSMBU(AbstractArea):
         """
         locstruct = struct.Struct('>HHHHBxxx')
         offset = 0
-        zcount = len(globals.Area.locations)
+        zcount = len(self.locations)
         buffer = bytearray(12 * zcount)
 
-        for z in globals.Area.locations:
+        for z in self.locations:
             locstruct.pack_into(buffer, offset, int(z.objx), int(z.objy), int(z.width), int(z.height), int(z.id))
             offset += 12
 

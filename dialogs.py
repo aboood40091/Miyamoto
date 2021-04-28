@@ -550,12 +550,10 @@ class ZonesDialog(QtWidgets.QDialog):
 
         self.tabWidget = QtWidgets.QTabWidget()
 
-        i = 0
         self.zoneTabs = []
         self.BGTabs = []
-        for z in globals.Area.zones:
-            i = i + 1
-            ZoneTabName = globals.trans.string('ZonesDlg', 3, '[num]', i)
+        for i, z in enumerate(globals.Area.zones):
+            ZoneTabName = globals.trans.string('ZonesDlg', 3, '[num]', i + 1)
             tab = ZoneTab(z); tab.adjustSize()
             self.zoneTabs.append(tab)
 
@@ -1404,23 +1402,46 @@ class ScreenCapChoiceDialog(QtWidgets.QDialog):
         self.setWindowTitle(globals.trans.string('ScrShtDlg', 0))
         self.setWindowIcon(GetIcon('screenshot'))
 
-        i = 0
         self.zoneCombo = QtWidgets.QComboBox()
         self.zoneCombo.addItem(globals.trans.string('ScrShtDlg', 1))
-        self.zoneCombo.addItem(globals.trans.string('ScrShtDlg', 2))
-        for z in globals.Area.zones:
-            i = i + 1
-            self.zoneCombo.addItem(globals.trans.string('ScrShtDlg', 3, '[zone]', i))
+
+        zonecount = len(globals.Area.zones)
+        if zonecount:
+            self.zoneCombo.addItem(globals.trans.string('ScrShtDlg', 2))
+            for i in range(zonecount):
+                self.zoneCombo.addItem(globals.trans.string('ScrShtDlg', 3, '[zone]', i + 1))
+
+        self.hideBackground = QtWidgets.QCheckBox()
+        self.hideBackground.setChecked(True)
+
+        self.saveImage = QtWidgets.QCheckBox()
+        self.saveImage.setChecked(True)
+        self.saveImage.stateChanged.connect(self.saveImageChanged)
+
+        self.saveClip = QtWidgets.QCheckBox()
+        self.saveClip.stateChanged.connect(self.saveClipChanged)
 
         buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
-
         buttonBox.accepted.connect(self.accept)
         buttonBox.rejected.connect(self.reject)
 
-        mainLayout = QtWidgets.QVBoxLayout()
-        mainLayout.addWidget(self.zoneCombo)
-        mainLayout.addWidget(buttonBox)
+        mainLayout = QtWidgets.QFormLayout()
+        mainLayout.setLabelAlignment(QtCore.Qt.AlignRight)
+        mainLayout.addRow("Target:", self.zoneCombo)
+        mainLayout.addRow("Hide background:", self.hideBackground)
+        mainLayout.addRow(createHorzLine())
+        mainLayout.addRow("Save image to file:", self.saveImage)
+        mainLayout.addRow("Copy image to clipboard:", self.saveClip)
+        mainLayout.addRow(buttonBox)
         self.setLayout(mainLayout)
+
+    def saveImageChanged(self, checked):
+        if not (checked or self.saveClip.isChecked()):
+            self.saveClip.setChecked(True)
+
+    def saveClipChanged(self, checked):
+        if not (checked or self.saveImage.isChecked()):
+            self.saveImage.setChecked(True)
 
 
 class AutoSavedInfoDialog(QtWidgets.QDialog):
@@ -1935,3 +1956,93 @@ class PreferencesDialog(QtWidgets.QDialog):
                 return px
 
         return ThemesTab
+
+
+class ChooseLevelNameDialog(QtWidgets.QDialog):
+    """
+    Dialog which lets you choose a level from a list
+    """
+
+    def __init__(self):
+        """
+        Creates and initializes the dialog
+        """
+        super().__init__()
+        self.setWindowTitle(globals.trans.string('OpenFromNameDlg', 0))
+        self.setWindowIcon(GetIcon('open'))
+
+        self.currentlevel = None
+
+        # create the tree
+        tree = QtWidgets.QTreeWidget()
+        tree.setColumnCount(1)
+        tree.setHeaderHidden(True)
+        tree.setIndentation(16)
+        tree.currentItemChanged.connect(self.HandleItemChange)
+        tree.itemActivated.connect(self.HandleItemActivated)
+
+        # add items (globals.LevelNames is effectively a big category)
+        tree.addTopLevelItems(self.ParseCategory(globals.LevelNames))
+
+        # assign it to self.leveltree
+        self.leveltree = tree
+
+        # create the buttons
+        self.buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(False)
+
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        # create the layout
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.leveltree)
+        layout.addWidget(self.buttonBox)
+
+        self.setLayout(layout)
+        self.layout = layout
+
+        self.setMinimumWidth(320)  # big enough to fit "World 5: Freezeflame Volcano/Freezeflame Glacier"
+        self.setMinimumHeight(384)
+
+    def ParseCategory(self, items):
+        """
+        Parses a XML category
+        """
+        nodes = []
+        for item in items:
+            node = QtWidgets.QTreeWidgetItem()
+            node.setText(0, item[0])
+            # see if it's a category or a level
+            if isinstance(item[1], str):
+                # it's a level
+                node.setData(0, Qt.UserRole, item[1])
+                node.setToolTip(0, item[1])
+            else:
+                # it's a category
+                children = self.ParseCategory(item[1])
+                for cnode in children:
+                    node.addChild(cnode)
+                node.setToolTip(0, item[0])
+            nodes.append(node)
+        return tuple(nodes)
+
+    def HandleItemChange(self, current, previous):
+        """
+        Catch the selected level and enable/disable OK button as needed
+        """
+        self.currentlevel = current.data(0, Qt.UserRole)
+        if self.currentlevel is None:
+            self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(False)
+        else:
+            self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(True)
+            self.currentlevel = str(self.currentlevel)
+
+    def HandleItemActivated(self, item, column):
+        """
+        Handle a doubleclick on a level
+        """
+        self.currentlevel = item.data(0, Qt.UserRole)
+        if self.currentlevel is not None:
+            self.currentlevel = str(self.currentlevel)
+            self.accept()

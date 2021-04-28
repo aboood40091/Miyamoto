@@ -1255,7 +1255,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         else:
             folders = os.listdir(top_folder)
-            folders.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
+            folders.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split(r'(\d+)', s)])
 
             folders_ = [folder for folder in folders if os.path.isdir(top_folder + "/" + folder)]
             del folders
@@ -2762,7 +2762,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.folderPicker.clear()
 
         folders = os.listdir(path)
-        folders.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
+        folders.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split(r'(\d+)', s)])
 
         folders_ = [folder for folder in folders if os.path.isdir(path + "/" + folder)]
         del folders
@@ -3539,17 +3539,33 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         new = name is None
 
         if new:
-            # Set the filepath variables
-            self.fileSavePath = False
-            self.fileTitle = 'untitled'
+            # Preserve the current szsData and tilesets in case something goes wrong
+            szsData = globals.szsData
+            tilesets = self.tilesets if hasattr(self, 'tilesets') else [[], [], [], []]
 
+            del globals.szsData
+            del self.tilesets
             globals.szsData = {}
             self.tilesets = [[], [], [], []]
 
             for tileset_name in globals.Pa0Tilesets:
                 ret = self.LoadDefaultTileset(tileset_name)
                 if not ret:
+                    # Something went wrong, restore szsData and tilesets
+                    del globals.szsData
+                    del self.tilesets
+                    globals.szsData = szsData
+                    self.tilesets = tilesets
+
                     return False
+
+            # Nothing went wrong, delete szsData and tilesets backups
+            del szsData
+            del tilesets
+
+            # Set the filepath variables
+            self.fileSavePath = False
+            self.fileTitle = 'untitled'
 
         else:
             globals.levName = os.path.basename(name)
@@ -3775,7 +3791,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 self.folderPicker.clear()
 
                 folders = os.listdir(top_folder)
-                folders.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)])
+                folders.sort(key=lambda s: [int(t) if t.isdigit() else t.lower() for t in re.split(r'(\d+)', s)])
 
                 folders_ = [folder for folder in folders if os.path.isdir(top_folder + "/" + folder)]
                 del folders
@@ -4225,10 +4241,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.pathEditorDock.setVisible(showPathPanel)
         self.nabbitPathEditorDock.setVisible(showNabbitPathPanel)
 
-        if len(self.CurrentSelection) > 0:
-            self.actions['deselect'].setEnabled(True)
-        else:
-            self.actions['deselect'].setEnabled(False)
+        self.actions['deselect'].setEnabled(len(self.CurrentSelection) > 0)
 
         if updateModeInfo:
             globals.DirtyOverride += 1
@@ -5285,65 +5298,84 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         """
 
         dlg = ScreenCapChoiceDialog()
-        if dlg.exec_() == QtWidgets.QDialog.Accepted:
+        if dlg.exec_() != QtWidgets.QDialog.Accepted:
+            return
+
+        sType = dlg.zoneCombo.currentIndex()
+        hideBackground = dlg.hideBackground.isChecked()
+        saveImage = dlg.saveImage.isChecked()
+        saveClip = dlg.saveClip.isChecked()
+
+        if saveImage:
             fn = QtWidgets.QFileDialog.getSaveFileName(self, globals.trans.string('FileDlgs', 3), '/untitled.png',
                                                        globals.trans.string('FileDlgs', 4) + ' (*.png)')[0]
-            if fn == '': return
-            fn = str(fn)
+            if fn == '' and not saveClip:
+                return
 
-            if dlg.zoneCombo.currentIndex() == 0:
-                ScreenshotImage = QtGui.QImage(self.view.width(), self.view.height(),
-                                               QtGui.QImage.Format_ARGB32)
-                ScreenshotImage.fill(Qt.transparent)
+        if sType == 0:
+            source = QtCore.QRect(QtCore.QPoint(), self.view.size())
+            widget = self.view
 
-                RenderPainter = QtGui.QPainter(ScreenshotImage)
-                self.view.render(RenderPainter,
-                                       QtCore.QRectF(0, 0, self.view.width(), self.view.height()),
-                                       QtCore.QRect(QtCore.QPoint(0, 0),
-                                                    QtCore.QSize(self.view.width(), self.view.height())))
-                RenderPainter.end()
-            elif dlg.zoneCombo.currentIndex() == 1:
-                maxX = maxY = 0
-                minX = minY = 0x0ddba11
+        else:
+            if sType == 1:
+                source = QtCore.QRectF()
                 for z in globals.Area.zones:
-                    if maxX < ((z.objx * (globals.TileWidth / 16)) + (z.width * (globals.TileWidth / 16))):
-                        maxX = ((z.objx * (globals.TileWidth / 16)) + (z.width * (globals.TileWidth / 16)))
-                    if maxY < ((z.objy * (globals.TileWidth / 16)) + (z.height * (globals.TileWidth / 16))):
-                        maxY = ((z.objy * (globals.TileWidth / 16)) + (z.height * (globals.TileWidth / 16)))
-                    if minX > z.objx * (globals.TileWidth / 16):
-                        minX = z.objx * (globals.TileWidth / 16)
-                    if minY > z.objy * (globals.TileWidth / 16):
-                        minY = z.objy * (globals.TileWidth / 16)
-                maxX = (1024 * globals.TileWidth if 1024 * globals.TileWidth < maxX + 40 else maxX + 40)
-                maxY = (512 * globals.TileWidth if 512 * globals.TileWidth < maxY + 40 else maxY + 40)
-                minX = (0 if 40 > minX else minX - 40)
-                minY = (40 if 40 > minY else minY - 40)
-
-                ScreenshotImage = QtGui.QImage(int(maxX - minX), int(maxY - minY), QtGui.QImage.Format_ARGB32)
-                ScreenshotImage.fill(Qt.transparent)
-
-                RenderPainter = QtGui.QPainter(ScreenshotImage)
-                self.scene.render(RenderPainter, QtCore.QRectF(0, 0, int(maxX - minX), int(maxY - minY)),
-                                        QtCore.QRectF(int(minX), int(minY), int(maxX - minX), int(maxY - minY)))
-                RenderPainter.end()
-
-
+                    source |= z.sceneBoundingRect()
             else:
-                i = dlg.zoneCombo.currentIndex() - 2
-                ScreenshotImage = QtGui.QImage(globals.Area.zones[i].width * globals.TileWidth / 16,
-                                               globals.Area.zones[i].height * globals.TileWidth / 16, QtGui.QImage.Format_ARGB32)
-                ScreenshotImage.fill(Qt.transparent)
+                source = globals.Area.zones[sType - 2].sceneBoundingRect()
 
-                RenderPainter = QtGui.QPainter(ScreenshotImage)
-                self.scene.render(RenderPainter, QtCore.QRectF(0, 0, globals.Area.zones[i].width * globals.TileWidth / 16,
-                                                                     globals.Area.zones[i].height * globals.TileWidth / 16),
-                                        QtCore.QRectF(int(globals.Area.zones[i].objx) * globals.TileWidth / 16,
-                                                      int(globals.Area.zones[i].objy) * globals.TileWidth / 16,
-                                                      globals.Area.zones[i].width * globals.TileWidth / 16,
-                                                      globals.Area.zones[i].height * globals.TileWidth / 16))
-                RenderPainter.end()
+            pad = round(5 * globals.TileWidth / 3)
+            source += QtCore.QMarginsF(pad, pad, pad, pad)
+            source &= QtCore.QRectF(0, 0, 1024 * globals.TileWidth, 512 * globals.TileWidth)
+            widget = self.scene
 
-            ScreenshotImage.save(fn, 'PNG', 50)
+            if globals.RotationShown:
+                sceneRect = (QtGui.QTransform() / globals.TileWidth).mapRect(source)
+                movementControlledType = SLib.SpriteImage_MovementControlled
+
+                globals.OverrideSnapping = True
+                globals.DirtyOverride += 1
+                for spr in globals.Area.sprites:
+                    imageObj = spr.ImageObj
+                    if isinstance(imageObj, movementControlledType):
+                        controller = spr.ImageObj.controller
+                        if controller and controller.active() and sceneRect.intersects(controller.parent.LevelRect | spr.LevelRect):
+                            spr.UpdateDynamicSizing()
+                globals.DirtyOverride -= 1
+                globals.OverrideSnapping = False
+
+                self.levelOverview.update()
+
+        screenshot = QtGui.QImage(source.size().toSize() if isinstance(source, QtCore.QRectF) else source.size(), QtGui.QImage.Format_ARGB32)
+        screenshot.fill(Qt.transparent)
+
+        painter = QtGui.QPainter(screenshot)
+
+        if hideBackground:
+            # Remove the background
+            brush = self.scene.backgroundBrush()
+            style = brush.style()
+            brush.setStyle(Qt.NoBrush)
+            self.scene.setBackgroundBrush(brush)
+
+            # Render
+            widget.render(painter, source=source)
+
+            # Restore the background
+            brush.setStyle(style)
+            self.scene.setBackgroundBrush(brush)
+
+        else:
+            # Render with background
+            widget.render(painter, source=source)
+
+        painter.end()
+
+        if saveImage:
+            screenshot.save(fn, 'PNG')
+
+        if saveClip:
+            globals.app.clipboard().setImage(screenshot)
 
     def showPuzzleWindow(self, name, data, slot, con=False):
         pw = PuzzleWindow(name, data, slot, con, Qt.Dialog)
@@ -5481,15 +5513,26 @@ def main():
     Main startup function for Miyamoto
     """
 
-    # create an application
+    # Set High-DPI-Displays-related attributes before creating an application
+    QtGui.QGuiApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    if hasattr(QtGui.QGuiApplication, 'setHighDpiScaleFactorRoundingPolicy'):
+        QtGui.QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.Round)
+
+    # Create an application
     globals.app = QtWidgets.QApplication(sys.argv)
 
-    # go to the script path
+    # Go to the script path
     path = globals.miyamoto_path
     if path is not None:
         os.chdir(path)
 
-    # load the settings
+    # Create backup of settings
+    if os.path.isfile('settings.ini'):
+        from shutil import copy2
+        copy2('settings.ini', 'settings.ini.bak')
+        del copy2
+
+    # Load the settings
     globals.settings = QtCore.QSettings('settings.ini', QtCore.QSettings.IniFormat)
 
     # Check the version and set the UI style to Fusion by default
@@ -5504,17 +5547,17 @@ def main():
         warningBox.exec_()
         sys.exit(1)
 
-    # load the translation (needs to happen first)
+    # Load the translation (needs to happen first)
     LoadTranslation()
 
-    # set the default theme, plus some other stuff too
+    # Set the default theme, plus some other stuff too
     globals.theme = MiyamotoTheme()
 
-    # check if required files are missing
+    # Check if required files are missing
     if FilesAreMissing():
         sys.exit(1)
 
-    # load required stuff
+    # Load required stuff
     globals.Sprites = None
     globals.SpriteListData = None
     LoadGameDef(setting('LastGameDef'))
@@ -5605,7 +5648,7 @@ def main():
     LoadTheme()
     SetAppStyle()
 
-    # create and show the main window
+    # Create and show the main window
     globals.mainWindow = MiyamotoWindow()
     globals.mainWindow.__init2__()  # fixes bugs
     globals.mainWindow.show()
