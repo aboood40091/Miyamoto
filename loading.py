@@ -124,8 +124,7 @@ def LoadLevelNames_AddMissingCategories(node, node_patch):
                 if isinstance(child[1], str) and child[1] == child_patch[1]:
                     break
             else:
-                print("Adding level: \"%s\"" % child_patch[1])
-                node += child_patch
+                node += [child_patch]
 
 def LoadLevelNames_Category(node):
     """
