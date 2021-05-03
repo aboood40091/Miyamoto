@@ -4078,10 +4078,26 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         Overrides mouse pressing events if needed
         """
         if event.button() == Qt.MidButton:
+            self.setDragMode(QtWidgets.QGraphicsView.NoDrag)
             self.__prevMousePos = event.pos()
             QtWidgets.QGraphicsView.mousePressEvent(self, event)
 
         elif event.button() == Qt.RightButton:
+            type_obj = ObjectItem
+            type_loc = LocationItem
+            type_zone = ZoneItem
+
+            objlist = [obj for obj in self.scene().selectedItems() if isinstance(obj, type_obj)]
+            loclist = [loc for loc in self.scene().selectedItems() if isinstance(loc, type_loc)]
+            zonelist = [zone for zone in self.scene().items() if isinstance(zone, type_zone)]
+
+            dragging = any(thing.dragging for sel in (objlist, loclist, zonelist) for thing in sel)
+            if dragging:
+                # If resizing anything, don't place anything
+                event.accept()
+                globals.mainWindow.levelOverview.update()
+                return
+
             if globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
                 mw = globals.mainWindow
                 ln = globals.CurrentLayer
@@ -5032,24 +5048,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             loclist = [loc for loc in self.scene().selectedItems() if isinstance(loc, type_loc)]
             zonelist = [zone for zone in self.scene().items() if isinstance(zone, type_zone)]
 
-            dragging = True
-            for obj in objlist:
-                if obj.dragging:
-                    break
-
-            else:
-                for loc in loclist:
-                    if loc.dragging:
-                        break
-
-                else:
-                    for zone in zonelist:
-                        if zone.dragging:
-                            break
-
-                    else:
-                        dragging = False
-
+            dragging = any(thing.dragging for sel in (objlist, loclist, zonelist) for thing in sel)
             if not dragging:
                 objCursorOverriden = True
                 locCursorOverriden = True
@@ -5183,7 +5182,10 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         Overrides mouse release events if needed
         """
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MidButton:
+            self.setDragMode(QtWidgets.QGraphicsView.RubberBandDrag)
+
+        elif event.button() == Qt.RightButton:
             if globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
                 if globals.mainWindow.quickPaint.QuickPaintMode == 'PAINT':
                     QuickPaintOperations.PaintFromPrePaintedObjects()

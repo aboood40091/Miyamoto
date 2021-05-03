@@ -722,7 +722,7 @@ class ObjectItem(LevelEditorItem):
         """
         Overrides mouse movement events if needed for resizing
         """
-        if event.buttons() != Qt.NoButton and self.dragging:
+        if event.buttons() & QtCore.Qt.LeftButton and self.dragging:
             # resize it
             dsx = self.dragstartx
             dsy = self.dragstarty
@@ -977,12 +977,12 @@ class ObjectItem(LevelEditorItem):
         Disables "dragging" when the mouse is released
         """
         LevelEditorItem.mouseReleaseEvent(self, event)
+        if event.button() == QtCore.Qt.LeftButton:
+            self.TLGrabbed = self.TRGrabbed = self.BLGrabbed = self.BRGrabbed = False
+            self.MTGrabbed = self.MLGrabbed = self.MBGrabbed = self.MRGrabbed = False
+            self.dragging = False
 
-        self.TLGrabbed = self.TRGrabbed = self.BLGrabbed = self.BRGrabbed = False
-        self.MTGrabbed = self.MLGrabbed = self.MBGrabbed = self.MRGrabbed = False
-        self.dragging = False
-
-        self.update()
+            self.update()
 
     def delete(self):
         """
@@ -1208,8 +1208,7 @@ class ZoneItem(LevelEditorItem):
         """
         Overrides mouse movement events if needed for resizing
         """
-
-        if event.buttons() != Qt.NoButton and self.dragging:
+        if event.buttons() & QtCore.Qt.LeftButton and self.dragging:
             # resize it
             clickedx = int(event.scenePos().x() / globals.TileWidth * 16)
             clickedy = int(event.scenePos().y() / globals.TileWidth * 16)
@@ -1337,8 +1336,9 @@ class ZoneItem(LevelEditorItem):
         """
         Disables "dragging" when the mouse is released
         """
-        self.dragging = False
         LevelEditorItem.mouseReleaseEvent(self, event)
+        if event.button() == QtCore.Qt.LeftButton:
+            self.dragging = False
 
     def itemChange(self, change, value):
         """
@@ -1534,8 +1534,7 @@ class LocationItem(LevelEditorItem):
         """
         Overrides mouse movement events if needed for resizing
         """
-
-        if event.buttons() != Qt.NoButton and self.dragging:
+        if event.buttons() & QtCore.Qt.LeftButton and self.dragging:
             # resize it
             clickedx = int(event.scenePos().x() / globals.TileWidth * 16)
             clickedy = int(event.scenePos().y() / globals.TileWidth * 16)
@@ -1660,8 +1659,9 @@ class LocationItem(LevelEditorItem):
         """
         Disables "dragging" when the mouse is released
         """
-        self.dragging = False
         LevelEditorItem.mouseReleaseEvent(self, event)
+        if event.button() == QtCore.Qt.LeftButton:
+            self.dragging = False
 
     def delete(self):
         """
