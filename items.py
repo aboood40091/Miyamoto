@@ -998,7 +998,7 @@ class ZoneItem(LevelEditorItem):
     Level editor item that represents a zone
     """
 
-    def __init__(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, bounding=None, bg=None, id=None):
+    def __init__(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, bounding=None, bg=None, id=None):
         """
         Creates a zone with specific data
         """
@@ -1017,12 +1017,16 @@ class ZoneItem(LevelEditorItem):
         #self.block3id = h
         self.cammode = i
         self.camzoom = j
-        self.visibility = k
-        #self.block5id = l
-        self.camtrack = m
-        self.music = n
-        self.sfxmod = o
-        self.type = p
+        self.unk1 = k
+        self.visibility = l
+        #self.block5id = m
+        self.unk2 = n
+        self.camtrack = o
+        self.unk3 = p
+        self.music = q
+        self.sfxmod = r
+        #self.block6id = s
+        self.type = t
         self.UpdateRects()
 
         self.aux = set()

@@ -409,7 +409,7 @@ class Area_NSMBU(AbstractArea):
 
         # Block 10 - zone data
         zonedata = self.blocks[9]
-        zonestruct = struct.Struct('>HHHHHHBBBBxBBxBxBBxBxx')
+        zonestruct = struct.Struct('>HHHHHHBBBBBBBBBBBBBBxx')
         count = len(zonedata) // 28
         offset = 0
         zones = []
@@ -423,7 +423,7 @@ class Area_NSMBU(AbstractArea):
                 if checkb[4] == zoneBoundId: boundObj = checkb
 
             # Find the proper bg
-            zoneBgId = dataz[11]
+            zoneBgId = dataz[12]
             bgObj = self.bgs[zoneBgId] if zoneBgId in self.bgs else None
 
             zones.append(ZoneItem(
@@ -431,6 +431,7 @@ class Area_NSMBU(AbstractArea):
                 dataz[4], dataz[5], dataz[6], dataz[7],
                 dataz[8], dataz[9], dataz[10], dataz[11],
                 dataz[12], dataz[13], dataz[14], dataz[15],
+                dataz[16], dataz[17], dataz[18], dataz[19],
                 boundObj, bgObj, i))
             offset += 28
         self.zones = zones
@@ -830,7 +831,7 @@ class Area_NSMBU(AbstractArea):
         """
         bdngstruct = struct.Struct('>llllHHhhxxxx')
         bgStruct = struct.Struct('>Hhhh16sHxx')
-        zonestruct = struct.Struct('>HHHHHHBBBBxBBxBxBBxBxx')
+        zonestruct = struct.Struct('>HHHHHHBBBBBBBBBBBBBBxx')
         offset = 0
         bdngs, bdngcount = self.GetOptimizedBoundings(bdngstruct)
         bgs, bgcount = self.GetOptimizedBGs(bgStruct)
@@ -850,8 +851,9 @@ class Area_NSMBU(AbstractArea):
             zonestruct.pack_into(buffer9, offset,
                                  z.objx, z.objy, z.width, z.height,
                                  0, 0, z.id, bounding[4],
-                                 z.cammode, z.camzoom, z.visibility, background[0],
-                                 z.camtrack, z.music, z.sfxmod, z.type)
+                                 z.cammode, z.camzoom, z.unk1, z.visibility,
+                                 background[0], z.unk2, z.camtrack, z.unk3,
+                                 z.music, z.sfxmod, 0, z.type)
             offset += 28
 
         self.blocks[2] = bytes(buffer2)

@@ -973,7 +973,7 @@ class MiyamotoTranslation:
                 73: '[b]Lakitu Lower Bounds:[/b][br]Used instead of Lower Bounds when at least one player is riding a Lakitu cloud.',
                 74: 'Enable Upward Scrolling:',
                 75: '[b]Enable Upward Scrolling:[/b][br]If not checked and "Multiplayer Screen Height Adjust" is set to value "0", the screen won\'t scroll upwards unless the player uses a Propeller Suit or Block. Always checked in the retail game.',
-                76: 'Flags',
+                76: 'Rendering and Camera Flags',
                 77: (
                     'Start Zoom as Screen Height:[br](No initial zoom out/in)',
                     'Center Camera X-pos On Load:',

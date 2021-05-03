@@ -5242,6 +5242,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 z.cammode = tab.Zone_cammodebuttongroup.checkedId()
                 z.camzoom = tab.Zone_screenheights.currentIndex()
+                z.unk1 = tab.Zone_camunk1.value()
 
                 z.visibility = tab.Zone_visibility.currentIndex()
                 if tab.Zone_vspotlight.isChecked():
@@ -5249,7 +5250,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if tab.Zone_vfulldark.isChecked():
                     z.visibility |= 0x20
 
+                z.unk2 = tab.Zone_camunk2.value()
                 z.camtrack = tab.Zone_directionmode.currentIndex()
+                z.unk3 = tab.Zone_camunk3.value()
 
                 z.yupperbound = tab.Zone_yboundup.value() - 80
                 z.ylowerbound = -tab.Zone_ybounddown.value() + 72

@@ -607,7 +607,7 @@ class ZonesDialog(QtWidgets.QDialog):
                 return
 
         id = len(self.zoneTabs)
-        z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, id, 0, 1, 0, 0, (0, 0, 0, 0, 0, 0xF, 0, 0), (0, 0, 0, 0, to_bytes('Black', 16), 0), id)
+        z = ZoneItem(256, 256, 448, 224, 0, 0, id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, (0, 0, 0, 0, 0, 0xF, 0, 0), (0, 0, 0, 0, to_bytes('Black', 16), 0))
         ZoneTabName = globals.trans.string('ZonesDlg', 3, '[num]', id + 1)
         tab = ZoneTab(z); tab.adjustSize()
         self.zoneTabs.append(tab)
@@ -669,9 +669,9 @@ class ZonesDialog(QtWidgets.QDialog):
         id = len(self.zoneTabs)
         z = ZoneItem(
             z0.objx, z0.objy, z0.width, z0.height, z0.modeldark, z0.terraindark, id, 0,
-            z0.cammode, z0.camzoom, z0.visibility, id, z0.camtrack, z0.music, z0.sfxmod, z0.type,
+            z0.cammode, z0.camzoom, z0.unk1, z0.visibility, 0, z0.unk2, z0.camtrack, z0.unk3, z0.music, z0.sfxmod, 0, z0.type,
             (z0.yupperbound, z0.ylowerbound, z0.yupperbound2, z0.ylowerbound2, z0.entryid, z0.mpcamzoomadjust, z0.yupperbound3, z0.ylowerbound3),
-            z0.background, id
+            z0.background,
         )
         ZoneTabName = globals.trans.string('ZonesDlg', 3, '[num]', id + 1)
         tab = ZoneTab(z); tab.adjustSize()
@@ -711,14 +711,12 @@ class ZoneTab(QtWidgets.QWidget):
         self.createVisibility(z)
         self.createBounds(z)
         self.createAudio(z)
-        self.createType(z)
 
         mainLayout = QtWidgets.QVBoxLayout()
         mainLayout.addWidget(self.Dimensions)
         mainLayout.addWidget(self.Visibility)
         mainLayout.addWidget(self.Bounds)
         mainLayout.addWidget(self.Audio)
-        mainLayout.addWidget(self.Settings)
         self.setLayout(mainLayout)
 
     def createDimensions(self, z):
@@ -977,6 +975,23 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_directionmode.setToolTip(globals.trans.string('ZonesDlg', 40))
         self.Zone_directionmode.setCurrentIndex(z.camtrack if z.camtrack < 9 else 0)
 
+        self.Zone_camunk1 = QtWidgets.QSpinBox()
+        self.Zone_camunk1.setRange(0, 255)
+        self.Zone_camunk1.setToolTip("It is unknown what this value does.")
+        self.Zone_camunk1.setValue(z.unk1)
+
+        self.Zone_camunk2 = QtWidgets.QSpinBox()
+        self.Zone_camunk2.setRange(0, 255)
+        self.Zone_camunk2.setToolTip("Value looks to be unused in the game code.")
+        self.Zone_camunk2.setValue(z.unk2)
+
+        self.Zone_camunk3 = QtWidgets.QSpinBox()
+        self.Zone_camunk3.setRange(0, 255)
+        self.Zone_camunk3.setToolTip("This is used as \"Progress Path ID\" in NSMB2.")
+        self.Zone_camunk3.setValue(z.unk3)
+
+        self.Zone_settings = []
+
         # Layouts
         ZoneCameraModesLayout = QtWidgets.QGridLayout()
         for i, b in enumerate(cammodebuttons):
@@ -992,11 +1007,46 @@ class ZoneTab(QtWidgets.QWidget):
         ZoneDirectionLayout = QtWidgets.QFormLayout()
         ZoneDirectionLayout.addRow(globals.trans.string('ZonesDlg', 39), self.Zone_directionmode)
 
+        ZoneCameraUnknownsLayoutA = QtWidgets.QFormLayout()
+        ZoneCameraUnknownsLayoutA.addRow('Unknown Value 1:', self.Zone_camunk1)
+        ZoneCameraUnknownsLayoutA.addRow('Unknown Value 2:', self.Zone_camunk2)
+        ZoneCameraUnknownsLayoutB = QtWidgets.QFormLayout()
+        ZoneCameraUnknownsLayoutB.addRow('Unknown Value 3:', self.Zone_camunk3)
+
+        ZoneCameraUnknownsLayout = QtWidgets.QHBoxLayout()
+        ZoneCameraUnknownsLayout.addLayout(ZoneCameraUnknownsLayoutA)
+        ZoneCameraUnknownsLayout.addLayout(ZoneCameraUnknownsLayoutB)
+        
+        ZoneSettingsLeft = QtWidgets.QFormLayout()
+        ZoneSettingsRight = QtWidgets.QFormLayout()
+        settingsNames = globals.trans.stringList('ZonesDlg', 77)
+        
+        for i in range(0, 8):
+            self.Zone_settings.append(QtWidgets.QCheckBox())
+            self.Zone_settings[i].setChecked(z.type & 1 << i)
+            self.Zone_settings[i].setStyleSheet("margin-left:100%;");
+
+            if i < 4:
+                ZoneSettingsLeft.addRow(settingsNames[i], self.Zone_settings[i])
+            else:
+                ZoneSettingsRight.addRow(settingsNames[i], self.Zone_settings[i])
+            
+        ZoneSettingsLayout = QtWidgets.QHBoxLayout()
+        ZoneSettingsLayout.addLayout(ZoneSettingsLeft)
+        ZoneSettingsLayout.addStretch()
+        ZoneSettingsLayout.addLayout(ZoneSettingsRight)
+
         InnerLayout = QtWidgets.QVBoxLayout()
         InnerLayout.addLayout(ZoneCameraLayout)
+        InnerLayout.addWidget(createHorzLine())
         InnerLayout.addLayout(ZoneVisibilityLayout)
         InnerLayout.addWidget(self.Zone_visibility)
+        InnerLayout.addWidget(createHorzLine())
         InnerLayout.addLayout(ZoneDirectionLayout)
+        InnerLayout.addWidget(createHorzLine())
+        InnerLayout.addLayout(ZoneCameraUnknownsLayout)
+        InnerLayout.addWidget(createHorzLine())
+        InnerLayout.addLayout(ZoneSettingsLayout)
         self.Visibility.setLayout(InnerLayout)
 
     def ChangeVisibilityList(self):
@@ -1185,30 +1235,6 @@ class ZoneTab(QtWidgets.QWidget):
         ZoneAudioLayout.addRow(globals.trans.string('ZonesDlg', 58), self.Zone_boss)
 
         self.Audio.setLayout(ZoneAudioLayout)
-
-    def createType(self, z):
-        self.Settings = QtWidgets.QGroupBox(globals.trans.string('ZonesDlg', 76))
-        self.Zone_settings = []
-        
-        ZoneSettingsLeft = QtWidgets.QFormLayout()
-        ZoneSettingsRight = QtWidgets.QFormLayout()
-        settingsNames = globals.trans.stringList('ZonesDlg', 77)
-        
-        for i in range(0, 8):
-            self.Zone_settings.append(QtWidgets.QCheckBox())
-            self.Zone_settings[i].setChecked(z.type & (2 ** i))
-
-            if i < 4:
-                ZoneSettingsLeft.addRow(settingsNames[i], self.Zone_settings[i])
-            else:
-                ZoneSettingsRight.addRow(settingsNames[i], self.Zone_settings[i])
-            
-        ZoneSettingsLayout = QtWidgets.QHBoxLayout()
-        ZoneSettingsLayout.addLayout(ZoneSettingsLeft)
-        ZoneSettingsLayout.addStretch()
-        ZoneSettingsLayout.addLayout(ZoneSettingsRight)
-        
-        self.Settings.setLayout(ZoneSettingsLayout)
 
     def handleMusicListSelect(self):
         """
