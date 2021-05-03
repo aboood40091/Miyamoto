@@ -27,8 +27,6 @@
 
 ############ Imports ############
 
-import pickle
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
 
@@ -414,21 +412,7 @@ class Metadata:
         Creates a metadata object with the data given
         """
         self.DataDict = {}
-        if data is None: return
-
-        if data[0:4] != b'MD2_':
-            # This is old-style metadata - convert it
-            try:
-                strdata = ''
-                for d in data: strdata += chr(d)
-                level_info = pickle.loads(strdata)
-                for k, v in level_info.iteritems():
-                    self.setStrData(k, v)
-            except Exception:
-                pass
-            if ('Website' not in self.DataDict) and ('Webpage' in self.DataDict):
-                self.DataDict['Website'] = self.DataDict['Webpage']
-            return
+        if not data or data[0:4] != b'MD2_': return
 
         # Iterate through the data
         idx = 4
