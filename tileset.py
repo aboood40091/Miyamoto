@@ -1095,12 +1095,15 @@ def exportObject(name, baseName, idx, objNum):
         json.dump(jsonData, outfile)
 
 
-def HandleTilesetEdited(fromPuzzle=False):
-    if not fromPuzzle:
+def HandleTilesetEdited(soft=False):
+    if not soft:
         globals.TilesetEdited = True
 
-    globals.mainWindow.objPicker.LoadFromTilesets()
-    globals.mainWindow.updateNumUsedTilesLabel()
+    mainWindow = globals.mainWindow
+    mainWindow.objPicker.clearSelection()
+    mainWindow.objPicker.LoadFromTilesets()
+    mainWindow.updateNumUsedTilesLabel()
+    mainWindow.CreationTabChanged(mainWindow.creationTabs.currentIndex())
 
 
 def DeleteObject(idx, objNum, soft=False):

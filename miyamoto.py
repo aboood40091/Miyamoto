@@ -3811,7 +3811,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             self.LoadLevel_NSMBU(levelData, areaNum)
 
         # Refresh object layouts
-        self.objPicker.LoadFromTilesets()
+        HandleTilesetEdited(True)
         for layer in globals.Area.layers:
             for obj in layer:
                 obj.updateObjCache()
@@ -3896,8 +3896,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.objUseLayer1.setChecked(True)
 
         self.ReloadTilesets()
-
-        self.objPicker.LoadFromTilesets()
 
         self.objAllTab.setCurrentIndex(0)
         self.objAllTab.setTabEnabled(0, True)
@@ -4014,7 +4012,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if (name is not None) and (name != ''):
                 LoadTileset(idx, name, not soft)
 
-        self.objPicker.LoadFromTilesets()
+        HandleTilesetEdited(True)
 
         for layer in globals.Area.layers:
             for obj in layer:
@@ -5168,7 +5166,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 globals.Area.tileset0 = ''
                 UnloadTileset(0)
 
-            self.objPicker.LoadFromTilesets()
+            HandleTilesetEdited(True)
 
             if globals.Area.tileset0 != '':
                 self.objAllTab.setCurrentIndex(0)
@@ -5427,7 +5425,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                 LoadTileset(0, globals.Area.tileset0)
                 SetDirty()
-                self.objPicker.LoadFromTilesets()
+                HandleTilesetEdited(True)
 
                 if globals.Area.tileset0 != '':
                     self.objAllTab.setCurrentIndex(0)
