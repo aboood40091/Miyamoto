@@ -1341,7 +1341,7 @@
 		</list>
 		<checkbox nybble="10" title="Place Behind Layer 1" mask="2"/>
 		<checkbox nybble="10" title="Place Behind Layer 0" mask="4"/>
-		<checkbox nybble="10" title="Topless/Invisible" mask="8" comment="Use underwater background for this."/>
+		<checkbox nybble="10" title="Topless and Invisible" mask="8" comment="The water will have no top and the water effect will cover the entire screen, but the water collision stays where the sprite is placed. Use underwater background for this."/>
 		<value nybble="11-12" title="Location ID"/>
 		<value nybble="13" title="Unknown Value 13" comment="Bitfield of some kind."/>
 		<value nybble="14" title="Unknown Value 14"/>
@@ -1523,11 +1523,12 @@
 		<value nybble="7" title="Rising Delay"/>
 		<value nybble="8-9" title="Rising Height" comment="The height, in blocks, that the poison water will rise."/>
 		<checkbox nybble="10" title="Rising" comment="If checked, the poisinous water will rise quickly."/>
+		<checkbox nybble="10" title="Topless" mask="8" comment="The poison water will have no top, but will be fully functional."/>
 		<value nybble="11-12" title="Location ID"/>
 	</sprite>
 	<sprite id="91" name="Quicksand" notes="Once Mario steps in, he will start sinking. Doesn't hurt him to stay inside of it, though.&#13;&#10;&#13;&#10;If you use a location, make sure it sticks 5 blocks below the zone, or else it will not make the player die.">
 		<checkbox nybble="10" title="Unknown Checkbox 10 Mask 4" mask="4"/>
-		<checkbox nybble="10" title="Flat Top" mask="8" comment="&lt;br&gt;Checking this removes the animated crest effect on the top portion of the Sprite. Creates a 'square' look. &lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; Only use with a flat ceiling or else will look strange."/>
+		<checkbox nybble="10" title="Topless" mask="8" comment="&lt;br&gt;Checking this removes the animated crest effect on the top portion of the Sprite. Creates a 'square' look. &lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; Only use with a flat ceiling or else will look strange."/>
 		<value nybble="11-12" title="Location ID" comment="&lt;br&gt;Match with a Location to set the Area of this Sprite."/>
 	</sprite>
 	<sprite id="92" name="Fog" notes="Name translates to &quot;Cloud terrain actor&quot;. ">

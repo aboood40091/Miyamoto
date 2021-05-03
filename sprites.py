@@ -179,7 +179,7 @@ class SpriteImage_Crash(SLib.SpriteImage_Static):  # X
         SLib.loadIfNotInImageCache('Crash', 'crash.png')
 
 
-class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 92, 198, 201
+class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 91, 92, 198, 201
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -193,8 +193,7 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 92, 198, 201
         self.drawCrest = False
         self.risingHeight = 0
 
-        self.paintZone = False
-        self.paintLoc = False
+        self.locId = 0
 
     def positionChanged(self):
         super().positionChanged()
@@ -204,12 +203,13 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 92, 198, 201
         super().dataChanged()
         self.parent.scene().update()
 
+    def paintZone(self):
+        return not self.locId
+
     def realViewZone(self, painter, zoneRect, viewRect):
         """
         Real view zone painter for liquids/fog
         """
-        if not self.paintZone: return
-
         # (0, 0) is the top-left corner of the zone
 
         zy, zw, zh = zoneRect.topLeft().y(), zoneRect.width(), zoneRect.height()
@@ -249,6 +249,19 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 92, 198, 201
             painter.drawTiledPixmap(4, offsetFromTop, zw - 8, zh - offsetFromTop - 4, self.mid)
         if drawRise:
             painter.drawTiledPixmap(4, offsetRise, zw - 8, riseToDraw.height(), riseToDraw)
+
+    def realViewLocation(self, painter, zoneRect, viewRect):
+        """
+        Real view location painter for liquids/fog
+        """
+        zw, zh = zoneRect.width(), zoneRect.height()
+
+        if self.drawCrest:
+            crestHeight = self.crest.height()
+            painter.drawTiledPixmap(0, 0, zw, crestHeight, self.crest)
+            painter.drawTiledPixmap(0, crestHeight, zw, zh - crestHeight, self.mid)
+        else:
+            painter.drawTiledPixmap(0, 0, zw, zh, self.mid)
 
 
 class SpriteImage_PlatformBase(SLib.SpriteImage):  # X
@@ -2393,8 +2406,8 @@ class SpriteImage_Water(SpriteImage_LiquidOrFog):  # 88
         ImageCache['LiquidWaterRiseCrest'] = SLib.GetImg('liquid_water_rise_crest.png')
 
     def dataChanged(self):
-        self.paintZone = self.parent.spritedata[5] == 0
-        self.drawCrest = self.parent.spritedata[4] & 15 < 8
+        self.locId = self.parent.spritedata[5]
+        self.drawCrest = self.parent.spritedata[4] & 8 == 0
 
         self.risingHeight = (self.parent.spritedata[3] & 0xF) << 4
         self.risingHeight |= self.parent.spritedata[4] >> 4
@@ -2428,8 +2441,8 @@ class SpriteImage_Lava(SpriteImage_LiquidOrFog):  # 89
         ImageCache['LiquidLavaRiseCrest'] = SLib.GetImg('liquid_lava_rise_crest.png')
 
     def dataChanged(self):
-        self.paintZone = self.parent.spritedata[5] == 0
-        self.drawCrest = self.parent.spritedata[4] & 15 < 8
+        self.locId = self.parent.spritedata[5]
+        self.drawCrest = self.parent.spritedata[4] & 8 == 0
 
         self.risingHeight = (self.parent.spritedata[3] & 0xF) << 4
         self.risingHeight |= self.parent.spritedata[4] >> 4
@@ -2452,7 +2465,7 @@ class SpriteImage_Poison(SpriteImage_LiquidOrFog):  # 90
         self.rise = ImageCache['LiquidPoisonRiseCrest']
         self.riseCrestless = ImageCache['LiquidPoisonRise']
 
-        self.top = self.parent.objy        
+        self.top = self.parent.objy
 
     @staticmethod
     def loadImages():
@@ -2463,34 +2476,45 @@ class SpriteImage_Poison(SpriteImage_LiquidOrFog):  # 90
         ImageCache['LiquidPoisonRiseCrest'] = SLib.GetImg('liquid_poison_rise_crest.png')
 
     def dataChanged(self):
-        super().dataChanged()
-
-        self.paintZone = self.parent.spritedata[5] == 0
-        self.drawCrest = self.parent.spritedata[4] & 15 < 8
+        self.locId = self.parent.spritedata[5]
+        self.drawCrest = self.parent.spritedata[4] & 8 == 0
 
         self.risingHeight = (self.parent.spritedata[3] & 0xF) << 4
         self.risingHeight |= self.parent.spritedata[4] >> 4
         if self.parent.spritedata[2] & 15 > 7:  # falling
             self.risingHeight = -self.risingHeight
 
-        self.parent.scene().update()
+        super().dataChanged()
 
     def positionChanged(self):
         self.top = self.parent.objy
         super().positionChanged()
 
 
-class SpriteImage_Quicksand(SLib.SpriteImage_Static):  # 91
+class SpriteImage_Quicksand(SpriteImage_LiquidOrFog):  # 91
     def __init__(self, parent):
-        super().__init__(
-            parent,
-            3.75,
-            ImageCache['Quicksand'],
-        )
+        super().__init__(parent)
+
+        self.crest = ImageCache['LiquidSandCrest']
+        self.mid = ImageCache['LiquidSand']
+
+        self.top = self.parent.objy
 
     @staticmethod
     def loadImages():
-        SLib.loadIfNotInImageCache('Quicksand', 'quicksand.png')
+        if 'LiquidSand' in ImageCache: return
+        ImageCache['LiquidSand'] = SLib.GetImg('liquid_sand.png')
+        ImageCache['LiquidSandCrest'] = SLib.GetImg('liquid_sand_crest.png')
+
+    def dataChanged(self):
+        self.locId = self.parent.spritedata[5]
+        self.drawCrest = self.parent.spritedata[4] & 8 == 0
+
+        super().dataChanged()
+
+    def positionChanged(self):
+        self.top = self.parent.objy
+        super().positionChanged()
 
 
 class SpriteImage_Fog(SpriteImage_LiquidOrFog):  # 92
@@ -2504,7 +2528,7 @@ class SpriteImage_Fog(SpriteImage_LiquidOrFog):  # 92
         SLib.loadIfNotInImageCache('Fog', 'fog.png')
 
     def dataChanged(self):
-        self.paintZone = self.parent.spritedata[5] == 0
+        self.locId = self.parent.spritedata[5]
         super().dataChanged()
 
     def positionChanged(self):
@@ -4968,7 +4992,6 @@ class SpriteImage_SnowEffect(SpriteImage_LiquidOrFog):  # 198
     def __init__(self, parent):
         super().__init__(parent)
         self.mid = ImageCache['SnowEffect']
-        self.paintZone = True
 
     @staticmethod
     def loadImages():
@@ -5042,10 +5065,6 @@ class SpriteImage_MushroomPlatform(SLib.SpriteImage):  # 200
 
 
 class SpriteImage_LavaParticles(SpriteImage_LiquidOrFog):  # 201
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.paintZone = True
-
     @staticmethod
     def loadImages():
         if 'LavaParticlesA' in ImageCache: return
