@@ -179,7 +179,7 @@ class SpriteImage_Crash(SLib.SpriteImage_Static):  # X
         SLib.loadIfNotInImageCache('Crash', 'crash.png')
 
 
-class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 91, 92, 198, 201
+class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 91, 92, 93, 198, 201
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -2526,6 +2526,25 @@ class SpriteImage_Fog(SpriteImage_LiquidOrFog):  # 92
     @staticmethod
     def loadImages():
         SLib.loadIfNotInImageCache('Fog', 'fog.png')
+
+    def dataChanged(self):
+        self.locId = self.parent.spritedata[5]
+        super().dataChanged()
+
+    def positionChanged(self):
+        self.top = self.parent.objy
+        super().positionChanged()
+
+
+class SpriteImage_GhostFog(SpriteImage_LiquidOrFog):  # 93
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.mid = ImageCache['GhostFog']
+        self.top = self.parent.objy
+
+    @staticmethod
+    def loadImages():
+        SLib.loadIfNotInImageCache('GhostFog', 'fog_ghost.png')
 
     def dataChanged(self):
         self.locId = self.parent.spritedata[5]
@@ -11353,6 +11372,7 @@ ImageClasses = {
     90: SpriteImage_Poison,
     91: SpriteImage_Quicksand,
     92: SpriteImage_Fog,
+    93: SpriteImage_GhostFog,
     94: SpriteImage_BouncyCloud,
     95: SpriteImage_BouncyCloudL,
     96: SpriteImage_Lamp,

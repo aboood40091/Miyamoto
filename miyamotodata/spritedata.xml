@@ -1531,11 +1531,11 @@
 		<checkbox nybble="10" title="Topless" mask="8" comment="&lt;br&gt;Checking this removes the animated crest effect on the top portion of the Sprite. Creates a 'square' look. &lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; Only use with a flat ceiling or else will look strange."/>
 		<value nybble="11-12" title="Location ID" comment="&lt;br&gt;Match with a Location to set the Area of this Sprite."/>
 	</sprite>
-	<sprite id="92" name="Fog" notes="Name translates to &quot;Cloud terrain actor&quot;. ">
-		<value nybble="12" title="Location ID" comment="The location of the fog."/>
+	<sprite id="92" name="Fog" notes="Name translates to &quot;Cloud terrain actor&quot;. Does not require a location.">
+		<value nybble="11-12" title="Location ID" comment="The location of the fog."/>
 	</sprite>
-	<sprite id="93" name="Mist Effect [UNUSED]" notes="Creates a mist-like effect. ">
-		<value nybble="11-12" title="Location" comment="The location the mist will be spawned in."/>
+	<sprite id="93" name="Ghost Fog [UNUSED]" notes="Creates a thin fog effect. Does not require a location.">
+		<value nybble="11-12" title="Location" comment="The location of the fog."/>
 	</sprite>
 	<sprite id="94" name="Bouncy Cloud" notes="A cloud you can bounce high on!">
 		<list nybble="6" title="Movement Direction" comment="Direction the cloud moves in.">
