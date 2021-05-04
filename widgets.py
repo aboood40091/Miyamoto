@@ -4277,6 +4277,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                     self.scene().update()
 
+                    spr.UpdateDynamicSizing()
                     spr.UpdateListItem()
 
                 SetDirty()
@@ -4823,6 +4824,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         obj.objx = x
                         obj.objy = y
                         obj.setPos(x * globals.TileWidth, y * globals.TileWidth)
+                        globals.mainWindow.levelOverview.update()
 
                     # if the size changed, recache it and update the area
                     if cwidth != width or cheight != height:
@@ -4837,6 +4839,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                         obj.UpdateRects()
                         obj.scene().update(updaterect)
+                        globals.mainWindow.levelOverview.update()
 
                 elif isinstance(obj, type_loc):
                     # resize/move the current location
@@ -4888,6 +4891,8 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         globals.OverrideSnapping = True
                         obj.setPos(x * (globals.TileWidth / 16), y * (globals.TileWidth / 16))
                         globals.OverrideSnapping = False
+                        obj.UpdateListItem()
+                        globals.mainWindow.levelOverview.update()
 
                     # if the size changed, recache it and update the area
                     if cwidth != width or cheight != height:
@@ -4905,6 +4910,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                         obj.UpdateRects()
                         obj.scene().update(updaterect)
+                        globals.mainWindow.levelOverview.update()
 
                 elif isinstance(obj, type_spr):
                     # move the created sprite
@@ -4928,6 +4934,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                         obj.objy = clickedy
                         obj.setPos(int((clickedx + obj.ImageObj.xOffset) * globals.TileWidth / 16),
                                    int((clickedy + obj.ImageObj.yOffset) * globals.TileWidth / 16))
+                        obj.ImageObj.positionChanged()
+                        obj.UpdateListItem()
+                        globals.mainWindow.levelOverview.update()
 
                 elif isinstance(obj, type_ent) or isinstance(obj, type_path) or isinstance(obj, type_nPath) or isinstance(obj, type_com):
                     # move the created entrance/path/comment
@@ -4964,6 +4973,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                             obj.handlePosChange(oldx, oldy)
 
                         obj.UpdateListItem()
+                        globals.mainWindow.levelOverview.update()
 
             event.accept()
 
