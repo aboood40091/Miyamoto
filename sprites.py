@@ -217,19 +217,20 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 91, 92, 93, 198,
         """
         # (0, 0) is the top-left corner of the zone
 
-        zy, zw, zh = zoneRect.topLeft().y(), zoneRect.width(), zoneRect.height()
+        _, zy, zw, zh = zoneRect.getRect()
 
         drawRise = self.risingHeight != 0
         drawCrest = self.drawCrest
 
         # Get positions
         offsetFromTop = (self.top * 3.75) - zy
+        if offsetFromTop > zh:
+            # the sprite is below the zone; don't draw anything
+            return
+
         if offsetFromTop <= 4:
             offsetFromTop = 4
             drawCrest = False  # off the top of the zone; no crest
-        if self.top > (zy + zh) / 3.75:
-            # the sprite is below the zone; don't draw anything
-            return
 
         # If all that fits in the zone is some of the crest, determine how much
         if drawCrest:

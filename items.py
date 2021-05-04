@@ -1322,7 +1322,7 @@ class ZoneItem(LevelEditorItem):
             for a in self.aux:
                 a.zoneRepositioned()
 
-            for spr in (spr for spr in globals.Area.sprites if spr.ImageObj):
+            for spr in globals.Area.sprites:
                 spr.ImageObj.positionChanged()
 
             SetDirty()
@@ -1878,7 +1878,7 @@ class SpriteItem(LevelEditorItem):
             globals.gamedef.getImageClasses()[self.type].loadImages()
             SLib.SpriteImagesLoaded.add(self.type)
 
-        self.ImageObj = obj(self)
+        self.ImageObj = obj(self) if obj else SLib.SpriteImage(self)
 
         # show auxiliary objects properly
         for aux in self.ImageObj.aux:
@@ -2189,17 +2189,13 @@ class SpriteItem(LevelEditorItem):
         """
         Delete the sprite from the level
         """
+        self.ImageObj.delete()
         sprlist = globals.mainWindow.spriteList
         globals.mainWindow.UpdateFlag = True
         sprlist.takeItem(sprlist.row(self.listitem))
         globals.mainWindow.UpdateFlag = False
         sprlist.selectionModel().clearSelection()
         globals.Area.sprites.remove(self)
-
-        obj = self.ImageObj
-        if obj:
-            obj.delete()
-
         # self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
         self.scene().update()  # The zone painters need for the whole thing to update
 
