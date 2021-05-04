@@ -1118,16 +1118,12 @@ class ZoneItem(LevelEditorItem):
 
         # Paint liquids/fog
         if globals.SpritesShown and globals.RealViewEnabled:
-            zoneRect = (QtGui.QTransform() * (globals.TileWidth / 16)).mapRect(self.ZoneRect)
-            viewRect = globals.mainWindow.view.mapToScene(globals.mainWindow.view.viewport().rect()).boundingRect()
-
+            zoneRect = self.sceneBoundingRect()
             from sprites import SpriteImage_LiquidOrFog as liquidOrFogType
-            f_MapPositionToZoneID = SLib.MapPositionToZoneID
-            zonelist = globals.Area.zones
 
             for sprite in globals.Area.sprites:
-                if isinstance(sprite.ImageObj, liquidOrFogType) and sprite.ImageObj.paintZone() and self.id == f_MapPositionToZoneID(zonelist, sprite.objx, sprite.objy, True):
-                    sprite.ImageObj.realViewZone(painter, zoneRect, viewRect)
+                if isinstance(sprite.ImageObj, liquidOrFogType) and sprite.ImageObj.paintZone() and self.id == sprite.ImageObj.zoneId:
+                    sprite.ImageObj.realViewZone(painter, zoneRect)
 
         # Now paint the borders
         painter.setPen(QtGui.QPen(globals.theme.color('zone_lines'), 3 * globals.TileWidth / 24))
@@ -1326,6 +1322,9 @@ class ZoneItem(LevelEditorItem):
             for a in self.aux:
                 a.zoneRepositioned()
 
+            for spr in (spr for spr in globals.Area.sprites if spr.ImageObj):
+                spr.ImageObj.positionChanged()
+
             SetDirty()
 
             event.accept()
@@ -1443,13 +1442,12 @@ class LocationItem(LevelEditorItem):
 
         # Paint liquids/fog
         if globals.SpritesShown and globals.RealViewEnabled:
-            zoneRect = (QtGui.QTransform() * (globals.TileWidth / 16)).mapRect(self.ZoneRect)
-            viewRect = globals.mainWindow.view.mapToScene(globals.mainWindow.view.viewport().rect()).boundingRect()
+            zoneRect = self.sceneBoundingRect()
             from sprites import SpriteImage_LiquidOrFog as liquidOrFogType
 
             for sprite in globals.Area.sprites:
                 if isinstance(sprite.ImageObj, liquidOrFogType) and self.id == sprite.ImageObj.locId:
-                    sprite.ImageObj.realViewLocation(painter, zoneRect, viewRect)
+                    sprite.ImageObj.realViewLocation(painter, zoneRect)
 
         # Draw the purple rectangle
         if not self.isSelected():

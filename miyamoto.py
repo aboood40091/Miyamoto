@@ -3817,6 +3817,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 obj.updateObjCache()
         for sprite in globals.Area.sprites:
             sprite.UpdateDynamicSizing()
+            if sprite.ImageObj:
+                sprite.ImageObj.positionChanged()
         self.scene.update()
 
         # Set up and reset the Quick Paint Tool
@@ -5290,6 +5292,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         spr.ImageObj.controller = None
 
                     spr.UpdateDynamicSizing()
+
+                elif spr.ImageObj:
+                    spr.ImageObj.positionChanged()
 
         self.levelOverview.update()
 
