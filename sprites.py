@@ -209,7 +209,7 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 91, 92, 93, 198,
         super().dataChanged()
 
     def paintZone(self):
-        return not self.locId
+        return self.locId == 0 and self.zoneId != -1
 
     def realViewZone(self, painter, zoneRect):
         """
@@ -271,6 +271,8 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 91, 92, 93, 198,
         zoneRect &= zone.sceneBoundingRect()
         zx, zy = zoneRect.x() - zx, zoneRect.y() - zy
         zw, zh = zoneRect.width(), zoneRect.height()
+        if zw <= 0 or zh <= 0:
+            return
 
         drawCrest = False
         crestHeight = 0
@@ -280,10 +282,10 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 91, 92, 93, 198,
             drawCrest = zy < crestHeight
 
         if drawCrest:
+            crestHeight -= zy
             if crestHeight >= zh:
                 painter.drawTiledPixmap(zx, zy, zw, zh, self.crest, zx, zy)
             else:
-                crestHeight -= zy
                 painter.drawTiledPixmap(zx, zy, zw, crestHeight, self.crest, zx, zy)
                 painter.drawTiledPixmap(zx, zy + crestHeight, zw, zh - crestHeight, self.mid, zx)
         else:
