@@ -2459,7 +2459,7 @@ class SpriteImage_Lava(SpriteImage_LiquidOrFog):  # 89
         self.rise = ImageCache['LiquidLavaRiseCrest']
         self.riseCrestless = ImageCache['LiquidLavaRise']
 
-        self.top = self.parent.objy        
+        self.top = self.parent.objy
 
     @staticmethod
     def loadImages():

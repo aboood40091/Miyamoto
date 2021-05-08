@@ -647,43 +647,47 @@ class ObjectItem(LevelEditorItem):
 
                 SetDirty()
 
-        self.TLGrabbed = self.GrabberRectTL.contains(event.pos())
-        self.TRGrabbed = self.GrabberRectTR.contains(event.pos())
-        self.BLGrabbed = self.GrabberRectBL.contains(event.pos())
-        self.BRGrabbed = self.GrabberRectBR.contains(event.pos())
-        self.MTGrabbed = self.GrabberRectMT.contains(event.pos())
-        self.MLGrabbed = self.GrabberRectML.contains(event.pos())
-        self.MBGrabbed = self.GrabberRectMB.contains(event.pos())
-        self.MRGrabbed = self.GrabberRectMR.contains(event.pos())
+            elif self.isSelected():
+                self.TLGrabbed = self.GrabberRectTL.contains(event.pos())
+                self.TRGrabbed = self.GrabberRectTR.contains(event.pos())
+                self.BLGrabbed = self.GrabberRectBL.contains(event.pos())
+                self.BRGrabbed = self.GrabberRectBR.contains(event.pos())
+                self.MTGrabbed = self.GrabberRectMT.contains(event.pos())
+                self.MLGrabbed = self.GrabberRectML.contains(event.pos())
+                self.MBGrabbed = self.GrabberRectMB.contains(event.pos())
+                self.MRGrabbed = self.GrabberRectMR.contains(event.pos())
 
-        if self.isSelected() and (
-            self.TLGrabbed
-            or self.TRGrabbed
-            or self.BLGrabbed
-            or self.BRGrabbed
-            or self.MTGrabbed
-            or self.MLGrabbed
-            or self.MBGrabbed
-            or self.MRGrabbed
-        ):
-            # start dragging
-            self.dragging = True
-            self.dragstartx = int((event.pos().x() - globals.TileWidth // 2) / globals.TileWidth)
-            self.dragstarty = int((event.pos().y() - globals.TileWidth // 2) / globals.TileWidth)
-            self.objsDragging = {}
+                if (
+                    self.TLGrabbed
+                    or self.TRGrabbed
+                    or self.BLGrabbed
+                    or self.BRGrabbed
+                    or self.MTGrabbed
+                    or self.MLGrabbed
+                    or self.MBGrabbed
+                    or self.MRGrabbed
+                ):
+                    # start dragging
+                    self.dragging = True
+                    self.dragstartx = int((event.pos().x() - globals.TileWidth // 2) / globals.TileWidth)
+                    self.dragstarty = int((event.pos().y() - globals.TileWidth // 2) / globals.TileWidth)
+                    self.objsDragging = {}
 
-            for selitem in globals.mainWindow.scene.selectedItems():
-                if not isinstance(selitem, ObjectItem):
-                    continue
+                    for selitem in globals.mainWindow.scene.selectedItems():
+                        if not isinstance(selitem, ObjectItem):
+                            continue
 
-                self.objsDragging[selitem] = [selitem.width, selitem.height]
+                        self.objsDragging[selitem] = [selitem.width, selitem.height]
 
-            event.accept()
+                    self.UpdateTooltip()
+                    self.update()
 
-        else:
-            LevelEditorItem.mousePressEvent(self, event)
-            self.dragging = False
-            self.objsDragging = {}
+                    event.accept()
+                    return
+
+        self.dragging = False
+        self.objsDragging = {}
+        LevelEditorItem.mousePressEvent(self, event)
 
         self.UpdateTooltip()
         self.update()
@@ -1152,6 +1156,9 @@ class ZoneItem(LevelEditorItem):
         Overrides mouse pressing events if needed for resizing
         """
 
+        if event.button() != Qt.LeftButton:
+            return LevelEditorItem.mousePressEvent(self, event)
+
         if self.GrabberRectTL.contains(event.pos()):
             # start dragging
             self.dragging = True
@@ -1479,6 +1486,9 @@ class LocationItem(LevelEditorItem):
         """
         Overrides mouse pressing events if needed for resizing
         """
+
+        if event.button() != Qt.LeftButton:
+            return LevelEditorItem.mousePressEvent(self, event)
 
         if self.isSelected() and self.GrabberRectTL.contains(event.pos()):
             # start dragging

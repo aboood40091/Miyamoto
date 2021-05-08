@@ -247,7 +247,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         self.horizontalLayout_2.addWidget(self.EraseModeCheck)
         self.gridLayout.addLayout(self.horizontalLayout_2, 4, 0, 1, 1)
         self.horizontalScrollBar = QtWidgets.QScrollBar(self)
-        self.horizontalScrollBar.setOrientation(QtCore.Qt.Horizontal)
+        self.horizontalScrollBar.setOrientation(Qt.Horizontal)
         self.horizontalScrollBar.setValue(50)
         self.horizontalScrollBar.valueChanged.connect(self.horizontalScrollBar_changed)
         self.horizontalScrollBar.setObjectName("horizontalScrollBar")
@@ -288,7 +288,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
         self.reset()
         self.gridLayout.addWidget(self.graphicsView, 1, 0, 1, 1)
         self.verticalScrollBar = QtWidgets.QScrollBar(self)
-        self.verticalScrollBar.setOrientation(QtCore.Qt.Vertical)
+        self.verticalScrollBar.setOrientation(Qt.Vertical)
         self.verticalScrollBar.valueChanged.connect(self.verticalScrollBar_changed)
         self.verticalScrollBar.setValue(50)
         self.verticalScrollBar.setObjectName("verticalScrollBar")
@@ -493,9 +493,9 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             self.label.setObjectName("label")
             self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
             self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
-            self.buttonBox.setLayoutDirection(QtCore.Qt.LeftToRight)
+            self.buttonBox.setLayoutDirection(Qt.LeftToRight)
             self.buttonBox.setAutoFillBackground(False)
-            self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+            self.buttonBox.setOrientation(Qt.Horizontal)
             self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.No | QtWidgets.QDialogButtonBox.Yes)
             self.buttonBox.setCenterButtons(True)
             self.buttonBox.setObjectName("buttonBox")
@@ -531,9 +531,9 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             self.label.setObjectName("label")
             self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
             self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
-            self.buttonBox.setLayoutDirection(QtCore.Qt.LeftToRight)
+            self.buttonBox.setLayoutDirection(Qt.LeftToRight)
             self.buttonBox.setAutoFillBackground(False)
-            self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+            self.buttonBox.setOrientation(Qt.Horizontal)
             self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.No | QtWidgets.QDialogButtonBox.Yes)
             self.buttonBox.setCenterButtons(True)
             self.buttonBox.setObjectName("buttonBox")
@@ -566,7 +566,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             self.gridLayout = QtWidgets.QGridLayout(Dialog)
             self.gridLayout.setObjectName("gridLayout")
             self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
-            self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+            self.buttonBox.setOrientation(Qt.Horizontal)
             self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
             self.buttonBox.setObjectName("buttonBox")
             self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
@@ -1691,7 +1691,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
         globals.ObjectDefinitions[idx][objNum] = obj
 
         # Update all instances of the replaced object in the scene
-        for obj in globals.mainWindow.view.scene().items():
+        for obj in globals.mainWindow.scene.items():
             if isinstance(obj, ObjectItem) and obj.tileset == idx and obj.type == objNum:
                 obj.update()
 
@@ -4046,6 +4046,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         self.setHorizontalScrollBar(self.XScrollBar)
 
         self.currentobj = None
+        self.selectionFix = False  # Fixes Qt selection bug
         self.mouseGridPosition = None  # QUICKPAINT purposes
         self.prev_mouseGridPosition = None  # QUICKPAINT purposes
 
@@ -4055,27 +4056,30 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         Overrides mouse pressing events if needed
         """
-        if event.button() == Qt.MidButton:
-            self.setDragMode(QtWidgets.QGraphicsView.NoDrag)
+        # The button that triggered this event
+        eventButton = event.button()
+
+        # Currently held buttons
+        eventButtons = event.buttons()
+
+        # Do not allow processing more than one held button at a time
+        # It triggers many bugs in Qt
+        if eventButton != eventButtons:
+            if eventButton == Qt.LeftButton and not self.currentobj:
+                # Left button has been pressed as another button is already being held
+                # This causes an interesting bug where any selected object jumps to the cursor
+                self.selectionFix = True
+                globals.app.restoreOverrideCursor()
+                self.scene().clearSelection()
+
+            event.accept()
+            return
+
+        if eventButton == Qt.MidButton:
             self.__prevMousePos = event.pos()
             QtWidgets.QGraphicsView.mousePressEvent(self, event)
 
-        elif event.button() == Qt.RightButton:
-            type_obj = ObjectItem
-            type_loc = LocationItem
-            type_zone = ZoneItem
-
-            objlist = [obj for obj in self.scene().selectedItems() if isinstance(obj, type_obj)]
-            loclist = [loc for loc in self.scene().selectedItems() if isinstance(loc, type_loc)]
-            zonelist = [zone for zone in self.scene().items() if isinstance(zone, type_zone)]
-
-            dragging = any(thing.dragging for sel in (objlist, loclist, zonelist) for thing in sel)
-            if dragging:
-                # If resizing anything, don't place anything
-                event.accept()
-                globals.mainWindow.levelOverview.update()
-                return
-
+        elif eventButton == Qt.RightButton:
             if globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
                 mw = globals.mainWindow
                 ln = globals.CurrentLayer
@@ -4109,7 +4113,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     return
 
                 # paint an object
-                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                clicked = self.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
                 clickedx = int(clicked.x() / globals.TileWidth)
@@ -4168,7 +4172,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     globals.ObjectAddedtoEmbedded[globals.CurrentArea][obj.folderIndex][type_] = (globals.CurrentPaintType, globals.CurrentObject)
 
                 # paint an object
-                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                clicked = self.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
                 clickedx = int(clicked.x() / globals.TileWidth)
@@ -4198,7 +4202,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
             elif globals.CurrentPaintType == 4 and globals.CurrentSprite != -1:
                 # paint a sprite
-                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                clicked = self.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
 
@@ -4284,7 +4288,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
             elif globals.CurrentPaintType == 5:
                 # paint an entrance
-                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                clicked = self.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
                 clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
@@ -4329,7 +4333,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                 SetDirty()
             elif globals.CurrentPaintType == 6:
                 # paint a path node
-                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                clicked = self.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
                 clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
@@ -4436,7 +4440,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
             elif globals.CurrentPaintType == 7:
                 # paint a location
-                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                clicked = self.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
 
@@ -4479,7 +4483,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
             elif globals.CurrentPaintType == 8:
                 # paint a stamp
-                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                clicked = self.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
 
@@ -4542,7 +4546,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             elif globals.CurrentPaintType == 9:
                 # paint a comment
 
-                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                clicked = self.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
                 clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
@@ -4585,7 +4589,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             elif globals.CurrentPaintType == 12:
                 if globals.Area.areanum == 1:
                     # paint a nabbit path node
-                    clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                    clicked = self.mapToScene(event.x(), event.y())
                     if clicked.x() < 0: clicked.setX(0)
                     if clicked.y() < 0: clicked.setY(0)
                     clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16) + 8
@@ -4684,11 +4688,10 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     dlg.exec_()
 
             event.accept()
-        elif (event.button() == Qt.LeftButton) and (QtWidgets.QApplication.keyboardModifiers() == Qt.ShiftModifier):
-            mw = globals.mainWindow
 
-            pos = mw.view.mapToScene(event.x(), event.y())
-            addsel = mw.scene.items(pos)
+        elif eventButton == Qt.LeftButton and QtWidgets.QApplication.keyboardModifiers() == Qt.ShiftModifier:
+            pos = self.mapToScene(event.x(), event.y())
+            addsel = self.scene().items(pos)
             for i in addsel:
                 if (int(i.flags()) & i.ItemIsSelectable) != 0:
                     i.setSelected(not i.isSelected())
@@ -4696,6 +4699,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
         else:
             QtWidgets.QGraphicsView.mousePressEvent(self, event)
+
         globals.mainWindow.levelOverview.update()
 
     def resizeEvent(self, event):
@@ -4731,7 +4735,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
         inv = False  # if set to True, invalidates the scene at the end of this function.
 
-        pos = globals.mainWindow.view.mapToScene(event.x(), event.y())
+        pos = self.mapToScene(event.x(), event.y())
         if pos.x() < 0: pos.setX(0)
         if pos.y() < 0: pos.setY(0)
         self.PositionHover.emit(int(pos.x()), int(pos.y()))
@@ -4747,7 +4751,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             self.YScrollBar.setValue(self.YScrollBar.value() + offset.y())
             self.XScrollBar.setValue(self.XScrollBar.value() + (-offset.x() if self.isRightToLeft() else offset.x()))
 
-        elif event.buttons() == Qt.RightButton and globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
+        elif event.buttons() & Qt.RightButton and globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
                 mw = globals.mainWindow
                 ln = globals.CurrentLayer
                 layer = globals.Area.layers[globals.CurrentLayer]
@@ -4770,7 +4774,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
                     QuickPaintOperations.preEraseObject(ln,layer,int(self.mouseGridPosition[0]-0.5), int(self.mouseGridPosition[1]+0.5))
                     QuickPaintOperations.preEraseObject(ln,layer,int(self.mouseGridPosition[0]+0.5), int(self.mouseGridPosition[1]+0.5))
 
-        elif event.buttons() == Qt.RightButton and self.currentobj is not None and not self.dragstamp:
+        elif event.buttons() & Qt.RightButton and self.currentobj is not None and not self.dragstamp:
 
             # possibly a small optimization
             type_obj = ObjectItem
@@ -4798,7 +4802,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                     dsx = self.dragstartx
                     dsy = self.dragstarty
-                    clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                    clicked = self.mapToScene(event.x(), event.y())
                     if clicked.x() < 0: clicked.setX(0)
                     if clicked.y() < 0: clicked.setY(0)
                     clickx = int(clicked.x() / globals.TileWidth)
@@ -4850,7 +4854,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                     dsx = self.dragstartx
                     dsy = self.dragstarty
-                    clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                    clicked = self.mapToScene(event.x(), event.y())
                     if clicked.x() < 0: clicked.setX(0)
                     if clicked.y() < 0: clicked.setY(0)
                     clickx = int(clicked.x() / globals.TileWidth * 16)
@@ -4914,7 +4918,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 elif isinstance(obj, type_spr):
                     # move the created sprite
-                    clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                    clicked = self.mapToScene(event.x(), event.y())
                     if clicked.x() < 0: clicked.setX(0)
                     if clicked.y() < 0: clicked.setY(0)
                     clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
@@ -4940,7 +4944,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
                 elif isinstance(obj, type_ent) or isinstance(obj, type_path) or isinstance(obj, type_nPath) or isinstance(obj, type_com):
                     # move the created entrance/path/comment
-                    clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                    clicked = self.mapToScene(event.x(), event.y())
                     if clicked.x() < 0: clicked.setX(0)
                     if clicked.y() < 0: clicked.setY(0)
                     clickedx = int((clicked.x() - globals.TileWidth / 2) / globals.TileWidth * 16)
@@ -4977,7 +4981,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
             event.accept()
 
-        elif event.buttons() == Qt.RightButton and self.currentobj is not None and self.dragstamp:
+        elif event.buttons() & Qt.RightButton and self.currentobj is not None and self.dragstamp:
             # The user is dragging a stamp - many objects.
 
             # possibly a small optimization
@@ -4992,7 +4996,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
             for obj in objlist:
 
-                clicked = globals.mainWindow.view.mapToScene(event.x(), event.y())
+                clicked = self.mapToScene(event.x(), event.y())
                 if clicked.x() < 0: clicked.setX(0)
                 if clicked.y() < 0: clicked.setY(0)
 
@@ -5027,7 +5031,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
             self.scene().update()
 
-        else:
+        elif not self.selectionFix:
             type_obj = ObjectItem
             type_loc = LocationItem
             type_zone = ZoneItem
@@ -5170,10 +5174,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
         """
         Overrides mouse release events if needed
         """
-        if event.button() == Qt.MidButton:
-            self.setDragMode(QtWidgets.QGraphicsView.RubberBandDrag)
-
-        elif event.button() == Qt.RightButton:
+        if event.button() == Qt.RightButton:
             if globals.mainWindow.quickPaint and globals.mainWindow.quickPaint.QuickPaintMode:
                 if globals.mainWindow.quickPaint.QuickPaintMode == 'PAINT':
                     QuickPaintOperations.PaintFromPrePaintedObjects()
@@ -5185,6 +5186,9 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
 
             else:
                 self.currentobj = None
+
+        elif event.button() == Qt.LeftButton:
+            self.selectionFix = False
 
         QtWidgets.QGraphicsView.mouseReleaseEvent(self, event)
 
@@ -5211,7 +5215,7 @@ class LevelViewWidget(QtWidgets.QGraphicsView):
             if not numDegrees.isNull():
                 numSteps = numDegrees / 15
                 numStepsY = numSteps.y()
-                globals.mainWindow.view.XScrollBar.setSliderPosition(globals.mainWindow.view.XScrollBar.value() - numStepsY * 24 * 8)
+                self.XScrollBar.setSliderPosition(self.XScrollBar.value() - numStepsY * 24 * 8)
 
         else:
             QtWidgets.QGraphicsView.wheelEvent(self, event)
