@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Miyamoto! Level Editor - New Super Mario Bros. U Level Editor
-# Copyright (C) 2009-2020 Treeki, Tempus, angelsl, JasonP27, Kinnay,
+# Copyright (C) 2009-2021 Treeki, Tempus, angelsl, JasonP27, Kinnay,
 # MalStar1000, RoadrunnerWMC, MrRean, Grop, AboodXD, Gota7, John10v10,
 # mrbengtsson
 
@@ -28,8 +28,8 @@
 import os, sys
 
 MiyamotoID = 'Miyamoto! Level Editor by AboodXD, Gota7, John10v10, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
-MiyamotoVersion = '28.0b'
-MiyamotoVersionFloat = 28.0
+MiyamotoVersion = '29.0'
+MiyamotoVersionFloat = 29.0
 
 generateStringsXML = False
 app = None
