@@ -1622,6 +1622,16 @@ class PreferencesDialog(QtWidgets.QDialog):
                 self.separate = QtWidgets.QCheckBox()
                 self.separate.setChecked(globals.isEmbeddedSeparate)
 
+                from spritelib import RotationFPS
+
+                # Add the pivotal rotation animation FPS specifier
+                self.rotationFPS = QtWidgets.QSpinBox()
+                self.rotationFPS.setMaximumWidth(256)
+                self.rotationFPS.setRange(1, 60)
+                self.rotationFPS.setValue(RotationFPS)
+
+                del RotationFPS
+
                 # Add the option to modify the inner sarc name
                 self.modifyInnerName = QtWidgets.QCheckBox()
                 self.modifyInnerName.setChecked(globals.modifyInnerName)
@@ -1632,6 +1642,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 L.addRow(globals.trans.string('PrefsDlg', 15), ClearRecentBtn)
                 L.addRow(globals.trans.string('PrefsDlg', 32), self.compLevel)
                 L.addRow(globals.trans.string('PrefsDlg', 43), self.separate)
+                L.addRow(globals.trans.string('PrefsDlg', 45), self.rotationFPS)
                 L.addRow(globals.trans.string('PrefsDlg', 44), self.modifyInnerName)
                 self.setLayout(L)
 

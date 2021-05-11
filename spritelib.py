@@ -106,7 +106,7 @@ def main():
     """
     Resets Sprites.py to its original settings
     """
-    global OutlineColor, OutlinePen, OutlineBrush, ImageCache, SpritesFolders, RotationTimer, RotationFrame, RotationFPS
+    global OutlineColor, OutlinePen, OutlineBrush, ImageCache, SpritesFolders, RotationTimer
     OutlinePen = QtGui.QPen(OutlineColor, 4 * (TileWidth/24))
     OutlineBrush = QtGui.QBrush(OutlineColor)
 

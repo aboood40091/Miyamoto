@@ -668,6 +668,7 @@ class MiyamotoTranslation:
                 42: '9: Best',
                 43: 'Split Embedded tab:',
                 44: 'Modify Internal Name:',
+                45: 'Pivotal Rotation Preview FPS:',
                 },
             'QuickPaint': {
                 1: "WOAH! Watch out!",

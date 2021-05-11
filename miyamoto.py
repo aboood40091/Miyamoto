@@ -49,7 +49,7 @@ import time
 import traceback
 
 # PyQt5: import
-pqt_min = map(int, "5.4.1".split('.'))
+pqt_min = map(int, "5.8.0".split('.'))
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
@@ -58,7 +58,7 @@ version = map(int, QtCore.QT_VERSION_STR.split('.'))
 for v, c in zip(version, pqt_min):
     if c > v:
         # lower version
-        errormsg = 'Please update your copy of PyQt to 5.4.1' + \
+        errormsg = 'Please update your copy of PyQt to 5.8' + \
                    ' or greater. Currently running on: ' + QtCore.QT_VERSION_STR
 
         raise Exception(errormsg) from None
@@ -2797,6 +2797,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         # Determine the Embedded tab type
         globals.isEmbeddedSeparate = dlg.generalTab.separate.isChecked()
         setSetting('isEmbeddedSeparate', globals.isEmbeddedSeparate)
+
+        # Determine the pivotal rotation animation FPS
+        SLib.RotationFPS = dlg.generalTab.rotationFPS.value()
+        setSetting('RotationFPS', SLib.RotationFPS)
+        if SLib.RotationTimer.isActive():
+            SLib.RotationTimer.setInterval(1000 / SLib.RotationFPS)
 
         # Determine if the inner sarc name should be modifiable
         globals.modifyInnerName = dlg.generalTab.modifyInnerName.isChecked()
@@ -5611,6 +5617,7 @@ def main():
     globals.modifyInnerName = setting('ModifyInnerName', True)
     globals.RotationShown = setting('RotationShown', False)
     globals.RotationNoticeShown = setting('RotationNoticeShown', True)
+    SLib.RotationFPS = setting('RotationFPS', 30)
 
     if globals.libyaz0_available:
         globals.CompLevel = setting('CompLevel', 1)
