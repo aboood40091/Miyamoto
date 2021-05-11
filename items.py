@@ -1705,6 +1705,7 @@ class SpriteItem(LevelEditorItem):
         self.spritedata = data
         self.layer = layer
         self.initialState = initialState
+        self.zoneID = -1
         self.listitem = None
         self.LevelRect = QtCore.QRectF(self.objx / 16, self.objy / 16, globals.TileWidth / 16, globals.TileWidth / 16)
         self.ChangingPos = False

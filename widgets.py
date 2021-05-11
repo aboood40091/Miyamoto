@@ -4000,7 +4000,8 @@ class TilesetsTab(QtWidgets.QWidget):
 
             if result == QtWidgets.QDialog.Accepted:
                 fname = str(dbox.textbox.text())
-                if fname.endswith('.szs') or fname.endswith('.sarc'): fname = fname[:-3]
+                if fname.endswith('.szs'): fname = fname[:-4]
+                elif fname.endswith('.sarc'): fname = fname[:-5]
 
                 w.setItemText(index, globals.trans.string('AreaDlg', 18, '[name]', fname))
                 w.setItemData(index, globals.trans.string('AreaDlg', 17, '[name]', fname))

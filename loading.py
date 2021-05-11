@@ -126,6 +126,7 @@ def LoadLevelNames_AddMissingCategories(node, node_patch):
             else:
                 node += [child_patch]
 
+
 def LoadLevelNames_Category(node):
     """
     Loads a LevelNames XML category
@@ -471,8 +472,6 @@ def _LoadTileset(idx, name):
     sarc = SarcLib.SARC_Archive()
     sarc.load(sarcdata)
 
-    tileoffset = idx * 256
-
     # Decompress the textures
     try:
         comptiledata = sarc['BG_tex/%s.gtx' % name].data
@@ -500,6 +499,7 @@ def _LoadTileset(idx, name):
     dest2 = QtGui.QPixmap.fromImage(nml)
     sourcex = 0
     sourcey = 0
+    tileoffset = idx * 256
     for i in range(tileoffset, tileoffset + 256):
         T = TilesetTile(getTileFromImage(dest, sourcex, sourcey), getTileFromImage(dest2, sourcex, sourcey))
         T.setCollisions(struct.unpack_from('<Q', colldata, (i - tileoffset) * 8)[0])
@@ -509,51 +509,38 @@ def _LoadTileset(idx, name):
             sourcex = 0
             sourcey += 1
 
-    def exists(fn):
-        nonlocal sarc
-
-        try:
-            sarc[fn]
-
-        except KeyError:
-            return False
-
-        return True
-    
     # Load the tileset animations, if there are any
     if idx == 0:
-        tileoffset = idx * 256
-
         hatena_anime = None
         block_anime = None
         tuka_coin_anime = None
         belt_conveyor_anime = None
 
-        fn = 'BG_tex/hatena_anime.gtx'
-        found = exists(fn)
+        try:
+            hatena_anime = loadGTX(sarc['BG_tex/hatena_anime.gtx'].data)
 
-        if found:
-            hatena_anime = loadGTX(sarc[fn].data)
+        except:
+            pass
 
-        fn = 'BG_tex/block_anime.gtx'
-        found = exists(fn)
+        try:
+            block_anime = loadGTX(sarc['BG_tex/block_anime.gtx'].data)
 
-        if found:
-            block_anime = loadGTX(sarc[fn].data)
+        except:
+            pass
 
-        fn = 'BG_tex/tuka_coin_anime.gtx'
-        found = exists(fn)
+        try:
+            tuka_coin_anime = loadGTX(sarc['BG_tex/tuka_coin_anime.gtx'].data)
 
-        if found:
-            tuka_coin_anime = loadGTX(sarc[fn].data)
+        except:
+            pass
 
-        fn = 'BG_tex/belt_conveyor_anime.gtx'
-        found = exists(fn)
+        try:
+            belt_conveyor_anime = loadGTX(sarc['BG_tex/belt_conveyor_anime.gtx'].data, True)
 
-        if found:
-            belt_conveyor_anime = loadGTX(sarc[fn].data, True)
+        except:
+            pass
 
-        for i in range(tileoffset, tileoffset + 256):
+        for i in range(256):
             if globals.Tiles[i].coreType == 7:
                 if hatena_anime:
                     globals.Tiles[i].addAnimationData(hatena_anime)
