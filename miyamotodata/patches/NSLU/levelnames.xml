@@ -114,10 +114,4 @@
         <level file="9-9" name="Superstar Road-9: Flying Squirrel Ovation" />
     </category>
 
-    <category name="Other">
-        <level file="1-39" name="Title Screen" />
-        <level file="1-41" name="Credits" />
-        <level file="1-46" name="Boost Rush results" />
-    </category>
-
 </levels>

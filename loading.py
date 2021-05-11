@@ -83,12 +83,53 @@ def LoadLevelNames():
     """
     Ensures that the level name info is loaded
     """
-    # Parse the file
-    tree = etree.parse(GetPath('levelnames'))
-    root = tree.getroot()
+    paths, isPatch = globals.gamedef.recursiveFiles('levelnames', True)
+    if isPatch:
+        paths = [globals.trans.files['levelnames']] + paths
 
-    # Parse the nodes (root acts like a large category)
-    globals.LevelNames = LoadLevelNames_Category(root)
+    globals.LevelNames = []
+
+    for path in paths:
+        # Parse the file
+        tree = etree.parse( path )
+        root = tree.getroot()
+
+        # Parse the nodes (root acts like a large category)
+        patchLevelNames = LoadLevelNames_Category(root)
+        LoadLevelNames_ReplaceCategory(globals.LevelNames, patchLevelNames)
+        LoadLevelNames_AddMissingCategories(globals.LevelNames, patchLevelNames)
+
+
+def LoadLevelNames_ReplaceCategory(node, node_patch):
+    for child in node:
+        for child_patch in node_patch:
+            if isinstance(child[1], list) and isinstance(child_patch[1], list) and child[0] == child_patch[0]:
+                LoadLevelNames_ReplaceCategory(child[1], child_patch[1])
+                break
+            elif isinstance(child[1], str) and isinstance(child_patch[1], str) and child[1] == child_patch[1]:
+                child[0] = child_patch[0]
+                break
+
+
+def LoadLevelNames_AddMissingCategories(node, node_patch):
+    for child_patch in node_patch:
+        if isinstance(child_patch[1], list):
+            found = False
+            for child in node:
+                if isinstance(child[1], list) and child[0] == child_patch[0]:
+                    found = True
+                    break
+            if found:
+                LoadLevelNames_AddMissingCategories(child[1], child_patch[1])
+            else:
+                node += [child_patch]
+
+        else:
+            for child in node:
+                if isinstance(child[1], str) and child[1] == child_patch[1]:
+                    break
+            else:
+                node += [child_patch]
 
 
 def LoadLevelNames_Category(node):
@@ -98,10 +139,10 @@ def LoadLevelNames_Category(node):
     cat = []
     for child in node:
         if child.tag.lower() == 'category':
-            cat.append((str(child.attrib['name']), LoadLevelNames_Category(child)))
+            cat.append([str(child.attrib['name']), LoadLevelNames_Category(child)])
         elif child.tag.lower() == 'level':
-            cat.append((str(child.attrib['name']), str(child.attrib['file'])))
-    return tuple(cat)
+            cat.append([str(child.attrib['name']), str(child.attrib['file'])])
+    return cat
 
 
 def LoadTilesetNames(reload_=False):
@@ -284,7 +325,11 @@ def LoadSpriteData():
 
             # Apply it
             for spriteid, name in data:
-                globals.Sprites[int(spriteid)].name = name
+                try:
+                    globals.Sprites[int(spriteid)].name = name
+                except Exception as e:
+                    errors.append(spriteid)
+                    errortext.append(str(e))
 
     # Warn the user if errors occurred
     if len(errors) > 0:

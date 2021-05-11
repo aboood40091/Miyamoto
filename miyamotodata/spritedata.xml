@@ -1341,7 +1341,7 @@
 		</list>
 		<checkbox nybble="10" title="Place Behind Layer 1" mask="2"/>
 		<checkbox nybble="10" title="Place Behind Layer 0" mask="4"/>
-		<checkbox nybble="10" title="Topless/Invisible" mask="8" comment="Use underwater background for this."/>
+		<checkbox nybble="10" title="Topless and Invisible" mask="8" comment="The water will have no top and the water effect will cover the entire screen, but the water collision stays where the sprite is placed. Use underwater background for this."/>
 		<value nybble="11-12" title="Location ID"/>
 		<value nybble="13" title="Unknown Value 13" comment="Bitfield of some kind."/>
 		<value nybble="14" title="Unknown Value 14"/>
@@ -1523,18 +1523,19 @@
 		<value nybble="7" title="Rising Delay"/>
 		<value nybble="8-9" title="Rising Height" comment="The height, in blocks, that the poison water will rise."/>
 		<checkbox nybble="10" title="Rising" comment="If checked, the poisinous water will rise quickly."/>
+		<checkbox nybble="10" title="Topless" mask="8" comment="The poison water will have no top, but will be fully functional."/>
 		<value nybble="11-12" title="Location ID"/>
 	</sprite>
 	<sprite id="91" name="Quicksand" notes="Once Mario steps in, he will start sinking. Doesn't hurt him to stay inside of it, though.&#13;&#10;&#13;&#10;If you use a location, make sure it sticks 5 blocks below the zone, or else it will not make the player die.">
 		<checkbox nybble="10" title="Unknown Checkbox 10 Mask 4" mask="4"/>
-		<checkbox nybble="10" title="Flat Top" mask="8" comment="&lt;br&gt;Checking this removes the animated crest effect on the top portion of the Sprite. Creates a 'square' look. &lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; Only use with a flat ceiling or else will look strange."/>
+		<checkbox nybble="10" title="Topless" mask="8" comment="&lt;br&gt;Checking this removes the animated crest effect on the top portion of the Sprite. Creates a 'square' look. &lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; Only use with a flat ceiling or else will look strange."/>
 		<value nybble="11-12" title="Location ID" comment="&lt;br&gt;Match with a Location to set the Area of this Sprite."/>
 	</sprite>
-	<sprite id="92" name="Fog" notes="Name translates to &quot;Cloud terrain actor&quot;. ">
-		<value nybble="12" title="Location ID" comment="The location of the fog."/>
+	<sprite id="92" name="Fog" notes="Name translates to &quot;Cloud terrain actor&quot;. Does not require a location.">
+		<value nybble="11-12" title="Location ID" comment="The location of the fog."/>
 	</sprite>
-	<sprite id="93" name="Mist Effect [UNUSED]" notes="Creates a mist-like effect. ">
-		<value nybble="11-12" title="Location" comment="The location the mist will be spawned in."/>
+	<sprite id="93" name="Ghost Fog [UNUSED]" notes="Creates a thin fog effect. Does not require a location.">
+		<value nybble="11-12" title="Location" comment="The location of the fog."/>
 	</sprite>
 	<sprite id="94" name="Bouncy Cloud" notes="A cloud you can bounce high on!">
 		<list nybble="6" title="Movement Direction" comment="Direction the cloud moves in.">
@@ -4289,8 +4290,8 @@
 	<sprite id="289" name="Stationary Burner" notes="A burner that sprays a flame continuously with no rotation. The flames are 2 blocks long.">
 		<checkbox nybble="7" title="Affected by gravity" mask="2"/>
 		<list nybble="12" title="Direction" comment="Sets the direction of the burner.">
-			<entry value="0">Left</entry>
-			<entry value="1">Right</entry>
+			<entry value="0">Right</entry>
+			<entry value="1">Left</entry>
 			<entry value="2">Up</entry>
 			<entry value="3">Down</entry>
 		</list>
@@ -4298,8 +4299,8 @@
 	<sprite id="290" name="Stationary Burner (Long Fire) [UNUSED]" notes="A larger varient of sprite 289.">
 		<checkbox nybble="7" title="Affected by gravity" mask="2"/>
 		<list nybble="12" title="Direction" comment="Sets the direction of the burner.">
-			<entry value="0">Left</entry>
-			<entry value="1">Right</entry>
+			<entry value="0">Right</entry>
+			<entry value="1">Left</entry>
 			<entry value="2">Up</entry>
 			<entry value="3">Down</entry>
 		</list>

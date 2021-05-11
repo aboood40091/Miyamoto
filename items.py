@@ -40,6 +40,7 @@ if not hasattr(QtWidgets.QGraphicsItem, 'ItemSendsGeometryChanges'):
 
 import globals
 import spritelib as SLib
+#from sprites import SpriteImage_LiquidOrFog
 from tileset import RenderObject
 from ui import GetIcon
 from verifications import SetDirty
@@ -63,9 +64,7 @@ class LevelEditorItem(QtWidgets.QGraphicsItem):
         self.setFlag(self.ItemSendsGeometryChanges, True)
 
     def __lt__(self, other):
-        if self.objx != other.objx:
-            return self.objx < other.objx
-        return self.objy < other.objy
+        return (self.objx, self.objy) < (other.objx, other.objy)
 
     def itemChange(self, change, value):
         """
@@ -648,43 +647,47 @@ class ObjectItem(LevelEditorItem):
 
                 SetDirty()
 
-        self.TLGrabbed = self.GrabberRectTL.contains(event.pos())
-        self.TRGrabbed = self.GrabberRectTR.contains(event.pos())
-        self.BLGrabbed = self.GrabberRectBL.contains(event.pos())
-        self.BRGrabbed = self.GrabberRectBR.contains(event.pos())
-        self.MTGrabbed = self.GrabberRectMT.contains(event.pos())
-        self.MLGrabbed = self.GrabberRectML.contains(event.pos())
-        self.MBGrabbed = self.GrabberRectMB.contains(event.pos())
-        self.MRGrabbed = self.GrabberRectMR.contains(event.pos())
+            elif self.isSelected():
+                self.TLGrabbed = self.GrabberRectTL.contains(event.pos())
+                self.TRGrabbed = self.GrabberRectTR.contains(event.pos())
+                self.BLGrabbed = self.GrabberRectBL.contains(event.pos())
+                self.BRGrabbed = self.GrabberRectBR.contains(event.pos())
+                self.MTGrabbed = self.GrabberRectMT.contains(event.pos())
+                self.MLGrabbed = self.GrabberRectML.contains(event.pos())
+                self.MBGrabbed = self.GrabberRectMB.contains(event.pos())
+                self.MRGrabbed = self.GrabberRectMR.contains(event.pos())
 
-        if self.isSelected() and (
-            self.TLGrabbed
-            or self.TRGrabbed
-            or self.BLGrabbed
-            or self.BRGrabbed
-            or self.MTGrabbed
-            or self.MLGrabbed
-            or self.MBGrabbed
-            or self.MRGrabbed
-        ):
-            # start dragging
-            self.dragging = True
-            self.dragstartx = int((event.pos().x() - globals.TileWidth // 2) / globals.TileWidth)
-            self.dragstarty = int((event.pos().y() - globals.TileWidth // 2) / globals.TileWidth)
-            self.objsDragging = {}
+                if (
+                    self.TLGrabbed
+                    or self.TRGrabbed
+                    or self.BLGrabbed
+                    or self.BRGrabbed
+                    or self.MTGrabbed
+                    or self.MLGrabbed
+                    or self.MBGrabbed
+                    or self.MRGrabbed
+                ):
+                    # start dragging
+                    self.dragging = True
+                    self.dragstartx = int((event.pos().x() - globals.TileWidth // 2) / globals.TileWidth)
+                    self.dragstarty = int((event.pos().y() - globals.TileWidth // 2) / globals.TileWidth)
+                    self.objsDragging = {}
 
-            for selitem in globals.mainWindow.scene.selectedItems():
-                if not isinstance(selitem, ObjectItem):
-                    continue
+                    for selitem in globals.mainWindow.scene.selectedItems():
+                        if not isinstance(selitem, ObjectItem):
+                            continue
 
-                self.objsDragging[selitem] = [selitem.width, selitem.height]
+                        self.objsDragging[selitem] = [selitem.width, selitem.height]
 
-            event.accept()
+                    self.UpdateTooltip()
+                    self.update()
 
-        else:
-            LevelEditorItem.mousePressEvent(self, event)
-            self.dragging = False
-            self.objsDragging = {}
+                    event.accept()
+                    return
+
+        self.dragging = False
+        self.objsDragging = {}
+        LevelEditorItem.mousePressEvent(self, event)
 
         self.UpdateTooltip()
         self.update()
@@ -723,7 +726,7 @@ class ObjectItem(LevelEditorItem):
         """
         Overrides mouse movement events if needed for resizing
         """
-        if event.buttons() != Qt.NoButton and self.dragging:
+        if event.buttons() & QtCore.Qt.LeftButton and self.dragging:
             # resize it
             dsx = self.dragstartx
             dsy = self.dragstarty
@@ -978,12 +981,12 @@ class ObjectItem(LevelEditorItem):
         Disables "dragging" when the mouse is released
         """
         LevelEditorItem.mouseReleaseEvent(self, event)
+        if event.button() == QtCore.Qt.LeftButton:
+            self.TLGrabbed = self.TRGrabbed = self.BLGrabbed = self.BRGrabbed = False
+            self.MTGrabbed = self.MLGrabbed = self.MBGrabbed = self.MRGrabbed = False
+            self.dragging = False
 
-        self.TLGrabbed = self.TRGrabbed = self.BLGrabbed = self.BRGrabbed = False
-        self.MTGrabbed = self.MLGrabbed = self.MBGrabbed = self.MRGrabbed = False
-        self.dragging = False
-
-        self.update()
+            self.update()
 
     def delete(self):
         """
@@ -999,7 +1002,7 @@ class ZoneItem(LevelEditorItem):
     Level editor item that represents a zone
     """
 
-    def __init__(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, bounding=None, bg=None, id=None):
+    def __init__(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, bounding=None, bg=None, id=None):
         """
         Creates a zone with specific data
         """
@@ -1015,15 +1018,19 @@ class ZoneItem(LevelEditorItem):
         self.modeldark = e
         self.terraindark = f
         self.id = g
-        self.block3id = h
+        #self.block3id = h
         self.cammode = i
         self.camzoom = j
-        self.visibility = k
-        self.block5id = l
-        self.camtrack = m
-        self.music = n
-        self.sfxmod = o
-        self.type = p
+        self.unk1 = k
+        self.visibility = l
+        #self.block5id = m
+        self.unk2 = n
+        self.camtrack = o
+        self.unk3 = p
+        self.music = q
+        self.sfxmod = r
+        #self.block6id = s
+        self.type = t
         self.UpdateRects()
 
         self.aux = set()
@@ -1039,14 +1046,18 @@ class ZoneItem(LevelEditorItem):
             self.yupperbound2 = bounding[2]
             self.ylowerbound2 = bounding[3]
             self.entryid = bounding[4]
-            self.unknownbnf = bounding[5]
+            self.mpcamzoomadjust = bounding[5]
+            self.yupperbound3 = bounding[6]
+            self.ylowerbound3 = bounding[7]
         else:
             self.yupperbound = 0
             self.ylowerbound = 0
             self.yupperbound2 = 0
             self.ylowerbound2 = 0
             self.entryid = 0
-            self.unknownbnf = 0
+            self.mpcamzoomadjust = 0xF
+            self.yupperbound3 = 0
+            self.ylowerbound3 = 0
 
         if bg is not None:
             self.background = bg
@@ -1069,6 +1080,9 @@ class ZoneItem(LevelEditorItem):
         """
         self.title = globals.trans.string('Zones', 0, '[num]', self.id + 1)
 
+    def __lt__(self, other):
+        return self.id < other.id
+
     def UpdateRects(self):
         """
         Updates the zone's bounding rectangle
@@ -1076,7 +1090,6 @@ class ZoneItem(LevelEditorItem):
         self.prepareGeometryChange()
         mult = globals.TileWidth / 16
         self.BoundingRect = QtCore.QRectF(0, 0, self.width * mult, self.height * mult)
-        self.ScalingRect = QtCore.QRectF(self.objx * mult, self.objy * mult, self.width * mult, self.height * mult)
         self.ZoneRect = QtCore.QRectF(self.objx, self.objy, self.width, self.height)
         self.DrawRect = QtCore.QRectF(3, 3, int(self.width * mult) - 6, int(self.height * mult) - 6)
 
@@ -1109,19 +1122,16 @@ class ZoneItem(LevelEditorItem):
 
         # Paint liquids/fog
         if globals.SpritesShown and globals.RealViewEnabled:
-            zoneRect = QtCore.QRectF(self.objx * globals.TileWidth / 16, self.objy * globals.TileWidth / 16, self.width * globals.TileWidth / 16, self.height * globals.TileWidth / 16)
-            viewRect = globals.mainWindow.view.mapToScene(globals.mainWindow.view.viewport().rect()).boundingRect()
+            zoneRect = self.sceneBoundingRect()
+            from sprites import SpriteImage_LiquidOrFog as liquidOrFogType
 
             for sprite in globals.Area.sprites:
-                if sprite.type in [88, 89, 90, 92, 198, 201]:
-                    spriteZoneID = SLib.MapPositionToZoneID(globals.Area.zones, sprite.objx, sprite.objy)
-
-                    if self.id == spriteZoneID:
-                        sprite.ImageObj.realViewZone(painter, zoneRect, viewRect)
+                if isinstance(sprite.ImageObj, liquidOrFogType) and sprite.ImageObj.paintZone() and self.id == sprite.ImageObj.zoneId:
+                    sprite.ImageObj.realViewZone(painter, zoneRect)
 
         # Now paint the borders
         painter.setPen(QtGui.QPen(globals.theme.color('zone_lines'), 3 * globals.TileWidth / 24))
-        if (self.visibility >= 32) and globals.RealViewEnabled:
+        if (self.visibility & 0x20) and globals.RealViewEnabled:
             painter.setBrush(QtGui.QBrush(globals.theme.color('zone_dark_fill')))
         painter.drawRect(self.DrawRect)
 
@@ -1145,6 +1155,9 @@ class ZoneItem(LevelEditorItem):
         """
         Overrides mouse pressing events if needed for resizing
         """
+
+        if event.button() != Qt.LeftButton:
+            return LevelEditorItem.mousePressEvent(self, event)
 
         if self.GrabberRectTL.contains(event.pos()):
             # start dragging
@@ -1198,8 +1211,7 @@ class ZoneItem(LevelEditorItem):
         """
         Overrides mouse movement events if needed for resizing
         """
-
-        if event.buttons() != Qt.NoButton and self.dragging:
+        if event.buttons() & QtCore.Qt.LeftButton and self.dragging:
             # resize it
             clickedx = int(event.scenePos().x() / globals.TileWidth * 16)
             clickedy = int(event.scenePos().y() / globals.TileWidth * 16)
@@ -1317,6 +1329,9 @@ class ZoneItem(LevelEditorItem):
             for a in self.aux:
                 a.zoneRepositioned()
 
+            for spr in globals.Area.sprites:
+                spr.ImageObj.positionChanged()
+
             SetDirty()
 
             event.accept()
@@ -1327,8 +1342,9 @@ class ZoneItem(LevelEditorItem):
         """
         Disables "dragging" when the mouse is released
         """
-        self.dragging = False
         LevelEditorItem.mouseReleaseEvent(self, event)
+        if event.button() == QtCore.Qt.LeftButton:
+            self.dragging = False
 
     def itemChange(self, change, value):
         """
@@ -1393,9 +1409,9 @@ class LocationItem(LevelEditorItem):
         """
         Updates the location's bounding rectangle
         """
+        if self.width < 8: self.width = 8
+        if self.height < 8: self.height = 8
         self.prepareGeometryChange()
-        if self.width == 0: self.width == 8
-        if self.height == 0: self.height == 8
         mult = globals.TileWidth / 16
 
         self.BoundingRect = QtCore.QRectF(0, 0, self.width * mult, self.height * mult)
@@ -1431,6 +1447,15 @@ class LocationItem(LevelEditorItem):
         """
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
 
+        # Paint liquids/fog
+        if globals.SpritesShown and globals.RealViewEnabled:
+            zoneRect = self.sceneBoundingRect()
+            from sprites import SpriteImage_LiquidOrFog as liquidOrFogType
+
+            for sprite in globals.Area.sprites:
+                if isinstance(sprite.ImageObj, liquidOrFogType) and self.id == sprite.ImageObj.locId:
+                    sprite.ImageObj.realViewLocation(painter, zoneRect)
+
         # Draw the purple rectangle
         if not self.isSelected():
             painter.setBrush(QtGui.QBrush(globals.theme.color('location_fill')))
@@ -1461,6 +1486,9 @@ class LocationItem(LevelEditorItem):
         """
         Overrides mouse pressing events if needed for resizing
         """
+
+        if event.button() != Qt.LeftButton:
+            return LevelEditorItem.mousePressEvent(self, event)
 
         if self.isSelected() and self.GrabberRectTL.contains(event.pos()):
             # start dragging
@@ -1514,8 +1542,7 @@ class LocationItem(LevelEditorItem):
         """
         Overrides mouse movement events if needed for resizing
         """
-
-        if event.buttons() != Qt.NoButton and self.dragging:
+        if event.buttons() & QtCore.Qt.LeftButton and self.dragging:
             # resize it
             clickedx = int(event.scenePos().x() / globals.TileWidth * 16)
             clickedy = int(event.scenePos().y() / globals.TileWidth * 16)
@@ -1640,8 +1667,9 @@ class LocationItem(LevelEditorItem):
         """
         Disables "dragging" when the mouse is released
         """
-        self.dragging = False
         LevelEditorItem.mouseReleaseEvent(self, event)
+        if event.button() == QtCore.Qt.LeftButton:
+            self.dragging = False
 
     def delete(self):
         """
@@ -1683,12 +1711,6 @@ class SpriteItem(LevelEditorItem):
 
         SLib.SpriteImage.loadImages()
         self.ImageObj = SLib.SpriteImage(self)
-
-        try:
-            sname = globals.Sprites[type].name
-            self.name = sname
-        except:
-            self.name = 'UNKNOWN'
 
         self.InitializeSprite()
 
@@ -1829,7 +1851,7 @@ class SpriteItem(LevelEditorItem):
 
     def __lt__(self, other):
         # Sort by objx, then objy, then sprite type
-        score = lambda sprite: (sprite.objx * 100000 + sprite.objy) * 1000 + sprite.type
+        score = lambda sprite: (sprite.objx, sprite.objy, sprite.type)
 
         return score(self) < score(other)
 
@@ -1839,10 +1861,12 @@ class SpriteItem(LevelEditorItem):
         """
         type = self.type
 
-        if type > len(globals.Sprites): return
+        try:
+            self.name = globals.Sprites[type].name
+        except:
+            self.name = 'UNKNOWN'
 
-        self.name = globals.Sprites[type].name
-        self.setToolTip(globals.trans.string('Sprites', 0, '[type]', self.type, '[name]', self.name))
+        self.setToolTip(globals.trans.string('Sprites', 0, '[type]', type, '[name]', self.name))
         self.UpdateListItem()
 
         imgs = globals.gamedef.getImageClasses()
@@ -1864,7 +1888,7 @@ class SpriteItem(LevelEditorItem):
             globals.gamedef.getImageClasses()[self.type].loadImages()
             SLib.SpriteImagesLoaded.add(self.type)
 
-        self.ImageObj = obj(self)
+        self.ImageObj = obj(self) if obj else SLib.SpriteImage(self)
 
         # show auxiliary objects properly
         for aux in self.ImageObj.aux:
@@ -2072,7 +2096,7 @@ class SpriteItem(LevelEditorItem):
             LevelEditorItem.mousePressEvent(self, event)
 
             if not globals.SpriteImagesShown:
-                self.setNewObjPos(oldpos[0], oldpos[1])
+                self.setNewObjPos(*oldpos)
 
             return
 
@@ -2093,24 +2117,22 @@ class SpriteItem(LevelEditorItem):
         newitem.UpdateListItem()
         SetDirty()
 
-    def nearestZone(self, obj=False):
+    def nearestZone(self, obj=False, zonelist=None):
         """
         Calls a modified MapPositionToZoneID (if obj = True, it returns the actual ZoneItem object)
         """
-        if not hasattr(globals.Area, 'zones'):
-            if obj:
-                return None
-            else:
-                return -1
+        if zonelist is None:
+            if not hasattr(globals.Area, 'zones'):
+                return None if obj else -1
 
-        id = SLib.MapPositionToZoneID(globals.Area.zones, self.objx, self.objy, True)
+            zonelist = globals.Area.zones
 
-        if obj:
-            for z in globals.Area.zones:
-                if z.id == id:
-                    return z
-        else:
-            return id
+        id = SLib.MapPositionToZoneID(zonelist, self.objx, self.objy)
+        if id == -1:
+            return None if obj else -1
+
+        zone = zonelist[id]
+        return zone if obj else zone.id
 
     def updateScene(self):
         """
@@ -2177,17 +2199,13 @@ class SpriteItem(LevelEditorItem):
         """
         Delete the sprite from the level
         """
+        self.ImageObj.delete()
         sprlist = globals.mainWindow.spriteList
         globals.mainWindow.UpdateFlag = True
         sprlist.takeItem(sprlist.row(self.listitem))
         globals.mainWindow.UpdateFlag = False
         sprlist.selectionModel().clearSelection()
         globals.Area.sprites.remove(self)
-
-        obj = self.ImageObj
-        if obj:
-            obj.delete()
-
         # self.scene().update(self.x(), self.y(), self.BoundingRect.width(), self.BoundingRect.height())
         self.scene().update()  # The zone painters need for the whole thing to update
 

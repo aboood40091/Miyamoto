@@ -144,20 +144,20 @@ class TilesetTile:
         """
         self.animFrame = 0
 
-    def getCurrentTile(self):
+    def getCurrentTile(self, onLayer1=False):
         """
         Returns the current tile based on the current animation frame
         """
         if not (globals.TilesetsAnimating and self.isAnimated):
             result = QtGui.QPixmap(self.main)
 
-            if globals.CollisionsShown and (self.collOverlay is not None):
+            if onLayer1 and globals.CollisionsShown and (self.collOverlay is not None):
                 result = self.imgWithCollisions(result)
 
         else:
             result = QtGui.QPixmap(self.animTiles[self.animFrame])
 
-            if globals.CollisionsShown and (self.collOverlay is not None):
+            if onLayer1 and globals.CollisionsShown and (self.collOverlay is not None):
                 p = QtGui.QPainter(result)
                 p.drawPixmap(0, 0, self.collOverlay)
                 del p
@@ -1091,12 +1091,15 @@ def exportObject(name, baseName, idx, objNum):
         json.dump(jsonData, outfile)
 
 
-def HandleTilesetEdited(fromPuzzle=False):
-    if not fromPuzzle:
+def HandleTilesetEdited(soft=False):
+    if not soft:
         globals.TilesetEdited = True
 
-    globals.mainWindow.objPicker.LoadFromTilesets()
-    globals.mainWindow.updateNumUsedTilesLabel()
+    mainWindow = globals.mainWindow
+    mainWindow.objPicker.clearSelection()
+    mainWindow.objPicker.LoadFromTilesets()
+    mainWindow.updateNumUsedTilesLabel()
+    mainWindow.CreationTabChanged(mainWindow.creationTabs.currentIndex())
 
 
 def DeleteObject(idx, objNum, soft=False):
