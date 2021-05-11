@@ -973,7 +973,6 @@ class ZoneTab(QtWidgets.QWidget):
         self.Zone_directionmode = QtWidgets.QComboBox()
         self.Zone_directionmode.addItems(directionmodeValues)
         self.Zone_directionmode.setToolTip(globals.trans.string('ZonesDlg', 40))
-        
         self.Zone_directionmode.setCurrentIndex(z.camtrack if z.camtrack < 9 else 0)
 
         self.Zone_camunk1 = QtWidgets.QSpinBox()

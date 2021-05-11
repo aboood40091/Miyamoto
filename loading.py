@@ -496,20 +496,8 @@ def _LoadTileset(idx, name):
         raise RuntimeError("Tileset is not Yaz0 compressed!")
 
     sarcdata = DecompYaz0(sarcdata)
-
     sarc = SarcLib.SARC_Archive()
     sarc.load(sarcdata)
-
-    def exists(fn):
-        nonlocal sarc
-
-        try:
-            sarc[fn]
-
-        except KeyError:
-            return False
-
-        return True
 
     # Decompress the textures
     try:
@@ -550,8 +538,6 @@ def _LoadTileset(idx, name):
     
     # Load the tileset animations, if there are any
     if idx == 0:
-        tileoffset = idx * 256
-
         hatena_anime = None
         block_anime = None
         tuka_coin_anime = None
@@ -581,7 +567,7 @@ def _LoadTileset(idx, name):
         except:
             pass
 
-        for i in range(tileoffset, tileoffset + 256):
+        for i in range(256):
             if globals.Tiles[i].coreType == 7:
                 if hatena_anime:
                     globals.Tiles[i].addAnimationData(hatena_anime)
@@ -802,6 +788,7 @@ def LoadActionsLists():
         (globals.trans.string('MenuItems', 12), False, 'metainfo'),
         (globals.trans.string('MenuItems', 14), True, 'screenshot'),
         (globals.trans.string('MenuItems', 16), False, 'changegamepath'),
+        (globals.trans.string('MenuItems', 132), False, 'changeobjpath'),
         # (globals.trans.string('MenuItems', 16), False, 'changesavepath'),
         (globals.trans.string('MenuItems', 18), False, 'preferences'),
         (globals.trans.string('MenuItems', 20), False, 'exit'),

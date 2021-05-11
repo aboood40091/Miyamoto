@@ -35,6 +35,7 @@ GitHub: https://github.com/aboood40091/Miyamoto/tree/deluxe
 * Gota7 -- Spritedata, Testing on Linux
 * Meorge -- Testing on macOS
 * reece stone -- Spritedata
+* RicBent -- FTP
 * RoadrunnerWMC -- Stamps offset fixes
 * Toms -- Spritedata, Testing on macOS
 * Wiimm -- WSZST
