@@ -33,6 +33,7 @@ GitHub: https://github.com/aboood40091/Miyamoto/tree/deluxe
   
 #### Others
 * Gota7 -- Spritedata, Testing on Linux
+* Hiccup -- Spritedata, Sprite Categories
 * Meorge -- Testing on macOS
 * reece stone -- Spritedata
 * RicBent -- FTP
