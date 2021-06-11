@@ -361,6 +361,7 @@ class SpriteImage_MovementController(SpriteImage_StaticMultiple):
 
         self.controlled = []
         self.previousId = 0
+        self.deleted = False
 
         self.parent.setZValue(500000)
 
@@ -407,6 +408,7 @@ class SpriteImage_MovementController(SpriteImage_StaticMultiple):
         self.updateControlled()
 
     def delete(self):
+        self.deleted = True
         self.detachControlled()
 
 
@@ -447,7 +449,7 @@ class SpriteImage_MovementControlled(SpriteImage_StaticMultiple):
         for sprite in globals.Area.sprites:
             if ( sprite.nearestZone() == zoneId and sprite.type in types
                  and isinstance(sprite.ImageObj, SpriteImage_MovementController) ):
-                if sprite.ImageObj.getMovementID() == self.getMovementID():
+                if not sprite.ImageObj.deleted and sprite.ImageObj.getMovementID() == self.getMovementID():
                     if not self.affectedByIdZero and sprite.ImageObj.getMovementID() == 0:
                         continue
                     self.controller = sprite.ImageObj
