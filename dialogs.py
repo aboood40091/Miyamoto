@@ -1632,10 +1632,6 @@ class PreferencesDialog(QtWidgets.QDialog):
 
                 del RotationFPS
 
-                # Add the option to modify the inner sarc name
-                self.modifyInnerName = QtWidgets.QCheckBox()
-                self.modifyInnerName.setChecked(globals.modifyInnerName)
-
                 # Create the main layout
                 L = QtWidgets.QFormLayout()
                 L.addRow(globals.trans.string('PrefsDlg', 14), self.Trans)
@@ -1643,7 +1639,13 @@ class PreferencesDialog(QtWidgets.QDialog):
                 L.addRow(globals.trans.string('PrefsDlg', 32), self.compLevel)
                 L.addRow(globals.trans.string('PrefsDlg', 43), self.separate)
                 L.addRow(globals.trans.string('PrefsDlg', 45), self.rotationFPS)
-                L.addRow(globals.trans.string('PrefsDlg', 44), self.modifyInnerName)
+
+                if not globals.IsNSMBUDX:
+                    # Add the option to modify the inner sarc name
+                    self.modifyInnerName = QtWidgets.QCheckBox()
+                    self.modifyInnerName.setChecked(globals.modifyInnerName)
+                    L.addRow(globals.trans.string('PrefsDlg', 44), self.modifyInnerName)
+
                 self.setLayout(L)
 
                 # Set the buttons

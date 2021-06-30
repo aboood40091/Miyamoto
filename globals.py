@@ -27,7 +27,7 @@
 
 import os, sys
 
-MiyamotoID = 'Miyamoto! Level Editor by AboodXD, Gota7, John10v10, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
+MiyamotoID = 'Miyamoto! Level Editor by AboodXD and Gota7, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean and Grop, and Reggie! by Treeki and Tempus'
 MiyamotoVersion = '29.0'
 MiyamotoVersionFloat = 29.0
 
@@ -96,6 +96,7 @@ szsData = {}
 levelNameCache = ''
 UseRGBA8 = False
 NumSprites = 0
+IsNSMBUDX = False
 miyamoto_path = os.path.dirname(os.path.realpath(sys.argv[0])).replace("\\", "/")
 cython_available = False
 libyaz0_available = False
@@ -104,5 +105,6 @@ names_bg = []
 
 # Game enums
 FileExtentions = ('.szs', '.sarc')
+FileExtensions_NSMBUDX = ('.sarc',)
 Pa0Tilesets = ('Pa0_jyotyu', 'Pa0_jyotyu_chika',
                'Pa0_jyotyu_yougan', 'Pa0_jyotyu_yougan2')
