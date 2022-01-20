@@ -12,7 +12,7 @@
 11=Invisible Block containing a Propeller Shroom
 12=Invisible Block containing a Penguin Suit
 13=Invisible Block containing an Ice Flower
-14=Invisible Block containing an Acorn Mushroom
+14=Invisible Block containing an Super Acorn
 15=Brick Block
 16=Brick Block containing a Coin
 17=Brick Block containing 10 Coins
@@ -25,7 +25,7 @@
 24=Brick Block containing a Penguin Suit
 25=Brick Block containing a Yoshi Egg
 26=Brick Block containing an Ice Flower
-27=Brick Block containing an Acorn Mushroom
+27=Brick Block containing an Super Acorn
 28=? Block containing a Coin
 29=? Block containing a Fire Flower
 30=? Block containing a Star
@@ -37,7 +37,7 @@
 36=? Block containing a Penguin Suit
 37=? Block containing a Yoshi Egg
 38=? Block containing an Ice Flower
-39=? Block containing an Acorn Mushroom
+39=? Block containing an Super Acorn
 40=Empty Block
 41=Wooden Block
 42=Stone Block
