@@ -40,14 +40,10 @@ from items import NabbitPathItem, CommentItem
 from loading import LoadTileset
 from misc import Metadata
 import spritelib as SLib
-from structures import Structures, GetFormat as GetStructureFormat
+from structures import Structures as SID, GetFormat as FMT
 from tileset import generateTilesetNames
 
 #################################
-
-
-SID = Structures
-FMT = GetStructureFormat
 
 
 class AbstractArea:

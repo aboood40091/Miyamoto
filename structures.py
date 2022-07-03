@@ -44,11 +44,17 @@ class Structures(Enum):
     PathNode     = 'HHffhHBBBx'
     LoadedSprite = 'Hxx'
 
+    TilesetObject = 'HBBH'
+
+
+def GetEndianness():
+    return '<' if globals.IsNSMBUDX else '>'
+
 
 def GetFormat(structId):
     assert isinstance(structId, Structures)
 
-    endianness = '<' if globals.IsNSMBUDX else '>'
+    endianness = GetEndianness()
     formatStr = structId.value
 
     return endianness + formatStr

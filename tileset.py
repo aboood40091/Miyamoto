@@ -1561,6 +1561,18 @@ def loadGTX(gtxdata, useAddrLib=False):
     return QtGui.QImage(udata, width, height, QtGui.QImage.Format_RGBA8888)
 
 
+def loadBNTXFromBFRES(bfresdata):
+    return None
+
+
+def LoadTexture(handle, name, wiiuUseAddrLib=False):
+    if globals.IsNSMBUDX:
+        return None
+
+    else:
+        return loadGTX(handle['BG_tex/%s.gtx' % name].data, wiiuUseAddrLib)
+
+
 def CascadeTilesetNames_Category(lower, upper):
     """
     Applies upper as a patch of lower

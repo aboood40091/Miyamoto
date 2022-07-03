@@ -3580,7 +3580,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if isFullPath:
                 checknames = [name, ]
             else:
-                for ext in globals.FileExtentions:
+                for ext in (globals.FileExtentions_NSMBUDX if globals.IsNSMBUDX else globals.FileExtentions):
                     checknames.append(os.path.join(globals.gamedef.GetGamePath(), name + ext))
 
             for checkname in checknames:

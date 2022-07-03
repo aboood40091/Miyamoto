@@ -37,13 +37,19 @@ from gamedefs import MiyamotoGameDefinition, GetPath
 from misc import SpriteDefinition, BGName, setting, setSetting
 import SarcLib
 from strings import MiyamotoTranslation
+from structures import Structures as SID, GetFormat as FMT
 
 from tileset import TilesetTile, ObjectDef
-from tileset import loadGTX, ProcessOverrides
+from tileset import LoadTexture, ProcessOverrides
 from tileset import CascadeTilesetNames_Category
 from tileset import SortTilesetNames_Category
 
 from ui import MiyamotoTheme
+
+# NSMBUDX
+from tileset import loadBNTXFromBFRES
+from yaz0 import determineCompressionMethod
+_, DecompYaz0 = determineCompressionMethod()
 
 #################################
 
@@ -465,17 +471,53 @@ def _LoadTileset(idx, name):
     Load in a tileset into a specific slot
     """
 
-    # if this file's not found, return
-    if name not in globals.szsData: return
+    if globals.IsNSMBUDX:
+        TilesetPaths = reversed(globals.gamedef.GetGamePaths())
 
-    sarcdata = globals.szsData[name]
+        found = False
+        for path in TilesetPaths:
+            if path is None:
+                break
+
+            sarcname = os.path.join(os.path.dirname(path), 'Unit', name + '.szs')
+            if os.path.isfile(sarcname):
+                found = True
+                break
+
+        # warning if not found
+        if not found:
+            QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_MissingTileset', 0),
+                                          globals.trans.string('Err_MissingTileset', 1, '[file]', name))
+            return False
+
+        # get the data
+        with open(sarcname, 'rb') as fileobj:
+            sarcdata = fileobj.read()
+
+        if sarcdata[:4] != b'Yaz0':
+            raise RuntimeError("Tileset is not Yaz0 compressed!")
+
+        sarcdata = DecompYaz0(sarcdata)
+
+    else:
+        # if this file's not found, return
+        if name not in globals.szsData:
+            return
+
+        sarcdata = globals.szsData[name]
+
     sarc = SarcLib.SARC_Archive()
     sarc.load(sarcdata)
 
     # Decompress the textures
     try:
-        comptiledata = sarc['BG_tex/%s.gtx' % name].data
-        nmldata = sarc['BG_tex/%s_nml.gtx' % name].data
+        if globals.IsNSMBUDX:
+            bfresdata = sarc['output.bfres'].data
+
+        else:
+            sarc['BG_tex/%s.gtx' % name]
+            sarc['BG_tex/%s_nml.gtx' % name]
+
         colldata = sarc['BG_chk/d_bgchk_%s.bin' % name].data
 
     except KeyError:
@@ -487,8 +529,13 @@ def _LoadTileset(idx, name):
         return False
 
     # load in the textures
-    img = loadGTX(comptiledata)
-    nml = loadGTX(nmldata)
+    if globals.IsNSMBUDX:
+        handle = loadBNTXFromBFRES(bfresdata)
+    else:
+        handle = sarc
+
+    img = LoadTexture(handle, name)
+    nml = LoadTexture(handle, name + "_nml")
 
     # Divide it into individual tiles and
     # add collisions at the same time
@@ -517,25 +564,25 @@ def _LoadTileset(idx, name):
         belt_conveyor_anime = None
 
         try:
-            hatena_anime = loadGTX(sarc['BG_tex/hatena_anime.gtx'].data)
+            hatena_anime = LoadTexture(handle, "hatena_anime")
 
         except:
             pass
 
         try:
-            block_anime = loadGTX(sarc['BG_tex/block_anime.gtx'].data)
+            block_anime = LoadTexture(handle, "block_anime")
 
         except:
             pass
 
         try:
-            tuka_coin_anime = loadGTX(sarc['BG_tex/tuka_coin_anime.gtx'].data)
+            tuka_coin_anime = LoadTexture(handle, "tuka_coin_anime")
 
         except:
             pass
 
         try:
-            belt_conveyor_anime = loadGTX(sarc['BG_tex/belt_conveyor_anime.gtx'].data, True)
+            belt_conveyor_anime = LoadTexture(handle, "belt_conveyor_anime", True)
 
         except:
             pass
@@ -589,7 +636,7 @@ def _LoadTileset(idx, name):
     indexfile = sarc['BG_unt/%s_hd.bin' % name].data
     deffile = sarc['BG_unt/%s.bin' % name].data
     objcount = len(indexfile) // 6
-    indexstruct = struct.Struct('>HBBH')
+    indexstruct = struct.Struct(FMT(SID.TilesetObject))
 
     for i in range(objcount):
         data = indexstruct.unpack_from(indexfile, i * 6)

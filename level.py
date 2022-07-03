@@ -33,7 +33,8 @@ from xml.etree import ElementTree as etree
 import globals
 import SarcLib
 import spritelib as SLib
-from tileset import CreateTilesets, SaveTileset
+from structures import GetEndianness
+from tileset import CreateTilesets, SaveTileset, generateTilesetNames
 
 #################################
 
@@ -179,7 +180,7 @@ class Level_NSMBU(AbstractLevel):
         """
 
         # Make a new archive
-        newArchive = SarcLib.SARC_Archive()
+        newArchive = SarcLib.SARC_Archive(endianness=GetEndianness())
 
         # Create a folder within the archive
         courseFolder = SarcLib.Folder('course')
@@ -197,6 +198,30 @@ class Level_NSMBU(AbstractLevel):
                 courseFolder.addFile(SarcLib.File('course%d_bgdatL1.bin' % (areanum + 1), L1))
             if L2 is not None:
                 courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (areanum + 1), L2))
+
+        if globals.IsNSMBUDX:
+            # Save all the tilesets
+            if globals.TilesetEdited or globals.OverrideTilesetSaving:
+                tilesetNames = generateTilesetNames()
+                if globals.Area.tileset1:
+                    if globals.Area.tileset1 == "Pa1_untitled_%d" % globals.CurrentArea or globals.OverrideTilesetSaving:
+                        globals.Area.tileset1 = tilesetNames[0]
+
+                    tilesetData = SaveTileset(1)
+
+                if globals.Area.tileset2:
+                    if globals.Area.tileset2 == "Pa2_untitled_%d" % globals.CurrentArea or globals.OverrideTilesetSaving:
+                        globals.Area.tileset2 = tilesetNames[1]
+
+                    tilesetData = SaveTileset(2)
+
+                if globals.Area.tileset3:
+                    if globals.Area.tileset3 == "Pa3_untitled_%d" % globals.CurrentArea or globals.OverrideTilesetSaving:
+                        globals.Area.tileset3 = tilesetNames[2]
+
+                    tilesetData = SaveTileset(3)
+
+            return newArchive.save()[0]
 
         # Here we have the new inner-SARC savedata
         innersarc = newArchive.save()[0]
@@ -344,7 +369,7 @@ class Level_NSMBU(AbstractLevel):
         """
 
         # Make a new archive
-        newArchive = SarcLib.SARC_Archive()
+        newArchive = SarcLib.SARC_Archive(endianness=GetEndianness())
 
         # Create a folder within the archive
         courseFolder = SarcLib.Folder('course')
@@ -371,6 +396,9 @@ class Level_NSMBU(AbstractLevel):
             courseFolder.addFile(SarcLib.File('course%d_bgdatL1.bin' % (len(self.areas) + 1), L1_new))
         if L2_new is not None:
             courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (len(self.areas) + 1), L2_new))
+
+        if globals.IsNSMBUDX:
+            return newArchive.save()[0]
 
         # Here we have the new inner-SARC savedata
         innersarc = newArchive.save()[0]
