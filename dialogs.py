@@ -1962,14 +1962,14 @@ class PreferencesDialog(QtWidgets.QDialog):
                 # Draw the zone
                 paint.setPen(QtGui.QPen(theme.color('zone_lines'), 3))
                 paint.setBrush(QtGui.QBrush(toQColor(0, 0, 0, 0)))
-                paint.drawRect(8.5 * tilewidth, 3.25 * tilewidth, 16 * tilewidth, 7.5 * tilewidth)
+                paint.drawRect(QtCore.QRectF(8.5 * tilewidth, 3.25 * tilewidth, 16 * tilewidth, 7.5 * tilewidth))
                 paint.setPen(QtGui.QPen(theme.color('zone_corner'), 3))
                 paint.setBrush(QtGui.QBrush(theme.color('zone_corner'), 3))
-                paint.drawRect(8.4375 * tilewidth, 3.1875 * tilewidth, 0.125 * tilewidth, 0.125 * tilewidth)
-                paint.drawRect(8.4375 * tilewidth, 10.6875 * tilewidth, 0.125 * tilewidth, 0.125 * tilewidth)
+                paint.drawRect(QtCore.QRectF(8.4375 * tilewidth, 3.1875 * tilewidth, 0.125 * tilewidth, 0.125 * tilewidth))
+                paint.drawRect(QtCore.QRectF(8.4375 * tilewidth, 10.6875 * tilewidth, 0.125 * tilewidth, 0.125 * tilewidth))
                 paint.setPen(QtGui.QPen(theme.color('zone_text'), 1))
                 font = QtGui.QFont(globals.NumberFont)
-                font.setPointSize(5 / 16 * tilewidth)
+                font.setPointSize(round((5 / 16) * tilewidth))
                 paint.setFont(font)
                 paint.drawText(QtCore.QPointF(8.75 * tilewidth, 3.875 * tilewidth), 'Zone 1')
 

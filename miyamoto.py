@@ -118,10 +118,17 @@ from yaz0 import determineCompressionMethod
 CompYaz0, DecompYaz0 = determineCompressionMethod()
 
 
+# Save the original exception handler
+_excepthook_original = sys.excepthook
+
+
 def _excepthook(*exc_info):
     """
     Custom unhandled exceptions handler
     """
+    if globals.app is None:
+        return _excepthook_original(*exc_info)
+
     separator = '-' * 80
     logFile = "log.txt"
     notice = \
@@ -1514,7 +1521,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         stampToolsBtn.setMenu(menu)
         stampToolsBtn.setPopupMode(QtWidgets.QToolButton.InstantPopup)
         stampToolsBtn.setSizePolicy(stampAddBtn.sizePolicy())
-        stampToolsBtn.setMinimumHeight(stampAddBtn.height() / 20)
+        stampToolsBtn.setMinimumHeight(round(stampAddBtn.height() / 20))
 
         stampNameLabel = QtWidgets.QLabel(globals.trans.string('Palette', 35))
         self.stampNameEdit = QtWidgets.QLineEdit()
@@ -2802,7 +2809,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         SLib.RotationFPS = dlg.generalTab.rotationFPS.value()
         setSetting('RotationFPS', SLib.RotationFPS)
         if SLib.RotationTimer.isActive():
-            SLib.RotationTimer.setInterval(1000 / SLib.RotationFPS)
+            SLib.RotationTimer.setInterval(round(1000 / SLib.RotationFPS))
 
         # Determine if the inner sarc name should be modifiable
         globals.modifyInnerName = dlg.generalTab.modifyInnerName.isChecked()
@@ -3174,7 +3181,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         globals.OverrideSnapping = False
 
         if globals.Area is not None and globals.RotationShown:
-            SLib.RotationTimer.start(1000 / SLib.RotationFPS)
+            SLib.RotationTimer.start(round(1000 / SLib.RotationFPS))
 
         else:
             SLib.RotationTimer.stop()

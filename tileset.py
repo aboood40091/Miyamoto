@@ -262,349 +262,349 @@ def updateCollisionOverlay(tile, x, y, tileWidth, painter):
         # Paints shape based on other junk
         if tile.coreType == 0xB and tile.solidity not in (0, 3):  # Slope
             if not tile.params:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y)]))
             elif tile.params == 1:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 2:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5)]))
             elif tile.params == 3:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth)]))
             elif tile.params == 4:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth)]))
             elif tile.params == 5:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 6:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y)]))
             elif tile.params == 7:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y)]))
             elif tile.params == 8:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 9:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 10:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y)]))
             elif tile.params == 11:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.75),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.75),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth)]))
             elif tile.params == 12:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.75),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.75),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 13:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.25),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.25),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 14:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.25),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.25),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 15:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.25),
-                                                    QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.25),
+                                                    QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 16:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.25),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.25),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 17:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.75),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.75),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 18:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.75),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.75),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
 
         elif tile.coreType == 0xC and tile.solidity not in (0, 2):  # Reverse Slope
             if not tile.params:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y)]))
             elif tile.params == 1:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y)]))
             elif tile.params == 2:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5)]))
             elif tile.params == 3:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y)]))
             elif tile.params == 4:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5)]))
             elif tile.params == 5:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y)]))
             elif tile.params == 6:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x, y)]))
             elif tile.params == 7:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y)]))
             elif tile.params == 8:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 9:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.5, y),
-                                                    QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth * 0.5, y),
+                                                    QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 10:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y)]))
             elif tile.params == 11:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.25)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.25)]))
             elif tile.params == 12:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.25)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.25)]))
             elif tile.params == 13:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.75),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.75),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5)]))
             elif tile.params == 14:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.75)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.75)]))
             elif tile.params == 15:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.75),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.75),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 16:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.75)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.75)]))
             elif tile.params == 17:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.25),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.25),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5)]))
             elif tile.params == 18:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.25)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.25)]))
 
         elif tile.coreType == 9 and tile.solidity:  # Partial
             if tile.params == 0:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5)]))
             elif tile.params == 1:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.5, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * 0.5)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth * 0.5, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth * 0.5)]))
             elif tile.params == 2:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5)]))
             elif tile.params == 3:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 4:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 5:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5)]))
             elif tile.params == 6:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 7:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth)]))
             elif tile.params == 8:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y)]))
             elif tile.params == 9:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.5, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth * 0.5, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth)]))
             elif tile.params == 10:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5)]))
             elif tile.params == 11:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 12:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 13:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
             elif tile.params == 14:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth)]))
 
         elif tile.solidity in (2, 3, 4, 17, 18, 33, 34):
             if tile.solidity in (3, 4):  # Solid-on-bottom
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.75),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.75)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.75),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.75)]))
 
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.625, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.625, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.75, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * (17 / 24)),
-                                                    QtCore.QPoint(x + tileWidth * 0.25, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.375, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.375, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth * 0.625, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.625, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.75, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth * (17 / 24)),
+                                                    QtCore.QPointF(x + tileWidth * 0.25, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.375, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.375, y)]))
 
             if tile.solidity != 3:  # Solid-on-top
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.25),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.25)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.25),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.25)]))
 
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.625, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.625, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.75, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth * 0.295),
-                                                    QtCore.QPoint(x + tileWidth * 0.25, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.375, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth * 0.375, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth * 0.625, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.625, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.75, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth * 0.295),
+                                                    QtCore.QPointF(x + tileWidth * 0.25, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.375, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth * 0.375, y + tileWidth)]))
 
         elif tile.coreType == 15 and tile.solidity == 1:  # Spikes
             if tile.params == 3:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.25)]))
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.75)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.25)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.75)]))
             elif tile.params == 4:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.25)]))
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth * 0.5),
-                                                    QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth * 0.75)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.25)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth * 0.5),
+                                                    QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth * 0.75)]))
             elif tile.params == 5:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.25, y)]))
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.75, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.25, y)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.75, y)]))
             elif tile.params == 6:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.25, y + tileWidth)]))
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.5, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.75, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.25, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth * 0.5, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.75, y + tileWidth)]))
 
             elif tile.params in (0, 1, 2, 7, 8, 9):
                 painter.drawRect(x, y, tileWidth, tileWidth)
 
         elif tile.coreType == 15 and tile.solidity == 0:  # Damage Tiles
             if tile.params == 0:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth)]))
 
             elif tile.params == 1:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x, y),
-                                                    QtCore.QPoint(x + tileWidth, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.75, y + tileWidth),
-                                                    QtCore.QPoint(x + tileWidth * 0.25, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x, y),
+                                                    QtCore.QPointF(x + tileWidth, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.75, y + tileWidth),
+                                                    QtCore.QPointF(x + tileWidth * 0.25, y + tileWidth)]))
 
             elif tile.params == 2:
-                painter.drawPolygon(QtGui.QPolygon([QtCore.QPoint(x + tileWidth * 0.25, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.75, y),
-                                                    QtCore.QPoint(x + tileWidth * 0.5, y + tileWidth)]))
+                painter.drawPolygon(QtGui.QPolygonF([QtCore.QPointF(x + tileWidth * 0.25, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.75, y),
+                                                    QtCore.QPointF(x + tileWidth * 0.5, y + tileWidth)]))
 
             elif tile.params in (7, 8, 9):
                 painter.drawRect(x, y, tileWidth, tileWidth)
@@ -689,7 +689,7 @@ def CreateTilesets():
 
     globals.TilesetAnimTimer = QtCore.QTimer()
     globals.TilesetAnimTimer.timeout.connect(IncrementTilesetFrame)
-    globals.TilesetAnimTimer.start(62.5)
+    globals.TilesetAnimTimer.start(63)  # 62.5
 
     globals.ObjectDefinitions = [None] * 4
 

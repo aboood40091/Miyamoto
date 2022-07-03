@@ -764,14 +764,14 @@ class AuxiliaryTrackObject(AuxiliarySpriteItem):
 
         if self.direction == self.Horizontal:
             lineY = self.height * 0.75 * (TileWidth/24)
-            painter.drawLine(20 * (TileWidth/24), lineY, (self.width * (TileWidth/16)) - 20 * (TileWidth/24), lineY)
-            painter.drawEllipse(8 * (TileWidth/24), lineY - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
-            painter.drawEllipse((self.width * (TileWidth/16)) - 16 * (TileWidth/24), lineY - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
+            painter.drawLine(QtCore.QLineF(20 * (TileWidth/24), lineY, (self.width * (TileWidth/16)) - 20 * (TileWidth/24), lineY))
+            painter.drawEllipse(QtCore.QRectF(8 * (TileWidth/24), lineY - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24)))
+            painter.drawEllipse(QtCore.QRectF((self.width * (TileWidth/16)) - 16 * (TileWidth/24), lineY - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24)))
         else:
             lineX = self.width * 0.75 * (TileWidth/24)
-            painter.drawLine(lineX, 20 * (TileWidth/24), lineX, (self.height * (TileWidth/16)) - 20 * (TileWidth/24))
-            painter.drawEllipse(lineX - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
-            painter.drawEllipse(lineX - 4 * (TileWidth/24), (self.height * (TileWidth/16)) - 16 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24))
+            painter.drawLine(QtCore.QLineF(lineX, 20 * (TileWidth/24), lineX, (self.height * (TileWidth/16)) - 20 * (TileWidth/24)))
+            painter.drawEllipse(QtCore.QRectF(lineX - 4 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24)))
+            painter.drawEllipse(QtCore.QRectF(lineX - 4 * (TileWidth/24), (self.height * (TileWidth/16)) - 16 * (TileWidth/24), 8 * (TileWidth/24), 8 * (TileWidth/24)))
 
 
 class AuxiliaryCircleOutline(AuxiliarySpriteItem):
@@ -836,7 +836,7 @@ class AuxiliaryRotationAreaOutline(AuxiliarySpriteItem):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         painter.setPen(OutlinePen)
         painter.setBrush(OutlineBrush)
-        painter.drawPie(self.BoundingRect, self.startAngle, self.spanAngle)
+        painter.drawPie(self.BoundingRect, round(self.startAngle), round(self.spanAngle))
 
 
 class AuxiliaryRectOutline(AuxiliarySpriteItem):

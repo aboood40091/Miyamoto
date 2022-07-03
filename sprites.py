@@ -150,13 +150,13 @@ class SpriteImage_Pipe(SLib.SpriteImage_MovementControlled):
     def dataChanged(self):
         d, t = self.getParamsForDirection()
 
-        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix = QtGui.QPixmap(round(self.width * 3.75), round(self.height * 3.75))
         pix.fill(Qt.transparent)
 
         painter = QtGui.QPainter(pix)
-        painter.drawTiledPixmap(self.middleX, self.middleY, self.pipeWidth, self.pipeHeight, ImageCache['Pipe%s%sMiddle%s%s' % (d, t, self.type, self.color)])
+        painter.drawTiledPixmap(QtCore.QRectF(self.middleX, self.middleY, self.pipeWidth, self.pipeHeight), ImageCache['Pipe%s%sMiddle%s%s' % (d, t, self.type, self.color)])
         if self.hasTop:
-            painter.drawPixmap(self.topX, self.topY, ImageCache['Pipe%s%s%s%s' % (d, t, self.type, self.color)])
+            painter.drawPixmap(QtCore.QPointF(self.topX, self.topY), ImageCache['Pipe%s%s%s%s' % (d, t, self.type, self.color)])
 
         painter.end()
         del painter
@@ -248,13 +248,13 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 91, 92, 93, 198,
             riseToDraw = self.riseCrestless
 
         if drawCrest:
-            painter.drawTiledPixmap(4, offsetFromTop, zw - 8, crestHeight, self.crest)
-            painter.drawTiledPixmap(4, offsetFromTop + crestHeight, zw - 8, zh - crestHeight - offsetFromTop - 4,
+            painter.drawTiledPixmap(QtCore.QRectF(4, offsetFromTop, zw - 8, crestHeight), self.crest)
+            painter.drawTiledPixmap(QtCore.QRectF(4, offsetFromTop + crestHeight, zw - 8, zh - crestHeight - offsetFromTop - 4),
                                     self.mid)
         else:
-            painter.drawTiledPixmap(4, offsetFromTop, zw - 8, zh - offsetFromTop - 4, self.mid)
+            painter.drawTiledPixmap(QtCore.QRectF(4, offsetFromTop, zw - 8, zh - offsetFromTop - 4), self.mid)
         if drawRise:
-            painter.drawTiledPixmap(4, offsetRise, zw - 8, riseToDraw.height(), riseToDraw)
+            painter.drawTiledPixmap(QtCore.QRectF(4, offsetRise, zw - 8, riseToDraw.height()), riseToDraw)
 
     def realViewLocation(self, painter, zoneRect):
         """
@@ -285,12 +285,12 @@ class SpriteImage_LiquidOrFog(SLib.SpriteImage):  # 88, 89, 90, 91, 92, 93, 198,
         if drawCrest:
             crestHeight -= zy
             if crestHeight >= zh:
-                painter.drawTiledPixmap(zx, zy, zw, zh, self.crest, zx, zy)
+                painter.drawTiledPixmap(QtCore.QRectF(zx, zy, zw, zh), self.crest, QtCore.QPointF(zx, zy))
             else:
-                painter.drawTiledPixmap(zx, zy, zw, crestHeight, self.crest, zx, zy)
-                painter.drawTiledPixmap(zx, zy + crestHeight, zw, zh - crestHeight, self.mid, zx)
+                painter.drawTiledPixmap(QtCore.QRectF(zx, zy, zw, crestHeight), self.crest, QtCore.QPointF(zx, zy))
+                painter.drawTiledPixmap(QtCore.QRectF(zx, zy + crestHeight, zw, zh - crestHeight), self.mid, QtCore.QPointF(zx, 0))
         else:
-            painter.drawTiledPixmap(zx, zy, zw, zh, self.mid, zx, zy - crestHeight)
+            painter.drawTiledPixmap(QtCore.QRectF(zx, zy, zw, zh), self.mid, QtCore.QPointF(zx, zy - crestHeight))
 
 
 class SpriteImage_PlatformBase(SLib.SpriteImage):  # X
@@ -359,10 +359,10 @@ class SpriteImage_PlatformBase(SLib.SpriteImage):  # X
         right = ImageCache['MovPlat%sR' % self.imgType]
         
         painter.drawPixmap(0, 0, left)
-        painter.drawPixmap(self.width * 3.75 - right.width(), 0, right)
+        painter.drawPixmap(round(self.width * 3.75) - right.width(), 0, right)
 
-        if self.width > (left.width() + right.width()) / 3.75:
-            painter.drawTiledPixmap(int(left.width()), 0, self.width * 3.75 - (left.width() + right.width()), mid.height(), mid)
+        if round(self.width * 3.75) > (left.width() + right.width()):
+            painter.drawTiledPixmap(left.width(), 0, round(self.width * 3.75) - (left.width() + right.width()), mid.height(), mid)
 
     def dataChanged(self):
         self.offset = self.getPlatformOffset()
@@ -371,7 +371,7 @@ class SpriteImage_PlatformBase(SLib.SpriteImage):  # X
         self.height = max(ImageCache['MovPlat%sL' % self.imgType].height(), ImageCache['MovPlat%sM' % self.imgType].height(), ImageCache['MovPlat%sR' % self.imgType].height()) / 3.75
 
         if self.hasAux:
-            pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+            pix = QtGui.QPixmap(round(self.width * 3.75), round(self.height * 3.75))
             pix.fill(Qt.transparent)
             painter = QtGui.QPainter(pix)
             self.paintPlatform(painter)
@@ -714,8 +714,8 @@ class SpriteImage_KoopaParatroopa(SLib.SpriteImage_StaticMultiple):  # 20
         else:
             onEdge = self.parent.spritedata[4] & 1
 
-            width = self.width * 3.75
-            height = self.height * 3.75
+            width = round(self.width * 3.75)
+            height = round(self.height * 3.75)
 
             if mode == 1:
                 track.direction = SLib.AuxiliaryTrackObject.Horizontal
@@ -1138,7 +1138,7 @@ class SpriteImage_Seaweed(SLib.SpriteImage_StaticMultiple):  # 35
 
 class SpriteImage_EventController(SLib.SpriteImage):  # X
     font = QtGui.QFont(globals.NumberFont)
-    font.setPixelSize((9 / 24) * globals.TileWidth)
+    font.setPixelSize(round((9 / 24) * globals.TileWidth))
     font.setBold(True)
     
     def __init__(self, parent, text):
@@ -1553,7 +1553,7 @@ class SpriteImage_QBlock(SLib.SpriteImage_StaticMultiple):  # 59
 
         if self.dopaint:
             painter.setRenderHint(QtGui.QPainter.Antialiasing)
-            painter.drawPixmap(self.yOffset, self.xOffset, 60, 60, SLib.Tiles[self.tilenum].main)
+            painter.drawPixmap(QtCore.QPointF(self.yOffset, self.xOffset), SLib.Tiles[self.tilenum].main)
 
 
 class SpriteImage_BrickBlock(SLib.SpriteImage_StaticMultiple):  # 60
@@ -1601,7 +1601,7 @@ class SpriteImage_BrickBlock(SLib.SpriteImage_StaticMultiple):  # 60
 
         if self.dopaint:
             painter.setRenderHint(QtGui.QPainter.Antialiasing)
-            painter.drawPixmap(self.yOffset, self.xOffset, 60, 60, SLib.Tiles[self.tilenum].main)
+            painter.drawPixmap(QtCore.QPointF(self.yOffset, self.xOffset), SLib.Tiles[self.tilenum].main)
 
 
 class SpriteImage_InvisiBlock(SLib.SpriteImage_StaticMultiple):  # 61
@@ -1727,7 +1727,7 @@ class SpriteImage_Coin(SLib.SpriteImage_Static):  # 65
         super().paint(painter)
 
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        painter.drawPixmap(self.yOffset, self.xOffset, 60, 60, SLib.Tiles[30].main)
+        painter.drawPixmap(QtCore.QPointF(self.yOffset, self.xOffset), SLib.Tiles[30].main)
 
 
 class SpriteImage_Swooper(SLib.SpriteImage_StaticMultiple):  # 67
@@ -1901,80 +1901,72 @@ class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71, 80, 430
     def dataChanged(self):
         self.setWidth()
 
-        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix = QtGui.QPixmap(round(self.width * 3.75), round(self.height * 3.75))
         pix.fill(Qt.transparent)
         painter = QtGui.QPainter(pix)
 
         # Time to code this lazily.
 
         # Top of sprite.
-        if self.width / 16 == 0:
+        if self.width == 0:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovITopM'])
-        elif self.width / 16 == 1:
+        elif self.width == 16:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovITopM'])
-        elif self.width / 16 == 2:
+        elif self.width == 32:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovITopL'])
             painter.drawPixmap(60, 0, 60, 60, ImageCache['MovITopR'])
-        elif self.width / 16 == 3:
-            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovITopL'
-            ])
+        elif self.width == 48:
+            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovITopL'])
             painter.drawPixmap(60, 0, 60, 60, ImageCache['MovITopM'])
             painter.drawPixmap(120, 0, 60, 60, ImageCache['MovITopR'])
         else:
-            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovITopL'
-            ])
-            painter.drawTiledPixmap(60, 0, (self.width / 16 - 2) * 60, 60, ImageCache['MovITopM'])
-            painter.drawPixmap(60 + ((self.width / 16 - 2) * 60), 0, 60, 60, ImageCache['MovITopR'])
+            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovITopL'])
+            painter.drawTiledPixmap(60, 0, round((self.width / 16 - 2) * 60), 60, ImageCache['MovITopM'])
+            painter.drawPixmap(60 + round((self.width / 16 - 2) * 60), 0, 60, 60, ImageCache['MovITopR'])
 
         # Bottom
-        if self.height / 16 > 1:
-            if self.width / 16 == 0:
+        if self.height > 16:
+            if self.width == 0:
                 painter.drawPixmap(0, 0, 60, 60, ImageCache['MovIBottomM'])
-            elif self.width / 16 == 1:
-                painter.drawPixmap(0, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovIBottomM'])
-            elif self.width / 16 == 2:
-                painter.drawPixmap(0, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovIBottomL'])
-                painter.drawPixmap(60, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovIBottomR'])
-            elif self.width / 16 == 3:
-                painter.drawPixmap(0, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovIBottomL'
-                ])
-                painter.drawPixmap(60, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovIBottomM'])
-                painter.drawPixmap(120, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovIBottomR'])
+            elif self.width == 16:
+                painter.drawPixmap(0, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovIBottomM'])
+            elif self.width == 32:
+                painter.drawPixmap(0, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovIBottomL'])
+                painter.drawPixmap(60, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovIBottomR'])
+            elif self.width == 48:
+                painter.drawPixmap(0, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovIBottomL'])
+                painter.drawPixmap(60, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovIBottomM'])
+                painter.drawPixmap(120, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovIBottomR'])
             else:
-                painter.drawPixmap(0, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovIBottomL'
-                ])
-                painter.drawTiledPixmap(60, (self.height / 16) * 60 - 60, (self.width / 16 - 2) * 60, 60,
-                                        ImageCache['MovIBottomM'])
-                painter.drawPixmap(60 + ((self.width / 16 - 2) * 60), (self.height / 16) * 60 - 60, 60, 60,
-                                   ImageCache['MovIBottomR'])
+                painter.drawPixmap(0, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovIBottomL'])
+                painter.drawTiledPixmap(60, round((self.height / 16) * 60) - 60, round((self.width / 16 - 2) * 60), 60, ImageCache['MovIBottomM'])
+                painter.drawPixmap(60 + round((self.width / 16 - 2) * 60), round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovIBottomR'])
 
         # Left
-        if self.height / 16 == 3:
+        if self.height == 48:
             painter.drawPixmap(0, 60, 60, 60, ImageCache['MovIMiddleL'])
-        elif self.height / 16 > 3:
+        elif self.height > 48:
             painter.drawPixmap(0, 60, 60, 60, ImageCache['MovIMiddleL'])
-            painter.drawTiledPixmap(0, 120, 60, (self.height / 16 - 3) * 60, ImageCache['MovIMiddleL'])
+            painter.drawTiledPixmap(0, 120, 60, round((self.height / 16 - 3) * 60), ImageCache['MovIMiddleL'])
 
         # Right
-        if self.height / 16 == 3:
-            painter.drawPixmap((self.width / 16 * 60) - 60, 60, 60, 60, ImageCache['MovIMiddleR'])
-        elif self.height / 16 > 3:
-            painter.drawPixmap((self.width / 16 * 60) - 60, 60, 60, 60, ImageCache['MovIMiddleR'])
-            painter.drawTiledPixmap((self.width / 16 * 60) - 60, 120, 60, (self.height / 16 - 3) * 60,
-                                    ImageCache['MovIMiddleR'])
+        if self.height == 48:
+            painter.drawPixmap(round((self.width / 16) * 60) - 60, 60, 60, 60, ImageCache['MovIMiddleR'])
+        elif self.height > 48:
+            painter.drawPixmap(round((self.width / 16) * 60) - 60, 60, 60, 60, ImageCache['MovIMiddleR'])
+            painter.drawTiledPixmap(round((self.width / 16) * 60) - 60, 120, 60, round((self.height / 16 - 3) * 60), ImageCache['MovIMiddleR'])
 
         # Middle
-        if self.width / 16 > 2:
-            if self.height / 16 > 2:
-                painter.drawTiledPixmap(60, 60, ((self.width / 16) - 2) * 60, ((self.height / 16) - 2) * 60,
-                                        ImageCache['MovIMiddleM'])
+        if self.width > 32:
+            if self.height > 32:
+                painter.drawTiledPixmap(60, 60, round((self.width / 16 - 2) * 60), round((self.height / 16 - 2) * 60), ImageCache['MovIMiddleM'])
 
         # 1 Glitch
-        if self.width / 16 < 2:
+        if self.width < 32:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovITopM'])
-            painter.drawTiledPixmap(0, 60, 60, ((self.height / 16) - 2) * 60, ImageCache['MovIMiddleM'])
+            painter.drawTiledPixmap(0, 60, 60, round((self.height / 16 - 2) * 60), ImageCache['MovIMiddleM'])
             if self.height > 1:
-                painter.drawPixmap(0, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovIBottomM'])
+                painter.drawPixmap(0, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovIBottomM'])
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovITopM'])
 
         painter = None
@@ -2031,7 +2023,7 @@ class SpriteImage_MovingIronBlock(SLib.SpriteImage):  # 71, 80, 430
 
     def paint(self, painter):
         super().paint(painter)
-        painter.drawPixmap(self.imgxOffset * 3.75, self.imgyOffset * 3.75, self.transformed)
+        painter.drawPixmap(QtCore.QPointF(self.imgxOffset * 3.75, self.imgyOffset * 3.75), self.transformed)
 
 
 class SpriteImage_MovingLandBlock(SLib.SpriteImage):  # 72, 81
@@ -2067,80 +2059,72 @@ class SpriteImage_MovingLandBlock(SLib.SpriteImage):  # 72, 81
         if self.height < 32:
             self.height = 32
 
-        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix = QtGui.QPixmap(round(self.width * 3.75), round(self.height * 3.75))
         pix.fill(Qt.transparent)
         painter = QtGui.QPainter(pix)
 
         # Time to code this lazily.
 
         # Top of sprite.
-        if self.width / 16 == 0:
+        if self.width == 0:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovLTopM'])
-        elif self.width / 16 == 1:
+        elif self.width == 16:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovLTopM'])
-        elif self.width / 16 == 2:
+        elif self.width == 32:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovLTopL'])
             painter.drawPixmap(60, 0, 60, 60, ImageCache['MovLTopR'])
-        elif self.width / 16 == 3:
-            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovLTopL'
-            ])
+        elif self.width == 48:
+            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovLTopL'])
             painter.drawPixmap(60, 0, 60, 60, ImageCache['MovLTopM'])
             painter.drawPixmap(120, 0, 60, 60, ImageCache['MovLTopR'])
         else:
-            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovLTopL'
-            ])
-            painter.drawTiledPixmap(60, 0, (self.width / 16 - 2) * 60, 60, ImageCache['MovLTopM'])
-            painter.drawPixmap(60 + ((self.width / 16 - 2) * 60), 0, 60, 60, ImageCache['MovLTopR'])
+            painter.drawPixmap(0, 0, 60, 60, ImageCache['MovLTopL'])
+            painter.drawTiledPixmap(60, 0, round((self.width / 16 - 2) * 60), 60, ImageCache['MovLTopM'])
+            painter.drawPixmap(60 + round((self.width / 16 - 2) * 60), 0, 60, 60, ImageCache['MovLTopR'])
 
         # Bottom
-        if self.height / 16 > 1:
-            if self.width / 16 == 0:
+        if self.height > 16:
+            if self.width == 0:
                 painter.drawPixmap(0, 0, 60, 60, ImageCache['MovLBottomM'])
-            elif self.width / 16 == 1:
-                painter.drawPixmap(0, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovLBottomM'])
-            elif self.width / 16 == 2:
-                painter.drawPixmap(0, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovLBottomL'])
-                painter.drawPixmap(60, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovLBottomR'])
-            elif self.width / 16 == 3:
-                painter.drawPixmap(0, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovLBottomL'
-                ])
-                painter.drawPixmap(60, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovLBottomM'])
-                painter.drawPixmap(120, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovLBottomR'])
+            elif self.width == 16:
+                painter.drawPixmap(0, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovLBottomM'])
+            elif self.width == 32:
+                painter.drawPixmap(0, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovLBottomL'])
+                painter.drawPixmap(60, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovLBottomR'])
+            elif self.width == 48:
+                painter.drawPixmap(0, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovLBottomL'])
+                painter.drawPixmap(60, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovLBottomM'])
+                painter.drawPixmap(120, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovLBottomR'])
             else:
-                painter.drawPixmap(0, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovLBottomL'
-                ])
-                painter.drawTiledPixmap(60, (self.height / 16) * 60 - 60, (self.width / 16 - 2) * 60, 60,
-                                        ImageCache['MovLBottomM'])
-                painter.drawPixmap(60 + ((self.width / 16 - 2) * 60), (self.height / 16) * 60 - 60, 60, 60,
-                                   ImageCache['MovLBottomR'])
+                painter.drawPixmap(0, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovLBottomL'])
+                painter.drawTiledPixmap(60, round((self.height / 16) * 60) - 60, round((self.width / 16 - 2) * 60), 60, ImageCache['MovLBottomM'])
+                painter.drawPixmap(60 + round((self.width / 16 - 2) * 60), round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovLBottomR'])
 
         # Left
-        if self.height / 16 == 3:
+        if self.height == 48:
             painter.drawPixmap(0, 60, 60, 60, ImageCache['MovLMiddleL'])
-        elif self.height / 16 > 3:
+        elif self.height > 48:
             painter.drawPixmap(0, 60, 60, 60, ImageCache['MovLMiddleL'])
-            painter.drawTiledPixmap(0, 120, 60, (self.height / 16 - 3) * 60, ImageCache['MovLMiddleL'])
+            painter.drawTiledPixmap(0, 120, 60, round((self.height / 16 - 3) * 60), ImageCache['MovLMiddleL'])
 
         # Right
-        if self.height / 16 == 3:
-            painter.drawPixmap((self.width / 16 * 60) - 60, 60, 60, 60, ImageCache['MovLMiddleR'])
-        elif self.height / 16 > 3:
-            painter.drawPixmap((self.width / 16 * 60) - 60, 60, 60, 60, ImageCache['MovLMiddleR'])
-            painter.drawTiledPixmap((self.width / 16 * 60) - 60, 120, 60, (self.height / 16 - 3) * 60,
-                                    ImageCache['MovLMiddleR'])
+        if self.height == 48:
+            painter.drawPixmap(round((self.width / 16) * 60) - 60, 60, 60, 60, ImageCache['MovLMiddleR'])
+        elif self.height > 48:
+            painter.drawPixmap(round((self.width / 16) * 60) - 60, 60, 60, 60, ImageCache['MovLMiddleR'])
+            painter.drawTiledPixmap(round((self.width / 16) * 60) - 60, 120, 60, round((self.height / 16 - 3) * 60), ImageCache['MovLMiddleR'])
 
         # Middle
-        if self.width / 16 > 2:
-            if self.height / 16 > 2:
-                painter.drawTiledPixmap(60, 60, ((self.width / 16) - 2) * 60, ((self.height / 16) - 2) * 60,
-                                        ImageCache['MovLMiddleM'])
+        if self.width > 32:
+            if self.height > 32:
+                painter.drawTiledPixmap(60, 60, round((self.width / 16 - 2) * 60), round((self.height / 16 - 2) * 60), ImageCache['MovLMiddleM'])
 
         # 1 Glitch
-        if self.width / 16 < 2:
+        if self.width < 32:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovLTopM'])
-            painter.drawTiledPixmap(0, 60, 60, ((self.height / 16) - 2) * 60, ImageCache['MovLMiddleM'])
+            painter.drawTiledPixmap(0, 60, 60, round((self.height / 16 - 2) * 60), ImageCache['MovLMiddleM'])
             if self.height > 1:
-                painter.drawPixmap(0, (self.height / 16) * 60 - 60, 60, 60, ImageCache['MovLBottomM'])
+                painter.drawPixmap(0, round((self.height / 16) * 60) - 60, 60, 60, ImageCache['MovLBottomM'])
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovLTopM'])
 
         painter = None
@@ -2190,7 +2174,7 @@ class SpriteImage_MovingLandBlock(SLib.SpriteImage):  # 72, 81
 
     def paint(self, painter):
         super().paint(painter)
-        painter.drawPixmap(self.imgxOffset * 3.75, self.imgyOffset * 3.75, self.transformed)
+        painter.drawPixmap(QtCore.QPointF(self.imgxOffset * 3.75, self.imgyOffset * 3.75), self.transformed)
 
 
 class SpriteImage_CoinSpawner(SLib.SpriteImage_Liquid):  # 73
@@ -3835,9 +3819,9 @@ class SpriteImage_FlyingQBlock(SLib.SpriteImage):  # 154
 
         painter.drawPixmap(0, 0, ImageCache['FlyingQBlock'])
         if self.dopaint:
-            painter.drawPixmap(45, 57.5, SLib.Tiles[self.tilenum].main)
+            painter.drawPixmap(QtCore.QPointF(45, 57.5), SLib.Tiles[self.tilenum].main)
         else:
-            painter.drawPixmap(45, 57.5, self.imagecache)
+            painter.drawPixmap(QtCore.QPointF(45, 57.5), self.imagecache)
 
 
 class SpriteImage_PipeCannon(SpriteImage_Pipe):  # 155, 667
@@ -3902,94 +3886,94 @@ class SpriteImage_PipeCannon(SpriteImage_Pipe):  # 155, 667
 
         # 30 deg to the right
         if fireDirection == 0:
-            path = QtGui.QPainterPath(QtCore.QPoint(0, 184 * 2.5))
-            path.cubicTo(QtCore.QPoint(152 * 2.5, -24 * 2.5), QtCore.QPoint(168 * 2.5, -24 * 2.5),
-                         QtCore.QPoint(264 * 2.5, 48 * 2.5))
-            path.lineTo(QtCore.QPoint(480 * 2.5, 216 * 2.5))
+            path = QtGui.QPainterPath(QtCore.QPointF(0, 184 * 2.5))
+            path.cubicTo(QtCore.QPointF(152 * 2.5, -24 * 2.5), QtCore.QPointF(168 * 2.5, -24 * 2.5),
+                         QtCore.QPointF(264 * 2.5, 48 * 2.5))
+            path.lineTo(QtCore.QPointF(480 * 2.5, 216 * 2.5))
             self.aux[1].setSize(480 * 2.5, 216 * 2.5, 24 * 2.5, -120 * 2.5 + 30)
 
         # 30 deg to the left
         elif fireDirection == 1:
-            path = QtGui.QPainterPath(QtCore.QPoint(480 * 2.5 - 0, 184 * 2.5))
-            path.cubicTo(QtCore.QPoint(480 * 2.5 - 152 * 2.5, -24 * 2.5),
-                         QtCore.QPoint(480 * 2.5 - 168 * 2.5, -24 * 2.5),
-                         QtCore.QPoint(480 * 2.5 - 264 * 2.5, 48 * 2.5))
-            path.lineTo(QtCore.QPoint(480 * 2.5 - 480 * 2.5, 216 * 2.5))
+            path = QtGui.QPainterPath(QtCore.QPointF(480 * 2.5 - 0, 184 * 2.5))
+            path.cubicTo(QtCore.QPointF(480 * 2.5 - 152 * 2.5, -24 * 2.5),
+                         QtCore.QPointF(480 * 2.5 - 168 * 2.5, -24 * 2.5),
+                         QtCore.QPointF(480 * 2.5 - 264 * 2.5, 48 * 2.5))
+            path.lineTo(QtCore.QPointF(480 * 2.5 - 480 * 2.5, 216 * 2.5))
             self.aux[1].setSize(480 * 2.5, 216 * 2.5, -480 * 2.5 + 24 * 2.5, -120 * 2.5 + 30)
 
         # 15 deg to the right
         elif fireDirection == 2:
-            path = QtGui.QPainterPath(QtCore.QPoint(0, 188 * 2.5))
-            path.cubicTo(QtCore.QPoint(36 * 2.5, -36 * 2.5), QtCore.QPoint(60 * 2.5, -36 * 2.5),
-                         QtCore.QPoint(96 * 2.5, 84 * 2.5))
-            path.lineTo(QtCore.QPoint(144 * 2.5, 252 * 2.5))
+            path = QtGui.QPainterPath(QtCore.QPointF(0, 188 * 2.5))
+            path.cubicTo(QtCore.QPointF(36 * 2.5, -36 * 2.5), QtCore.QPointF(60 * 2.5, -36 * 2.5),
+                         QtCore.QPointF(96 * 2.5, 84 * 2.5))
+            path.lineTo(QtCore.QPointF(144 * 2.5, 252 * 2.5))
             self.aux[1].setSize(144 * 2.5, 252 * 2.5, 30 * 2.5 + 15, -156 * 2.5 + 15)
 
         # 15 deg to the left
         elif fireDirection == 3:
-            path = QtGui.QPainterPath(QtCore.QPoint(144 * 2.5 - 0, 188 * 2.5))
-            path.cubicTo(QtCore.QPoint(144 * 2.5 - 36 * 2.5, -36 * 2.5), QtCore.QPoint(144 * 2.5 - 60 * 2.5, -36 * 2.5),
-                         QtCore.QPoint(144 * 2.5 - 96 * 2.5, 84 * 2.5))
-            path.lineTo(QtCore.QPoint(144 * 2.5 - 144 * 2.5, 252 * 2.5))
+            path = QtGui.QPainterPath(QtCore.QPointF(144 * 2.5 - 0, 188 * 2.5))
+            path.cubicTo(QtCore.QPointF(144 * 2.5 - 36 * 2.5, -36 * 2.5), QtCore.QPointF(144 * 2.5 - 60 * 2.5, -36 * 2.5),
+                         QtCore.QPointF(144 * 2.5 - 96 * 2.5, 84 * 2.5))
+            path.lineTo(QtCore.QPointF(144 * 2.5 - 144 * 2.5, 252 * 2.5))
             self.aux[1].setSize(144 * 2.5, 252 * 2.5, -144 * 2.5 + 30 * 2.5 - 45, -156 * 2.5 + 15)
 
         # Straight up
         elif fireDirection == 4:
-            path = QtGui.QPainterPath(QtCore.QPoint(26 * 2.5, 0))
-            path.lineTo(QtCore.QPoint(26 * 2.5, 656 * 2.5))
+            path = QtGui.QPainterPath(QtCore.QPointF(26 * 2.5, 0))
+            path.lineTo(QtCore.QPointF(26 * 2.5, 656 * 2.5))
             self.aux[1].setSize(48 * 2.5, 656 * 2.5, 0, -632 * 2.5)
 
         # 45 deg to the right
         elif fireDirection == 5:
-            path = QtGui.QPainterPath(QtCore.QPoint(0, 320 * 2.5))
-            path.lineTo(QtCore.QPoint(264 * 2.5, 64 * 2.5))
-            path.cubicTo(QtCore.QPoint(348 * 2.5, -14 * 2.5), QtCore.QPoint(420 * 2.5, -14 * 2.5),
-                         QtCore.QPoint(528 * 2.5, 54 * 2.5))
-            path.lineTo(QtCore.QPoint(1036 * 2.5, 348 * 2.5 + 60))
+            path = QtGui.QPainterPath(QtCore.QPointF(0, 320 * 2.5))
+            path.lineTo(QtCore.QPointF(264 * 2.5, 64 * 2.5))
+            path.cubicTo(QtCore.QPointF(348 * 2.5, -14 * 2.5), QtCore.QPointF(420 * 2.5, -14 * 2.5),
+                         QtCore.QPointF(528 * 2.5, 54 * 2.5))
+            path.lineTo(QtCore.QPointF(1036 * 2.5, 348 * 2.5 + 60))
             self.aux[1].setSize(1036 * 2.5, 348 * 2.5 + 30, 24 * 2.5, -252 * 2.5 + 30)
 
         # 45 deg to the left
         elif fireDirection == 6:
-            path = QtGui.QPainterPath(QtCore.QPoint(1036 * 2.5 - 0 * 2.5, 320 * 2.5))
-            path.lineTo(QtCore.QPoint(1036 * 2.5 - 264 * 2.5, 64 * 2.5))
-            path.cubicTo(QtCore.QPoint(1036 * 2.5 - 348 * 2.5, -14 * 2.5),
-                         QtCore.QPoint(1036 * 2.5 - 420 * 2.5, -14 * 2.5),
-                         QtCore.QPoint(1036 * 2.5 - 528 * 2.5, 54 * 2.5))
-            path.lineTo(QtCore.QPoint(1036 * 2.5 - 1036 * 2.5, 348 * 2.5 + 60))
+            path = QtGui.QPainterPath(QtCore.QPointF(1036 * 2.5 - 0 * 2.5, 320 * 2.5))
+            path.lineTo(QtCore.QPointF(1036 * 2.5 - 264 * 2.5, 64 * 2.5))
+            path.cubicTo(QtCore.QPointF(1036 * 2.5 - 348 * 2.5, -14 * 2.5),
+                         QtCore.QPointF(1036 * 2.5 - 420 * 2.5, -14 * 2.5),
+                         QtCore.QPointF(1036 * 2.5 - 528 * 2.5, 54 * 2.5))
+            path.lineTo(QtCore.QPointF(1036 * 2.5 - 1036 * 2.5, 348 * 2.5 + 60))
             self.aux[1].setSize(1036 * 2.5, 348 * 2.5 - 60, -1036 * 2.5 + 24 * 2.5, -252 * 2.5 + 30)
 
         # 45 deg to the right (lower initial velocity)
         elif fireDirection == 7:
-            path = QtGui.QPainterPath(QtCore.QPoint(1.5 * 24 * 2.5, 320 * 2.5 - 1.5 * 24 * 2.5))
-            path.lineTo(QtCore.QPoint(264 * 2.5, 64 * 2.5))
-            path.cubicTo(QtCore.QPoint(348 * 2.5, -14 * 2.5), QtCore.QPoint(420 * 2.5, -14 * 2.5),
-                         QtCore.QPoint(528 * 2.5, 54 * 2.5))
-            path.lineTo(QtCore.QPoint(1036 * 2.5, 348 * 2.5 + 60))
+            path = QtGui.QPainterPath(QtCore.QPointF(1.5 * 24 * 2.5, 320 * 2.5 - 1.5 * 24 * 2.5))
+            path.lineTo(QtCore.QPointF(264 * 2.5, 64 * 2.5))
+            path.cubicTo(QtCore.QPointF(348 * 2.5, -14 * 2.5), QtCore.QPointF(420 * 2.5, -14 * 2.5),
+                         QtCore.QPointF(528 * 2.5, 54 * 2.5))
+            path.lineTo(QtCore.QPointF(1036 * 2.5, 348 * 2.5 + 60))
             self.aux[1].setSize(1036 * 2.5, 348 * 2.5 - 60, 24 * 2.5 - 90, -252 * 2.5 + 30 + 30 + 60)
 
         # 45 deg to the left (lower initial velocity)
         elif fireDirection == 8:
-            path = QtGui.QPainterPath(QtCore.QPoint(1036 * 2.5 - 0 * 2.5 - 1.5 * 24 * 2.5, 320 * 2.5 - 1.5 * 24 * 2.5))
-            path.lineTo(QtCore.QPoint(1036 * 2.5 - 264 * 2.5, 64 * 2.5))
-            path.cubicTo(QtCore.QPoint(1036 * 2.5 - 348 * 2.5, -14 * 2.5),
-                         QtCore.QPoint(1036 * 2.5 - 420 * 2.5, -14 * 2.5),
-                         QtCore.QPoint(1036 * 2.5 - 528 * 2.5, 54 * 2.5))
-            path.lineTo(QtCore.QPoint(1036 * 2.5 - 1036 * 2.5, 348 * 2.5 + 60))
+            path = QtGui.QPainterPath(QtCore.QPointF(1036 * 2.5 - 0 * 2.5 - 1.5 * 24 * 2.5, 320 * 2.5 - 1.5 * 24 * 2.5))
+            path.lineTo(QtCore.QPointF(1036 * 2.5 - 264 * 2.5, 64 * 2.5))
+            path.cubicTo(QtCore.QPointF(1036 * 2.5 - 348 * 2.5, -14 * 2.5),
+                         QtCore.QPointF(1036 * 2.5 - 420 * 2.5, -14 * 2.5),
+                         QtCore.QPointF(1036 * 2.5 - 528 * 2.5, 54 * 2.5))
+            path.lineTo(QtCore.QPointF(1036 * 2.5 - 1036 * 2.5, 348 * 2.5 + 60))
             self.aux[1].setSize(1036 * 2.5, 348 * 2.5 - 60, -1036 * 2.5 + 24 * 2.5 + 90, -252 * 2.5 + 30 + 30 + 60)
 
         # 15 deg to the right (higher initial velocity)
         elif fireDirection == 9:
-            path = QtGui.QPainterPath(QtCore.QPoint(30, 252 * 2.5 + 5*60))
-            path.cubicTo(QtCore.QPoint(36 * 2.5 + 90, -36 * 2.5), QtCore.QPoint(60 * 2.5 + 90, -36 * 2.5), QtCore.QPoint(96 * 2.5 + 90, 84 * 2.5))
-            path.lineTo(QtCore.QPoint(144 * 2.5 + 4*60, 252 * 2.5 + 8*60))
+            path = QtGui.QPainterPath(QtCore.QPointF(30, 252 * 2.5 + 5*60))
+            path.cubicTo(QtCore.QPointF(36 * 2.5 + 90, -36 * 2.5), QtCore.QPointF(60 * 2.5 + 90, -36 * 2.5), QtCore.QPointF(96 * 2.5 + 90, 84 * 2.5))
+            path.lineTo(QtCore.QPointF(144 * 2.5 + 4*60, 252 * 2.5 + 8*60))
             self.aux[1].setSize(144 * 2.5 + 4*60, 252 * 2.5 + 8*60, 30 * 2.5 - 15, -156 * 2.5 - 7.5*60)
 
         # 15 deg to the left (higher initial velocity)
         else:
-            path = QtGui.QPainterPath(QtCore.QPoint(144 * 2.5 - 0 + 4*60, 252 * 2.5 + 5*60))
-            path.cubicTo(QtCore.QPoint(144 * 2.5 - 36 * 2.5 + 4*60 - 60, -36 * 2.5), QtCore.QPoint(144 * 2.5 - 60 * 2.5 + 4*60 - 60, -36 * 2.5),
-                         QtCore.QPoint(144 * 2.5 - 96 * 2.5 + 4*60 - 60, 84 * 2.5))
-            path.lineTo(QtCore.QPoint(144 * 2.5 - 144 * 2.5 + 30, 252 * 2.5 + 8*60))
+            path = QtGui.QPainterPath(QtCore.QPointF(144 * 2.5 - 0 + 4*60, 252 * 2.5 + 5*60))
+            path.cubicTo(QtCore.QPointF(144 * 2.5 - 36 * 2.5 + 4*60 - 60, -36 * 2.5), QtCore.QPointF(144 * 2.5 - 60 * 2.5 + 4*60 - 60, -36 * 2.5),
+                         QtCore.QPointF(144 * 2.5 - 96 * 2.5 + 4*60 - 60, 84 * 2.5))
+            path.lineTo(QtCore.QPointF(144 * 2.5 - 144 * 2.5 + 30, 252 * 2.5 + 8*60))
             self.aux[1].setSize(144 * 2.5 + 4*60, 252 * 2.5 + 8*60, -144 * 2.5 + 30 * 2.5 - 45 - 4*60, -156 * 2.5 - 7.5*60)
 
         self.aux[1].SetPath(path)
@@ -4033,8 +4017,8 @@ class SpriteImage_WaterGeyser(SLib.SpriteImage_StaticMultiple):  # 156
     def paint(self, painter):
         super().paint(painter)
 
-        painter.drawTiledPixmap(0, 15, self.width * (60/16), self.height * (60/16) - 15, self.middle.scaledToWidth(self.width * (60/16), Qt.SmoothTransformation))
-        painter.drawPixmap(0, 0, self.width * (60/16), 180, self.top)
+        painter.drawTiledPixmap(0, 15, round(self.width * 3.75), round(self.height * 3.75) - 15, self.middle.scaledToWidth(round(self.width * 3.75), Qt.SmoothTransformation))
+        painter.drawPixmap(0, 0, round(self.width * 3.75), 180, self.top)
 
 
 class SpriteImage_BarCenter(SLib.SpriteImage_Static):  # 157
@@ -4274,8 +4258,8 @@ class SpriteImage_WaterGeyserLocation(SLib.SpriteImage_StaticMultiple):  # 163, 
     def paint(self, painter):
         super().paint(painter)
 
-        painter.drawTiledPixmap(0, 15, self.width * (60/16), self.height * (60/16) - 15, self.middle.scaledToWidth(self.width * (60/16), Qt.SmoothTransformation))
-        painter.drawPixmap(0, 0, self.width * (60/16), 180, self.top)
+        painter.drawTiledPixmap(0, 15, round(self.width * 3.75), round(self.height * 3.75) - 15, self.middle.scaledToWidth(round(self.width * 3.75), Qt.SmoothTransformation))
+        painter.drawPixmap(0, 0, round(self.width * 3.75), 180, self.top)
 
 
 class SpriteImage_BobOmb(SLib.SpriteImage_Static):  # 164
@@ -5107,9 +5091,8 @@ class SpriteImage_MushroomPlatform(SLib.SpriteImage):  # 200
                 color = 'Blue'
 
         painter.drawPixmap(0, 0, ImageCache[color + 'ShroomL'])
-        painter.drawTiledPixmap(tilesize, 0, (self.width * 3.75) - (tilesize * 2), tilesize,
-                                ImageCache[color + 'ShroomM'])
-        painter.drawPixmap((self.width * 3.75) - tilesize, 0, ImageCache[color + 'ShroomR'])
+        painter.drawTiledPixmap(tilesize, 0, round(self.width * 3.75) - (tilesize * 2), tilesize, ImageCache[color + 'ShroomM'])
+        painter.drawPixmap(round(self.width * 3.75) - tilesize, 0, ImageCache[color + 'ShroomR'])
 
 
 class SpriteImage_LavaParticles(SpriteImage_LiquidOrFog):  # 201
@@ -5487,13 +5470,13 @@ class SpriteImage_BooCircle(SLib.SpriteImage):  # 221, 703
             # Find the abs pos, and paint the ghost at its inner position
             x = math.sin(angle) * ((inrad * radiusMultiplier) + radiusConstant) - offsetX
             y = -(math.cos(angle) * ((inrad * radiusMultiplier) + radiusConstant)) - offsetY
-            paint.drawPixmap(x + 1280, y + 1280, boo)
+            paint.drawPixmap(QtCore.QPointF(x + 1280, y + 1280), boo)
 
             # Paint it at its outer position if it has one
             if differentRads:
                 x = math.sin(angle) * ((outrad * radiusMultiplier) + radiusConstant) - offsetX
                 y = -(math.cos(angle) * ((outrad * radiusMultiplier) + radiusConstant)) - offsetY
-                paint.drawPixmap(x + 1280, y + 1280, boo)
+                paint.drawPixmap(QtCore.QPointF(x + 1280, y + 1280), boo)
 
         # Finish it
         paint = None
@@ -5556,9 +5539,9 @@ class SpriteImage_SnakeBlock(SLib.SpriteImage):  # 222
 
         painter.drawTiledPixmap(
             0, 0,
-            60 * (self.width / 16),
-            60 * (self.height / 16),
-            ImageCache['SnakeBlock%d%s' % (self.scale, self.imgType)],
+            round(self.width * 3.75),
+            round(self.height * 3.75),
+            ImageCache['SnakeBlock%d%s' % (self.scale, self.imgType)]
         )
 
 
@@ -6355,25 +6338,25 @@ class SpriteImage_StretchingMushroomPlatform(SLib.SpriteImage):  # 257, 258
             painter.setOpacity(0.5)
             
         painter.drawPixmap(0, 0, ImageCache['StretchL'])
-        painter.drawTiledPixmap(60, 0, 60 * (self.width / 16 - 2), 60, ImageCache['StretchM'])
-        painter.drawPixmap(60 * (self.width / 16 - 1), 0, ImageCache['StretchR'])
+        painter.drawTiledPixmap(60, 0, round(60 * (self.width / 16 - 2)), 60, ImageCache['StretchM'])
+        painter.drawPixmap(round(60 * (self.width / 16 - 1)), 0, ImageCache['StretchR'])
         
         if self.startStretched == 0:
             painter.setOpacity(1)
 
             # Draw Min Len
             if self.minLen == 0:
-                painter.drawPixmap(60 * ((self.width / 16) / 2 - 1), 0, ImageCache['StretchL'])
-                painter.drawPixmap(60 * (self.width / 16) / 2, 0, ImageCache['StretchR'])
+                painter.drawPixmap(round(60 * ((self.width / 16) / 2 - 1)), 0, ImageCache['StretchL'])
+                painter.drawPixmap(round(60 * (self.width / 16) / 2), 0, ImageCache['StretchR'])
 
             else:
-                painter.drawPixmap(60 * ((self.width / 16) / 2 - 1.5), 0, ImageCache['StretchL'])
-                painter.drawPixmap(60 * ((self.width / 16) / 2 - 0.5), 0, ImageCache['StretchM']) 
-                painter.drawPixmap(60 * ((self.width / 16) / 2 + 0.5), 0, ImageCache['StretchR'])
+                painter.drawPixmap(round(60 * ((self.width / 16) / 2 - 1.5)), 0, ImageCache['StretchL'])
+                painter.drawPixmap(round(60 * ((self.width / 16) / 2 - 0.5)), 0, ImageCache['StretchM']) 
+                painter.drawPixmap(round(60 * ((self.width / 16) / 2 + 0.5)), 0, ImageCache['StretchR'])
 
         # Draw Stem
-        painter.drawPixmap(60 * ((self.width / 16) / 2 - 0.5), 60, ImageCache['StretchT'])
-        painter.drawTiledPixmap(60 * ((self.width / 16) / 2 - 0.5), 180, 60, 60 * self.stemLen, ImageCache['StretchS'])
+        painter.drawPixmap(round(60 * ((self.width / 16) / 2 - 0.5)), 60, ImageCache['StretchT'])
+        painter.drawTiledPixmap(round(60 * ((self.width / 16) / 2 - 0.5)), 180, 60, 60 * self.stemLen, ImageCache['StretchS'])
 
 
 class SpriteImage_Muncher(SLib.SpriteImage_StaticMultiple):  # 259
@@ -6599,7 +6582,7 @@ class SpriteImage_MovingGhostHouseBlock(SLib.SpriteImage_PivotRotationControlled
     def dataChanged(self):
         self.updateSize()
 
-        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix = QtGui.QPixmap(round(self.width * 3.75), round(self.height * 3.75))
         pix.fill(Qt.transparent)
 
         painter = QtGui.QPainter(pix)
@@ -6963,7 +6946,7 @@ class SpriteImage_StretchBlock(SLib.SpriteImage):  # 284
 
     def paint(self, painter):
         super().paint(painter)
-        painter.drawTiledPixmap(0, 0, self.width * 3.75, 60, ImageCache['StretchBlock'])
+        painter.drawTiledPixmap(0, 0, round(self.width * 3.75), 60, ImageCache['StretchBlock'])
 
 
 class SpriteImage_VerticalStretchBlock(SLib.SpriteImage):  # 285
@@ -6989,7 +6972,7 @@ class SpriteImage_VerticalStretchBlock(SLib.SpriteImage):  # 285
 
     def paint(self, painter):
         super().paint(painter)
-        painter.drawTiledPixmap(0, 0, 60, self.height * 3.75, ImageCache['StretchBlock'])
+        painter.drawTiledPixmap(0, 0, 60, round(self.height * 3.75), ImageCache['StretchBlock'])
 
 
 class SpriteImage_LavaBubble(SLib.SpriteImage_Static):  # 286, 643, 644
@@ -7201,8 +7184,8 @@ class SpriteImage_PurplePole(SLib.SpriteImage):  # 309
         super().paint(painter)
 
         painter.drawPixmap(0, 0, ImageCache['PurplePoleT'])
-        painter.drawTiledPixmap(0, 90, 60, self.height * 3.75 - 180, ImageCache['PurplePoleM'])
-        painter.drawPixmap(0, self.height * 3.75 - 90, ImageCache['PurplePoleB'])
+        painter.drawTiledPixmap(0, 90, 60, round(self.height * 3.75) - 180, ImageCache['PurplePoleM'])
+        painter.drawPixmap(0, round(self.height * 3.75) - 90, ImageCache['PurplePoleB'])
 
 
 class SpriteImage_NoteBlock(SLib.SpriteImage_Static):  # 295
@@ -7463,7 +7446,7 @@ class SpriteImage_ScalePlatform(SLib.SpriteImage):  # 309
 
         height = (leftRopeLength if leftRopeLength > rightRopeLength else rightRopeLength) * 60 + 75
 
-        pix = QtGui.QPixmap(width, height)
+        pix = QtGui.QPixmap(round(width), round(height))
         pix.fill(Qt.transparent)
         painter = QtGui.QPainter(pix)
 
@@ -7471,24 +7454,24 @@ class SpriteImage_ScalePlatform(SLib.SpriteImage):  # 309
         if middleRopeLength + leftPlatformOffset < rightPlatformOffset:
             leftSideOffset = (rightPlatformOffset - middleRopeLength) * 60 - 15
 
-        #Draw ropes and wheels
-        painter.drawTiledPixmap(leftSideOffset, 30, 30, leftRopeLength * 60 - 15, ImageCache['ScaleRopeV'])
-        painter.drawTiledPixmap(leftSideOffset + middleRopeLength * 60, 30, 30, rightRopeLength * 60 - 15, ImageCache['ScaleRopeV'])
-        painter.drawTiledPixmap(leftSideOffset + 30, 0, middleRopeLength * 60 - 30, 30, ImageCache['ScaleRopeH'])
-        painter.drawPixmap(leftSideOffset, 0, ImageCache['ScaleWheel'])
-        painter.drawPixmap(leftSideOffset + middleRopeLength * 60 - 30, 0, ImageCache['ScaleWheel'])
+        # Draw ropes and wheels
+        painter.drawTiledPixmap(QtCore.QRectF(leftSideOffset, 30, 30, leftRopeLength * 60 - 15), ImageCache['ScaleRopeV'])
+        painter.drawTiledPixmap(QtCore.QRectF(leftSideOffset + middleRopeLength * 60, 30, 30, rightRopeLength * 60 - 15), ImageCache['ScaleRopeV'])
+        painter.drawTiledPixmap(QtCore.QRectF(leftSideOffset + 30, 0, middleRopeLength * 60 - 30, 30), ImageCache['ScaleRopeH'])
+        painter.drawPixmap(QtCore.QPointF(leftSideOffset, 0), ImageCache['ScaleWheel'])
+        painter.drawPixmap(QtCore.QPointF(leftSideOffset + middleRopeLength * 60 - 30, 0), ImageCache['ScaleWheel'])
 
         imgType = 'MovPlat%s' % ('S' if snowy else 'N')
         
         # Draw left platform
-        painter.drawPixmap(leftSideOffset + 15 - leftPlatformOffset * 60 + 75 - ImageCache[imgType + 'L'].width(), leftRopeLength * 60 + 15, ImageCache[imgType + 'L'])
-        painter.drawTiledPixmap(leftSideOffset + 15 - leftPlatformOffset * 60 + 75, leftRopeLength * 60 + 15, (leftPlatfromWidth - 2) * 60, 60, ImageCache[imgType + 'M'])
-        painter.drawPixmap(leftSideOffset + 15 - leftPlatformOffset * 60 + 75 + (leftPlatfromWidth - 2) * 60, leftRopeLength * 60 + 15, ImageCache[imgType + 'R'])
+        painter.drawPixmap(QtCore.QPointF(leftSideOffset + 15 - leftPlatformOffset * 60 + 75 - ImageCache[imgType + 'L'].width(), leftRopeLength * 60 + 15), ImageCache[imgType + 'L'])
+        painter.drawTiledPixmap(QtCore.QRectF(leftSideOffset + 15 - leftPlatformOffset * 60 + 75, leftRopeLength * 60 + 15, (leftPlatfromWidth - 2) * 60, 60), ImageCache[imgType + 'M'])
+        painter.drawPixmap(QtCore.QPointF(leftSideOffset + 15 - leftPlatformOffset * 60 + 75 + (leftPlatfromWidth - 2) * 60, leftRopeLength * 60 + 15), ImageCache[imgType + 'R'])
 
         # Draw right platform
-        painter.drawPixmap(10 + leftSideOffset + 15 + (middleRopeLength - rightPlatformOffset) * 60 + 75 - ImageCache[imgType + 'L'].width(), rightRopeLength * 60 + 15, ImageCache[imgType + 'L'])
-        painter.drawTiledPixmap(9 + leftSideOffset + 15 + (middleRopeLength - rightPlatformOffset) * 60 + 75, rightRopeLength * 60 + 15, (rightPlatfromWidth - 2) * 60, 60, ImageCache[imgType + 'M'])
-        painter.drawPixmap(7 + leftSideOffset + 15 + (middleRopeLength - rightPlatformOffset) * 60 + 75 + (rightPlatfromWidth - 2) * 60, rightRopeLength * 60 + 15, ImageCache[imgType + 'R'])
+        painter.drawPixmap(QtCore.QPointF(10 + leftSideOffset + 15 + (middleRopeLength - rightPlatformOffset) * 60 + 75 - ImageCache[imgType + 'L'].width(), rightRopeLength * 60 + 15), ImageCache[imgType + 'L'])
+        painter.drawTiledPixmap(QtCore.QRectF(9 + leftSideOffset + 15 + (middleRopeLength - rightPlatformOffset) * 60 + 75, rightRopeLength * 60 + 15, (rightPlatfromWidth - 2) * 60, 60), ImageCache[imgType + 'M'])
+        painter.drawPixmap(QtCore.QPointF(7 + leftSideOffset + 15 + (middleRopeLength - rightPlatformOffset) * 60 + 75 + (rightPlatfromWidth - 2) * 60, rightRopeLength * 60 + 15), ImageCache[imgType + 'R'])
 
         painter = None
         self.aux[0].setImage(pix, xOffset, -45)
@@ -7948,7 +7931,7 @@ class SpriteImage_StoneBlock(SLib.SpriteImage_Static):  # 347
         super().paint(painter)
 
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        painter.drawPixmap(self.yOffset, self.xOffset, 60, 60, SLib.Tiles[52].main)
+        painter.drawPixmap(QtCore.QPointF(self.yOffset, self.xOffset), SLib.Tiles[52].main)
 
 
 class SpriteImage_SuperGuide(SLib.SpriteImage_Static):  # 348
@@ -8137,8 +8120,8 @@ class SpriteImage_RotatableIronPlatform(SLib.SpriteImage):  # 354
     def paint(self, painter):
         super().paint(painter)
         painter.drawPixmap(0, 0, ImageCache['MovITopL'])
-        painter.drawTiledPixmap(60, 0, ((self.width * 3.75) - 120), 60, ImageCache['MovITopM'])
-        painter.drawPixmap((self.width - 16) * 3.75, 0, ImageCache['MovITopR'])
+        painter.drawTiledPixmap(60, 0, (round(self.width * 3.75) - 120), 60, ImageCache['MovITopM'])
+        painter.drawPixmap(round((self.width - 16) * 3.75), 0, ImageCache['MovITopR'])
 
 
 class SpriteImage_RollingHillPipe(SLib.SpriteImage):  # 355
@@ -8249,7 +8232,7 @@ class SpriteImage_MoveWhenOnPlatform(SLib.SpriteImage):  # 367
             painter.drawPixmap(45, 0, ImageCache['MovWhenOnL'])
             painter.drawPixmap(0, 0, ImageCache['MovIWhenOnR'])
         
-        painter.drawPixmap(self.width * 1.875 - 30, 0, ImageCache['MovIWhenOnArrow%s' % self.dirStr])
+        painter.drawPixmap(round(self.width * 1.875) - 30, 0, ImageCache['MovIWhenOnArrow%s' % self.dirStr])
 
 class SpriteImage_Morton(SLib.SpriteImage_Static):  # 368
     def __init__(self, parent):
@@ -8536,7 +8519,7 @@ class SpriteImage_PinkMultiPlatform(SLib.SpriteImage):  # 388
 
         # Create the aux image
         self.aux[0].setSize(width, height, xOffset, yOffset)
-        pix = QtGui.QPixmap(width, height)
+        pix = QtGui.QPixmap(round(width), round(height))
         pix.fill(Qt.transparent)
 
         # Create a painter with the image
@@ -8562,13 +8545,13 @@ class SpriteImage_PinkMultiPlatform(SLib.SpriteImage):  # 388
             x = width * 0.5 + math.cos(angle) * radius * 60
             y = height * 0.5 + 30 + math.sin(angle) * radius * 60
             
-            paint.drawPixmap(x - platformWidth * 30 - 14, y - 30, ImageCache['PinkMultiPlatL'])
-            paint.drawTiledPixmap(x - platformWidth * 30 + 60, y - 30, (platformWidth - 2) * 60, 60, ImageCache['PinkMultiPlatM'])
-            paint.drawPixmap(x + platformWidth * 30 - 61, y - 30, ImageCache['PinkMultiPlatR'])
+            paint.drawPixmap(QtCore.QPointF(x - platformWidth * 30 - 14, y - 30), ImageCache['PinkMultiPlatL'])
+            paint.drawTiledPixmap(QtCore.QRectF(x - platformWidth * 30 + 60, y - 30, (platformWidth - 2) * 60, 60), ImageCache['PinkMultiPlatM'])
+            paint.drawPixmap(QtCore.QPointF(x + platformWidth * 30 - 61, y - 30), ImageCache['PinkMultiPlatR'])
 
             # Draw coins on platforms if needed
             if drawCoins and i % coinsOnPlatforms == 0:
-                paint.drawTiledPixmap(x - coinAmount * 30, y - 90, coinAmount * 60, 60, SLib.Tiles[30].main)
+                paint.drawTiledPixmap(QtCore.QRectF(x - coinAmount * 30, y - 90, coinAmount * 60, 60), SLib.Tiles[30].main)
 
         # Complete the image and send it the the aux
         paint = None
@@ -8628,13 +8611,13 @@ class SpriteImage_JungleBridge(SLib.SpriteImage_PivotRotationControlled):  # 390
         if self.width == 8:
             self.width = 24
 
-        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix = QtGui.QPixmap(round(self.width * 3.75), round(self.height * 3.75))
         pix.fill(Qt.transparent)
 
         painter = QtGui.QPainter(pix)
-        painter.drawTiledPixmap(15, 15, self.width * 3.75 - 30, 60, ImageCache['JungleBridgeM'], (ImageCache['JungleBridgeM'].width() - (self.width * 3.75 - 30)) * 0.5)
+        painter.drawTiledPixmap(15, 15, round(self.width * 3.75) - 30, 60, ImageCache['JungleBridgeM'], (ImageCache['JungleBridgeM'].width() - (round(self.width * 3.75) - 30)) // 2)
         painter.drawPixmap(0, 0, ImageCache['JungleBridgeL'])
-        painter.drawPixmap(self.width * 3.75 - 75, 0, ImageCache['JungleBridgeR'])
+        painter.drawPixmap(round(self.width * 3.75) - 75, 0, ImageCache['JungleBridgeR'])
         painter.end()
         del painter
 
@@ -8840,7 +8823,7 @@ class SpriteImage_LanternPlatform(SLib.SpriteImage_PivotRotationControlled):  # 
         else:
             self.width = ((self.platformLength + 4) << 4) + 8
 
-        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix = QtGui.QPixmap(round(self.width * 3.75), round(self.height * 3.75))
         pix.fill(Qt.transparent)
 
         painter = QtGui.QPainter(pix)
@@ -8915,14 +8898,14 @@ class SpriteImage_BumpPlatform(SLib.SpriteImage):  # 407
         super().paint(painter)
 
         if self.width > 32:
-            painter.drawTiledPixmap(60, 0, ((self.width * 3.75) - 120), 60, ImageCache['BumpPlatformM'])
+            painter.drawTiledPixmap(60, 0, round(self.width * 3.75) - 120, 60, ImageCache['BumpPlatformM'])
 
         if self.width == 24:
             painter.drawPixmap(0, 0, ImageCache['BumpPlatformR'])
             painter.drawPixmap(8, 0, ImageCache['BumpPlatformL'])
         else:
             # normal rendering
-            painter.drawPixmap((self.width - 16) * 3.75, 0, ImageCache['BumpPlatformR'])
+            painter.drawPixmap(round((self.width - 16) * 3.75), 0, ImageCache['BumpPlatformR'])
             painter.drawPixmap(0, 0, ImageCache['BumpPlatformL'])
 
 
@@ -9196,9 +9179,9 @@ class SpriteImage_CastleRailLudwig(SLib.SpriteImage):  # 428
 
     def paint(self, painter):
         super().paint(painter)
-        painter.drawTiledPixmap(60, 15, self.width * 3.75 - 120, 120, ImageCache['CastleRailLudwigM'])
+        painter.drawTiledPixmap(60, 15, round(self.width * 3.75) - 120, 120, ImageCache['CastleRailLudwigM'])
         painter.drawPixmap(0, 0, ImageCache['CastleRailLudwigL'])
-        painter.drawPixmap(self.width * 3.75 - 75, 0, ImageCache['CastleRailLudwigR%d' % self.endType])
+        painter.drawPixmap(round(self.width * 3.75) - 75, 0, ImageCache['CastleRailLudwigR%d' % self.endType])
 
 
 class SpriteImage_MetalBar(SLib.SpriteImage_StaticMultiple):  # 429
@@ -9268,7 +9251,7 @@ class SpriteImage_MortonStoneBlock(SLib.SpriteImage):  # 431
         super().paint(painter)
 
         # Draw middle
-        painter.drawTiledPixmap(30, 30, (self.w - 1) * 60, (self.h - 1) * 60, ImageCache['MortonStoneBlockM'], ImageCache['MortonStoneBlockM'].width() / 2 - ((self.w - 1) / 2) * 60, ImageCache['MortonStoneBlockM'].height() / 2 - ((self.h - 1) / 2) * 60)
+        painter.drawTiledPixmap(30, 30, (self.w - 1) * 60, (self.h - 1) * 60, ImageCache['MortonStoneBlockM'], (ImageCache['MortonStoneBlockM'].width() - ((self.w - 1) * 60)) // 2, (ImageCache['MortonStoneBlockM'].height() - ((self.h - 1) * 60)) // 2)
 
         # Draw top row
         painter.drawPixmap(0, 0, ImageCache['MortonStoneBlockTL'])
@@ -9466,8 +9449,8 @@ class SpriteImage_WobbyBonePlatform(SLib.SpriteImage):  # 457
 
         elif self.length:
             painter.drawPixmap(0, 0, ImageCache['WobbyBoneL'])
-            painter.drawTiledPixmap(60, 0, (self.width - 32) * 3.75, 120, ImageCache['WobbyBoneM'])
-            painter.drawPixmap((self.width - 16) * 3.75, 0, ImageCache['WobbyBoneR'])
+            painter.drawTiledPixmap(60, 0, round((self.width - 32) * 3.75), 120, ImageCache['WobbyBoneM'])
+            painter.drawPixmap(round((self.width - 16) * 3.75), 0, ImageCache['WobbyBoneR'])
 
 
 class SpriteImage_BowserJrCastle(SLib.SpriteImage_Static):  # 459
@@ -9868,7 +9851,7 @@ class SpriteImage_MovingGrassPlatform(SLib.SpriteImage):  # 499
         self.width = (self.parent.spritedata[8] & 0xF) * 16 + 16
         if self.width == 16: self.width *= 2
 
-        if self.width / 16 < 3:
+        if self.width < 48:
             self.height = 240
         else:
             self.height = 256
@@ -9876,27 +9859,27 @@ class SpriteImage_MovingGrassPlatform(SLib.SpriteImage):  # 499
         zOrder = (self.parent.spritedata[5] & 0xF) + 1
         self.parent.setZValue(24999 // zOrder)
 
-        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix = QtGui.QPixmap(round(self.width * 3.75), round(self.height * 3.75))
         pix.fill(Qt.transparent)
         painter = QtGui.QPainter(pix)
 
         # Top
-        if self.width / 16 < 3:
+        if self.width < 48:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopL'])
             painter.drawPixmap(60, 0, 60, 60, ImageCache['MovGTopR'])
         else:
             painter.drawPixmap(0, 0, 60, 60, ImageCache['MovGTopL'])
-            painter.drawTiledPixmap(60, 0, (self.width / 16 - 2) * 60, 60, ImageCache['MovGTopM'])
-            painter.drawPixmap(60 + ((self.width / 16 - 2) * 60), 0, 60, 60, ImageCache['MovGTopR'])
+            painter.drawTiledPixmap(60, 0, round((self.width / 16 - 2) * 60), 60, ImageCache['MovGTopM'])
+            painter.drawPixmap(60 + round((self.width / 16 - 2) * 60), 0, 60, 60, ImageCache['MovGTopR'])
 
         # Bottom
-        if self.width / 16 < 3:
+        if self.width < 48:
             painter.drawPixmap(0, 60, 60, 840, ImageCache['MovGMiddleL'])
             painter.drawPixmap(60, 60, 60, 840, ImageCache['MovGMiddleR'])
         else:
             painter.drawPixmap(0, 60, 60, 900, ImageCache['MovGMiddleL'])
-            painter.drawTiledPixmap(60, 60, ((self.width / 16) - 2) * 60, 900, ImageCache['MovGMiddleM'])
-            painter.drawPixmap(60 + ((self.width / 16 - 2) * 60), 60, 60, 900, ImageCache['MovGMiddleR'])
+            painter.drawTiledPixmap(60, 60, round((self.width / 16 - 2) * 60), 900, ImageCache['MovGMiddleM'])
+            painter.drawPixmap(60 + round((self.width / 16 - 2) * 60), 60, 60, 900, ImageCache['MovGMiddleR'])
 
         painter = None
         rot = (self.parent.spritedata[3] >> 4)
@@ -9917,7 +9900,7 @@ class SpriteImage_MovingGrassPlatform(SLib.SpriteImage):  # 499
 
     def paint(self, painter):
         super().paint(painter)
-        painter.drawPixmap(self.imgxOffset * 3.75, self.imgyOffset * 3.75, self.transformed)
+        painter.drawPixmap(QtCore.QPointF(self.imgxOffset * 3.75, self.imgyOffset * 3.75), self.transformed)
 
 
 class SpriteImage_MovingBonePlatform(SpriteImage_PlatformBase):  # 491, 492, 627
@@ -10002,7 +9985,7 @@ class SpriteImage_ChallengeOnlyBlock(SLib.SpriteImage):  # 506
 
     def paint(self, painter):
         super().paint(painter)
-        painter.drawTiledPixmap(0, 0, self.width * 3.75, self.height * 3.75, ImageCache['NabbitMetal'])
+        painter.drawTiledPixmap(0, 0, round(self.width * 3.75), round(self.height * 3.75), ImageCache['NabbitMetal'])
 
 
 class SpriteImage_ShootingStar(SLib.SpriteImage):  # 507
@@ -10062,7 +10045,7 @@ class SpriteImage_GhostShipBlock(SLib.SpriteImage_PivotRotationControlled):  # 5
         self.width = self.w << 4
         self.height = self.h << 4
 
-        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix = QtGui.QPixmap(round(self.width * 3.75), round(self.height * 3.75))
         pix.fill(Qt.transparent)
 
         painter = QtGui.QPainter(pix)
@@ -10158,7 +10141,7 @@ class SpriteImage_MovingCastleGround(SLib.SpriteImage):  # 515
     def paint(self, painter):
         super().paint(painter)
         sideWidth = ImageCache['MovCastle%dTL' % self.groundType].width()
-        midWidth = self.width * 3.75 - sideWidth * 2
+        midWidth = round(self.width * 3.75) - sideWidth * 2
         
         # Draw top row
         painter.drawPixmap(0, 0, ImageCache['MovCastle%dTL' % self.groundType])
@@ -10166,9 +10149,9 @@ class SpriteImage_MovingCastleGround(SLib.SpriteImage):  # 515
         painter.drawPixmap(sideWidth + midWidth, 0, ImageCache['MovCastle%dTR' % self.groundType])
 
         # Draw middle
-        painter.drawTiledPixmap(0,                    60, sideWidth, self.height * 3.75, ImageCache['MovCastle%dL' % self.groundType])
-        painter.drawTiledPixmap(sideWidth,            60, midWidth,  self.height * 3.75, ImageCache['MovCastle%dM' % self.groundType])
-        painter.drawTiledPixmap(sideWidth + midWidth, 60, sideWidth, self.height * 3.75, ImageCache['MovCastle%dR' % self.groundType])
+        painter.drawTiledPixmap(0,                    60, sideWidth, round(self.height * 3.75), ImageCache['MovCastle%dL' % self.groundType])
+        painter.drawTiledPixmap(sideWidth,            60, midWidth,  round(self.height * 3.75), ImageCache['MovCastle%dM' % self.groundType])
+        painter.drawTiledPixmap(sideWidth + midWidth, 60, sideWidth, round(self.height * 3.75), ImageCache['MovCastle%dR' % self.groundType])
 
 
 class SpriteImage_MiniPipeRight(SpriteImage_Pipe):  # 516
@@ -10289,7 +10272,7 @@ class SpriteImage_FlyingQBlockAmbush(SLib.SpriteImage):  # 523
         super().paint(painter)
 
         painter.drawPixmap(0, 0, ImageCache['FlyingQBlock'])
-        painter.drawPixmap(45, 57.5, SLib.Tiles[0x800 + len(globals.Overrides) - 1].main)
+        painter.drawPixmap(QtCore.QPointF(45, 57.5), SLib.Tiles[0x800 + len(globals.Overrides) - 1].main)
 
 
 class SpriteImage_MovementControlledTowerBlock(SLib.SpriteImage_Static):  # 524, 669
@@ -10427,7 +10410,7 @@ class SpriteImage_MushroomMovingPlatform(SLib.SpriteImage):  # 544
     def paint(self, painter):
         super().paint(painter)
         ghostOffset = 0
-        regularOffset = (self.height - self.minHeight) * 3.75
+        regularOffset = round((self.height - self.minHeight) * 3.75)
         
         if self.oppositeDir:
             ghostOffset = regularOffset
@@ -10435,22 +10418,22 @@ class SpriteImage_MushroomMovingPlatform(SLib.SpriteImage):  # 544
 
         # Top
         painter.drawPixmap(0, regularOffset, ImageCache['WobbleMushL%d' % self.color])
-        painter.drawTiledPixmap(60, regularOffset, (self.width - 32) * 3.75, 60, ImageCache['WobbleMushM%d' % self.color])
-        painter.drawPixmap((self.width - 16) * 3.75, regularOffset, ImageCache['WobbleMushR%d' % self.color])
+        painter.drawTiledPixmap(60, regularOffset, round((self.width - 32) * 3.75), 60, ImageCache['WobbleMushM%d' % self.color])
+        painter.drawPixmap(round((self.width - 16) * 3.75), regularOffset, ImageCache['WobbleMushR%d' % self.color])
 
         # Stem
-        painter.drawPixmap((self.width - 16) * 1.875 - 15, regularOffset + 60, ImageCache['WobbleMushStemTop%d' % self.color])
-        painter.drawTiledPixmap((self.width - 16) * 1.875, (self.height - 8) * 3.75, 60, 30, ImageCache['WobbleMushStem%d' % self.color], 0, 30 if self.wobbleUpDown else 0)
-        painter.drawTiledPixmap((self.width - 16) * 1.875, regularOffset + 120, 60, (self.height - 40) * 3.75 - regularOffset, ImageCache['WobbleMushStem%d' % self.color])
+        painter.drawPixmap(round((self.width - 16) * 1.875) - 15, regularOffset + 60, ImageCache['WobbleMushStemTop%d' % self.color])
+        painter.drawTiledPixmap(round((self.width - 16) * 1.875), round((self.height - 8) * 3.75), 60, 30, ImageCache['WobbleMushStem%d' % self.color], 0, 30 if self.wobbleUpDown else 0)
+        painter.drawTiledPixmap(round((self.width - 16) * 1.875), regularOffset + 120, 60, round((self.height - 40) * 3.75) - regularOffset, ImageCache['WobbleMushStem%d' % self.color])
 
         # Ghost
         if self.wobbleUpDown and self.height - self.minHeight > 0:
             painter.setOpacity(0.5)
             painter.drawPixmap(0, ghostOffset, ImageCache['WobbleMushL%d' % self.color])
-            painter.drawTiledPixmap(60, ghostOffset, (self.width - 32) * 3.75, 60, ImageCache['WobbleMushM%d' % self.color])
-            painter.drawPixmap((self.width - 16) * 3.75, ghostOffset, ImageCache['WobbleMushR%d' % self.color])
-            painter.drawPixmap((self.width - 16) * 1.875 - 15, ghostOffset + 60, ImageCache['WobbleMushStemTop%d' % self.color])
-            painter.drawTiledPixmap((self.width - 16) * 1.875, ghostOffset + 120, 60, (self.height - self.minHeight) * 3.75, ImageCache['WobbleMushStem%d' % self.color])
+            painter.drawTiledPixmap(60, ghostOffset, round((self.width - 32) * 3.75), 60, ImageCache['WobbleMushM%d' % self.color])
+            painter.drawPixmap(round((self.width - 16) * 3.75), ghostOffset, ImageCache['WobbleMushR%d' % self.color])
+            painter.drawPixmap(round((self.width - 16) * 1.875) - 15, ghostOffset + 60, ImageCache['WobbleMushStemTop%d' % self.color])
+            painter.drawTiledPixmap(round((self.width - 16) * 1.875), ghostOffset + 120, 60, round((self.height - self.minHeight) * 3.75), ImageCache['WobbleMushStem%d' % self.color])
             painter.setOpacity(1)
 
 
@@ -10746,7 +10729,7 @@ class SpriteImage_MovingSkyBlock(SLib.SpriteImage):  # 562, 563
         self.width = self.w << 4
         self.height = self.h << 4
 
-        pix = QtGui.QPixmap(self.width * 3.75, self.height * 3.75)
+        pix = QtGui.QPixmap(round(self.width * 3.75), round(self.height * 3.75))
         pix.fill(Qt.transparent)
         painter = QtGui.QPainter(pix)
         
@@ -10782,7 +10765,7 @@ class SpriteImage_MovingSkyBlock(SLib.SpriteImage):  # 562, 563
 
     def paint(self, painter):
         super().paint(painter)
-        painter.drawPixmap(self.imgxOffset * 3.75, self.imgyOffset * 3.75, self.transformed)
+        painter.drawPixmap(QtCore.QPointF(self.imgxOffset * 3.75, self.imgyOffset * 3.75), self.transformed)
 
 
 class SpriteImage_Magmaw(SLib.SpriteImage_Static):  # 565
@@ -11029,7 +11012,7 @@ class SpriteImage_NoCoinArea(SLib.SpriteImage):  # 598
 
     def paint(self, painter):
         super().paint(painter)
-        painter.drawTiledPixmap(0, 0, self.width * 3.75, self.height * 3.75, ImageCache['NoCoinArea%d' % self.areaType])
+        painter.drawTiledPixmap(0, 0, round(self.width * 3.75), round(self.height * 3.75), ImageCache['NoCoinArea%d' % self.areaType])
 
 
 class SpriteImage_MoonBlock(SLib.SpriteImage_Static):  # 600
@@ -11143,7 +11126,7 @@ class SpriteImage_PacornBlock(SLib.SpriteImage):  # 612
 
     def paint(self, painter):
         super().paint(painter)
-        painter.drawTiledPixmap(0, 0, self.width * 3.75, self.height * 3.75, ImageCache['PAcorn%d' % self.direction])
+        painter.drawTiledPixmap(0, 0, round(self.width * 3.75), round(self.height * 3.75), ImageCache['PAcorn%d' % self.direction])
 
 
 class SpriteImage_GoldenPipeLeft(SLib.SpriteImage_Static):  # 613
@@ -11185,7 +11168,7 @@ class SpriteImage_SteelBlock(SLib.SpriteImage_Static):  # 618
         super().paint(painter)
 
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        painter.drawPixmap(self.yOffset, self.xOffset, 60, 60, SLib.Tiles[54].main)
+        painter.drawPixmap(QtCore.QPointF(self.yOffset, self.xOffset), SLib.Tiles[54].main)
 
 
 class SpriteImage_WoodBlock(SLib.SpriteImage_Static):  # 619
@@ -11199,7 +11182,7 @@ class SpriteImage_WoodBlock(SLib.SpriteImage_Static):  # 619
         super().paint(painter)
 
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        painter.drawPixmap(self.yOffset, self.xOffset, 60, 60, SLib.Tiles[51].main)
+        painter.drawPixmap(QtCore.QPointF(self.yOffset, self.xOffset), SLib.Tiles[51].main)
 
 
 class SpriteImage_SeesawMushroomBlue(SLib.SpriteImage):  # 632

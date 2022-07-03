@@ -2761,7 +2761,7 @@ class frameByFrameTab(QtWidgets.QWidget):
             self.frameIdx.setEnabled(False)
             self.parent.allFramesTab.importButton.setEnabled(False)
 
-            self.previewTimer.start(62.5)
+            self.previewTimer.start(63)  # 62.5
 
         else:
             self.importButton.setEnabled(True)
@@ -4287,7 +4287,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setuptile()
 
-        self.objmodel.appendRow(QtGui.QStandardItem(QtGui.QIcon(tex.scaledToWidth(tex.width() / 60 * 24, Qt.SmoothTransformation)), 'Object {0}'.format(count-1)))
+        self.objmodel.appendRow(QtGui.QStandardItem(QtGui.QIcon(tex.scaledToWidth(round(tex.width() / 60 * 24), Qt.SmoothTransformation)), 'Object {0}'.format(count-1)))
         index = self.objectList.currentIndex()
         self.objectList.setCurrentIndex(index)
         self.tileWidget.setObject(index)
@@ -4550,8 +4550,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def updateInfo(self, x, y):
 
-        index = [self.tileDisplay.indexAt(QtCore.QPoint(x, y))]
-        curTile = Tileset.tiles[index[0].row()]
+        index = self.tileDisplay.indexAt(QtCore.QPoint(int(x), int(y))).row()
+        if index < 0 or index >= len(Tileset.objects):
+            return
+
+        curTile = Tileset.tiles[index]
         info = self.infoDisplay
         palette = self.paletteWidget
 
@@ -4590,7 +4593,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if curTile.params < len(palette.ParameterList[curTile.coreType]):
                 parameter = palette.ParameterList[curTile.coreType][curTile.params]
             else:
-                print('Error 1: %d, %d, %d' % (index[0].row(), curTile.coreType, curTile.params))
+                print('Error 1: %d, %d, %d' % (index, curTile.coreType, curTile.params))
                 parameter = ['', QtGui.QIcon()]
         else:
             parameter = ['', QtGui.QIcon()]
