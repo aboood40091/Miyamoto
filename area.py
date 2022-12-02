@@ -734,8 +734,8 @@ class Area_NSMBU(AbstractArea):
 
             self.WritePathNodes(nodebuffer, nodeoffset, path['nodes'])
 
-            pathstruct.pack_into(buffer, offset, int(path['id']), 0, int(nodeindex), int(len(path['nodes'])),
-                                 2 if path['loops'] else 0)
+            pathstruct.pack_into(buffer, offset, int(path['id']), int(path['unk1']), int(nodeindex),
+                                 int(len(path['nodes'])), 2 if path['loops'] else 0)
             offset += 12
             nodeoffset += len(path['nodes']) * 20
             nodeindex += len(path['nodes'])
