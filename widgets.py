@@ -3450,6 +3450,7 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         self.accel.setValue(path.nodeinfo['accel'])
         self.delay.setValue(path.nodeinfo['delay'])
         self.loops.setChecked(path.pathinfo['loops'])
+        self.unk1.setValue(path.pathinfo['unk1'])
 
         self.UpdateFlag = False
 
@@ -3483,7 +3484,7 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         """
         if self.UpdateFlag: return
         SetDirty()
-        self.path.nodeinfo['unk1'] = i
+        self.path.pathinfo['unk1'] = i
 
     def HandleLoopsChanged(self, i):
         if self.UpdateFlag: return
