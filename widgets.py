@@ -2310,7 +2310,9 @@ class SpritePickerWidget(QtWidgets.QTreeWidget):
                         self.NoSpritesFound = snode
                     else:
                         sdef = globals.Sprites[id] if 0 <= id < globals.NumSprites else None
-                        snode.setText(0, globals.trans.string('Sprites', 18, '[id]', id, '[name]', "UNKNOWN" if sdef is None else sdef.name))
+                        if sdef is None:
+                            continue
+                        snode.setText(0, globals.trans.string('Sprites', 18, '[id]', id, '[name]', sdef.name))
                         snode.setData(0, Qt.UserRole, id)
 
                     if isSearch:
