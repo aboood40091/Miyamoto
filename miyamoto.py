@@ -49,7 +49,12 @@ import time
 import traceback
 
 # PyQt5: import
-pqt_min = map(int, "5.8.0".split('.'))
+if currentRunningVersion >= 3.10:
+    pqt_min = map(int, "5.15.6".split('.'))
+    pqt_min_str = '5.15.6'
+else:
+    pqt_min = map(int, "5.12.2".split('.'))
+    pqt_min_str = '5.12.2'
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
@@ -58,7 +63,7 @@ version = map(int, QtCore.QT_VERSION_STR.split('.'))
 for v, c in zip(version, pqt_min):
     if c > v:
         # lower version
-        errormsg = 'Please update your copy of PyQt to 5.8' + \
+        errormsg = 'Please update your copy of PyQt to ' + str(pqt_min_str) + \
                    ' or greater. Currently running on: ' + QtCore.QT_VERSION_STR
 
         raise Exception(errormsg) from None
@@ -1091,7 +1096,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         act.setIcon(GetIcon('overview'))
         act.setStatusTip(globals.trans.string('MenuItems', 95))
         self.vmenu.addAction(act)
-		
+
         # quick paint configuration
         dock = QtWidgets.QDockWidget(globals.trans.string('MenuItems', 136), self)
         dock.setFeatures(
