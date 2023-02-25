@@ -2601,22 +2601,26 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
             return arcdata
 
-        if exists('levelname'):
-            fn = bytes_to_string(arc['levelname'].data)
-            if exists(fn):
-                arcdata = arc[fn].data
+        if exists('course'):
+            arc_ = arc
+
+        else:
+            if exists('levelname'):
+                fn = bytes_to_string(arc['levelname'].data)
+                if exists(fn):
+                    arcdata = arc[fn].data
+
+                else:
+                    arcdata = guessInnerName()
 
             else:
                 arcdata = guessInnerName()
 
-        else:
-            arcdata = guessInnerName()
+            if not arcdata:
+                return False
 
-        if not arcdata:
-            return False
-
-        arc_ = SarcLib.SARC_Archive()
-        arc_.load(arcdata)
+            arc_ = SarcLib.SARC_Archive()
+            arc_.load(arcdata)
 
         # get the area count
         areacount = 0
@@ -3679,24 +3683,29 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                     return levelFileData
 
-                if exists('levelname'):
-                    fn = bytes_to_string(arc['levelname'].data)
-                    if exists(fn):
-                        globals.levelNameCache = fn
-                        levelFileData = arc[fn].data
+                if exists('course'):
+                    levelFileData = levelData
+
+                else:
+                    if exists('levelname'):
+                        fn = bytes_to_string(arc['levelname'].data)
+                        if exists(fn):
+                            globals.levelNameCache = fn
+                            levelFileData = arc[fn].data
+                        else:
+                            levelFileData = guessInnerName()
+
                     else:
                         levelFileData = guessInnerName()
 
-                else:
-                    levelFileData = guessInnerName()
-
-                if not levelFileData:
-                    return False
+                    if not levelFileData:
+                        return False
 
                 # Sort the szs data
                 globals.szsData = {}
                 for file in arc.contents:
-                    globals.szsData[file.name] = file.data
+                    if isinstance(file, SarcLib.File):
+                        globals.szsData[file.name] = file.data
 
                 # Get all tilesets in the level
                 self.tilesets = [[], [], [], []]
