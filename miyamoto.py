@@ -1584,19 +1584,19 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Auto saves the level
         """
         return
-        if not globals.AutoSaveDirty: return
-
-        name = self.getInnerSarcName()
-        if "-" not in name:
-            print('HEY THERE IS NO -, THIS WILL NOT WORK!')
-        if name == '':
-            return
-
-        data = globals.Level.save(name)
-        globals.levelNameCache = name
-        setSetting('AutoSaveFilePath', self.fileSavePath)
-        setSetting('AutoSaveFileData', QtCore.QByteArray(data))
-        globals.AutoSaveDirty = False
+#        if not globals.AutoSaveDirty: return
+#
+#        name = self.getInnerSarcName()
+#        if "-" not in name:
+#            print('HEY THERE IS NO -, THIS WILL NOT WORK!')
+#        if name == '':
+#            return
+#
+#        data = globals.Level.save(name)
+#        globals.levelNameCache = name
+#        setSetting('AutoSaveFilePath', self.fileSavePath)
+#        setSetting('AutoSaveFileData', QtCore.QByteArray(data))
+#        globals.AutoSaveDirty = False
 
     def TrackClipboardUpdates(self):
         """
