@@ -2593,34 +2593,35 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     break
 
             else:
-                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                   'Couldn\'t find the inner level file. Aborting.')
-                warningBox.exec_()
-
                 return ''
 
             return arcdata
 
-        if exists('course'):
-            arc_ = arc
-
-        else:
-            if exists('levelname'):
-                fn = bytes_to_string(arc['levelname'].data)
-                if exists(fn):
-                    arcdata = arc[fn].data
-
-                else:
-                    arcdata = guessInnerName()
+        if exists('levelname'):
+            fn = bytes_to_string(arc['levelname'].data)
+            if exists(fn):
+                arcdata = arc[fn].data
 
             else:
                 arcdata = guessInnerName()
 
-            if not arcdata:
-                return False
+        else:
+            arcdata = guessInnerName()
 
+        if arcdata:
             arc_ = SarcLib.SARC_Archive()
             arc_.load(arcdata)
+
+        else:
+            if exists('course'):
+                arc_ = arc
+
+            else:
+                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
+                                                   'Couldn\'t find the inner level file. Aborting.')
+                warningBox.exec_()
+
+                return False
 
         # get the area count
         areacount = 0
@@ -3675,30 +3676,30 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                             break
 
                     else:
-                        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
-                                                           'Couldn\'t find the inner level file. Aborting.')
-                        warningBox.exec_()
-
                         return ''
 
                     return levelFileData
 
-                if exists('course'):
-                    levelFileData = levelData
-
-                else:
-                    if exists('levelname'):
-                        fn = bytes_to_string(arc['levelname'].data)
-                        if exists(fn):
-                            globals.levelNameCache = fn
-                            levelFileData = arc[fn].data
-                        else:
-                            levelFileData = guessInnerName()
-
+                if exists('levelname'):
+                    fn = bytes_to_string(arc['levelname'].data)
+                    if exists(fn):
+                        globals.levelNameCache = fn
+                        levelFileData = arc[fn].data
                     else:
                         levelFileData = guessInnerName()
 
-                    if not levelFileData:
+                else:
+                    levelFileData = guessInnerName()
+
+                if not levelFileData:
+                    if exists('course'):
+                        levelFileData = levelData
+
+                    else:
+                        warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'OH NO',
+                                                           'Couldn\'t find the inner level file. Aborting.')
+                        warningBox.exec_()
+
                         return False
 
                 # Sort the szs data
