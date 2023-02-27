@@ -3184,9 +3184,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         globals.OverrideSnapping = True
         globals.DirtyOverride += 1
-        for spr in globals.Area.sprites:
-            if isinstance(spr.ImageObj, SLib.SpriteImage_MovementControlled) and spr.ImageObj.controller:
-                spr.UpdateDynamicSizing()
+        if globals.Area is not None:
+            for spr in globals.Area.sprites:
+                if isinstance(spr.ImageObj, SLib.SpriteImage_MovementControlled) and spr.ImageObj.controller:
+                    spr.UpdateDynamicSizing()
         globals.DirtyOverride -= 1
         globals.OverrideSnapping = False
 
