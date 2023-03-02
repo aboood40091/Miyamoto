@@ -93,7 +93,6 @@ ExceptionRaised = False
 CurrentLevelNameForAutoOpenScript = 'AAAAAAAAAAAAAAAAAAAAAAAAAA'
 TileWidth = 60
 szsData = {}
-levelNameCache = ''
 UseRGBA8 = False
 NumSprites = 0
 IsNSMBUDX = False

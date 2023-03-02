@@ -332,7 +332,7 @@ class Level_NSMBU(AbstractLevel):
         else:
             # data folder not found, copy the files
             for szsThingName in globals.szsData:
-                if szsThingName in [globals.levelNameCache, innerfilename, 'levelname']: continue
+                if szsThingName in [innerfilename, 'levelname']: continue
                 outerArchive.addFile(SarcLib.File(szsThingName, globals.szsData[szsThingName]))
 
         # Save the outer sarc and return it
@@ -386,7 +386,7 @@ class Level_NSMBU(AbstractLevel):
 
         # Add all the other stuff, too
         for szsThingName in globals.szsData:
-            if szsThingName in [globals.levelNameCache, 'levelname']: continue
+            if szsThingName in [innerfilename, 'levelname']: continue
             outerArchive.addFile(SarcLib.File(szsThingName, globals.szsData[szsThingName]))
 
         # Save the outer sarc and return it

@@ -1593,7 +1593,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 #            return
 #
 #        data = globals.Level.save(name)
-#        globals.levelNameCache = name
 #        setSetting('AutoSaveFilePath', self.fileSavePath)
 #        setSetting('AutoSaveFileData', QtCore.QByteArray(data))
 #        globals.AutoSaveDirty = False
@@ -2723,8 +2722,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             with open(self.fileSavePath, 'wb+') as f:
                 f.write(globals.Level.saveNewArea(name, None, None, None, None))
 
-        globals.levelNameCache = name
-
         if globals.CurrentArea in globals.ObjectAddedtoEmbedded:  # Should always be true
             del globals.ObjectAddedtoEmbedded[globals.CurrentArea]
 
@@ -2889,7 +2886,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 2),
                                           globals.trans.string('Err_Save', 3))
 
-        globals.levelNameCache = name
         try:
             if self.fileSavePath.endswith('.szs'):
                 CompYaz0(data, self.fileSavePath, globals.CompLevel)
@@ -2930,7 +2926,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 2),
                                           globals.trans.string('Err_Save', 3))
 
-        globals.levelNameCache = name
         try:
             if self.fileSavePath.endswith('.szs'):
                 CompYaz0(data, self.fileSavePath, globals.CompLevel)
@@ -2985,8 +2980,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 2),
                                           globals.trans.string('Err_Save', 3))
 
-        globals.levelNameCache = name
-
         if self.fileSavePath.endswith('.szs'):
             CompYaz0(data, self.fileSavePath, globals.CompLevel)
 
@@ -3016,9 +3009,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning', r'The input name included "/" or "\", aborting...')
                 warningBox.exec_()
                 return ''
-
-        if globals.levelNameCache == "untitled":
-            globals.levelNameCache = name
 
         return name
 
@@ -3655,11 +3645,9 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                         os.path.basename(self.fileSavePath).split(' ')[0])  # for names like "1-1 test.szs"
                     possibilities.append(os.path.basename(self.fileSavePath).split('.')[0])
                     possibilities.append(os.path.basename(self.fileSavePath).split('_')[0])
-                    possibilities.append(globals.levelNameCache)
 
                     for fn in possibilities:
                         if exists(fn):
-                            globals.levelNameCache = fn
                             levelFileData = arc[fn].data
                             break
 
@@ -3671,7 +3659,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if exists('levelname'):
                     fn = bytes_to_string(arc['levelname'].data)
                     if exists(fn):
-                        globals.levelNameCache = fn
                         levelFileData = arc[fn].data
                     else:
                         levelFileData = guessInnerName()
@@ -3908,7 +3895,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         # Load it
         globals.Level.new()
-        globals.levelNameCache = "untitled"
 
         self.objUseLayer1.setChecked(True)
 
