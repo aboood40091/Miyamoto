@@ -11,6 +11,7 @@ import os.path
 import platform
 import struct
 import sys
+import zlib
 
 from ctypes import create_string_buffer
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -215,7 +216,7 @@ class TilesetClass:
 
         def createRepetitionY(self, y1, y2):
             self.clearRepetitionY()
-            
+
             for y in range(y1, y2):
                 for x in range(len(self.tiles[y])):
                     self.tiles[y][x] = (self.tiles[y][x][0] | 2, self.tiles[y][x][1], self.tiles[y][x][2])
@@ -1490,7 +1491,7 @@ class RepeatXModifiers(QtWidgets.QWidget):
             row.pop()
         else:
             return
-                
+
         row = object.tiles[y]
         if len(row) > 1:
             row.pop()
@@ -2962,7 +2963,7 @@ class tileAnime(QtWidgets.QTabWidget):
                         data = file.data
 
         if not data:
-            print("Failed to acquired %s.gtx" % self.name)
+            print("Failed to acquire %s.gtx" % self.name)
             frames = []
 
         else:
@@ -3375,7 +3376,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         NmlMap = file.data
                     elif file.name.endswith('.gtx') and len(file.data) in (1421344, 4196384):
                         Image = file.data
-                            
+
             elif folder.name == 'BG_chk':
                 for file in folder.contents:
                     if file.name.startswith('d_bgchk_') and file.name.endswith('.bin'):
@@ -3765,8 +3766,22 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def saveTileset(self):
-        outdata = self.saving(os.path.basename(self.name))
-        globals.szsData[eval('globals.Area.tileset%d' % self.slot)] = outdata
+        if self.slot == 0:
+            filename = globals.Area.tileset0
+            assert os.path.basename(self.name) == filename
+            outdata = self.saving(filename)
+
+        else:
+            filename = eval('globals.Area.tileset%d' % self.slot)
+            # if not filename or filename == 'Pa%d_MIYAMOTO_TEMP' % self.slot:
+            if True:
+                filename, outdata = self.savingHashName()
+                exec("globals.Area.tileset%d = filename" % self.slot)
+            # else:
+            #     assert os.path.basename(self.name) == filename
+            #     outdata = self.saving(filename)
+
+        globals.szsData[filename] = outdata
 
         if self.slot == 0:
             import loading
@@ -3816,13 +3831,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if fn == '': return
 
         outdata = self.saving(os.path.basename(str(fn)))
-        
+
         with open(fn, 'wb') as f:
             f.write(outdata)
 
 
-    def saving(self, name):
-
+    def saveBuffers(self):
         # Prepare tiles, objects, object metadata, and textures and stuff into buffers.
         textureBuffer = self.PackTexture()
         textureBufferNml = self.PackTexture(True)
@@ -3831,7 +3845,10 @@ class MainWindow(QtWidgets.QMainWindow):
         objectBuffer = objectBuffers[0]
         objectMetaBuffer = objectBuffers[1]
 
+        return textureBuffer, textureBufferNml, tileBuffer, objectBuffer, objectMetaBuffer
 
+
+    def savingWithBuffers(self, name, textureBuffer, textureBufferNml, tileBuffer, objectBuffer, objectMetaBuffer):
         # Make an arc and pack up the files!
         arc = SarcLib.SARC_Archive()
 
@@ -3850,6 +3867,26 @@ class MainWindow(QtWidgets.QMainWindow):
         unt.addFile(SarcLib.File('%s_hd.bin' % name, objectMetaBuffer))
 
         return arc.save()[0]
+
+
+    def saving(self, name):
+        return self.savingWithBuffers(name, *self.saveBuffers())
+
+
+    def savingHashName(self):
+        buffers = self.saveBuffers()
+        buffers_data = b''.join(buffers)
+        buffers_hash = zlib.crc32(
+            buffers_data,
+            (self.slot << 24 |
+             self.slot << 16 |
+             self.slot << 8 |
+             self.slot)
+        )
+
+        # name = 'Pa%d_%08X%08X_%d' % (self.slot, buffers_hash, len(buffers_data), globals.Area.areanum)
+        name = 'Pa%d_%08X%08X' % (self.slot, buffers_hash, len(buffers_data))
+        return name, self.savingWithBuffers(name, *buffers)
 
 
     def PackTexture(self, normalmap=False):

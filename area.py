@@ -41,7 +41,6 @@ from loading import LoadTileset
 from misc import Metadata
 import spritelib as SLib
 from structures import Structures, GetFormat as GetStructureFormat
-from tileset import generateTilesetNames
 
 #################################
 
@@ -615,17 +614,6 @@ class Area_NSMBU(AbstractArea):
         """
         Saves the tileset names back to block 1
         """
-        if not globals.IsNSMBUDX and not isNewArea and (globals.TilesetEdited or globals.OverrideTilesetSaving):
-            tilesetNames = generateTilesetNames()
-            if self.tileset1:
-                self.tileset1 = tilesetNames[0]
-
-            if self.tileset2:
-                self.tileset2 = tilesetNames[1]
-
-            if self.tileset3:
-                self.tileset3 = tilesetNames[2]
-
         self.blocks[0] = ''.join(
             [self.tileset0.ljust(32, '\0'), self.tileset1.ljust(32, '\0'), self.tileset2.ljust(32, '\0'),
              self.tileset3.ljust(32, '\0')]).encode('latin-1')

@@ -32,6 +32,7 @@ import os
 import platform
 import struct
 import subprocess
+import zlib
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
@@ -41,7 +42,6 @@ import globals
 import addrlib
 import bc3
 import dds
-import gibberish
 import gtx
 import SarcLib
 import spritelib as SLib
@@ -177,7 +177,7 @@ class TilesetTile:
         self.params2  = (collision >> 24) &   0xFF
         self.solidity = (collision >> 32) &   0xFF
         self.terrain  = (collision >> 40) &   0xFF
-        
+
         self.collOverlay = QtGui.QPixmap(globals.TileWidth, globals.TileWidth)
         self.collOverlay.fill(QtGui.QColor(0, 0, 0, 0))
 
@@ -930,7 +930,7 @@ def addObjToTileset(obj, colldata, img, nml, isfromAll=False):
         # Misc.
         HandleTilesetEdited()
         if not eval('globals.Area.tileset%d' % idx):
-            exec("globals.Area.tileset%d = generateTilesetNames()[%d]" % (idx, idx - 1))
+            exec("globals.Area.tileset%d = 'Pa%d_MIYAMOTO_TEMP'" % (idx, idx))
 
         break
 
@@ -1211,20 +1211,6 @@ def DeleteObject(idx, objNum, soft=False):
             globals.mainWindow.clipboard = globals.mainWindow.encodeObjects(objects, sprites)
 
 
-def generateTilesetNames():
-    """
-    Generate 3 Tileset names
-    """
-    words = gibberish.generate_words(3)
-    tilesetNames = ['Pa%d_%s_%d_%s' % (i + 1, globals.levelNameCache, globals.CurrentArea, word) for i, word in enumerate(words)]
-    for name in tilesetNames:
-        if name in globals.szsData:
-            # Not safe, but... ¯\_(ツ)_/¯
-            return generateTilesetNames()
-
-    return tilesetNames
-
-
 def _compressBC3_nvcompress(tex, tile_path, nml):
     """
     RGBA8 QPixmap -> BC3 DDS
@@ -1402,8 +1388,6 @@ def SaveTileset(idx):
     """
     Saves a tileset from a specific slot
     """
-    name = eval('globals.Area.tileset%d' % idx)
-
     tileoffset = idx * 256
 
     tiledata = PackTexture(idx)
@@ -1441,6 +1425,23 @@ def SaveTileset(idx):
             deffile += b'\xFE'
 
         deffile += b'\xFF'
+
+    name = eval('globals.Area.tileset%d' % idx)
+    # if name == 'Pa%d_MIYAMOTO_TEMP' % idx:
+    if idx > 0:
+        buffers = (tiledata, nmldata, colldata, deffile, indexfile)
+        buffers_data = b''.join(buffers)
+        buffers_hash = zlib.crc32(
+            buffers_data,
+            (idx << 24 |
+             idx << 16 |
+             idx << 8 |
+             idx)
+        )
+
+        # name = 'Pa%d_%08X%08X_%d' % (idx, buffers_hash, len(buffers_data), globals.Area.areanum)
+        name = 'Pa%d_%08X%08X' % (idx, buffers_hash, len(buffers_data))
+        exec("globals.Area.tileset%d = name" % idx)
 
     arc = SarcLib.SARC_Archive()
 

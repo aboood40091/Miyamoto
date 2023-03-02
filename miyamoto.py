@@ -5518,7 +5518,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         else:
             if not eval('globals.Area.tileset%d' % slot):
-                exec("globals.Area.tileset%d = generateTilesetNames()[%d]" % (slot, slot - 1))
+                exec("globals.Area.tileset%d = 'Pa%d_MIYAMOTO_TEMP'" % (slot, slot))
                 con = True
 
             sarcfile = 'None'

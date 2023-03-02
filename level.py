@@ -84,7 +84,7 @@ class Level_NSMBU(AbstractLevel):
         """
         super().__init__()
         CreateTilesets()
-        
+
         import area
         self.areas.append(area.Area_NSMBU())
         globals.Area = self.areas[0]
@@ -178,6 +178,23 @@ class Level_NSMBU(AbstractLevel):
         Save the level back to a file
         """
 
+        # Save all the tilesets before anything
+        if globals.TilesetEdited or globals.OverrideTilesetSaving:
+            if globals.Area.tileset1:
+                tilesetData = SaveTileset(1)
+                if tilesetData:
+                    globals.szsData[globals.Area.tileset1] = tilesetData
+
+            if globals.Area.tileset2:
+                tilesetData = SaveTileset(2)
+                if tilesetData:
+                    globals.szsData[globals.Area.tileset2] = tilesetData
+
+            if globals.Area.tileset3:
+                tilesetData = SaveTileset(3)
+                if tilesetData:
+                    globals.szsData[globals.Area.tileset3] = tilesetData
+
         # Make a new archive
         newArchive = SarcLib.SARC_Archive()
 
@@ -211,23 +228,6 @@ class Level_NSMBU(AbstractLevel):
         # Make it easy for future Miyamotos to pick out the innersarc level name
         outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
         globals.szsData['levelname'] = innerfilename.encode('utf-8')
-
-        # Save all the tilesets
-        if globals.TilesetEdited or globals.OverrideTilesetSaving:
-            if globals.Area.tileset1:
-                tilesetData = SaveTileset(1)
-                if tilesetData:
-                    globals.szsData[globals.Area.tileset1] = tilesetData
-
-            if globals.Area.tileset2:
-                tilesetData = SaveTileset(2)
-                if tilesetData:
-                    globals.szsData[globals.Area.tileset2] = tilesetData
-
-            if globals.Area.tileset3:
-                tilesetData = SaveTileset(3)
-                if tilesetData:
-                    globals.szsData[globals.Area.tileset3] = tilesetData
 
         # Add all the other stuff, too
         if os.path.isdir(globals.miyamoto_path + '/data'):
