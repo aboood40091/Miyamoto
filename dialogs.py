@@ -663,7 +663,7 @@ class ZonesDialog(QtWidgets.QDialog):
                                                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
             if result == QtWidgets.QMessageBox.No:
                 return
-        
+
         z0 = self.zoneTabs[self.tabWidget.currentIndex()].zoneObj
 
         id = len(self.zoneTabs)
@@ -1016,11 +1016,11 @@ class ZoneTab(QtWidgets.QWidget):
         ZoneCameraUnknownsLayout = QtWidgets.QHBoxLayout()
         ZoneCameraUnknownsLayout.addLayout(ZoneCameraUnknownsLayoutA)
         ZoneCameraUnknownsLayout.addLayout(ZoneCameraUnknownsLayoutB)
-        
+
         ZoneSettingsLeft = QtWidgets.QFormLayout()
         ZoneSettingsRight = QtWidgets.QFormLayout()
         settingsNames = globals.trans.stringList('ZonesDlg', 77)
-        
+
         for i in range(0, 8):
             self.Zone_settings.append(QtWidgets.QCheckBox())
             self.Zone_settings[i].setChecked(z.type & 1 << i)
@@ -1030,7 +1030,7 @@ class ZoneTab(QtWidgets.QWidget):
                 ZoneSettingsLeft.addRow(settingsNames[i], self.Zone_settings[i])
             else:
                 ZoneSettingsRight.addRow(settingsNames[i], self.Zone_settings[i])
-            
+
         ZoneSettingsLayout = QtWidgets.QHBoxLayout()
         ZoneSettingsLayout.addLayout(ZoneSettingsLeft)
         ZoneSettingsLayout.addStretch()
@@ -1069,7 +1069,7 @@ class ZoneTab(QtWidgets.QWidget):
             self.Zone_visibility.addItems(globals.trans.stringList('ZonesDlg', 45))
             self.Zone_visibility.setToolTip(globals.trans.string('ZonesDlg', 46))
             if SelectedIndex > 5: SelectedIndex = 5
-        
+
         self.Zone_visibility.setCurrentIndex(SelectedIndex)
 
     def ChangeCamModeList(self):
@@ -1639,12 +1639,6 @@ class PreferencesDialog(QtWidgets.QDialog):
                 L.addRow(globals.trans.string('PrefsDlg', 32), self.compLevel)
                 L.addRow(globals.trans.string('PrefsDlg', 43), self.separate)
                 L.addRow(globals.trans.string('PrefsDlg', 45), self.rotationFPS)
-
-                if not globals.IsNSMBUDX:
-                    # Add the option to modify the inner sarc name
-                    self.modifyInnerName = QtWidgets.QCheckBox()
-                    self.modifyInnerName.setChecked(globals.modifyInnerName)
-                    L.addRow(globals.trans.string('PrefsDlg', 44), self.modifyInnerName)
 
                 self.setLayout(L)
 

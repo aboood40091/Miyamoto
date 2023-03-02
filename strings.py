@@ -124,7 +124,7 @@ class MiyamotoTranslation:
                 35: 'Unknown Value 6:',
                 36: 'Timer 2:',
                 37: 'Timer 3:',
-                38: '[b]Timer 2 & 3:[/b]This time limit is chosen by the nybble 12 on sprite 25, Checkpoint Flag. See sprite for details.',                
+                38: '[b]Timer 2 & 3:[/b]This time limit is chosen by the nybble 12 on sprite 25, Checkpoint Flag. See sprite for details.',
                 39: '[b]Entrance ID 2:[/b][br]Sets the entrance ID to load into when loading from the Coin Battle or Boost Rush menu',
                 40: 'Unknown Option 1',
                 41: '[b]Unknown Option 1:[/b] We haven\'t managed to figure out what this does, or if it does anything. This option is turned off in most levels.',
@@ -667,7 +667,7 @@ class MiyamotoTranslation:
                 41: '8',
                 42: '9: Best',
                 43: 'Split Embedded tab:',
-                44: 'Modify Internal Name:',
+                44: None,
                 45: 'Pivotal Rotation Preview FPS:',
                 },
             'QuickPaint': {

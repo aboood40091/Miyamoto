@@ -173,7 +173,7 @@ class Level_NSMBU(AbstractLevel):
 
         return True
 
-    def save(self, innerfilename):
+    def save(self):
         """
         Save the level back to a file
         """
@@ -215,26 +215,9 @@ class Level_NSMBU(AbstractLevel):
             if L2 is not None:
                 courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (areanum + 1), L2))
 
-        # Here we have the new inner-SARC savedata
-        innersarc = newArchive.save()[0]
-        globals.szsData[innerfilename] = innersarc
-
-        # Now make an outer SARC
-        outerArchive = SarcLib.SARC_Archive()
-
-        # Add the innersarc to it
-        outerArchive.addFile(SarcLib.File(innerfilename, innersarc))
-
-        # Make it easy for future Miyamotos to pick out the innersarc level name
-        outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
-        globals.szsData['levelname'] = innerfilename.encode('utf-8')
-
         # Add all the other stuff, too
         if os.path.isdir(globals.miyamoto_path + '/data'):
             szsNewData = {}
-
-            szsNewData[innerfilename] = globals.szsData[innerfilename]
-            szsNewData['levelname'] = globals.szsData['levelname']
 
             paths = [globals.miyamoto_path + '/miyamotodata/spriteresources.xml']
             for path in globals.gamedef.recursiveFiles('spriteresources'):
@@ -292,7 +275,7 @@ class Level_NSMBU(AbstractLevel):
             for sprite_name in sprites_names:
                 # Get it from inside the original archive
                 if not globals.OverwriteSprite and sprite_name in globals.szsData:
-                    outerArchive.addFile(SarcLib.File(sprite_name, globals.szsData[sprite_name]))
+                    newArchive.addFile(SarcLib.File(sprite_name, globals.szsData[sprite_name]))
                     szsNewData[sprite_name] = globals.szsData[sprite_name]
 
                 # Get it from the "custom" data folder
@@ -300,7 +283,7 @@ class Level_NSMBU(AbstractLevel):
                     with open(globals.miyamoto_path + '/data/custom/' + sprite_name, 'rb') as f:
                         f1 = f.read()
 
-                    outerArchive.addFile(SarcLib.File(sprite_name, f1))
+                    newArchive.addFile(SarcLib.File(sprite_name, f1))
                     szsNewData[sprite_name] = f1
 
                 # Get it from the data folder
@@ -308,7 +291,7 @@ class Level_NSMBU(AbstractLevel):
                     with open(globals.miyamoto_path + '/data/' + sprite_name, 'rb') as f:
                         f1 = f.read()
 
-                    outerArchive.addFile(SarcLib.File(sprite_name, f1))
+                    newArchive.addFile(SarcLib.File(sprite_name, f1))
                     szsNewData[sprite_name] = f1
 
                 # Throw a warning because the file was not found...
@@ -319,7 +302,7 @@ class Level_NSMBU(AbstractLevel):
             # Add each tileset to our archive
             for tileset_name in tilesets_names:
                 if tileset_name in globals.szsData:
-                    outerArchive.addFile(SarcLib.File(tileset_name, globals.szsData[tileset_name]))
+                    newArchive.addFile(SarcLib.File(tileset_name, globals.szsData[tileset_name]))
                     szsNewData[tileset_name] = globals.szsData[tileset_name]
 
             # Add the other default Pa0 tilesets to our new dict
@@ -332,13 +315,12 @@ class Level_NSMBU(AbstractLevel):
         else:
             # data folder not found, copy the files
             for szsThingName in globals.szsData:
-                if szsThingName in [innerfilename, 'levelname']: continue
-                outerArchive.addFile(SarcLib.File(szsThingName, globals.szsData[szsThingName]))
+                newArchive.addFile(SarcLib.File(szsThingName, globals.szsData[szsThingName]))
 
-        # Save the outer sarc and return it
-        return outerArchive.save()[0]
+        # Save the archive and return it
+        return newArchive.save()[0]
 
-    def saveNewArea(self, innerfilename, course_new, L0_new, L1_new, L2_new):
+    def saveNewArea(self, course_new, L0_new, L1_new, L2_new):
         """
         Save the level back to a file (when adding a new or deleting an existing Area)
         """
@@ -372,22 +354,9 @@ class Level_NSMBU(AbstractLevel):
         if L2_new is not None:
             courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (len(self.areas) + 1), L2_new))
 
-        # Here we have the new inner-SARC savedata
-        innersarc = newArchive.save()[0]
-
-        # Now make an outer SARC
-        outerArchive = SarcLib.SARC_Archive()
-
-        # Add the innersarc to it
-        outerArchive.addFile(SarcLib.File(innerfilename, innersarc))
-
-        # Make it easy for future Miyamotos to pick out the innersarc level name
-        outerArchive.addFile(SarcLib.File('levelname', innerfilename.encode('utf-8')))
-
         # Add all the other stuff, too
         for szsThingName in globals.szsData:
-            if szsThingName in [innerfilename, 'levelname']: continue
-            outerArchive.addFile(SarcLib.File(szsThingName, globals.szsData[szsThingName]))
+            newArchive.addFile(SarcLib.File(szsThingName, globals.szsData[szsThingName]))
 
-        # Save the outer sarc and return it
-        return outerArchive.save()[0]
+        # Save the archive and return it
+        return newArchive.save()[0]

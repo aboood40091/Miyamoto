@@ -1586,13 +1586,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         return
 #        if not globals.AutoSaveDirty: return
 #
-#        name = self.getInnerSarcName()
-#        if "-" not in name:
-#            print('HEY THERE IS NO -, THIS WILL NOT WORK!')
-#        if name == '':
-#            return
-#
-#        data = globals.Level.save(name)
+#        data = globals.Level.save()
 #        setSetting('AutoSaveFilePath', self.fileSavePath)
 #        setSetting('AutoSaveFileData', QtCore.QByteArray(data))
 #        globals.AutoSaveDirty = False
@@ -2702,25 +2696,19 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             if reply != QtWidgets.QMessageBox.Yes or not self.HandleSave():
                 return
 
-        name = self.getInnerSarcName()
-        if "-" not in name:
-            print('HEY THERE IS NO -, THIS WILL NOT WORK!')
-        if name == '':
-            return
-
         globals.Level.deleteArea(globals.Area.areanum)
 
         # no error checking. if it saved last time, it will probably work now
 
         if self.fileSavePath.endswith('.szs'):
             CompYaz0(
-                globals.Level.saveNewArea(name, None, None, None, None),
+                globals.Level.saveNewArea(None, None, None, None),
                 self.fileSavePath, globals.CompLevel,
             )
 
         else:
             with open(self.fileSavePath, 'wb+') as f:
-                f.write(globals.Level.saveNewArea(name, None, None, None, None))
+                f.write(globals.Level.saveNewArea(None, None, None, None))
 
         if globals.CurrentArea in globals.ObjectAddedtoEmbedded:  # Should always be true
             del globals.ObjectAddedtoEmbedded[globals.CurrentArea]
@@ -2812,10 +2800,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if SLib.RotationTimer.isActive():
             SLib.RotationTimer.setInterval(round(1000 / SLib.RotationFPS))
 
-        # Determine if the inner sarc name should be modifiable
-        globals.modifyInnerName = dlg.generalTab.modifyInnerName.isChecked()
-        setSetting('ModifyInnerName', globals.modifyInnerName)
-
         # Get the Toolbar tab settings
         boxes = (
         dlg.toolbarTab.FileBoxes, dlg.toolbarTab.EditBoxes, dlg.toolbarTab.ViewBoxes, dlg.toolbarTab.SettingsBoxes,
@@ -2875,13 +2859,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if not self.fileSavePath:
             return self.HandleSaveAs()
 
-        name = self.getInnerSarcName()
-        if "-" not in name:
-            print('HEY THERE IS NO -, THIS WILL NOT WORK!')
-        if name == '':
-            return False
-
-        data = globals.Level.save(name)
+        data = globals.Level.save()
         if len(data) > 73295462:
             QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 2),
                                           globals.trans.string('Err_Save', 3))
@@ -2915,13 +2893,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         if not self.fileSavePath:
             return self.HandleSaveAs()
 
-        name = self.getInnerSarcName()
-        if "-" not in name:
-            print('HEY THERE IS NO -, THIS WILL NOT WORK!')
-        if name == '':
-            return False
-
-        data = globals.Level.saveNewArea(name, course, L0, L1, L2)
+        data = globals.Level.saveNewArea(course, L0, L1, L2)
         if len(data) > 73295462:
             QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 2),
                                           globals.trans.string('Err_Save', 3))
@@ -2964,18 +2936,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.fileSavePath = fn
         self.fileTitle = os.path.basename(fn)
 
-        # we take the name of the level and make sure it's formatted right. if not, crashy
-        # this is one of the few ways, if there's no - it will certainly crash
-        name = self.getInnerSarcName()
-        if name == "":
-            return False
-        # oh noes there's no - !!!
-        elif "-" not in name:
-            warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning',
-                                               'The input name does not include a -, which is what retail levels use. \nThis may crash, because it does not fit the proper format.')
-            warningBox.exec_()
-
-        data = globals.Level.save(name)
+        data = globals.Level.save()
         if len(data) > 73295462:
             QtWidgets.QMessageBox.warning(None, globals.trans.string('Err_Save', 2),
                                           globals.trans.string('Err_Save', 3))
@@ -2995,22 +2956,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         self.RecentMenu.AddToList(self.fileSavePath)
 
         return True
-
-    def getInnerSarcName(self):
-        name = os.path.splitext(self.fileTitle)[0]
-        if not name or "/" in name or "\\" in name or globals.modifyInnerName:
-            name = QtWidgets.QInputDialog.getText(self, "Choose Internal Name",
-                                                  "Choose an internal filename for this level (do not add a .sarc/.szs extension) (example: 1-1):" \
-                                                  "\n(To make Miyamoto automatically set the internal filename to the filename of the level file," \
-                                                  "\nGo to Preferences and uncheck \"Modify Internal Name\".)",
-                                                  QtWidgets.QLineEdit.Normal)[0]
-
-            if "/" in name or "\\" in name:
-                warningBox = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Name warning', r'The input name included "/" or "\", aborting...')
-                warningBox.exec_()
-                return ''
-
-        return name
 
     def HandleExit(self):
         """
@@ -3648,23 +3593,22 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
                     for fn in possibilities:
                         if exists(fn):
-                            levelFileData = arc[fn].data
-                            break
+                            return arc[fn].data, fn
 
-                    else:
-                        return ''
+                    return None, ''
 
-                    return levelFileData
+                levelname = ''
 
                 if exists('levelname'):
                     fn = bytes_to_string(arc['levelname'].data)
                     if exists(fn):
                         levelFileData = arc[fn].data
+                        levelname = fn
                     else:
-                        levelFileData = guessInnerName()
+                        levelFileData, levelname = guessInnerName()
 
                 else:
-                    levelFileData = guessInnerName()
+                    levelFileData, levelname = guessInnerName()
 
                 if not levelFileData:
                     if exists('course'):
@@ -3680,7 +3624,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 # Sort the szs data
                 globals.szsData = {}
                 for file in arc.contents:
-                    if isinstance(file, SarcLib.File):
+                    if isinstance(file, SarcLib.File) and (not levelname or file.name != levelname):
                         globals.szsData[file.name] = file.data
 
                 # Get all tilesets in the level
@@ -5610,7 +5554,6 @@ def main():
     globals.CommentsShown = setting('ShowComments', True)
     globals.PathsShown = setting('ShowPaths', True)
     globals.isEmbeddedSeparate = setting('isEmbeddedSeparate', False)
-    globals.modifyInnerName = setting('ModifyInnerName', True)
     globals.RotationShown = setting('RotationShown', False)
     globals.RotationNoticeShown = setting('RotationNoticeShown', True)
     SLib.RotationFPS = setting('RotationFPS', 30)
