@@ -1656,10 +1656,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         ret = msg.exec_()
 
         if ret == QtWidgets.QMessageBox.Save:
-            if not self.HandleSave():
-                # save failed
-                return True
-            return False
+            return not self.HandleSave()
         elif ret == QtWidgets.QMessageBox.Discard:
             return False
         elif ret == QtWidgets.QMessageBox.Cancel:
@@ -2532,9 +2529,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             reply = QtWidgets.QMessageBox.question(self, 'Message',
                                                    con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
 
-            if reply == QtWidgets.QMessageBox.Yes:
-                if not self.HandleSave(): return
-            else:
+            if reply != QtWidgets.QMessageBox.Yes or not self.HandleSave():
                 return
 
         filetypes = ''
@@ -2669,6 +2664,8 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 elif fname == reqL2:
                     L2 = val
 
+        assert course is not None
+
         # import the tilesets with the area
         getblock = struct.Struct('>II')
         data = getblock.unpack_from(course, 0)
@@ -2703,10 +2700,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             reply = QtWidgets.QMessageBox.question(self, 'Message',
                                                    con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
 
-            if reply == QtWidgets.QMessageBox.Yes:
-                if not self.HandleSave(): return
-
-            else:
+            if reply != QtWidgets.QMessageBox.Yes or not self.HandleSave():
                 return
 
         name = self.getInnerSarcName()
@@ -2882,11 +2876,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Save a level back to the archive
         """
         if not self.fileSavePath:
-            if not self.HandleSaveAs():
-                return False
-
-            else:
-                return True
+            return self.HandleSaveAs()
 
         name = self.getInnerSarcName()
         if "-" not in name:
@@ -2927,10 +2917,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Save a level back to the archive
         """
         if not self.fileSavePath:
-            if not self.HandleSaveAs():
-                return False
-            else:
-                return True
+            return self.HandleSaveAs()
 
         name = self.getInnerSarcName()
         if "-" not in name:
