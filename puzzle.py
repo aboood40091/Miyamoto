@@ -61,7 +61,8 @@ class TilesetClass:
             self.coreType = (collision >>  0) & 0xFFFF
             self.params   = (collision >> 16) &   0xFF
             self.params2  = (collision >> 24) &   0xFF
-            self.solidity = (collision >> 32) &   0xFF
+            self.solidity = (collision >> 32) &    0xF
+            self.slide    = (collision >> 36) &    0xF
             self.terrain  = (collision >> 40) &   0xFF
 
 
@@ -70,6 +71,7 @@ class TilesetClass:
                     (self.params   << 16) |
                     (self.params2  << 24) |
                     (self.solidity << 32) |
+                    (self.slide    << 36) |
                     (self.terrain  << 40))
 
 
@@ -935,10 +937,10 @@ class paletteWidget(QtWidgets.QWidget):
             ['Solid-on-Top', QtGui.QIcon(path + 'Collisions/SolidOnTop.png')],
             ['Solid-on-Bottom', QtGui.QIcon(path + 'Collisions/SolidOnBottom.png')],
             ['Solid-on-Top and Bottom', QtGui.QIcon(path + 'Collisions/SolidOnTopBottom.png')],
-            ['Slide (1)', QtGui.QIcon(path + 'Collisions/SlopedSlide.png')],
-            ['Slide (2)', QtGui.QIcon(path + 'Collisions/SlopedSlide.png')],
-            ['Staircase (1)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
-            ['Staircase (2)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
+            ['Solid, Force Slide', QtGui.QIcon(path + 'Collisions/SlopedSlide.png')],
+            ['Solid-on-Top, Force Slide', QtGui.QIcon(path + 'Collisions/SlopedSlide.png')],
+            ['Solid, Disable Slide', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
+            ['Solid-on-Top, Disable Slide', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
         ]
 
         for item in self.collsTypes:
@@ -952,11 +954,8 @@ class paletteWidget(QtWidgets.QWidget):
             '<b>Solid-on-Top:</b>\nThe tile can only be stood on.\n\n'
             '<b>Solid-on-Bottom:</b>\nThe tile can only be hit from below.\n\n'
             '<b>Solid-on-Top and Bottom:</b>\nThe tile can be stood on and hit from below, but not any other side.\n\n'
-            '<b>Slide:</b>\nThe player starts sliding without being able to jump when interacting with this solidity.\n\n'
-            '<b>Staircase:</b>\nUsed for staircases in Ghost Houses, Castle rooftop and in the main tilesets.\n\n'
-            'The difference between <b>Slide/Staircase (1)</b> and <b>Slide/Staircase (2)</b> is that (1) will\n'
-            'let you go past it by default (unless you add a solid tile edge), where as (2) will\n'
-            'force you to climb it (without the need of a solid tile edge).\n\n'.replace('\n', '<br>')
+            '<b>Force Slide:</b>\nThe player immediately starts sliding without being able to jump when interacting with this solidity.\n\n'
+            '<b>Disable Slide:</b>\nThe player will not be able to slide when interacting with this solidity.'.replace('\n', '<br>')
         )
 
 
@@ -1083,7 +1082,7 @@ class InfoBox(QtWidgets.QWidget):
         self.LabelB = QtWidgets.QLabel('Properties:')
         self.LabelB.setFont(Font)
 
-        self.hexdata = QtWidgets.QLabel('Hex Data: 0x0 0x0\n               0x0 0x0 0x0')
+        self.hexdata = QtWidgets.QLabel('Hex Data: 0000 00 00\n0 0 00')
         self.hexdata.setFont(Font)
 
 
@@ -4599,7 +4598,9 @@ class MainWindow(QtWidgets.QMainWindow):
         propertyText = ''
 
 
-        if curTile.solidity == 1:
+        if curTile.solidity == 0:
+            propertyList.append('No Solidity')
+        elif curTile.solidity == 1:
             propertyList.append('Solid')
         elif curTile.solidity == 2:
             propertyList.append('Solid-on-Top')
@@ -4607,19 +4608,18 @@ class MainWindow(QtWidgets.QMainWindow):
             propertyList.append('Solid-on-Bottom')
         elif curTile.solidity == 4:
             propertyList.append('Solid-on-Top and Bottom')
-        elif curTile.solidity == 0x11:
-            propertyList.append('Slide (1)')
-        elif curTile.solidity == 0x12:
-            propertyList.append('Slide (2)')
-        elif curTile.solidity == 0x21:
-            propertyList.append('Staircase (1)')
-        elif curTile.solidity == 0x22:
-            propertyList.append('Staircase (2)')
+        else:
+            propertyList.append('Unknown Solidity')
+
+        if curTile.slide == 1:
+            propertyList.append('Force Slide')
+        elif curTile.slide == 2:
+            propertyList.append('Disable Slide')
+        elif curTile.slide != 0:
+            propertyList.append('Unknown Slide')
 
 
-        if len(propertyList) == 0:
-            propertyText = 'None'
-        elif len(propertyList) == 1:
+        if len(propertyList) == 1:
             propertyText = propertyList[0]
         else:
             propertyText = propertyList.pop(0)
@@ -4645,9 +4645,9 @@ class MainWindow(QtWidgets.QMainWindow):
         info.terrainInfo.setText(palette.terrainTypes[curTile.terrain][0])
         info.paramInfo.setText(parameter[0])
 
-        info.hexdata.setText('Hex Data: {0} {1}\n               {2} {3} {4}'.format(
-                             hex(curTile.coreType), hex(curTile.params),
-                             hex(curTile.params2), hex(curTile.solidity), hex(curTile.terrain)))
+        info.hexdata.setText('Hex Data: {0} {1} {2}\n{3} {4} {5}'.format(
+                             '%04X' % curTile.coreType, '%02X' % curTile.params, '%02X' % curTile.params2,
+                             '%01X' % curTile.solidity, '%01X' % curTile.slide,  '%02X' % curTile.terrain))
 
 
 
@@ -4674,13 +4674,16 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             curTile.params2 = 0
 
-        curTile.solidity = palette.collsType.currentIndex()
-
-        if curTile.solidity in [5, 6]:
-            curTile.solidity += 0xC
-
-        elif curTile.solidity in [7, 8]:
-            curTile.solidity += 0x1A
+        solidity = palette.collsType.currentIndex()
+        if solidity <= 4:
+            curTile.solidity = solidity
+            curTile.slide = 0
+        elif solidity <= 6:
+            curTile.solidity = solidity - 4
+            curTile.slide = 1
+        elif solidity <= 8:
+            curTile.solidity = solidity - 6
+            curTile.slide = 2
 
         curTile.terrain = palette.terrainType.currentIndex()
 
