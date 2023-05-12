@@ -1470,6 +1470,33 @@ class ScreenCapChoiceDialog(QtWidgets.QDialog):
             self.saveImage.setChecked(True)
 
 
+class NinjaZoneChoiceDialog(QtWidgets.QDialog):
+    def __init__(self):
+        """
+        Creates and initializes the dialog
+        """
+        super().__init__()
+        self.setWindowTitle("Select Zone")
+        self.setWindowIcon(GetIcon('screenshot'))
+
+        self.zoneCombo = QtWidgets.QComboBox()
+
+        zonecount = len(globals.Area.zones)
+        if zonecount:
+            for i in range(zonecount):
+                self.zoneCombo.addItem(globals.trans.string('ScrShtDlg', 3, '[zone]', i + 1))
+
+        buttonBox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+        mainLayout = QtWidgets.QFormLayout()
+        mainLayout.setLabelAlignment(QtCore.Qt.AlignRight)
+        mainLayout.addRow("Target:", self.zoneCombo)
+        mainLayout.addRow(buttonBox)
+        self.setLayout(mainLayout)
+
+
 class AutoSavedInfoDialog(QtWidgets.QDialog):
     """
     Dialog which lets you know that an auto saved level exists

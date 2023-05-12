@@ -760,6 +760,7 @@ def LoadActionsLists():
         (globals.trans.string('MenuItems', 10), False, 'saveas'),
         (globals.trans.string('MenuItems', 12), False, 'metainfo'),
         (globals.trans.string('MenuItems', 14), True, 'screenshot'),
+        ('Ninja!', True, 'ninja'),
         (globals.trans.string('MenuItems', 16), False, 'changegamepath'),
         (globals.trans.string('MenuItems', 132), False, 'changeobjpath'),
         # (globals.trans.string('MenuItems', 16), False, 'changesavepath'),

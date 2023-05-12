@@ -420,6 +420,13 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         )
 
         self.CreateAction(
+            'ninja', self.HandleNinja, GetIcon('screenshot'),
+            'Ninja!',
+            'Export Level For Ninja\'s Field.',
+            None,
+        )
+
+        self.CreateAction(
             'changegamepath', self.HandleChangeGamePath, GetIcon('folderpath'),
             globals.trans.string('MenuItems', 16),
             globals.trans.string('MenuItems', 17),
@@ -845,6 +852,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         fmenu.addSeparator()
         fmenu.addAction(self.actions['changegamedef'])
         fmenu.addAction(self.actions['screenshot'])
+        fmenu.addAction(self.actions['ninja'])
         fmenu.addAction(self.actions['changegamepath'])
         fmenu.addAction(self.actions['changeobjpath'])
         fmenu.addAction(self.actions['preferences'])
@@ -976,6 +984,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 'saveas',
                 'metainfo',
                 'screenshot',
+                'ninja',
                 'changegamepath',
                 'changeobjpath',
                 'preferences',
@@ -5327,6 +5336,102 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         if saveClip:
             globals.app.clipboard().setImage(screenshot)
+
+    def HandleNinja(self):
+        if globals.Area is None:
+            return
+
+        dlg = NinjaZoneChoiceDialog()
+        if dlg.exec_() != QtWidgets.QDialog.Accepted:
+            return
+
+        sType = dlg.zoneCombo.currentIndex()
+        if sType < 0:
+            return
+
+        zone = globals.Area.zones[sType]
+
+        min_x =   zone.objx
+        max_x =   zone.objx + zone.width
+        min_y = -(zone.objy + zone.height)
+        max_y = - zone.objy
+
+        delta = 16 - 1;
+        mask = (~delta) & 0xFFFFFFFF
+
+        def toSigned32(n):
+            n &= 0xffffffff
+            return (n ^ 0x80000000) - 0x80000000
+
+        min_x = toSigned32( min_x          & mask) // 16; min_y = toSigned32( min_y          & mask) // 16
+        max_x = toSigned32((max_x + delta) & mask) // 16; max_y = toSigned32((max_y + delta) & mask) // 16
+
+        # print(min_x, min_y)
+        # print(max_x, max_y)
+
+        w = max_x - min_x
+        h = max_y - min_y
+
+        if not w or not h:
+            return
+
+        # print("Zone width, height in blocks:", w, h)
+
+        level_str = [bytearray(b' ' * w) for _ in range(h)]
+
+        for obj in globals.Area.layers[1]:
+            if obj.tileset != 0 or obj.type == 0:
+                continue
+
+            obj_min_x =   obj.objx
+            obj_max_x =   obj.objx + obj.width
+            obj_min_y = -(obj.objy + obj.height)
+            obj_max_y = - obj.objy
+
+            # print("obj at:")
+            # print(obj_min_x, obj_min_y)
+            # print(obj_max_x, obj_max_y)
+
+            if obj_min_x < max_x and obj_max_x > min_x and \
+               obj_max_y > min_y and obj_min_y < max_y:
+                # print("overlaps!")
+
+                obj_l = max(obj_min_x, min_x)
+                obj_b = max(obj_min_y, min_y)
+                obj_r = min(obj_max_x, max_x)
+                obj_t = min(obj_max_y, max_y)
+
+                # print("obj overlapping at:")
+                # print(obj_l, obj_b)
+                # print(obj_r, obj_t)
+
+                obj_x = obj_l - min_x
+                obj_y = max_y - obj_t
+                obj_w = obj_r - obj_l
+                obj_h = obj_t - obj_b
+
+                # print("obj coord:", obj_x, obj_y, obj_w, obj_h)
+
+                for y in range(obj_y, obj_y + obj_h):
+                    for x in range(obj_x, obj_x + obj_w):
+                        level_str[y][x] = ord('#')
+
+        # print()
+        # for line in level_str:
+        #     print(line.decode())
+
+        code_str = """
+    const int cTileMapSizeX = %d;
+    const int cTileMapSizeY = %d;
+
+    static char[][] cWorldTileMap = new [] {
+        %s
+    };
+"""
+
+        level_str_final = ",\n        ".join(map(lambda b: '"%s".ToCharArray()' % b.decode(), level_str))
+
+        print(code_str % (w, h, level_str_final))
 
     def showPuzzleWindow(self, name, data, slot, con=False):
         pw = PuzzleWindow(name, data, slot, con, Qt.Dialog)
