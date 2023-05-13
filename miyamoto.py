@@ -5433,13 +5433,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         print(code_str % (w, h, level_str_final))
 
-        sprites = [[] for _ in range(6)]
+        sprite_max_num = 8
+
+        sprites = [[] for _ in range(sprite_max_num)]
 
         globals.Area.SortSpritesByZone()
 
         for sprite in globals.Area.sprites:
             # print(sType, sprite.zoneID, sprite.layer)
-            if sprite.zoneID != sType or sprite.layer != 0 or not (0 <= sprite.type < 6):
+            if sprite.zoneID != sType or sprite.layer != 0 or not (0 <= sprite.type < sprite_max_num):
                 continue
 
             sprites[sprite.type].append(sprite)
@@ -5450,7 +5452,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         for i, array in enumerate(sprites):
             if not array:
-                if i == 5:
+                if i == sprite_max_num - 1:
                     print("        null")
                 else:
                     print("        null,")
@@ -5483,15 +5485,18 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 elif i == 3:
                     print("                base_arg = new GameObjectBase.InitArg { float_param = new float[1] { %d }, int_param = new int[1] { %d } }" % (param_0 >> 4 & 0xf, min(param_0 & 0xf, 3)))
 
-                else:  # if i == 4:
+                elif i == 4:
                     print("                base_arg = new GameObjectBase.InitArg { float_param = new float[3] { %d, %d, %ff }, int_param = new int[1] { %d } }" % (param_0 >> 4 & 0xf, param_0 >> 8 & 0xfff, (param_0 >> 20 & 0xfff) * 0.001, min(param_0 & 0xf, 3)))
+
+                elif i == 6:
+                    print("                base_arg = new GameObjectBase.InitArg { bool_param = new bool[1] { %s } }" % ("true" if param_0 & 0xf else "false"))
 
                 if j == len(array) - 1:
                     print("            }")
                 else:
                     print("            },")
 
-            if i == 5:
+            if i == sprite_max_num - 1:
                 print("        }")
             else:
                 print("        },")

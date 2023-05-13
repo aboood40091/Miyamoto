@@ -55,4 +55,8 @@
 		<value nybble="8-10" title="Rotation Speed"/>
 		<checkbox nybble="7" title="Clockwise"/>
 	</sprite>
+	<sprite id="6" name="Shuriken / Kunai">
+		<checkbox nybble="12" title="Is Kunai"/>
+	</sprite>
+	<sprite id="7" name="Goal" />
 </sprites>
