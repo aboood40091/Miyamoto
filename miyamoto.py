@@ -5472,7 +5472,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 print("                position = new Vector2(%ff, %ff)," % (sprite_dx, sprite_dy))
 
                 if i == 0 or i == 5:
-                    print("                base_arg = new GameObjectBase.InitArg { int_param = new int[2] { %d, %d }, bool_param = new bool[1] { %s }, float_param = new float[1] { %d } }" % (min(param_0 & 0xf, 3), param_0 >> 4 & 0xf, "true" if param_0 >> 8 & 0xf else "false", param_0 >> 12 & 0xfff))
+                    print("                base_arg = new GameObjectBase.InitArg { int_param = new int[2] { %d, %d }, bool_param = new bool[1] { %s }, float_param = new float[1] { %d } }" % (min(param_0 & 0xf, 3) + 1, param_0 >> 4 & 0xf, "true" if param_0 >> 8 & 0xf else "false", param_0 >> 12 & 0xfff))
 
                 elif i == 1:
                     print("                base_arg = new GameObjectBase.InitArg { float_param = new float[4] { %ff, %d, %d, %ff } }" % ((param_0 & 0xf) * 0.5, param_0 >> 4 & 0xf, param_0 >> 12 & 0xfff, (param_0 >> 8 & 0xf) * 0.001))
