@@ -8,20 +8,21 @@
 			<entry value="3">4 bars</entry>
 		</list>
 		<value nybble="11" title="Radius"/>
-		<checkbox nybble="10" title="Clockwise"/>
-		<value nybble="7-9" title="Rotation Speed"/>
+		<value nybble="8-10" title="Rotation Speed"/>
+		<checkbox nybble="7" title="Clockwise"/>
 	</sprite>
 	<sprite id="1" name="Pendulum (Swaying)">
+		<value nybble="18-20" title="Angle"/>
 		<value nybble="12" title="Diameter"/>
 		<value nybble="11" title="Length"/>
-		<value nybble="10" title="Wait Duration in ms"/>
-		<value nybble="7-9" title="Rotation Speed"/>
+		<value nybble="8-10" title="Rotation Speed"/>
+		<value nybble="5-7" title="Wait Duration in ms"/>
 	</sprite>
 	<sprite id="2" name="Pendulum (Rotating)">
 		<value nybble="12" title="Diameter"/>
 		<value nybble="11" title="Length"/>
-		<checkbox nybble="10" title="Clockwise"/>
-		<value nybble="7-9" title="Rotation Speed"/>
+		<value nybble="8-10" title="Rotation Speed"/>
+		<checkbox nybble="7" title="Clockwise"/>
 	</sprite>
 	<sprite id="3" name="Burner (Stationary)">
 		<list nybble="12" title="Direction">
@@ -40,8 +41,8 @@
 			<entry value="3">Right</entry>
 		</list>
 		<value nybble="11" title="Length"/>
-		<value nybble="10" title="Wait Duration in ms"/>
-		<value nybble="7-9" title="Rotation Speed"/>
+		<value nybble="8-10" title="Rotation Speed"/>
+		<value nybble="5-7" title="Wait Duration in ms"/>
 	</sprite>
 	<sprite id="5" name="Roto-disc">
 		<list nybble="12" title="Number of balls">
@@ -51,7 +52,7 @@
 			<entry value="3">4 balls</entry>
 		</list>
 		<value nybble="11" title="Radius"/>
-		<checkbox nybble="10" title="Clockwise"/>
-		<value nybble="7-9" title="Rotation Speed"/>
+		<value nybble="8-10" title="Rotation Speed"/>
+		<checkbox nybble="7" title="Clockwise"/>
 	</sprite>
 </sprites>

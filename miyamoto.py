@@ -5466,25 +5466,25 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 sprite_dx = sprite_x - min_x
                 sprite_dy = sprite_y - min_y
 
-                param_0 = struct.unpack(">I", sprite.spritedata[2:6])[0]
+                param_0, param_1 = struct.unpack(">2I", sprite.spritedata[2:10])
 
                 print("            new GameObjectInitArg {")
                 print("                position = new Vector2(%ff, %ff)," % (sprite_dx, sprite_dy))
 
                 if i == 0 or i == 5:
-                    print("                base_arg = new GameObjectBase.InitArg { int_param = new int[2] { %d, %d }, bool_param = new bool[1] { %s }, float_param = new float[1] { %d } }" % (min(param_0 & 0xf, 3) + 1, param_0 >> 4 & 0xf, "true" if param_0 >> 8 & 0xf else "false", param_0 >> 12 & 0xfff))
+                    print("                base_arg = new GameObjectBase.InitArg { int_param = new int[2] { %d, %d }, bool_param = new bool[1] { %s }, float_param = new float[1] { %d } }" % (min(param_0 & 0xf, 3) + 1, param_0 >> 4 & 0xf, "true" if param_0 >> 20 & 0xf else "false", param_0 >> 8 & 0xfff))
 
                 elif i == 1:
-                    print("                base_arg = new GameObjectBase.InitArg { float_param = new float[4] { %ff, %d, %d, %ff } }" % ((param_0 & 0xf) * 0.5, param_0 >> 4 & 0xf, param_0 >> 12 & 0xfff, (param_0 >> 8 & 0xf) * 0.001))
+                    print("                base_arg = new GameObjectBase.InitArg { float_param = new float[5] { %ff, %d, %d, %ff, %d } }" % ((param_0 & 0xf) * 0.5, param_0 >> 4 & 0xf, param_0 >> 8 & 0xfff, (param_0 >> 20 & 0xfff) * 0.001, param_1 & 0xfff))
 
                 elif i == 2:
-                    print("                base_arg = new GameObjectBase.InitArg { float_param = new float[3] { %ff, %d, %d }, bool_param = new bool[1] { %s } }" % ((param_0 & 0xf) * 0.5, param_0 >> 4 & 0xf, param_0 >> 12 & 0xfff,  "true" if param_0 >> 8 & 0xf else "false"))
+                    print("                base_arg = new GameObjectBase.InitArg { float_param = new float[3] { %ff, %d, %d }, bool_param = new bool[1] { %s } }" % ((param_0 & 0xf) * 0.5, param_0 >> 4 & 0xf, param_0 >> 8 & 0xfff, "true" if param_0 >> 20 & 0xf else "false"))
 
                 elif i == 3:
                     print("                base_arg = new GameObjectBase.InitArg { float_param = new float[1] { %d }, int_param = new int[1] { %d } }" % (param_0 >> 4 & 0xf, min(param_0 & 0xf, 3)))
 
                 else:  # if i == 4:
-                    print("                base_arg = new GameObjectBase.InitArg { float_param = new float[3] { %d, %d, %ff }, int_param = new int[1] { %d } }" % (param_0 >> 4 & 0xf, param_0 >> 12 & 0xfff, (param_0 >> 8 & 0xf) * 0.001, min(param_0 & 0xf, 3)))
+                    print("                base_arg = new GameObjectBase.InitArg { float_param = new float[3] { %d, %d, %ff }, int_param = new int[1] { %d } }" % (param_0 >> 4 & 0xf, param_0 >> 8 & 0xfff, (param_0 >> 20 & 0xfff) * 0.001, min(param_0 & 0xf, 3)))
 
                 if j == len(array) - 1:
                     print("            }")
