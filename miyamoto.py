@@ -5478,7 +5478,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                     print("                base_arg = new GameObjectBase.InitArg { float_param = new float[4] { %ff, %d, %d, %ff } }" % ((param_0 & 0xf) * 0.5, param_0 >> 4 & 0xf, param_0 >> 12 & 0xfff, (param_0 >> 8 & 0xf) * 0.001))
 
                 elif i == 2:
-                    print("                base_arg = new GameObjectBase.InitArg { float_param = new float[4] { %ff, %d, %d }, bool_param = new bool[1] { %s } }" % ((param_0 & 0xf) * 0.5, param_0 >> 4 & 0xf, param_0 >> 12 & 0xfff,  "true" if param_0 >> 8 & 0xf else "false"))
+                    print("                base_arg = new GameObjectBase.InitArg { float_param = new float[3] { %ff, %d, %d }, bool_param = new bool[1] { %s } }" % ((param_0 & 0xf) * 0.5, param_0 >> 4 & 0xf, param_0 >> 12 & 0xfff,  "true" if param_0 >> 8 & 0xf else "false"))
 
                 elif i == 3:
                     print("                base_arg = new GameObjectBase.InitArg { float_param = new float[1] { %d }, int_param = new int[1] { %d } }" % (param_0 >> 4 & 0xf, min(param_0 & 0xf, 3) + 1))
