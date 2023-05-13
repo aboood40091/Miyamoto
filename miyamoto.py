@@ -5424,7 +5424,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
     const int cTileMapSizeX = %d;
     const int cTileMapSizeY = %d;
 
-    static char[][] cWorldTileMap = new [] {
+    static readonly char[][] cWorldTileMap = new [] {
         %s
     };
 """
@@ -5432,6 +5432,71 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         level_str_final = ",\n        ".join(map(lambda b: '"%s".ToCharArray()' % b.decode(), level_str))
 
         print(code_str % (w, h, level_str_final))
+
+        sprites = [[] for _ in range(6)]
+
+        globals.Area.SortSpritesByZone()
+
+        for sprite in globals.Area.sprites:
+            # print(sType, sprite.zoneID, sprite.layer)
+            if sprite.zoneID != sType or sprite.layer != 0 or not (0 <= sprite.type < 6):
+                continue
+
+            sprites[sprite.type].append(sprite)
+
+        print("""
+    static readonly GameObjectInitArg[][] cObjectInitArg =
+    {""")
+
+        for i, array in enumerate(sprites):
+            if not array:
+                if i == 5:
+                    print("        null")
+                else:
+                    print("        null,")
+
+                continue
+
+            print("        new GameObjectInitArg[] {")
+
+            for j, sprite in enumerate(array):
+                sprite_x = (  sprite.objx + 8 ) / 16
+                sprite_y = (-(sprite.objy + 8)) / 16
+
+                sprite_dx = sprite_x - min_x
+                sprite_dy = sprite_y - min_y
+
+                param_0 = struct.unpack(">I", sprite.spritedata[2:6])[0]
+
+                print("            new GameObjectInitArg {")
+                print("                position = new Vector2(%ff, %ff)," % (sprite_dx, sprite_dy))
+
+                if i == 0 or i == 5:
+                    print("                base_arg = new GameObjectBase.InitArg { int_param = new int[2] { %d, %d }, bool_param = new bool[1] { %s }, float_param = new float[1] { %d } }" % (min(param_0 & 0xf, 3) + 1, param_0 >> 4 & 0xf, "true" if param_0 >> 8 & 0xf else "false", param_0 >> 12 & 0xfff))
+
+                elif i == 1:
+                    print("                base_arg = new GameObjectBase.InitArg { float_param = new float[4] { %ff, %d, %d, %ff } }" % ((param_0 & 0xf) * 0.5, param_0 >> 4 & 0xf, param_0 >> 12 & 0xfff, (param_0 >> 8 & 0xf) * 0.001))
+
+                elif i == 2:
+                    print("                base_arg = new GameObjectBase.InitArg { float_param = new float[4] { %ff, %d, %d }, bool_param = new bool[1] { %s } }" % ((param_0 & 0xf) * 0.5, param_0 >> 4 & 0xf, param_0 >> 12 & 0xfff,  "true" if param_0 >> 8 & 0xf else "false"))
+
+                elif i == 3:
+                    print("                base_arg = new GameObjectBase.InitArg { float_param = new float[1] { %d }, int_param = new int[1] { %d } }" % (param_0 >> 4 & 0xf, min(param_0 & 0xf, 3) + 1))
+
+                else:  # if i == 4:
+                    print("                base_arg = new GameObjectBase.InitArg { float_param = new float[3] { %d, %d, %ff }, int_param = new int[1] { %d } }" % (param_0 >> 4 & 0xf, param_0 >> 12 & 0xfff, (param_0 >> 8 & 0xf) * 0.001, min(param_0 & 0xf, 3) + 1))
+
+                if j == len(array) - 1:
+                    print("            }")
+                else:
+                    print("            },")
+
+            if i == 5:
+                print("        }")
+            else:
+                print("        },")
+
+        print("    };")
 
     def showPuzzleWindow(self, name, data, slot, con=False):
         pw = PuzzleWindow(name, data, slot, con, Qt.Dialog)
