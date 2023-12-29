@@ -1956,7 +1956,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 # Draw the zone
                 paint.setPen(QtGui.QPen(theme.color('zone_lines'), 3))
                 paint.setBrush(QtGui.QBrush(toQColor(0, 0, 0, 0)))
-                paint.drawRect(QtCore.QRectF( 8.5 * tilewidth, 3.25 * tilewidth, 16 * tilewidth, 7.5 * tilewidth))
+                paint.drawRect(QtCore.QRectF(8.5 * tilewidth, 3.25 * tilewidth, 16 * tilewidth, 7.5 * tilewidth))
                 paint.setPen(QtGui.QPen(theme.color('zone_corner'), 3))
                 paint.setBrush(QtGui.QBrush(theme.color('zone_corner'), 3))
                 paint.drawRect(QtCore.QRectF(8.4375 * tilewidth, 3.1875 * tilewidth, 0.125 * tilewidth, 0.125 * tilewidth))
