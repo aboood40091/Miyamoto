@@ -663,7 +663,7 @@ def drawForegroundGrid(painter, rect):
         return
 
     Zoom = globals.mainWindow.ZoomLevel
-    drawLine = painter.drawLine
+    drawLine = lambda x1, y1, x2, y2: painter.drawLine(round(x1), round(y1), round(x2), round(y2))
     GridColor = globals.theme.color('grid')
 
     if globals.GridType == 'grid':  # draw a classic grid
@@ -709,8 +709,8 @@ def drawForegroundGrid(painter, rect):
 
         Light = QtGui.QColor(GridColor)
         Dark = QtGui.QColor(GridColor)
-        Light.setAlpha(Light.alpha() * L)
-        Dark.setAlpha(Dark.alpha() * D)
+        Light.setAlpha(min(round(Light.alpha() * L), 255))
+        Dark.setAlpha(min(round(Dark.alpha() * D), 255))
 
         size = globals.TileWidth if Zoom >= 50 else globals.TileWidth * 8
 

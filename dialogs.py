@@ -663,7 +663,7 @@ class ZonesDialog(QtWidgets.QDialog):
                                                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
             if result == QtWidgets.QMessageBox.No:
                 return
-        
+
         z0 = self.zoneTabs[self.tabWidget.currentIndex()].zoneObj
 
         id = len(self.zoneTabs)
@@ -1016,11 +1016,11 @@ class ZoneTab(QtWidgets.QWidget):
         ZoneCameraUnknownsLayout = QtWidgets.QHBoxLayout()
         ZoneCameraUnknownsLayout.addLayout(ZoneCameraUnknownsLayoutA)
         ZoneCameraUnknownsLayout.addLayout(ZoneCameraUnknownsLayoutB)
-        
+
         ZoneSettingsLeft = QtWidgets.QFormLayout()
         ZoneSettingsRight = QtWidgets.QFormLayout()
         settingsNames = globals.trans.stringList('ZonesDlg', 77)
-        
+
         for i in range(0, 8):
             self.Zone_settings.append(QtWidgets.QCheckBox())
             self.Zone_settings[i].setChecked(z.type & 1 << i)
@@ -1030,7 +1030,7 @@ class ZoneTab(QtWidgets.QWidget):
                 ZoneSettingsLeft.addRow(settingsNames[i], self.Zone_settings[i])
             else:
                 ZoneSettingsRight.addRow(settingsNames[i], self.Zone_settings[i])
-            
+
         ZoneSettingsLayout = QtWidgets.QHBoxLayout()
         ZoneSettingsLayout.addLayout(ZoneSettingsLeft)
         ZoneSettingsLayout.addStretch()
@@ -1069,7 +1069,7 @@ class ZoneTab(QtWidgets.QWidget):
             self.Zone_visibility.addItems(globals.trans.stringList('ZonesDlg', 45))
             self.Zone_visibility.setToolTip(globals.trans.string('ZonesDlg', 46))
             if SelectedIndex > 5: SelectedIndex = 5
-        
+
         self.Zone_visibility.setCurrentIndex(SelectedIndex)
 
     def ChangeCamModeList(self):
@@ -1639,6 +1639,7 @@ class PreferencesDialog(QtWidgets.QDialog):
                 L.addRow(globals.trans.string('PrefsDlg', 32), self.compLevel)
                 L.addRow(globals.trans.string('PrefsDlg', 43), self.separate)
                 L.addRow(globals.trans.string('PrefsDlg', 44), self.rotationFPS)
+
                 self.setLayout(L)
 
                 # Set the buttons
@@ -1955,14 +1956,14 @@ class PreferencesDialog(QtWidgets.QDialog):
                 # Draw the zone
                 paint.setPen(QtGui.QPen(theme.color('zone_lines'), 3))
                 paint.setBrush(QtGui.QBrush(toQColor(0, 0, 0, 0)))
-                paint.drawRect(8.5 * tilewidth, 3.25 * tilewidth, 16 * tilewidth, 7.5 * tilewidth)
+                paint.drawRect(QtCore.QRectF( 8.5 * tilewidth, 3.25 * tilewidth, 16 * tilewidth, 7.5 * tilewidth))
                 paint.setPen(QtGui.QPen(theme.color('zone_corner'), 3))
                 paint.setBrush(QtGui.QBrush(theme.color('zone_corner'), 3))
-                paint.drawRect(8.4375 * tilewidth, 3.1875 * tilewidth, 0.125 * tilewidth, 0.125 * tilewidth)
-                paint.drawRect(8.4375 * tilewidth, 10.6875 * tilewidth, 0.125 * tilewidth, 0.125 * tilewidth)
+                paint.drawRect(QtCore.QRectF(8.4375 * tilewidth, 3.1875 * tilewidth, 0.125 * tilewidth, 0.125 * tilewidth))
+                paint.drawRect(QtCore.QRectF(8.4375 * tilewidth, 10.6875 * tilewidth, 0.125 * tilewidth, 0.125 * tilewidth))
                 paint.setPen(QtGui.QPen(theme.color('zone_text'), 1))
                 font = QtGui.QFont(globals.NumberFont)
-                font.setPointSize(5 / 16 * tilewidth)
+                font.setPointSize(round((5 / 16) * tilewidth))
                 paint.setFont(font)
                 paint.drawText(QtCore.QPointF(8.75 * tilewidth, 3.875 * tilewidth), 'Zone 1')
 

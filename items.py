@@ -386,7 +386,7 @@ class ObjectItem(LevelEditorItem):
         self.objdata = RenderObject(self.tileset, self.type, self.width, self.height)
         self.randomise()
         self.UpdateSearchDatabase()
- 
+
     def randomise(self, startx=0, starty=0, width=None, height=None):
         """
         Randomises (a part of) the self.objdata according to the loaded tileset
@@ -1203,7 +1203,7 @@ class ZoneItem(LevelEditorItem):
             self.draginitialx2 = self.objx + self.width
             self.draginitialy2 = self.objy + self.height
             event.accept()
-            
+
         else:
             LevelEditorItem.mousePressEvent(self, event)
 
@@ -1534,7 +1534,7 @@ class LocationItem(LevelEditorItem):
             self.draginitialx2 = self.objx + self.width
             self.draginitialy2 = self.objy + self.height
             event.accept()
-            
+
         else:
             LevelEditorItem.mousePressEvent(self, event)
 
@@ -2264,11 +2264,11 @@ class EntranceItem(LevelEditorItem):
             if self.parent.enttype == 20:
                 # Jumping facing right
 
-                path = QtGui.QPainterPath(QtCore.QPoint(globals.TileWidth / 2, 11.5 * globals.TileWidth))
-                path.cubicTo(QtCore.QPoint(globals.TileWidth * 5 / 3, -globals.TileWidth),
-                             QtCore.QPoint(2.0833333 * globals.TileWidth, -globals.TileWidth),
-                             QtCore.QPoint(2.5 * globals.TileWidth, globals.TileWidth * 3 / 2))
-                path.lineTo(QtCore.QPoint(4 * globals.TileWidth, 12.5 * globals.TileWidth))
+                path = QtGui.QPainterPath(QtCore.QPointF(globals.TileWidth / 2, 11.5 * globals.TileWidth))
+                path.cubicTo(QtCore.QPointF(globals.TileWidth * 5 / 3, -globals.TileWidth),
+                             QtCore.QPointF(2.0833333 * globals.TileWidth, -globals.TileWidth),
+                             QtCore.QPointF(2.5 * globals.TileWidth, globals.TileWidth * 3 / 2))
+                path.lineTo(QtCore.QPointF(4 * globals.TileWidth, 12.5 * globals.TileWidth))
 
                 painter.setPen(SLib.OutlinePen)
                 painter.drawPath(path)
@@ -2291,11 +2291,11 @@ class EntranceItem(LevelEditorItem):
             elif self.parent.enttype == 24:
                 # Jumping facing left
 
-                path = QtGui.QPainterPath(QtCore.QPoint(3.5833333 * globals.TileWidth, 11.5 * globals.TileWidth))
-                path.cubicTo(QtCore.QPoint(2.41666666 * globals.TileWidth, -globals.TileWidth),
-                             QtCore.QPoint(globals.TileWidth / 2, -globals.TileWidth),
-                             QtCore.QPoint(1.58333333 * globals.TileWidth, globals.TileWidth * 3 / 2))
-                path.lineTo(QtCore.QPoint(globals.TileWidth / 12, globals.TileWidth * 12.5))
+                path = QtGui.QPainterPath(QtCore.QPointF(3.5833333 * globals.TileWidth, 11.5 * globals.TileWidth))
+                path.cubicTo(QtCore.QPointF(2.41666666 * globals.TileWidth, -globals.TileWidth),
+                             QtCore.QPointF(globals.TileWidth / 2, -globals.TileWidth),
+                             QtCore.QPointF(1.58333333 * globals.TileWidth, globals.TileWidth * 3 / 2))
+                path.lineTo(QtCore.QPointF(globals.TileWidth / 12, globals.TileWidth * 12.5))
 
                 painter.setPen(SLib.OutlinePen)
                 painter.drawPath(path)
@@ -2936,9 +2936,9 @@ class CommentItem(LevelEditorItem):
         self.TextEditProxy.boundingRect = lambda self: QtCore.QRectF(0, 0, 4000, 4000)
         self.TextEdit.setVisible(False)
         self.TextEdit.setMinimumWidth(8 * globals.TileWidth)
-        self.TextEdit.setMinimumHeight(16 * globals.TileWidth / 3)
+        self.TextEdit.setMinimumHeight(round(16 * globals.TileWidth / 3))
         self.TextEdit.setMaximumWidth(8 * globals.TileWidth)
-        self.TextEdit.setMaximumHeight(16 * globals.TileWidth / 3)
+        self.TextEdit.setMaximumHeight(round(16 * globals.TileWidth / 3))
         self.TextEdit.setPlainText(self.text)
         self.TextEdit.textChanged.connect(self.handleTextChanged)
         self.TextEdit.zoomIn(13)

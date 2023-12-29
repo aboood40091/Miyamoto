@@ -170,10 +170,12 @@ class LevelOverviewWidget(QtWidgets.QWidget):
             dr(r)
 
         painter.setPen(QtGui.QPen(globals.theme.color('overview_viewbox'), 1))
-        painter.drawRect(self.Xposlocator / globals.TileWidth / self.mainWindowScale,
-                         self.Yposlocator / globals.TileWidth / self.mainWindowScale,
-                         self.Wlocator / globals.TileWidth / self.mainWindowScale,
-                         self.Hlocator / globals.TileWidth / self.mainWindowScale)
+        painter.drawRect(QtCore.QRectF(
+            self.Xposlocator / globals.TileWidth / self.mainWindowScale,
+            self.Yposlocator / globals.TileWidth / self.mainWindowScale,
+            self.Wlocator / globals.TileWidth / self.mainWindowScale,
+            self.Hlocator / globals.TileWidth / self.mainWindowScale
+        ))
 
     def CalcSize(self):
         """
@@ -685,7 +687,7 @@ class QuickPaintConfigWidget(QtWidgets.QWidget):
             self.display_objects = []
             self.BadObjectWarning = False
             # I just feel like giving this widget a darker background than normal for some reason. Maybe it feels more empathetic.
-            bgcolor.setHsv(bghsv[0], min(bghsv[1] * 1.5, 255), bghsv[2] / 1.5, bghsv[3])
+            bgcolor.setHsv(bghsv[0], min(round(bghsv[1] * 1.5), 255), round(bghsv[2] / 1.5), bghsv[3])
             self.bgbrush = QtGui.QBrush(bgcolor)
             QtWidgets.QGraphicsScene.__init__(self, *args)
             self.parent = parent
@@ -1965,7 +1967,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
                         y += globals.TileWidth
                     p.end()
 
-                    pm = pm.scaledToWidth(pm.width() * 32 / globals.TileWidth, Qt.SmoothTransformation)
+                    pm = pm.scaledToWidth(round(pm.width() * 32 / globals.TileWidth), Qt.SmoothTransformation)
                     if pm.width() > 256:
                         pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
                     if pm.height() > 256:
@@ -2147,7 +2149,7 @@ class ObjectPickerWidget(QtWidgets.QListView):
                 p.end()
 
                 # Resize the preview for a good looking layout
-                pm = pm.scaledToWidth(pm.width() * 32 / globals.TileWidth, Qt.SmoothTransformation)
+                pm = pm.scaledToWidth(round(pm.width() * 32 / globals.TileWidth), Qt.SmoothTransformation)
                 if pm.width() > 256:
                     pm = pm.scaledToWidth(256, Qt.SmoothTransformation)
                 if pm.height() > 256:
@@ -3240,7 +3242,7 @@ class EntranceEditorWidget(QtWidgets.QWidget):
 
         if otherEnt:
             globals.mainWindow.view.centerOn(otherEnt.objx * (globals.TileWidth / 16), otherEnt.objy * (globals.TileWidth / 16))
-        
+
 
     def HandleCoinOrder(self, i):
         if self.UpdateFlag: return
@@ -3448,6 +3450,7 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         self.accel.setValue(path.nodeinfo['accel'])
         self.delay.setValue(path.nodeinfo['delay'])
         self.loops.setChecked(path.pathinfo['loops'])
+        self.unk1.setValue(path.pathinfo['unk1'])
 
         self.UpdateFlag = False
 
@@ -3481,7 +3484,7 @@ class PathNodeEditorWidget(QtWidgets.QWidget):
         """
         if self.UpdateFlag: return
         SetDirty()
-        self.path.nodeinfo['unk1'] = i
+        self.path.pathinfo['unk1'] = i
 
     def HandleLoopsChanged(self, i):
         if self.UpdateFlag: return

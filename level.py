@@ -33,7 +33,7 @@ from xml.etree import ElementTree as etree
 import globals
 import SarcLib
 import spritelib as SLib
-from tileset import CreateTilesets, SaveTileset, generateTilesetNames
+from tileset import CreateTilesets, SaveTileset
 
 #################################
 
@@ -84,7 +84,7 @@ class Level_NSMBU(AbstractLevel):
         """
         super().__init__()
         CreateTilesets()
-        
+
         import area
         self.areas.append(area.Area_NSMBU())
         globals.Area = self.areas[0]
@@ -178,6 +178,17 @@ class Level_NSMBU(AbstractLevel):
         Save the level back to a file
         """
 
+        # Save all the tilesets before anything
+        if globals.TilesetEdited or globals.OverrideTilesetSaving:
+            if globals.Area.tileset1:
+                tilesetData = SaveTileset(1)
+
+            if globals.Area.tileset2:
+                tilesetData = SaveTileset(2)
+
+            if globals.Area.tileset3:
+                tilesetData = SaveTileset(3)
+
         # Make a new archive
         newArchive = SarcLib.SARC_Archive(endianness='<')
 
@@ -198,27 +209,7 @@ class Level_NSMBU(AbstractLevel):
             if L2 is not None:
                 courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (areanum + 1), L2))
 
-        # Save all the tilesets
-        if globals.TilesetEdited or globals.OverrideTilesetSaving:
-            tilesetNames = generateTilesetNames()
-            if globals.Area.tileset1:
-                if globals.Area.tileset1 == "Pa1_untitled_%d" % globals.CurrentArea or globals.OverrideTilesetSaving:
-                    globals.Area.tileset1 = tilesetNames[0]
-
-                tilesetData = SaveTileset(1)
-
-            if globals.Area.tileset2:
-                if globals.Area.tileset2 == "Pa2_untitled_%d" % globals.CurrentArea or globals.OverrideTilesetSaving:
-                    globals.Area.tileset2 = tilesetNames[1]
-
-                tilesetData = SaveTileset(2)
-
-            if globals.Area.tileset3:
-                if globals.Area.tileset3 == "Pa3_untitled_%d" % globals.CurrentArea or globals.OverrideTilesetSaving:
-                    globals.Area.tileset3 = tilesetNames[2]
-
-                tilesetData = SaveTileset(3)
-
+        # Save the archive and return it
         return newArchive.save()[0]
 
     def saveNewArea(self, course_new, L0_new, L1_new, L2_new):
@@ -255,4 +246,5 @@ class Level_NSMBU(AbstractLevel):
         if L2_new is not None:
             courseFolder.addFile(SarcLib.File('course%d_bgdatL2.bin' % (len(self.areas) + 1), L2_new))
 
+        # Save the archive and return it
         return newArchive.save()[0]

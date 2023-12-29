@@ -27,7 +27,7 @@
 
 import os, sys
 
-MiyamotoID = 'Miyamoto! Level Editor by AboodXD, Gota7, John10v10, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean, Grop, and Reggie! by Treeki and Tempus'
+MiyamotoID = 'Miyamoto! Level Editor by AboodXD and Gota7, Based on Reggie! NSMBU by RoadrunnerWMC, MrRean and Grop, and Reggie! by Treeki and Tempus'
 MiyamotoVersion = '29.0 (DX)'
 MiyamotoVersionFloat = 29.0
 

@@ -50,7 +50,12 @@ import traceback
 import ftplib
 
 # PyQt5: import
-pqt_min = map(int, "5.8.0".split('.'))
+if currentRunningVersion >= 3.10:
+    pqt_min = map(int, "5.15.6".split('.'))
+    pqt_min_str = '5.15.6'
+else:
+    pqt_min = map(int, "5.12.2".split('.'))
+    pqt_min_str = '5.12.2'
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 Qt = QtCore.Qt
@@ -59,7 +64,7 @@ version = map(int, QtCore.QT_VERSION_STR.split('.'))
 for v, c in zip(version, pqt_min):
     if c > v:
         # lower version
-        errormsg = 'Please update your copy of PyQt to 5.8' + \
+        errormsg = 'Please update your copy of PyQt to ' + str(pqt_min_str) + \
                    ' or greater. Currently running on: ' + QtCore.QT_VERSION_STR
 
         raise Exception(errormsg) from None
@@ -117,10 +122,17 @@ from widgets import *
 from ftpDialog import *
 
 
+# Save the original exception handler
+_excepthook_original = sys.excepthook
+
+
 def _excepthook(*exc_info):
     """
     Custom unhandled exceptions handler
     """
+    if globals.app is None:
+        return _excepthook_original(*exc_info)
+
     separator = '-' * 80
     logFile = "log.txt"
     notice = \
@@ -1089,7 +1101,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         act.setIcon(GetIcon('overview'))
         act.setStatusTip(globals.trans.string('MenuItems', 95))
         self.vmenu.addAction(act)
-		
+
         # quick paint configuration
         dock = QtWidgets.QDockWidget(globals.trans.string('MenuItems', 136), self)
         dock.setFeatures(
@@ -1519,7 +1531,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         stampToolsBtn.setMenu(menu)
         stampToolsBtn.setPopupMode(QtWidgets.QToolButton.InstantPopup)
         stampToolsBtn.setSizePolicy(stampAddBtn.sizePolicy())
-        stampToolsBtn.setMinimumHeight(stampAddBtn.height() / 20)
+        stampToolsBtn.setMinimumHeight(round(stampAddBtn.height() / 20))
 
         stampNameLabel = QtWidgets.QLabel(globals.trans.string('Palette', 35))
         self.stampNameEdit = QtWidgets.QLineEdit()
@@ -1577,12 +1589,12 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Auto saves the level
         """
         return
-        if not globals.AutoSaveDirty: return
-
-        data = globals.Level.save()
-        setSetting('AutoSaveFilePath', self.fileSavePath)
-        setSetting('AutoSaveFileData', QtCore.QByteArray(data))
-        globals.AutoSaveDirty = False
+#        if not globals.AutoSaveDirty: return
+#
+#        data = globals.Level.save()
+#        setSetting('AutoSaveFilePath', self.fileSavePath)
+#        setSetting('AutoSaveFileData', QtCore.QByteArray(data))
+#        globals.AutoSaveDirty = False
 
     def TrackClipboardUpdates(self):
         """
@@ -1642,10 +1654,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         ret = msg.exec_()
 
         if ret == QtWidgets.QMessageBox.Save:
-            if not self.HandleSave():
-                # save failed
-                return True
-            return False
+            return not self.HandleSave()
         elif ret == QtWidgets.QMessageBox.Discard:
             return False
         elif ret == QtWidgets.QMessageBox.Cancel:
@@ -2518,9 +2527,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             reply = QtWidgets.QMessageBox.question(self, 'Message',
                                                    con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
 
-            if reply == QtWidgets.QMessageBox.Yes:
-                if not self.HandleSave(): return
-            else:
+            if reply != QtWidgets.QMessageBox.Yes or not self.HandleSave():
                 return
 
         filetypes = ''
@@ -2605,10 +2612,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             reply = QtWidgets.QMessageBox.question(self, 'Message',
                                                    con_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
 
-            if reply == QtWidgets.QMessageBox.Yes:
-                if not self.HandleSave(): return
-
-            else:
+            if reply != QtWidgets.QMessageBox.Yes or not self.HandleSave():
                 return
 
         globals.Level.deleteArea(globals.Area.areanum)
@@ -2705,7 +2709,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         SLib.RotationFPS = dlg.generalTab.rotationFPS.value()
         setSetting('RotationFPS', SLib.RotationFPS)
         if SLib.RotationTimer.isActive():
-            SLib.RotationTimer.setInterval(1000 / SLib.RotationFPS)
+            SLib.RotationTimer.setInterval(round(1000 / SLib.RotationFPS))
 
         # Get the Toolbar tab settings
         boxes = (
@@ -2769,11 +2773,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Save a level back to the archive
         """
         if not self.fileSavePath:
-            if not self.HandleSaveAs():
-                return False
-
-            else:
-                return True
+            return self.HandleSaveAs()
 
         data = globals.Level.save()
 
@@ -2858,10 +2858,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         Save a level back to the archive
         """
         if not self.fileSavePath:
-            if not self.HandleSaveAs():
-                return False
-            else:
-                return True
+            return self.HandleSaveAs()
 
         data = globals.Level.saveNewArea(course, L0, L1, L2)
 
@@ -3060,14 +3057,15 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         globals.OverrideSnapping = True
         globals.DirtyOverride += 1
-        for spr in globals.Area.sprites:
-            if isinstance(spr.ImageObj, SLib.SpriteImage_MovementControlled) and spr.ImageObj.controller:
-                spr.UpdateDynamicSizing()
+        if globals.Area is not None:
+            for spr in globals.Area.sprites:
+                if isinstance(spr.ImageObj, SLib.SpriteImage_MovementControlled) and spr.ImageObj.controller:
+                    spr.UpdateDynamicSizing()
         globals.DirtyOverride -= 1
         globals.OverrideSnapping = False
 
         if globals.Area is not None and globals.RotationShown:
-            SLib.RotationTimer.start(1000 / SLib.RotationFPS)
+            SLib.RotationTimer.start(round(1000 / SLib.RotationFPS))
 
         else:
             SLib.RotationTimer.stop()
@@ -4872,32 +4870,40 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             newnames = dlg.TilesetsTab.values()
 
             toUnload = []
+            tsChanged = False
 
             for idx, oldname, assignment, fname in zip(range(4), oldnames, assignments, newnames):
 
-                if fname in ('', None):
-                    toUnload.append(idx)
+                if not fname:
+                    if eval(assignment):
+                        toUnload.append(idx)
                     continue
                 elif fname.startswith(globals.trans.string('AreaDlg', 16)):
                     fname = fname[len(globals.trans.string('AreaDlg', 17, '[name]', '')):]
-                    if fname == '': continue
+                    if not fname: continue
+
+                if fname == eval(assignment):
+                    continue
 
                 exec(assignment + ' = fname')
                 LoadTileset(idx, fname)
+                tsChanged = True
 
             for idx in toUnload:
                 exec('globals.Area.tileset%d = \'\'' % idx)
                 UnloadTileset(idx)
+                tsChanged = True
 
-            HandleTilesetEdited(True)
+            if tsChanged:
+                HandleTilesetEdited(True)
 
-            if globals.Area.tileset0 != '':
-                self.objAllTab.setCurrentIndex(0)
-                self.objAllTab.setTabEnabled(0, True)
+                if globals.Area.tileset0 != '':
+                    self.objAllTab.setCurrentIndex(0)
+                    self.objAllTab.setTabEnabled(0, True)
 
-            else:
-                self.objAllTab.setCurrentIndex(2)
-                self.objAllTab.setTabEnabled(0, False)
+                else:
+                    self.objAllTab.setCurrentIndex(2)
+                    self.objAllTab.setTabEnabled(0, False)
 
             for layer in globals.Area.layers:
                 for obj in layer:
@@ -5127,15 +5133,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             tile_path = globals.miyamoto_path + '/macTools'
 
-        paths = reversed(globals.gamedef.GetGamePaths()); found = False
-        for path in paths:
-            if path is None:
-                break
+        found = False
+        if globals.Area.tileset0 not in ('', None):
+            paths = reversed(globals.gamedef.GetGamePaths())
+            for path in paths:
+                if path is None:
+                    break
 
-            sarcname = os.path.join(os.path.dirname(path), 'Unit', globals.Area.tileset0 + '.szs')
-            if os.path.isfile(sarcname):
-                found = True
-                break
+                sarcname = os.path.join(os.path.dirname(path), 'Unit', globals.Area.tileset0 + '.szs')
+                if os.path.isfile(sarcname):
+                    found = True
+                    break
 
         if found:
             with open(sarcname, 'rb') as fileobj:
@@ -5148,6 +5156,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
             con_msg = "This Tileset doesn't exist, please select a one from the area settings."
             warn = QtWidgets.QMessageBox(QtWidgets.QMessageBox.NoIcon, 'Message', con_msg)
             warn.exec_()
+            return
 
         self.showPuzzleWindow(globals.Area.tileset0, tile_path + '/tmp.tmp', '0')
 
@@ -5193,15 +5202,17 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         tilesetName = eval('globals.Area.tileset%d' % slot)
 
-        paths = reversed(globals.gamedef.GetGamePaths()); found = False
-        for path in paths:
-            if path is None:
-                break
+        found = False
+        if eval('globals.Area.tileset%d' % slot):
+            paths = reversed(globals.gamedef.GetGamePaths())
+            for path in paths:
+                if path is None:
+                    break
 
-            sarcname = os.path.join(os.path.dirname(path), 'Unit', tilesetName + '.szs')
-            if os.path.isfile(sarcname):
-                found = True
-                break
+                sarcname = os.path.join(os.path.dirname(path), 'Unit', tilesetName + '.szs')
+                if os.path.isfile(sarcname):
+                    found = True
+                    break
 
         if found:
             with open(sarcname, 'rb') as fileobj:
@@ -5214,7 +5225,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
 
         else:
             if not eval('globals.Area.tileset%d' % slot):
-                exec("globals.Area.tileset%d = generateTilesetNames()[%d]" % (slot, slot - 1))
+                exec("globals.Area.tileset%d = 'Pa%d_MIYAMOTO_TEMP'" % (slot, slot))
                 con = True
 
             sarcfile = 'None'

@@ -11,6 +11,7 @@ import os.path
 import platform
 import struct
 import sys
+import zlib
 
 from ctypes import create_string_buffer
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -68,7 +69,8 @@ class TilesetClass:
             self.coreType = (collision >>  0) & 0xFFFF
             self.params   = (collision >> 16) &   0xFF
             self.params2  = (collision >> 24) &   0xFF
-            self.solidity = (collision >> 32) &   0xFF
+            self.solidity = (collision >> 32) &    0xF
+            self.slide    = (collision >> 36) &    0xF
             self.terrain  = (collision >> 40) &   0xFF
 
 
@@ -77,6 +79,7 @@ class TilesetClass:
                     (self.params   << 16) |
                     (self.params2  << 24) |
                     (self.solidity << 32) |
+                    (self.slide    << 36) |
                     (self.terrain  << 40))
 
 
@@ -223,7 +226,7 @@ class TilesetClass:
 
         def createRepetitionY(self, y1, y2):
             self.clearRepetitionY()
-            
+
             for y in range(y1, y2):
                 for x in range(len(self.tiles[y])):
                     self.tiles[y][x] = (self.tiles[y][x][0] | 2, self.tiles[y][x][1], self.tiles[y][x][2])
@@ -942,10 +945,10 @@ class paletteWidget(QtWidgets.QWidget):
             ['Solid-on-Top', QtGui.QIcon(path + 'Collisions/SolidOnTop.png')],
             ['Solid-on-Bottom', QtGui.QIcon(path + 'Collisions/SolidOnBottom.png')],
             ['Solid-on-Top and Bottom', QtGui.QIcon(path + 'Collisions/SolidOnTopBottom.png')],
-            ['Slide (1)', QtGui.QIcon(path + 'Collisions/SlopedSlide.png')],
-            ['Slide (2)', QtGui.QIcon(path + 'Collisions/SlopedSlide.png')],
-            ['Staircase (1)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
-            ['Staircase (2)', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
+            ['Solid, Force Slide', QtGui.QIcon(path + 'Collisions/SlopedSlide.png')],
+            ['Solid-on-Top, Force Slide', QtGui.QIcon(path + 'Collisions/SlopedSlide.png')],
+            ['Solid, Disable Slide', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
+            ['Solid-on-Top, Disable Slide', QtGui.QIcon(path + 'Collisions/SlopedSolidOnTop.png')],
         ]
 
         for item in self.collsTypes:
@@ -959,11 +962,8 @@ class paletteWidget(QtWidgets.QWidget):
             '<b>Solid-on-Top:</b>\nThe tile can only be stood on.\n\n'
             '<b>Solid-on-Bottom:</b>\nThe tile can only be hit from below.\n\n'
             '<b>Solid-on-Top and Bottom:</b>\nThe tile can be stood on and hit from below, but not any other side.\n\n'
-            '<b>Slide:</b>\nThe player starts sliding without being able to jump when interacting with this solidity.\n\n'
-            '<b>Staircase:</b>\nUsed for staircases in Ghost Houses, Castle rooftop and in the main tilesets.\n\n'
-            'The difference between <b>Slide/Staircase (1)</b> and <b>Slide/Staircase (2)</b> is that (1) will\n'
-            'let you go past it by default (unless you add a solid tile edge), where as (2) will\n'
-            'force you to climb it (without the need of a solid tile edge).\n\n'.replace('\n', '<br>')
+            '<b>Force Slide:</b>\nThe player immediately starts sliding without being able to jump when interacting with this solidity.\n\n'
+            '<b>Disable Slide:</b>\nThe player will not be able to slide when interacting with this solidity.'.replace('\n', '<br>')
         )
 
 
@@ -1090,7 +1090,7 @@ class InfoBox(QtWidgets.QWidget):
         self.LabelB = QtWidgets.QLabel('Properties:')
         self.LabelB.setFont(Font)
 
-        self.hexdata = QtWidgets.QLabel('Hex Data: 0x0 0x0\n               0x0 0x0 0x0')
+        self.hexdata = QtWidgets.QLabel('Hex Data: 0000 00 00\n0 0 00')
         self.hexdata.setFont(Font)
 
 
@@ -1498,7 +1498,7 @@ class RepeatXModifiers(QtWidgets.QWidget):
             row.pop()
         else:
             return
-                
+
         row = object.tiles[y]
         if len(row) > 1:
             row.pop()
@@ -2769,7 +2769,7 @@ class frameByFrameTab(QtWidgets.QWidget):
             self.frameIdx.setEnabled(False)
             self.parent.allFramesTab.importButton.setEnabled(False)
 
-            self.previewTimer.start(62.5)
+            self.previewTimer.start(63) # 62.5
 
         else:
             self.importButton.setEnabled(True)
@@ -3160,7 +3160,12 @@ class animWidget(QtWidgets.QTabWidget):
                 painter.drawImage(x * 64, y * 64, tile)
 
         painter.end()
-        return tex, width*64, height*64
+
+        data = tex.bits()
+        data.setsize(tex.byteCount())
+        data = data.asstring()
+
+        return data, width*64, height*64
 
 
 
@@ -3758,14 +3763,27 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def saveTileset(self, close=False):
-        outdata = self.saving(os.path.basename(self.name))
+        if self.slot == 0:
+            filename = globals.Area.tileset0
+            assert os.path.basename(self.name) == filename
+            outdata = self.saving(filename)
+
+        else:
+            filename = eval('globals.Area.tileset%d' % self.slot)
+            # if not filename or filename == 'Pa%d_MIYAMOTO_TEMP' % self.slot:
+            if True:
+                filename, outdata = self.savingHashName()
+                exec("globals.Area.tileset%d = filename" % self.slot)
+            # else:
+            #     assert os.path.basename(self.name) == filename
+            #     outdata = self.saving(filename)
 
         paths = reversed(globals.gamedef.GetGamePaths())
         for path in paths:
             if not os.path.isdir(os.path.join(os.path.dirname(path), 'Unit')):
                 continue
 
-            sarcname = os.path.join(os.path.dirname(path), 'Unit', eval('globals.Area.tileset%d' % self.slot) + '.szs')
+            sarcname = os.path.join(os.path.dirname(path), 'Unit', filename + '.szs')
             CompYaz0(outdata, sarcname, globals.CompLevel)
             break
 
@@ -3817,7 +3835,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def saveTilesetFtp(self, close=False):
-        
+
         if not FtpDialog.checkShow():
             return
 
@@ -3844,7 +3862,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 tilesetFile.close()
 
                 break
-        
+
         except ftplib.all_errors:
             QtWidgets.QMessageBox.warning(None, globals.trans.string('FtpDlg', 0),
                                                 globals.trans.string('FtpDlg', 2))
@@ -3855,15 +3873,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def saveTilesetAs(self):
 
-        fn = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose a new filename', '', 'NSMBUDX tileset files (*.szs)')[0]
-        if fn == '': return
+        fn = str(QtWidgets.QFileDialog.getSaveFileName(self, 'Choose a new filename', '', 'NSMBUDX tileset files (*.szs)')[0])
+        if not fn or not fn.endswith('.szs'): return
 
-        outdata = self.saving(os.path.basename('.'.join(os.path.basename(str(fn)).split('.')[:-1])))
+        filename = os.path.basename(fn[:-4])
+        if not filename:
+            return
+
+        outdata = self.saving(filename)
         CompYaz0(outdata, fn, globals.CompLevel)
 
 
-    def saving(self, name):
-
+    def saveBuffers(self):
         # Prepare tiles, objects, object metadata, and textures and stuff into buffers.
         textureBuffer = self.PackTexture()
         textureBufferNml = self.PackTexture(True)
@@ -3872,7 +3893,10 @@ class MainWindow(QtWidgets.QMainWindow):
         objectBuffer = objectBuffers[0]
         objectMetaBuffer = objectBuffers[1]
 
+        return textureBuffer, textureBufferNml, tileBuffer, objectBuffer, objectMetaBuffer
 
+
+    def savingWithBuffers(self, name, textureBuffer, textureBufferNml, tileBuffer, objectBuffer, objectMetaBuffer):
         # Make an arc and pack up the files!
         arc = SarcLib.SARC_Archive(endianness='<')
 
@@ -3895,6 +3919,26 @@ class MainWindow(QtWidgets.QMainWindow):
         unt.addFile(SarcLib.File('%s_hd.bin' % name, objectMetaBuffer))
 
         return arc.save()[0]
+
+
+    def saving(self, name):
+        return self.savingWithBuffers(name, *self.saveBuffers())
+
+
+    def savingHashName(self):
+        buffers = self.saveBuffers()
+        buffers_data = b''.join(buffers)
+        buffers_hash = zlib.crc32(
+            buffers_data,
+            (self.slot << 24 |
+             self.slot << 16 |
+             self.slot << 8 |
+             self.slot)
+        )
+
+        # name = 'Pa%d_%08X%08X_%d' % (self.slot, buffers_hash, len(buffers_data), globals.Area.areanum)
+        name = 'Pa%d_%08X%08X' % (self.slot, buffers_hash, len(buffers_data))
+        return name, self.savingWithBuffers(name, *buffers)
 
 
     def PackTexture(self, normalmap=False):
@@ -3971,7 +4015,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 Yoffset += 64
 
         painter.end()
-        return tex
+
+        data = tex.bits()
+        data.setsize(tex.byteCount())
+        data = data.asstring()
+
+        return data
 
 
     def PackTiles(self):
@@ -4332,7 +4381,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setuptile()
 
-        self.objmodel.appendRow(QtGui.QStandardItem(QtGui.QIcon(tex.scaledToWidth(tex.width() / 60 * 24, Qt.SmoothTransformation)), 'Object {0}'.format(count-1)))
+        self.objmodel.appendRow(QtGui.QStandardItem(QtGui.QIcon(tex.scaledToWidth(round(tex.width() / 60 * 24), Qt.SmoothTransformation)), 'Object {0}'.format(count-1)))
         index = self.objectList.currentIndex()
         self.objectList.setCurrentIndex(index)
         self.tileWidget.setObject(index)
@@ -4595,8 +4644,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def updateInfo(self, x, y):
 
-        index = [self.tileDisplay.indexAt(QtCore.QPoint(x, y))]
-        curTile = Tileset.tiles[index[0].row()]
+        index = self.tileDisplay.indexAt(QtCore.QPoint(int(x), int(y))).row()
+        if index < 0 or index >= len(Tileset.objects):
+            return
+
+        curTile = Tileset.tiles[index]
         info = self.infoDisplay
         palette = self.paletteWidget
 
@@ -4604,7 +4656,9 @@ class MainWindow(QtWidgets.QMainWindow):
         propertyText = ''
 
 
-        if curTile.solidity == 1:
+        if curTile.solidity == 0:
+            propertyList.append('No Solidity')
+        elif curTile.solidity == 1:
             propertyList.append('Solid')
         elif curTile.solidity == 2:
             propertyList.append('Solid-on-Top')
@@ -4612,19 +4666,18 @@ class MainWindow(QtWidgets.QMainWindow):
             propertyList.append('Solid-on-Bottom')
         elif curTile.solidity == 4:
             propertyList.append('Solid-on-Top and Bottom')
-        elif curTile.solidity == 0x11:
-            propertyList.append('Slide (1)')
-        elif curTile.solidity == 0x12:
-            propertyList.append('Slide (2)')
-        elif curTile.solidity == 0x21:
-            propertyList.append('Staircase (1)')
-        elif curTile.solidity == 0x22:
-            propertyList.append('Staircase (2)')
+        else:
+            propertyList.append('Unknown Solidity')
+
+        if curTile.slide == 1:
+            propertyList.append('Force Slide')
+        elif curTile.slide == 2:
+            propertyList.append('Disable Slide')
+        elif curTile.slide != 0:
+            propertyList.append('Unknown Slide')
 
 
-        if len(propertyList) == 0:
-            propertyText = 'None'
-        elif len(propertyList) == 1:
+        if len(propertyList) == 1:
             propertyText = propertyList[0]
         else:
             propertyText = propertyList.pop(0)
@@ -4635,7 +4688,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if curTile.params < len(palette.ParameterList[curTile.coreType]):
                 parameter = palette.ParameterList[curTile.coreType][curTile.params]
             else:
-                print('Error 1: %d, %d, %d' % (index[0].row(), curTile.coreType, curTile.params))
+                print('Error 1: %d, %d, %d' % (index, curTile.coreType, curTile.params))
                 parameter = ['', QtGui.QIcon()]
         else:
             parameter = ['', QtGui.QIcon()]
@@ -4650,9 +4703,9 @@ class MainWindow(QtWidgets.QMainWindow):
         info.terrainInfo.setText(palette.terrainTypes[curTile.terrain][0])
         info.paramInfo.setText(parameter[0])
 
-        info.hexdata.setText('Hex Data: {0} {1}\n               {2} {3} {4}'.format(
-                             hex(curTile.coreType), hex(curTile.params),
-                             hex(curTile.params2), hex(curTile.solidity), hex(curTile.terrain)))
+        info.hexdata.setText('Hex Data: {0} {1} {2}\n{3} {4} {5}'.format(
+                             '%04X' % curTile.coreType, '%02X' % curTile.params, '%02X' % curTile.params2,
+                             '%01X' % curTile.solidity, '%01X' % curTile.slide,  '%02X' % curTile.terrain))
 
 
 
@@ -4679,13 +4732,16 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             curTile.params2 = 0
 
-        curTile.solidity = palette.collsType.currentIndex()
-
-        if curTile.solidity in [5, 6]:
-            curTile.solidity += 0xC
-
-        elif curTile.solidity in [7, 8]:
-            curTile.solidity += 0x1A
+        solidity = palette.collsType.currentIndex()
+        if solidity <= 4:
+            curTile.solidity = solidity
+            curTile.slide = 0
+        elif solidity <= 6:
+            curTile.solidity = solidity - 4
+            curTile.slide = 1
+        elif solidity <= 8:
+            curTile.solidity = solidity - 6
+            curTile.slide = 2
 
         curTile.terrain = palette.terrainType.currentIndex()
 

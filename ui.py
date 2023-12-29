@@ -387,11 +387,11 @@ def LoadNumberFont():
     # normal Qt defines Q_WS_WIN and Q_WS_MAC but we don't have that here
     s = QtCore.QSysInfo()
     if hasattr(s, 'WindowsVersion'):
-        globals.NumberFont = QtGui.QFont('Tahoma', (7 / 24) * globals.TileWidth)
+        globals.NumberFont = QtGui.QFont('Tahoma',        round((7 / 24) * globals.TileWidth))
     elif hasattr(s, 'MacintoshVersion'):
-        globals.NumberFont = QtGui.QFont('Lucida Grande', (9 / 24) * globals.TileWidth)
+        globals.NumberFont = QtGui.QFont('Lucida Grande', round((9 / 24) * globals.TileWidth))
     else:
-        globals.NumberFont = QtGui.QFont('Sans', (8 / 24) * globals.TileWidth)
+        globals.NumberFont = QtGui.QFont('Sans',          round((8 / 24) * globals.TileWidth))
 
 
 def GetIcon(name, big=False):
