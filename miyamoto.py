@@ -5200,8 +5200,6 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
         else:
             tile_path = globals.miyamoto_path + '/macTools'
 
-        tilesetName = eval('globals.Area.tileset%d' % slot)
-
         found = False
         if eval('globals.Area.tileset%d' % slot):
             paths = reversed(globals.gamedef.GetGamePaths())
@@ -5209,7 +5207,7 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 if path is None:
                     break
 
-                sarcname = os.path.join(os.path.dirname(path), 'Unit', tilesetName + '.szs')
+                sarcname = os.path.join(os.path.dirname(path), 'Unit', eval('globals.Area.tileset%d' % slot) + '.szs')
                 if os.path.isfile(sarcname):
                     found = True
                     break
