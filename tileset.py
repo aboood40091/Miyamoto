@@ -686,7 +686,7 @@ def CreateTilesets():
 
     globals.TilesetAnimTimer = QtCore.QTimer()
     globals.TilesetAnimTimer.timeout.connect(IncrementTilesetFrame)
-    globals.TilesetAnimTimer.start(63) # 62.5
+    globals.TilesetAnimTimer.start(63)  # 62.5
 
     globals.ObjectDefinitions = [None] * 4
 
@@ -1400,7 +1400,7 @@ def SaveTileset(idx):
 
     name = eval('globals.Area.tileset%d' % idx)
     # if name == 'Pa%d_MIYAMOTO_TEMP' % idx:
-    if idx > 0:  # Always True
+    if idx > 0:
         buffers = (tiledata, nmldata, colldata, deffile, indexfile)
         buffers_data = b''.join(buffers)
         buffers_hash = zlib.crc32(

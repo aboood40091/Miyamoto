@@ -2769,7 +2769,7 @@ class frameByFrameTab(QtWidgets.QWidget):
             self.frameIdx.setEnabled(False)
             self.parent.allFramesTab.importButton.setEnabled(False)
 
-            self.previewTimer.start(63) # 62.5
+            self.previewTimer.start(63)  # 62.5
 
         else:
             self.importButton.setEnabled(True)
@@ -3161,9 +3161,9 @@ class animWidget(QtWidgets.QTabWidget):
 
         painter.end()
 
-        data = tex.bits()
-        data.setsize(tex.byteCount())
-        data = data.asstring()
+        bits = tex.bits()
+        bits.setsize(tex.byteCount())
+        data = bits.asstring()
 
         return data, width*64, height*64
 
