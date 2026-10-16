@@ -54,13 +54,12 @@ if os.path.isdir(dir_): shutil.rmtree(dir_)
 os.makedirs(dir_)
 
 # exclude QtWebChannel, QtWebSockets and QtNetwork to save space, plus Python stuff we don't use
-excludes = ['doctest', 'pdb', 'unittest', 'difflib', 'inspect',
-    'os2emxpath', 'posixpath', 'optpath', 'locale', 'calendar',
-    'multiprocessing', 'ssl',
+excludes = ['doctest', 'pdb', 'unittest',
+    'os2emxpath', 'optpath',
     'PyQt5.QtWebChannel', 'PyQt5.QtWebSockets', 'PyQt5.QtNetwork']
 
 # Set it up
-base = 'Win32GUI' if sys.platform == 'win32' else None
+base = 'gui' if sys.platform == 'win32' else None
 setup(
     name = 'Miyamoto! DX',
     version = Version,
@@ -68,7 +67,7 @@ setup(
     options={
         'build_exe': {
             'excludes': excludes,
-            'packages': ['sip', 'encodings', 'encodings.hex_codec', 'encodings.utf_8'],
+            'packages': ['PyQt5.sip', 'bcn', 'libyaz0', 'SarcLib', 'encodings', 'encodings.hex_codec', 'encodings.utf_8'],
             'build_exe': dir_,
             'optimize': 2,
             'silent': True,

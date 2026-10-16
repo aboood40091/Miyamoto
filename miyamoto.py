@@ -5004,6 +5004,10 @@ class MiyamotoWindow(QtWidgets.QMainWindow):
                 yPos = bgTab.yPos.value()
                 zPos = bgTab.zPos.value()
                 parallaxMode = bgTab.parallaxMode.currentIndex()
+                if parallaxMode < 0:
+                    # The level stored a value the dropdown can't represent (index -1);
+                    # keep the original instead of packing -1 into an unsigned short
+                    parallaxMode = z.background[5]
                 z.background = (z.id, xPos, yPos, zPos, to_bytes(name, 16), parallaxMode)
 
                 if not ygn2Used:
